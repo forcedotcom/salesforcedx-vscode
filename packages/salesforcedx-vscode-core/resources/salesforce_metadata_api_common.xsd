@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-01-26T17:25:22.262Z
-Total metadata types: 1515
+Generated on: 2026-02-01T13:25:31.153Z
+Total metadata types: 1527
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -9181,6 +9181,31 @@ Total metadata types: 1515
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="BotBlockTranslation">
+  <xsd:annotation>
+   <xsd:documentation>BotBlockTranslation contains details for a translation of a bot block. Available in API version 59.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="botBlockVersions" minOccurs="0" maxOccurs="unbounded" type="BotBlockVersionTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of bot block version translations.</xsd:documentation>
+       <xsd:appinfo>Type: BotBlockVersionTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the bot block.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="BotBlockVersion">
   <xsd:annotation>
    <xsd:documentation>Represents the configuration details for an Einstein Bot block version, including dialogs and variables.</xsd:documentation>
@@ -9235,6 +9260,31 @@ Total metadata types: 1515
       <xsd:annotation>
        <xsd:documentation>Required. Indicates whether a block is published or is a draft.Values are: Published</xsd:documentation>
        <xsd:appinfo>Type: ConvDefBlockVersionStatus (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="BotBlockVersionTranslation">
+  <xsd:annotation>
+   <xsd:documentation>BotBlockVersionTranslation contains details for a translation of a bot block version. Available in API version 59.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="botDialogs" minOccurs="0" maxOccurs="unbounded" type="BotDialogTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of bot dialog translations for the bot block version.</xsd:documentation>
+       <xsd:appinfo>Type: BotDialogTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the bot block version.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -9911,6 +9961,31 @@ Total metadata types: 1515
       <xsd:annotation>
        <xsd:documentation>This field represents the configuration type of the bot. The default value is Bot. Valid values are: Bot—Default Einstein Bot configuration. ExternalCopilot— An external-facing agent. For example, an Agentforce Service agent. InternalCopilot— An internal-facing agent. For example, an Agentforce Employee agent.</xsd:documentation>
        <xsd:appinfo>Type: BotType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="BotTemplateTranslation">
+  <xsd:annotation>
+   <xsd:documentation>BotTemplateTranslation contains details for a translation of a bot template. Available in API version 59.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="botDialogs" minOccurs="0" maxOccurs="unbounded" type="BotDialogTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of bot dialog translations for the bot template.</xsd:documentation>
+       <xsd:appinfo>Type: BotDialogTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the bot template.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -19213,7 +19288,7 @@ Total metadata types: 1515
  </xsd:complexType>
  <xsd:complexType name="CustomLabels">
   <xsd:annotation>
-   <xsd:documentation>The CustomLabels metadata type allows you to create custom labels that can be localized for use in different languages, countries, and currencies.</xsd:documentation>
+   <xsd:documentation>The CustomLabels metadata type allows you to create custom labels that can be localized for use in different languages, countries, and currencies. This type extends the Metadata metadata type and inherits its fullName field. Custom labels are custom text values, up to 1,000 characters in length that can be accessed from Apex classes or Visualforce pages. For more information, see “Custom Labels” in Salesforce Help.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customlabels.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -22087,6 +22162,80 @@ Total metadata types: 1515
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="DataConnectorAttributeOptTranslation">
+  <xsd:annotation>
+   <xsd:documentation>DataConnectorAttributeOptTranslation contains details for a translation of a data connector attribute option. Available in API version 64.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The translated label for the attribute option.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the attribute option.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="DataConnectorAttributeTranslation">
+  <xsd:annotation>
+   <xsd:documentation>DataConnectorAttributeTranslation contains details for a translation of a data connector attribute. Available in API version 64.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="errorMessage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated error message for the attribute.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="infoMessage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated info message for the attribute.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="inputLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated input label for the attribute.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The translated label for the attribute.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the attribute.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="options" minOccurs="0" maxOccurs="unbounded" type="DataConnectorAttributeOptTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of data connector attribute option translations.</xsd:documentation>
+       <xsd:appinfo>Type: DataConnectorAttributeOptTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="DataConnectorError">
   <xsd:annotation>
    <xsd:documentation>Required.</xsd:documentation>
@@ -22111,6 +22260,31 @@ Total metadata types: 1515
       <xsd:annotation>
        <xsd:documentation>A list of localized labels and descriptions for use in different languages.</xsd:documentation>
        <xsd:appinfo>Type: LocalizedValue[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="DataConnectorErrorTranslation">
+  <xsd:annotation>
+   <xsd:documentation>DataConnectorErrorTranslation contains details for a translation of a data connector error. Available in API version 64.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The translated label for the error.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the error.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -22172,6 +22346,61 @@ Total metadata types: 1515
      <xsd:element name="s3BucketName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Optional. The Amazon S3 Name of the Bucket.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="DataConnectorTranslation">
+  <xsd:annotation>
+   <xsd:documentation>DataConnectorTranslation contains details for a translation of a data connector. Available in API version 64.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="attributes" minOccurs="0" maxOccurs="unbounded" type="DataConnectorAttributeTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of data connector attribute translations.</xsd:documentation>
+       <xsd:appinfo>Type: DataConnectorAttributeTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated description for the data connector.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="errors" minOccurs="0" maxOccurs="unbounded" type="DataConnectorErrorTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of data connector error translations.</xsd:documentation>
+       <xsd:appinfo>Type: DataConnectorErrorTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="help" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated help text for the data connector.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated label for the data connector.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="language" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The language for the data connector translation.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The name of the data connector.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30592,7 +30821,7 @@ Total metadata types: 1515
      </xsd:element>
      <xsd:element name="parameterType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The type of external auth identity provider parameter. The value of this field drives the behavior of the parameter. Values are: AuthorizeRequestQueryParameter AuthorizeUrl ClientAuthentication CreatedByNamespace IdentityProviderOptions RefreshRequestBodyParameter RefreshRequestHttpHeader RefreshRequestQueryParameter StandardExternalIdentityProvider TokenRequestBodyParameter TokenRequestHttpHeader TokenRequestQueryParameter TokenUrl UserInfoUrl</xsd:documentation>
+       <xsd:documentation>Required. The type of external auth identity provider parameter. The value of this field drives the behavior of the parameter. Values are: AuthorizeRequestQueryParameter AuthorizeUrl ClientAuthentication CreatedByNamespace IdentityProviderOptions ManagedByComponent ManagedByFeature RefreshRequestBodyParameter RefreshRequestHttpHeader RefreshRequestQueryParameter StandardExternalIdentityProvider TokenRequestBodyParameter TokenRequestHttpHeader TokenRequestQueryParameter TokenUrl UserInfoUrl</xsd:documentation>
        <xsd:appinfo>Type: ExtlIdentityProviderParmType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30806,7 +31035,7 @@ Total metadata types: 1515
      </xsd:element>
      <xsd:element name="parameterType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The type of external credential parameter. The value of this field drives the behavior of the parameter. Valid values are: AdditionalRefreshStatusCode: Allows the user to specify 4xx, 6xx, 7xx, 8xx, and 9xx HTTP status codes that trigger Salesforce to refresh expired or invalid access tokens, in addition to the standard 401 HTTP status code response. AuthHeader: Allows the user to specify custom authentication headers to be added to the callout at run time. When using AuthHeader, the parameterName field must be the header name as a string, and parameterValue must be a formula of a header value that is evaluated at run time. sequenceNumber determines the order in which headers are sent out in the callout. Headers with lower numbers are sent out first. AuthParameter: Allows the user to add additional authentication settings. parameterName defines the parameter to set. For example, AwsRegion sets the AWS Region parameter to apply for an AWS Signature V4 authentication protocol and parameterValue is the value for the AWS Region. AuthProtocolVariant: Used to specify a variant of an authentication protocol. For example, Aws Sts as a variant when the ParameterName is AwsSv4 and the ParameterValue is AwsSv4_STS. AuthProvider: Specifies that this parameter configures an authentication provider referenced by the authProvider field. AuthProviderUrl: Specifies the authentication endpoint URL. For example, if the authentication type is OAuth with JWT Bearer Flow, then parameterValue is an authentication token endpoint. AuthProviderUrlQueryParameter: Allows the user to specify custom query parameters to be added to the callout to the authentication provider at run time. Currently, supported only for AWS Signature V4 with STS. The allowed AuthProviderUrlQueryParameter values are AwsExternalId and AwsDuration, used with AWS STS. AwsStsPrincipal: Configures AWS Signature V4 along with STS. parameterName is AwsStsPrincipal and parameterValue isn’t specified. CreatedByNamespace: Reserved for internal use. ExternalAuthIdentityProvider: Specifies that this parameter configures an authentication provider referenced by the externalAuthIdentityProvider field. GlobalNamedPrincipal: Reserved for internal use. JwtBodyClaim: Specifies a JWT (JSON Web Token) body claim, where parameterName is the key and parameterValue is the value. For example, the parameter name for a JWT audience is aud. JwtHeaderClaim: Specifies a JWT header claim, where parameterName is the key and parameterValue is the value. For example, the parameter name for a JWT key identifier is kid. NamedPrincipal: Specifies that the parameter uses the same set of user credentials for all users who access the external system. PerUserPrincipal: Provides access control at the individual user level. SigningCertificate: Specifies the certificate used for an authentication signature. Use the certificate field to specify the certificate name. Used for OAuth with JWT Bearer Flow and AwsSv4 STS with RolesAnywhere authentication. SystemUserPrincipal: Reserved for internal use.</xsd:documentation>
+       <xsd:documentation>Required. The type of external credential parameter. The value of this field drives the behavior of the parameter. Valid values are: AdditionalRefreshStatusCode: Allows the user to specify 4xx, 6xx, 7xx, 8xx, and 9xx HTTP status codes that trigger Salesforce to refresh expired or invalid access tokens, in addition to the standard 401 HTTP status code response. AuthHeader: Allows the user to specify custom authentication headers to be added to the callout at run time. When using AuthHeader, the parameterName field must be the header name as a string, and parameterValue must be a formula of a header value that is evaluated at run time. sequenceNumber determines the order in which headers are sent out in the callout. Headers with lower numbers are sent out first. AuthParameter: Allows the user to add additional authentication settings. parameterName defines the parameter to set. For example, AwsRegion sets the AWS Region parameter to apply for an AWS Signature V4 authentication protocol and parameterValue is the value for the AWS Region. AuthProtocolVariant: Used to specify a variant of an authentication protocol. For example, Aws Sts as a variant when the ParameterName is AwsSv4 and the ParameterValue is AwsSv4_STS. AuthProvider: Specifies that this parameter configures an authentication provider referenced by the authProvider field. AuthProviderUrl: Specifies the authentication endpoint URL. For example, if the authentication type is OAuth with JWT Bearer Flow, then parameterValue is an authentication token endpoint. AuthProviderUrlQueryParameter: Allows the user to specify custom query parameters to be added to the callout to the authentication provider at run time. Currently, supported only for AWS Signature V4 with STS. The allowed AuthProviderUrlQueryParameter values are AwsExternalId and AwsDuration, used with AWS STS. AwsStsPrincipal: Configures AWS Signature V4 along with STS. parameterName is AwsStsPrincipal and parameterValue isn’t specified. CreatedByNamespace: Reserved for internal use. ExternalAuthIdentityProvider: Specifies that this parameter configures an authentication provider referenced by the externalAuthIdentityProvider field. GlobalNamedPrincipal: Reserved for internal use. JwtBodyClaim: Specifies a JWT (JSON Web Token) body claim, where parameterName is the key and parameterValue is the value. For example, the parameter name for a JWT audience is aud. JwtHeaderClaim: Specifies a JWT header claim, where parameterName is the key and parameterValue is the value. For example, the parameter name for a JWT key identifier is kid. ManagedByComponent: Reserved for internal use. ManagedByFeature: Reserved for internal use. NamedPrincipal: Specifies that the parameter uses the same set of user credentials for all users who access the external system. PerUserPrincipal: Provides access control at the individual user level. SfHttpRequestExtensionName: Reserved for internal use. SigningCertificate: Specifies the certificate used for an authentication signature. Use the certificate field to specify the certificate name. Used for OAuth with JWT Bearer Flow and AwsSv4 STS with RolesAnywhere authentication. SystemUserPrincipal: Reserved for internal use.</xsd:documentation>
        <xsd:appinfo>Type: ExternalCredentialParamType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -39432,10 +39661,20 @@ Total metadata types: 1515
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="flowTestDataSources" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for future use.</xsd:documentation>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="flowTestFlowVersions" minOccurs="0" maxOccurs="unbounded" type="FlowTestFlowVersion">
       <xsd:annotation>
        <xsd:documentation>An array of flow versions that are associated with the flow test. This field is available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: FlowTestFlowVersion[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="isolatedObjectExternalKeys" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for future use.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -39448,6 +39687,12 @@ Total metadata types: 1515
       <xsd:annotation>
        <xsd:documentation>An array of test points for the test.</xsd:documentation>
        <xsd:appinfo>Type: FlowTestPoint[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="testType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies whether the test contains assertions. This field is available in API version 66.0 and later.Possible values are: WithAssertion—The automated comparison of the actual flow outcome with the user-defined expected outcome that assertions define.</xsd:documentation>
+       <xsd:appinfo>Type: FlowTestType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -39579,6 +39824,11 @@ Total metadata types: 1515
       <xsd:annotation>
        <xsd:documentation>Required. The element API names for the start of the flow and the end of the flow. Possible values are: Start Finish</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="isUseMockOuput" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for future use.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="parameters" minOccurs="0" maxOccurs="unbounded" type="FlowTestParameter">
@@ -43551,7 +43801,7 @@ Total metadata types: 1515
  </xsd:complexType>
  <xsd:complexType name="Index">
   <xsd:annotation>
-   <xsd:documentation>Represents an index defined within a custom big object. Use this metadata type to define the composite primary key (index) for a custom big object.This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:documentation>Represents an index defined within a custom big object. Use this metadata type to define the composite primary key (index) for a custom big object. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_index.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -45907,6 +46157,12 @@ Total metadata types: 1515
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="ai_Beta" minOccurs="0" maxOccurs="unbounded" type="xsd:base64Binary">
+      <xsd:annotation>
+       <xsd:documentation>An internal AI description of the Lightning web component. This description is supported only in orgs that have Setup with Agentforce (Beta) enabled. This description enables Agentforce to analyze the component for inclusion in agent-generated Lightning pages. For more information, see Configure a Component for Use in Setup with Agentforce (Beta). Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: base64Binary</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="apiVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
        <xsd:documentation>A double value that binds the component to a Salesforce API version.</xsd:documentation>
@@ -45921,7 +46177,7 @@ Total metadata types: 1515
      </xsd:element>
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>A description of the Lightning web component.</xsd:documentation>
+       <xsd:documentation>A user-facing description of the Lightning web component. This description appears in list views, like the list of Lightning Components in Setup, and as a tooltip in the builders like Lightning App Builder and Experience Builder.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -46529,7 +46785,7 @@ Total metadata types: 1515
      </xsd:element>
      <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Inherited from Metadata, this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.</xsd:documentation>
+       <xsd:documentation>Required. Inherited from Metadata Metadata, this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -55754,7 +56010,7 @@ Total metadata types: 1515
      </xsd:element>
      <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The name of the portal.Inherited from Metadata, this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.</xsd:documentation>
+       <xsd:documentation>Required. The name of the portal.Inherited from Metadata , this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -56622,7 +56878,7 @@ Total metadata types: 1515
  </xsd:complexType>
  <xsd:complexType name="ProductSpecificationTypeTranslation">
   <xsd:annotation>
-   <xsd:documentation>ProductSpecificationTypeTranslation contains details for a translation of a product specification type. For more details, see ProductSpecificationType.</xsd:documentation>
+   <xsd:documentation>ProductSpecificationTypeTranslation contains details for a translation of a product specification type. For more details, see ProductSpecificationType. Available in API version 66.0 and later.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -59538,6 +59794,74 @@ Total metadata types: 1515
      <xsd:element name="severity" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Indicates the degree of impact that an alert in this category can have. Possible Education Cloud values are: High Low Medium Possible Financial Service Cloud values are: Error Info Minor Warning</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="RecordAlertCategoryTranslation">
+  <xsd:annotation>
+   <xsd:documentation>RecordAlertCategoryTranslation contains details for a translation of a record alert category. Available in API version 66.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated description for the record alert category.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The translated label for the record alert category.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the record alert category.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="RecordAlertTemplateTranslation">
+  <xsd:annotation>
+   <xsd:documentation>RecordAlertTemplateTranslation contains details for a translation of a record alert template. Available in API version 66.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated description for the record alert template.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated label for the record alert template.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the record alert template.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="subject" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated subject for the record alert template.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -63864,7 +64188,7 @@ Total metadata types: 1515
      </xsd:element>
      <xsd:element name="dataType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The data type of the attribute.Values are: Checkbox Currency Date Datetime Integer ListOfBoolean ListOfDouble ListOfInteger ListOfMaps ListOfString Map Number Percentage Text The default is Text. Selecting Currency doesn&apos;t cause an error, but currency conversions aren&apos;t supported.</xsd:documentation>
+       <xsd:documentation>The data type of the attribute.Values are: Attachment Checkbox Currency Date Datetime DisplayText Email IPAddress Integer ListOfAttachment(available in API version 65.0 and later) ListOfBoolean ListOfDouble ListOfInteger ListOfMaps ListOfString Lookup Map MultilineText MultiSelectPicklist(available in API version 65.0 and later) Number NumericScale Password(available in API version 65.0 and later) Percentage Picklist Queue RadioButton(available in API version 65.0 and later) SingleCheckbox (available in API version 59.0 and later) SinglelineText Text Toggle (available in API version 59.0 and later) Url The default is Text. Selecting Currency doesn&apos;t cause an error, but currency conversions aren&apos;t supported.</xsd:documentation>
        <xsd:appinfo>Type: SvcCatalogItemAttrDataType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -63927,6 +64251,37 @@ Total metadata types: 1515
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="ServiceProcessAttributeTranslation">
+  <xsd:annotation>
+   <xsd:documentation>ServiceProcessAttributeTranslation contains details for a translation of a service process attribute. Available in API version 64.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The translated label for the service process attribute.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the service process attribute.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="serviceProcessName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the service process.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="ServiceProcessDependency">
   <xsd:annotation>
    <xsd:documentation>A dependent component of the service process, which can be a flow, an OmniScript, an Integration Definition, or a preprocessor Apex class.</xsd:documentation>
@@ -63982,6 +64337,37 @@ Total metadata types: 1515
       <xsd:annotation>
        <xsd:documentation>Required. The group display order.</xsd:documentation>
        <xsd:appinfo>Type: int</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="ServiceProcessItemGroupTranslation">
+  <xsd:annotation>
+   <xsd:documentation>ServiceProcessItemGroupTranslation contains details for a translation of a service process item group. Available in API version 64.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="groupName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the service process item group.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the service process item group translation.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="serviceProcessName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the service process.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -67100,7 +67486,7 @@ Total metadata types: 1515
      </xsd:element>
      <xsd:element name="inputType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Values are: Attachment Checkbox Currency Date Datetime DisplayText Email IPAddress Integer ListOfBoolean ListOfDouble ListOfInteger ListOfMaps ListOfString Lookup Map MultilineText Number NumericScale Percentage Picklist Queue SingleCheckbox (available in API version 59.0 and later) SinglelineText Text Toggle (available in API version 59.0 and later) URL</xsd:documentation>
+       <xsd:documentation>Required. Values are: Attachment Checkbox Currency Date Datetime DisplayText Email IPAddress Integer ListOfAttachment(available in API version 65.0 and later) ListOfBoolean ListOfDouble ListOfInteger ListOfMaps ListOfString Lookup Map MultilineText MultiSelectPicklist(available in API version 65.0 and later) Number NumericScale Password(available in API version 65.0 and later) Percentage Picklist Queue RadioButton(available in API version 65.0 and later) SingleCheckbox (available in API version 59.0 and later) SinglelineText Text Toggle (available in API version 59.0 and later) Url</xsd:documentation>
        <xsd:appinfo>Type: SvcCatalogItemAttrDataType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -67506,7 +67892,7 @@ Total metadata types: 1515
      <xsd:element name="objectAccessLevels" minOccurs="0" maxOccurs="unbounded" type="Territory2AccessLevel">
       <xsd:annotation>
        <xsd:documentation>Represents the user access levels of an object associated to a territory. Available in API version 57.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: Territory2AccessLevel[]</xsd:appinfo>
+       <xsd:appinfo>Type: Territory2AccessLevel</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="opportunityAccessLevel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -67565,7 +67951,7 @@ Total metadata types: 1515
  </xsd:complexType>
  <xsd:complexType name="Territory2Model">
   <xsd:annotation>
-   <xsd:documentation>Represents the metadata associated with a territory model in Sales Territories. This type extends the Metadata metadata type and inherits its fullName field.Available if Sales Territories has been enabled.</xsd:documentation>
+   <xsd:documentation>Represents the metadata associated with a territory model in Sales Territories. This type extends the Metadata metadata type and inherits its fullName field. Available if Sales Territories has been enabled.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_territory2model.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -67842,7 +68228,7 @@ Total metadata types: 1515
  </xsd:complexType>
  <xsd:complexType name="Territory2Type">
   <xsd:annotation>
-   <xsd:documentation>Represents the metadata for a category of territories in Sales Territories. Every Territory2 must have a Territory2Type. This type extends the Metadata metadata type and inherits its fullName field.Available if Sales Territories has been enabled.</xsd:documentation>
+   <xsd:documentation>Represents the metadata for a category of territories in Sales Territories. Every Territory2 must have a Territory2Type. This type extends the Metadata metadata type and inherits its fullName field. Available if Sales Territories has been enabled.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_territory2type.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -67980,6 +68366,31 @@ Total metadata types: 1515
      <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The user interface label of the timeline object definition record.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="TimelineObjectDefinitionTranslation">
+  <xsd:annotation>
+   <xsd:documentation>Contains details for a translation of a timeline object definition. Available in API version 66.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Translated label for the timeline object definition.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Name of the timeline object definition.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -68248,10 +68659,34 @@ Total metadata types: 1515
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="aiCoachAgentScnrDefs" minOccurs="0" maxOccurs="unbounded" type="AiCoachAgentScnrDefTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of AI Coach agent scenario definition translations. Available in API version 64.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: AiCoachAgentScnrDefTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="botBlocks" minOccurs="0" maxOccurs="unbounded" type="BotBlockTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of bot block translations. Available in API version 59.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: BotBlockTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="botTemplates" minOccurs="0" maxOccurs="unbounded" type="BotTemplateTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of bot template translations. Available in API version 59.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: BotTemplateTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="bots" minOccurs="0" maxOccurs="unbounded" type="BotTranslation">
       <xsd:annotation>
        <xsd:documentation>A list of bot translations. Available in API version 53.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: BotTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="conversationMessageDefinitions" minOccurs="0" maxOccurs="unbounded" type="ConversationMessageDefinitionTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of conversation message definition translations. Available in API version 61.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: ConversationMessageDefinitionTranslation[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="customApplications" minOccurs="0" maxOccurs="unbounded" type="CustomApplicationTranslation">
@@ -68276,6 +68711,12 @@ Total metadata types: 1515
       <xsd:annotation>
        <xsd:documentation>A list of custom tab translations.</xsd:documentation>
        <xsd:appinfo>Type: CustomTabTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="dataConnectors" minOccurs="0" maxOccurs="unbounded" type="DataConnectorTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of data connector translations. Available in API version 64.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: DataConnectorTranslation[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="desFieldTemplateMessages" minOccurs="0" maxOccurs="unbounded" type="ExplainabilityMsgTemplateFieldTranslation">
@@ -68316,7 +68757,7 @@ Total metadata types: 1515
      </xsd:element>
      <xsd:element name="productSpecificationTypes" minOccurs="0" maxOccurs="unbounded" type="ProductSpecificationTypeTranslation">
       <xsd:annotation>
-       <xsd:documentation>A list of product specification type translations. This field is available in API version 64.0 and later.</xsd:documentation>
+       <xsd:documentation>A list of product specification type translations. This field is available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: ProductSpecificationTypeTranslation</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -68332,6 +68773,18 @@ Total metadata types: 1515
        <xsd:appinfo>Type: GlobalQuickActionTranslation[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="recordAlertCategories" minOccurs="0" maxOccurs="unbounded" type="RecordAlertCategoryTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of record alert category translations. Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: RecordAlertCategoryTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="recordAlertTemplates" minOccurs="0" maxOccurs="unbounded" type="RecordAlertTemplateTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of record alert template translations. Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: RecordAlertTemplateTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="reportTypes" minOccurs="0" maxOccurs="unbounded" type="ReportTypeTranslation">
       <xsd:annotation>
        <xsd:documentation>A list of report type translations.</xsd:documentation>
@@ -68342,6 +68795,24 @@ Total metadata types: 1515
       <xsd:annotation>
        <xsd:documentation>A list of s-control translations.</xsd:documentation>
        <xsd:appinfo>Type: ScontrolTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="svcCatalogItemAttributes" minOccurs="0" maxOccurs="unbounded" type="ServiceProcessAttributeTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of service catalog item attribute translations. Available in API version 64.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: ServiceProcessAttributeTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="svcCatalogItemGroups" minOccurs="0" maxOccurs="unbounded" type="ServiceProcessItemGroupTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of service catalog item group translations. Available in API version 64.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: ServiceProcessItemGroupTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="timelineObjectDefinitions" minOccurs="0" maxOccurs="unbounded" type="TimelineObjectDefinitionTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of timeline object definition translations. Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: TimelineObjectDefinitionTranslation[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -72859,7 +73330,9 @@ Total metadata types: 1515
  <xsd:element name="BlacklistedConsumer" type="BlacklistedConsumer"/>
  <xsd:element name="Bot" type="Bot"/>
  <xsd:element name="BotBlock" type="BotBlock"/>
+ <xsd:element name="BotBlockTranslation" type="BotBlockTranslation"/>
  <xsd:element name="BotBlockVersion" type="BotBlockVersion"/>
+ <xsd:element name="BotBlockVersionTranslation" type="BotBlockVersionTranslation"/>
  <xsd:element name="BotDialog" type="BotDialog"/>
  <xsd:element name="BotDialogGroup" type="BotDialogGroup"/>
  <xsd:element name="BotDialogTranslation" type="BotDialogTranslation"/>
@@ -72876,6 +73349,7 @@ Total metadata types: 1515
  <xsd:element name="BotStepCondition" type="BotStepCondition"/>
  <xsd:element name="BotStepTranslation" type="BotStepTranslation"/>
  <xsd:element name="BotTemplate" type="BotTemplate"/>
+ <xsd:element name="BotTemplateTranslation" type="BotTemplateTranslation"/>
  <xsd:element name="BotTranslation" type="BotTranslation"/>
  <xsd:element name="BotVariableOperand" type="BotVariableOperand"/>
  <xsd:element name="BotVariableOperation" type="BotVariableOperation"/>
@@ -73106,9 +73580,13 @@ Total metadata types: 1515
  <xsd:element name="DataConnector" type="DataConnector"/>
  <xsd:element name="DataConnectorAttribute" type="DataConnectorAttribute"/>
  <xsd:element name="DataConnectorAttributeOpt" type="DataConnectorAttributeOpt"/>
+ <xsd:element name="DataConnectorAttributeOptTranslation" type="DataConnectorAttributeOptTranslation"/>
+ <xsd:element name="DataConnectorAttributeTranslation" type="DataConnectorAttributeTranslation"/>
  <xsd:element name="DataConnectorError" type="DataConnectorError"/>
+ <xsd:element name="DataConnectorErrorTranslation" type="DataConnectorErrorTranslation"/>
  <xsd:element name="DataConnectorIngestApi" type="DataConnectorIngestApi"/>
  <xsd:element name="DataConnectorS3" type="DataConnectorS3"/>
+ <xsd:element name="DataConnectorTranslation" type="DataConnectorTranslation"/>
  <xsd:element name="DataDotComSettings" type="DataDotComSettings"/>
  <xsd:element name="DataImportManagementSettings" type="DataImportManagementSettings"/>
  <xsd:element name="DataKitObjectDependency" type="DataKitObjectDependency"/>
@@ -73894,6 +74372,8 @@ Total metadata types: 1515
  <xsd:element name="RecordAggregationObject" type="RecordAggregationObject"/>
  <xsd:element name="RecordAggregationObjectFilter" type="RecordAggregationObjectFilter"/>
  <xsd:element name="RecordAlertCategory" type="RecordAlertCategory"/>
+ <xsd:element name="RecordAlertCategoryTranslation" type="RecordAlertCategoryTranslation"/>
+ <xsd:element name="RecordAlertTemplateTranslation" type="RecordAlertTemplateTranslation"/>
  <xsd:element name="RecordPageSettings" type="RecordPageSettings"/>
  <xsd:element name="RecordType" type="RecordType"/>
  <xsd:element name="RecordTypePicklistValue" type="RecordTypePicklistValue"/>
@@ -73993,8 +74473,10 @@ Total metadata types: 1515
  <xsd:element name="ServicePresenceStatus" type="ServicePresenceStatus"/>
  <xsd:element name="ServiceProcess" type="ServiceProcess"/>
  <xsd:element name="ServiceProcessAttribute" type="ServiceProcessAttribute"/>
+ <xsd:element name="ServiceProcessAttributeTranslation" type="ServiceProcessAttributeTranslation"/>
  <xsd:element name="ServiceProcessDependency" type="ServiceProcessDependency"/>
  <xsd:element name="ServiceProcessItemGroup" type="ServiceProcessItemGroup"/>
+ <xsd:element name="ServiceProcessItemGroupTranslation" type="ServiceProcessItemGroupTranslation"/>
  <xsd:element name="ServiceSetupAssistantSettings" type="ServiceSetupAssistantSettings"/>
  <xsd:element name="SessionSecurityLevel" type="SessionSecurityLevel"/>
  <xsd:element name="SessionSettings" type="SessionSettings"/>
@@ -74090,6 +74572,7 @@ Total metadata types: 1515
  <xsd:element name="TimeSheetTemplate" type="TimeSheetTemplate"/>
  <xsd:element name="TimeSheetTemplateAssignment" type="TimeSheetTemplateAssignment"/>
  <xsd:element name="TimelineObjectDefinition" type="TimelineObjectDefinition"/>
+ <xsd:element name="TimelineObjectDefinitionTranslation" type="TimelineObjectDefinitionTranslation"/>
  <xsd:element name="TopicsForObjects" type="TopicsForObjects"/>
  <xsd:element name="TouchMobileSettings" type="TouchMobileSettings"/>
  <xsd:element name="TrailheadSettings" type="TrailheadSettings"/>
