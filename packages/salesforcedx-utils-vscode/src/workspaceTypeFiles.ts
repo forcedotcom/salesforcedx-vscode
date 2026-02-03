@@ -4,10 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import { FileType, Uri, workspace } from 'vscode';
+import { toUriEffect } from './services/extensionProvider';
 
 // utility methods shared with the vscode extension
+
+/** Resolve path to URI via extension API (FsService.toUri). */
+const toUri = async (filePath: string): Promise<Uri> => {
+  const uri = await Effect.runPromise(toUriEffect(filePath));
+  // FsService returns vscode-uri URI; workspace.fs expects vscode.Uri
+  return Uri.parse(uri.toString());
+};
 
 const SFDX_PROJECT = 'sfdx-project.json';
 
@@ -27,53 +36,13 @@ export const isLWC = (type: WorkspaceType): boolean =>
 export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX_PROJECT);
 
 /**
- * Gets the workspace folder URI for a given path, preserving the scheme (memfs, file, etc.)
- * Handles both absolute paths and relative paths (including parent directory traversal)
- */
-const getWorkspaceFolderUriForPath = (filePath: string, baseRoot?: string): Uri | null => {
-  if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-    return null;
-  }
-
-  // Normalize the path (resolve .. and . segments)
-  // In web mode, we need to handle paths relative to workspace folders
-  const normalizedPath = baseRoot ? path.resolve(baseRoot, filePath) : path.resolve(filePath);
-
-  // Find the workspace folder that contains this path
-  for (const folder of workspace.workspaceFolders) {
-    const folderPath = folder.uri.fsPath ?? folder.uri.path;
-    // Normalize folder path for comparison
-    const normalizedFolderPath = path.resolve(folderPath);
-
-    if (normalizedPath.startsWith(normalizedFolderPath + path.sep) || normalizedPath === normalizedFolderPath) {
-      // Use the workspace folder's URI scheme and join the relative path
-      const relativePath = path.relative(normalizedFolderPath, normalizedPath);
-      // Convert path separators to forward slashes for URI
-      const uriPath = relativePath.split(path.sep).join('/');
-      return Uri.joinPath(folder.uri, uriPath);
-    }
-  }
-
-  // If no matching workspace folder found, try to use the first one's scheme
-  const firstFolder = workspace.workspaceFolders[0];
-  // If the path is absolute and doesn't match any folder, use file:// scheme as fallback
-  if (path.isAbsolute(filePath)) {
-    return Uri.file(filePath);
-  }
-  // Otherwise, try to join with the first workspace folder
-  // Convert path separators to forward slashes for URI
-  const relativeUriPath = filePath.split(path.sep).join('/');
-  return Uri.joinPath(firstFolder.uri, relativeUriPath);
-};
-
-/**
  * Checks if a file exists using VS Code workspace API
  * In web mode, preserves the workspace folder's URI scheme (memfs, file, etc.)
  */
 const fileExists = async (filePath: string, baseRoot?: string): Promise<boolean> => {
   try {
-    // Try to use workspace folder URI to preserve scheme (memfs, file, etc.)
-    const fileUri = getWorkspaceFolderUriForPath(filePath, baseRoot) ?? Uri.file(filePath);
+    const resolvedPath = baseRoot ? path.resolve(baseRoot, filePath) : path.resolve(filePath);
+    const fileUri = await toUri(resolvedPath);
     const stat = await workspace.fs.stat(fileUri);
     return stat.type === FileType.File;
   } catch {
@@ -87,8 +56,8 @@ const fileExists = async (filePath: string, baseRoot?: string): Promise<boolean>
  */
 const readFileContent = async (filePath: string, baseRoot?: string): Promise<string | null> => {
   try {
-    // Try to use workspace folder URI to preserve scheme (memfs, file, etc.)
-    const fileUri = getWorkspaceFolderUriForPath(filePath, baseRoot) ?? Uri.file(filePath);
+    const resolvedPath = baseRoot ? path.resolve(baseRoot, filePath) : path.resolve(filePath);
+    const fileUri = await toUri(resolvedPath);
     const fileContent = await workspace.fs.readFile(fileUri);
     return Buffer.from(fileContent).toString('utf8');
   } catch {

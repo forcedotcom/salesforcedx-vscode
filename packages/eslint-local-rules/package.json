@@ -12,7 +12,7 @@
     "compile": "wireit",
     "test": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf out dist .wireit .eslintcache"
+    "clean": "shx rm -rf out dist .wireit .eslintcache .circular-deps.json"
   },
   "wireit": {
     "compile": {
@@ -22,7 +22,8 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",
@@ -42,10 +43,21 @@
       ],
       "output": []
     },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": ["compile"],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [".circular-deps.json"]
+    },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "compile"
+        "compile",
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
@@ -72,7 +84,7 @@
     "@humanwhocodes/momoa": "^3.3.10",
     "@types/eslint": "^9.0.0",
     "@types/estree": "^1.0.0",
-    "@typescript-eslint/rule-tester": "^8.47.0",
-    "@typescript-eslint/utils": "^8.47.0"
+    "@typescript-eslint/rule-tester": "^8.50.0",
+    "@typescript-eslint/utils": "^8.50.0"
   }
 }

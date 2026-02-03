@@ -9,10 +9,11 @@ import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
-import { SettingsService } from '../vscode/settingsService';
+import { unknownToErrorCause } from '../core/shared';
 import { fsPrefix } from './constants';
 import { FsProvider } from './fsTypes';
 import { TEMPLATES, metadataDirs } from './templates/templates';
+import { VirtualFsProviderError } from './virtualFsProviderError';
 
 const sampleProjectPath = `${fsPrefix}:/${sampleProjectName}`;
 const home = os.homedir();
@@ -40,7 +41,7 @@ const createConfigFiles = (fsp: FsProvider): void => {
 };
 
 /** Creates the project directory structure and files */
-const createProjectStructure = (fsp: FsProvider): Effect.Effect<void, Error, never> =>
+const createProjectStructure = (fsp: FsProvider) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ sampleProjectPath });
     const dirsToCreate = getDirsToCreate();
@@ -54,7 +55,7 @@ const createProjectStructure = (fsp: FsProvider): Effect.Effect<void, Error, nev
             .filter(uri => !fsp.exists(uri))
             .map(uri => fsp.createDirectory(uri))
         ),
-      catch: (error: unknown) => new Error(`Failed to create project directories: ${String(error)}`)
+      catch: (error: unknown) => new VirtualFsProviderError(unknownToErrorCause(error))
     });
 
     yield* Effect.all([Effect.sync(() => createConfigFiles(fsp)), Effect.sync(() => createVSCodeFiles(fsp))], {
@@ -85,7 +86,7 @@ const createVSCodeFiles = (fsp: FsProvider): void => {
 };
 
 /** Creates the files for an empty sfdx project */
-export const projectFiles = (fsp: FsProvider): Effect.Effect<void, Error, SettingsService> =>
+export const projectFiles = (fsp: FsProvider) =>
   Effect.gen(function* () {
     // Check if project already exists, if not create it
     const projectExists = fsp.exists(vscode.Uri.parse(`${sampleProjectPath}/sfdx-project.json`));

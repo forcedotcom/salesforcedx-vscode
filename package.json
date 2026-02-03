@@ -24,7 +24,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@effect/eslint-plugin": "0.3.2",
-    "@effect/language-service": "0.62.4",
+    "@effect/language-service": "0.72.0",
     "@eslint/json": "^0.3.0",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.11.0",
     "@octokit/core": "^5",
@@ -44,10 +44,10 @@
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
     "@types/xml2js": "0.4.14",
-    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
     "@vscode/test-electron": "2.5.2",
-    "@vscode/test-web": "0.0.76",
+    "@vscode/test-web": "^0.0.78",
     "@vscode/vsce": "3.5.0",
     "acorn": "8.15.0",
     "assert": "2.1.0",
@@ -56,8 +56,9 @@
     "crypto-browserify": "3.12.1",
     "cz-conventional-changelog": "3.3.0",
     "depcheck": "1.4.7",
+    "dpdm": "^3.14.0",
     "effect": "^3.19.13",
-    "esbuild": "0.25.10",
+    "esbuild": "0.25.12",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-plugin-polyfill-node": "0.3.0",
     "esbuild-plugin-transform": "0.5.0",
@@ -101,7 +102,7 @@
     "ts-jest": "^29.4.1",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "typescript-eslint": "^8.49.0",
+    "typescript-eslint": "^8.50.0",
     "util": "0.12.5",
     "vscode-extension-tester": "^8.16.0",
     "wireit": "^0.14.12",
@@ -117,6 +118,7 @@
     "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
     "compile": "wireit",
     "compile:clean": "tsc  --build --clean && npm run compile",
+    "compile:github-actions": "wireit",
     "compile:watch": "npm run compile && tsc --build --watch",
     "lint": "wireit",
     "test": "wireit",
@@ -151,6 +153,7 @@
   "wireit": {
     "compile": {
       "dependencies": [
+        "compile:github-actions",
         "./packages/eslint-local-rules:compile",
         "./packages/salesforcedx-utils:compile",
         "./packages/salesforcedx-vscode-i18n:compile",
@@ -158,6 +161,7 @@
         "./packages/salesforcedx-sobjects-faux-generator:compile",
         "./packages/salesforcedx-apex-debugger:compile",
         "./packages/salesforcedx-apex-replay-debugger:compile",
+        "./packages/effect-ext-utils:compile",
         "./packages/salesforcedx-aura-language-server:compile",
         "./packages/salesforcedx-lwc-language-server:compile",
         "./packages/salesforcedx-visualforce-markup-language-server:compile",
@@ -167,11 +171,13 @@
         "./packages/salesforcedx-vscode-apex-debugger:compile",
         "./packages/salesforcedx-vscode-apex-replay-debugger:compile",
         "./packages/salesforcedx-vscode-apex-oas:compile",
+        "./packages/salesforcedx-vscode-apex-testing:compile",
         "./packages/salesforcedx-vscode-lwc:compile",
         "./packages/salesforcedx-vscode-lightning:compile",
         "./packages/salesforcedx-vscode-soql:compile",
         "./packages/salesforcedx-vscode-visualforce:compile",
         "./packages/salesforcedx-vscode-services:compile",
+        "./packages/salesforcedx-vscode-metadata:compile",
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
@@ -187,6 +193,7 @@
         "./packages/salesforcedx-sobjects-faux-generator:lint",
         "./packages/salesforcedx-apex-debugger:lint",
         "./packages/salesforcedx-apex-replay-debugger:lint",
+        "./packages/effect-ext-utils:lint",
         "./packages/salesforcedx-visualforce-markup-language-server:lint",
         "./packages/salesforcedx-visualforce-language-server:lint",
         "./packages/salesforcedx-vscode-core:lint",
@@ -200,9 +207,11 @@
         "./packages/salesforcedx-vscode-soql:lint",
         "./packages/salesforcedx-vscode-visualforce:lint",
         "./packages/salesforcedx-vscode-services:lint",
+        "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
         "./packages/salesforcedx-vscode-automation-tests:lint",
+        "./packages/playwright-vscode-ext:lint",
         "./packages/salesforcedx-lightning-lsp-common:lint",
         "./packages/salesforcedx-aura-language-server:lint",
         "./packages/salesforcedx-lwc-language-server:lint"
@@ -230,6 +239,7 @@
         "./packages/salesforcedx-vscode-apex-testing:test",
         "./packages/salesforcedx-vscode-lwc:test",
         "./packages/salesforcedx-vscode-lightning:test",
+        "./packages/salesforcedx-vscode-metadata:test",
         "./packages/salesforcedx-vscode-soql:test",
         "./packages/salesforcedx-vscode-visualforce:test",
         "./packages/salesforcedx-vscode-services:test",
@@ -251,6 +261,7 @@
         "./packages/salesforcedx-vscode-services:vscode:bundle",
         "./packages/salesforcedx-vscode-org:vscode:bundle",
         "./packages/salesforcedx-vscode-org-browser:vscode:bundle",
+        "./packages/salesforcedx-vscode-metadata:vscode:bundle",
         "./packages/salesforcedx-vscode-apex-testing:vscode:bundle"
       ]
     },
@@ -284,6 +295,17 @@
       },
       "dependencies": [
         "vscode:package:modern"
+      ]
+    },
+    "compile:github-actions": {
+      "command": "tsc -p .github/actions/new-issue/tsconfig.json && tsc -p .github/actions/validate-issue/tsconfig.json && tsc -p .github/actions/check-feature-request/tsconfig.json",
+      "files": [
+        ".github/actions/*/src/**/*.ts",
+        ".github/actions/*/tsconfig.json",
+        "tsconfig.common.json"
+      ],
+      "output": [
+        ".github/actions/*/lib/**"
       ]
     },
     "check:peer-deps": {
@@ -333,8 +355,8 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "npm run compile && npm run precommit",
-      "pre-push": "npm run compile && npm run prepush"
+      "pre-commit": "npm run precommit",
+      "pre-push": "npm run prepush"
     }
   }
 }

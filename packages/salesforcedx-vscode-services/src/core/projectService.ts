@@ -7,22 +7,27 @@
 
 import { SfProject } from '@salesforce/core/project';
 import * as Cache from 'effect/Cache';
+import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as vscode from 'vscode';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { unknownToErrorCause } from './shared';
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export class FailedToResolveSfProjectError extends Data.TaggedError('FailedToResolveSfProjectError')<{
+  readonly cause?: Error;
+}> {}
+
 const setProjectOpenedContext = (value: boolean) =>
   Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:project_opened', value)).pipe(
     Effect.withSpan('setProjectOpenedContext', { attributes: { value } })
   );
 
-const resolveSfProject = (fsPath: string): Effect.Effect<SfProject, Error, never> =>
+const resolveSfProject = (fsPath: string) =>
   Effect.tryPromise({
     try: () => SfProject.resolve(fsPath),
-    catch: error => new Error('Project Resolution Error', { cause: error })
+    catch: error => new FailedToResolveSfProjectError(unknownToErrorCause(error))
   }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }));
 
 // Global cache - created once at module level, not scoped to any consumer
@@ -62,3 +67,5 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
   } as const,
   dependencies: [WorkspaceService.Default]
 }) {}
+
+export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}

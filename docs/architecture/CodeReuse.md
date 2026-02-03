@@ -8,7 +8,7 @@ If you're not familiar with these libraries, you'll see them widely used in DX t
 <https://github.com/forcedotcom/source-deploy-retrieve> (owned by CLI)
 <https://github.com/forcedotcom/source-tracking> (owned by CLI)
 <https://github.com/forcedotcom/salesforcedx-apex> (owned by IDE Foundations)
-<https://github.com/forcedotcom/templates> (owned by IDE Foundations)
+<https://github.com/forcedotcom/salesforcedx-templates> (owned by IDE Foundations)
 
 ## CLI Commands
 

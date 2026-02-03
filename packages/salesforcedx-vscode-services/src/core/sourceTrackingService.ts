@@ -5,94 +5,157 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import { type SourceTracking } from '@salesforce/source-tracking';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
-import { defaultOrgRef } from './defaultOrgService';
+import { getDefaultOrgRef } from './defaultOrgRef';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
-import { getOrgFromConnection } from './shared';
+import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
-const getTracking = Effect.gen(function* () {
-  const [connection, project, registryAccess, ref, configAggregator] = yield* Effect.all(
-    [
-      Effect.flatMap(ConnectionService, svc => svc.getConnection),
-      Effect.flatMap(ProjectService, svc => svc.getSfProject),
-      Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
-      SubscriptionRef.get(defaultOrgRef),
-      ConfigService.pipe(Effect.flatMap(svc => svc.getConfigAggregator))
-    ],
-    { concurrency: 'unbounded' }
-  );
-  yield* Effect.annotateCurrentSpan({ attributes: { supportsSourceTracking: ref.tracksSource } });
-  if (!ref.tracksSource) {
-    yield* Effect.succeed(undefined);
-  }
+export type SourceTrackingOptions = { ignoreConflicts?: boolean };
+export class SourceTrackingError extends Data.TaggedError('FailedToUpdateSourceTrackingError')<{
+  readonly cause: unknown;
+}> {}
 
-  // TODO: can we read this from the ref instead of calling the method?
-  // const supportsSourceTracking = yield* Effect.promise(() => org.supportsSourceTracking()).pipe(
-  //   Effect.catchAll(error => Effect.logError('Source Tracking check error', { cause: error }).pipe(Effect.as(false))),
-  //   Effect.withSpan('org.supportsSourceTracking')
-  // );
+export class SourceTrackingNotEnabledError extends Data.TaggedError('SourceTrackingNotEnabledError')<{
+  readonly message: string;
+}> {}
 
-  const [org, { SourceTracking }] = yield* Effect.all(
-    [
-      getOrgFromConnection(connection, configAggregator),
-      Effect.promise(() => import('@salesforce/source-tracking')).pipe(
-        Effect.withSpan('import @salesforce/source-tracking')
-      )
-    ],
-    { concurrency: 'unbounded' }
-  );
+export class SourceTrackingConflictError extends Data.TaggedError('SourceTrackingConflictError')<{
+  readonly conflicts: string[]; // conflict details
+}> {}
+/** Gets a SourceTracking instance with optional configuration.  Throws a SourceTrackingNotEnabledError if source tracking is not enabled */
+const getTrackingOrThrow = (options?: SourceTrackingOptions) =>
+  Effect.gen(function* () {
+    const tracking = yield* getTracking(options);
+    if (!tracking) {
+      return yield* Effect.fail(new SourceTrackingNotEnabledError({ message: 'Source tracking is not enabled' }));
+    }
+    return tracking;
+  });
+/** Creates a SourceTracking instance with optional configuration.  Returns undefined if source tracking is not enabled */
+const getTracking = (options?: SourceTrackingOptions) =>
+  Effect.gen(function* () {
+    const [connection, project, registryAccess, ref, configAggregator] = yield* Effect.all(
+      [
+        Effect.flatMap(ConnectionService, svc => svc.getConnection),
+        Effect.flatMap(ProjectService, svc => svc.getSfProject),
+        Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
+        SubscriptionRef.get(yield* getDefaultOrgRef()),
+        ConfigService.pipe(Effect.flatMap(svc => svc.getConfigAggregator))
+      ],
+      { concurrency: 'unbounded' }
+    );
+    yield* Effect.annotateCurrentSpan({
+      supportsSourceTracking: ref.tracksSource,
+      ignoreConflicts: options?.ignoreConflicts
+    });
 
-  return yield* Effect.tryPromise({
-    try: async () =>
-      SourceTracking.create({
-        org,
-        project,
-        ignoreLocalCache: true,
-        subscribeSDREvents: false,
-        ignoreConflicts: true,
-        registry: registryAccess
-      }),
-    catch: error => new Error('Failed to create SourceTracking', { cause: error })
-  }).pipe(Effect.withSpan('STL create'));
-}).pipe(Effect.withSpan('getTracking'));
+    if (ref.tracksSource !== true) {
+      return yield* Effect.succeed(undefined);
+    }
+
+    const [org, { SourceTracking }] = yield* Effect.all(
+      [
+        getOrgFromConnection(connection, configAggregator),
+        Effect.promise(() => import('@salesforce/source-tracking')).pipe(
+          Effect.withSpan('import @salesforce/source-tracking')
+        )
+      ],
+      { concurrency: 'unbounded' }
+    );
+
+    return yield* Effect.tryPromise({
+      try: async () =>
+        SourceTracking.create({
+          org,
+          project,
+          subscribeSDREvents: false,
+          ignoreConflicts: options?.ignoreConflicts ?? false,
+          registry: registryAccess
+        }),
+      catch: error => new SourceTrackingError(unknownToErrorCause(error))
+    }).pipe(Effect.withSpan('STL create'));
+  }).pipe(Effect.withSpan('getTracking'));
+
+/** Check for conflicts and display them in the channel, failing if conflicts are found */
+const checkConflicts = (tracking: SourceTracking) =>
+  Effect.gen(function* () {
+    const conflicts = yield* Effect.tryPromise({
+      try: () => tracking.getConflicts(),
+      catch: error => new SourceTrackingError(unknownToErrorCause(error))
+    }).pipe(Effect.withSpan('STL.GetConflicts'));
+
+    if (!conflicts?.length) {
+      return yield* Effect.succeed(undefined);
+    }
+    yield* Effect.annotateCurrentSpan({
+      conflicts: true
+    });
+    const conflictDetails = conflicts.map(c => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`);
+    yield* Effect.flatMap(ChannelService, channelService =>
+      channelService.appendToChannel(['Conflicts detected', ...conflictDetails.map(detail => `  ${detail}`)].join('\n'))
+    );
+    (yield* Effect.flatMap(ChannelService, channelService => channelService.getChannel)).show();
+    return yield* Effect.fail(
+      new SourceTrackingConflictError({
+        conflicts: conflictDetails
+      })
+    );
+  });
+
+/** safe to pass a result to.  If tracking is not enabled, this will be a no-op */
+const updateTrackingFromRetrieve = (result: RetrieveResult) =>
+  Effect.gen(function* () {
+    yield* Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) });
+    const tracking = yield* getTracking({ ignoreConflicts: true });
+    return tracking
+      ? yield* Effect.tryPromise({
+          try: () => tracking.updateTrackingFromRetrieve(result),
+          catch: error => {
+            console.error(error);
+            return new SourceTrackingError(unknownToErrorCause(error));
+          }
+        }).pipe(Effect.withSpan('trackingUpdate'))
+      : yield* Effect.succeed(undefined);
+  }).pipe(Effect.withSpan('SourceTrackingService.updateTrackingFromRetrieve'));
+
+/** safe to pass a result to.  If tracking is not enabled, this will be a no-op */
+const updateTrackingFromDeploy = (result: DeployResult) =>
+  Effect.gen(function* () {
+    const tracking = yield* getTracking({ ignoreConflicts: true });
+    return tracking
+      ? yield* Effect.all(
+          [
+            Effect.tryPromise({
+              try: () => tracking.updateTrackingFromDeploy(result),
+              catch: error => {
+                console.error(error);
+                return new SourceTrackingError(unknownToErrorCause(error));
+              }
+            }).pipe(Effect.withSpan('trackingUpdate in STL')),
+            Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) })
+          ],
+          { concurrency: 'unbounded' }
+        )
+      : yield* Effect.succeed(undefined);
+  }).pipe(Effect.withSpan('SourceTrackingService.updateTrackingFromDeploy'));
 
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   succeed: {
-    getSourceTracking: getTracking,
-    updateTrackingFromRetrieve: (result: RetrieveResult): Effect.Effect<void, Error> =>
-      Effect.gen(function* () {
-        yield* Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) });
-        const tracking = yield* getTracking;
-        return tracking
-          ? yield* Effect.tryPromise({
-              try: () => tracking.updateTrackingFromRetrieve(result),
-              catch: error => {
-                console.error(error);
-                return new Error('Failed to update SourceTracking from retrieve', { cause: error });
-              }
-            }).pipe(Effect.withSpan('trackingUpdate'))
-          : yield* Effect.succeed(undefined);
-      }).pipe(
-        Effect.withSpan('SourceTrackingService.updateTrackingFromRetrieve'),
-        Effect.provide(
-          Layer.mergeAll(
-            ConfigService.Default,
-            SettingsService.Default,
-            WorkspaceService.Default,
-            ProjectService.Default,
-            ConnectionService.Default,
-            MetadataRegistryService.Default
-          )
-        )
-      )
+    getSourceTrackingOrThrow: (options?: SourceTrackingOptions) => getTrackingOrThrow(options),
+    getSourceTracking: (options?: SourceTrackingOptions) => getTracking(options),
+    checkConflicts: (tracking: SourceTracking) => checkConflicts(tracking),
+    updateTrackingFromRetrieve,
+    updateTrackingFromDeploy
   } as const,
   dependencies: [
     ConnectionService.Default,
@@ -100,6 +163,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     ConfigService.Default,
     SettingsService.Default,
     WorkspaceService.Default,
-    MetadataRegistryService.Default
+    MetadataRegistryService.Default,
+    ChannelService.Default
   ]
 }) {}

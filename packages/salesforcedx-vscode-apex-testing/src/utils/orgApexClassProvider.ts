@@ -5,18 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 
 const SCHEME = 'sf-org-apex';
 
 /** Lookup function for fetching Apex class body from org */
-const lookupClassBody = (className: string): Effect.Effect<string, never, never> =>
+const lookupClassBody = (className: string) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const connectionService = yield* api.services.ConnectionService;
@@ -33,7 +34,15 @@ const lookupClassBody = (className: string): Effect.Effect<string, never, never>
     }
 
     const apexClass = result.records[0];
-    return apexClass.Body ?? `// Class '${className}' found but body is empty`;
+    const isManaged = apexClass.NamespacePrefix && apexClass.NamespacePrefix.length > 0;
+    const fullName = isManaged ? `${apexClass.NamespacePrefix}.${apexClass.Name}` : className;
+    if (apexClass.Body?.includes('(hidden)')) {
+      // Managed package classes have their source code protected
+      return nls.localize('apex_class_source_hidden', fullName);
+    } else if (!apexClass.Body) {
+      return `// Class '${fullName}' found but body is empty`;
+    }
+    return apexClass.Body;
   }).pipe(
     Effect.provide(AllServicesLayer),
     Effect.catchAll((error: unknown) => {

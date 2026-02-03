@@ -72,6 +72,7 @@
   "dependencies": {
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-utils": "*",
+    "salesforcedx-vscode-services": "*",
     "@salesforce/vscode-i18n": "*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
@@ -81,7 +82,7 @@
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-languageserver-types": "3.17.5",
-    "vscode-uri": "1.0.6"
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "jest-extended": "^0.11.5"
