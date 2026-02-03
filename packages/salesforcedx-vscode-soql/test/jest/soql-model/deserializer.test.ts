@@ -177,7 +177,7 @@ describe('deserialize should', () => {
     const expected = testQueryModel;
     const actual = deserialize(
       'SELECT field1, field2, field3 alias3, COUNT(fieldZ), (SELECT fieldA FROM objectA), TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END FROM object1 ' +
-        'WHERE field1 = 5 WITH DATA CATEGORY cat__c AT val__c GROUP BY field1 ORDER BY field2 DESC NULLS LAST, field1 LIMIT 20 OFFSET 2 BIND field1 = 5 FOR VIEW UPDATE TRACKING'
+      'WHERE field1 = 5 WITH DATA CATEGORY cat__c AT val__c GROUP BY field1 ORDER BY field2 DESC NULLS LAST, field1 LIMIT 20 OFFSET 2 BIND field1 = 5 FOR VIEW UPDATE TRACKING'
     );
     expect(actual).toEqual(expected);
   });
@@ -190,31 +190,31 @@ describe('deserialize should', () => {
   });
 
   it('identify no selections error', () => {
-    expectError('SELECT FROM object1', ErrorType.NOSELECTIONS);
+    expectError('SELECT FROM object1', 'NOSELECTIONS');
   });
 
   it('identify no SELECT clause error', () => {
-    expectError('FROM object1', ErrorType.NOSELECT);
+    expectError('FROM object1', 'NOSELECT');
   });
 
   it('identify incomplete FROM clause error', () => {
-    expectError('SELECT A FROM ', ErrorType.INCOMPLETEFROM);
+    expectError('SELECT A FROM ', 'INCOMPLETEFROM');
   });
 
   it('identify no FROM clause error', () => {
-    expectError('SELECT A', ErrorType.NOFROM);
+    expectError('SELECT A', 'NOFROM');
   });
 
   it('identify empty statement error', () => {
-    expectError('', ErrorType.EMPTY);
+    expectError('', 'EMPTY');
   });
 
   it('identify incomplete LIMIT clause error when number missing', () => {
-    expectError('SELECT A FROM B LIMIT', ErrorType.INCOMPLETELIMIT);
+    expectError('SELECT A FROM B LIMIT', 'INCOMPLETELIMIT');
   });
 
   it('identify incomplete LIMIT clause error when value is not a number', () => {
-    expectError('SELECT A FROM B LIMIT X', ErrorType.INCOMPLETELIMIT);
+    expectError('SELECT A FROM B LIMIT X', 'INCOMPLETELIMIT');
   });
 
   it('identify LIMIT 0 as valid limit clause', () => {
@@ -640,57 +640,57 @@ describe('deserialize should', () => {
   });
 
   it('identify empty WHERE', () => {
-    expectError('SELECT field1 FROM object1 WHERE', ErrorType.EMPTYWHERE);
+    expectError('SELECT field1 FROM object1 WHERE', 'EMPTYWHERE');
   });
 
   it('identify incomplete nested WHERE condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE ( field = 5', ErrorType.INCOMPLETENESTEDCONDITION);
+    expectError('SELECT field1 FROM object1 WHERE ( field = 5', 'INCOMPLETENESTEDCONDITION');
   });
 
   it('identify incomplete AND/OR condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE field = 5 AND', ErrorType.INCOMPLETEANDORCONDITION);
-    expectError('SELECT field1 FROM object1 WHERE OR field = 5', ErrorType.INCOMPLETEANDORCONDITION);
+    expectError('SELECT field1 FROM object1 WHERE field = 5 AND', 'INCOMPLETEANDORCONDITION');
+    expectError('SELECT field1 FROM object1 WHERE OR field = 5', 'INCOMPLETEANDORCONDITION');
   });
 
   it('identify incomplete NOT condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE NOT', ErrorType.INCOMPLETENOTCONDITION);
+    expectError('SELECT field1 FROM object1 WHERE NOT', 'INCOMPLETENOTCONDITION');
   });
 
   it('identify unrecognized literal value in condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE field = foo', ErrorType.UNRECOGNIZEDCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field LIKE foo', ErrorType.UNRECOGNIZEDCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field IN ( foo )', ErrorType.UNRECOGNIZEDCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field INCLUDES ( foo )', ErrorType.UNRECOGNIZEDCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field = foo', 'UNRECOGNIZEDCOMPAREVALUE');
+    expectError('SELECT field1 FROM object1 WHERE field LIKE foo', 'UNRECOGNIZEDCOMPAREVALUE');
+    expectError('SELECT field1 FROM object1 WHERE field IN ( foo )', 'UNRECOGNIZEDCOMPAREVALUE');
+    expectError('SELECT field1 FROM object1 WHERE field INCLUDES ( foo )', 'UNRECOGNIZEDCOMPAREVALUE');
   });
 
   it('identify unrecognized compare operator in condition', () => {
-    expectError("SELECT field1 FROM object1 WHERE field LIK 'foo'", ErrorType.UNRECOGNIZEDCOMPAREOPERATOR);
+    expectError("SELECT field1 FROM object1 WHERE field LIK 'foo'", 'UNRECOGNIZEDCOMPAREOPERATOR');
   });
 
   it('identify unrecognized compare field in condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE 5 = 5', ErrorType.UNRECOGNIZEDCOMPAREFIELD);
+    expectError('SELECT field1 FROM object1 WHERE 5 = 5', 'UNRECOGNIZEDCOMPAREFIELD');
   });
 
   it('identify missing compare value in condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE field =', ErrorType.NOCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field LIKE', ErrorType.NOCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field IN', ErrorType.NOCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field INCLUDES', ErrorType.NOCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field =', 'NOCOMPAREVALUE');
+    expectError('SELECT field1 FROM object1 WHERE field LIKE', 'NOCOMPAREVALUE');
+    expectError('SELECT field1 FROM object1 WHERE field IN', 'NOCOMPAREVALUE');
+    expectError('SELECT field1 FROM object1 WHERE field INCLUDES', 'NOCOMPAREVALUE');
   });
 
   it('identify missing compare operator in condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE field', ErrorType.NOCOMPAREOPERATOR);
+    expectError('SELECT field1 FROM object1 WHERE field', 'NOCOMPAREOPERATOR');
   });
 
   it('identify incomplete multi-value list', () => {
-    expectError('SELECT field1 FROM object1 WHERE field IN (', ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo'", ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo',", ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo', )", ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError('SELECT field1 FROM object1 WHERE field INCLUDES (', ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo'", ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo',", ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo', )", ErrorType.INCOMPLETEMULTIVALUELIST);
+    expectError('SELECT field1 FROM object1 WHERE field IN (', 'INCOMPLETEMULTIVALUELIST');
+    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo'", 'INCOMPLETEMULTIVALUELIST');
+    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo',", 'INCOMPLETEMULTIVALUELIST');
+    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo', )", 'INCOMPLETEMULTIVALUELIST');
+    expectError('SELECT field1 FROM object1 WHERE field INCLUDES (', 'INCOMPLETEMULTIVALUELIST');
+    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo'", 'INCOMPLETEMULTIVALUELIST');
+    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo',", 'INCOMPLETEMULTIVALUELIST');
+    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo', )", 'INCOMPLETEMULTIVALUELIST');
   });
 
   it('Identify comments at the top of the file', () => {
@@ -725,8 +725,8 @@ describe('deserialize should', () => {
   });
 
   it('identify unexpected end of file', () => {
-    expectError("SELECT field1 FROM obejct1 WHERE field = '", ErrorType.UNEXPECTEDEOF);
-    expectError('SELECT field1 FROM object1 GROUP BY', ErrorType.UNEXPECTEDEOF);
+    expectError("SELECT field1 FROM obejct1 WHERE field = '", 'UNEXPECTEDEOF');
+    expectError('SELECT field1 FROM object1 GROUP BY', 'UNEXPECTEDEOF');
   });
 
   function expectError(query: string, expectedType: ErrorType): void {

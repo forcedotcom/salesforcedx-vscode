@@ -253,12 +253,12 @@ describe('SoqlUtils', () => {
 
     it('addWildCardToValue() should clean value & add % in right place', () => {
       const rawValue = 'ABC';
-      expect(addWildCardToValue(UiOperatorValue.LIKE_START, rawValue)).toEqual('ABC%');
-      expect(addWildCardToValue(UiOperatorValue.LIKE_END, rawValue)).toEqual('%ABC');
-      expect(addWildCardToValue(UiOperatorValue.LIKE_CONTAINS, rawValue)).toEqual('%ABC%');
-      expect(addWildCardToValue(UiOperatorValue.LIKE, rawValue)).toEqual('ABC');
-      expect(addWildCardToValue(UiOperatorValue.EQ, rawValue)).toEqual('ABC');
-      expect(addWildCardToValue(UiOperatorValue.LIKE_START, '%%A%%%BC')).toEqual('A%%%BC%');
+      expect(addWildCardToValue('LIKE_START', rawValue)).toEqual('ABC%');
+      expect(addWildCardToValue('LIKE_END', rawValue)).toEqual('%ABC');
+      expect(addWildCardToValue('LIKE_CONTAINS', rawValue)).toEqual('%ABC%');
+      expect(addWildCardToValue('LIKE', rawValue)).toEqual('ABC');
+      expect(addWildCardToValue('EQ', rawValue)).toEqual('ABC');
+      expect(addWildCardToValue('LIKE_START', '%%A%%%BC')).toEqual('A%%%BC%');
     });
 
     it('stripWildCardPadding() should remove any wildcards before the first non-wildcard char', () => {

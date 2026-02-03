@@ -209,18 +209,18 @@ export default class WhereModifierGroup extends LightningElement {
 
   public isMultipleValueOperator(operatorValue: string): boolean {
     return (
-      operatorValue === UiOperatorValue.IN ||
-      operatorValue === UiOperatorValue.NOT_IN ||
-      operatorValue === UiOperatorValue.INCLUDES ||
-      operatorValue === UiOperatorValue.EXCLUDES
+      operatorValue === 'IN' ||
+      operatorValue === 'NOT_IN' ||
+      operatorValue === 'INCLUDES' ||
+      operatorValue === 'EXCLUDES'
     );
   }
 
   public isSpecialLikeCondition(operatorValue: string): boolean {
     return (
-      operatorValue === UiOperatorValue.LIKE_START ||
-      operatorValue === UiOperatorValue.LIKE_END ||
-      operatorValue === UiOperatorValue.LIKE_CONTAINS
+      operatorValue === 'LIKE_START' ||
+      operatorValue === 'LIKE_END' ||
+      operatorValue === 'LIKE_CONTAINS'
     );
   }
 
@@ -233,7 +233,7 @@ export default class WhereModifierGroup extends LightningElement {
     let displayValue = rawValue;
     // eslint-disable-next-line default-case
     switch (type) {
-      case LiteralType.String:
+      case 'STRING':
         displayValue = soqlStringLiteralToDisplayValue(rawValue);
         if (this.isSpecialLikeCondition(operatorValue)) {
           displayValue = stripWildCardPadding(displayValue);
@@ -290,8 +290,8 @@ export default class WhereModifierGroup extends LightningElement {
     // values need to be quoted
     return this.sobjectTypeUtils
       ? this.sobjectTypeUtils
-          .getPicklistValues(fieldName)
-          .map((value) => `'${value}'`)
+        .getPicklistValues(fieldName)
+        .map((value) => `'${value}'`)
       : [];
   }
 
@@ -299,31 +299,31 @@ export default class WhereModifierGroup extends LightningElement {
     type: SObjectFieldType,
     value: string
   ): LiteralType {
-    let criteriaType = LiteralType.String;
+    let criteriaType: LiteralType = 'STRING';
     if (value.toLowerCase() === 'null') {
-      return LiteralType.Null;
+      return 'NULL';
     }
     // eslint-disable-next-line default-case
     switch (type) {
       case SObjectFieldType.Boolean: {
-        criteriaType = LiteralType.Boolean;
+        criteriaType = 'BOOLEAN';
         break;
       }
       case SObjectFieldType.Currency: {
-        criteriaType = LiteralType.Currency;
+        criteriaType = 'CURRENCY';
         break;
       }
       case SObjectFieldType.DateTime:
       case SObjectFieldType.Date:
       case SObjectFieldType.Time: {
-        criteriaType = LiteralType.Date;
+        criteriaType = 'DATE';
         break;
       }
       case SObjectFieldType.Integer:
       case SObjectFieldType.Long:
       case SObjectFieldType.Percent:
       case SObjectFieldType.Double: {
-        criteriaType = LiteralType.Number;
+        criteriaType = 'NUMBER';
         break;
       }
     }

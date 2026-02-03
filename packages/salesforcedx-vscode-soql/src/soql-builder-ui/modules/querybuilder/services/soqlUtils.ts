@@ -41,15 +41,15 @@ function convertSoqlModelToUiModel(queryModel: Query): ToolingModelJson {
   const fields =
     queryModel.select && (queryModel.select as SelectExprs).selectExpressions
       ? (queryModel.select as SelectExprs).selectExpressions
-          .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
-          .map(expr => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            if (expr.field.fieldName) {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
-              return expr.field.fieldName;
-            }
-            return undefined;
-          })
+        .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+        .map(expr => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          if (expr.field.fieldName) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
+            return expr.field.fieldName;
+          }
+          return undefined;
+        })
       : [SELECT_COUNT];
 
   const sObject = queryModel.from && queryModel.from.sobjectName;
@@ -74,16 +74,16 @@ function convertSoqlModelToUiModel(queryModel: Query): ToolingModelJson {
 
   const orderBy = queryModel.orderBy
     ? queryModel.orderBy.orderByExpressions
-        // TODO: Deal with empty OrderBy.  returns unmodelled syntax.
-        .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
-        .map(expression => {
-          return {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            field: expression.field.fieldName,
-            order: expression.order,
-            nulls: expression.nullsOrder
-          };
-        })
+      // TODO: Deal with empty OrderBy.  returns unmodelled syntax.
+      .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+      .map(expression => {
+        return {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          field: expression.field.fieldName,
+          order: expression.order,
+          nulls: expression.nullsOrder
+        };
+      })
     : [];
 
   const limit = queryModel.limit ? queryModel.limit.limit.toString() : undefined;
@@ -293,13 +293,13 @@ export function isLikeContains(value: string): boolean {
 export function addWildCardToValue(operatorValue: UiOperatorValue, rawValue: string): string {
   let value = stripWildCardPadding(rawValue);
   switch (operatorValue) {
-    case UiOperatorValue.LIKE_START:
+    case 'LIKE_START':
       value = `${value}${WILD_CARD}`;
       break;
-    case UiOperatorValue.LIKE_END:
+    case 'LIKE_END':
       value = `${WILD_CARD}${value}`;
       break;
-    case UiOperatorValue.LIKE_CONTAINS:
+    case 'LIKE_CONTAINS':
       value = `${WILD_CARD}${value}${WILD_CARD}`;
       break;
     default:

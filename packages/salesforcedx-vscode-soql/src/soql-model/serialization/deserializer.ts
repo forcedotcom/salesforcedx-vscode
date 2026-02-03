@@ -129,13 +129,13 @@ class ErrorIdentifier {
   protected nodesWithExceptionsAndErrorNodes: ParseTree[];
   protected knownErrors: KnownError[] = [
     {
-      type: ErrorType.EMPTY,
+      type: 'EMPTY',
       message: messages.error_empty,
       predicate: (error): boolean =>
         this.parseTree instanceof ParserRuleContext && this.parseTree.start.type === Token.EOF
     },
     {
-      type: ErrorType.NOSELECT,
+      type: 'NOSELECT',
       message: messages.error_noSelect,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlSelectClauseContext &&
@@ -143,7 +143,7 @@ class ErrorIdentifier {
         !this.hasNonErrorChildren(context)
     },
     {
-      type: ErrorType.NOSELECTIONS,
+      type: 'NOSELECTIONS',
       message: messages.error_noSelections,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlSelectClauseContext &&
@@ -151,7 +151,7 @@ class ErrorIdentifier {
         !this.hasNonErrorChildren(context)
     },
     {
-      type: ErrorType.NOFROM,
+      type: 'NOFROM',
       message: messages.error_noFrom,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlFromClauseContext &&
@@ -159,7 +159,7 @@ class ErrorIdentifier {
         !this.hasNonErrorChildren(context)
     },
     {
-      type: ErrorType.INCOMPLETEFROM,
+      type: 'INCOMPLETEFROM',
       message: messages.error_incompleteFrom,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlIdentifierContext &&
@@ -167,26 +167,26 @@ class ErrorIdentifier {
         context.exception instanceof InputMismatchException
     },
     {
-      type: ErrorType.INCOMPLETELIMIT,
+      type: 'INCOMPLETELIMIT',
       message: messages.error_incompleteLimit,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlIntegerValueContext &&
         this.hasAncestorOfType(context, Parser.SoqlLimitClauseContext)
     },
     {
-      type: ErrorType.EMPTYWHERE,
+      type: 'EMPTYWHERE',
       message: messages.error_emptyWhere,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprsContext && context.childCount === 0
     },
     {
-      type: ErrorType.INCOMPLETENESTEDCONDITION,
+      type: 'INCOMPLETENESTEDCONDITION',
       message: messages.error_incompleteNestedCondition,
       predicate: (error, context): boolean =>
         context instanceof ErrorNode && context.parent instanceof Parser.NestedWhereExprContext
     },
     {
-      type: ErrorType.INCOMPLETEANDORCONDITION,
+      type: 'INCOMPLETEANDORCONDITION',
       message: messages.error_incompleteAndOrCondition,
       predicate: (error, context): boolean =>
         // trailing AND/OR
@@ -200,7 +200,7 @@ class ErrorIdentifier {
           context.parent.childCount <= 2)
     },
     {
-      type: ErrorType.INCOMPLETENOTCONDITION,
+      type: 'INCOMPLETENOTCONDITION',
       message: messages.error_incompleteNotCondition,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprContext &&
@@ -208,7 +208,7 @@ class ErrorIdentifier {
         !this.hasNonErrorChildren(context)
     },
     {
-      type: ErrorType.UNRECOGNIZEDCOMPAREVALUE,
+      type: 'UNRECOGNIZEDCOMPAREVALUE',
       message: messages.error_unrecognizedCompareValue,
       predicate: (error, context): boolean =>
         ((context instanceof Parser.SoqlLiteralValueContext &&
@@ -218,7 +218,7 @@ class ErrorIdentifier {
         context.exception instanceof NoViableAltException
     },
     {
-      type: ErrorType.UNRECOGNIZEDCOMPAREOPERATOR,
+      type: 'UNRECOGNIZEDCOMPAREOPERATOR',
       message: messages.error_unrecognizedCompareOperator,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprContext &&
@@ -227,7 +227,7 @@ class ErrorIdentifier {
         (context.getChild(1) as ErrorNode).symbol === error.getToken()
     },
     {
-      type: ErrorType.UNRECOGNIZEDCOMPAREFIELD,
+      type: 'UNRECOGNIZEDCOMPAREFIELD',
       message: messages.error_unrecognizedCompareField,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprsContext &&
@@ -236,7 +236,7 @@ class ErrorIdentifier {
         (context.getChild(0) as ErrorNode).symbol === error.getToken()
     },
     {
-      type: ErrorType.NOCOMPAREVALUE,
+      type: 'NOCOMPAREVALUE',
       message: messages.error_noCompareValue,
       predicate: (error, context): boolean =>
         (((context instanceof Parser.SoqlLiteralValueContext &&
@@ -253,7 +253,7 @@ class ErrorIdentifier {
           context.exception instanceof InputMismatchException)
     },
     {
-      type: ErrorType.NOCOMPAREOPERATOR,
+      type: 'NOCOMPAREOPERATOR',
       message: messages.error_noCompareOperator,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprContext &&
@@ -262,7 +262,7 @@ class ErrorIdentifier {
         (context.getChild(0) as ErrorNode).symbol !== error.getToken()
     },
     {
-      type: ErrorType.INCOMPLETEMULTIVALUELIST,
+      type: 'INCOMPLETEMULTIVALUELIST',
       message: messages.error_incompleteMultiValueList,
       predicate: (error, context): boolean =>
         (context instanceof Parser.SoqlWhereExprContext &&
@@ -279,7 +279,7 @@ class ErrorIdentifier {
     // NOTE: new known errors should go above;
     // unexpectedEOF is an EOF catch-all, make sure it is tested last
     {
-      type: ErrorType.UNEXPECTEDEOF,
+      type: 'UNEXPECTEDEOF',
       message: messages.error_unexpectedEOF,
       predicate: (error, context): boolean => error.getToken()?.type === Token.EOF
     }
@@ -298,19 +298,19 @@ class ErrorIdentifier {
 
     return knownErrorMatch
       ? {
-          type: knownErrorMatch.type,
-          message: knownErrorMatch.message,
-          lineNumber: error.getLineNumber(),
-          charInLine: error.getCharacterPositionInLine(),
-          grammarRule: this.getGrammarRule(error)
-        }
+        type: knownErrorMatch.type,
+        message: knownErrorMatch.message,
+        lineNumber: error.getLineNumber(),
+        charInLine: error.getCharacterPositionInLine(),
+        grammarRule: this.getGrammarRule(error)
+      }
       : {
-          type: ErrorType.UNKNOWN,
-          message: error.getMessage(),
-          lineNumber: error.getLineNumber(),
-          charInLine: error.getCharacterPositionInLine(),
-          grammarRule: this.getGrammarRule(error)
-        };
+        type: 'UNKNOWN',
+        message: error.getMessage(),
+        lineNumber: error.getLineNumber(),
+        charInLine: error.getCharacterPositionInLine(),
+        grammarRule: this.getGrammarRule(error)
+      };
   }
 
   protected findExceptionsAndErrorNodes(context: ParseTree): void {
