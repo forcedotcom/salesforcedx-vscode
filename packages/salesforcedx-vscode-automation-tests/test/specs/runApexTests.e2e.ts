@@ -236,7 +236,7 @@ describe('Run Apex Tests', () => {
 
     await retryOperation(
       async () => {
-        await executeQuickPick('Close Chat');
+        await executeQuickPick('View: Hide Secondary Side Bar');
       },
       3,
       'RunApexTests - Error closing chat'
