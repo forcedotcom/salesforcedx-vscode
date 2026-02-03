@@ -61,7 +61,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
 
 const isInPackageDirectories = Effect.fn('deployOnSave:isInPackageDirectories')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const packageDirs = (yield* (yield* api.services.ProjectService).getSfProject()).getPackageDirectories();
+  const packageDirs = (yield* api.services.ProjectService.getSfProject()).getPackageDirectories();
   return packageDirs.some(dir => uri.fsPath.startsWith(dir.fullPath));
 });
 
@@ -104,12 +104,13 @@ export const createDeployOnSaveService = () =>
       Stream.tap(uri => channelService.appendToChannel(`Deploy on save service received URI: ${uri.fsPath}`)),
       Stream.filterEffect(shouldDeploy),
       Stream.filterEffect(isInPackageDirectories),
-      Stream.tap(uri => channelService.appendToChannel(`Will deploy: ${uri.fsPath}`)),
+      Stream.tap(uri =>
+        channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${uri.fsPath}`)
+      ),
       Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
       Stream.runForEach(chunk =>
         deployQueuedFiles(Chunk.toReadonlyArray(chunk)).pipe(Effect.catchAll(handleDeployError))
       ),
-      Stream.runDrain,
       Effect.provide(AllServicesLayer),
       Effect.forkDaemon
     );

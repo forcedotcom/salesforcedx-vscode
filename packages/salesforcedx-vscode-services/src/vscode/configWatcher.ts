@@ -25,12 +25,9 @@ export const watchSettingsService = () =>
   Effect.gen(function* () {
     console.log('watchSettingsService starting');
 
-    const [settingsWatcherService, channelService] = yield* Effect.all(
-      [SettingsWatcherService, ChannelService],
-      {
-        concurrency: 'unbounded'
-      }
-    );
+    const [settingsWatcherService, channelService] = yield* Effect.all([SettingsWatcherService, ChannelService], {
+      concurrency: 'unbounded'
+    });
 
     // watches auth settings
     yield* Effect.fork(

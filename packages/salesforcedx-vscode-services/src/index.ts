@@ -106,6 +106,7 @@ export type { SettingsError } from './vscode/settingsService';
 const activationEffect = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
     yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
+    yield* updateTelemetryUserIds(context);
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
       yield* Effect.forkIn(subscribeLifecycleWarnings(), yield* getExtensionScope());
@@ -116,7 +117,6 @@ const activationEffect = (context: vscode.ExtensionContext) =>
     yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
     // watch the config files for changes, which various serices use to invalidate caches
     yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
-    yield* updateTelemetryUserIds(context);
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**

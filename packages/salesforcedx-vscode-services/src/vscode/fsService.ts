@@ -13,7 +13,6 @@ import { URI, Utils } from 'vscode-uri';
 import { unknownToErrorCause } from '../core/shared';
 import { HashableUri } from './hashableUri';
 import { uriToPath } from './paths';
-// Capture vscode.workspace.fs at module level
 
 export class FsServiceError extends Data.TaggedError('FsServiceError')<{
   readonly cause: Error;

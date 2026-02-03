@@ -7,6 +7,7 @@
 
 import { SfProject } from '@salesforce/core/project';
 import * as Cache from 'effect/Cache';
+import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
@@ -84,3 +85,5 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
     return { isSalesforceProject, getSfProject };
   })
 }) {}
+
+export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}
