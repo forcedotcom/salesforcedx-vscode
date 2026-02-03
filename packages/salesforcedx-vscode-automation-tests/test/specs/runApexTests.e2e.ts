@@ -234,6 +234,14 @@ describe('Run Apex Tests', () => {
   it('Run All tests via Test Sidebar', async () => {
     logTestStart(testSetup, 'Run All tests via Test Sidebar');
 
+    await retryOperation(
+      async () => {
+        await executeQuickPick('Close Chat');
+      },
+      3,
+      'RunApexTests - Error closing chat'
+    );
+
     // Open the Test Sidebar - now uses VS Code's native Test Explorer
     await retryOperation(
       async () => {
