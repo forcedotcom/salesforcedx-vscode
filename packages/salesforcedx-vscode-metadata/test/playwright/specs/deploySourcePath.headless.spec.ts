@@ -30,10 +30,9 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
-
 
 (isMacDesktop() ? test.skip.bind(test) : test)('Deploy Source Path: deploys via all entry points', async ({ page }) => {
   test.setTimeout(DEPLOY_TIMEOUT);
@@ -58,7 +57,7 @@ import { DEPLOY_TIMEOUT } from '../../constants';
 
     // Disable deploy-on-save so test can control when deploys happen
     // upsertSettings already takes a screenshot after setting
-    await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     await saveScreenshot(page, 'setup.after-disable-deploy-on-save.png');
     await saveScreenshot(page, 'setup.complete.png');
   });

@@ -23,7 +23,7 @@ import {
   NON_TRACKING_ORG_ALIAS
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
-import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
 
 // we skip this on the web, locally, because your hub might not be aliased as 'hub'.
@@ -43,7 +43,7 @@ import packageNls from '../../../package.nls.json';
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
       // Disable deploy-on-save so test can control when deploys happen
-      await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
 
       // Wait for connection to be established and org info to be populated
       // The status bar will only appear if tracksSource is true, so we wait for it to NOT appear

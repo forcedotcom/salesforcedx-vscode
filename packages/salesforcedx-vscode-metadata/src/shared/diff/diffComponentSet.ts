@@ -66,31 +66,35 @@ const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(function*
 });
 
 /** Match initial URIs to retrieved component file paths */
-const matchUrisToComponents = (initialUris: HashSet.HashSet<HashableUri>, retrievedComponents: SourceComponent[]) =>
-  Effect.gen(function* () {
-    const allRemotePaths = Array.from(
-      new Set<string>(
-        retrievedComponents
-          .flatMap(component => [component.content ?? [], component.xml ?? [], ...component.walkContent()])
-          .filter(isString)
+const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function* (
+  initialUris: HashSet.HashSet<HashableUri>,
+  retrievedComponents: SourceComponent[]
+) {
+  const allRemotePaths = Array.from(
+    new Set<string>(
+      retrievedComponents
+        .flatMap(component => [component.content ?? [], component.xml ?? [], ...component.walkContent()])
+        .filter(isString)
+    )
+  );
+
+  yield* Effect.annotateCurrentSpan({ allRemotePaths, initialUris: [...initialUris].map(u => u.toString()) });
+
+  // Create pairs, deduplicating by localUri to ensure each file is diffed only once
+  const pairsByLocalUri = (yield* Effect.all(
+    initialUris
+      .pipe(
+        HashSet.map(initialUri => ({ initialUri, fileName: Utils.basename(initialUri) })),
+        HashSet.filter(i => isNotUndefined(i.fileName)),
+        HashSet.toValues
       )
-    );
+      .map(v => createMatchedPair({ allRemotePaths, initialUri: v.initialUri, fileName: v.fileName }), {
+        concurrency: 'unbounded'
+      })
+  )).filter(isNotUndefined);
 
-    // Create pairs, deduplicating by localUri to ensure each file is diffed only once
-    const pairsByLocalUri = (yield* Effect.all(
-      initialUris
-        .pipe(
-          HashSet.map(initialUri => ({ initialUri, fileName: Utils.basename(initialUri) })),
-          HashSet.filter(i => isNotUndefined(i.fileName)),
-          HashSet.toValues
-        )
-        .map(v => createMatchedPair({ allRemotePaths, initialUri: v.initialUri, fileName: v.fileName }), {
-          concurrency: 'unbounded'
-        })
-    )).filter(isNotUndefined);
-
-    return HashSet.fromIterable(pairsByLocalUri);
-  });
+  return HashSet.fromIterable(pairsByLocalUri);
+});
 
 const createMatchedPair = Effect.fn('createMatchedPair')(function* (props: {
   allRemotePaths: string[];
@@ -202,7 +206,7 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
   // Execute diffs
   const diffsOpen = yield* executeDiff(pairsSet);
   if (diffsOpen.length === 0) {
-    yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('source_diff_no_matching_files')));
+    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('source_diff_all_files_match')));
   }
   yield* channelService.appendToChannel(
     `Diff completed for ${HashSet.size(pairsSet)} file${HashSet.size(pairsSet) === 1 ? '' : 's'}`

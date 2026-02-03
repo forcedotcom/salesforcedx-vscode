@@ -21,10 +21,12 @@ import {
   selectOutputChannel,
   waitForOutputChannelText,
   createApexClass,
-  editOpenFile,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  executeCommandWithCommandPalette,
+  DIRTY_EDITOR,
+  clearOutputChannel
 } from '@salesforce/playwright-vscode-ext';
-import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
@@ -51,7 +53,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     // Enable deploy-on-save (web already enabled by default, desktop needs this)
     const isDesktop = process.env.VSCODE_DESKTOP === '1';
     if (isDesktop) {
-      await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true' });
+      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true' });
     }
 
     // Verify deploy-on-save service is initialized by checking output channel
@@ -63,17 +65,17 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     await createApexClass(page, className);
   });
 
-  await test.step('edit class and save to trigger deploy', async () => {
-    await editOpenFile(page, 'Deploy on save test comment');
-  });
-
   await test.step('verify deploy triggers and completes', async () => {
-    // Wait for deploy to complete - deploy-on-save doesn't show progress notifications
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
     // Wait for deploy-on-save to trigger (service has 1s delay, then deploy starts)
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
+    // Save file (edits are not necessary)
+    await executeCommandWithCommandPalette(page, 'File: Save');
+    await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
+    // Wait for deploy to complete - deploy-on-save doesn't show progress notifications
+    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
+    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
 
     // so we verify completion via output channel instead
     // Match the actual completion message which includes counts

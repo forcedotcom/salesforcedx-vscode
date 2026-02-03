@@ -12221,7 +12221,7 @@
         "Field Type": "CustomLabel[]"
       }
     ],
-    "short_description": "The CustomLabels metadata type allows you to create custom labels that can be localized for use in different languages, countries, and currencies.",
+    "short_description": "The CustomLabels metadata type allows you to create custom labels that can be localized for use in different languages, countries, and currencies. This type extends the Metadata metadata type and inherits its fullName field. Custom labels are custom text values, up to 1,000 characters in length that can be accessed from Apex classes or Visualforce pages. For more information, see “Custom Labels” in Salesforce Help.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customlabels.htm",
     "parent": "Metadata"
   },
@@ -13446,7 +13446,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents an index defined within a custom big object. Use this metadata type to define the composite primary key (index) for a custom big object.This type extends the Metadata metadata type and inherits its fullName field.",
+    "short_description": "Represents an index defined within a custom big object. Use this metadata type to define the composite primary key (index) for a custom big object. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_index.htm",
     "parent": "Metadata"
   },
@@ -13495,7 +13495,7 @@
         "Field Type": "ListViewFilter[]"
       },
       {
-        "Description": "Required. Inherited from Metadata, this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.",
+        "Description": "Required. Inherited from Metadata Metadata, this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.",
         "Field Name": "fullName",
         "Field Type": "string"
       },
@@ -20594,7 +20594,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The type of external auth identity provider parameter. The value of this field drives the behavior of the parameter. Values are: AuthorizeRequestQueryParameter AuthorizeUrl ClientAuthentication CreatedByNamespace IdentityProviderOptions RefreshRequestBodyParameter RefreshRequestHttpHeader RefreshRequestQueryParameter StandardExternalIdentityProvider TokenRequestBodyParameter TokenRequestHttpHeader TokenRequestQueryParameter TokenUrl UserInfoUrl",
+        "Description": "Required. The type of external auth identity provider parameter. The value of this field drives the behavior of the parameter. Values are: AuthorizeRequestQueryParameter AuthorizeUrl ClientAuthentication CreatedByNamespace IdentityProviderOptions ManagedByComponent ManagedByFeature RefreshRequestBodyParameter RefreshRequestHttpHeader RefreshRequestQueryParameter StandardExternalIdentityProvider TokenRequestBodyParameter TokenRequestHttpHeader TokenRequestQueryParameter TokenUrl UserInfoUrl",
         "Field Name": "parameterType",
         "Field Type": "ExtlIdentityProviderParmType (enumeration of type string)"
       },
@@ -20735,7 +20735,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The type of external credential parameter. The value of this field drives the behavior of the parameter. Valid values are: AdditionalRefreshStatusCode: Allows the user to specify 4xx, 6xx, 7xx, 8xx, and 9xx HTTP status codes that trigger Salesforce to refresh expired or invalid access tokens, in addition to the standard 401 HTTP status code response. AuthHeader: Allows the user to specify custom authentication headers to be added to the callout at run time. When using AuthHeader, the parameterName field must be the header name as a string, and parameterValue must be a formula of a header value that is evaluated at run time. sequenceNumber determines the order in which headers are sent out in the callout. Headers with lower numbers are sent out first. AuthParameter: Allows the user to add additional authentication settings. parameterName defines the parameter to set. For example, AwsRegion sets the AWS Region parameter to apply for an AWS Signature V4 authentication protocol and parameterValue is the value for the AWS Region. AuthProtocolVariant: Used to specify a variant of an authentication protocol. For example, Aws Sts as a variant when the ParameterName is AwsSv4 and the ParameterValue is AwsSv4_STS. AuthProvider: Specifies that this parameter configures an authentication provider referenced by the authProvider field. AuthProviderUrl: Specifies the authentication endpoint URL. For example, if the authentication type is OAuth with JWT Bearer Flow, then parameterValue is an authentication token endpoint. AuthProviderUrlQueryParameter: Allows the user to specify custom query parameters to be added to the callout to the authentication provider at run time. Currently, supported only for AWS Signature V4 with STS. The allowed AuthProviderUrlQueryParameter values are AwsExternalId and AwsDuration, used with AWS STS. AwsStsPrincipal: Configures AWS Signature V4 along with STS. parameterName is AwsStsPrincipal and parameterValue isn’t specified. CreatedByNamespace: Reserved for internal use. ExternalAuthIdentityProvider: Specifies that this parameter configures an authentication provider referenced by the externalAuthIdentityProvider field. GlobalNamedPrincipal: Reserved for internal use. JwtBodyClaim: Specifies a JWT (JSON Web Token) body claim, where parameterName is the key and parameterValue is the value. For example, the parameter name for a JWT audience is aud. JwtHeaderClaim: Specifies a JWT header claim, where parameterName is the key and parameterValue is the value. For example, the parameter name for a JWT key identifier is kid. NamedPrincipal: Specifies that the parameter uses the same set of user credentials for all users who access the external system. PerUserPrincipal: Provides access control at the individual user level. SigningCertificate: Specifies the certificate used for an authentication signature. Use the certificate field to specify the certificate name. Used for OAuth with JWT Bearer Flow and AwsSv4 STS with RolesAnywhere authentication. SystemUserPrincipal: Reserved for internal use.",
+        "Description": "Required. The type of external credential parameter. The value of this field drives the behavior of the parameter. Valid values are: AdditionalRefreshStatusCode: Allows the user to specify 4xx, 6xx, 7xx, 8xx, and 9xx HTTP status codes that trigger Salesforce to refresh expired or invalid access tokens, in addition to the standard 401 HTTP status code response. AuthHeader: Allows the user to specify custom authentication headers to be added to the callout at run time. When using AuthHeader, the parameterName field must be the header name as a string, and parameterValue must be a formula of a header value that is evaluated at run time. sequenceNumber determines the order in which headers are sent out in the callout. Headers with lower numbers are sent out first. AuthParameter: Allows the user to add additional authentication settings. parameterName defines the parameter to set. For example, AwsRegion sets the AWS Region parameter to apply for an AWS Signature V4 authentication protocol and parameterValue is the value for the AWS Region. AuthProtocolVariant: Used to specify a variant of an authentication protocol. For example, Aws Sts as a variant when the ParameterName is AwsSv4 and the ParameterValue is AwsSv4_STS. AuthProvider: Specifies that this parameter configures an authentication provider referenced by the authProvider field. AuthProviderUrl: Specifies the authentication endpoint URL. For example, if the authentication type is OAuth with JWT Bearer Flow, then parameterValue is an authentication token endpoint. AuthProviderUrlQueryParameter: Allows the user to specify custom query parameters to be added to the callout to the authentication provider at run time. Currently, supported only for AWS Signature V4 with STS. The allowed AuthProviderUrlQueryParameter values are AwsExternalId and AwsDuration, used with AWS STS. AwsStsPrincipal: Configures AWS Signature V4 along with STS. parameterName is AwsStsPrincipal and parameterValue isn’t specified. CreatedByNamespace: Reserved for internal use. ExternalAuthIdentityProvider: Specifies that this parameter configures an authentication provider referenced by the externalAuthIdentityProvider field. GlobalNamedPrincipal: Reserved for internal use. JwtBodyClaim: Specifies a JWT (JSON Web Token) body claim, where parameterName is the key and parameterValue is the value. For example, the parameter name for a JWT audience is aud. JwtHeaderClaim: Specifies a JWT header claim, where parameterName is the key and parameterValue is the value. For example, the parameter name for a JWT key identifier is kid. ManagedByComponent: Reserved for internal use. ManagedByFeature: Reserved for internal use. NamedPrincipal: Specifies that the parameter uses the same set of user credentials for all users who access the external system. PerUserPrincipal: Provides access control at the individual user level. SfHttpRequestExtensionName: Reserved for internal use. SigningCertificate: Specifies the certificate used for an authentication signature. Use the certificate field to specify the certificate name. Used for OAuth with JWT Bearer Flow and AwsSv4 STS with RolesAnywhere authentication. SystemUserPrincipal: Reserved for internal use.",
         "Field Name": "parameterType",
         "Field Type": "ExternalCredentialParamType (enumeration of type string)"
       },
@@ -25643,9 +25643,19 @@
         "Field Type": "string"
       },
       {
+        "Description": "Reserved for future use.",
+        "Field Name": "flowTestDataSources",
+        "Field Type": ""
+      },
+      {
         "Description": "An array of flow versions that are associated with the flow test. This field is available in API version 66.0 and later.",
         "Field Name": "flowTestFlowVersions",
         "Field Type": "FlowTestFlowVersion[]"
+      },
+      {
+        "Description": "Reserved for future use.",
+        "Field Name": "isolatedObjectExternalKeys",
+        "Field Type": ""
       },
       {
         "Description": "Required. The label of the flow test.",
@@ -25656,6 +25666,11 @@
         "Description": "An array of test points for the test.",
         "Field Name": "testPoints",
         "Field Type": "FlowTestPoint[]"
+      },
+      {
+        "Description": "Required. Specifies whether the test contains assertions. This field is available in API version 66.0 and later.Possible values are: WithAssertion—The automated comparison of the actual flow outcome with the user-defined expected outcome that assertions define.",
+        "Field Name": "testType",
+        "Field Type": "FlowTestType (enumeration of type string)"
       }
     ],
     "short_description": "Represents the metadata associated with a flow test. Before you activate a record-triggered flow, you can test it to verify its expected results and identify flow run-time failures.",
@@ -25685,6 +25700,11 @@
         "Description": "Required. The element API names for the start of the flow and the end of the flow. Possible values are: Start Finish",
         "Field Name": "elementApiName",
         "Field Type": "string"
+      },
+      {
+        "Description": "Reserved for future use.",
+        "Field Name": "isUseMockOuput",
+        "Field Type": ""
       },
       {
         "Description": "An array of parameters for the test.",
@@ -29105,6 +29125,11 @@
   "LightningComponentBundle": {
     "fields": [
       {
+        "Description": "An internal AI description of the Lightning web component. This description is supported only in orgs that have Setup with Agentforce (Beta) enabled. This description enables Agentforce to analyze the component for inclusion in agent-generated Lightning pages. For more information, see Configure a Component for Use in Setup with Agentforce (Beta). Available in API version 66.0 and later.",
+        "Field Name": "ai (Beta)",
+        "Field Type": "base64Binary"
+      },
+      {
         "Description": "A double value that binds the component to a Salesforce API version.",
         "Field Name": "apiVersion",
         "Field Type": "double"
@@ -29115,7 +29140,7 @@
         "Field Type": "Capabilities[]"
       },
       {
-        "Description": "A description of the Lightning web component.",
+        "Description": "A user-facing description of the Lightning web component. This description appears in list views, like the list of Lightning Components in Setup, and as a tooltip in the builders like Lightning App Builder and Experience Builder.",
         "Field Name": "description",
         "Field Type": "string"
       },
@@ -34578,7 +34603,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The name of the portal.Inherited from Metadata, this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.",
+        "Description": "Required. The name of the portal.Inherited from Metadata , this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.",
         "Field Name": "fullName",
         "Field Type": "string"
       },
@@ -39547,7 +39572,7 @@
         "Field Type": "SvcCtlgItemAttrAttributeType (enumeration of type string)"
       },
       {
-        "Description": "The data type of the attribute.Values are: Checkbox Currency Date Datetime Integer ListOfBoolean ListOfDouble ListOfInteger ListOfMaps ListOfString Map Number Percentage Text The default is Text. Selecting Currency doesn't cause an error, but currency conversions aren't supported.",
+        "Description": "The data type of the attribute.Values are: Attachment Checkbox Currency Date Datetime DisplayText Email IPAddress Integer ListOfAttachment(available in API version 65.0 and later) ListOfBoolean ListOfDouble ListOfInteger ListOfMaps ListOfString Lookup Map MultilineText MultiSelectPicklist(available in API version 65.0 and later) Number NumericScale Password(available in API version 65.0 and later) Percentage Picklist Queue RadioButton(available in API version 65.0 and later) SingleCheckbox (available in API version 59.0 and later) SinglelineText Text Toggle (available in API version 59.0 and later) Url The default is Text. Selecting Currency doesn't cause an error, but currency conversions aren't supported.",
         "Field Name": "dataType",
         "Field Type": "SvcCatalogItemAttrDataType (enumeration of type string)"
       },
@@ -51006,7 +51031,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. Values are: Attachment Checkbox Currency Date Datetime DisplayText Email IPAddress Integer ListOfBoolean ListOfDouble ListOfInteger ListOfMaps ListOfString Lookup Map MultilineText Number NumericScale Percentage Picklist Queue SingleCheckbox (available in API version 59.0 and later) SinglelineText Text Toggle (available in API version 59.0 and later) URL",
+        "Description": "Required. Values are: Attachment Checkbox Currency Date Datetime DisplayText Email IPAddress Integer ListOfAttachment(available in API version 65.0 and later) ListOfBoolean ListOfDouble ListOfInteger ListOfMaps ListOfString Lookup Map MultilineText MultiSelectPicklist(available in API version 65.0 and later) Number NumericScale Password(available in API version 65.0 and later) Percentage Picklist Queue RadioButton(available in API version 65.0 and later) SingleCheckbox (available in API version 59.0 and later) SinglelineText Text Toggle (available in API version 59.0 and later) Url",
         "Field Name": "inputType",
         "Field Type": "SvcCatalogItemAttrDataType (enumeration of type string)"
       },
@@ -51166,7 +51191,7 @@
       {
         "Description": "Represents the user access levels of an object associated to a territory. Available in API version 57.0 and later.",
         "Field Name": "objectAccessLevels",
-        "Field Type": "Territory2AccessLevel[]"
+        "Field Type": "Territory2AccessLevel"
       },
       {
         "Description": "Specifies whether users in this territory can access opportunities that are assigned to this territory and are otherwise inaccessible. Valid values are: None Read Edit Specify no value if your organization’s sharing model for cases/opportunities is Public Read/Write. If no value is set for this field, this field value uses the default access level that is specified in Territory2Settings as permitted by the organization’s sharing settings.",
@@ -51262,7 +51287,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the metadata associated with a territory model in Sales Territories. This type extends the Metadata metadata type and inherits its fullName field.Available if Sales Territories has been enabled.",
+    "short_description": "Represents the metadata associated with a territory model in Sales Territories. This type extends the Metadata metadata type and inherits its fullName field. Available if Sales Territories has been enabled.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_territory2model.htm",
     "parent": "Metadata"
   },
@@ -51338,7 +51363,7 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "Represents the metadata for a category of territories in Sales Territories. Every Territory2 must have a Territory2Type. This type extends the Metadata metadata type and inherits its fullName field.Available if Sales Territories has been enabled.",
+    "short_description": "Represents the metadata for a category of territories in Sales Territories. Every Territory2 must have a Territory2Type. This type extends the Metadata metadata type and inherits its fullName field. Available if Sales Territories has been enabled.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_territory2type.htm",
     "parent": "Metadata"
   },
@@ -51579,9 +51604,29 @@
   "Translations": {
     "fields": [
       {
+        "Description": "A list of AI Coach agent scenario definition translations. Available in API version 64.0 and later.",
+        "Field Name": "aiCoachAgentScnrDefs",
+        "Field Type": "AiCoachAgentScnrDefTranslation[]"
+      },
+      {
+        "Description": "A list of bot block translations. Available in API version 59.0 and later.",
+        "Field Name": "botBlocks",
+        "Field Type": "BotBlockTranslation[]"
+      },
+      {
+        "Description": "A list of bot template translations. Available in API version 59.0 and later.",
+        "Field Name": "botTemplates",
+        "Field Type": "BotTemplateTranslation[]"
+      },
+      {
         "Description": "A list of bot translations. Available in API version 53.0 and later.",
         "Field Name": "bots",
         "Field Type": "BotTranslation[]"
+      },
+      {
+        "Description": "A list of conversation message definition translations. Available in API version 61.0 and later.",
+        "Field Name": "conversationMessageDefinitions",
+        "Field Type": "ConversationMessageDefinitionTranslation[]"
       },
       {
         "Description": "A list of custom application translations.",
@@ -51602,6 +51647,11 @@
         "Description": "A list of custom tab translations.",
         "Field Name": "customTabs",
         "Field Type": "CustomTabTranslation[]"
+      },
+      {
+        "Description": "A list of data connector translations. Available in API version 64.0 and later.",
+        "Field Name": "dataConnectors",
+        "Field Type": "DataConnectorTranslation[]"
       },
       {
         "Description": "A list of admin-configured explainability message templates.",
@@ -51634,7 +51684,7 @@
         "Field Type": "PipelineInspMetricConfigTranslation"
       },
       {
-        "Description": "A list of product specification type translations. This field is available in API version 64.0 and later.",
+        "Description": "A list of product specification type translations. This field is available in API version 66.0 and later.",
         "Field Name": "productSpecificationTypes",
         "Field Type": "ProductSpecificationTypeTranslation"
       },
@@ -51649,6 +51699,16 @@
         "Field Type": "GlobalQuickActionTranslation[]"
       },
       {
+        "Description": "A list of record alert category translations. Available in API version 66.0 and later.",
+        "Field Name": "recordAlertCategories",
+        "Field Type": "RecordAlertCategoryTranslation[]"
+      },
+      {
+        "Description": "A list of record alert template translations. Available in API version 66.0 and later.",
+        "Field Name": "recordAlertTemplates",
+        "Field Type": "RecordAlertTemplateTranslation[]"
+      },
+      {
         "Description": "A list of report type translations.",
         "Field Name": "reportTypes",
         "Field Type": "ReportTypeTranslation[]"
@@ -51657,6 +51717,21 @@
         "Description": "A list of s-control translations.",
         "Field Name": "scontrols",
         "Field Type": "ScontrolTranslation[]"
+      },
+      {
+        "Description": "A list of service catalog item attribute translations. Available in API version 64.0 and later.",
+        "Field Name": "svcCatalogItemAttributes",
+        "Field Type": "ServiceProcessAttributeTranslation[]"
+      },
+      {
+        "Description": "A list of service catalog item group translations. Available in API version 64.0 and later.",
+        "Field Name": "svcCatalogItemGroups",
+        "Field Type": "ServiceProcessItemGroupTranslation[]"
+      },
+      {
+        "Description": "A list of timeline object definition translations. Available in API version 66.0 and later.",
+        "Field Name": "timelineObjectDefinitions",
+        "Field Type": "TimelineObjectDefinitionTranslation[]"
       }
     ],
     "short_description": "Metadata type that enables work with translations for various supported languages. The ability to translate component labels is part of the Translation Workbench. This type extends the Metadata metadata type and inherits its fullName field.",
@@ -51687,6 +51762,57 @@
       }
     ],
     "short_description": "AiCoachAgentScnrDefTranslation contains details for the translation of Agentforce Sales Coach scenarios. Available in API version 64.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "BotBlockTranslation": {
+    "fields": [
+      {
+        "Description": "A list of bot block version translations.",
+        "Field Name": "botBlockVersions",
+        "Field Type": "BotBlockVersionTranslation[]"
+      },
+      {
+        "Description": "Required. The name of the bot block.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "BotBlockTranslation contains details for a translation of a bot block. Available in API version 59.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "BotBlockVersionTranslation": {
+    "fields": [
+      {
+        "Description": "A list of bot dialog translations for the bot block version.",
+        "Field Name": "botDialogs",
+        "Field Type": "BotDialogTranslation[]"
+      },
+      {
+        "Description": "Required. The name of the bot block version.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "BotBlockVersionTranslation contains details for a translation of a bot block version. Available in API version 59.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "BotTemplateTranslation": {
+    "fields": [
+      {
+        "Description": "A list of bot dialog translations for the bot template.",
+        "Field Name": "botDialogs",
+        "Field Type": "BotDialogTranslation[]"
+      },
+      {
+        "Description": "Required. The name of the bot template.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "BotTemplateTranslation contains details for a translation of a bot template. Available in API version 59.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },
@@ -52289,6 +52415,23 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },
+  "TimelineObjectDefinitionTranslation": {
+    "fields": [
+      {
+        "Description": "Translated label for the timeline object definition.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Name of the timeline object definition.",
+        "Field Name": "name",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Contains details for a translation of a timeline object definition. Available in API version 66.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
   "GlobalPicklistTranslation": {
     "fields": [
       {
@@ -52363,7 +52506,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "ProductSpecificationTypeTranslation contains details for a translation of a product specification type. For more details, see ProductSpecificationType.",
+    "short_description": "ProductSpecificationTypeTranslation contains details for a translation of a product specification type. For more details, see ProductSpecificationType. Available in API version 66.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },
@@ -52541,6 +52684,212 @@
       }
     ],
     "short_description": "ScontrolTranslation contains details for a translation of an s-control. For more information, see “About S-Controls” in Salesforce Help.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "DataConnectorTranslation": {
+    "fields": [
+      {
+        "Description": "A list of data connector attribute translations.",
+        "Field Name": "attributes",
+        "Field Type": "DataConnectorAttributeTranslation[]"
+      },
+      {
+        "Description": "The translated description for the data connector.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "A list of data connector error translations.",
+        "Field Name": "errors",
+        "Field Type": "DataConnectorErrorTranslation[]"
+      },
+      {
+        "Description": "The translated help text for the data connector.",
+        "Field Name": "help",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The translated label for the data connector.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The language for the data connector translation.",
+        "Field Name": "language",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The name of the data connector.",
+        "Field Name": "name",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "DataConnectorTranslation contains details for a translation of a data connector. Available in API version 64.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "DataConnectorAttributeTranslation": {
+    "fields": [
+      {
+        "Description": "The translated error message for the attribute.",
+        "Field Name": "errorMessage",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The translated info message for the attribute.",
+        "Field Name": "infoMessage",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The translated input label for the attribute.",
+        "Field Name": "inputLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The translated label for the attribute.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the attribute.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "A list of data connector attribute option translations.",
+        "Field Name": "options",
+        "Field Type": "DataConnectorAttributeOptTranslation[]"
+      }
+    ],
+    "short_description": "DataConnectorAttributeTranslation contains details for a translation of a data connector attribute. Available in API version 64.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "DataConnectorAttributeOptTranslation": {
+    "fields": [
+      {
+        "Description": "Required. The translated label for the attribute option.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the attribute option.",
+        "Field Name": "name",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "DataConnectorAttributeOptTranslation contains details for a translation of a data connector attribute option. Available in API version 64.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "DataConnectorErrorTranslation": {
+    "fields": [
+      {
+        "Description": "Required. The translated label for the error.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the error.",
+        "Field Name": "name",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "DataConnectorErrorTranslation contains details for a translation of a data connector error. Available in API version 64.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "RecordAlertCategoryTranslation": {
+    "fields": [
+      {
+        "Description": "The translated description for the record alert category.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The translated label for the record alert category.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the record alert category.",
+        "Field Name": "name",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "RecordAlertCategoryTranslation contains details for a translation of a record alert category. Available in API version 66.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "RecordAlertTemplateTranslation": {
+    "fields": [
+      {
+        "Description": "The translated description for the record alert template.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The translated label for the record alert template.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the record alert template.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The translated subject for the record alert template.",
+        "Field Name": "subject",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "RecordAlertTemplateTranslation contains details for a translation of a record alert template. Available in API version 66.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "ServiceProcessAttributeTranslation": {
+    "fields": [
+      {
+        "Description": "Required. The translated label for the service process attribute.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the service process attribute.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the service process.",
+        "Field Name": "serviceProcessName",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "ServiceProcessAttributeTranslation contains details for a translation of a service process attribute. Available in API version 64.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "ServiceProcessItemGroupTranslation": {
+    "fields": [
+      {
+        "Description": "Required. The name of the service process item group.",
+        "Field Name": "groupName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the service process item group translation.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the service process.",
+        "Field Name": "serviceProcessName",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "ServiceProcessItemGroupTranslation contains details for a translation of a service process item group. Available in API version 64.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },
