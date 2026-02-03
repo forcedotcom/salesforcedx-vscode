@@ -219,6 +219,10 @@
     "menus": {
       "commandPalette": [
         {
+          "command": "sf.metadata.source.diff",
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
           "command": "sf.metadata.project.deploy.start",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
@@ -256,7 +260,7 @@
         },
         {
           "command": "sf.metadata.delete.source.current.file",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.deploy.source.path",
@@ -264,7 +268,7 @@
         },
         {
           "command": "sf.metadata.deploy.active.editor",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands&& sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands&& sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
@@ -280,7 +284,7 @@
         },
         {
           "command": "sf.metadata.retrieve.current.source.file",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.retrieve.in.manifest",
@@ -288,7 +292,7 @@
         },
         {
           "command": "sf.metadata.project.generate.manifest",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "editor/context": [
