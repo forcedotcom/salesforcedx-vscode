@@ -23,21 +23,13 @@ You'll see old code, and AIs are trained on it. There's often better ways in rec
 
 The tsconfig `target`/`lib` properties will ensure you don't use something that's not available in the target es version.
 
+### AI guidance
+
+(it's usesful for humans, too!)
+
+See [TypeScript skill](../../.claude/skills/typescript/SKILL.md) for AI-enforced coding standards.
+
 ## Anti-patterns
-
-### enums
-
-Enums don't exist in JS. They do in TS, and get compiled to **weird** JS.
-
-You probably just need a string union type. They provides type enforcement and autocomplete for developers, but evaporates during compile to improve perf
-
-### runtime errors
-
-your code shouldn't throw errors for developer mistakes
-
-ex: a non-exhaustive switch/case where you throw for default case. Use types to make sure all cases are handled.
-
-ex: throwing if null/undefined is passed in where the input/consumer is within our control (not user-supplied input).
 
 ### any
 

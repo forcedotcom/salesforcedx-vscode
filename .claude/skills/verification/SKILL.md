@@ -21,7 +21,7 @@ if working in [vscode-services, org-browser or metadata] extension, run headless
 
 7. `npx knip` - check for dead code related to your changes
 
-- **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests
+- **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests.  Exception for [ts4023 reasons](../ts4023-effect-errors/SKILL.md)
 - Don't leave any exports that are only used within the same file
 
 8. check for dupes `npm run check:dupes` and then look in `jscpd-report` to make sure none of your changes are flagged.
