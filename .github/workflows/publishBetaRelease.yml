@@ -76,16 +76,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - id: version
         run: echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
-
-  slack_notification:
-    if: ${{ always() }}
-    needs: create_git_tag
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    with:
-      title: 'Beta release v${{ needs.create_git_tag.outputs.version }}'
-      failedEvent: 'Beta Release Publish'
-      successfulEvent: '${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}'
-      type: 'published'
-      result: ${{ needs.create_git_tag.outputs.result }}
-      workflow: 'publish-beta-release.yml'

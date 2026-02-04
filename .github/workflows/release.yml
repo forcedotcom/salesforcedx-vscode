@@ -1,19 +1,8 @@
 name: Release
 
-on:
-  workflow_call
+on: workflow_call
 
-jobs: 
-  release-start-notification:
-    name: 'Release Start Notification'
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    with:
-      title: "Release waiting for approval in github."
-      notification: "Main has been merged and release job is ready for approval."
-      type: "notification"
-      workflow: "release.yml"
-  
+jobs:
   get_release_version:
     name: 'Get Release Version'
     runs-on: ubuntu-latest
@@ -31,6 +20,6 @@ jobs:
   release:
     needs: [get_release_version]
     uses: ./.github/workflows/tagAndRelease.yml
-    with: 
+    with:
       version: ${{ needs.get_release_version.outputs.RELEASE_VERSION }}
     secrets: inherit
