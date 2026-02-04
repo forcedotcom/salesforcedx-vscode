@@ -120,9 +120,9 @@ describe('Where', () => {
       whereCmp.whereExpr = modelManager.getEmptyModel();
       document.body.appendChild(whereCmp);
 
-      const modfierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
+      const modifierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
       // should always be one group w/ empty model
-      expect(modfierGroups.length).toBe(1);
+      expect(modifierGroups.length).toBe(1);
 
       const conditionStore = whereCmp.whereExpr.conditions;
       expect(conditionStore.length).toBe(1);
@@ -134,9 +134,9 @@ describe('Where', () => {
       whereCmp.whereExpr = modelManager.getModelWithOneCondition();
       document.body.appendChild(whereCmp);
 
-      const modfierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
+      const modifierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
 
-      expect(modfierGroups.length).toBe(1);
+      expect(modifierGroups.length).toBe(1);
 
       const conditionStore = whereCmp.whereExpr.conditions;
       expect(conditionStore.length).toBe(1);
@@ -148,9 +148,9 @@ describe('Where', () => {
       whereCmp.whereExpr = modelManager.getModelWithTwoConditions();
       document.body.appendChild(whereCmp);
 
-      const modfierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
+      const modifierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
 
-      expect(modfierGroups.length).toBe(2);
+      expect(modifierGroups.length).toBe(2);
 
       const conditionStore = whereCmp.whereExpr.conditions;
       expect(conditionStore.length).toBe(2);
@@ -160,7 +160,7 @@ describe('Where', () => {
       expect(conditionStore[1].index).toBe(modelManager.condition2.index);
     });
 
-    it('know when the last modifer is complete', async () => {
+    it('know when the last modifier is complete', async () => {
       whereCmp.whereExpr = modelManager.getEmptyModel();
       document.body.appendChild(whereCmp);
       expect(whereCmp.testLastModifierGroupIsComplete).toBe(false);
@@ -218,11 +218,11 @@ describe('Where', () => {
       whereCmp.whereExpr = modelManager.getModelWithIncompleteConditions();
       document.body.appendChild(whereCmp);
       const handler = jest.fn();
-      const modfierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
+      const modifierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
       const orButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('button[value=OR]');
       whereCmp.addEventListener('where__andor_selection', handler);
 
-      expect(modfierGroups.length).toBe(3);
+      expect(modifierGroups.length).toBe(3);
       expect(whereCmp.testLastModifierGroupIsComplete).toBe(false);
       expect(whereCmp.testAndOr).toBe(AndOr.And);
       orButton.click();
@@ -236,9 +236,9 @@ describe('Where', () => {
       document.body.appendChild(whereCmp);
       const modGroupHandler = jest.fn();
       whereCmp.addEventListener('where__group_selection', modGroupHandler);
-      const firstModfierGroup = whereCmp.shadowRoot.querySelector('querybuilder-where-modifier-group');
+      const firstModifierGroup = whereCmp.shadowRoot.querySelector('querybuilder-where-modifier-group');
       // Event dispatched from child component does not contain AndOr
-      firstModfierGroup.dispatchEvent(
+      firstModifierGroup.dispatchEvent(
         new CustomEvent('modifiergroupselection', {
           detail: modelManager.condition1
         })
@@ -256,9 +256,9 @@ describe('Where', () => {
       document.body.appendChild(whereCmp);
 
       const addButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('[data-el-where-add-btn]');
-      const modfierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
+      const modifierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
 
-      expect(modfierGroups.length).toBe(3);
+      expect(modifierGroups.length).toBe(3);
       expect(whereCmp.testLastModifierGroupIsComplete).toBe(false);
 
       return Promise.resolve().then(() => {
@@ -271,9 +271,9 @@ describe('Where', () => {
       document.body.appendChild(whereCmp);
 
       const addButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('[data-el-where-add-btn]');
-      const modfierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
+      const modifierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
 
-      expect(modfierGroups.length).toBe(2);
+      expect(modifierGroups.length).toBe(2);
       expect(whereCmp.testLastModifierGroupIsComplete).toBe(true);
 
       return Promise.resolve().then(() => {
@@ -286,17 +286,17 @@ describe('Where', () => {
       document.body.appendChild(whereCmp);
       let conditionsStore = whereCmp.whereExpr.conditions;
       const addButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('[data-el-where-add-btn]');
-      let modfierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
-      expect(modfierGroups.length).toBe(1);
+      let modifierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
+      expect(modifierGroups.length).toBe(1);
       expect(conditionsStore.length).toBe(1);
       expect(whereCmp.testLastModifierGroupIsComplete).toBe(true);
       addButton.click();
 
       return Promise.resolve().then(() => {
         conditionsStore = whereCmp.whereExpr.conditions;
-        modfierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
+        modifierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
         expect(conditionsStore.length).toBe(2);
-        expect(modfierGroups.length).toBe(2);
+        expect(modifierGroups.length).toBe(2);
         expect(conditionsStore[1].condition.field).toBeUndefined();
         expect(conditionsStore[1].index).toBe(1);
       });
