@@ -6,7 +6,7 @@
  *
  */
 
-import { SObjectFieldType } from '@soql-model/model/model';
+import { SObjectFieldType } from '@salesforce/soql-model/model/model';
 
 type SObjectField = {
   name: string;

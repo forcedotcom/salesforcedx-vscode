@@ -6,10 +6,10 @@
  */
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions, no-param-reassign, prefer-const */
-import { SOQLParser, ParserError } from '@soql-common/soql-parser.lib';
-import * as Parser from '@soql-common/soql-parser.lib/generated/SoqlParser';
-import { SoqlParserListener } from '@soql-common/soql-parser.lib/generated/SoqlParserListener';
-import { parseHeaderComments } from '@soql-common/soqlComments';
+import { SOQLParser, ParserError } from '@salesforce/soql-common/soql-parser.lib';
+import * as Parser from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
+import { SoqlParserListener } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParserListener';
+import { parseHeaderComments } from '@salesforce/soql-common/soqlComments';
 import { CharStream, ParserRuleContext, Token, NoViableAltException, InputMismatchException } from 'antlr4ts';
 import { Interval } from 'antlr4ts/misc/Interval';
 import { ErrorNode, ParseTreeListener, ParseTree } from 'antlr4ts/tree';

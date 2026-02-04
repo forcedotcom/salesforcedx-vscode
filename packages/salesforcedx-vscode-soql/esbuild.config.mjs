@@ -12,8 +12,7 @@ import { cpSync, mkdirSync } from 'fs';
 const commonConfig = {
   external: ['vscode', './soql-common/*'],
   alias: {
-    '@soql-common': './soql-common'
-    // Note: @soql-model doesn't need an alias because it gets bundled into the output
+    '@salesforce/soql-common': './soql-common'
   }
 };
 

@@ -8,7 +8,7 @@
 
 import { api, LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
-import { AndOr } from '@soql-model/model/model';
+import { AndOr } from '@salesforce/soql-model/model/model';
 
 type ConditionTemplate = {
   condition: JsonMap;

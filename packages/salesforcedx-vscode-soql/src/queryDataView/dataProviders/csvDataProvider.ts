@@ -7,8 +7,8 @@
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model/analyzers/selectAnalyzer';
 import type { JsonMap } from '@salesforce/ts-types';
-import { ColumnData, SelectAnalyzer } from '@soql-model/analyzers/selectAnalyzer';
 import * as Papa from 'papaparse';
 import { DATA_CSV_EXT } from '../../constants';
 import { DataProvider } from './iDataProvider';

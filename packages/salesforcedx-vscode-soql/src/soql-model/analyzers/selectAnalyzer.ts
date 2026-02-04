@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SOQLParser } from '@soql-common/soql-parser.lib';
-import * as Parser from '@soql-common/soql-parser.lib/generated/SoqlParser';
-import { SoqlParserVisitor } from '@soql-common/soql-parser.lib/generated/SoqlParserVisitor';
-import { parseHeaderComments } from '@soql-common/soqlComments';
+import { SOQLParser } from '@salesforce/soql-common/soql-parser.lib';
+import * as Parser from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
+import { SoqlParserVisitor } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParserVisitor';
+import { parseHeaderComments } from '@salesforce/soql-common/soqlComments';
 import { AbstractParseTreeVisitor, ParseTree } from 'antlr4ts/tree';
 
 export type Selection = {

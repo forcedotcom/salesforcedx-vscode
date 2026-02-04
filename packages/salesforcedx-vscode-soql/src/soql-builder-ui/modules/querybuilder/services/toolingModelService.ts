@@ -12,7 +12,7 @@ import { fromJS, List } from 'immutable';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JsonMap } from '@salesforce/ts-types';
-import { AndOr } from '@soql-model/model/model';
+import { AndOr } from '@salesforce/soql-model/model/model';
 import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';
 import { IMessageService } from './message/iMessageService';
 import { SoqlEditorEvent, MessageType } from './message/soqlEditorEvent';
