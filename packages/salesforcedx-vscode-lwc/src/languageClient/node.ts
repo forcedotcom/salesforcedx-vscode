@@ -5,12 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
-import { Uri, workspace } from 'vscode';
+import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
-
-const protocol2CodeConverter = (value: string) => Uri.parse(value);
+import { buildDocumentSelector, getBaseClientOptions } from './clientOptions';
 
 export const createLanguageClient = (
   serverPath: string,
@@ -30,31 +27,8 @@ export const createLanguageClient = (
   };
 
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [
-      { language: 'html', scheme: 'file' },
-      { language: 'javascript', scheme: 'file' },
-      { language: 'typescript', scheme: 'file' },
-      { language: 'json', scheme: 'file' },
-      { language: 'xml', scheme: 'file' }
-    ],
-    synchronize: {
-      fileEvents: [
-        workspace.createFileSystemWatcher('**/*.resource'),
-        workspace.createFileSystemWatcher('**/labels/CustomLabels.labels-meta.xml'),
-        workspace.createFileSystemWatcher('**/staticresources/*.resource-meta.xml'),
-        workspace.createFileSystemWatcher('**/contentassets/*.asset-meta.xml'),
-        workspace.createFileSystemWatcher('**/lwc/*/*.js'),
-        workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
-        workspace.createFileSystemWatcher('**/modules/*/*/*.ts'),
-        // need to watch for directory deletions as no events are created for contents or deleted directories
-        workspace.createFileSystemWatcher('**/', false, true, false)
-      ]
-    },
-    initializationOptions,
-    uriConverters: {
-      code2Protocol: code2ProtocolConverter,
-      protocol2Code: protocol2CodeConverter
-    }
+    ...getBaseClientOptions(initializationOptions),
+    documentSelector: buildDocumentSelector(['file'])
   };
 
   return new LanguageClient('lwcLanguageServer', 'LWC Language Server', serverOptions, clientOptions);

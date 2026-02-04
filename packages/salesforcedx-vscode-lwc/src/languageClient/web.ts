@@ -5,13 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
-import { Uri, workspace, window } from 'vscode';
+import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
 import { channelService } from '../channel';
-
-const protocol2CodeConverter = (value: string) => Uri.parse(value);
+import { buildDocumentSelector, getBaseClientOptions } from './clientOptions';
 
 export const createLanguageClient = (
   serverPath: string,
@@ -53,7 +51,6 @@ export const createLanguageClient = (
   // Create output channel for language server logs
   const outputChannel = window.createOutputChannel('LWC Language Server');
 
-  // Build document selector that includes both 'file' scheme and workspace folder schemes
   // In web mode, files may use schemes like 'memfs' instead of 'file'
   const schemes = new Set<string>(['file']);
   if (workspace.workspaceFolders) {
@@ -62,39 +59,11 @@ export const createLanguageClient = (
     }
   }
 
-  const documentSelector = Array.from(schemes).flatMap(scheme => [
-    { language: 'html', scheme },
-    { language: 'javascript', scheme },
-    { language: 'typescript', scheme },
-    { language: 'json', scheme },
-    { language: 'xml', scheme }
-  ]);
-
   const clientOptions: LanguageClientOptions = {
-    documentSelector,
-    synchronize: {
-      fileEvents: [
-        workspace.createFileSystemWatcher('**/*.resource'),
-        workspace.createFileSystemWatcher('**/labels/CustomLabels.labels-meta.xml'),
-        workspace.createFileSystemWatcher('**/staticresources/*.resource-meta.xml'),
-        workspace.createFileSystemWatcher('**/contentassets/*.asset-meta.xml'),
-        workspace.createFileSystemWatcher('**/lwc/*/*.js'),
-        workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
-        workspace.createFileSystemWatcher('**/modules/*/*/*.ts'),
-        // need to watch for directory deletions as no events are created for contents or deleted directories
-        workspace.createFileSystemWatcher('**/', false, true, false)
-      ]
-    },
-    initializationOptions,
-    uriConverters: {
-      code2Protocol: code2ProtocolConverter,
-      protocol2Code: protocol2CodeConverter
-    },
-    // Add output channel for server logs
+    ...getBaseClientOptions(initializationOptions),
+    documentSelector: buildDocumentSelector(Array.from(schemes)),
     outputChannel,
-    // Show output channel on errors
     revealOutputChannelOn: RevealOutputChannelOn.Error,
-    // Enable tracing for debugging
     traceOutputChannel: outputChannel
   };
 
