@@ -8,7 +8,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { EOL } from 'os';
-import { REASON_UNMODELED_COMPLEXGROUP, REASON_UNMODELED_GROUPBY, UiOperatorValue } from '../../../../../../src/soql-model/model/model';
+import { REASON_UNMODELED_COMPLEXGROUP, REASON_UNMODELED_GROUPBY } from '../../../../../../src/soql-model/model/model';
 import {
   convertUiModelToSoql,
   convertSoqlToUiModel,
