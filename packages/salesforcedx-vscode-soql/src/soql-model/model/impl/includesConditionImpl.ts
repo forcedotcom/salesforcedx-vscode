@@ -8,6 +8,7 @@
 import { ConditionOperator, CompareValue, Field, IncludesCondition, SyntaxOptions } from '../model';
 
 export class IncludesConditionImpl implements IncludesCondition {
+  public readonly kind = 'includes' as const;
   constructor(
     public field: Field,
     public operator: ConditionOperator,

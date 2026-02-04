@@ -8,6 +8,7 @@
 import { Field, FieldSelection, SyntaxOptions, UnmodeledSyntax } from '../model';
 
 export class FieldSelectionImpl implements FieldSelection {
+  public readonly kind = 'fieldSelection' as const;
   public field: Field;
   public alias?: UnmodeledSyntax;
   constructor(field: Field, alias?: UnmodeledSyntax) {

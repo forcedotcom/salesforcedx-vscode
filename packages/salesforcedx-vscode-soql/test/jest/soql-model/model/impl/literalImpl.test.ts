@@ -9,7 +9,7 @@ import { LiteralImpl } from '../../../../../src/soql-model/model/impl/literalImp
 
 describe('LiteralImpl should', () => {
   it('store the literal type and value', () => {
-    const expected = { value: 'TRUE' };
+    const expected = { kind: 'literal', value: 'TRUE' };
     const actual = new LiteralImpl('TRUE');
     expect(actual).toEqual(expected);
   });

@@ -9,7 +9,7 @@ import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefI
 
 describe('FieldRefImpl should', () => {
   it('store a string field name as fieldName', () => {
-    const expected = { fieldName: 'charlie' };
+    const expected = { kind: 'fieldRef', fieldName: 'charlie' };
     const actual = new FieldRefImpl(expected.fieldName);
     expect(actual).toEqual(expected);
   });

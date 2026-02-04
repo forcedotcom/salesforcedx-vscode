@@ -13,9 +13,10 @@ import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 describe('IncludesConditionImpl should', () => {
   it('store field, operator, and values', () => {
     const expected = {
-      field: { fieldName: 'field' },
+      kind: 'includes',
+      field: { kind: 'fieldRef', fieldName: 'field' },
       operator: 'INCLUDES',
-      values: [{ value: "'abc'" }, { value: "'def'" }]
+      values: [{ kind: 'literal', value: "'abc'" }, { kind: 'literal', value: "'def'" }]
     };
     const actual = new IncludesConditionImpl(new FieldRefImpl('field'), ConditionOperator.Includes, [
       new LiteralImpl("'abc'"),

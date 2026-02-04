@@ -8,6 +8,7 @@
 import { ConditionOperator, CompareValue, Field, InListCondition, SyntaxOptions } from '../model';
 
 export class InListConditionImpl implements InListCondition {
+  public readonly kind = 'inList' as const;
   constructor(
     public field: Field,
     public operator: ConditionOperator,

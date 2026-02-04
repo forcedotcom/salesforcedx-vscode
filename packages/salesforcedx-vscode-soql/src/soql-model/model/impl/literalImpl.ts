@@ -8,6 +8,7 @@
 import { Literal, SyntaxOptions } from '../model';
 
 export class LiteralImpl implements Literal {
+  public readonly kind = 'literal' as const;
   constructor(public value: string) { }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public toSoqlSyntax(options?: SyntaxOptions): string {

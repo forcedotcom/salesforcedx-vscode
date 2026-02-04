@@ -14,7 +14,7 @@ import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 describe('WhereImpl should', () => {
   it('store condition', () => {
     const expected = {
-      condition: { field: { fieldName: 'field' }, operator: '=', compareValue: { value: "'abc'" } }
+      condition: { kind: 'fieldCompare', field: { kind: 'fieldRef', fieldName: 'field' }, operator: '=', compareValue: { kind: 'literal', value: "'abc'" } }
     };
     const actual = new WhereImpl(
       new FieldCompareConditionImpl(

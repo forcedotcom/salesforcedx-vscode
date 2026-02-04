@@ -8,6 +8,7 @@
 import { SelectExprs, SelectExpression, SyntaxOptions } from '../model';
 
 export class SelectExprsImpl implements SelectExprs {
+  public readonly kind = 'selectExprs' as const;
   public selectExpressions: SelectExpression[];
   constructor(selectExpressions: SelectExpression[]) {
     this.selectExpressions = selectExpressions;

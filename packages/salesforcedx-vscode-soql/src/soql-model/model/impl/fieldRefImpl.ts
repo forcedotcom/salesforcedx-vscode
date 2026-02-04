@@ -8,6 +8,7 @@
 import { FieldRef, SyntaxOptions } from '../model';
 
 export class FieldRefImpl implements FieldRef {
+  public readonly kind = 'fieldRef' as const;
   public fieldName: string;
   constructor(fieldName: string) {
     this.fieldName = fieldName;

@@ -9,7 +9,7 @@ import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/un
 
 describe('UnmodeledSyntaxImpl should', () => {
   it('store a string as unmodeledSyntax', () => {
-    const expected = { unmodeledSyntax: 'ronnie', reason: { reasonCode: 'unmodeled:fake', message: 'fake SOQL' } };
+    const expected = { kind: 'unmodeled', unmodeledSyntax: 'ronnie', reason: { reasonCode: 'unmodeled:fake', message: 'fake SOQL' } };
     const actual = new UnmodeledSyntaxImpl(expected.unmodeledSyntax, expected.reason);
     expect(actual).toEqual(expected);
   });

@@ -8,6 +8,7 @@
 import { SelectCount, SyntaxOptions } from '../model';
 
 export class SelectCountImpl implements SelectCount {
+  public readonly kind = 'selectCount' as const;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return 'SELECT COUNT()';

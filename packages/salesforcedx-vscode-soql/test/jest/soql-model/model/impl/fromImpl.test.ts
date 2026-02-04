@@ -19,8 +19,8 @@ describe('FromImpl should', () => {
   it('store as and using clauses as unmodeled syntax', () => {
     const expected = {
       sobjectName: 'black',
-      as: { unmodeledSyntax: 'and', reason: REASON_UNMODELED_AS },
-      using: { unmodeledSyntax: 'blue', reason: REASON_UNMODELED_USING },
+      as: { kind: 'unmodeled', unmodeledSyntax: 'and', reason: REASON_UNMODELED_AS },
+      using: { kind: 'unmodeled', unmodeledSyntax: 'blue', reason: REASON_UNMODELED_USING },
     };
     const actual = new FromImpl(
       expected.sobjectName,

@@ -13,14 +13,15 @@ import { REASON_UNMODELED_ALIAS } from '../../../../../src/soql-model/model/mode
 
 describe('FieldSelectionImpl should', () => {
   it('store a field', () => {
-    const expected = { field: { fieldName: 'charlie' } };
+    const expected = { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'charlie' } };
     const actual = new FieldSelectionImpl(new FieldRefImpl(expected.field.fieldName));
     expect(actual).toEqual(expected);
   });
   it('store an unmodeled syntax object as the alias', () => {
     const expected = {
-      field: { fieldName: 'brian' },
-      alias: { unmodeledSyntax: 'bill', reason: REASON_UNMODELED_ALIAS },
+      kind: 'fieldSelection',
+      field: { kind: 'fieldRef', fieldName: 'brian' },
+      alias: { kind: 'unmodeled', unmodeledSyntax: 'bill', reason: REASON_UNMODELED_ALIAS },
     };
     const actual = new FieldSelectionImpl(
       new FieldRefImpl(expected.field.fieldName),

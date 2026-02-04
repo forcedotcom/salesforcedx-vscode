@@ -13,9 +13,10 @@ import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 describe('InListConditionImpl should', () => {
   it('store field, operator, and values', () => {
     const expected = {
-      field: { fieldName: 'field' },
+      kind: 'inList',
+      field: { kind: 'fieldRef', fieldName: 'field' },
       operator: 'NOT IN',
-      values: [{ value: "'abc'" }, { value: "'def'" }]
+      values: [{ kind: 'literal', value: "'abc'" }, { kind: 'literal', value: "'def'" }]
     };
     const actual = new InListConditionImpl(new FieldRefImpl('field'), ConditionOperator.NotIn, [
       new LiteralImpl("'abc'"),

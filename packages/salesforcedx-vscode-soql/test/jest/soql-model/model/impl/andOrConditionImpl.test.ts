@@ -14,9 +14,10 @@ import { AndOr, ConditionOperator } from '../../../../../src/soql-model/model/mo
 describe('AndOrConditionImpl should', () => {
   it('store left and right conditions and the AndOr operator', () => {
     const expected = {
-      leftCondition: { field: { fieldName: 'field' }, operator: '>', compareValue: { value: '1' } },
+      kind: 'andOr',
+      leftCondition: { kind: 'fieldCompare', field: { kind: 'fieldRef', fieldName: 'field' }, operator: '>', compareValue: { kind: 'literal', value: '1' } },
       andOr: 'OR',
-      rightCondition: { field: { fieldName: 'field' }, operator: '<', compareValue: { value: '5' } }
+      rightCondition: { kind: 'fieldCompare', field: { kind: 'fieldRef', fieldName: 'field' }, operator: '<', compareValue: { kind: 'literal', value: '5' } }
     };
     const actual = new AndOrConditionImpl(
       new FieldCompareConditionImpl(

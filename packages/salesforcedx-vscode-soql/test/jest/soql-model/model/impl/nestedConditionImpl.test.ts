@@ -14,7 +14,8 @@ import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 describe('NestedConditionImpl should', () => {
   it('store condition', () => {
     const expected = {
-      condition: { field: { fieldName: 'field' }, operator: '=', compareValue: { value: "'abc'" } }
+      kind: 'nested',
+      condition: { kind: 'fieldCompare', field: { kind: 'fieldRef', fieldName: 'field' }, operator: '=', compareValue: { kind: 'literal', value: "'abc'" } }
     };
     const actual = new NestedConditionImpl(
       new FieldCompareConditionImpl(

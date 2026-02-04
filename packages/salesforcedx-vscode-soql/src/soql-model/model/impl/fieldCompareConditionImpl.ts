@@ -8,6 +8,7 @@
 import { ConditionOperator, CompareValue, Field, FieldCompareCondition, SyntaxOptions } from '../model';
 
 export class FieldCompareConditionImpl implements FieldCompareCondition {
+  public readonly kind = 'fieldCompare' as const;
   constructor(
     public field: Field,
     public operator: ConditionOperator,

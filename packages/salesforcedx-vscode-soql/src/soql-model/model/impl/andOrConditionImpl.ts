@@ -8,6 +8,7 @@
 import { AndOr, AndOrCondition, Condition, SyntaxOptions } from '../model';
 
 export class AndOrConditionImpl implements AndOrCondition {
+  public readonly kind = 'andOr' as const;
   constructor(
     public leftCondition: Condition,
     public andOr: AndOr,

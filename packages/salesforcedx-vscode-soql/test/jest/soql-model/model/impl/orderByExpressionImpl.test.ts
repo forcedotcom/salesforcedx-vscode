@@ -13,7 +13,7 @@ import { NullsOrder, Order } from '../../../../../src/soql-model/model/model';
 describe('OrderByExpressionImpl should', () => {
   it('store order by expression components', () => {
     const expected = {
-      field: { fieldName: 'shattered' },
+      field: { kind: 'fieldRef', fieldName: 'shattered' },
       order: 'ASC',
       nullsOrder: 'NULLS FIRST',
     };

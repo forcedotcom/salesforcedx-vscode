@@ -113,22 +113,28 @@ export type From = SoqlModelObject & {
 export type Select = SoqlModelObject & {
   // SELECT COUNT() => SelectCount
   // SELECT [field] [subquery] [typeof] [distance] => SelectExprs
+  kind: 'selectCount' | 'selectExprs';
 };
 
-export type SelectCount = Select;
+export type SelectCount = Select & {
+  kind: 'selectCount';
+};
 
 export type SelectExprs = Select & {
+  kind: 'selectExprs';
   selectExpressions: SelectExpression[];
 };
 
 export type SelectExpression = SoqlModelObject & {
-  // field => Field
+  // field => FieldSelection
   // subquery => UnmodeledSyntax
   // typeof => UnmodeledSyntax
+  kind: 'fieldSelection' | 'unmodeled';
   alias?: UnmodeledSyntax;
 };
 
 export type FieldSelection = SelectExpression & {
+  kind: 'fieldSelection';
   field: Field;
 };
 
@@ -136,9 +142,11 @@ export type Field = SoqlModelObject & {
   // field name => FieldRef
   // function reference => UnmodeledSyntax
   // distance => UnmodeledSyntax
+  kind: 'fieldRef' | 'unmodeled';
 };
 
 export type FieldRef = Field & {
+  kind: 'fieldRef';
   fieldName: string;
 };
 
@@ -189,6 +197,7 @@ export enum ConditionOperator {
 export type CompareValue = SoqlModelObject & {
   // literal => Literal
   // colon expression => UnmodeledSyntax
+  kind: 'literal' | 'unmodeled';
 };
 
 export type LiteralType =
@@ -200,6 +209,7 @@ export type LiteralType =
   | 'STRING';
 
 export type Literal = CompareValue & {
+  kind: 'literal';
   value: string;
 };
 
@@ -213,35 +223,42 @@ export type Condition = SoqlModelObject & {
   // field [Includes|Excludes] ( values ) => IncludesCondition
   // field [In|NotIn] ( semi-join ) => UnmodeledSyntax
   // field [In|NotIn] ( values ) => InListCondition
+  kind: 'nested' | 'not' | 'andOr' | 'fieldCompare' | 'includes' | 'inList' | 'unmodeled';
 };
 
 export type NestedCondition = Condition & {
+  kind: 'nested';
   condition: Condition;
 };
 
 export type NotCondition = Condition & {
+  kind: 'not';
   condition: Condition;
 };
 
 export type AndOrCondition = Condition & {
+  kind: 'andOr';
   leftCondition: Condition;
   andOr: AndOr;
   rightCondition: Condition;
 };
 
 export type FieldCompareCondition = Condition & {
+  kind: 'fieldCompare';
   field: Field;
   operator: ConditionOperator;
   compareValue: CompareValue;
 };
 
 export type IncludesCondition = Condition & {
+  kind: 'includes';
   field: Field;
   operator: ConditionOperator;
   values: CompareValue[];
 };
 
 export type InListCondition = Condition & {
+  kind: 'inList';
   field: Field;
   operator: ConditionOperator;
   values: CompareValue[];
@@ -271,6 +288,7 @@ export type UnmodeledSyntax = SelectExpression &
   Bind &
   RecordTrackingType &
   Update & {
+    kind: 'unmodeled';
     unmodeledSyntax: string;
     reason: UnmodeledSyntaxReason;
   };

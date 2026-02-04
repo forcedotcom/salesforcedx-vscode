@@ -9,6 +9,7 @@ import { SyntaxOptions, UnmodeledSyntax } from '../model';
 import { UnmodeledSyntaxReason } from '../unmodeled';
 
 export class UnmodeledSyntaxImpl implements UnmodeledSyntax {
+  public readonly kind = 'unmodeled' as const;
   constructor(public unmodeledSyntax: string, public reason: UnmodeledSyntaxReason) { }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public toSoqlSyntax(options?: SyntaxOptions): string {

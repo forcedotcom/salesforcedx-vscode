@@ -8,6 +8,7 @@
 import { Condition, NestedCondition, SyntaxOptions } from '../model';
 
 export class NestedConditionImpl implements NestedCondition {
+  public readonly kind = 'nested' as const;
   public condition: Condition;
   constructor(condition: Condition) {
     this.condition = condition;

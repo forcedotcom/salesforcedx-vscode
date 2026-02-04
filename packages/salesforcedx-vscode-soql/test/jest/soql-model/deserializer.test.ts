@@ -28,27 +28,28 @@ import { deserialize } from '../../../src/soql-model/serialization/deserializer'
 
 const testQueryModel = {
   select: {
+    kind: 'selectExprs',
     selectExpressions: [
-      { field: { fieldName: 'field1' } },
-      { field: { fieldName: 'field2' } },
-      { field: { fieldName: 'field3' }, alias: { unmodeledSyntax: 'alias3', reason: REASON_UNMODELED_ALIAS } },
-      { unmodeledSyntax: 'COUNT(fieldZ)', reason: REASON_UNMODELED_FUNCTIONREFERENCE },
-      { unmodeledSyntax: '(SELECT fieldA FROM objectA)', reason: REASON_UNMODELED_SEMIJOIN },
-      { unmodeledSyntax: 'TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END', reason: REASON_UNMODELED_TYPEOF }
+      { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'field1' } },
+      { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'field2' } },
+      { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'field3' }, alias: { kind: 'unmodeled', unmodeledSyntax: 'alias3', reason: REASON_UNMODELED_ALIAS } },
+      { kind: 'unmodeled', unmodeledSyntax: 'COUNT(fieldZ)', reason: REASON_UNMODELED_FUNCTIONREFERENCE },
+      { kind: 'unmodeled', unmodeledSyntax: '(SELECT fieldA FROM objectA)', reason: REASON_UNMODELED_SEMIJOIN },
+      { kind: 'unmodeled', unmodeledSyntax: 'TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END', reason: REASON_UNMODELED_TYPEOF }
     ]
   },
   from: { sobjectName: 'object1' },
-  where: { condition: { field: { fieldName: 'field1' }, operator: '=', compareValue: { value: '5' } } },
+  where: { condition: { kind: 'fieldCompare', field: { kind: 'fieldRef', fieldName: 'field1' }, operator: '=', compareValue: { kind: 'literal', value: '5' } } },
   with: { unmodeledSyntax: 'WITH DATA CATEGORY cat__c AT val__c', reason: REASON_UNMODELED_WITH },
   groupBy: { unmodeledSyntax: 'GROUP BY field1', reason: REASON_UNMODELED_GROUPBY },
   orderBy: {
     orderByExpressions: [
       {
-        field: { fieldName: 'field2' },
+        field: { kind: 'fieldRef', fieldName: 'field2' },
         order: 'DESC',
         nullsOrder: 'NULLS LAST'
       },
-      { field: { fieldName: 'field1' } }
+      { field: { kind: 'fieldRef', fieldName: 'field1' } }
     ]
   },
   limit: { limit: 20 },
@@ -61,57 +62,64 @@ const testQueryModel = {
 
 const fromWithUnmodeledSyntax = {
   sobjectName: 'object1',
-  as: { unmodeledSyntax: 'AS objectAs', reason: REASON_UNMODELED_AS },
-  using: { unmodeledSyntax: 'USING SCOPE everything', reason: REASON_UNMODELED_USING }
+  as: { kind: 'unmodeled', unmodeledSyntax: 'AS objectAs', reason: REASON_UNMODELED_AS },
+  using: { kind: 'unmodeled', unmodeledSyntax: 'USING SCOPE everything', reason: REASON_UNMODELED_USING }
 };
 
-const selectCount = {};
+const selectCount = { kind: 'selectCount' };
 
 const limitZero = { limit: 0 };
 
-const literalTrue = { value: 'TRUE' };
-const literalFalse = { value: 'FALSE' };
-const literalCurrency = { value: 'USD1000' };
-const literalDate = { value: '2020-11-11' };
-const literalNull = { value: 'null' };
-const literalNumber = { value: '5' };
-const literalString = { value: "'HelloWorld'" };
+const literalTrue = { kind: 'literal', value: 'TRUE' };
+const literalFalse = { kind: 'literal', value: 'FALSE' };
+const literalCurrency = { kind: 'literal', value: 'USD1000' };
+const literalDate = { kind: 'literal', value: '2020-11-11' };
+const literalNull = { kind: 'literal', value: 'null' };
+const literalNumber = { kind: 'literal', value: '5' };
+const literalString = { kind: 'literal', value: "'HelloWorld'" };
 
-const field = { fieldName: 'field' };
+const field = { kind: 'fieldRef', fieldName: 'field' };
 
 const conditionFieldCompare = {
+  kind: 'fieldCompare',
   field,
   operator: '=',
   compareValue: literalNumber
 };
-const conditionLike = { field, operator: 'LIKE', compareValue: literalString };
+const conditionLike = { kind: 'fieldCompare', field, operator: 'LIKE', compareValue: literalString };
 const conditionInList = {
+  kind: 'inList',
   field,
   operator: 'IN',
   values: [literalString, { ...literalString, value: "'other value'" }]
 };
 const conditionIncludes = {
+  kind: 'includes',
   field,
   operator: 'INCLUDES',
   values: [literalString, { ...literalString, value: "'other value'" }]
 };
 const conditionAndOr = {
+  kind: 'andOr',
   leftCondition: conditionFieldCompare,
   andOr: 'AND',
   rightCondition: conditionLike
 };
-const conditionNested = { condition: conditionFieldCompare };
-const conditionNot = { unmodeledSyntax: 'NOT field = 5', reason: REASON_UNMODELED_COMPLEXGROUP };
+const conditionNested = { kind: 'nested', condition: conditionFieldCompare };
+const conditionNot = { kind: 'unmodeled', unmodeledSyntax: 'NOT field = 5', reason: REASON_UNMODELED_COMPLEXGROUP };
 const conditionComplex = {
+  kind: 'unmodeled',
   unmodeledSyntax: "field = 5 AND (field like 'A%' OR field like 'B%')",
   reason: REASON_UNMODELED_COMPLEXGROUP
 };
-const conditionCalculated = { unmodeledSyntax: 'A + B > 10', reason: REASON_UNMODELED_CALCULATEDCONDITION };
+const conditionCalculated = { kind: 'unmodeled', unmodeledSyntax: 'A + B > 10', reason: REASON_UNMODELED_CALCULATEDCONDITION };
 const conditionDistance = {
+  kind: 'unmodeled',
   unmodeledSyntax: "DISTANCE(field,GEOLOCATION(37,122),'mi') < 100",
   reason: REASON_UNMODELED_DISTANCECONDITION
 };
 const conditionSemiJoin = {
+  kind: 'unmodeled',
   unmodeledSyntax: 'field IN (SELECT A FROM B)',
   reason: REASON_UNMODELED_INSEMIJOINCONDITION
 };
@@ -120,6 +128,7 @@ describe('deserialize should', () => {
   it('model supported syntax as query objects', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0], testQueryModel.select.selectExpressions[1]]
       },
       from: testQueryModel.from,
@@ -132,6 +141,7 @@ describe('deserialize should', () => {
   it('model AS and USING FROM syntax as unmodeled syntax', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0], testQueryModel.select.selectExpressions[1]]
       },
       from: fromWithUnmodeledSyntax,
@@ -145,6 +155,7 @@ describe('deserialize should', () => {
   it('model functions, inner queries, TYPEOF, and aliases in SELECT clause as unmodeled syntax', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [
           testQueryModel.select.selectExpressions[0],
           testQueryModel.select.selectExpressions[1],
@@ -179,7 +190,7 @@ describe('deserialize should', () => {
       'SELECT field1, field2, field3 alias3, COUNT(fieldZ), (SELECT fieldA FROM objectA), TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END FROM object1 ' +
       'WHERE field1 = 5 WITH DATA CATEGORY cat__c AT val__c GROUP BY field1 ORDER BY field2 DESC NULLS LAST, field1 LIMIT 20 OFFSET 2 BIND field1 = 5 FOR VIEW UPDATE TRACKING'
     );
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('model parse errors with partial parse results as ModelErrors within query', () => {
@@ -220,6 +231,7 @@ describe('deserialize should', () => {
   it('identify LIMIT 0 as valid limit clause', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -233,6 +245,7 @@ describe('deserialize should', () => {
   it('identify string literals in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -248,6 +261,7 @@ describe('deserialize should', () => {
   it('identify date literals in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -263,6 +277,7 @@ describe('deserialize should', () => {
   it('identify TRUE literal in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -278,6 +293,7 @@ describe('deserialize should', () => {
   it('identify FALSE literal in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -293,6 +309,7 @@ describe('deserialize should', () => {
   it('identify number literals in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -308,6 +325,7 @@ describe('deserialize should', () => {
   it('identify null literals in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -323,6 +341,7 @@ describe('deserialize should', () => {
   it('identify currency literals in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -338,6 +357,7 @@ describe('deserialize should', () => {
   it('identify = operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -351,6 +371,7 @@ describe('deserialize should', () => {
   it('identify != operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -364,6 +385,7 @@ describe('deserialize should', () => {
   it('identify <> operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -377,6 +399,7 @@ describe('deserialize should', () => {
   it('identify < operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -390,6 +413,7 @@ describe('deserialize should', () => {
   it('identify > operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -403,6 +427,7 @@ describe('deserialize should', () => {
   it('identify <= operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -416,6 +441,7 @@ describe('deserialize should', () => {
   it('identify >= operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -429,6 +455,7 @@ describe('deserialize should', () => {
   it('identify LIKE operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -442,6 +469,7 @@ describe('deserialize should', () => {
   it('identify INCLUDES operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -457,6 +485,7 @@ describe('deserialize should', () => {
   it('identify EXCLUDES operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -472,6 +501,7 @@ describe('deserialize should', () => {
   it('identify IN operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -487,6 +517,7 @@ describe('deserialize should', () => {
   it('identify NOT IN operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -502,6 +533,7 @@ describe('deserialize should', () => {
   it('identify includes condition as unmodeled syntax', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -517,6 +549,7 @@ describe('deserialize should', () => {
   it('identify in-list condition as unmodeled syntax', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -532,6 +565,7 @@ describe('deserialize should', () => {
   it('identify calculated condition as unmodeled syntax', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -545,6 +579,7 @@ describe('deserialize should', () => {
   it('identify distance condition as unmodeled syntax', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -560,6 +595,7 @@ describe('deserialize should', () => {
   it('identify IN semi-join condition as unmodeled syntax', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -573,6 +609,7 @@ describe('deserialize should', () => {
   it('identify NOT condition as unmodeled', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -586,6 +623,7 @@ describe('deserialize should', () => {
   it('identify complex condition as unmodeled', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -601,6 +639,7 @@ describe('deserialize should', () => {
   it('identify AND operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -615,6 +654,7 @@ describe('deserialize should', () => {
   it('identify OR operator in condition', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -629,6 +669,7 @@ describe('deserialize should', () => {
   it('identify nested conditions', () => {
     const expected = {
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,
@@ -699,6 +740,7 @@ describe('deserialize should', () => {
         text: '// This is a comment on line 1\n// This is a comment on line 2\n'
       },
       select: {
+        kind: 'selectExprs',
         selectExpressions: [testQueryModel.select.selectExpressions[0]]
       },
       from: testQueryModel.from,

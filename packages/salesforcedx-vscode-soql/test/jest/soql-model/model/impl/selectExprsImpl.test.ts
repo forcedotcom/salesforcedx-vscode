@@ -12,7 +12,8 @@ import { SelectExprsImpl } from '../../../../../src/soql-model/model/impl/select
 describe('SelectExprsImpl should', () => {
   it('store select expressions', () => {
     const expected = {
-      selectExpressions: [{ field: { fieldName: 'sticky' } }, { field: { fieldName: 'fingers' } }],
+      kind: 'selectExprs',
+      selectExpressions: [{ kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'sticky' } }, { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'fingers' } }],
     };
     const actual = new SelectExprsImpl([
       new FieldSelectionImpl(new FieldRefImpl(expected.selectExpressions[0].field.fieldName)),

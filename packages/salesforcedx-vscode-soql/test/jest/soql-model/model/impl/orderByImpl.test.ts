@@ -12,7 +12,7 @@ import { OrderByImpl } from '../../../../../src/soql-model/model/impl/orderByImp
 describe('OrderByImpl should', () => {
   it('store ORDER BY expressions', () => {
     const expected = {
-      orderByExpressions: [{ field: { fieldName: 'some' } }, { field: { fieldName: 'girls' } }],
+      orderByExpressions: [{ field: { kind: 'fieldRef', fieldName: 'some' } }, { field: { kind: 'fieldRef', fieldName: 'girls' } }],
     };
     const actual = new OrderByImpl([
       new OrderByExpressionImpl(new FieldRefImpl('some')),

@@ -30,35 +30,41 @@ import {
 describe('QueryImpl should', () => {
   it('store query components as appropriate model objects', () => {
     const expected = {
-      select: { selectExpressions: [] },
+      select: { kind: 'selectExprs', selectExpressions: [] },
       from: { sobjectName: 'songs' },
       where: {
         condition: {
-          field: { fieldName: 'paint_it' },
+          kind: 'fieldCompare',
+          field: { kind: 'fieldRef', fieldName: 'paint_it' },
           operator: '=',
-          compareValue: { value: "'black'" }
+          compareValue: { kind: 'literal', value: "'black'" }
         }
       },
       with: {
+        kind: 'unmodeled',
         unmodeledSyntax: 'gimme shelter',
         reason: REASON_UNMODELED_WITH
       },
       groupBy: {
+        kind: 'unmodeled',
         unmodeledSyntax: 'start me up',
         reason: REASON_UNMODELED_GROUPBY
       },
-      orderBy: { orderByExpressions: [{ field: { fieldName: 'angie' } }] },
+      orderBy: { orderByExpressions: [{ field: { kind: 'fieldRef', fieldName: 'angie' } }] },
       limit: { limit: 5 },
       offset: {
+        kind: 'unmodeled',
         unmodeledSyntax: 'wild horses',
         reason: REASON_UNMODELED_OFFSET
       },
-      bind: { unmodeledSyntax: 'miss you', reason: REASON_UNMODELED_BIND },
+      bind: { kind: 'unmodeled', unmodeledSyntax: 'miss you', reason: REASON_UNMODELED_BIND },
       recordTrackingType: {
+        kind: 'unmodeled',
         unmodeledSyntax: 'satisfaction',
         reason: REASON_UNMODELED_RECORDTRACKING
       },
       update: {
+        kind: 'unmodeled',
         unmodeledSyntax: 'under my thumb',
         reason: REASON_UNMODELED_UPDATE
       }

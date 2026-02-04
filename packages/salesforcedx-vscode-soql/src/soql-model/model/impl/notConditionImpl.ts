@@ -8,6 +8,7 @@
 import { Condition, NotCondition, SyntaxOptions } from '../model';
 
 export class NotConditionImpl implements NotCondition {
+  public readonly kind = 'not' as const;
   public condition: Condition;
   constructor(condition: Condition) {
     this.condition = condition;
