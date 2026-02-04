@@ -7,13 +7,9 @@
 import { build } from 'esbuild';
 import copy from 'esbuild-plugin-copy';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
-import { cpSync, mkdirSync } from 'fs';
 
 const commonConfig = {
-  external: ['vscode', './soql-common/*'],
-  alias: {
-    '@salesforce/soql-common': './soql-common'
-  }
+  external: ['vscode']
 };
 
 await build({
@@ -34,14 +30,6 @@ await build({
         from: ['../../node_modules/@salesforce/soql-data-view/web/**'],
         to: ['./soql-data-view']
       }
-    }),
-    copy({
-      assets: [
-        {
-          from: ['./out/src/soql-common/**/*'],
-          to: ['./soql-common']
-        }
-      ]
     })
   ]
 });
@@ -53,15 +41,3 @@ await build({
   entryPoints: ['../../node_modules/@salesforce/soql-language-server/lib/server.js'],
   outfile: './dist/server.js'
 });
-
-// Manually copy soql-parser.lib directory since esbuild-plugin-copy doesn't handle nested directories well
-mkdirSync('./dist/soql-common', { recursive: true });
-// Copy from src if out doesn't have it yet (wireit task may not have run)
-const soqlParserLibSource = './out/src/soql-common/soql-parser.lib';
-const soqlParserLibFallback = './src/soql-common/soql-parser.lib';
-try {
-  cpSync(soqlParserLibSource, './dist/soql-common/soql-parser.lib', { recursive: true });
-} catch {
-  console.warn(`Copying from ${soqlParserLibSource} failed, trying ${soqlParserLibFallback}`);
-  cpSync(soqlParserLibFallback, './dist/soql-common/soql-parser.lib', { recursive: true });
-}
