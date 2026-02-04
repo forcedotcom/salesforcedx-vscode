@@ -1,7 +1,7 @@
 import { JsonMap } from '@salesforce/ts-types';
 import { ToolingModelJson } from './model';
 
-export interface TelemetryModelJson extends JsonMap {
+export type TelemetryModelJson = JsonMap & {
   sObject: string;
   fields: number;
   orderBy: number;

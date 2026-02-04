@@ -10,12 +10,12 @@ import { api, LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
 import { AndOr } from '../../../../soql-model/model/model';
 
-interface ConditionTemplate {
+type ConditionTemplate = {
   condition: JsonMap;
   index: number;
 }
 
-interface ModifierGroupNode extends Node {
+type ModifierGroupNode = Node & {
   allModifiersHaveValue: boolean;
 }
 

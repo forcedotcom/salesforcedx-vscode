@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-interface SoqlWithComments {
+type SoqlWithComments = {
   // Original complete SOQL string, untouched:
   originalSoqlText: string;
 
@@ -21,7 +21,7 @@ interface SoqlWithComments {
 
   // Pure SOQL code, without comments or empty lines at the top:
   soqlText: string;
-}
+};
 
 export const parseHeaderComments = (originalSoqlText: string): SoqlWithComments => {
   const [, headerComments, soqlText] = HEADER_COMMENT_EXTRACTION_REGEX.exec(originalSoqlText) || [];

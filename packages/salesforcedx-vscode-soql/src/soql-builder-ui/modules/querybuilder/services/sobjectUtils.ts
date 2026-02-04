@@ -8,7 +8,7 @@
 
 import { SObjectFieldType } from '../../../../soql-model/model/model';
 
-interface SObjectField {
+type SObjectField = {
   name: string;
   type: string;
   picklistValues: string[];
