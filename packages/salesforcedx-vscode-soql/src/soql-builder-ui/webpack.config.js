@@ -9,8 +9,7 @@ module.exports = {
       fs: false
     },
     alias: {
-      os: 'os-browserify/browser',
-      'node:os': 'os-browserify/browser'
+      os: 'os-browserify/browser'
     }
   },
   plugins: [
