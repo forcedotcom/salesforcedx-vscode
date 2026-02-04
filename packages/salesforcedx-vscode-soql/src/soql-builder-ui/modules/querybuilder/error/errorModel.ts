@@ -1,4 +1,4 @@
-import { ErrorType } from '../../../../soql-model/model/model';
+import { ErrorType } from '@soql-model/model/model';
 
 /** ERROR HANDLING UTILITIES - Using ErrorType from soql-model */
 

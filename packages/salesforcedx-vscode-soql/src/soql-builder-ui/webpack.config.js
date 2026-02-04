@@ -11,7 +11,8 @@ module.exports = {
     },
     alias: {
       os: 'os-browserify/browser',
-      '@soql-common': path.resolve(__dirname, '../soql-common')
+      '@soql-common': path.resolve(__dirname, '../soql-common'),
+      '@soql-model': path.resolve(__dirname, '../soql-model')
     }
   },
   plugins: [

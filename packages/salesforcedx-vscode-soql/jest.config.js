@@ -11,8 +11,9 @@ module.exports = Object.assign({}, baseConfig, {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
   },
-  // Map @soql-common to actual source path for Jest
+  // Map @soql-common and @soql-model to actual source paths for Jest
   moduleNameMapper: {
-    '^@soql-common/(.*)$': '<rootDir>/src/soql-common/$1'
+    '^@soql-common/(.*)$': '<rootDir>/src/soql-common/$1',
+    '^@soql-model/(.*)$': '<rootDir>/src/soql-model/$1'
   }
 });

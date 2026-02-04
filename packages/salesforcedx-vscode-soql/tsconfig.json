@@ -6,7 +6,8 @@
     "strict": false,
     "noImplicitAny": false,
     "paths": {
-      "@soql-common/*": ["./src/soql-common/*"]
+      "@soql-common/*": ["./src/soql-common/*"],
+      "@soql-model/*": ["./src/soql-model/*"]
     }
   },
   "exclude": [
