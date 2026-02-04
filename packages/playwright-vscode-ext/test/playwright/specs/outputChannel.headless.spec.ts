@@ -14,11 +14,7 @@ import {
   outputChannelContains
 } from '../../../src/pages/outputChannel';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
-import {
-  waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
-  closeWelcomeTabs
-} from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, assertWelcomeTabExists, closeWelcomeTabs } from '../../../src/utils/helpers';
 import { EDITOR } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
