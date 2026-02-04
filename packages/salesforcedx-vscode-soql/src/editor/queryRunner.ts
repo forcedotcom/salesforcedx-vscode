@@ -7,9 +7,9 @@
 
 import type { Connection } from '@salesforce/core';
 import type { JsonMap } from '@salesforce/ts-types';
+import * as soqlComments from '@soql-common/soqlComments';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import * as soqlComments from '../soql-common/soqlComments';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type QueryResult<T> = Awaited<ReturnType<Connection['query']>>;

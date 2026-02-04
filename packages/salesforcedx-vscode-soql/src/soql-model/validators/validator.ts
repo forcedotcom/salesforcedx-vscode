@@ -58,7 +58,6 @@ const allOperators: Operator[] = [
 
 export class OperatorValidator extends Validator {
   public validate(input: string): ValidateResult {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     const operator = allOperators.find((op) => op.description === input.toUpperCase().trim());
     const display = operator ? operator.display : input;
     const isValid = operator ? operator.types.includes(this.options.type) : false;

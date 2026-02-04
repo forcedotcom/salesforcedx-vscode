@@ -4,7 +4,10 @@
     "rootDir": ".",
     "outDir": "out",
     "strict": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "paths": {
+      "@soql-common/*": ["./src/soql-common/*"]
+    }
   },
   "exclude": [
     "node_modules",

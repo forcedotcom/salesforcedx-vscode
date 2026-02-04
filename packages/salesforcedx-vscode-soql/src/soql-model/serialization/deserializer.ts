@@ -6,13 +6,13 @@
  */
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions, no-param-reassign, prefer-const */
+import { SOQLParser, ParserError } from '@soql-common/soql-parser.lib';
+import * as Parser from '@soql-common/soql-parser.lib/generated/SoqlParser';
+import { SoqlParserListener } from '@soql-common/soql-parser.lib/generated/SoqlParserListener';
+import { parseHeaderComments } from '@soql-common/soqlComments';
 import { CharStream, ParserRuleContext, Token, NoViableAltException, InputMismatchException } from 'antlr4ts';
 import { Interval } from 'antlr4ts/misc/Interval';
 import { ErrorNode, ParseTreeListener, ParseTree } from 'antlr4ts/tree';
-import { SOQLParser, ParserError } from '../../soql-common/soql-parser.lib';
-import * as Parser from '../../soql-common/soql-parser.lib/generated/SoqlParser';
-import { SoqlParserListener } from '../../soql-common/soql-parser.lib/generated/SoqlParserListener';
-import { parseHeaderComments } from '../../soql-common/soqlComments';
 import { messages } from '../messages/i18n';
 import { AndOrConditionImpl } from '../model/impl/andOrConditionImpl';
 import { FieldCompareConditionImpl } from '../model/impl/fieldCompareConditionImpl';

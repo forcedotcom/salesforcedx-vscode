@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable prefer-arrow/prefer-arrow-functions */
+
 // leaving assertions as is.
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
@@ -265,11 +265,11 @@ const newFieldCompletionItems = (field: SObjectField, soqlContext: SoqlItemConte
         { detail: field.type } as CompletionItem,
         isPreferredItem
           ? {
-              preselect: true,
-              // extra space prefix to make it appear first
-              sortText: ` ${field.name}`,
-              filterText: ` ${field.name}`
-            }
+            preselect: true,
+            // extra space prefix to make it appear first
+            sortText: ` ${field.name}`,
+            filterText: ` ${field.name}`
+          }
           : {}
       )
     )

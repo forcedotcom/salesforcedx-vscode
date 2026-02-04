@@ -9,33 +9,11 @@ import copy from 'esbuild-plugin-copy';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { cpSync, mkdirSync } from 'fs';
 
-// Plugin to rewrite soql-common imports to be relative to dist directory
-const rewriteSoqlCommonImports = {
-  name: 'rewrite-soql-common-imports',
-  setup(build) {
-    build.onLoad({ filter: /\.js$/ }, async args => {
-      const fs = await import('fs');
-      let contents = await fs.promises.readFile(args.path, 'utf8');
-
-      // Rewrite imports from ../../soql-common/ to ./soql-common/
-      if (contents.includes('../../soql-common/')) {
-        contents = contents.replace(
-          /require\(["']\.\.\/\.\.\/soql-common\/(soql-parser\.lib[^"']*)["']\)/g,
-          'require("./soql-common/$1")'
-        );
-        contents = contents.replace(
-          /require\(["']\.\.\/\.\.\/soql-common\/(soqlComments)["']\)/g,
-          'require("./soql-common/$1")'
-        );
-      }
-
-      return { contents, loader: 'js' };
-    });
-  }
-};
-
 const commonConfig = {
-  external: ['vscode', './soql-common/*']
+  external: ['vscode', './soql-common/*'],
+  alias: {
+    '@soql-common': './soql-common'
+  }
 };
 
 await build({
@@ -45,7 +23,6 @@ await build({
   entryPoints: ['./out/src/index.js'],
   outfile: './dist/index.js',
   plugins: [
-    rewriteSoqlCommonImports,
     copy({
       assets: {
         from: [`./src/soql-builder-ui/dist/**`],
