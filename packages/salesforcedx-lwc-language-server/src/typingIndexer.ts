@@ -47,7 +47,6 @@ const diffItems = (items: string[], compareItems: string[]): string[] => {
   });
 };
 
-
 // Utility function to create new meta typings
 const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
   const newFiles = diffItems(await getMetaFiles(indexer), getMetaTypings(indexer));
@@ -98,7 +97,7 @@ const deleteStaleMetaTypings = (indexer: TypingIndexerData): void => {
 
 // Utility function to save custom label typings
 const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void> => {
-  const customLabelFiles = await getCustomLabelFiles(indexer);
+  const customLabelFiles = getCustomLabelFiles(indexer);
   const typings: string[] = [];
 
   for (const filename of customLabelFiles) {
@@ -127,7 +126,7 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
       size: fileContent.length
     });
     // Use updateFileContent with connection to create file via LSP
-    await indexer.fileSystemProvider.updateFileContent(customLabelTypingsPath, fileContent, indexer.connection);
+    void indexer.fileSystemProvider.updateFileContent(customLabelTypingsPath, fileContent);
   }
 };
 
@@ -257,7 +256,7 @@ export default class TypingIndexer {
 
     // Initialize typings for SFDX workspaces
     if (this.projectType === 'SFDX') {
-      this.metaFiles = await getMetaFiles(this);
+      this.metaFiles = getMetaFiles(this);
       await this.createNewMetaTypings();
       this.deleteStaleMetaTypings();
       await this.saveCustomLabelTypings();
