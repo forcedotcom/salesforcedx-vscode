@@ -152,9 +152,9 @@ const executeDiff = Effect.fn('executeDiff')(function* (pairs: HashSet.HashSet<D
             return Effect.gen(function* () {
               yield* channelService.appendToChannel(`Diff failed for ${pair.fileName}: ${errorMessage}`);
               yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-              yield* Effect.promise(() =>
-                vscode.window.showErrorMessage(nls.localize('source_diff_failed_for_file', pair.fileName, errorMessage))
-              );
+              yield* Effect.sync(() => {
+                void vscode.window.showErrorMessage(nls.localize('source_diff_failed_for_file', pair.fileName, errorMessage));
+              });
             });
           })
         )
@@ -180,7 +180,9 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
 
   if (!retrieveResult) {
     yield* channelService.appendToChannel('Diff cancelled by user');
-    yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('source_diff_cancelled')));
+    yield* Effect.sync(() => {
+      void vscode.window.showWarningMessage(nls.localize('source_diff_cancelled'));
+    });
     return;
   }
 
@@ -189,7 +191,9 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
   const retrievedComponents = retrieveResult.components.getSourceComponents().toArray();
   if (retrievedComponents.length === 0) {
     yield* channelService.appendToChannel('No components retrieved from org');
-    yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('source_diff_no_results')));
+    yield* Effect.sync(() => {
+      void vscode.window.showWarningMessage(nls.localize('source_diff_no_results'));
+    });
     return;
   }
 
@@ -198,14 +202,18 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
 
   if (HashSet.size(pairsSet) === 0) {
     yield* channelService.appendToChannel('No matching files found to diff');
-    yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('source_diff_no_matching_files')));
+    yield* Effect.sync(() => {
+      void vscode.window.showWarningMessage(nls.localize('source_diff_no_matching_files'));
+    });
     return;
   }
 
   // Execute diffs
   const diffsOpen = yield* executeDiff(pairsSet);
   if (diffsOpen.length === 0) {
-    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('source_diff_all_files_match')));
+    yield* Effect.sync(() => {
+      void vscode.window.showInformationMessage(nls.localize('source_diff_all_files_match'));
+    });
   }
   yield* channelService.appendToChannel(
     `Diff completed for ${HashSet.size(pairsSet)} file${HashSet.size(pairsSet) === 1 ? '' : 's'}`

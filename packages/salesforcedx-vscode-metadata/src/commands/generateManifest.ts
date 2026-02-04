@@ -31,8 +31,8 @@ const promptForOverwrite = (fileName: string) =>
     vscode.window.showWarningMessage(
       nls.localize('manifest_overwrite_confirmation', fileName),
       { modal: true },
-      'Overwrite',
-      'Cancel'
+      nls.localize('overwrite_button'),
+      nls.localize('cancel_button')
     )
   );
 
@@ -56,7 +56,7 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
       // doesn't exist
       !(yield* api.services.FsService.fileOrFolderExists(manifestFileUri)) ||
       // exists and user wants to overwrite
-      (yield* promptForOverwrite(fileName)) === 'Overwrite';
+      (yield* promptForOverwrite(fileName)) === nls.localize('overwrite_button');
 
     if (!shouldWrite) {
       yield* channelService.appendToChannel('Manifest generation cancelled by user');
@@ -88,9 +88,9 @@ export const generateManifestEffect = Effect.fn('generateManifest')(function* (
     sourceUri ??
     (yield* api.services.EditorService.getActiveEditorUri().pipe(
       Effect.catchTag('NoActiveEditorError', () =>
-        Effect.promise(() =>
-          vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'))
-        ).pipe(Effect.as(undefined))
+        Effect.sync(() => {
+          void vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'));
+        }).pipe(Effect.as(undefined))
       )
     ));
 

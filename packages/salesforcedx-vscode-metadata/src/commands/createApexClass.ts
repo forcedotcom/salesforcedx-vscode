@@ -94,10 +94,15 @@ const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (
 
   // Prompt user
   const choice = yield* Effect.promise(() =>
-    vscode.window.showWarningMessage(nls.localize('apex_class_already_exists'), { modal: true }, 'Overwrite', 'Cancel')
+    vscode.window.showWarningMessage(
+      nls.localize('apex_class_already_exists'),
+      { modal: true },
+      nls.localize('overwrite_button'),
+      nls.localize('cancel_button')
+    )
   );
 
-  return choice === 'Overwrite' ? true : yield* new UserCancelledOverwriteError();
+  return choice === nls.localize('overwrite_button') ? true : yield* new UserCancelledOverwriteError();
 });
 
 // this really should use the template library, but I need an apex class create for testing purposes and don't have the real one yet

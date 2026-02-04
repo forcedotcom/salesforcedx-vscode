@@ -71,6 +71,8 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   const { isSDRFailure } = componentSetService;
   if (result.getFileResponses().some(isSDRFailure)) {
-    yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('delete_completed_with_errors_message')));
+    yield* Effect.sync(() => {
+      void vscode.window.showErrorMessage(nls.localize('delete_completed_with_errors_message'));
+    });
   }
 });

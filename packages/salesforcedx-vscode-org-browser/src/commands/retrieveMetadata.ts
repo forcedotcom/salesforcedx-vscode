@@ -85,10 +85,11 @@ const getRetrieveTarget = (node: OrgBrowserTreeItem): Option.Option<MetadataMemb
 const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember) =>
   Effect.promise(async () => {
     if (localComponents.size === 0) return true;
+    const yesButton = nls.localize('yes_button');
     const answer = await vscode.window.showWarningMessage(
       nls.localize('confirm_overwrite', String(localComponents.size), target.type),
-      'Yes',
-      'No'
+      yesButton,
+      nls.localize('no_button')
     );
-    return answer === 'Yes';
+    return answer === yesButton;
   });

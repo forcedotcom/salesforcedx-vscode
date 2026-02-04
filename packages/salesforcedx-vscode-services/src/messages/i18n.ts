@@ -16,7 +16,8 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  view_suggestions: 'View Suggestions'
+  view_suggestions: 'View Suggestions',
+  retrieve_on_load_failed: 'Retrieve on load failed: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

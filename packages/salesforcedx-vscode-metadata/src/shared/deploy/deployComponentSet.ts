@@ -41,8 +41,8 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   if (result.getFileResponses().some(isSDRFailure)) {
     yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
     // we don't wait for the promise to complete (showErrorMessage being dismissed by the user)
-    yield* Effect.fork(
-      Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_completed_with_errors_message')))
-    );
+    yield* Effect.sync(() => {
+      void vscode.window.showErrorMessage(nls.localize('deploy_completed_with_errors_message'));
+    });
   }
 });

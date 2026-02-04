@@ -92,7 +92,9 @@ export const messages = {
   source_diff_no_results: 'No components retrieved from org',
   source_diff_no_matching_files: 'No matching files found to diff',
   source_diff_all_files_match: 'All Files Match',
-  missing_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.'
+  missing_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.',
+  overwrite_button: 'Overwrite',
+  cancel_button: 'Cancel'
 } as const;
 
 export type MessageKey = keyof typeof messages;

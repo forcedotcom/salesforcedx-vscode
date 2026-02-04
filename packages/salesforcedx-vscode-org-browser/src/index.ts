@@ -59,7 +59,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     retrieveEffect(node, treeProvider).pipe(
       Effect.tap(result =>
         typeof result === 'string'
-          ? Effect.promise(() => vscode.window.showInformationMessage(nls.localize('retrieve_canceled')))
+          ? Effect.sync(() => {
+              void vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));
+            })
           : Effect.void
       )
     )

@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { nls } from '../messages';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { ComponentSetService } from './componentSetService';
@@ -115,7 +116,7 @@ export const retrieveOnLoadEffect = () =>
     Effect.withSpan('retrieveOnLoadEffect'),
     Effect.catchAll(error =>
       Effect.gen(function* () {
-        const errorMessage = `Retrieve on load failed: ${String(error)}`;
+        const errorMessage = nls.localize('retrieve_on_load_failed', String(error));
         yield* (yield* ChannelService).appendToChannel(errorMessage);
         yield* Effect.sync(() => {
           void vscode.window.showErrorMessage(errorMessage);

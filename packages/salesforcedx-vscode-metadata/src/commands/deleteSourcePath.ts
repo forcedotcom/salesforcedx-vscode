@@ -20,7 +20,8 @@ const showDeleteConfirmation = () =>
     const PROCEED = nls.localize('confirm_delete_source_button_text');
     const CANCEL = nls.localize('cancel_delete_source_button_text');
     const prompt = nls.localize('delete_source_confirmation_message');
-    return await vscode.window.showInformationMessage(prompt, PROCEED, CANCEL).then(response => response === PROCEED);
+    const response = await vscode.window.showInformationMessage(prompt, PROCEED, CANCEL);
+    return response === PROCEED;
   });
 
 const deletePaths = (uris: URI[]) =>
@@ -47,9 +48,9 @@ export const deleteSourcePathsEffect = Effect.fn('deleteSourcePaths')(function* 
     sourceUri ??
     (yield* api.services.EditorService.getActiveEditorUri().pipe(
       Effect.catchTag('NoActiveEditorError', () =>
-        Effect.promise(() =>
-          vscode.window.showErrorMessage(nls.localize('delete_source_select_file_or_directory'))
-        ).pipe(Effect.as(undefined))
+        Effect.sync(() => {
+          void vscode.window.showErrorMessage(nls.localize('delete_source_select_file_or_directory'));
+        }).pipe(Effect.as(undefined))
       )
     ));
 
@@ -72,7 +73,9 @@ export const deleteSourcePathsEffect = Effect.fn('deleteSourcePaths')(function* 
       return Effect.all([
         channelService.appendToChannel(message),
         channelService.getChannel.pipe(Effect.map(channel => channel.show())),
-        Effect.promise(() => vscode.window.showErrorMessage(message))
+        Effect.sync(() => {
+          void vscode.window.showErrorMessage(message);
+        })
       ]);
     }),
     Effect.catchTag('DeleteSourceFailedError', (error: DeleteSourceFailedError) => {
@@ -83,7 +86,9 @@ export const deleteSourcePathsEffect = Effect.fn('deleteSourcePaths')(function* 
           ? [formatDeployOutput(error.result).pipe(Effect.flatMap(o => channelService.appendToChannel(o)))]
           : []),
         channelService.getChannel.pipe(Effect.map(channel => channel.show())),
-        Effect.promise(() => vscode.window.showErrorMessage(errorMessage))
+        Effect.sync(() => {
+          void vscode.window.showErrorMessage(errorMessage);
+        })
       ]);
     }),
     Effect.catchAll(error => {
@@ -91,7 +96,9 @@ export const deleteSourcePathsEffect = Effect.fn('deleteSourcePaths')(function* 
       return Effect.all([
         channelService.appendToChannel(`Delete failed: ${errorMessage}`),
         channelService.getChannel.pipe(Effect.map(channel => channel.show())),
-        Effect.promise(() => vscode.window.showErrorMessage(errorMessage))
+        Effect.sync(() => {
+          void vscode.window.showErrorMessage(errorMessage);
+        })
       ]);
     })
   );

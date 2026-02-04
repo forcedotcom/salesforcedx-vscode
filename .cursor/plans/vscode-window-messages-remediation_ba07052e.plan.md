@@ -4,34 +4,34 @@ overview: 'Remediate vscode.window.show*Message usage across services, metadata,
 todos:
   - id: services-retrieveOnLoad
     content: 'Fix retrieveOnLoad.ts: Replace string literal with nls.localize for error message'
-    status: pending
+    status: completed
   - id: metadata-generateManifest-buttons
     content: 'Fix generateManifest.ts: Replace button label literals with nls.localize'
-    status: pending
+    status: completed
   - id: metadata-generateManifest-effect
     content: 'Fix generateManifest.ts: Change Effect.promise to Effect.sync for fire-and-forget'
-    status: pending
+    status: completed
   - id: metadata-createApexClass-buttons
     content: 'Fix createApexClass.ts: Replace button label literals with nls.localize'
-    status: pending
+    status: completed
   - id: metadata-deleteSourcePath-then
     content: 'Fix deleteSourcePath.ts: Refactor .then() pattern to Effect pattern'
-    status: pending
+    status: completed
   - id: metadata-deleteSourcePath-effect
     content: 'Fix deleteSourcePath.ts: Change Effect.promise to Effect.sync for fire-and-forget (3 instances)'
-    status: pending
+    status: completed
   - id: metadata-deployComponentSet-effect
     content: 'Fix deployComponentSet.ts: Change Effect.fork(Effect.promise) to Effect.sync for fire-and-forget'
-    status: pending
+    status: completed
   - id: metadata-deployOnSave-void
     content: 'Fix deployOnSaveService.ts: Add void for fire-and-forget messages (2 instances)'
-    status: pending
+    status: completed
   - id: metadata-diffComponentSet-effect
     content: 'Fix diffComponentSet.ts: Change Effect.promise to Effect.sync for fire-and-forget (4 instances)'
-    status: pending
+    status: completed
   - id: metadata-retrieveComponentSet-effect
     content: 'Fix retrieveComponentSet.ts: Change Effect.promise to Effect.sync for fire-and-forget'
-    status: pending
+    status: in_progress
   - id: metadata-deleteComponentSet-effect
     content: 'Fix deleteComponentSet.ts: Change Effect.promise to Effect.sync for fire-and-forget'
     status: pending
@@ -41,10 +41,18 @@ todos:
   - id: org-browser-retrieveMetadata-buttons
     content: 'Fix org-browser retrieveMetadata.ts: Replace button label literals with nls.localize'
     status: pending
+  - id: run-test-requirements
+    content: 'Run test requirements per .cursor/rules/test-your-changes.mdc: compile, lint, test, knip, bundle, headless tests, check dupes'
+    status: pending
 isProject: false
 ---
 
 # VSCode Window Messages Remediation Punch List
+
+## References
+
+- **Guidelines**: `[.claude/skills/vscode-window-messages/SKILL.md](.claude/skills/vscode-window-messages/SKILL.md)` - Defines best practices for using `vscode.window.show*Message` methods
+- **Test Requirements**: `[.cursor/rules/test-your-changes.mdc](.cursor/rules/test-your-changes.mdc)` - Validation steps that must be run after code changes
 
 ## Services Extension (`packages/salesforcedx-vscode-services`)
 
@@ -146,3 +154,15 @@ isProject: false
 ### Other Issues
 
 - deleteSourcePath.ts (1 instance - .then() pattern)
+
+## Testing Requirements
+
+After implementing changes, follow `[.cursor/rules/test-your-changes.mdc](.cursor/rules/test-your-changes.mdc)`:
+
+1. `npm run compile` - must pass
+2. `npm run lint` - fix any new errors. Warnings should not increase
+3. `npm run test` - must pass
+4. `npx knip` - check for dead code related to changes
+5. `npm run vscode:bundle` - ensure extensions still bundle
+6. Run headless tests for affected extensions (services, metadata, org-browser) with `--retries 0`
+7. `npm run check:dupes` - verify no duplicate code introduced
