@@ -50,12 +50,12 @@ describe('Tooling Model Service', () => {
     payload: accountQuery
   } as SoqlEditorEvent;
 
-  function checkForDefaultQuery() {
+  const checkForDefaultQuery = () => {
     const toolingModel = modelService.getModel().toJS();
     expect(toolingModel.sObject).toEqual('');
     expect(toolingModel.fields.length).toBe(0);
     expect(toolingModel.originalSoqlStatement).toEqual('');
-  }
+  };
 
   beforeEach(() => {
     messageService = new VscodeMessageService();

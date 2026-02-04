@@ -771,12 +771,12 @@ describe('deserialize should', () => {
     expectError('SELECT field1 FROM object1 GROUP BY', 'UNEXPECTEDEOF');
   });
 
-  function expectError(query: string, expectedType: ErrorType): void {
+  const expectError = (query: string, expectedType: ErrorType): void => {
     const model = deserialize(query);
     if (model.errors?.length === 1) {
       expect(model.errors[0].type).toEqual(expectedType);
     } else {
       fail();
     }
-  }
+  };
 });

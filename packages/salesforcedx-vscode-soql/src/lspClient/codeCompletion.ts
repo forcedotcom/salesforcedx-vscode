@@ -34,10 +34,10 @@ export const middleware: Middleware = {
   }
 };
 
-async function filterByContext(
+const filterByContext = async (
   items: ProtocolCompletionItem[],
   dataSource: OrgDataSource
-): Promise<ProtocolCompletionItem[]> {
+): Promise<ProtocolCompletionItem[]> => {
   const filteredItems: ProtocolCompletionItem[] = [];
 
   for (const item of items) {
@@ -60,16 +60,14 @@ async function filterByContext(
   }
 
   return filteredItems;
-}
+};
 
-function isString(x: any): x is string {
-  return typeof x === 'string';
-}
+const isString = (x: any): x is string => typeof x === 'string';
 
-async function expandPlaceholders(
+const expandPlaceholders = async (
   items: ProtocolCompletionItem[],
   dataSource: OrgDataSource
-): Promise<ProtocolCompletionItem[]> {
+): Promise<ProtocolCompletionItem[]> => {
   const expandedItems = [...items];
 
   for (const [index, item] of items.entries()) {
@@ -91,7 +89,7 @@ async function expandPlaceholders(
   }
 
   return expandedItems;
-}
+};
 
 const expandFunctions: {
   [key: string]: (soqlContext: SoqlItemContext, dataSource: OrgDataSource) => Promise<ProtocolCompletionItem[]>;
@@ -222,30 +220,27 @@ const expandFunctions: {
   }
 };
 
-async function safeRetrieveSObject(dataSource: OrgDataSource, sobjectName?: string): Promise<SObject | undefined> {
+const safeRetrieveSObject = async (dataSource: OrgDataSource, sobjectName?: string): Promise<SObject | undefined> => {
   if (!sobjectName) {
     telemetryService.sendException('SOQLanguageServerException', 'Missing `sobjectName` from SOQL completion context!');
     return undefined;
   }
   return await dataSource.retrieveSObject(sobjectName);
-}
+};
 
-function objectFieldMatchesSOQLContext(field: SObjectField, soqlContext: SoqlItemContext) {
-  return (
-    (field.aggregatable || !soqlContext.onlyAggregatable) &&
-    (field.groupable || !soqlContext.onlyGroupable) &&
-    (field.sortable || !soqlContext.onlySortable) &&
-    (field.nillable || !soqlContext.onlyNillable) &&
-    (!soqlContext.onlyTypes?.length || soqlContext.onlyTypes.includes(field.type))
-  );
-}
+const objectFieldMatchesSOQLContext = (field: SObjectField, soqlContext: SoqlItemContext) =>
+  (field.aggregatable || !soqlContext.onlyAggregatable) &&
+  (field.groupable || !soqlContext.onlyGroupable) &&
+  (field.sortable || !soqlContext.onlySortable) &&
+  (field.nillable || !soqlContext.onlyNillable) &&
+  (!soqlContext.onlyTypes?.length || soqlContext.onlyTypes.includes(field.type));
 
-function newCompletionItem(
+const newCompletionItem = (
   label: string,
   insertText: string,
   kind: CompletionItemKind = CompletionItemKind.Field,
   extraOptions?: Partial<CompletionItem>
-): ProtocolCompletionItem {
+): ProtocolCompletionItem => {
   const item = new ProtocolCompletionItem(label);
   item.kind = kind;
   item.insertText = kind === CompletionItemKind.Snippet ? new SnippetString(insertText) : insertText;
@@ -254,9 +249,9 @@ function newCompletionItem(
   }
 
   return item;
-}
+};
 
-function newFieldCompletionItems(field: SObjectField, soqlContext: SoqlItemContext): ProtocolCompletionItem[] {
+const newFieldCompletionItems = (field: SObjectField, soqlContext: SoqlItemContext): ProtocolCompletionItem[] => {
   const fieldItems = [];
   const fieldNameLowercase = field.name.toLowerCase();
   const isPreferredItem = soqlContext.mostLikelyItems?.some(f => f.toLowerCase() === fieldNameLowercase);
@@ -287,4 +282,4 @@ function newFieldCompletionItems(field: SObjectField, soqlContext: SoqlItemConte
     );
   }
   return fieldItems;
-}
+};

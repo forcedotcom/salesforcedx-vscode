@@ -63,12 +63,12 @@ describe('App should', () => {
   };
   const querybuilderFromSelector = 'querybuilder-from';
   let originalCreateFn;
-  function createSoqlEditorEvent(queryOverride = accountQuery, eventOverride?) {
+  const createSoqlEditorEvent = (queryOverride = accountQuery, eventOverride?) => {
     const query = queryOverride;
     const event = { ...soqlEditorEvent, ...eventOverride };
     event.payload = query;
     return event;
-  }
+  };
   beforeEach(() => {
     messageService = new TestMessageService() as unknown as StandaloneMessageService;
     // eslint-disable-next-line @typescript-eslint/unbound-method

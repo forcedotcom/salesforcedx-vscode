@@ -27,14 +27,14 @@ import { SelectExprsImpl } from '../../../../soql-model/model/impl/selectExprsIm
 import { WhereImpl } from '../../../../soql-model/model/impl/whereImpl';
 import { SELECT_COUNT, ToolingModelJson } from './model';
 
-export function convertSoqlToUiModel(soql: string): ToolingModelJson {
+export const convertSoqlToUiModel = (soql: string): ToolingModelJson => {
   const queryModel = deserialize(soql);
   const uimodel = convertSoqlModelToUiModel(queryModel);
   return uimodel;
-}
+};
 
 // eslint-disable-next-line complexity
-function convertSoqlModelToUiModel(queryModel: Query): ToolingModelJson {
+const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
   const unsupported = [];
   const headerComments = queryModel.headerComments ? queryModel.headerComments.text : undefined;
 
@@ -116,15 +116,15 @@ function convertSoqlModelToUiModel(queryModel: Query): ToolingModelJson {
   // USEFUL console.log('Soql -> Ui ', JSON.stringify(toolingModelTemplate.orderBy));
 
   return toolingModelTemplate;
-}
+};
 
-export function convertUiModelToSoql(uiModel: ToolingModelJson): string {
+export const convertUiModelToSoql = (uiModel: ToolingModelJson): string => {
   const soqlModel = convertUiModelToSoqlModel(uiModel);
   const soql = convertSoqlModelToSoql(soqlModel);
   return soql;
-}
+};
 
-function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Query {
+const convertUiModelToSoqlModel = (uiModel: ToolingModelJson): Query => {
   let select: Select;
   const isSelectCount = uiModel.fields.length === 1 && uiModel.fields[0].toLowerCase() === SELECT_COUNT.toLowerCase();
   if (isSelectCount) {
@@ -214,15 +214,15 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Query {
     queryModel.headerComments = new HeaderCommentsImpl(uiModel.headerComments);
   }
   return queryModel;
-}
+};
 
-function convertSoqlModelToSoql(soqlModel: Query): string {
+const convertSoqlModelToSoql = (soqlModel: Query): string => {
   const serializer = new ModelSerializer(soqlModel);
   const query = serializer.serialize();
   return query;
-}
+};
 
-export function soqlStringLiteralToDisplayValue(soqlString: string): string {
+export const soqlStringLiteralToDisplayValue = (soqlString: string): string => {
   let displayValue = soqlString;
 
   // unquote
@@ -239,9 +239,9 @@ export function soqlStringLiteralToDisplayValue(soqlString: string): string {
   displayValue = displayValue.replace(/\\\\/g, '\\');
 
   return displayValue;
-}
+};
 
-export function displayValueToSoqlStringLiteral(displayString: string): string {
+export const displayValueToSoqlStringLiteral = (displayString: string): string => {
   // string
   let normalized = displayString;
 
@@ -254,13 +254,13 @@ export function displayValueToSoqlStringLiteral(displayString: string): string {
   normalized = `'${normalized}'`;
 
   return normalized;
-}
+};
 
 /* ======= LIKE OPERATOR UTILS ======= */
 const WILD_CARD = '%';
 
 /* LIKE_START ABC% */
-export function isLikeStart(value: string): boolean {
+export const isLikeStart = (value: string): boolean => {
   if (value && value.length) {
     value = soqlStringLiteralToDisplayValue(value);
     if (value.endsWith(WILD_CARD) && !value.startsWith(WILD_CARD)) {
@@ -268,9 +268,9 @@ export function isLikeStart(value: string): boolean {
     }
   }
   return false;
-}
+};
 /* LIKE_END %ABC */
-export function isLikeEnds(value: string): boolean {
+export const isLikeEnds = (value: string): boolean => {
   if (value && value.length) {
     value = soqlStringLiteralToDisplayValue(value);
     if (value.startsWith(WILD_CARD) && !value.endsWith(WILD_CARD)) {
@@ -278,9 +278,9 @@ export function isLikeEnds(value: string): boolean {
     }
   }
   return false;
-}
+};
 /* LIKE_CONTAINS %ABC% */
-export function isLikeContains(value: string): boolean {
+export const isLikeContains = (value: string): boolean => {
   if (value && value.length) {
     value = soqlStringLiteralToDisplayValue(value);
     if (value.startsWith(WILD_CARD) && value.endsWith(WILD_CARD)) {
@@ -288,9 +288,9 @@ export function isLikeContains(value: string): boolean {
     }
   }
   return false;
-}
+};
 
-export function addWildCardToValue(operatorValue: UiOperatorValue, rawValue: string): string {
+export const addWildCardToValue = (operatorValue: UiOperatorValue, rawValue: string): string => {
   let value = stripWildCardPadding(rawValue);
   switch (operatorValue) {
     case 'LIKE_START':
@@ -306,25 +306,25 @@ export function addWildCardToValue(operatorValue: UiOperatorValue, rawValue: str
       break;
   }
   return value;
-}
+};
 
-export function stripWildCardPadding(rawStr: string): string {
+export const stripWildCardPadding = (rawStr: string): string => {
   let value = rawStr;
   value = trimWildCardRight(value);
   value = trimWildCardLeft(value);
   return value;
-}
+};
 
-function trimWildCardLeft(rawStr: string): string {
+const trimWildCardLeft = (rawStr: string): string => {
   if (!rawStr.startsWith(WILD_CARD)) {
     return rawStr;
   }
   return trimWildCardLeft(rawStr.substring(1));
-}
+};
 
-function trimWildCardRight(rawStr: string): string {
+const trimWildCardRight = (rawStr: string): string => {
   if (!rawStr.endsWith(WILD_CARD)) {
     return rawStr;
   }
   return trimWildCardRight(rawStr.substring(0, rawStr.length - 1));
-}
+};

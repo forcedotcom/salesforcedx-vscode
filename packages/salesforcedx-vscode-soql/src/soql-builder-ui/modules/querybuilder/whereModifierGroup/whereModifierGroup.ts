@@ -439,7 +439,7 @@ export default class WhereModifierGroup extends LightningElement {
   }
 }
 
-function selectionEventHandler(e): void {
+const selectionEventHandler = function(e): void {
   e.preventDefault();
   // note: this.validateInput() will change state by setting this.condition
   if (this.checkAllModifiersHaveValues() && this.validateInput()) {
@@ -451,4 +451,4 @@ function selectionEventHandler(e): void {
     });
     this.dispatchEvent(modGroupSelectionEvent);
   }
-}
+};

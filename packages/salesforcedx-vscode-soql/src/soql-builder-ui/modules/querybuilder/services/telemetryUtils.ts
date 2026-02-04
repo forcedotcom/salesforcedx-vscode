@@ -10,9 +10,9 @@ export type TelemetryModelJson = JsonMap & {
   unsupported: string[];
 }
 
-export function createQueryTelemetry(
+export const createQueryTelemetry = (
   query: ToolingModelJson
-): TelemetryModelJson {
+): TelemetryModelJson => {
   const telemetry = {} as TelemetryModelJson;
   telemetry.sObject = query.sObject.indexOf('__c') > -1 ? 'custom' : 'standard';
   telemetry.fields = query.fields.length;
@@ -28,4 +28,4 @@ export function createQueryTelemetry(
     (unsup) => unsup.reason.reasonCode
   );
   return telemetry;
-}
+};
