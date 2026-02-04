@@ -1,7 +1,7 @@
 ---
 name: vscode-window-messages
 description: Guidelines for using vscode.window.show*Message methods. Use when working with showInformationMessage, showWarningMessage, showErrorMessage.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # VSCode Window Messages Best Practices
@@ -12,9 +12,10 @@ version: 1.0.0
 | ---------------- | --------------------------------------- | ------------------------------------------------ |
 | API              | Direct `vscode.window.show*Message`     | Legacy `NotificationService`                     |
 | Messages         | `nls.localize('key', ...args)`          | String literals or template literals without nls |
-| Return Values    | Handle `Thenable<string \| undefined>`  | Ignore return values                             |
+| Return Values    | Handle `Thenable<string \| undefined>` or `Thenable<MessageItem \| undefined>` | Ignore return values                             |
 | Button Actions   | Check return value for button clicks    | Assume user always clicks                        |
 | Button Actions   | `nls.localize`                          | String literals or template literals without nls |
+| Modal Options    | `{ modal: true, detail: ... }` for blocking dialogs | `detail` without `modal: true` (detail modal-only) |
 | Effect (wait)    | `Effect.promise()` when response needed | `Effect.promise()` for fire-and-forget           |
 | Effect (no wait) | `Effect.sync()` for fire-and-forget     | `Effect.promise()` when not waiting              |
 
@@ -63,10 +64,14 @@ await vscode.window.showWarningMessage(nls.localize('confirm_delete'), 'Yes', 'N
 
 ## Handling Return Values
 
-Return value indicates which button clicked, or `undefined` if dismissed.
+Returns clicked button or `undefined` if dismissed.
+
+**Return types:**
+- String buttons: `Thenable<string | undefined>`
+- MessageItem buttons: `Thenable<MessageItem | undefined>`
 
 ```typescript
-// CORRECT - Handle return value
+// CORRECT - String buttons
 const selection = await vscode.window.showWarningMessage(
   nls.localize('unsaved_changes'),
   nls.localize('save_button'),
@@ -74,6 +79,18 @@ const selection = await vscode.window.showWarningMessage(
 );
 
 if (selection === nls.localize('save_button')) {
+  await saveFile();
+}
+
+// CORRECT - MessageItem buttons
+const item = await vscode.window.showWarningMessage(
+  nls.localize('unsaved_changes'),
+  { modal: true },
+  { title: nls.localize('save_button') },
+  { title: nls.localize('discard_button') }
+);
+
+if (item?.title === nls.localize('save_button')) {
   await saveFile();
 }
 
@@ -144,14 +161,46 @@ await vscode.window.showInformationMessage(nls.localize('retrieve_completed'));
 await vscode.window.showWarningMessage(nls.localize('unsaved_changes'));
 await vscode.window.showErrorMessage(nls.localize('retrieve_failed', errorMessage));
 
-// Modal warning
+// Modal with detail (detail only shown for modal)
 await vscode.window.showWarningMessage(
   nls.localize('destructive_action_warning'),
-  { modal: true },
+  { modal: true, detail: nls.localize('destructive_action_detail') },
   nls.localize('confirm'),
   nls.localize('cancel')
 );
 ```
+
+## MessageOptions and MessageItem
+
+### MessageOptions
+
+- **`modal?: boolean`** - System modal dialog, blocks interaction
+- **`detail?: string`** - Extra text (modal only)
+
+### Button Types
+
+Strings or `MessageItem` objects:
+
+```typescript
+// String buttons (prefer)
+const result = await vscode.window.showWarningMessage(
+  nls.localize('confirm_action'),
+  nls.localize('yes'),
+  nls.localize('no')
+);
+// result: string | undefined
+
+// MessageItem (for modal ESC handling)
+const result = await vscode.window.showWarningMessage(
+  nls.localize('confirm_action'),
+  { modal: true },
+  { title: nls.localize('yes'), isCloseAffordance: false },
+  { title: nls.localize('no'), isCloseAffordance: true }
+);
+// result: MessageItem | undefined
+```
+
+**`isCloseAffordance`**: `true` = button handles ESC. Modal-only. Modals auto-add Cancel; use this to control which custom button handles ESC.
 
 ## Common Patterns
 
