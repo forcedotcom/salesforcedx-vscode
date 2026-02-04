@@ -55,7 +55,7 @@ describe('DeployQueue', () => {
       expect(executePushCommandSpy).not.toHaveBeenCalled();
       expect(executeDeployCommandSpy).toHaveBeenCalled();
       // Original test looked like this.  It started failing when I changed the to using the URI implementation.
-      // the `[undefined]` never should have happened, but was a result of vscode.uri being type-only (so undefined when tests ran)
+      // the `[undefined]` never should have happened, but was a result of URI being type-only (so undefined when tests ran)
       // the test was always wrong...the enqueued URI should have been passed to the command.
       // expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith('sf.deploy.multiple.source.paths', [undefined], null, true);
       expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith('sf.deploy.multiple.source.paths', [uri], null, true);

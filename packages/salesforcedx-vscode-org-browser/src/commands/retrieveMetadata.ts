@@ -5,14 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
-import type { ComponentSet, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
@@ -30,7 +31,7 @@ const retrieveEffect = (
   node: OrgBrowserTreeItem,
   treeProvider: MetadataTypeTreeProvider
   // void since we catch all the errors and show the vscode error message
-): Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never, never> =>
+) =>
   Effect.gen(function* () {
     const target = getRetrieveTarget(node);
     if (target._tag === 'None') {
@@ -46,7 +47,7 @@ const retrieveEffect = (
 
     const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
 
-    const localComponents = yield* retrieveService.buildComponentSetFromSource([target.value], dirs);
+    const localComponents = yield* retrieveService.buildComponentSetFromSource(dirs, [target.value]);
 
     if (!(yield* confirmOverwrite(localComponents, target.value))) {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
@@ -58,7 +59,7 @@ const retrieveEffect = (
     if (typeof result !== 'string')
       // Handle post-retrieve UI updates
       yield* Effect.promise(async () => {
-        if (node.kind === 'component') {
+        if (node.kind === 'component' || node.kind === 'customObject') {
           node.iconPath = getIconPath(true);
           treeProvider.fireChangeEvent(node);
         } else {
@@ -93,7 +94,7 @@ const getRetrieveTarget = (node: OrgBrowserTreeItem): Option.Option<MetadataMemb
   return Option.none();
 };
 
-const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember): Effect.Effect<boolean> =>
+const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember) =>
   Effect.promise(async () => {
     if (localComponents.size === 0) return true;
     const answer = await vscode.window.showWarningMessage(

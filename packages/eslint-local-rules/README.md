@@ -37,18 +37,21 @@ Enforces that user-facing strings in `package.json` `contributes` sections use i
 ### package-json-icon-paths
 
 Validates icon paths in `package.json` `contributes` sections:
+
 - Icon objects must have both `light` and `dark` properties (or neither)
 - Referenced icon files must exist on disk
 
 ### package-json-command-refs
 
 Validates command references in `package.json`:
+
 - Commands referenced in menus must be defined in `contributes.commands`
 - Warns about orphaned commands (defined but never referenced)
 
 ### package-json-view-refs
 
 Validates view ID references in `package.json`:
+
 - View IDs in `when` clauses must match defined views in `contributes.views`
 - View IDs in `viewsWelcome` must reference defined views
 
@@ -173,16 +176,18 @@ import { myJsonRule } from '../src/myJsonRule';
 const linter = new Linter({ configType: 'flat' });
 
 const lintJson = (code: string, filename = 'packages/test/package.json') => {
-  const config = [{
-    files: ['**/*.json'],
-    plugins: {
-      // IMPORTANT: include both rules AND languages from @eslint/json
-      json: { rules: json.rules, languages: json.languages },
-      local: { rules: { 'my-json-rule': myJsonRule } }
-    },
-    language: 'json/json',
-    rules: { 'local/my-json-rule': 'error' }
-  }];
+  const config = [
+    {
+      files: ['**/*.json'],
+      plugins: {
+        // IMPORTANT: include both rules AND languages from @eslint/json
+        json: { rules: json.rules, languages: json.languages },
+        local: { rules: { 'my-json-rule': myJsonRule } }
+      },
+      language: 'json/json',
+      rules: { 'local/my-json-rule': 'error' }
+    }
+  ];
   return linter.verify(code, config, { filename });
 };
 

@@ -32,7 +32,7 @@ graph TD
 
 ### User edits a file
 
-Every change by the user generates a VSCode onDidChange event. We want to alway write every change to memfs so the user doesn't have to save files manually (think google docs, not old-school Word)
+Every change by the user generates a VSCode onDidChange event. When the user saves a file, we did the onDidChange event
 
 The change flows from top to bottom:
 

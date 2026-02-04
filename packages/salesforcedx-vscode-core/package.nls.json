@@ -54,6 +54,7 @@
   "sf_log_level_description": "SF_LOG_LEVEL CLI environment variable value",
   "telemetry_tag_description": "Specifies the tag to include in telemetry data sent to Salesforce.",
   "use_legacy_org_browser_description": "Use the legacy Org Browser. When disabled, uses the new Org Browser extension.",
+  "use_metadata_extension_commands_description": "Use the metadata extension for deploy, retrieve, and source tracking commands instead of the core extension.",
   "show_cli_success_msg_description": "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
   "sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "start_apex_debug_logging": "SFDX: Turn On Apex Debug Log for Replay Debugger",

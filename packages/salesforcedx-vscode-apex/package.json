@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "esbuild": "0.25.10",
+    "esbuild": "0.25.12",
     "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
@@ -70,7 +70,8 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/src/**",
