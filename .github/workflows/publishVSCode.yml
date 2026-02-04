@@ -8,16 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish-start-notification:
-    name: 'Publish in MS Marketplace Start Notification'
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    with:
-      title: 'Publish in MS Marketplace waiting for approval in github.'
-      notification: 'New Release triggered publish build and job is ready for approval.'
-      type: 'notification'
-      workflow: 'publishVSCode.yml'
-
   prepare-environment-from-main:
     name: 'Get Release Version'
     runs-on: ubuntu-latest
