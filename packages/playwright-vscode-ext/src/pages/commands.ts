@@ -92,8 +92,11 @@ export const executeCommandWithCommandPalette = async (
   await executeCommand(page, command, hasNotText);
 };
 
-/** Verify a command does not exist in the command palette */
-export const verifyCommandDoesNotExist = async (page: Page, commandText: string): Promise<void> => {
+/** Shared helper: opens command palette, types command text, waits for list, returns widget and rows getter */
+const searchCommandInPalette = async (
+  page: Page,
+  commandText: string
+): Promise<{ widget: ReturnType<Page['locator']>; getFirst20Rows: () => Promise<Awaited<ReturnType<ReturnType<Page['locator']>['all']>>> }> => {
   await openCommandPalette(page);
   const widget = page.locator(QUICK_INPUT_WIDGET);
   const input = widget.locator('input.input');
@@ -106,8 +109,27 @@ export const verifyCommandDoesNotExist = async (page: Page, commandText: string)
   // Wait for command list to appear
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
 
-  const listRows = widget.locator(QUICK_INPUT_LIST_ROW);
-  const first20Rows = (await listRows.all()).slice(0, 20);
+  const getFirst20Rows = async () => {
+    const listRows = widget.locator(QUICK_INPUT_LIST_ROW);
+    return (await listRows.all()).slice(0, 20);
+  };
+
+  return { widget, getFirst20Rows };
+};
+
+/** Shared helper: closes command palette */
+const closeCommandPalette = async (page: Page, widget: ReturnType<Page['locator']>): Promise<void> => {
+  await page.keyboard.press('Escape');
+  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+    // Ignore if already closed
+  });
+};
+
+/** Verify a command does not exist in the command palette */
+export const verifyCommandDoesNotExist = async (page: Page, commandText: string): Promise<void> => {
+  const { widget, getFirst20Rows } = await searchCommandInPalette(page, commandText);
+
+  const first20Rows = await getFirst20Rows();
 
   // Check that the command is not in the list
   for (const row of first20Rows) {
@@ -117,9 +139,25 @@ export const verifyCommandDoesNotExist = async (page: Page, commandText: string)
     }
   }
 
-  // Close command palette
-  await page.keyboard.press('Escape');
-  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
-    // Ignore if already closed
-  });
+  await closeCommandPalette(page, widget);
+};
+
+/** Verify a command exists in the command palette using retry pattern */
+export const verifyCommandExists = async (page: Page, commandText: string, timeout?: number): Promise<void> => {
+  const { widget, getFirst20Rows } = await searchCommandInPalette(page, commandText);
+
+  // Use retry pattern to allow VS Code rendering and context updates
+  await expect(async () => {
+    const first20Rows = await getFirst20Rows();
+
+    for (const row of first20Rows) {
+      const rowText = await row.textContent();
+      if (rowText?.trim().toLowerCase().includes(commandText.toLowerCase())) {
+        return; // Found it!
+      }
+    }
+    throw new Error(`Command "${commandText}" not found yet`);
+  }).toPass({ timeout: timeout ?? 10_000 });
+
+  await closeCommandPalette(page, widget);
 };
