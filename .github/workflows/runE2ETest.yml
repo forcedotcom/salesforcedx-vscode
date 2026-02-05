@@ -69,6 +69,8 @@ jobs:
             rm -rf "$USERPROFILE"/.vscode/extensions 2>/dev/null || true
             # Clean VS Code insiders extensions directory
             rm -rf "$USERPROFILE"/.vscode-insiders/extensions 2>/dev/null || true
+            # Clean test-resources directory used by vscode-extension-tester
+            rm -rf salesforcedx-vscode/test-resources 2>/dev/null || true
             # Force kill any VS Code processes that might be locking files
             taskkill //F //IM Code.exe 2>/dev/null || true
             taskkill //F //IM Code-insiders.exe 2>/dev/null || true
@@ -77,6 +79,7 @@ jobs:
             sleep 5
           else
             rm -rf /tmp/vscode-* 2>/dev/null || true
+            rm -rf salesforcedx-vscode/test-resources 2>/dev/null || true
           fi
 
           # Clean npm cache
@@ -190,6 +193,12 @@ jobs:
           }
           New-Item -ItemType Directory -Path $extensionsDir -Force
 
+          # Set TEST_RESOURCES to use a known location for vscode-extension-tester
+          # This ensures we can verify VS Code installation after download
+          $testResourcesPath = "$PWD\salesforcedx-vscode\test-resources"
+          [Environment]::SetEnvironmentVariable("TEST_RESOURCES", $testResourcesPath, "Process")
+          Write-Host "TEST_RESOURCES set to: $testResourcesPath"
+
           Write-Host "Windows-specific setup completed"
 
       - name: Setup project directories
@@ -297,6 +306,11 @@ jobs:
           # Clean up any existing VS Code cache on failure
           rm -rf ~/.vscode-test 2>/dev/null || true
           rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
+          
+          # Windows-specific: Clean test-resources if it exists (vscode-extension-tester downloads here)
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            rm -rf ./test-resources 2>/dev/null || true
+          fi
 
           npm run compile
           npm run gha-automation-tests --spec "$SPEC_PATH"

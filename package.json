@@ -104,7 +104,7 @@
     "typescript": "5.9.3",
     "typescript-eslint": "^8.50.0",
     "util": "0.12.5",
-    "vscode-extension-tester": "^8.16.0",
+    "vscode-extension-tester": "^8.21.0",
     "wireit": "^0.14.12",
     "xml2js": "0.6.2",
     "yaml": "2.6.0"
