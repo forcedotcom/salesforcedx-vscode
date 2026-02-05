@@ -43,7 +43,6 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -85,7 +84,6 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -126,7 +124,7 @@ jobs:
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   Core:
@@ -134,7 +132,7 @@ jobs:
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   DeployAndRetrieve:
@@ -142,7 +140,7 @@ jobs:
     uses: ./.github/workflows/deployRetrieveE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LSP:
@@ -150,7 +148,7 @@ jobs:
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LWC:
@@ -158,7 +156,7 @@ jobs:
     uses: ./.github/workflows/lwcE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   SOQL:
@@ -166,7 +164,7 @@ jobs:
     uses: ./.github/workflows/soqlE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   Apex_min_vscode_version:
