@@ -30,6 +30,7 @@ import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStor
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
+import { watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
@@ -117,6 +118,8 @@ const activationEffect = (context: vscode.ExtensionContext) =>
     yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
     // watch the config files for changes, which various serices use to invalidate caches
     yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
+    // watch active editor changes to update package directories context
+    yield* Effect.forkIn(watchPackageDirectoriesContext(), yield* getExtensionScope());
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -153,6 +156,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ComponentSetService.Default,
     ConfigService.Default,
     ConnectionService.Default,
+    EditorService.Default,
     FileWatcherService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,

@@ -77,7 +77,6 @@ import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
-import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { orgBrowser } from './orgBrowser';
@@ -271,9 +270,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
   void vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', codeBuilderEnabled);
 
-  // Set initial context
-  await checkPackageDirectoriesEditorView();
-
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);
   }
@@ -281,10 +277,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   extensionContext.subscriptions.push(
     registerCommands(extensionContext),
     registerSharedCommands(),
-    // Register editor change listener
-    vscode.window.onDidChangeActiveTextEditor(async () => {
-      await checkPackageDirectoriesEditorView();
-    }),
     // Register configuration change listener for shared commands visibility
     vscode.workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration(`${SFDX_CORE_CONFIGURATION_NAME}.${USE_METADATA_EXTENSION_COMMANDS}`)) {

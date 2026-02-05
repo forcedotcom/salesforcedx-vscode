@@ -12,6 +12,9 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
+import { toUri } from '../vscode/fsService';
+import { uriToPath } from '../vscode/paths';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';
 
@@ -74,15 +77,29 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
 
     /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
     const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
-      const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow();
       const project = yield* globalSfProjectCache
-        .get(workspaceDescription.fsPath)
+        .get((yield* workspaceService.getWorkspaceInfoOrThrow()).fsPath)
         .pipe(Effect.tapError(() => setProjectOpenedContext(false)));
       yield* setProjectOpenedContext(true);
       return project;
     });
 
-    return { isSalesforceProject, getSfProject };
+    /** Check if a URI is within any package directory */
+    const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
+      const uriPath = uriToPath(uri);
+      return (yield* getSfProject()).getPackageDirectories().some(d => {
+        // Normalize d.fullPath through URI conversion to match uriToPath normalization
+        const packageDirPath = uriToPath(toUri(d.fullPath));
+        // Remove trailing slash if present to normalize, then add one for comparison
+        const normalizedPackageDir = packageDirPath.replace(/\/$/, '');
+        // Trailing slash prevents false positives (e.g., /path/to/package2 matching /path/to/package)
+        // Equality check handles when URI is the directory itself
+        const result = uriPath.startsWith(`${normalizedPackageDir}/`) || uriPath === normalizedPackageDir;
+        console.log('isInPackageDirectories', uriPath, packageDirPath, result);
+        return result;
+      });
+    });
+    return { isSalesforceProject, getSfProject, isInPackageDirectories };
   })
 }) {}
 
