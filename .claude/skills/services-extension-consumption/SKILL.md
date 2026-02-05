@@ -71,10 +71,10 @@ Use `registerCommandWithLayer` pre-loaded with AllServicesLayer:
 ```typescript
 import { myCommandEffect } from './commands/myCommand';
 
-const api = yield* (yield* ExtensionProviderService).getServicesApi;
+const api = yield * (yield * ExtensionProviderService).getServicesApi;
 const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
 
-yield* registerCommand('sf.my.command', myCommandEffect);
+yield * registerCommand('sf.my.command', myCommandEffect);
 ```
 
 Commands auto:
@@ -93,6 +93,7 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [ProjectService](references/project-service.md) - Project resolution
 - [SettingsService](references/settings-service.md) - Settings read/write
 - [FsService](references/fs-service.md) - File ops (web-compatible)
+- [EditorService](references/editor-service.md) - Active editor changes and URI access
 
 ## Watchers
 
@@ -183,6 +184,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         // list whatever you need.  TS will tell you if there's somethig missing
         ExtensionProviderServiceLive,
         api.services.ConnectionService.Default,
+        api.services.EditorService.Default,
         api.services.ExtensionContextServiceLayer(context),
         api.services.ProjectService.Default,
         api.services.WorkspaceService.Default,
@@ -201,9 +203,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
-  
+
   yield* registerCommand('sf.my.command', myCommandEffect);
-  
+
   yield* api.services.ChannelService.appendToChannel('Extension activation complete.');
 });
 ```
