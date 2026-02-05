@@ -191,7 +191,7 @@
       "service": true,
       "dependencies": [
         "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle"
+        "../salesforcedx-vscode-services:vscode:bundle:local"
       ],
       "files": [
         "test/playwright/**/*.ts"

@@ -141,6 +141,30 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     if (autoSave) {
       await vscode.workspace.getConfiguration('files').update('autoSave', 'off', vscode.ConfigurationTarget.Global);
     }
+    
+    // Apply web config from esbuild define if present
+    const webConfig = process.env.ESBUILD_WEB_CONFIG;
+    if (webConfig && webConfig !== 'undefined' && typeof webConfig === 'string') {
+      const parseConfig = (): Record<string, unknown> | undefined => {
+        const parsed = JSON.parse(webConfig);
+        return parsed && typeof parsed === 'object' ? parsed : undefined;
+      };
+      const configMap = parseConfig();
+      if (configMap) {
+        await Promise.allSettled(
+          Object.entries(configMap).map(async ([fullKey, value]) => {
+            const lastDotIndex = fullKey.lastIndexOf('.');
+            if (lastDotIndex === -1) {
+              return;
+            }
+            const section = fullKey.substring(0, lastDotIndex);
+            const key = fullKey.substring(lastDotIndex + 1);
+            await vscode.workspace.getConfiguration(section).update(key, value, vscode.ConfigurationTarget.Global);
+          })
+        );
+      }
+    }
+    
     const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
     context.subscriptions.push(getWebAppInsightsReporter());
   }

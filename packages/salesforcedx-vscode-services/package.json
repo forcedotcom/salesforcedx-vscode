@@ -117,6 +117,28 @@
         "dist"
       ]
     },
+    "vscode:bundle:local": {
+      "command": "node esbuild.config.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "env": {
+        "ESBUILD_WEB_LOCAL": "1",
+        "ESBUILD_WEB_ORG_ALIAS": {
+          "external": true
+        }
+      },
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "out/**",
+        "../../.esbuild-web-extra-settings.json"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
     "test": {
       "command": "jest --coverage",
       "dependencies": [
@@ -197,7 +219,7 @@
       "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
-        "vscode:bundle"
+        "vscode:bundle:local"
       ],
       "files": [
         "test/playwright/**/*.ts"
