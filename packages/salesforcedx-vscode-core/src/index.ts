@@ -324,6 +324,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
+  void WorkspaceContext.getInstance().initialize(extensionContext);
+
   PersistentStorageService.initialize(extensionContext);
 
   // Register file watcher for push or deploy on save
