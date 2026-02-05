@@ -6,7 +6,7 @@ description: Compilation commands and TS4023 errors
 
 `npm run compile` will re-compile all the packages.
 
-`npm run compile -w <path to package>` to compile a single package
+`npm run compile -w <path to package>` to compile a single package (can be useful, but it must pass at the repo level to consider compile step complete )
 
 ## TS4023 Errors
 

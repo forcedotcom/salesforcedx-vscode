@@ -77,7 +77,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
 
     // so we verify completion via output channel instead
     // Match the actual completion message which includes counts
-    await waitForOutputChannelText(page, { expectedText: 'Deploy on save complete:', timeout: DEPLOY_TIMEOUT });
+    await waitForOutputChannelText(page, { expectedText: 'components deployed', timeout: DEPLOY_TIMEOUT });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
