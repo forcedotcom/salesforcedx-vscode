@@ -19,11 +19,13 @@ const setInPackageDirectoriesContext = (value: boolean) =>
 export const watchPackageDirectoriesContext = () =>
   Effect.gen(function* () {
     const [editorService, projectService] = yield* Effect.all([EditorService, ProjectService]);
+
     yield* Stream.merge(
-      Stream.fromEffect(editorService.getActiveEditorUri()),
+      Stream.fromEffect(
+        editorService.getActiveEditorUri().pipe(Effect.catchTag('NoActiveEditorError', () => Effect.succeed(undefined)))
+      ),
       Stream.fromPubSub(editorService.pubsub).pipe(Stream.map(editor => editor?.document.uri))
     ).pipe(
-      Stream.tap(uri => Effect.sync(() => console.log('editor changed', uri))),
       Stream.debounce(Duration.millis(50)),
       Stream.changes,
       Stream.runForEach(uri =>
