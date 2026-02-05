@@ -5,7 +5,6 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -19,7 +18,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'anInitialSuite.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   # 🔧 Core Features
@@ -28,7 +27,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'authentication.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   core-create-project:
@@ -36,7 +35,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'createProject.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   core-sfdx-project-json:
@@ -44,7 +43,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'sfdxProjectJson.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   core-sobjects-definitions:
@@ -52,7 +51,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'sObjectsDefinitions.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   core-org-browser:
@@ -60,7 +59,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'orgBrowser.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   core-snippets:
@@ -68,7 +67,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'snippets.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   # 📦 Deploy & Retrieve
@@ -77,7 +76,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'deployAndRetrieve.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   deploy-metadata-deploy-retrieve:
@@ -85,7 +84,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'metadataDeployRetrieve.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   deploy-push-and-pull:
@@ -93,7 +92,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'pushAndPull.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   deploy-manifest-builder:
@@ -101,7 +100,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'manifestBuilder.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   # 🐛 Apex Features
@@ -110,7 +109,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'apexLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   apex-run-tests:
@@ -118,7 +117,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'runApexTests.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   apex-debug-tests:
@@ -126,7 +125,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'debugApexTests.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   apex-replay-debugger:
@@ -134,7 +133,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'apexReplayDebugger.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
       os: '["macos-latest"]'
 
@@ -143,7 +142,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'trailApexReplayDebugger.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   # ⚡ LWC Features
@@ -152,7 +151,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'lwcLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   lwc-run-tests:
@@ -160,7 +159,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'runLwcTests.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   lwc-debug-tests:
@@ -168,7 +167,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'debugLwcTests.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   # 🔥 Aura Features
@@ -177,7 +176,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'auraLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   # 📄 Visualforce Features
@@ -186,7 +185,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'visualforceLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   # 🔍 SOQL Features
@@ -195,7 +194,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'soql.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   # 📋 Templates
@@ -204,7 +203,7 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'templates.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
   # 📚 OpenAPI Documentation
@@ -213,6 +212,6 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'createOasDoc.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
+      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
       os: '["ubuntu-latest"]'
