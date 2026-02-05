@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
@@ -66,14 +67,18 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       )
     )
   );
-  // const connectionService = yield* api.services.ConnectionService;
   const targetOrgRef = yield* api.services.TargetOrgRef();
   yield* Effect.forkDaemon(
-    targetOrgRef.changes.pipe(
+    Stream.merge(
+      // get the initial state
+      Stream.fromEffect(SubscriptionRef.get(targetOrgRef)),
+      // get the ongoing changes
+      targetOrgRef.changes
+    ).pipe(
+      Stream.filter(isNotUndefined),
       Stream.map(org => org.orgId),
       Stream.changes,
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
-      Stream.filter(isNotUndefined),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
       Stream.runForEach(() => Effect.promise(() => treeProvider.refreshType()))
     )
