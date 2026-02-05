@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ActivationTracker,
@@ -13,11 +14,12 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { Effect } from 'effect';
+import * as Layer from 'effect/Layer';
+import * as Stream from 'effect/Stream';
 import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
-import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
@@ -62,9 +64,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-    const msg = 'No workspace folders found, exiting extension';
-    log(msg);
-    channelService.appendLine(msg);
+    channelService.appendLine('No workspace folders found, exiting extension');
     return;
   }
 
@@ -151,63 +151,81 @@ export const activate = async (extensionContext: ExtensionContext) => {
     // Only load the specific files checked by detectWorkspaceHelper at root level:
     // - sfdx-project.json, workspace-user.xml, lwc.config.json, package.json, lerna.json (at root)
     // Note: Parent workspace-user.xml check is handled by language server code, not via file glob
-    const bootstrapConfigFiles = async () => {
-      channelService.appendLine('[LWC Bootstrap Config] Starting bootstrap for config files...');
-      channelService.appendLine(`[LWC Bootstrap Config] Workspace folders: ${workspace.workspaceFolders?.length ?? 0}`);
+    const bootstrapConfigFilesEffect = Effect.gen(function* () {
+      yield* Effect.sync(() => {
+        channelService.appendLine('[LWC Bootstrap Config] Starting bootstrap for config files...');
+        channelService.appendLine(
+          `[LWC Bootstrap Config] Workspace folders: ${workspace.workspaceFolders?.length ?? 0}`
+        );
+      });
 
       if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
-        // Bootstrap each workspace folder separately
-        const bootstrapPromises = workspace.workspaceFolders.map(async folder => {
-          channelService.appendLine(`[LWC Bootstrap Config] Workspace folder: ${folder.uri.toString()}`);
+        yield* Effect.all(
+          workspace.workspaceFolders.map(folder =>
+            Effect.gen(function* () {
+              yield* Effect.sync(() =>
+                channelService.appendLine(`[LWC Bootstrap Config] Workspace folder: ${folder.uri.toString()}`)
+              );
 
-          // In web mode, findFiles with memfs:// URIs does not work
-          // hence we pass files directly to bootstrapWorkspaceAwareness to skip findFiles
-          const configFiles = [
-            'sfdx-project.json',
-            'workspace-user.xml',
-            'lwc.config.json',
-            'package.json',
-            'lerna.json'
-          ];
+              // In web mode, findFiles with memfs:// URIs does not work
+              // hence we pass files directly to bootstrapWorkspaceAwareness to skip findFiles
+              const configFiles = [
+                'sfdx-project.json',
+                'workspace-user.xml',
+                'lwc.config.json',
+                'package.json',
+                'lerna.json'
+              ];
 
-          // Construct URIs for config files and check which ones exist
-          const configUris: URI[] = [];
-          for (const configFile of configFiles) {
-            const configUri = Utils.joinPath(folder.uri, configFile);
-            try {
-              await workspace.fs.stat(configUri);
-              configUris.push(configUri);
-              channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: Found ${configFile}`);
-            } catch {
-              // File doesn't exist - skip it
-            }
-          }
-
-          if (configUris.length > 0) {
-            // Use bootstrapWorkspaceAwareness with provided URIs to skip findFiles
-            await Effect.runPromise(
-              bootstrapWorkspaceAwareness({
-                fileGlob: '{sfdx-project.json,workspace-user.xml,lwc.config.json,package.json,lerna.json}',
-                excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
-                uris: configUris,
-                logger: (msg: string) => {
-                  channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: ${msg}`);
+              const configUris: URI[] = [];
+              for (const configFile of configFiles) {
+                const configUri = Utils.joinPath(folder.uri, configFile);
+                const statResult = yield* Effect.tryPromise({
+                  try: () => workspace.fs.stat(configUri),
+                  catch: () => new Error('not found')
+                }).pipe(Effect.option);
+                if (statResult._tag === 'Some') {
+                  configUris.push(configUri);
+                  yield* Effect.sync(() =>
+                    channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: Found ${configFile}`)
+                  );
                 }
-              })
-            );
-            channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: Config files bootstrap completed`);
-          } else {
-            channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: No config files found`);
-          }
-        });
+              }
 
-        await Promise.all(bootstrapPromises);
-        channelService.appendLine('[LWC Bootstrap Config] Config files bootstrap completed');
+              if (configUris.length > 0) {
+                yield* bootstrapWorkspaceAwareness({
+                  fileGlob: '{sfdx-project.json,workspace-user.xml,lwc.config.json,package.json,lerna.json}',
+                  excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
+                  uris: configUris,
+                  logger: (msg: string) => {
+                    channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: ${msg}`);
+                  }
+                });
+                yield* Effect.sync(() =>
+                  channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: Config files bootstrap completed`)
+                );
+              } else {
+                yield* Effect.sync(() =>
+                  channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: No config files found`)
+                );
+              }
+            })
+          ),
+          { concurrency: 'unbounded' }
+        );
+        yield* Effect.sync(() => channelService.appendLine('[LWC Bootstrap Config] Config files bootstrap completed'));
       }
-    };
+    }).pipe(
+      Effect.catchAll(error =>
+        Effect.sync(() => {
+          const errorMsg = `[LWC Bootstrap Config] Failed: ${error instanceof Error ? error.message : String(error)}`;
+          channelService.appendLine(errorMsg);
+        })
+      )
+    );
 
-    // Start bootstrap after client is started
-    void bootstrapConfigFiles();
+    // Start bootstrap after client is started (daemon fiber, does not block activation)
+    Effect.runSync(Effect.forkDaemon(bootstrapConfigFilesEffect));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     channelService.appendLine(`Failed to start LWC Language Server: ${errorMessage}`);
@@ -240,20 +258,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Watch for newly created LWC files and auto-open them to trigger delayed initialization
   // This handles the case where files are downloaded from org browser after server starts
   // Opening files syncs them to the server via onDidOpen, which triggers delayed initialization
-  const lwcFileWatcher = workspace.createFileSystemWatcher('**/lwc/**/*.{js,ts,html,js-meta.xml}');
-  lwcFileWatcher.onDidCreate(async uri => {
-    // Auto-open newly created LWC files in the background
-    // This ensures they're synced to the language server via onDidOpen
-    // The server will trigger delayed initialization once files are available
-    try {
-      await workspace.openTextDocument(uri);
-      // Don't show the document, just open it in the background to sync to server
-      // This ensures the file is available to the language server
-    } catch {
-      // Failed to open file - continue silently
-    }
-  });
-  extensionContext.subscriptions.push(lwcFileWatcher);
+  startLwcFileWatcherViaServices();
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
   if (process.env.ESBUILD_PLATFORM !== 'web') {
@@ -285,6 +290,52 @@ export const deactivate = async () => {
   // Get telemetry service for deactivation (no-op in web mode)
   const telemetryService = await getTelemetryService();
   telemetryService.sendExtensionDeactivationEvent();
+};
+
+/** True if the URI path is under lwc/ and matches *.js, *.ts, *.html, or *js-meta.xml */
+const isLwcFile = (uri: { path: string; fsPath?: string }): boolean => {
+  const pathSegment = uri.fsPath ?? uri.path;
+  if (!pathSegment.includes('/lwc/') && !pathSegment.includes('\\lwc\\')) {
+    return false;
+  }
+  return (
+    pathSegment.endsWith('.js') ||
+    pathSegment.endsWith('.ts') ||
+    pathSegment.endsWith('.html') ||
+    pathSegment.endsWith('js-meta.xml')
+  );
+};
+
+/**
+ * Start LWC file watcher using FileWatcherService from salesforcedx-vscode-services.
+ */
+const startLwcFileWatcherViaServices = () => {
+  const apiResult = Effect.runSync(getServicesApi.pipe(Effect.either));
+  if (apiResult._tag === 'Left') {
+    throw new Error('Failed to get services API');
+  }
+  const api = apiResult.right;
+  const layer = Layer.mergeAll(api.services.ChannelServiceLayer('LWC'), api.services.FileWatcherService.Default);
+  const subscriptionEffect = Effect.gen(function* () {
+    const fileWatcherService = yield* api.services.FileWatcherService;
+    yield* Effect.forkDaemon(
+      Stream.fromPubSub(fileWatcherService.pubsub).pipe(
+        Stream.filter(e => e.type === 'create' && isLwcFile(e.uri)),
+        Stream.runForEach(e =>
+          Effect.tryPromise({
+            try: () => workspace.openTextDocument(e.uri),
+            catch: () => new Error('open failed')
+          }).pipe(Effect.catchAll(() => Effect.void))
+        )
+      )
+    );
+    yield* Effect.never;
+  });
+  try {
+    Effect.runSync(Effect.forkDaemon(Effect.scoped(Effect.provide(subscriptionEffect, layer))));
+  } catch {
+    throw new Error('Failed to start LWC file watcher');
+  }
 };
 
 const getActivationMode = (): string => {
