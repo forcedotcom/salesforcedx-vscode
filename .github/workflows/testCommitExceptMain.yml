@@ -11,5 +11,5 @@ jobs:
     uses: ./.github/workflows/triggerE2EForCommit.yml
     secrets: inherit
     with:
-      vscodeVersion: ${{ vars.MAX_REDHAT_VSCODE_VERSION }}
+      vscodeVersion: ${{ vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ github.run_id }}
