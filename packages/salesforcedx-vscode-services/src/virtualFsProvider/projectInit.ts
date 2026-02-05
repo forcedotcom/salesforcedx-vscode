@@ -58,15 +58,9 @@ const createProjectStructure = (fsp: FsProvider) =>
       catch: (error: unknown) => new VirtualFsProviderError(unknownToErrorCause(error))
     });
 
-    yield* Effect.all(
-      [
-        Effect.sync(() => createConfigFiles(fsp)),
-        Effect.sync(() => createVSCodeFiles(fsp))
-      ],
-      {
-        concurrency: 'unbounded'
-      }
-    );
+    yield* Effect.all([Effect.sync(() => createConfigFiles(fsp)), Effect.sync(() => createVSCodeFiles(fsp))], {
+      concurrency: 'unbounded'
+    });
   }).pipe(Effect.withSpan('projectInit: createProjectStructure'));
 
 const createVSCodeFiles = (fsp: FsProvider): void => {

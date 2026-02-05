@@ -26,7 +26,6 @@ const API_VERSION_KEY = 'apiVersion';
 const buildWebConfig = async () => {
   const configMap = {};
   
-  // Get org display output if ESBUILD_WEB_ORG_ALIAS is set
   if (process.env.ESBUILD_WEB_ORG_ALIAS) {
     try {
       const output = execSync(`sf org display -o ${process.env.ESBUILD_WEB_ORG_ALIAS} --json`, {
@@ -36,13 +35,13 @@ const buildWebConfig = async () => {
       const orgDisplayResponse = JSON.parse(output);
       const orgData = orgDisplayResponse.result || orgDisplayResponse;
       const apiVersion = orgData.version || orgData.apiVersion;
-      if (orgData.instanceUrl && orgData.accessToken && apiVersion && Object.keys(orgData).length > 0) {
+      if (orgData.instanceUrl && orgData.accessToken && apiVersion) {
         configMap[`${CODE_BUILDER_WEB_SECTION}.${INSTANCE_URL_KEY}`] = orgData.instanceUrl;
         configMap[`${CODE_BUILDER_WEB_SECTION}.${ACCESS_TOKEN_KEY}`] = orgData.accessToken;
         configMap[`${CODE_BUILDER_WEB_SECTION}.${API_VERSION_KEY}`] = apiVersion;
       }
     } catch (error) {
-      // Skip org settings if command fails
+      console.error('[esbuild] sf org display failed:', error.message);
     }
   }
   
