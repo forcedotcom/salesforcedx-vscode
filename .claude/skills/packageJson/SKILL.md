@@ -29,12 +29,12 @@ See [wireit skill](.claude/skills/wireit/SKILL.md)
 
 ## dependencies
 
+run `npm install` after changes
+
 use `*` as the version for anything that's another package in this repo
 there should be no dependency on salesforcedx-vscode-services. extensionDependency is ok, devDependency is ok.
 
-run `npm install` after changes
-
-## devDependencies
+### devDependencies
 
 packages should not duplicate devDependencies that exist at the top level of the repo.
 run `npm install` after changes
