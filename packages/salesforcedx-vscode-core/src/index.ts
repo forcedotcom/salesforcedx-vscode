@@ -318,6 +318,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     );
   }
 
+  setImmediate(() => {
+    void WorkspaceContext.getInstance().initialize(extensionContext);
+  });
+
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
   return api;
