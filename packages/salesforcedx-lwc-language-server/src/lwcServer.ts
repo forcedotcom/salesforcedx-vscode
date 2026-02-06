@@ -102,6 +102,19 @@ const isLWCWatchedDirectory = async (context: BaseWorkspaceContext, uri: string)
   return await context.isFileInsideModulesRoots(file);
 };
 
+/**
+ * Returns true if the path is a server-generated typing file (e.g. customlabels.d.ts).
+ * Opening these files should not trigger scheduleReinitialization, since the server
+ * creates them via workspace/applyEdit and that would cause an infinite loop.
+ */
+const isServerGeneratedTypingsFile = (normalizedPath: string, workspaceRoots: NormalizedPath[]): boolean => {
+  // NormalizedPath uses forward slashes; match server-generated typings dirs
+  if (!normalizedPath.includes('.sfdx/typings/lwc/') && !normalizedPath.includes('.vscode/typings/lwc/')) {
+    return false;
+  }
+  return workspaceRoots.some(root => normalizedPath === root || normalizedPath.startsWith(`${root}/`));
+};
+
 const containsDeletedLwcWatchedDirectory = async (
   context: BaseWorkspaceContext,
   changes: FileEvent[]
@@ -371,7 +384,16 @@ export default class Server {
     // Perform delayed initialization once file loading has stabilized
     // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
     // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
-    if (!this.isDelayedInitializationComplete) {
+    // Skip when the opened file is a server-generated typing (e.g. customlabels.d.ts); otherwise
+    // the server's workspace/applyEdit would open the file -> onDidOpen -> schedule again -> loop
+    if (this.isDelayedInitializationComplete) {
+      // Already initialized, nothing to do
+    } else if (isServerGeneratedTypingsFile(normalizedPath, this.workspaceRoots)) {
+      Logger.info(
+        `[LWC] Skipping scheduleReinitialization for server-generated typings file (avoids infinite loop): ${normalizedPath}`
+      );
+    } else {
+      Logger.info(`[LWC] Scheduling reinitialization after document open: ${normalizedPath}`);
       void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
     }
   }

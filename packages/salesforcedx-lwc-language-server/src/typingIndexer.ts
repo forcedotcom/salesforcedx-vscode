@@ -126,7 +126,7 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
       size: fileContent.length
     });
     // Use updateFileContent with connection to create file via LSP
-    void indexer.fileSystemProvider.updateFileContent(customLabelTypingsPath, fileContent);
+    await indexer.fileSystemProvider.updateFileContent(customLabelTypingsPath, fileContent, indexer.connection);
   }
 };
 
