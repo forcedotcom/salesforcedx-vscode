@@ -32,7 +32,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
+import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
@@ -44,17 +44,18 @@ const verifyDiffCompleted = async (page: Page, className: string, screenshotPref
   await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: DEPLOY_TIMEOUT });
 
   // Verify retrieve succeeded
-  expect(await outputChannelContains(page, '0 components retrieved'), 'Should not show "0 components retrieved"').toBe(
-    false
-  );
+  expect(
+    await outputChannelContains(page, '0 components retrieved', { timeout: 100 }),
+    'Should not show "0 components retrieved"'
+  ).toBe(false);
 
   expect(
-    await outputChannelContains(page, 'No components retrieved from org'),
+    await outputChannelContains(page, 'No components retrieved from org', { timeout: 100 }),
     'Should not show "No components retrieved from org"'
   ).toBe(false);
 
   expect(
-    await outputChannelContains(page, 'No matching files found to diff'),
+    await outputChannelContains(page, 'No matching files found to diff', { timeout: 100 }),
     'Should not show "No matching files found to diff"'
   ).toBe(false);
 
@@ -95,7 +96,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     await statusBarPage.waitForVisible(120_000);
 
     // Disable deploy-on-save so test can control when deploys happen
-    await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
   });
 
   await test.step('create and deploy class for command palette diff', async () => {
