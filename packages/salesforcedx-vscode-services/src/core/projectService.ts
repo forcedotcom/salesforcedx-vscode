@@ -88,8 +88,10 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       return (
         (yield* getSfProject())
           .getPackageDirectories()
-          // Uri to normalize to forward slahses, Remove trailing slash if present
-          .map(dir => toUri(dir.fullPath).path.replaceAll('\\', '/'))
+          // normalizes paths to forward slashes
+          .map(dir => toUri(dir.fullPath).path)
+          // Remove trailing forwardslash if present
+          .map(dir => dir.replace(/\/$/, ''))
           .some(
             dir =>
               // Use URI.path which is normalized (always uses /) regardless of OS
