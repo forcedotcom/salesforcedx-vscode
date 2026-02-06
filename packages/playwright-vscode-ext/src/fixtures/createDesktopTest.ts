@@ -121,6 +121,15 @@ export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOp
       console.log('Press Resume in Playwright Inspector or close VS Code window to continue.');
       await page.pause();
     }
+
+    // Rename video with test name for easy identification
+    const video = page.video();
+    if (video) {
+      const videoPath = await video.path();
+      const safeName = testInfo.titlePath.join('-').replaceAll(/[^a-zA-Z0-9-]/g, '_');
+      const newPath = path.join(path.dirname(videoPath), `${safeName}.webm`);
+      await fs.rename(videoPath, newPath).catch(() => {});
+    }
   });
   return test;
 };
