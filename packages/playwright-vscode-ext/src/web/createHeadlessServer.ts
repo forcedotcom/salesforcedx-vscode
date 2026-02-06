@@ -13,6 +13,8 @@ type HeadlessServerOptions = {
   extensionName: string;
   /** The __dirname from the calling headlessServer.ts file (used to resolve extension paths) */
   callerDirname: string;
+  /** Additional extension paths to load (e.g. metadata for apex-testing) */
+  additionalExtensionPaths?: string[];
 };
 
 /** Creates and starts a headless VS Code web server for testing an extension with services */
@@ -21,10 +23,16 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
     // callerDirname is '<pkg>/out/test/playwright/web' → go up four levels to '<pkg>'
     const extensionDevelopmentPath = path.resolve(options.callerDirname, '..', '..', '..', '..');
     const servicesExtensionPath = path.resolve(extensionDevelopmentPath, '..', 'salesforcedx-vscode-services');
+    const extensionPaths = [servicesExtensionPath, ...(options.additionalExtensionPaths ?? [])];
 
     console.log(`🌐 Starting VS Code Web (headless) for ${options.extensionName} tests...`);
     console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
     console.log(`📦 Services extension path: ${servicesExtensionPath}`);
+    if (options.additionalExtensionPaths?.length) {
+      options.additionalExtensionPaths.forEach((p, i) =>
+        console.log(`📦 Additional extension path ${i + 1}: ${p}`)
+      );
+    }
 
     await open({
       browserType: 'chromium',
@@ -34,7 +42,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       printServerLog: true,
       verbose: true,
       extensionDevelopmentPath,
-      extensionPaths: [servicesExtensionPath],
+      extensionPaths,
       browserOptions: [
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor',

@@ -18,10 +18,24 @@ type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
   orgAlias?: string;
+  /** Additional extension paths to load (e.g. metadata for apex-testing "SFDX: Create Apex Class") */
+  additionalExtensionPaths?: string[];
+  /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
+  disableOtherExtensions?: boolean;
+  /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
+  userSettings?: Record<string, unknown>;
 };
 
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
-export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOptions) => {
+export const createDesktopTest = (options: CreateDesktopTestOptions) => {
+  const {
+    fixturesDir,
+    orgAlias,
+    additionalExtensionPaths = [],
+    disableOtherExtensions = true,
+    userSettings
+  } = options;
+
   const test = base.extend<TestFixtures, WorkerFixtures>({
     // Download VS Code once per worker (cached in ~/.vscode-test/ or the windows equivalent)
     vscodeExecutable: [
@@ -35,40 +49,44 @@ export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOp
     // Launch fresh Electron instance per test
     electronApp: async ({ vscodeExecutable }, use): Promise<void> => {
       const workspaceDir = await createTestWorkspace(orgAlias);
-      // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
-      // Isolate extensions directory as well (to avoid parallel install conflicts)
+      if (userSettings !== undefined && Object.keys(userSettings).length > 0) {
+        const userSettingsDir = path.join(userDataDir, 'User');
+        await fs.mkdir(userSettingsDir, { recursive: true });
+        await fs.writeFile(
+          path.join(userSettingsDir, 'settings.json'),
+          JSON.stringify(userSettings, null, 2)
+        );
+      }
       const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
       await fs.mkdir(extensionsDir, { recursive: true });
 
-      // fixturesDir is '<pkg>/test/playwright/fixtures' → go up three levels to '<pkg>'
       const packageRoot = path.resolve(fixturesDir, '..', '..', '..');
-      // Extension path is the package root (contains package.json and bundled dist/index.js)
       const extensionPath = packageRoot;
       const servicesPath = path.resolve(packageRoot, '..', 'salesforcedx-vscode-services');
 
-      // Video directory for this test
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
       await fs.mkdir(videosDir, { recursive: true });
 
+      const extensionArgs = [
+        `--extensionDevelopmentPath=${extensionPath}`,
+        `--extensionDevelopmentPath=${servicesPath}`,
+        ...additionalExtensionPaths.map(p => `--extensionDevelopmentPath=${p}`)
+      ];
+      const launchArgs = [
+        `--user-data-dir=${userDataDir}`,
+        `--extensions-dir=${extensionsDir}`,
+        ...extensionArgs,
+        ...(disableOtherExtensions ? ['--disable-extensions'] : []),
+        '--disable-workspace-trust',
+        '--no-sandbox',
+        workspaceDir
+      ];
+
       const electronApp = await electron.launch({
         executablePath: vscodeExecutable,
-        args: [
-          // Unique user data directory for parallel test isolation
-          `--user-data-dir=${userDataDir}`,
-          // Unique extensions directory to avoid parallel install conflicts
-          `--extensions-dir=${extensionsDir}`,
-          // Load both extensions (current extension depends on services)
-          `--extensionDevelopmentPath=${extensionPath}`,
-          `--extensionDevelopmentPath=${servicesPath}`,
-          '--disable-extensions', // Disable other extensions
-          '--disable-workspace-trust', // Skip workspace trust modal
-          '--no-sandbox', // Disable sandbox for file system access (needed for SF CLI auth files)
-
-          workspaceDir
-        ],
-
+        args: launchArgs,
         env: { ...process.env, VSCODE_DESKTOP: '1' } as Record<string, string>,
         timeout: 60_000,
         recordVideo: {

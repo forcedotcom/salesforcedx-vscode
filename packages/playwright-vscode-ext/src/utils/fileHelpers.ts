@@ -6,9 +6,27 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
 import { executeCommandWithCommandPalette } from '../pages/commands';
-import { closeSettingsTab, closeWelcomeTabs, isDesktop } from './helpers';
-import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
+import {
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  waitForOutputChannelText
+} from '../pages/outputChannel';
+import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
+import { saveScreenshot } from '../shared/screenshotUtils';
+import { assertWelcomeTabExists, closeSettingsTab, closeWelcomeTabs, isDesktop, waitForVSCodeWorkbench } from './helpers';
+import {
+  DIRTY_EDITOR,
+  EDITOR_WITH_URI,
+  NOTIFICATION_LIST_ITEM,
+  QUICK_INPUT_LIST_ROW,
+  QUICK_INPUT_WIDGET,
+  WORKBENCH
+} from './locators';
+
+/** Default timeout for deploy to complete (10 minutes, matches metadata deploy tests). */
+const DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS = 600_000;
 
 /**
  * Creates a new untitled file with contents.
@@ -46,6 +64,9 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await closeSettingsTab(page);
   await closeWelcomeTabs(page);
 
+  // Give the extension that provides "SFDX: Create Apex Class" time to finish loading and register the command
+  await page.waitForTimeout(3000);
+
   await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
 
   // First prompt: "Enter Apex class name"
@@ -61,12 +82,69 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
   await page.keyboard.press('Enter');
 
-  // Wait for the editor to open with the new class
-  await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
+  // Wait for the editor to open with the new class (extension writes a template and opens it)
+  const editor = page.locator(EDITOR_WITH_URI).first();
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
 
-  // If content is provided, type it into the editor
-  if (content !== undefined) {
+  // If content is provided, replace the template with it and save (so the file is on disk and deployable)
+  if (content !== undefined && content.length > 0) {
+    try{// Close secondary sidebar (Chat/Agent) so keystrokes go to the editor, not the chat input
+    await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
+    await page.waitForTimeout(300);} catch {
+      // Ignore error - secondary sidebar may not be present
+    }
+
+    // Focus the editor and wait so typing does not land in Chat/Agent or elsewhere
+    await editor.click();
+    await page.waitForTimeout(500);
+
+    // Select all (template) so typing replaces it instead of appending and corrupting the file
+    const selectAllKey = process.platform === 'darwin' ? 'Meta+a' : 'Control+a';
+    await page.keyboard.press(selectAllKey);
     await page.keyboard.type(content);
+
+    // Save so the file is persisted and can be deployed / discovered by the test controller
+    await executeCommandWithCommandPalette(page, 'File: Save');
+    await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+  }
+};
+
+/**
+ * Deploys the currently active editor (or selected source) to the org via "SFDX: Deploy This Source to Org".
+ * Waits for the deploy progress notification to appear. Completion: if waitViaOutputChannel is true (e.g. Apex
+ * testing), waits for "deployed" in the Salesforce Metadata output channel; otherwise waits for the notification
+ * to disappear.
+ */
+export const deployCurrentSourceToOrg = async (
+  page: Page,
+  options?: { deployCompleteTimeoutMs?: number; waitViaOutputChannel?: boolean }
+): Promise<void> => {
+  const deployCompleteTimeoutMs =
+    options?.deployCompleteTimeoutMs ?? DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS;
+  const waitViaOutputChannel = options?.waitViaOutputChannel ?? false;
+
+  await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+
+  const deployingNotification = page
+    .locator(NOTIFICATION_LIST_ITEM)
+    .filter({ hasText: /Deploying/i })
+    .first();
+  await expect(
+    deployingNotification,
+    'Deploy progress notification should appear'
+  ).toBeVisible({ timeout: 30_000 });
+
+  if (waitViaOutputChannel) {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', deployCompleteTimeoutMs);
+    await waitForOutputChannelText(page, {
+      expectedText: 'deployed',
+      timeout: deployCompleteTimeoutMs
+    });
+  } else {
+    await expect(deployingNotification).not.toBeVisible({
+      timeout: deployCompleteTimeoutMs
+    });
   }
 };
 
@@ -182,4 +260,26 @@ export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<
   // Save file
   await executeCommandWithCommandPalette(page, 'File: Save');
   await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
+};
+
+/** Shared setup: minimal org + auth. Call before creating Apex classes in tests. */
+export const setupMinimalOrgAndAuth = async (page: Page): Promise<void> => {
+  const createResult = await createMinimalOrg();
+  await waitForVSCodeWorkbench(page);
+  await assertWelcomeTabExists(page);
+  await closeWelcomeTabs(page);
+  await saveScreenshot(page, 'setup.after-workbench.png');
+  await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+  await saveScreenshot(page, 'setup.after-auth-fields.png');
+};
+
+/** Create an Apex test class and deploy it to the org. */
+export const createAndDeployApexTestClass = async (
+  page: Page,
+  className: string,
+  content: string
+): Promise<void> => {
+  await createApexClass(page, className, content);
+  await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+  await saveScreenshot(page, 'setup.apex-test-class-created.png');
 };
