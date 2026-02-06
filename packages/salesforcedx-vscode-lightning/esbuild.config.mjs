@@ -6,7 +6,7 @@
  */
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { build } from 'esbuild';
-import { mkdirSync, existsSync } from 'fs';
+import { cpSync, existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -49,13 +49,7 @@ const resourcesSource = './src/resources';
 const resourcesDest = './dist/resources';
 
 if (existsSync(resourcesSource)) {
-  // Create the resources directory in dist
-  mkdirSync(resourcesDest, { recursive: true });
-
-  // Copy the entire resources directory
-  const { execSync } = await import('child_process');
-  execSync(`cp -r ${resourcesSource}/* ${resourcesDest}/`, { stdio: 'inherit' });
-
+  cpSync(resourcesSource, resourcesDest, { recursive: true });
   console.log('Copied resources directory to dist/');
 } else {
   console.warn('Resources directory not found:', resourcesSource);
@@ -68,13 +62,7 @@ const ternDefsSource = '../salesforcedx-aura-language-server/out/src/tern/defs';
 const ternDefsDest = './tern/defs';
 
 if (existsSync(ternDefsSource)) {
-  // Create the tern/defs directory at extension root
-  mkdirSync(ternDefsDest, { recursive: true });
-
-  // Copy the entire tern/defs directory
-  const { execSync } = await import('child_process');
-  execSync(`cp -r ${ternDefsSource}/* ${ternDefsDest}/`, { stdio: 'inherit' });
-
+  cpSync(ternDefsSource, ternDefsDest, { recursive: true });
   console.log('Copied tern/defs directory to tern/defs/');
 } else {
   console.warn('tern/defs directory not found:', ternDefsSource);
@@ -88,13 +76,7 @@ const ternLibSource = '../salesforcedx-aura-language-server/out/src/tern/lib';
 const ternLibDest = './tern/lib';
 
 if (existsSync(ternLibSource)) {
-  // Create the tern/lib directory at extension root
-  mkdirSync(ternLibDest, { recursive: true });
-
-  // Copy the entire tern/lib directory
-  const { execSync } = await import('child_process');
-  execSync(`cp -r ${ternLibSource}/* ${ternLibDest}/`, { stdio: 'inherit' });
-
+  cpSync(ternLibSource, ternLibDest, { recursive: true });
   console.log('Copied tern/lib directory to tern/lib/');
 } else {
   console.warn('tern/lib directory not found:', ternLibSource);
@@ -108,13 +90,7 @@ const ternPluginSource = '../salesforcedx-aura-language-server/out/src/tern/plug
 const ternPluginDest = './tern/plugin';
 
 if (existsSync(ternPluginSource)) {
-  // Create the tern/plugin directory at extension root
-  mkdirSync(ternPluginDest, { recursive: true });
-
-  // Copy the entire tern/plugin directory
-  const { execSync } = await import('child_process');
-  execSync(`cp -r ${ternPluginSource}/* ${ternPluginDest}/`, { stdio: 'inherit' });
-
+  cpSync(ternPluginSource, ternPluginDest, { recursive: true });
   console.log('Copied tern/plugin directory to tern/plugin/');
 } else {
   console.warn('tern/plugin directory not found:', ternPluginSource);
