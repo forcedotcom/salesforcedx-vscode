@@ -38,6 +38,7 @@ import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope'
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { registerCommandWithLayer } from './vscode/registerCommand';
+import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
@@ -107,19 +108,38 @@ export type { SettingsError } from './vscode/settingsService';
 const activationEffect = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
     yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
+    // do this first to prevent Connection issues.
     yield* updateTelemetryUserIds(context);
+    const scope = yield* getExtensionScope();
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
-      yield* Effect.forkIn(subscribeLifecycleWarnings(), yield* getExtensionScope());
-      yield* retrieveOnLoadEffect();
-      yield* Effect.forkIn(watchSettingsService(), yield* getExtensionScope());
+      // auth settings go before other things so retrieveOnLoad can use them
+      if (process.env.ESBUILD_WEB_CONFIG) {
+        yield* runWebAuthEffect();
+      }
+      yield* Effect.all(
+        [
+          Effect.forkIn(subscribeLifecycleWarnings(), scope),
+          retrieveOnLoadEffect(),
+          Effect.forkIn(watchSettingsService(), scope)
+        ],
+        { concurrency: 'unbounded' }
+      );
     }
     // watch default org changes to update VS Code context variables and other services
-    yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
-    // watch the config files for changes, which various serices use to invalidate caches
-    yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
-    // watch active editor changes to update package directories context
-    yield* Effect.forkIn(watchPackageDirectoriesContext(), yield* getExtensionScope());
+    yield* Effect.all(
+      [
+        // watch default org changes to update VS Code context variables and other services
+        Effect.forkIn(watchDefaultOrgContext(), scope),
+        // watch the config files for changes, which various services use to invalidate caches
+        Effect.forkIn(watchConfigFiles(), scope),
+        // watch active editor changes to update package directories context
+        Effect.forkIn(watchPackageDirectoriesContext(), scope)
+      ],
+      {
+        concurrency: 'unbounded'
+      }
+    );
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -140,10 +160,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       )
     );
     // test-web has this on by default. vscode-dev does not
-    const autoSave = vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false);
-    if (autoSave) {
+    if (vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false)) {
       await vscode.workspace.getConfiguration('files').update('autoSave', 'off', vscode.ConfigurationTarget.Global);
     }
+
     const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
     context.subscriptions.push(getWebAppInsightsReporter());
   }
