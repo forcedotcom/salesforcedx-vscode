@@ -11,7 +11,10 @@ import { writeFile, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,26 +28,26 @@ const API_VERSION_KEY = 'apiVersion';
 
 const buildWebConfig = async () => {
   const configMap = {};
-  
+
   if (process.env.ESBUILD_WEB_ORG_ALIAS) {
     try {
-      const output = execSync(`sf org display -o ${process.env.ESBUILD_WEB_ORG_ALIAS} --json`, {
-        encoding: 'utf-8',
-        stdio: ['inherit', 'pipe', 'pipe']
+      const { stdout } = await execAsync(`sf org display -o ${process.env.ESBUILD_WEB_ORG_ALIAS} --json`, {
+        env: { ...process.env, NO_COLOR: '1' }
       });
-      const orgDisplayResponse = JSON.parse(output);
-      const orgData = orgDisplayResponse.result || orgDisplayResponse;
-      const apiVersion = orgData.version || orgData.apiVersion;
-      if (orgData.instanceUrl && orgData.accessToken && apiVersion) {
+      const orgDisplayResponse = JSON.parse(stdout);
+      const orgData = orgDisplayResponse.result;
+      if (orgData.instanceUrl && orgData.accessToken && orgData.apiVersion) {
         configMap[`${CODE_BUILDER_WEB_SECTION}.${INSTANCE_URL_KEY}`] = orgData.instanceUrl;
         configMap[`${CODE_BUILDER_WEB_SECTION}.${ACCESS_TOKEN_KEY}`] = orgData.accessToken;
-        configMap[`${CODE_BUILDER_WEB_SECTION}.${API_VERSION_KEY}`] = apiVersion;
+        configMap[`${CODE_BUILDER_WEB_SECTION}.${API_VERSION_KEY}`] = orgData.apiVersion;
+        console.log('[esbuild] Added org credentials to configMap');
       }
     } catch (error) {
-      console.error('[esbuild] sf org display failed:', error.message);
+      console.error(`[esbuild] Failed to get web config from org ${process.env.ESBUILD_WEB_ORG_ALIAS}:`, error.message);
+      throw error;
     }
   }
-  
+
   // Read extra settings if ESBUILD_WEB_LOCAL is set
   if (process.env.ESBUILD_WEB_LOCAL) {
     const extraSettingsPath = join(repoRoot, '.esbuild-web-extra-settings.json');
@@ -58,7 +61,7 @@ const buildWebConfig = async () => {
       }
     }
   }
-  
+
   return Object.keys(configMap).length > 0 ? JSON.stringify(configMap) : undefined;
 };
 
