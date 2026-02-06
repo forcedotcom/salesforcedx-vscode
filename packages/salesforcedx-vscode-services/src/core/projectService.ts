@@ -14,7 +14,6 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { toUri } from '../vscode/fsService';
-import { uriToPath } from '../vscode/paths';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';
 
@@ -86,18 +85,17 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
 
     /** Check if a URI is within any package directory */
     const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
-      const uriPath = uriToPath(uri);
-      return (yield* getSfProject()).getPackageDirectories().some(d => {
-        // Normalize d.fullPath through URI conversion to match uriToPath normalization
-        const packageDirPath = uriToPath(toUri(d.fullPath));
-        // Remove trailing slash if present to normalize, then add one for comparison
-        const normalizedPackageDir = packageDirPath.replace(/\/$/, '');
-        // Trailing slash prevents false positives (e.g., /path/to/package2 matching /path/to/package)
-        // Equality check handles when URI is the directory itself
-        const result = uriPath.startsWith(`${normalizedPackageDir}/`) || uriPath === normalizedPackageDir;
-        console.log('isInPackageDirectories', uriPath, packageDirPath, result);
-        return result;
-      });
+      return (
+        (yield* getSfProject())
+          .getPackageDirectories()
+          // Uri to normalize to forward slahses, Remove trailing slash if present
+          .map(dir => toUri(dir.fullPath).path.replaceAll('\\', '/'))
+          .some(
+            dir =>
+              // Use URI.path which is normalized (always uses /) regardless of OS
+              uri.path.startsWith(`${dir}/`) || uri.path === dir
+          )
+      );
     });
     return { isSalesforceProject, getSfProject, isInPackageDirectories };
   })
