@@ -61,7 +61,6 @@ import {
   sfProjectGenerate,
   sourceDiff,
   sourceFolderDiff,
-  taskStop,
   turnOffLogging,
   turnOnLogging,
   viewAllChanges,
@@ -83,7 +82,6 @@ import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
-import { taskViewService } from './statuses/taskView';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { reportExtensionPackStatus } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
@@ -124,7 +122,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.diff', sourceDiff),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
     vscode.commands.registerCommand('sf.internal.refreshsobjects', refreshSObjects),
-    vscode.commands.registerCommand('sf.task.stop', taskStop),
     vscode.commands.registerCommand('sf.apex.generate.unit.test.class', apexGenerateUnitTestClass),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
     vscode.commands.registerCommand('sf.visualforce.generate.component', visualforceGenerateComponent),
@@ -201,10 +198,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await telemetryService.initializeService(extensionContext);
   void showTelemetryMessage(extensionContext);
 
-  // Task View
-  const treeDataProvider = vscode.window.registerTreeDataProvider('sf.tasks.view', taskViewService);
-  extensionContext.subscriptions.push(treeDataProvider);
-
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
   await vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
@@ -230,7 +223,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     salesforceCoreSettings,
     SfWorkspaceChecker,
     WorkspaceContext,
-    taskViewService,
     telemetryService,
     workspaceContextUtils,
     sharedAuthState,
@@ -403,7 +395,6 @@ export type SalesforceVSCodeCoreApi = {
   salesforceCoreSettings: typeof salesforceCoreSettings;
   SfWorkspaceChecker: typeof SfWorkspaceChecker;
   WorkspaceContext: typeof WorkspaceContext;
-  taskViewService: typeof taskViewService;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
   sharedAuthState: SharedAuthState;
