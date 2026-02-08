@@ -268,6 +268,11 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
       { concurrency: 'unbounded' }
     );
 
+    const aliases =
+      username && (orgIdChanged || existingOrgInfo.username !== username)
+        ? yield* getAliasesFromUsername(username)
+        : existingOrgInfo.aliases;
+
     yield* Effect.annotateCurrentSpan({
       orgId,
       devHubUsername,
@@ -276,7 +281,8 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
       tracksSource,
       username,
       userId,
-      devHubOrgId
+      devHubOrgId,
+      aliases
     });
 
     const webUserId =
@@ -296,6 +302,7 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
         devHubOrgId,
         userId,
         webUserId,
+        aliases,
         ...(typeof cliId === 'string' ? { cliId } : {})
       } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => v !== undefined)
     );
@@ -340,3 +347,12 @@ const createAuthInfoFromUsername = (username: string) =>
       });
     }
   }).pipe(Effect.withSpan('createAuthInfoFromUsername', { attributes: { username } }));
+
+const getAliasesFromUsername = Effect.fn('getAliasFromUsername')(function* (username: string) {
+  const sa = yield* Effect.tryPromise({
+    try: () => StateAggregator.getInstance(),
+    catch: () => undefined
+  });
+
+  return sa.aliases.getAll(username);
+});
