@@ -33,8 +33,6 @@ export const messages = {
   notification_show_in_status_bar_button_text: 'Show Only in Status Bar',
   notification_make_default_dev: 'Authorize a Dev Hub',
 
-  task_view_running_message: '[Running] %s',
-
   status_bar_text: '$(x) %s',
   status_bar_tooltip: 'Click to cancel the command',
 

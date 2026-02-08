@@ -22,7 +22,6 @@ import {
   getChannelService,
   getSfCommandlet,
   getSfCommandletExecutorClass,
-  getTaskViewService,
   getTelemetryService
 } from '../utils/coreExtensionUtils';
 
@@ -85,7 +84,6 @@ class StopActiveDebuggerSessionExecutor {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const channelService = await getChannelService();
-    const taskViewService = await getTaskViewService();
 
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspaceUtils.getRootWorkspacePath()
@@ -105,7 +103,6 @@ class StopActiveDebuggerSessionExecutor {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
     void ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
       const result = await resultPromise;

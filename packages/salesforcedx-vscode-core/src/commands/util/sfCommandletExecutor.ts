@@ -18,7 +18,6 @@ import { Properties, Measurements } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';
-import { taskViewService } from '../../statuses/taskView';
 import { telemetryService } from '../../telemetry';
 import { CommandletExecutor } from './commandletExecutor';
 
@@ -47,7 +46,6 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
 
     notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
     ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
   public logMetric(

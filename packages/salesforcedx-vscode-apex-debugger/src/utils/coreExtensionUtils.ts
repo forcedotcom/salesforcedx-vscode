@@ -27,9 +27,6 @@ export const getActiveSalesforceCoreExtension = async (): Promise<vscode.Extensi
 /** Get the channel service from the Salesforce Core extension */
 export const getChannelService = async () => (await getActiveSalesforceCoreExtension()).exports.channelService;
 
-/** Get the task view service from the Salesforce Core extension */
-export const getTaskViewService = async () => (await getActiveSalesforceCoreExtension()).exports.taskViewService;
-
 /** Get the SfCommandlet class from the Salesforce Core extension */
 export const getSfCommandlet = async () => (await getActiveSalesforceCoreExtension()).exports.SfCommandlet;
 

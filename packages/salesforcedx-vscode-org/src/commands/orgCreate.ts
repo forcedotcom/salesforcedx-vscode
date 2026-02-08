@@ -23,7 +23,6 @@ import {
   errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -33,14 +32,6 @@ import { CompositePreconditionChecker } from '../preconditionCheckers/compositeP
 import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
 import { setTargetOrgOrAlias } from '../util';
-
-// Get core API services at runtime
-const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
-  const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
-  return coreExtension?.exports;
-};
-
-const getTaskViewService = () => getCoreApi()?.taskViewService;
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
@@ -115,7 +106,6 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
 
     notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
     ProgressNotification.show(execution, cancellationTokenSource);
-    getTaskViewService()?.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 

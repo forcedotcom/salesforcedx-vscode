@@ -24,7 +24,6 @@ export { projectRetrieveStart } from './projectRetrieveStart';
 export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/viewChanges';
 export { turnOnLogging } from './startApexDebugLogging';
 export { turnOffLogging } from './stopApexDebugLogging';
-export { taskStop } from './taskStop';
 export {
   analyticsGenerateTemplate,
   apexGenerateClass,

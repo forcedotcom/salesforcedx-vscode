@@ -19,7 +19,6 @@ import {
   notificationService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
@@ -30,14 +29,6 @@ import {
   OrgOpenSuccessResult
 } from '../parsers/orgOpenContainerResultParser';
 import { telemetryService } from '../telemetry';
-
-// Get core API services at runtime
-const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
-  const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
-  return coreExtension?.exports;
-};
-
-const getTaskViewService = () => getCoreApi()?.taskViewService;
 
 class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
   public build(_data: {}): Command {
@@ -107,7 +98,6 @@ class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
 
     notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
     ProgressNotification.show(execution, cancellationTokenSource);
-    getTaskViewService()?.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 class OrgOpenExecutor extends SfCommandletExecutor<{}> {
