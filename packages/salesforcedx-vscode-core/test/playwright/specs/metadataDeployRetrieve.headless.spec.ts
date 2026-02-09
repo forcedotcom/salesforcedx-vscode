@@ -1,0 +1,94 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { test } from '../fixtures';
+import { expect } from '@playwright/test';
+import {
+  setupConsoleMonitoring,
+  waitForVSCodeWorkbench,
+  closeWelcomeTabs,
+  createMinimalOrg,
+  upsertScratchOrgAuthFieldsToSettings,
+  upsertSettings,
+  editOpenFile,
+  executeCommandWithCommandPalette,
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  clearOutputChannel,
+  waitForOutputChannelText,
+  validateNoCriticalErrors,
+  saveScreenshot,
+  EDITOR_WITH_URI
+} from '@salesforce/playwright-vscode-ext';
+import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
+import { createApexClassCore } from '../coreHelpers';
+
+test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', async ({ page }) => {
+  test.setTimeout(COMMAND_TIMEOUT);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const className = `MdDRTest${Date.now()}`;
+
+  let textV1: string;
+  let textV2: string;
+
+  const getEditorText = async (): Promise<string> => {
+    const editor = page.locator(EDITOR_WITH_URI).first();
+    await editor.waitFor({ state: 'visible', timeout: 10_000 });
+    const viewLines = editor.locator('.view-lines').first();
+    const text = await viewLines.textContent();
+    return (text ?? '').replaceAll('\u00A0', ' ');
+  };
+
+  await test.step('setup: workbench, settings, output channel', async () => {
+    const createResult = await createMinimalOrg();
+    await waitForVSCodeWorkbench(page);
+    await closeWelcomeTabs(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+
+    await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
+
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
+    await saveScreenshot(page, 'setup.complete.png');
+  });
+
+  await test.step('create and deploy v1', async () => {
+    await createApexClassCore(page, className);
+    textV1 = await getEditorText();
+    await saveScreenshot(page, 'v1.after-create.png');
+
+    await clearOutputChannel(page);
+    await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Deploy This Source to Org', timeout: COMMAND_TIMEOUT });
+    await saveScreenshot(page, 'v1.deploy-complete.png');
+  });
+
+  await test.step('modify and deploy v2', async () => {
+    await editOpenFile(page, 'v2 modification comment');
+    textV2 = await getEditorText();
+    expect(textV2, 'v2 text should differ from v1').not.toBe(textV1);
+    await saveScreenshot(page, 'v2.after-edit.png');
+
+    await clearOutputChannel(page);
+    await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Deploy This Source to Org', timeout: COMMAND_TIMEOUT });
+    await saveScreenshot(page, 'v2.deploy-complete.png');
+  });
+
+  await test.step('retrieve v2 and verify unchanged', async () => {
+    await clearOutputChannel(page);
+    await executeCommandWithCommandPalette(page, 'SFDX: Retrieve This Source from Org');
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Retrieve This Source from Org', timeout: COMMAND_TIMEOUT });
+
+    const textAfterRetrieve = await getEditorText();
+    // Retrieve overwrites local with org version which IS v2
+    expect(textAfterRetrieve, 'Retrieved text should contain v2 modification').toContain('v2 modification comment');
+    await saveScreenshot(page, 'retrieve-v2.complete.png');
+  });
+
+  await validateNoCriticalErrors(test, consoleErrors);
+});

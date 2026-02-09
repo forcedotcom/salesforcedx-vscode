@@ -19,10 +19,16 @@ type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
   orgAlias?: string;
+  /** Additional extension directory names to load (services is always included automatically) */
+  additionalExtensionDirs?: string[];
 };
 
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
-export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOptions) => {
+export const createDesktopTest = ({
+  fixturesDir,
+  orgAlias,
+  additionalExtensionDirs = []
+}: CreateDesktopTestOptions) => {
   const test = base.extend<TestFixtures, WorkerFixtures>({
     // Download VS Code once per worker (cached at repo root .vscode-test/)
     vscodeExecutable: [
@@ -47,9 +53,15 @@ export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOp
 
       // fixturesDir is '<pkg>/test/playwright/fixtures' → go up three levels to '<pkg>'
       const packageRoot = path.resolve(fixturesDir, '..', '..', '..');
-      // Extension path is the package root (contains package.json and bundled dist/index.js)
-      const extensionPath = packageRoot;
-      const servicesPath = path.resolve(packageRoot, '..', 'salesforcedx-vscode-services');
+
+      // Collect all extension paths: current extension + services + any additional
+      const allExtensionPaths = [
+        // Extension path is the package root (contains package.json and bundled dist/index.js)
+        packageRoot,
+        ...additionalExtensionDirs
+          .concat(['salesforcedx-vscode-services'])
+          .map(dir => path.resolve(packageRoot, '..', dir))
+      ];
 
       // Video directory for this test
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
@@ -62,9 +74,8 @@ export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOp
           `--user-data-dir=${userDataDir}`,
           // Unique extensions directory to avoid parallel install conflicts
           `--extensions-dir=${extensionsDir}`,
-          // Load both extensions (current extension depends on services)
-          `--extensionDevelopmentPath=${extensionPath}`,
-          `--extensionDevelopmentPath=${servicesPath}`,
+          // Load all extensions (current extension + services + any additional)
+          ...allExtensionPaths.map(extPath => `--extensionDevelopmentPath=${extPath}`),
           '--disable-extensions', // Disable other extensions
           '--disable-workspace-trust', // Skip workspace trust modal
           '--no-sandbox', // Disable sandbox for file system access (needed for SF CLI auth files)
