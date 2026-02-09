@@ -27,19 +27,17 @@ jest.mock('@salesforce/core', () => ({
   }
 }));
 
-// Mock orgUtil to provide getConfigAggregatorEffect
+// Mock configAggregatorEffect module
 const mockConfigAggregatorStore: { value: any } = {
   value: {
     getPropertyValue: jest.fn().mockReturnValue(undefined)
   }
 };
 
-jest.mock('../../../src/util/orgUtil', () => {
-  const actual = jest.requireActual('../../../src/util/orgUtil');
+jest.mock('../../../src/util/configAggregatorEffect', () => {
   const Effect = require('effect/Effect');
   // Reference mockConfigAggregatorStore from closure
   return {
-    ...actual,
     get getConfigAggregatorEffect() {
       return Effect.succeed(mockConfigAggregatorStore.value);
     }

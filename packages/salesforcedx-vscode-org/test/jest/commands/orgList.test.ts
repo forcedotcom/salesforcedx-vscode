@@ -14,10 +14,10 @@ import {
   determineConnectedStatusForNonScratchOrg,
   removeExpiredAndDeletedOrgs,
   displayRemainingOrgs,
-  getAuthFieldsFor,
   shouldRemoveOrg,
   getConnectionStatusFromError
 } from '../../../src/util/orgUtil';
+import * as orgUtil from '../../../src/util/orgUtil';
 // Mock the dependencies
 jest.mock('@salesforce/core', () => ({
   AuthRemover: {
@@ -72,7 +72,7 @@ jest.mock('../../../src/telemetry', () => ({
     sendException: jest.fn()
   }
 }));
-// Mock orgUtil to provide getConfigAggregatorEffect
+// Mock configAggregatorEffect module
 const mockConfigAggregatorStore: {
   value: {
     getPropertyValue: jest.Mock;
@@ -83,35 +83,19 @@ const mockConfigAggregatorStore: {
   }
 };
 
-const mockGetAuthFieldsFor = jest.fn();
-jest.mock('../../../src/util/orgUtil', () => {
-  const actual = jest.requireActual('../../../src/util/orgUtil');
-
-  // Create a module that replaces getConfigAggregatorEffect
-  const moduleExports = {
-    ...actual,
-    getAuthFieldsFor: (...args: Parameters<typeof actual.getAuthFieldsFor>) => mockGetAuthFieldsFor(...args)
-  };
-
-  // Replace getConfigAggregatorEffect with our mock - access mockConfigAggregatorStore lazily
-  Object.defineProperty(moduleExports, 'getConfigAggregatorEffect', {
-    get: () => {
-      // Access mockConfigAggregatorStore from the outer scope when the getter is called
-      const Effect = require('effect/Effect');
-      // This will be evaluated when the getter is called, not when the mock is created
+jest.mock('../../../src/util/configAggregatorEffect', () => {
+  const Effect = require('effect/Effect');
+  // Reference mockConfigAggregatorStore from closure
+  return {
+    get getConfigAggregatorEffect() {
       return Effect.succeed(mockConfigAggregatorStore.value);
-    },
-    enumerable: true,
-    configurable: true
-  });
-
-  return moduleExports;
+    }
+  };
 });
 
 // Mock extensionProvider to provide AllServicesLayer
 jest.mock('../../../src/extensionProvider', () => {
   const Layer = require('effect/Layer');
-
   const Context = require('effect/Context');
   // Create a minimal Layer - since getConfigAggregatorEffect is mocked, no services are needed
   const DummyService = Context.GenericTag('DummyService');
@@ -127,6 +111,8 @@ jest.mock('../../../src/messages', () => ({
 // No local util module to mock; command imports come from utils-vscode above
 
 describe('orgList command', () => {
+  let mockGetAuthFieldsFor: jest.SpyInstance;
+
   beforeEach(() => {
     // Mock nls.localize
     (nls.localize as jest.Mock).mockImplementation((key: string, ...args: string[]) => `${key}_${args.join('_')}`);
@@ -141,11 +127,18 @@ describe('orgList command', () => {
     mockConfigAggregatorStore.value = {
       getPropertyValue: jest.fn().mockReturnValue(undefined)
     };
+
+    // Spy on getAuthFieldsFor
+    mockGetAuthFieldsFor = jest.spyOn(orgUtil, 'getAuthFieldsFor');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('should be a simple smoke test to verify basic functionality', () => {
     // Basic test to ensure the command structure is correct
-    expect(typeof getAuthFieldsFor).toBe('function');
+    expect(typeof orgUtil.getAuthFieldsFor).toBe('function');
     expect(channelService.appendLine).toBeDefined();
     expect(notificationService.showSuccessfulExecution).toBeDefined();
     expect(AuthInfo.listAllAuthorizations).toBeDefined();

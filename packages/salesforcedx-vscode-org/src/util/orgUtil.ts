@@ -27,15 +27,9 @@ import { isNotUndefined, isString } from 'effect/Predicate';
 import { channelService } from '../channels';
 import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';
+import { getConfigAggregatorEffect } from './configAggregatorEffect';
 
 const DAYS_BEFORE_EXPIRE = 5;
-
-/** Get ConfigAggregator Effect for the current workspace */
-export const getConfigAggregatorEffect = Effect.gen(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const configService = yield* api.services.ConfigService;
-  return yield* configService.getConfigAggregator();
-});
 
 const orgExpiresSoon = (authFields: AuthFields) =>
   isString(authFields.expirationDate) &&

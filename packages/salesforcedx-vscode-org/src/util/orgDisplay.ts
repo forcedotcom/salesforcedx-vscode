@@ -9,7 +9,8 @@ import { AuthFields, AuthInfo, Connection, Org, StateAggregator, OrgConfigProper
 import * as Effect from 'effect/Effect';
 import { AllServicesLayer } from '../extensionProvider';
 import { OrgInfo } from '../types/orgInfo';
-import { getConnectionStatusFromError, getConfigAggregatorEffect } from './orgUtil';
+import { getConfigAggregatorEffect } from './configAggregatorEffect';
+import { getConnectionStatusFromError } from './orgUtil';
 
 type OrgQueryResult = {
   Id: string;
