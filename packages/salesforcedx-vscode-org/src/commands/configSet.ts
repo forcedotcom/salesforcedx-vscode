@@ -15,7 +15,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { setTargetOrgOrAlias } from '../util';
+import { setTargetOrgOrAlias } from '../util/orgUtil';
 
 const CONFIG_SET_ORG_TEXT = 'config_set_org_text';
 const CONFIG_SET_NAME = 'config_set_name';

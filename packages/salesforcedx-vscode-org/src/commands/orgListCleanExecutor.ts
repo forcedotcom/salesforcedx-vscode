@@ -8,7 +8,7 @@
 import { ContinueResponse, LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { displayRemainingOrgs, removeExpiredAndDeletedOrgs } from './orgList';
+import { displayRemainingOrgs, removeExpiredAndDeletedOrgs } from '../util/orgUtil';
 
 export class OrgListCleanExecutor extends LibraryCommandletExecutor<{}> {
   constructor() {

@@ -12,7 +12,8 @@ import {
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   SfWorkspaceChecker,
-  SfCommandlet
+  SfCommandlet,
+  getUsername
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
@@ -22,10 +23,9 @@ import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';
 import { SelectUsername } from '../parameterGatherers/selectUsername';
 import { OrgInfo } from '../types/orgInfo';
-import { getUsername } from '../util';
 import { getOrgInfo } from '../util/orgDisplay';
 
-export class NoTargetOrgError extends Schema.TaggedError<NoTargetOrgError>()('NoTargetOrgError', {
+class NoTargetOrgError extends Schema.TaggedError<NoTargetOrgError>()('NoTargetOrgError', {
   message: Schema.String
 }) {}
 

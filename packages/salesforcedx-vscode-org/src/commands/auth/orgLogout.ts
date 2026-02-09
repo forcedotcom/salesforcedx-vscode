@@ -28,7 +28,7 @@ import { OUTPUT_CHANNEL } from '../../channels';
 import { AllServicesLayer } from '../../extensionProvider';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { updateConfigAndStateAggregators } from '../../util';
+import { updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 // SimpleGatherer - need to inline this small utility
 class SimpleGatherer<T> implements ParametersGatherer<T> {

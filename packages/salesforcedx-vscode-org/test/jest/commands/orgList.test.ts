@@ -9,14 +9,15 @@ import { AuthRemover, AuthInfo, Org } from '@salesforce/core';
 import { createTable } from '@salesforce/effect-ext-utils';
 import { ConfigUtil, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../../src/channels';
+import { nls } from '../../../src/messages';
 import {
   determineConnectedStatusForNonScratchOrg,
   removeExpiredAndDeletedOrgs,
-  displayRemainingOrgs
-} from '../../../src/commands/orgList';
-import { nls } from '../../../src/messages';
-import { getAuthFieldsFor, shouldRemoveOrg, getConnectionStatusFromError } from '../../../src/util/orgUtil';
-
+  displayRemainingOrgs,
+  getAuthFieldsFor,
+  shouldRemoveOrg,
+  getConnectionStatusFromError
+} from '../../../src/util/orgUtil';
 // Mock the dependencies
 jest.mock('@salesforce/core', () => ({
   AuthRemover: {
@@ -82,18 +83,29 @@ const mockConfigAggregatorStore: {
   }
 };
 
+const mockGetAuthFieldsFor = jest.fn();
 jest.mock('../../../src/util/orgUtil', () => {
   const actual = jest.requireActual('../../../src/util/orgUtil');
 
-  const Effect = require('effect/Effect');
-  // Reference mockConfigAggregatorStore from closure
-  return {
+  // Create a module that replaces getConfigAggregatorEffect
+  const moduleExports = {
     ...actual,
-    getAuthFieldsFor: jest.fn(),
-    get getConfigAggregatorEffect() {
-      return Effect.succeed(mockConfigAggregatorStore.value);
-    }
+    getAuthFieldsFor: (...args: Parameters<typeof actual.getAuthFieldsFor>) => mockGetAuthFieldsFor(...args)
   };
+
+  // Replace getConfigAggregatorEffect with our mock - access mockConfigAggregatorStore lazily
+  Object.defineProperty(moduleExports, 'getConfigAggregatorEffect', {
+    get: () => {
+      // Access mockConfigAggregatorStore from the outer scope when the getter is called
+      const Effect = require('effect/Effect');
+      // This will be evaluated when the getter is called, not when the mock is created
+      return Effect.succeed(mockConfigAggregatorStore.value);
+    },
+    enumerable: true,
+    configurable: true
+  });
+
+  return moduleExports;
 });
 
 // Mock extensionProvider to provide AllServicesLayer
@@ -282,16 +294,16 @@ describe('orgList command', () => {
     });
 
     it('should skip dev hubs', async () => {
-      (getAuthFieldsFor as jest.Mock).mockResolvedValue({});
+      mockGetAuthFieldsFor.mockResolvedValue({});
 
       await removeExpiredAndDeletedOrgs();
 
-      expect(getAuthFieldsFor).not.toHaveBeenCalledWith('devhub@example.com');
+      expect(mockGetAuthFieldsFor).not.toHaveBeenCalledWith('devhub@example.com');
     });
 
     it('should remove expired orgs', async () => {
       const pastDate = new Date('2020-01-01').toISOString();
-      (getAuthFieldsFor as jest.Mock)
+      mockGetAuthFieldsFor
         .mockResolvedValueOnce({}) // valid@example.com - no expiration
         .mockResolvedValueOnce({ expirationDate: pastDate }); // expired@example.com
 
@@ -302,7 +314,7 @@ describe('orgList command', () => {
     });
 
     it('should handle getAuthFieldsFor errors', async () => {
-      (getAuthFieldsFor as jest.Mock).mockRejectedValue(new Error('Auth fields error'));
+      mockGetAuthFieldsFor.mockRejectedValue(new Error('Auth fields error'));
 
       const result = await removeExpiredAndDeletedOrgs();
 
@@ -326,7 +338,7 @@ describe('orgList command', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue(mockOrgAuths);
-      (getAuthFieldsFor as jest.Mock).mockResolvedValue({});
+      mockGetAuthFieldsFor.mockResolvedValue({});
 
       // Set the mock value that getConfigAggregatorEffect will return
       mockConfigAggregatorStore.value = {

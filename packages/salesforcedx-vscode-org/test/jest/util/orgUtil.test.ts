@@ -23,7 +23,7 @@ import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
-import { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias } from '../../../src/util';
+import { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias } from '../../../src/util/orgUtil';
 
 describe('orgUtil tests', () => {
   let showWarningMessageSpy: jest.SpyInstance;
