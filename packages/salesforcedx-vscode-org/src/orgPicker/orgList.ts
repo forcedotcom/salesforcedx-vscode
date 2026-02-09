@@ -17,6 +17,7 @@ import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';
 import { getAuthFieldsFor } from '../util/orgUtil';
 
+// exported for test
 export const isOrgExpired = async (targetOrgOrAlias: string): Promise<boolean> => {
   const authFields = await getAuthFieldsFor(targetOrgOrAlias);
   const expirationDate = authFields.expirationDate ? new Date(authFields.expirationDate) : undefined;
@@ -98,13 +99,14 @@ export const createOrgPicker = Effect.fn(function* () {
 
 const getStatusBarText = Effect.fn('updateTargetOrgDisplay')(function* ({
   username,
-  aliases
+  aliases,
+  isScratch
 }: typeof DefaultOrgInfoSchema.Type) {
   if (!username) {
     return nls.localize('missing_default_org');
   }
   const targetOrgOrAlias = aliases?.[0] ?? username;
-  const isExpired = yield* Effect.promise(() => isOrgExpired(username));
+  const isExpired = isScratch ? yield* Effect.promise(() => isOrgExpired(username)) : false;
 
   return isExpired ? `$(warning) ${targetOrgOrAlias}` : `$(plug) ${targetOrgOrAlias}`;
 });
