@@ -35,8 +35,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   notification_show_in_status_bar_button_text: 'ステータスバーだけに表示',
   notification_make_default_dev: 'Dev Hub 組織を認証',
 
-  task_view_running_message: '[実行しています] %s',
-
   status_bar_tooltip: 'クリックしてコマンドをキャンセル',
 
   parameter_directory_strict_not_available: '必要なメタデータフォルダ "%s" がこのワークスペースに存在しません。',
