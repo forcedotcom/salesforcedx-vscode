@@ -84,7 +84,7 @@ export const createOrgPicker = Effect.fn(function* () {
 
   yield* Effect.forkDaemon(
     Stream.concat(Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), targetOrgRef.changes).pipe(
-      Stream.tap(orgInfo => Effect.sync(() => console.log('Org Extension:orgChange', orgInfo))),
+      Stream.tap(orgInfo => Effect.log('Org Extension:orgChange', orgInfo)),
       Stream.tap(orgInfo =>
         Effect.sync(() => (orgInfo.username ? orgOpenStatusBarItem.show() : orgOpenStatusBarItem.hide()))
       ),
@@ -105,8 +105,7 @@ const getStatusBarText = Effect.fn('updateTargetOrgDisplay')(function* ({
   if (!username) {
     return nls.localize('missing_default_org');
   }
-  const targetOrgOrAlias = aliases?.[0] ?? username;
   const isExpired = isScratch ? yield* Effect.promise(() => isOrgExpired(username)) : false;
 
-  return isExpired ? `$(warning) ${targetOrgOrAlias}` : `$(plug) ${targetOrgOrAlias}`;
+  return `${isExpired ? '$(warning)' : '$(plug)'} ${aliases?.[0] ?? username}`;
 });
