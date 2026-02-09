@@ -5,27 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  AuthFields,
-  AuthInfo,
-  AuthRemover,
-  ConfigAggregator,
-  Org,
-  OrgAuthorization,
-  OrgConfigProperties
-} from '@salesforce/core';
-import {
-  Column,
-  ConfigUtil,
-  createTable,
-  Row,
-  SfWorkspaceChecker,
-  SfCommandlet
-} from '@salesforce/salesforcedx-utils-vscode';
+import { AuthFields, AuthInfo, AuthRemover, Org, OrgAuthorization, OrgConfigProperties } from '@salesforce/core';
+import { Column, createTable, Row } from '@salesforce/effect-ext-utils';
+import { ConfigUtil, SfWorkspaceChecker, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import { channelService } from '../channels';
+import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';
 import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
-import { getAuthFieldsFor, getConnectionStatusFromError, shouldRemoveOrg } from '../util/orgUtil';
+import {
+  getAuthFieldsFor,
+  getConnectionStatusFromError,
+  shouldRemoveOrg,
+  getConfigAggregatorEffect
+} from '../util/orgUtil';
 import { OrgListCleanExecutor } from './orgListCleanExecutor';
 
 /** Check actual connection status by testing the connection */
@@ -143,15 +137,15 @@ type DefaultOrgConfig = {
 
 /** Get default org and devhub configuration */
 const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
-  const configAggregator = await ConfigAggregator.create();
-  const defaultDevHubProperty = configAggregator.getPropertyValue(OrgConfigProperties.TARGET_DEV_HUB);
-  const defaultOrgProperty = configAggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG);
+  const configAggregator = await Effect.runPromise(getConfigAggregatorEffect.pipe(Effect.provide(AllServicesLayer)));
+  const defaultDevHubProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
+  const defaultOrgProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
 
   return {
-    defaultDevHubProperty: String(defaultDevHubProperty),
-    defaultOrgProperty: String(defaultOrgProperty),
-    defaultDevHubUsername: await ConfigUtil.getUsernameFor(String(defaultDevHubProperty)),
-    defaultOrgUsername: await ConfigUtil.getUsernameFor(String(defaultOrgProperty))
+    defaultDevHubProperty,
+    defaultOrgProperty,
+    defaultDevHubUsername: defaultDevHubProperty ? await ConfigUtil.getUsernameFor(defaultDevHubProperty) : undefined,
+    defaultOrgUsername: defaultOrgProperty ? await ConfigUtil.getUsernameFor(defaultOrgProperty) : undefined
   };
 };
 
@@ -166,8 +160,8 @@ const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): st
 };
 
 /** Determine default org markers for display */
-const determineOrgMarkers = (orgAuth: OrgAuthorization, alias: string, defaultConfig: DefaultOrgConfig): string => {
-  const possibleDefaults = new Set([alias, orgAuth.username].filter(Boolean));
+const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: DefaultOrgConfig): string => {
+  const possibleDefaults = new Set([...(orgAuth.aliases ?? []), orgAuth.username].filter(Boolean));
 
   // Check if this org is the default DevHub (by property value or resolved username)
   const matchesDevHubProperty =
@@ -198,55 +192,25 @@ const processOrgForDisplay = async (
   defaultConfig: DefaultOrgConfig
 ): Promise<Row | undefined> => {
   try {
+    if (orgAuth.isExpired) {
+      return undefined;
+    }
     const authFields: AuthFields = await getAuthFieldsFor(orgAuth.username);
 
-    // Skip non-admin scratch org users
-    if (authFields && 'scratchAdminUsername' in authFields) {
-      return undefined;
-    }
-
-    // Skip scratch orgs parented by other (non-default) devHub orgs
-    if (
-      authFields &&
-      'devHubUsername' in authFields &&
-      authFields.devHubUsername !== defaultConfig.defaultDevHubUsername
-    ) {
-      return undefined;
-    }
-
-    // Get org type and aliases
-    const orgType = determineOrgType(orgAuth, authFields);
-    const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
-    const alias = aliases?.length > 0 ? aliases[0] : '';
-
     // Determine status by actually testing the connection
-    let status: string;
-    if (authFields.expirationDate) {
-      const expirationDate = new Date(authFields.expirationDate);
-      if (expirationDate < new Date()) {
-        return undefined; // Skip expired orgs (they should have been removed)
-      }
-      status = 'Active'; // For scratch orgs, we assume they're active if not expired
-    } else {
-      // For non-scratch orgs, test the actual connection
-      const connectedStatus = await determineConnectedStatusForNonScratchOrg(orgAuth.username);
-      status = connectedStatus ?? 'Connected';
-    }
-
+    const status = authFields.expirationDate
+      ? 'Active' // For scratch orgs, we assume they're active if not expired
+      : // For non-scratch orgs, test the actual connection
+        ((await determineConnectedStatusForNonScratchOrg(orgAuth.username)) ?? 'Connected');
     // Determine expiration date display
-    const expires = authFields.expirationDate ? new Date(authFields.expirationDate).toISOString().split('T')[0] : '';
-
-    // Determine default org markers
-    const marker = determineOrgMarkers(orgAuth, alias, defaultConfig);
-
     return {
-      '': marker,
-      Type: orgType,
-      Alias: alias,
+      '': determineOrgMarkers(orgAuth, defaultConfig),
+      Type: determineOrgType(orgAuth, authFields),
+      Alias: orgAuth.aliases?.[0] ?? '',
       Username: orgAuth.username,
       'Org Id': authFields.orgId ?? '',
       Status: status,
-      Expires: expires
+      Expires: authFields.expirationDate ? new Date(authFields.expirationDate).toISOString().split('T')[0] : ''
     };
   } catch (error) {
     // Skip orgs that we can't process
@@ -295,13 +259,9 @@ export const displayRemainingOrgs = async (): Promise<void> => {
     const defaultConfig = await getDefaultOrgConfiguration();
 
     // Process each org authorization into display data
-    const orgData: Row[] = [];
-    for (const orgAuth of orgAuthorizations) {
-      const orgRow = await processOrgForDisplay(orgAuth, defaultConfig);
-      if (orgRow) {
-        orgData.push(orgRow);
-      }
-    }
+    const orgData = (
+      await Promise.all(orgAuthorizations.map(orgAuth => processOrgForDisplay(orgAuth, defaultConfig)))
+    ).filter(isNotUndefined);
 
     // Create and display the table
     createAndDisplayOrgTable(orgData);

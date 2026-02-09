@@ -492,6 +492,7 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
+      '@typescript-eslint/no-var-requires': 'off',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
       'no-param-reassign': 'off',

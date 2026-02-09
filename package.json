@@ -244,7 +244,8 @@
         "./packages/salesforcedx-vscode-visualforce:test",
         "./packages/salesforcedx-vscode-services:test",
         "./packages/salesforcedx-vscode-org:test",
-        "./packages/salesforcedx-vscode-org-browser:test"
+        "./packages/salesforcedx-vscode-org-browser:test",
+        "./packages/effect-ext-utils:test"
       ]
     },
     "vscode:bundle": {

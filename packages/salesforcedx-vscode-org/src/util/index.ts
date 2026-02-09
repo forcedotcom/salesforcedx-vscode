@@ -7,7 +7,6 @@
 
 export {
   getDevHubUsername,
-  getTargetOrgOrAlias,
   getTargetDevHubOrAlias,
   getUsername,
   isAScratchOrg,
@@ -16,6 +15,7 @@ export {
   getConnection,
   getAuthFields
 } from '@salesforce/salesforcedx-utils-vscode';
-export { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias, unsetTargetOrg, updateConfigAndStateAggregators } from './orgUtil';
-export { OrgDisplay } from './orgDisplay';
+// getTargetOrgOrAlias deprecated - use TargetOrgRef from services extension instead
+export { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias, updateConfigAndStateAggregators } from './orgUtil';
+export { getOrgInfo } from './orgDisplay';
 export { getConnectionStatusFromError, shouldRemoveOrg } from './orgUtil';

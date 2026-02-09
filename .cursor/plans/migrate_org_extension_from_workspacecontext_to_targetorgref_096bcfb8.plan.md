@@ -35,7 +35,7 @@ isProject: false
 
 **WorkspaceContext usage:**
 
-- `packages/salesforcedx-vscode-org/src/orgPicker/orgList.ts` - listens to `WorkspaceContext.getInstance().onOrgChange()` and reads `username`/`alias`
+- `packages/salesforcedx-vscode-org/src/orgPicker/orgList.ts` - listens to `WorkspaceContext.getInstance().onOrgChange()` and reads `username`/`aliases`
 - `packages/salesforcedx-vscode-org/src/decorators/orgDecorator.ts` - listens to `WorkspaceContext.getInstance().onOrgChange()`
 
 **getTargetOrgOrAlias usage:**
@@ -92,13 +92,13 @@ isProject: false
   yield *
     Effect.forkDaemon(
       Stream.merge(Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), targetOrgRef.changes).pipe(
-        Stream.tap(orgInfo => displayTargetOrg(orgInfo.username ?? orgInfo.alias)),
+        Stream.tap(orgInfo => displayTargetOrg(orgInfo.aliases?.[0] ?? orgInfo.username)),
         Stream.runForEach(() => Effect.void)
       )
     );
   ```
 - Get initial value from `SubscriptionRef.get(targetOrgRef)` instead of `WorkspaceContext.getInstance()`
-- Use `orgInfo.username` or `orgInfo.alias` from DefaultOrgInfoSchema
+- Use `orgInfo.username` (always the real username) or `orgInfo.aliases?.[0]` (first alias) from DefaultOrgInfoSchema
 
 **File:** `packages/salesforcedx-vscode-org/src/decorators/orgDecorator.ts`
 
@@ -107,7 +107,7 @@ isProject: false
 - Replace `ConfigUtil.getTargetOrgOrAlias()` with reading from `targetOrgRef`:
   ```typescript
   const orgInfo = yield * SubscriptionRef.get(targetOrgRef);
-  const targetOrgOrAlias = orgInfo.username ?? orgInfo.alias;
+  const targetOrgOrAlias = orgInfo.aliases?.[0] ?? orgInfo.username;
   ```
 
 ### 4. Replace getTargetOrgOrAlias calls
@@ -119,15 +119,23 @@ isProject: false
   ```typescript
   const targetOrgRef = yield * api.services.TargetOrgRef();
   const orgInfo = yield * SubscriptionRef.get(targetOrgRef);
-  const targetOrgOrAlias = orgInfo.username;
+  const targetUsername = orgInfo.username;
   ```
 - Handle missing org case (show warning if `enableWarning` was true)
+- Note: `orgInfo.username` is always the real username (no need to resolve alias)
 
 **File:** `packages/salesforcedx-vscode-org/src/commands/auth/orgLogout.ts`
 
 - Convert command to Effect-based
-- Replace `getTargetOrgOrAlias(false)` with same TargetOrgRef pattern
-- Use `orgInfo.username` from ref
+- Replace `getTargetOrgOrAlias(false)` with:
+  ```typescript
+  const targetOrgRef = yield * api.services.TargetOrgRef();
+  const orgInfo = yield * SubscriptionRef.get(targetOrgRef);
+  const username = orgInfo.username;
+  const alias = orgInfo.aliases?.[0];
+  ```
+- Use `orgInfo.username` for the actual username (always real username, no resolution needed)
+- Use `orgInfo.aliases?.[0]` if alias information is needed
 
 **File:** `packages/salesforcedx-vscode-org/src/util/index.ts`
 
@@ -155,19 +163,24 @@ isProject: false
 
 ### 6. Handle alias resolution
 
-**Note:** `DefaultOrgInfoSchema` has `username` but not explicit `alias`. The `username` field may contain alias or resolved username. If alias resolution is needed:
+**Note:** `DefaultOrgInfoSchema` has both `username` (always the real username) and `aliases` (optional `string[]`) properties. When displaying the target org:
 
-- Use `AuthInfo` from `@salesforce/core` to resolve alias to username
-- Or use sfdx-core's `Alias` class (via `StateAggregator.getInstance().aliases.resolveUsername()`)
+- Use `orgInfo.aliases?.[0] ?? orgInfo.username` for single alias display (status bar, picker)
+- Use `orgInfo.aliases?.join(',')` when displaying multiple aliases (org list)
+- Use `orgInfo.username` when you need the actual username (commands, API calls)
 
-**Note:** Core extension dependency must remain for `taskViewService` (used in `orgOpen.ts` and `orgCreate.ts`) and `SalesforceProjectConfig` (used in `authParamsGatherer.ts` for `sfdcLoginUrl`).
+**Note:** Core extension dependency must remain for `SalesforceProjectConfig` (used in `authParamsGatherer.ts` for `sfdcLoginUrl`).
 
 ### 7. Move createTable to effect-ext-utils
 
 **New file:** `packages/effect-ext-utils/src/table.ts`
 
 - Copy `createTable`, `calculateMaxColumnWidths`, `Row`, `Column` types, and helper functions from `packages/salesforcedx-utils-vscode/src/output/table.ts`
-- Export from `packages/effect-ext-utils/src/index.ts`
+- Keep `calculateMaxColumnWidths` exported from `table.ts` (for testing) but don't export from `index.ts` (internal use only)
+
+**File:** `packages/effect-ext-utils/src/index.ts`
+
+- Export only `createTable`, `Column`, `Row` (not `calculateMaxColumnWidths`)
 
 **File:** `packages/salesforcedx-vscode-org/src/commands/orgDisplay.ts`
 
@@ -195,7 +208,7 @@ isProject: false
 - Test org change events fire correctly
 - Test status bar updates on org change
 - Test commands work with TargetOrgRef
-- Test alias vs username handling
+- Test aliases vs username handling (single vs multiple aliases, empty array)
 - Test web vs desktop environments (TargetOrgRef handles both)
 
 ## Migration Order
@@ -206,4 +219,4 @@ isProject: false
 4. Update org extension imports to use `createTable` from effect-ext-utils
 5. Test after each conversion
 6. Remove WorkspaceContext usage last
-7. Core dependency remains for `taskViewService` and `SalesforceProjectConfig`
+7. Core dependency remains for `SalesforceProjectConfig`

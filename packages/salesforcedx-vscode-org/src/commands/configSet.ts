@@ -5,12 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { OrgConfigProperties } from '@salesforce/core';
+import { createTable, Row } from '@salesforce/effect-ext-utils';
 import {
   ContinueResponse,
-  createTable,
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
-  Row,
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';

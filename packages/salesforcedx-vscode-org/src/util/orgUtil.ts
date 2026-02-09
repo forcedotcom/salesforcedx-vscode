@@ -6,101 +6,74 @@
  */
 
 import { AuthFields, AuthInfo, OrgConfigProperties, Config } from '@salesforce/core';
-import {
-  notificationService,
-  ConfigUtil,
-  workspaceUtils,
-  ConfigAggregatorProvider
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { notificationService, workspaceUtils, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
+import { Effect, Stream, SubscriptionRef } from 'effect';
+import * as Chunk from 'effect/Chunk';
+import { isString } from 'effect/Predicate';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { OrgList } from '../orgPicker/orgList';
 
-export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void> => {
-  // Run once to start off with.
-  await checkForSoonToBeExpiredOrgs(orgList);
+const DAYS_BEFORE_EXPIRE = 5;
 
-  /*
-  Comment this out for now.  For now, we are only going to check once on activation,
-  however it would be helpful if we also checked once a day.  If we decide to also
-  check once a day, uncomment the following code.
+/** Get ConfigAggregator Effect for the current workspace */
+export const getConfigAggregatorEffect = Effect.gen(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const configService = yield* api.services.ConfigService;
+  return yield* configService.getConfigAggregator();
+});
 
-  // And run again once every 24 hours.
-  setInterval(
-    async () => {
-      void checkForSoonToBeExpiredOrgs(orgList);
-    },
-    1000 * 60 * 60 * 24
+const orgExpiresSoon = (authFields: AuthFields) =>
+  isString(authFields.expirationDate) &&
+  new Date(authFields.expirationDate) <= new Date(Date.now() + DAYS_BEFORE_EXPIRE * 24 * 60 * 60 * 1000);
+
+const orgIsExpired = (authFields: AuthFields) =>
+  isString(authFields.expirationDate) && new Date(authFields.expirationDate) < new Date();
+
+/** One time notification about orgs that expire soon */
+export const checkForSoonToBeExpiredOrgs = Effect.fn(function* () {
+  const daysUntilExpiration = new Date();
+  daysUntilExpiration.setDate(daysUntilExpiration.getDate() + DAYS_BEFORE_EXPIRE);
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  const defaultOrgRef = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const results = yield* Stream.fromIterable(yield* Effect.promise(() => AuthInfo.listAllAuthorizations())).pipe(
+    // only scratch org can expire
+    Stream.filter(o => Boolean(o.isScratchOrg)),
+    Stream.mapEffect(o => Effect.promise(() => getAuthFieldsFor(o.username))),
+    Stream.tap(o =>
+      // special warning about when default orgs expire
+      defaultOrgRef.username && o.username === defaultOrgRef.username && orgIsExpired(o)
+        ? Effect.sync(() => void notificationService.showWarningMessage(nls.localize('default_org_expired')))
+        : Effect.void
+    ),
+    // Filter out the expired orgs.
+    Stream.filter(o => !orgIsExpired(o)),
+    Stream.filter(orgExpiresSoon),
+    // TODO: type guards or some Schema based check instead of !
+    Stream.map(o =>
+      nls.localize('pending_org_expiration_expires_on_message', o.alias ?? o.username!, o.expirationDate!)
+    ),
+    Stream.runCollect
   );
-  */
-};
 
-export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<void> => {
-  if (!orgList) {
+  if (results.length === 0) {
     return;
   }
 
-  try {
-    const daysBeforeExpire = 5;
-    const daysUntilExpiration = new Date();
-    daysUntilExpiration.setDate(daysUntilExpiration.getDate() + daysBeforeExpire);
+  notificationService.showWarningMessage(
+    nls.localize('pending_org_expiration_notification_message', DAYS_BEFORE_EXPIRE)
+  );
 
-    const orgAuthorizations = await AuthInfo.listAllAuthorizations();
-    if (!orgAuthorizations) {
-      return;
-    }
-
-    const results: string[] = [];
-    for (const orgAuthorization of orgAuthorizations) {
-      // Filter out the dev hubs.
-      if (orgAuthorization.isDevHub) {
-        continue;
-      }
-
-      const authFields = await getAuthFieldsFor(orgAuthorization.username);
-
-      // Some dev hubs have isDevHub=false but no expiration date, so filter them out.
-      if (!authFields.expirationDate) {
-        continue;
-      }
-
-      // Filter out the expired orgs.
-      const expirationDate = new Date(authFields.expirationDate);
-      if (expirationDate < new Date()) {
-        if (orgAuthorization.username === (await ConfigUtil.getUsername())) {
-          void notificationService.showWarningMessage(nls.localize('default_org_expired'));
-        }
-        continue;
-      }
-
-      // Now filter and only return the results that are within the 5 day window.
-      if (expirationDate <= daysUntilExpiration) {
-        const aliasName =
-          orgAuthorization.aliases && orgAuthorization.aliases.length > 0
-            ? orgAuthorization.aliases[0]
-            : orgAuthorization.username;
-
-        results.push(nls.localize('pending_org_expiration_expires_on_message', aliasName, authFields.expirationDate));
-      }
-    }
-
-    if (results.length === 0) {
-      return;
-    }
-
-    notificationService.showWarningMessage(
-      nls.localize('pending_org_expiration_notification_message', daysBeforeExpire)
-    );
-
-    const formattedOrgsToDisplay = results.join('\n\n');
-    channelService.appendLine(
-      nls.localize('pending_org_expiration_output_channel_message', daysBeforeExpire, formattedOrgsToDisplay)
-    );
-    channelService.showChannelOutput();
-  } catch (err) {
-    console.error(err);
-  }
-};
+  channelService.appendLine(
+    nls.localize(
+      'pending_org_expiration_output_channel_message',
+      DAYS_BEFORE_EXPIRE,
+      Chunk.toArray(results).join('\n\n')
+    )
+  );
+  channelService.showChannelOutput();
+});
 
 export const getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
   const authInfo: AuthInfo = await AuthInfo.create({
@@ -128,22 +101,6 @@ const setUsernameOrAlias = async (usernameOrAlias: string): Promise<void> => {
   config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
   await config.write();
   await updateConfigAndStateAggregators();
-};
-
-/** Unsets the target org from the local config */
-export const unsetTargetOrg = async (): Promise<void> => {
-  const originalDirectory = process.cwd();
-  // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
-  const workspacePath = workspaceUtils.getRootWorkspacePath();
-  try {
-    process.chdir(workspacePath);
-    const config = await Config.create(Config.getDefaultOptions());
-    config.unset(OrgConfigProperties.TARGET_ORG);
-    await config.write();
-    await updateConfigAndStateAggregators();
-  } finally {
-    process.chdir(originalDirectory);
-  }
 };
 
 /** Sets the target org or alias in the local config */

@@ -303,6 +303,7 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
         userId,
         webUserId,
         aliases,
+        username,
         ...(typeof cliId === 'string' ? { cliId } : {})
       } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => v !== undefined)
     );

@@ -5,17 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  AuthFields,
-  AuthInfo,
-  Connection,
-  Org,
-  StateAggregator,
-  ConfigAggregator,
-  OrgConfigProperties
-} from '@salesforce/core';
-import { OrgInfo } from '@salesforce/salesforcedx-utils';
-import { getConnectionStatusFromError } from './orgUtil';
+import { AuthFields, AuthInfo, Connection, Org, StateAggregator, OrgConfigProperties } from '@salesforce/core';
+import * as Effect from 'effect/Effect';
+import { AllServicesLayer } from '../extensionProvider';
+import { OrgInfo } from '../types/orgInfo';
+import { getConnectionStatusFromError, getConfigAggregatorEffect } from './orgUtil';
 
 type OrgQueryResult = {
   Id: string;
@@ -42,15 +36,15 @@ const messages = {
 };
 
 /** Resolve username from provided username or project config */
-const resolveUsername = async (username: string | undefined, salesforceProject?: string): Promise<string> => {
+const resolveUsername = async (username: string | undefined): Promise<string> => {
   let usernameOrAlias: string | undefined = username;
 
   // Try to get username from project config if not provided
   if (!usernameOrAlias) {
     try {
-      const configAggregator: ConfigAggregator = await ConfigAggregator.create({
-        projectPath: salesforceProject
-      });
+      const configAggregator = await Effect.runPromise(
+        getConfigAggregatorEffect.pipe(Effect.provide(AllServicesLayer))
+      );
       const configUsernameOrAlias = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
       if (configUsernameOrAlias && typeof configUsernameOrAlias === 'string') {
         usernameOrAlias = configUsernameOrAlias;
@@ -75,32 +69,20 @@ const resolveUsername = async (username: string | undefined, salesforceProject?:
   }
 };
 
-export class OrgDisplay {
-  private username?: string;
+export const getOrgInfo = async (username?: string): Promise<OrgInfo> => {
+  const resolvedUsername = await resolveUsername(username);
 
-  constructor(username?: string) {
-    this.username = username;
+  try {
+    const authInfo = await AuthInfo.create({ username: resolvedUsername });
+    const connection = await Connection.create({ authInfo });
+    const org = await Org.create({ connection });
+
+    return getOrgInfoFromConnection(org, connection, authInfo, resolvedUsername);
+  } catch (error) {
+    // If we can't create a connection, still return org info with error status
+    return getOrgInfoWithError(resolvedUsername, error);
   }
-
-  public async getUsername(salesforceProject?: string): Promise<string> {
-    return resolveUsername(this.username, salesforceProject);
-  }
-
-  public async getOrgInfo(salesforceProject?: string): Promise<OrgInfo> {
-    const username = await this.getUsername(salesforceProject);
-
-    try {
-      const authInfo = await AuthInfo.create({ username });
-      const connection = await Connection.create({ authInfo });
-      const org = await Org.create({ connection });
-
-      return getOrgInfoFromConnection(org, connection, authInfo, username);
-    } catch (error) {
-      // If we can't create a connection, still return org info with error status
-      return getOrgInfoWithError(username, error);
-    }
-  }
-}
+};
 
 /** Create OrgInfo object with common fields and fallback values full of empty strings */
 const createOrgInfo = (
