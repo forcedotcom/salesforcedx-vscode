@@ -32,5 +32,5 @@
 
 #### salesforcedx-vscode-lightning
 
-- Use node fs instead of cp ([PR #6840](https://github.com/forcedotcom/salesforcedx-vscode/pull/6840))
+- Made changes under the hood to fix a bug encountered when bundling on windows - customers should not face this ever ([PR #6840](https://github.com/forcedotcom/salesforcedx-vscode/pull/6840))
 
