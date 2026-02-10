@@ -150,11 +150,14 @@ export const verifyCommandDoesNotExist = async (page: Page, commandText: string)
 
 /** Verify a command exists in the command palette using retry pattern */
 export const verifyCommandExists = async (page: Page, commandText: string, timeout?: number): Promise<void> => {
-  const { widget, getFirst20Rows } = await searchCommandInPalette(page, commandText);
+  let widget: ReturnType<Page['locator']> | undefined;
 
   // Use retry pattern to allow VS Code rendering and context updates
   await expect(async () => {
-    const first20Rows = await getFirst20Rows();
+    // Search inside the loop so results refresh each iteration
+    const searchResult = await searchCommandInPalette(page, commandText);
+    widget = searchResult.widget;
+    const first20Rows = await searchResult.getFirst20Rows();
 
     for (const row of first20Rows) {
       const rowText = await row.textContent();
@@ -165,5 +168,7 @@ export const verifyCommandExists = async (page: Page, commandText: string, timeo
     throw new Error(`Command "${commandText}" not found yet`);
   }).toPass({ timeout: timeout ?? 10_000 });
 
-  await closeCommandPalette(page, widget);
+  if (widget) {
+    await closeCommandPalette(page, widget);
+  }
 };
