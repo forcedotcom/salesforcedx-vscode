@@ -16,7 +16,7 @@
 
 #### salesforcedx-lwc-language-server
 
-- W-21180077 -  prevent applyEdits for custom label ([PR #6832](https://github.com/forcedotcom/salesforcedx-vscode/pull/6832))
+- W-21180077 -  prevent typing files from being overwritten multiple times by language server ([PR #6832](https://github.com/forcedotcom/salesforcedx-vscode/pull/6832))
 
 #### salesforcedx-vscode-apex
 
