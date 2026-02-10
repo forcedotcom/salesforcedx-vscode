@@ -135,8 +135,10 @@ export abstract class BaseServer {
   public auraDataProvider!: AuraDataProvider;
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemProvider: FileSystemDataProvider;
-  protected workspaceType: WorkspaceType;
-  protected isDelayedInitializationComplete = false;
+  private workspaceType: WorkspaceType;
+  private isDelayedInitializationComplete = false;
+  /** Ensures we only schedule delayed reinitialization once, preventing multiple typing writes and flicker */
+  private reinitializationScheduled = false;
 
   constructor() {
     this.connection = this.createConnection();
@@ -415,17 +417,16 @@ export abstract class BaseServer {
    * This avoids duplicate reads - TextDocuments is the source of truth for open files.
    * Returns path info so subclasses can add logic without re-syncing.
    */
-  protected async onDidOpen(changeEvent: { document: TextDocument }): Promise<{ isLwcPath: boolean }> {
-    const { isLwcPath } = await this.syncDocumentOnOpen(changeEvent);
+  protected async onDidOpen(changeEvent: { document: TextDocument }): Promise<void> {
+    await this.syncDocumentOnOpen(changeEvent);
 
-    // Perform delayed initialization once file loading has stabilized
-    // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
-    // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
-    if (!this.isDelayedInitializationComplete) {
-      void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
+    // Perform delayed initialization once file loading has stabilized (typing files written once per server start)
+    if (this.isDelayedInitializationComplete || this.reinitializationScheduled) {
+      return;
     }
+    this.reinitializationScheduled = true;
 
-    return { isLwcPath };
+    void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
   }
 
   public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
