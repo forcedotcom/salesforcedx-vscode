@@ -146,7 +146,6 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-org-browser:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle"
       ],
       "files": [
@@ -154,7 +153,7 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts",
+      "command": "playwright test --config=playwright.config.web.ts test/playwright/specs/testExplorer.headless.spec.ts",
       "dependencies": [
         "compile",
         "vscode:bundle",
@@ -164,7 +163,7 @@
       ],
       "files": [
         "playwright.config.web.ts",
-        "test/playwright/specs/testExplorer.headless.spec.ts"
+        "test/playwright/**/*.ts"
       ]
     },
     "test:desktop": {
