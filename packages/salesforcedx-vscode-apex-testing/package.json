@@ -155,12 +155,14 @@
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
       "dependencies": [
+        "compile",
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.web.ts"
+        "playwright.config.web.ts",
+        "test/playwright/**/*.ts"
       ]
     },
     "test:desktop": {

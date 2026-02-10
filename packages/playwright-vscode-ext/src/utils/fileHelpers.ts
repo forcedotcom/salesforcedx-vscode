@@ -15,7 +15,13 @@ import {
 } from '../pages/outputChannel';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { assertWelcomeTabExists, closeSettingsTab, closeWelcomeTabs, isDesktop, waitForVSCodeWorkbench } from './helpers';
+import {
+  assertWelcomeTabExists,
+  closeSettingsTab,
+  closeWelcomeTabs,
+  isDesktop,
+  waitForVSCodeWorkbench
+} from './helpers';
 import {
   DIRTY_EDITOR,
   EDITOR_WITH_URI,
@@ -98,10 +104,13 @@ export const createApexClass = async (page: Page, className: string, content?: s
     await editor.click();
     await page.waitForTimeout(500);
 
-    // Select all (template) so typing replaces it instead of appending and corrupting the file
-    const selectAllKey = process.platform === 'darwin' ? 'Meta+a' : 'Control+a';
-    await page.keyboard.press(selectAllKey);
-    await page.keyboard.type(content);
+    // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
+    await executeCommandWithCommandPalette(page, 'Select All');
+    await page.waitForTimeout(400); // Let selection take effect and palette close
+    // Paste instead of type so Monaco auto-closing brackets don't duplicate our closing braces
+    await page.evaluate((text: string) => navigator.clipboard.writeText(text), content);
+    const pasteKey = process.platform === 'darwin' ? 'Meta+v' : 'Control+v';
+    await page.keyboard.press(pasteKey);
 
     // Save so the file is persisted and can be deployed / discovered by the test controller
     await executeCommandWithCommandPalette(page, 'File: Save');
@@ -262,10 +271,13 @@ export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<
   await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
 };
 
-/** Shared setup: minimal org + auth. Call before creating Apex classes in tests. */
+/**
+ * Setup minimal org + auth with workbench loading in parallel.
+ * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
+ * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
+ */
 export const setupMinimalOrgAndAuth = async (page: Page): Promise<void> => {
-  const createResult = await createMinimalOrg();
-  await waitForVSCodeWorkbench(page);
+  const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
   await assertWelcomeTabExists(page);
   await closeWelcomeTabs(page);
   await saveScreenshot(page, 'setup.after-workbench.png');
