@@ -102,19 +102,6 @@ const isLWCWatchedDirectory = async (context: BaseWorkspaceContext, uri: string)
   return await context.isFileInsideModulesRoots(file);
 };
 
-/**
- * Returns true if the path is a server-generated typing file (e.g. customlabels.d.ts).
- * Opening these files should not trigger scheduleReinitialization, since the server
- * creates them via workspace/applyEdit and that would cause an infinite loop.
- */
-const isServerGeneratedTypingsFile = (normalizedPath: string, workspaceRoots: NormalizedPath[]): boolean => {
-  // NormalizedPath uses forward slashes; match server-generated typings dirs
-  if (!normalizedPath.includes('.sfdx/typings/lwc/') && !normalizedPath.includes('.vscode/typings/lwc/')) {
-    return false;
-  }
-  return workspaceRoots.some(root => normalizedPath === root || normalizedPath.startsWith(`${root}/`));
-};
-
 const containsDeletedLwcWatchedDirectory = async (
   context: BaseWorkspaceContext,
   changes: FileEvent[]
@@ -151,6 +138,8 @@ export default class Server {
   private textDocumentsFileSystemProvider: FileSystemDataProvider;
   private workspaceType: WorkspaceType;
   private isDelayedInitializationComplete = false;
+  /** Ensures we only schedule delayed reinitialization once, preventing multiple typing writes and flicker */
+  private reinitializationScheduled = false;
 
   constructor() {
     this.fileSystemProvider = new FileSystemDataProvider();
@@ -192,11 +181,6 @@ export default class Server {
     // Create data providers (will be re-initialized after delayed init)
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
     this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-    await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider, this.connection);
-    this.languageService = getLanguageService({
-      customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
-      useDefaultDataProvider: false
-    });
 
     return this.capabilities;
   }
@@ -381,21 +365,13 @@ export default class Server {
       this.workspaceRoots
     );
 
-    // Perform delayed initialization once file loading has stabilized
-    // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
-    // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
-    // Skip when the opened file is a server-generated typing (e.g. customlabels.d.ts); otherwise
-    // the server's workspace/applyEdit would open the file -> onDidOpen -> schedule again -> loop
-    if (this.isDelayedInitializationComplete) {
-      // Already initialized, nothing to do
-    } else if (isServerGeneratedTypingsFile(normalizedPath, this.workspaceRoots)) {
-      Logger.info(
-        `[LWC] Skipping scheduleReinitialization for server-generated typings file (avoids infinite loop): ${normalizedPath}`
-      );
-    } else {
-      Logger.info(`[LWC] Scheduling reinitialization after document open: ${normalizedPath}`);
-      void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
+    // Perform delayed initialization once file loading has stabilized (typing files written once per server start)
+    if (this.isDelayedInitializationComplete || this.reinitializationScheduled) {
+      return;
     }
+    this.reinitializationScheduled = true;
+    Logger.info('[LWC] Scheduling reinitialization (once per server start)');
+    void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
   }
 
   public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
