@@ -4,7 +4,6 @@
 
 #### salesforcedx-vscode-core
 
-- Write about Metadata operations on the web here.  ([PR #6662](https://github.com/forcedotcom/salesforcedx-vscode/pull/6662))
 - We made some changes under the hood. ([PR #6841](https://github.com/forcedotcom/salesforcedx-vscode/pull/6841))
 
 ## Fixed
