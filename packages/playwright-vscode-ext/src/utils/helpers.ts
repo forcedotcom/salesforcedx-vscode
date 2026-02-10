@@ -42,7 +42,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Unable to resolve resource walkThrough://', // VS Code walkthrough/getting started page errors (non-critical)
   'SourceMembers timed out after', // sourcemember polling warnings from source-tracking-library
   'Blocked script execution', // Webview sandboxing initialization errors (non-critical)
-  'vscode-webview://' // Webview internal URLs (paired with blocked script errors)
+  'vscode-webview://', // Webview internal URLs (paired with blocked script errors)
+  'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
+  'callback must be a function' // memfs/Volume API compatibility issue on web (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [

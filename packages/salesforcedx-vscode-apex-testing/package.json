@@ -164,7 +164,7 @@
       ],
       "files": [
         "playwright.config.web.ts",
-        "test/playwright/**/*.ts"
+        "test/playwright/specs/testExplorer.headless.spec.ts"
       ]
     },
     "test:desktop": {
