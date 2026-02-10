@@ -63,6 +63,18 @@ test.describe('Settings', () => {
     });
   });
 
+  test('should upsert multiple settings simultaneously', async ({ page }) => {
+    const settings = {
+      'editor.fontSize': '18',
+      'editor.minimap.enabled': 'true'
+    };
+
+    await test.step('Update multiple settings and verify', async () => {
+      // upsertSettings already verifies the value is set correctly internally
+      await upsertSettings(page, settings);
+    });
+  });
+
   test('should modify checkbox setting', async ({ page }) => {
     const settingKey = 'editor.minimap.enabled';
     const settingValue = 'false';
