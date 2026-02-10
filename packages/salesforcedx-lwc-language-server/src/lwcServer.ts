@@ -138,6 +138,8 @@ export default class Server {
   private textDocumentsFileSystemProvider: FileSystemDataProvider;
   private workspaceType: WorkspaceType;
   private isDelayedInitializationComplete = false;
+  /** Ensures we only schedule delayed reinitialization once, preventing multiple typing writes and flicker */
+  private reinitializationScheduled = false;
 
   constructor() {
     this.fileSystemProvider = new FileSystemDataProvider();
@@ -179,11 +181,6 @@ export default class Server {
     // Create data providers (will be re-initialized after delayed init)
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
     this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-    await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider, this.connection);
-    this.languageService = getLanguageService({
-      customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
-      useDefaultDataProvider: false
-    });
 
     return this.capabilities;
   }
@@ -368,12 +365,13 @@ export default class Server {
       this.workspaceRoots
     );
 
-    // Perform delayed initialization once file loading has stabilized
-    // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
-    // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
-    if (!this.isDelayedInitializationComplete) {
-      void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
+    // Perform delayed initialization once file loading has stabilized (typing files written once per server start)
+    if (this.isDelayedInitializationComplete || this.reinitializationScheduled) {
+      return;
     }
+    this.reinitializationScheduled = true;
+
+    void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
   }
 
   public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
