@@ -86,6 +86,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
     /** Check if a URI is within any package directory */
     const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
       return (
+        (yield* isSalesforceProject()) &&
         (yield* getSfProject())
           .getPackageDirectories()
           // normalizes paths to forward slashes
