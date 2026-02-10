@@ -1308,7 +1308,7 @@ export class ApexDebug extends LoggingDebugSession {
     const systemChannelInfo = clientInfos[0];
     const userChannelInfo = clientInfos[1];
 
-    return this.myStreamingService.subscribe(projectPath, this.myRequestService, systemChannelInfo, userChannelInfo);
+    return await this.myStreamingService.subscribe(projectPath, this.myRequestService, systemChannelInfo, userChannelInfo);
   }
 
   public handleEvent(message: DebuggerMessage): void {
@@ -1369,7 +1369,7 @@ export class ApexDebug extends LoggingDebugSession {
         break;
       }
     }
-    this.myStreamingService.markEventProcessed(message.sobject.Type, message.event.replayId);
+    void this.myStreamingService.markEventProcessed(message.sobject.Type, message.event.replayId);
   }
 
   public logEvent(message: DebuggerMessage): void {
