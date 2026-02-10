@@ -601,16 +601,6 @@ export default [
     }
   },
   {
-    // Playwright test files: use allowDefaultProject so they parse when project service doesn't find them
-    files: ['packages/salesforcedx-vscode-services/test/playwright/**/*.ts'],
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-        allowDefaultProject: ['packages/salesforcedx-vscode-services/test/playwright/**/*.ts']
-      }
-    }
-  },
-  {
     // Relaxed rules for test files in services and org-browser packages
     files: [
       'packages/salesforcedx-vscode-services/test/**/*.ts',

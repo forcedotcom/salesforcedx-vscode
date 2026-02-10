@@ -13,7 +13,8 @@ import {
   Position,
   TextDocumentEdit,
   TextEdit,
-  WorkspaceEdit
+  WorkspaceEdit,
+  DocumentUri
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { Logger } from '../logger';
@@ -45,7 +46,7 @@ export interface IFileSystemProvider {
    * Convert a URI to a normalized file path
    * Handles both file:// and memfs:// (or other) schemes based on workspace folder URIs
    */
-  uriToNormalizedPath(uri: string): NormalizedPath;
+  uriToNormalizedPath(uri: DocumentUri): NormalizedPath;
   /**
    * Convert a normalized file path to a URI with the correct scheme (memfs:// or file://)
    * Preserves the workspace folder's URI scheme for web compatibility
@@ -80,7 +81,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * Convert a URI to a normalized file path
    * Handles both file:// and memfs:// (or other) schemes based on workspace folder URIs
    */
-  public uriToNormalizedPath(uri: string): NormalizedPath {
+  public uriToNormalizedPath(uri: DocumentUri): NormalizedPath {
     try {
       const parsedUri = URI.parse(uri);
 
@@ -385,12 +386,10 @@ export class FileSystemDataProvider implements IFileSystemProvider {
     const dirPathWithSlash = uri.endsWith('/') ? uri : `${uri}/`;
 
     // Check both fileStats and fileContents to catch files that are loaded but don't have stats yet
-    const fileStatsKeys = Array.from(this.fileStats.keys());
-    const fileContentsKeys = Array.from(this.fileContents.keys());
-    const hasFileInStats = fileStatsKeys.some(fileUri => fileUri.startsWith(dirPathWithSlash));
-    const hasFileInContents = fileContentsKeys.some(fileUri => fileUri.startsWith(dirPathWithSlash));
-
-    return hasFileInStats || hasFileInContents;
+    return (
+      Array.from(this.fileStats.keys()).some(fileUri => fileUri.startsWith(dirPathWithSlash)) ||
+      Array.from(this.fileContents.keys()).some(fileUri => fileUri.startsWith(dirPathWithSlash))
+    );
   }
 
   /**

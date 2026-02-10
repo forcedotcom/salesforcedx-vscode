@@ -19,7 +19,7 @@ import {
 import { snakeCase, camelCase } from 'change-case';
 import { minimatch as minimatchFn } from 'minimatch';
 import * as path from 'node:path';
-import { Connection } from 'vscode-languageserver';
+import { Connection, DocumentUri } from 'vscode-languageserver';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 
@@ -236,7 +236,7 @@ export default class ComponentIndexer {
     }
   }
 
-  public findTagByURI(uri: string): Tag | null {
+  public findTagByURI(uri: DocumentUri): Tag | null {
     const normalizedPathString = this.fileSystemProvider.uriToNormalizedPath(uri);
     const normalizedPath = normalizePath(normalizedPathString.replace(/\.html$/, '.js'));
 
@@ -245,10 +245,6 @@ export default class ComponentIndexer {
       const matches = tagPath === normalizedPath;
       return matches;
     });
-
-    if (!found) {
-      return null;
-    }
 
     return found ?? null;
   }

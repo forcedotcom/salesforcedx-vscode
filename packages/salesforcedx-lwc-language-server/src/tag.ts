@@ -119,8 +119,7 @@ export const getTagUri = (tag: Tag, fileSystemProvider?: IFileSystemProvider): s
   if (fileSystemProvider) {
     const normalizedPath = normalizePath(tag.file);
     try {
-      const uri = fileSystemProvider.getFileUriForPath(normalizedPath);
-      return uri;
+      return fileSystemProvider.getFileUriForPath(normalizedPath);
     } catch (error) {
       Logger.error(
         `[getTagUri] Error in getFileUriForPath: ${error instanceof Error ? error.message : String(error)}`,
