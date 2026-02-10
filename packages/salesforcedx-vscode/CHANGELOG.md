@@ -28,7 +28,7 @@
 
 #### salesforcedx-vscode-core
 
-- [W-21190281]  CLI Integration extension initializes default org after activation ([PR #6837](https://github.com/forcedotcom/salesforcedx-vscode/pull/6837))
+- We fixed an issue where the default org was not set correctly in the org picker when only the CLI Integration and Org Management extensions are installed. ([PR #6837](https://github.com/forcedotcom/salesforcedx-vscode/pull/6837))
 
 #### salesforcedx-vscode-lightning
 
