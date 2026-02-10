@@ -23,6 +23,7 @@ import {
   ApexTestQueueItemStatus,
   TestRunIdResult
 } from '../tests/types';
+import { queryAll } from '../tests/utils';
 import { Duration } from '@salesforce/kit';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
@@ -297,11 +298,10 @@ export class StreamingClient {
     testRunId: string
   ): Promise<ApexTestQueueItem> {
     const queryApexTestQueueItem = `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`;
-    const result = await this.conn.tooling.query<ApexTestQueueItemRecord>(
+    const result = await queryAll<ApexTestQueueItemRecord>(
+      this.conn,
       queryApexTestQueueItem,
-      {
-        autoFetch: true
-      }
+      true
     );
 
     if (result.records.length === 0) {

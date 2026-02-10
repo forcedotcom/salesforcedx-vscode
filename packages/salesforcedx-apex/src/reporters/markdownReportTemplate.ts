@@ -99,7 +99,7 @@ export const renderMarkdownReport = (data: ReportData): string => {
 
   // Failures section
   if (data.failures.length > 0) {
-    sections.push(`\n## ❌ Failures (${data.failures.length})\n\n`);
+    sections.push(`\n## ❌ Failures (${data.summary.failed})\n\n`);
     sections.push(
       ...data.failures.flatMap((failure) => [
         `### ${failure.testName}\n\n`,
@@ -200,7 +200,7 @@ export const renderMarkdownReport = (data: ReportData): string => {
 
   // Passed tests section
   if (data.passedTests.length > 0) {
-    sections.push(`## ✅ Passed Tests (${data.passedTests.length})\n\n`);
+    sections.push(`## ✅ Passed Tests (${data.summary.passed})\n\n`);
     sections.push(
       ...data.passedTests.map((test) => {
         const parts = [`- ${test.testName}`];
@@ -226,7 +226,7 @@ export const renderMarkdownReport = (data: ReportData): string => {
 
   // Skipped tests section
   if (data.skippedTests.length > 0) {
-    sections.push(`## ⏭️ Skipped Tests (${data.skippedTests.length})\n\n`);
+    sections.push(`## ⏭️ Skipped Tests (${data.summary.skipped})\n\n`);
     sections.push(
       ...data.skippedTests.map((test) => `- ${test.testName}\n`),
       '\n'

@@ -364,9 +364,9 @@ export class MarkdownTextFormatTransformer extends Readable {
     }
     this.pushToBuffer(`- ⏱️ **Duration:** ${data.summary.duration}\n\n`);
 
-    // Failures section
+    // Failures section (header uses full-run count from summary)
     if (data.failures.length > 0) {
-      this.pushToBuffer(`## ❌ Failures (${data.failures.length})\n\n`);
+      this.pushToBuffer(`## ❌ Failures (${data.summary.failed})\n\n`);
       for (const failure of data.failures) {
         this.pushToBuffer(`### ${failure.testName}\n\n`);
         if (failure.duration) {
@@ -481,9 +481,9 @@ export class MarkdownTextFormatTransformer extends Readable {
       this.pushToBuffer('</table>\n\n');
     }
 
-    // Passed tests section
+    // Passed tests section (header uses full-run count from summary)
     if (data.passedTests.length > 0) {
-      this.pushToBuffer(`## ✅ Passed Tests (${data.passedTests.length})\n\n`);
+      this.pushToBuffer(`## ✅ Passed Tests (${data.summary.passed})\n\n`);
       for (const test of data.passedTests) {
         this.pushToBuffer(`- ${test.testName}`);
         if (test.runtime) {
@@ -505,11 +505,9 @@ export class MarkdownTextFormatTransformer extends Readable {
       this.pushToBuffer('\n');
     }
 
-    // Skipped tests section
+    // Skipped tests section (header uses full-run count from summary)
     if (data.skippedTests.length > 0) {
-      this.pushToBuffer(
-        `## ⏭️ Skipped Tests (${data.skippedTests.length})\n\n`
-      );
+      this.pushToBuffer(`## ⏭️ Skipped Tests (${data.summary.skipped})\n\n`);
       for (const test of data.skippedTests) {
         this.pushToBuffer(`- ${test.testName}\n`);
       }

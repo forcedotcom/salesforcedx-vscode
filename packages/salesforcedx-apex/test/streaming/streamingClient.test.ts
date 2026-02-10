@@ -345,11 +345,11 @@ describe('Streaming API Client', () => {
     const streamClient = new StreamingClient(mockConnection, progressReporter);
     await streamClient.handler(testResultMsg);
 
-    assert.calledWith(reportStub, {
+    assert.calledWith(reportStub.getCall(0), {
       type: 'TestQueueProgress',
       value: {
         done: true,
-        totalSize: 0,
+        totalSize: 1,
         records: [
           {
             Id: '707xx0000AGQ3jbQQD',

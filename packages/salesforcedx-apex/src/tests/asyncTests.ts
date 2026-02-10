@@ -186,11 +186,12 @@ export class AsyncTests {
           const summary = testRunSummary.records[0];
           const isCompleted = finishedStatuses.includes(summary.Status);
 
-          // Query queue items to get detailed status
-          const queryResult =
-            await this.connection.tooling.query<ApexTestQueueItemRecord>(
-              `SELECT Id, Status, ApexClassId, TestRunResultId, ParentJobId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`
-            );
+          // Query queue items to get detailed status (use queryAll to fetch all pages)
+          const queryResult = await queryAll<ApexTestQueueItemRecord>(
+            this.connection,
+            `SELECT Id, Status, ApexClassId, TestRunResultId, ParentJobId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
+            true
+          );
 
           if (!queryResult.records || queryResult.records.length === 0) {
             throw new Error(
