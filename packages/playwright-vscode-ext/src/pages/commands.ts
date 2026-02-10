@@ -150,15 +150,20 @@ export const verifyCommandDoesNotExist = async (page: Page, commandText: string)
 
 /** Verify a command exists in the command palette using retry pattern */
 export const verifyCommandExists = async (page: Page, commandText: string, timeout?: number): Promise<void> => {
-  let widget: ReturnType<Page['locator']> | undefined;
+  const widget = page.locator(QUICK_INPUT_WIDGET);
 
-  // Use retry pattern to allow VS Code rendering and context updates
+  // Use retry pattern: dismiss and re-search each iteration so results are fresh
   await expect(async () => {
-    // Search inside the loop so results refresh each iteration
-    const searchResult = await searchCommandInPalette(page, commandText);
-    widget = searchResult.widget;
-    const first20Rows = await searchResult.getFirst20Rows();
+    await dismissAllQuickInputWidgets(page);
+    await openCommandPalette(page);
 
+    const input = widget.locator('input.input');
+    await input.click({ timeout: 5000 });
+    await input.pressSequentially(commandText, { delay: 5 });
+
+    await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+
+    const first20Rows = (await widget.locator(QUICK_INPUT_LIST_ROW).all()).slice(0, 20);
     for (const row of first20Rows) {
       const rowText = await row.textContent();
       if (rowText?.trim().toLowerCase().includes(commandText.toLowerCase())) {
@@ -168,7 +173,5 @@ export const verifyCommandExists = async (page: Page, commandText: string, timeo
     throw new Error(`Command "${commandText}" not found yet`);
   }).toPass({ timeout: timeout ?? 10_000 });
 
-  if (widget) {
-    await closeCommandPalette(page, widget);
-  }
+  await closeCommandPalette(page, widget);
 };
