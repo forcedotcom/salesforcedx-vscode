@@ -370,7 +370,7 @@ export default class Server {
       return;
     }
     this.reinitializationScheduled = true;
-    Logger.info('[LWC] Scheduling reinitialization (once per server start)');
+
     void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
   }
 
