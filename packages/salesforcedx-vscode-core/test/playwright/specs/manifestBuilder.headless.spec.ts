@@ -77,7 +77,7 @@ import { createApexClassCore } from '../coreHelpers';
 
       await executeCommandWithCommandPalette(page, 'SFDX: Deploy Source in Manifest to Org');
       await waitForOutputChannelText(page, {
-        expectedText: 'Ended SFDX: Deploy Source in Manifest to Org',
+        expectedText: 'Deployed Source',
         timeout: COMMAND_TIMEOUT
       });
       await saveScreenshot(page, 'manifest-deploy.complete.png');
@@ -89,7 +89,7 @@ import { createApexClassCore } from '../coreHelpers';
 
       await executeCommandWithCommandPalette(page, 'SFDX: Retrieve Source in Manifest from Org');
       await waitForOutputChannelText(page, {
-        expectedText: 'Ended SFDX: Retrieve Source in Manifest from Org',
+        expectedText: 'Retrieved Source',
         timeout: COMMAND_TIMEOUT
       });
       await saveScreenshot(page, 'manifest-retrieve.complete.png');
