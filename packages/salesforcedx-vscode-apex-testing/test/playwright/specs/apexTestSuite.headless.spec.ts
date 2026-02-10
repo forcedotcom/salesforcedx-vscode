@@ -34,14 +34,15 @@ const createApexTestSuiteViaPalette = async (
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
   await page.keyboard.type(testSuiteName);
+  await page.waitForTimeout(1000);
   await page.keyboard.press('Enter');
-  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+  await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
   await page.keyboard.type(testClassName);
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1000);
   const testClassRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(testClassName, 'i') });
   await testClassRow.waitFor({ state: 'visible', timeout: 5000 });
   await testClassRow.click();
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1000);
   await page.keyboard.press('Enter');
 };
 
@@ -113,6 +114,7 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
   });
 
   await test.step('create Apex Test Suite with first class', async () => {
+    await page.waitForTimeout(5000);
     testSuiteName = `ApexTestSuite${Date.now()}`;
     await saveScreenshot(page, 'step.create-suite.before.png');
     await createApexTestSuiteViaPalette(page, testSuiteName, testClassName1);

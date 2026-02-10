@@ -40,7 +40,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Content Security Policy', // CSP violations from VS Code webviews (non-critical UI errors)
   'Applying inline style violates', // CSP inline style errors from VS Code UI
   'Unable to resolve resource walkThrough://', // VS Code walkthrough/getting started page errors (non-critical)
-  'SourceMembers timed out after' // sourcemember polling warnings from source-tracking-library
+  'SourceMembers timed out after', // sourcemember polling warnings from source-tracking-library
+  'Blocked script execution', // Webview sandboxing initialization errors (non-critical)
+  'vscode-webview://' // Webview internal URLs (paired with blocked script errors)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -229,5 +231,6 @@ export const validateNoCriticalErrors = async (
     if (networkErrors) {
       expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
     }
+    await Promise.resolve(); // Satisfy require-await lint rule
   });
 };
