@@ -67,7 +67,10 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // So we match the command name exactly at the start of the text
   const escapedCommand = command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'); // for searching with regex since () are common
   // Match command exactly at the start - this ensures exact match while allowing additional text after
-  const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(`^${escapedCommand}`), hasNotText }).first();
+  const commandRow = widget
+    .locator(QUICK_INPUT_LIST_ROW)
+    .filter({ hasText: new RegExp(`^${escapedCommand}`), hasNotText })
+    .first();
 
   await expect(commandRow).toBeAttached({ timeout: 2000 });
 
@@ -78,7 +81,7 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   });
 
   // Wait for the command palette to close after executing the command
-  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+  await widget.waitFor({ state: 'hidden', timeout: 500 }).catch(() => {
     // If it doesn't close (e.g., multi-step commands), that's ok
   });
 };
@@ -96,7 +99,10 @@ export const executeCommandWithCommandPalette = async (
 const searchCommandInPalette = async (
   page: Page,
   commandText: string
-): Promise<{ widget: ReturnType<Page['locator']>; getFirst20Rows: () => Promise<Awaited<ReturnType<ReturnType<Page['locator']>['all']>>> }> => {
+): Promise<{
+  widget: ReturnType<Page['locator']>;
+  getFirst20Rows: () => Promise<Awaited<ReturnType<ReturnType<Page['locator']>['all']>>>;
+}> => {
   await openCommandPalette(page);
   const widget = page.locator(QUICK_INPUT_WIDGET);
   const input = widget.locator('input.input');

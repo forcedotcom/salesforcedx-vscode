@@ -41,7 +41,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Applying inline style violates', // CSP inline style errors from VS Code UI
   'Unable to resolve resource walkThrough://', // VS Code walkthrough/getting started page errors (non-critical)
   'SourceMembers timed out after', // sourcemember polling warnings from source-tracking-library
-  'Illegal value for lineNumber' // VS Code internal editor error (non-critical)
+  'Illegal value for lineNumber', // VS Code internal editor error (non-critical),
+  "'allow-scripts' permissions is not set" //
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
