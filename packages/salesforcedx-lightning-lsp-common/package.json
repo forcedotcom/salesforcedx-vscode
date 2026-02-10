@@ -16,6 +16,11 @@
       "require": "./out/src/index.js",
       "types": "./out/src/index.d.ts"
     },
+    "./workspaceLoader": {
+      "import": "./out/src/workspaceLoader.js",
+      "require": "./out/src/workspaceLoader.js",
+      "types": "./out/src/workspaceLoader.d.ts"
+    },
     "./testUtils": {
       "import": "./out/src/__tests__/testUtils.js",
       "require": "./out/src/__tests__/testUtils.js",
@@ -89,7 +94,9 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "ejs": "^3.1.10",
+    "effect": "^3.19.14",
     "tiny-jsonc": "^1.0.2",
+    "vscode": "^1.90.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
     "vscode-languageserver-textdocument": "^1.0.12",

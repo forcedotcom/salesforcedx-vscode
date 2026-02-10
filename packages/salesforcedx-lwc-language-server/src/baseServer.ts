@@ -136,7 +136,7 @@ export abstract class BaseServer {
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemProvider: FileSystemDataProvider;
   private workspaceType: WorkspaceType;
-  private isDelayedInitializationComplete = false;
+  protected isDelayedInitializationComplete = false;
   /** Ensures we only schedule delayed reinitialization once, preventing multiple typing writes and flicker */
   private reinitializationScheduled = false;
 
@@ -178,6 +178,16 @@ export abstract class BaseServer {
 
     // Create context but don't initialize yet - wait for files to be loaded via onDidOpen
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
+
+    // Create component indexer with fileSystemProvider (will be re-initialized after delayed init)
+    this.componentIndexer = new ComponentIndexer({
+      workspaceRoot: this.workspaceRoots[0],
+      fileSystemProvider: this.fileSystemProvider
+    });
+
+    // Create data providers (will be re-initialized after delayed init)
+    this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
+    this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
 
     return this.capabilities;
   }
@@ -417,16 +427,18 @@ export abstract class BaseServer {
    * This avoids duplicate reads - TextDocuments is the source of truth for open files.
    * Returns path info so subclasses can add logic without re-syncing.
    */
-  protected async onDidOpen(changeEvent: { document: TextDocument }): Promise<void> {
-    await this.syncDocumentOnOpen(changeEvent);
+  protected async onDidOpen(changeEvent: { document: TextDocument }): Promise<{ isLwcPath: boolean }> {
+    const { isLwcPath } = await this.syncDocumentOnOpen(changeEvent);
 
     // Perform delayed initialization once file loading has stabilized (typing files written once per server start)
     if (this.isDelayedInitializationComplete || this.reinitializationScheduled) {
-      return;
+      return { isLwcPath };
     }
     this.reinitializationScheduled = true;
 
     void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
+
+    return { isLwcPath };
   }
 
   public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {

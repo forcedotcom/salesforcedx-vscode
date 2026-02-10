@@ -7,11 +7,8 @@
 
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
-import {
-  ActivationTracker,
-  bootstrapWorkspaceAwareness,
-  detectWorkspaceType
-} from '@salesforce/salesforcedx-utils-vscode';
+import { bootstrapWorkspaceAwareness } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceLoader';
+import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { Effect } from 'effect';
 import * as Layer from 'effect/Layer';
