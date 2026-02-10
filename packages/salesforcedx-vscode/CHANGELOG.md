@@ -20,15 +20,11 @@
 
 #### salesforcedx-vscode-apex
 
-- [W-21198602]  run all tests now runs fine for large orgs ([PR #6842](https://github.com/forcedotcom/salesforcedx-vscode/pull/6842))
-
 #### salesforcedx-vscode-apex-replay-debugger
-
-- [W-21198602]  run all tests now runs fine for large orgs ([PR #6842](https://github.com/forcedotcom/salesforcedx-vscode/pull/6842))
 
 #### salesforcedx-vscode-apex-testing
 
-- [W-21198602]  run all tests now runs fine for large orgs ([PR #6842](https://github.com/forcedotcom/salesforcedx-vscode/pull/6842))
+- Running All Tests from the Test Controller now works reliably in large orgs, test results are correctly cleared when switching orgs, and users receive clearer feedback when running empty Apex Test Suites. We also fixed Apex test discovery pagination issues and significantly improved Test Explorer performance when loading large numbers of tests, making the experience faster, more responsive, and easier to trust. A new filter tag, `@sf.apex.testController:in-workspace`, has also been added to make it easy to show only Apex tests that exist in the current project. ([PR #6842](https://github.com/forcedotcom/salesforcedx-vscode/pull/6842))
 
 #### salesforcedx-vscode-core
 
