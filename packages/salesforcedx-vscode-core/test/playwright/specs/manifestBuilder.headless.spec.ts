@@ -29,7 +29,7 @@ import {
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
 
-test('Manifest Builder: generate manifest, deploy and retrieve via manifest', async ({ page }) => {
+(isMacDesktop() ? test.skip.bind(test) : test)('Manifest Builder: generate manifest, deploy and retrieve via manifest', async ({ page }) => {
   test.setTimeout(COMMAND_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
 
@@ -50,15 +50,9 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
   });
 
   await test.step('generate manifest file', async () => {
-    if (isMacDesktop()) {
-      // Mac can't use context menus, use command palette approach
-      // Focus on the classes folder in explorer first
-      await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
-      await executeCommandWithCommandPalette(page, 'SFDX: Generate Manifest File');
-    } else {
-      // Use explorer context menu on the classes folder
-      await executeExplorerContextMenuCommand(page, /classes/i, 'SFDX: Generate Manifest File');
-    }
+    // Command is only available via explorer context menu, not command palette
+    // (Test is skipped on Mac Desktop where context menus don't work)
+    await executeExplorerContextMenuCommand(page, /classes/i, 'SFDX: Generate Manifest File');
 
     // Wait for filename prompt and accept default
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
