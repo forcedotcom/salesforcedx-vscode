@@ -65,6 +65,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
         yield* setProjectOpenedContext(false);
         return false;
       }
+      console.log('has workspace description', workspaceDescription);
 
       return yield* globalSfProjectCache.get(workspaceDescription.fsPath).pipe(
         Effect.tap(() => setProjectOpenedContext(true)),
@@ -76,8 +77,9 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
 
     /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
     const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
+      const workspacePath = (yield* workspaceService.getWorkspaceInfoOrThrow()).fsPath;
       const project = yield* globalSfProjectCache
-        .get((yield* workspaceService.getWorkspaceInfoOrThrow()).fsPath)
+        .get(workspacePath)
         .pipe(Effect.tapError(() => setProjectOpenedContext(false)));
       yield* setProjectOpenedContext(true);
       return project;
