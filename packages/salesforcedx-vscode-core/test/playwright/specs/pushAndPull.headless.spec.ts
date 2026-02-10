@@ -22,7 +22,8 @@ import {
   waitForOutputChannelText,
   outputChannelContains,
   validateNoCriticalErrors,
-  saveScreenshot
+  saveScreenshot,
+  verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
@@ -37,6 +38,7 @@ test('Push and Pull: push, pull, and view changes', async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    await verifyCommandExists(page, 'SFDX: View Local Changes', 120_000);
 
     await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
 

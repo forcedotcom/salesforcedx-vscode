@@ -41,6 +41,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
 
     // Ensure core commands are active (not metadata extension commands)
     await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });

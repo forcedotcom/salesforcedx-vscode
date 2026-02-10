@@ -22,7 +22,8 @@ import {
   waitForOutputChannelText,
   validateNoCriticalErrors,
   saveScreenshot,
-  EDITOR_WITH_URI
+  EDITOR_WITH_URI,
+  verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
@@ -48,6 +49,7 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
 
     await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
 
@@ -63,7 +65,10 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
 
     await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Deploy This Source to Org', timeout: COMMAND_TIMEOUT });
+    await waitForOutputChannelText(page, {
+      expectedText: 'Ended SFDX: Deploy This Source to Org',
+      timeout: COMMAND_TIMEOUT
+    });
     await saveScreenshot(page, 'v1.deploy-complete.png');
   });
 
@@ -75,14 +80,20 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
 
     await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Deploy This Source to Org', timeout: COMMAND_TIMEOUT });
+    await waitForOutputChannelText(page, {
+      expectedText: 'Ended SFDX: Deploy This Source to Org',
+      timeout: COMMAND_TIMEOUT
+    });
     await saveScreenshot(page, 'v2.deploy-complete.png');
   });
 
   await test.step('retrieve v2 and verify unchanged', async () => {
     await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, 'SFDX: Retrieve This Source from Org');
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Retrieve This Source from Org', timeout: COMMAND_TIMEOUT });
+    await waitForOutputChannelText(page, {
+      expectedText: 'Ended SFDX: Retrieve This Source from Org',
+      timeout: COMMAND_TIMEOUT
+    });
 
     const textAfterRetrieve = await getEditorText();
     // Retrieve overwrites local with org version which IS v2
