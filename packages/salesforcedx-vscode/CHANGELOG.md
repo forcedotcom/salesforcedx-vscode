@@ -2,21 +2,16 @@
 
 ## Added
 
-#### docs
-
-- Metadata operations on the web W-20175985 ([PR #6662](https://github.com/forcedotcom/salesforcedx-vscode/pull/6662))
-
 #### salesforcedx-vscode-core
 
-- Remove taskView W-21197769 ([PR #6841](https://github.com/forcedotcom/salesforcedx-vscode/pull/6841))
-
-- Metadata operations on the web W-20175985 ([PR #6662](https://github.com/forcedotcom/salesforcedx-vscode/pull/6662))
+- Write about Metadata operations on the web here.  ([PR #6662](https://github.com/forcedotcom/salesforcedx-vscode/pull/6662))
+- We made some changes under the hood. ([PR #6841](https://github.com/forcedotcom/salesforcedx-vscode/pull/6841))
 
 ## Fixed
 
 #### salesforcedx-lwc-language-server
 
-- W-21180077 -  prevent typing files from being overwritten multiple times by language server ([PR #6832](https://github.com/forcedotcom/salesforcedx-vscode/pull/6832))
+- Resolved an issue where the Aura Language Server repeatedly opened and modified customlabels.d.ts in the editor, causing flickering and preventing the file from being closed. The language server no longer forces files open during startup. Thank you [Justin Lyon](https://github.com/justin-lyon) for creating this [issue](https://github.com/forcedotcom/salesforcedx-vscode/issues/6827). ([PR #6832](https://github.com/forcedotcom/salesforcedx-vscode/pull/6832))
 
 #### salesforcedx-vscode-apex
 
@@ -28,9 +23,9 @@
 
 #### salesforcedx-vscode-core
 
-- We fixed an issue where the default org was not set correctly in the org picker when only the CLI Integration and Org Management extensions are installed. ([PR #6837](https://github.com/forcedotcom/salesforcedx-vscode/pull/6837))
+- We resolved a regression where the default org was not correctly shown in the org picker when only the CLI Integration and Org Management extensions were installed. The org picker now immediately reflects the default org defined in `sfdx-config.json`, without requiring users to manually save the file. ([PR #6837](https://github.com/forcedotcom/salesforcedx-vscode/pull/6837))
 
 #### salesforcedx-vscode-lightning
 
-- Made changes under the hood to fix a bug encountered when bundling on windows - customers should not face this ever ([PR #6840](https://github.com/forcedotcom/salesforcedx-vscode/pull/6840))
+- We made some changes under the hood. ([PR #6840](https://github.com/forcedotcom/salesforcedx-vscode/pull/6840))
 
