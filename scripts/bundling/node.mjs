@@ -1,3 +1,6 @@
+// Disable minify when DEBUG_BUNDLE=1 (e.g. preLaunchTask "Compile and Bundle") so the debugger shows real variable names
+const minify = process.env.DEBUG_BUNDLE !== '1';
+
 export const nodeConfig = {
   external: ['vscode'],
   bundle: true,
@@ -5,7 +8,7 @@ export const nodeConfig = {
   platform: 'node',
   target: 'es2023',
   keepNames: true,
-  minify: true,
+  minify,
   sourcemap: true,
   supported: {
     'dynamic-import': false
