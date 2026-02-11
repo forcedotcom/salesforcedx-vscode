@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   bootstrapWorkspaceAwareness,
@@ -14,8 +13,6 @@ import {
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { Effect } from 'effect';
-import * as Layer from 'effect/Layer';
-import * as Stream from 'effect/Stream';
 import { commands, Disposable, ExtensionContext, FileType, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
@@ -24,6 +21,7 @@ import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
 // Test support is lazy-loaded to avoid bundling jest-editor-support in web mode
+import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
 import { WorkspaceUtils } from './util/workspaceUtils';
 
 // Get telemetry service - now works in both Node.js and web mode
@@ -315,52 +313,6 @@ export const deactivate = async () => {
   // Get telemetry service for deactivation (no-op in web mode)
   const telemetryService = await getTelemetryService();
   telemetryService.sendExtensionDeactivationEvent();
-};
-
-/** True if the URI path is under lwc/ and matches *.js, *.ts, *.html, or *js-meta.xml */
-const isLwcFile = (uri: { path: string; fsPath?: string }): boolean => {
-  const pathSegment = uri.fsPath ?? uri.path;
-  if (!pathSegment.includes('/lwc/') && !pathSegment.includes('\\lwc\\')) {
-    return false;
-  }
-  return (
-    pathSegment.endsWith('.js') ||
-    pathSegment.endsWith('.ts') ||
-    pathSegment.endsWith('.html') ||
-    pathSegment.endsWith('js-meta.xml')
-  );
-};
-
-/**
- * Start LWC file watcher using FileWatcherService from salesforcedx-vscode-services.
- */
-const startLwcFileWatcherViaServices = () => {
-  const apiResult = Effect.runSync(getServicesApi.pipe(Effect.either));
-  if (apiResult._tag === 'Left') {
-    throw new Error('Failed to get services API');
-  }
-  const api = apiResult.right;
-  const layer = Layer.mergeAll(api.services.ChannelServiceLayer('LWC'), api.services.FileWatcherService.Default);
-  const subscriptionEffect = Effect.gen(function* () {
-    const fileWatcherService = yield* api.services.FileWatcherService;
-    yield* Effect.forkDaemon(
-      Stream.fromPubSub(fileWatcherService.pubsub).pipe(
-        Stream.filter(e => e.type === 'create' && isLwcFile(e.uri)),
-        Stream.runForEach(e =>
-          Effect.tryPromise({
-            try: () => workspace.openTextDocument(e.uri),
-            catch: () => new Error('open failed')
-          }).pipe(Effect.catchAll(() => Effect.void))
-        )
-      )
-    );
-    yield* Effect.never;
-  });
-  try {
-    Effect.runSync(Effect.forkDaemon(Effect.scoped(Effect.provide(subscriptionEffect, layer))));
-  } catch {
-    throw new Error('Failed to start LWC file watcher');
-  }
 };
 
 const getActivationMode = (): string => {
