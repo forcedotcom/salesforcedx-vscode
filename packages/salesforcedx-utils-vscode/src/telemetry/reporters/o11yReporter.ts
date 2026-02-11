@@ -17,6 +17,7 @@ export class O11yReporter
   extends Disposable
   implements TelemetryReporter, TelemetryReporterWithModifiableUserProperties
 {
+  public productFeatureId: string | undefined;
   private userOptIn: boolean = false;
   private o11yUploadEndpoint: string;
   private toDispose: Disposable[] = [];
@@ -25,13 +26,15 @@ export class O11yReporter
 
   // user defined tag to add to properties that is defined via setting
   private telemetryTag: string | undefined;
+  // default value: the one for vscode extensions.  Set a value on an extensions's package.json to override it
 
   constructor(
     private extensionId: string,
     private extensionVersion: string,
     o11yUploadEndpoint: string,
     public userId: string,
-    public webUserId: string
+    public webUserId: string,
+    productFeatureId?: string
   ) {
     super(() => {
       this.toDispose.forEach(d => {
@@ -42,6 +45,9 @@ export class O11yReporter
     this.userOptIn = true; // Assume opt-in for now
     this.o11yUploadEndpoint = o11yUploadEndpoint;
     this.setTelemetryTag();
+    if (productFeatureId) {
+      this.productFeatureId = productFeatureId;
+    }
   }
 
   public async initialize(extensionName: string): Promise<void> {
@@ -67,6 +73,20 @@ export class O11yReporter
       ...getCommonProperties(this.extensionId, this.extensionVersion)
     };
     return isInternalHost() ? { ...commonProperties, ...getInternalProperties() } : commonProperties;
+  }
+
+  private sendPftEvent({ orgId, devHubId, commandId }: { orgId: string; devHubId: string; commandId: string }): void {
+    // migrate the various properties to the expected o11y/PDP schema
+    if (!this.productFeatureId) {
+      return;
+    }
+    this.o11yService.logEvent({
+      eventName: 'vscodeExtension.executed',
+      productFeatureId: this.productFeatureId,
+      componentId: `${this.extensionId}.${commandId}`,
+      contextName: 'orgId::devhubId',
+      contextValue: `${orgId}::${devHubId}`
+    } satisfies PftEventProperties);
   }
 
   public sendTelemetryEvent(
@@ -97,6 +117,11 @@ export class O11yReporter
 
       // Batching is enabled - no need to upload after each event
       // Events will be automatically batched and uploaded based on threshold (50KB) or periodic flush (30s)
+
+      // we also send these for monCloud/PFT
+      if (eventName === 'commandExecution') {
+        this.sendPftEvent({ orgId, devHubId, commandId: props.commandName });
+      }
     }
   }
 
@@ -167,3 +192,12 @@ export class O11yReporter
     return this.telemetryTag ? { ...properties, telemetryTag: this.telemetryTag } : properties;
   }
 }
+
+export type PftEventProperties = {
+  eventName: 'vscodeExtension.executed';
+  productFeatureId: string;
+  /** extensionName.commandId */
+  componentId: `${string}.${string}`;
+  contextName: 'orgId::devhubId';
+  contextValue: `${string}::${string}`;
+};
