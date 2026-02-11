@@ -25,6 +25,7 @@ import { workspaceContextUtils } from '.';
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
   private coreExtensionContext?: vscode.ExtensionContext;
+  private initializationPromise?: Promise<void>;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
@@ -38,6 +39,11 @@ export class WorkspaceContext {
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
+    this.initializationPromise ??= this._doInitialize(extensionContext);
+    return this.initializationPromise;
+  }
+
+  private async _doInitialize(extensionContext: vscode.ExtensionContext) {
     if (extensionContext.extension.id === 'salesforce.salesforcedx-vscode-core') {
       this.coreExtensionContext = extensionContext;
     }
@@ -52,6 +58,10 @@ export class WorkspaceContext {
   }
 
   public async getConnection(): Promise<Connection> {
+    // Wait for initialization to complete before proceeding
+    if (this.initializationPromise) {
+      await this.initializationPromise;
+    }
     return await WorkspaceContextUtil.getInstance().getConnection();
   }
 
