@@ -44,7 +44,10 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Blocked script execution', // Webview sandboxing initialization errors (non-critical)
   'vscode-webview://', // Webview internal URLs (paired with blocked script errors)
   'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
-  'callback must be a function' // memfs/Volume API compatibility issue on web (non-critical)
+  'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
+  'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)
+  'testResults', // Test results folder access before it's created (non-critical)
+  'workspaceStorage' // Workspace storage access errors during initialization (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
