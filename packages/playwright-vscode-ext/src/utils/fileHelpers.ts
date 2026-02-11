@@ -315,7 +315,7 @@ export const setupMinimalOrgAndAuth = async (page: Page): Promise<void> => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS);
     await waitForOutputChannelText(page, {
-      expectedText: isDesktop() ? '2 components deployed' : 'Deploy on save complete: 2 succeeded',
+      expectedText: '2 components deployed',
       timeout: DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS
     });
 
