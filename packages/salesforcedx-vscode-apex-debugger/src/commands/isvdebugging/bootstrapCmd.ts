@@ -33,8 +33,7 @@ import { nls } from '../../messages';
 import {
   getChannelService,
   getSfCommandlet,
-  getSfCommandletExecutorClass,
-  getTaskViewService
+  getSfCommandletExecutorClass
 } from '../../utils/coreExtensionUtils';
 
 type InstalledPackageInfo = {
@@ -424,12 +423,10 @@ export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}
     cancellationToken: vscode.CancellationToken
   ) {
     const channelService = await getChannelService();
-    const taskViewService = await getTaskViewService();
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
     notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
     ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 

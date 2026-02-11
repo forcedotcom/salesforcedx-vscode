@@ -7,6 +7,8 @@
 
 import * as vscode from 'vscode';
 
+export const EXTENSION_NAME = 'salesforcedx-vscode-apex-testing';
+
 const startPos = new vscode.Position(0, 0);
 const endPos = new vscode.Position(0, 1);
 export const APEX_GROUP_RANGE = new vscode.Range(startPos, endPos);

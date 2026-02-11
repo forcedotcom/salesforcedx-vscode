@@ -62,6 +62,10 @@ export const messages = {
     'Test suites cannot be debugged. Please debug individual test classes or methods.',
   apex_test_payload_build_failed_message: 'Failed to build test payload',
   apex_test_suite_name_not_determined_message: 'Suite name could not be determined for suite execution',
+  apex_test_suite_empty_message_notification:
+    'The following test suite(s) are empty and cannot be run: %s. Add test classes to the suite before running.',
+  apex_test_suite_empty_message:
+    'This test suite is empty and cannot be run. Add test classes to the suite before running.',
   apex_test_resolve_suite_children_failed_message: 'Failed to resolve suite children for suite: %s. Error: %s',
   apex_test_connection_failed_message: 'Failed to get connection',
   apex_test_service_not_initialized_message: 'TestService not initialized. Call ensureInitialized() first.',
@@ -69,9 +73,9 @@ export const messages = {
   apex_test_populate_suite_items_failed_message: 'Failed to populate suite items: %s',
   apex_test_debug_failed_message: 'Debug failed: %s',
   apex_test_update_results_failed_message: 'Failed to update test results: %s',
-  apex_test_local_only_tag: 'Local Only (Not in Org)',
-  apex_test_local_only_warning_message: 'The following test(s) are not deployed to the org and cannot be run: %s',
-  apex_test_local_only_warning_deploy_text: 'Please deploy them first.',
+  apex_test_discovery_partial_warning:
+    'Test discovery encountered URL length limits. Some tests may not be visible. Try refreshing or filtering by namespace.',
+  apex_test_in_workspace_tag: 'In Workspace and Org',
   apex_test_org_only_tag: 'Org Only (Not in Project)',
   apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
   apex_test_debug_org_only_warning_message:
@@ -84,7 +88,12 @@ export const messages = {
   apex_test_successful_execution_message: '%s successfully ran',
   apex_test_failed_execution_message: '%s failed to run',
   test_view_refresh_failed_message:
-    'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s'
+    'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s',
+  apex_class_source_hidden:
+    "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
+  apex_test_discovery_progress_title: 'Discovering Apex Tests',
+  apex_test_discovery_progress_fetching: 'Fetching tests from org...',
+  apex_test_discovery_progress_loading: 'Loading tests... (%s classes, %s methods)'
 } as const;
 
 export type MessageKey = keyof typeof messages;

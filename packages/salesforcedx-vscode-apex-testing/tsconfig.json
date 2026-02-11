@@ -4,11 +4,14 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
     {
       "path": "../salesforcedx-vscode-i18n"
+    },
+    {
+      "path": "../effect-ext-utils"
     }
   ]
 }
