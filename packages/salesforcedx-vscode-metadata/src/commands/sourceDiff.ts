@@ -52,7 +52,7 @@ const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: U
   yield* diffComponentSet({ componentSet, initialUris: hashableUris });
 });
 
-export const sourceDiffEffect = Effect.fn('sourceDiff')(function* (
+export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
   sourceUri: URI | undefined,
   uris: URI[] | undefined
 ) {

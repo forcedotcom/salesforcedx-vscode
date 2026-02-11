@@ -11,7 +11,7 @@ import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
-export const deployManifestEffect = (manifestUri?: URI) =>
+export const deployManifestCommand = (manifestUri?: URI) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ manifestUri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
