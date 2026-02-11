@@ -15,13 +15,13 @@
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
     {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
       "path": "../effect-ext-utils"
     },
     {
       "path": "../playwright-vscode-ext"
+    },
+    {
+      "path": "../salesforcedx-vscode-i18n"
     }
   ]
 }

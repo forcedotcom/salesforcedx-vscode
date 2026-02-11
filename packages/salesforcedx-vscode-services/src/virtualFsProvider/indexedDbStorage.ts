@@ -139,7 +139,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
       deleteFile,
       /** Load a specific file from IndexedDB */
       loadFile
-    } as const;
+    };
   })
 }) {}
 

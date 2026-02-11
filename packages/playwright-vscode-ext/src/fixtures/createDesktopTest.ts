@@ -12,6 +12,7 @@ import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { filterErrors } from '../utils/helpers';
+import { resolveRepoRoot } from '../utils/repoRoot';
 import { createTestWorkspace } from './desktopWorkspace';
 
 type CreateDesktopTestOptions = {
@@ -37,10 +38,12 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
   } = options;
 
   const test = base.extend<TestFixtures, WorkerFixtures>({
-    // Download VS Code once per worker (cached in ~/.vscode-test/ or the windows equivalent)
+    // Download VS Code once per worker (cached at repo root .vscode-test/)
     vscodeExecutable: [
       async ({}, use): Promise<void> => {
-        const executablePath = await downloadAndUnzipVSCode();
+        const repoRoot = resolveRepoRoot(fixturesDir);
+        const cachePath = path.join(repoRoot, '.vscode-test');
+        const executablePath = await downloadAndUnzipVSCode({ cachePath });
         await use(executablePath);
       },
       { scope: 'worker' }

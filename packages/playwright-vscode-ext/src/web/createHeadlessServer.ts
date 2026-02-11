@@ -7,6 +7,7 @@
 
 import { open } from '@vscode/test-web';
 import * as path from 'node:path';
+import { resolveRepoRoot } from '../utils/repoRoot';
 
 type HeadlessServerOptions = {
   /** Extension name for logging (e.g., "Org Browser", "Metadata") */
@@ -34,6 +35,9 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       );
     }
 
+    const repoRoot = resolveRepoRoot(options.callerDirname);
+    const testRunnerDataDir = path.join(repoRoot, '.vscode-test-web');
+
     await open({
       browserType: 'chromium',
       headless: true,
@@ -43,6 +47,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       verbose: true,
       extensionDevelopmentPath,
       extensionPaths,
+      testRunnerDataDir,
       browserOptions: [
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor',

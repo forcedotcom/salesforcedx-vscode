@@ -22,9 +22,8 @@ export const getTestResultsFolder = async (vscodePath: string, testType: string)
   await Effect.runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const fsService = yield* api.services.FsService;
       // Convert URI to string for createDirectory (until fsService.createDirectory accepts URI)
-      yield* fsService.createDirectory(testResultsFolderUri.fsPath);
+      yield* api.services.FsService.createDirectory(testResultsFolderUri.fsPath);
     }).pipe(
       Effect.tapError(error => Effect.logError(error)),
       Effect.catchAll(() => Effect.void), // Ignore errors - directory may already exist

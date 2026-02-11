@@ -125,7 +125,8 @@ const getMockVSCode = () => {
     },
     TreeItem: jest.fn(),
     commands: {
-      executeCommand: jest.fn()
+      executeCommand: jest.fn().mockResolvedValue(undefined),
+      registerCommand: jest.fn()
     },
     Disposable: jest.fn(),
     env: {
@@ -388,10 +389,11 @@ jest.mock(
 );
 
 beforeEach(() => {
-  // resetMocks=true wipes mock implementations, so re-apply default extension mock here.
-  // Tests that need specific extension mocks should provide their own via Effect layers.
+  // resetMocks=true wipes mock implementations, so re-apply default mocks here.
+  // Tests that need specific mocks should provide their own via Effect layers.
   const vscodeMock: any = jest.requireMock('vscode');
   vscodeMock?.extensions?.getExtension?.mockImplementation?.(() => undefined);
+  vscodeMock?.commands?.executeCommand?.mockResolvedValue?.(undefined);
 });
 
 // Mock os module to ensure homedir() always returns a valid path

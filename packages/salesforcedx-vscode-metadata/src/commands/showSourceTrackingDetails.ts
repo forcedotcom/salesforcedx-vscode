@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { separateChanges } from '../statusBar/helpers';
 
 type ViewChangesOptions = { local: boolean; remote: boolean };
@@ -26,11 +25,11 @@ const rowToLine = (row: StatusOutputRow): string =>
 const formatChanges = (changes: StatusOutputRow[] | undefined, sectionTitle: string): string =>
   changes !== undefined ? [...getTitle(changes, sectionTitle), ...changes.map(rowToLine)].join('\n') : '';
 
-const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChangesOptions) {
+export const viewChangesCommand = Effect.fn('viewChanges')(function* (options: ViewChangesOptions) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const channel = yield* channelService.getChannel;
-  const tracking = yield* Effect.flatMap(api.services.SourceTrackingService, svc => svc.getSourceTrackingOrThrow());
+  const tracking = yield* api.services.SourceTrackingService.getSourceTrackingOrThrow();
 
   // Re-read both remote and local tracking to ensure fresh data
   yield* Effect.all(
@@ -64,15 +63,3 @@ const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChang
   yield* channelService.appendToChannel(output);
   yield* Effect.sync(() => channel.show());
 });
-
-/** Show detailed source tracking changes in the output channel */
-export const viewAllChanges = async (): Promise<void> =>
-  Effect.runPromise(viewChangesEffect({ local: true, remote: true }).pipe(Effect.provide(AllServicesLayer)));
-
-/** Show local changes only in the output channel */
-export const viewLocalChanges = async (): Promise<void> =>
-  Effect.runPromise(viewChangesEffect({ local: true, remote: false }).pipe(Effect.provide(AllServicesLayer)));
-
-/** Show remote changes only in the output channel */
-export const viewRemoteChanges = async (): Promise<void> =>
-  Effect.runPromise(viewChangesEffect({ local: false, remote: true }).pipe(Effect.provide(AllServicesLayer)));

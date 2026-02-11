@@ -17,7 +17,6 @@ export const getConnection = async (): Promise<Connection> =>
   Effect.runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const svc = yield* api.services.ConnectionService;
-      return yield* svc.getConnection;
+      return yield* api.services.ConnectionService.getConnection();
     }).pipe(Effect.provide(AllServicesLayer))
   );

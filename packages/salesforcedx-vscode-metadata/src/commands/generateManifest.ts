@@ -11,7 +11,6 @@ import { parse } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 
 const DEFAULT_MANIFEST = 'package.xml';
 
@@ -32,8 +31,8 @@ const promptForOverwrite = (fileName: string) =>
     vscode.window.showWarningMessage(
       nls.localize('manifest_overwrite_confirmation', fileName),
       { modal: true },
-      'Overwrite',
-      'Cancel'
+      nls.localize('overwrite_button'),
+      nls.localize('cancel_button')
     )
   );
 
@@ -48,7 +47,6 @@ const generateManifestFromUris = (uris: URI[]) =>
 const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: string) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const fsService = yield* api.services.FsService;
     const channelService = yield* api.services.ChannelService;
 
     // Build manifest directory path
@@ -56,9 +54,9 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
 
     const shouldWrite =
       // doesn't exist
-      !(yield* fsService.fileOrFolderExists(manifestFileUri)) ||
+      !(yield* api.services.FsService.fileOrFolderExists(manifestFileUri)) ||
       // exists and user wants to overwrite
-      (yield* promptForOverwrite(fileName)) === 'Overwrite';
+      (yield* promptForOverwrite(fileName)) === nls.localize('overwrite_button');
 
     if (!shouldWrite) {
       yield* channelService.appendToChannel('Manifest generation cancelled by user');
@@ -66,7 +64,7 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
     }
 
     // Write the manifest file (FsService.writeFile automatically creates directories)
-    yield* fsService.writeFile(manifestFileUri, packageXML);
+    yield* api.services.FsService.writeFile(manifestFileUri, packageXML);
     yield* channelService.appendToChannel(`Manifest file created: ${manifestFileUri.toString()}`);
 
     // Open the generated manifest file
@@ -78,7 +76,7 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
     return manifestFileUri;
   });
 
-const generateManifestEffect = Effect.fn('generateManifest')(function* (
+export const generateManifestCommand = Effect.fn('generateManifest')(function* (
   sourceUri: URI | undefined,
   uris: URI[] | undefined
 ) {
@@ -88,11 +86,11 @@ const generateManifestEffect = Effect.fn('generateManifest')(function* (
   // Resolve source URI from parameter or active editor
   const resolvedSourceUri =
     sourceUri ??
-    (yield* (yield* api.services.EditorService).getActiveEditorUri.pipe(
+    (yield* api.services.EditorService.getActiveEditorUri().pipe(
       Effect.catchTag('NoActiveEditorError', () =>
-        Effect.promise(() =>
-          vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'))
-        ).pipe(Effect.as(undefined))
+        Effect.sync(() => {
+          void vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'));
+        }).pipe(Effect.as(undefined))
       )
     ));
 
@@ -101,7 +99,7 @@ const generateManifestEffect = Effect.fn('generateManifest')(function* (
   }
 
   // Get workspace info for manifest directory
-  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   // Resolve URIs
   const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
@@ -119,20 +117,3 @@ const generateManifestEffect = Effect.fn('generateManifest')(function* (
   // Save the manifest file
   yield* saveManifestFile(workspaceInfo.uri, fileName, packageXML);
 });
-
-/** Generate manifest from source paths */
-export const generateManifest = async (sourceUri: URI | undefined, uris: URI[] | undefined): Promise<void> => {
-  await Effect.runPromise(
-    generateManifestEffect(sourceUri, uris).pipe(
-      Effect.tapError(error => Effect.sync(() => console.error(JSON.stringify(error, null, 2)))),
-      Effect.catchAll(error =>
-        Effect.promise(() =>
-          vscode.window.showErrorMessage(
-            nls.localize('generate_manifest_failed', error instanceof Error ? error.message : JSON.stringify(error))
-          )
-        ).pipe(Effect.as(undefined))
-      ),
-      Effect.provide(AllServicesLayer)
-    )
-  );
-};
