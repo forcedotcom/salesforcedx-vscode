@@ -7,13 +7,16 @@
 
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
-import { bootstrapWorkspaceAwareness } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceLoader';
+import {
+  bootstrapWorkspaceAwareness,
+  type BootstrapOptions
+} from '@salesforce/salesforcedx-lightning-lsp-common/workspaceLoader';
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { Effect } from 'effect';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
-import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, FileType, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
@@ -27,6 +30,36 @@ import { WorkspaceUtils } from './util/workspaceUtils';
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   const telemetryModule = await import('./telemetry/index.js');
   return telemetryModule.telemetryService;
+};
+
+const LWC_BOOTSTRAP_EXCLUDE = new Set(['node_modules', '.sfdx', '.git', 'dist', 'out', 'lib', 'coverage']);
+const LWC_EXT = new Set(['.js', '.ts', '.html']);
+
+/**
+ * Recursively collect URIs for LWC files (js, ts, html under an lwc dir) via workspace.fs.
+ * Used in web mode when findFiles is unreliable (e.g. memfs).
+ */
+const collectLwcFileUris = async (folderUri: URI): Promise<URI[]> => {
+  const entries = await workspace.fs.readDirectory(folderUri);
+  const pathLower = folderUri.path.toLowerCase();
+  const inLwcDir = pathLower.includes('/lwc/');
+  const uris: URI[] = [];
+
+  for (const [name, type] of entries) {
+    if (LWC_BOOTSTRAP_EXCLUDE.has(name)) {
+      continue;
+    }
+    const childUri = Utils.joinPath(folderUri, name);
+    if (type === FileType.File) {
+      const ext = name.includes('.') ? name.substring(name.lastIndexOf('.')) : '';
+      if (inLwcDir && LWC_EXT.has(ext.toLowerCase())) {
+        uris.push(childUri);
+      }
+    } else if (type === FileType.Directory) {
+      uris.push(...(await collectLwcFileUris(childUri)));
+    }
+  }
+  return uris;
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
@@ -118,25 +151,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
       const errorMsg = `[LWC] Failed to start client: ${startError instanceof Error ? startError.message : String(startError)}`;
       channelService.appendLine(errorMsg);
       throw startError;
-    }
-
-    // Enable verbose tracing to see server logs in the output channel
-    // This will show logs from the language server itself
-    // Note: setTrace may return a promise or void
-    try {
-      const traceResult = client.setTrace(1); // Trace.Verbose - shows all LSP protocol messages
-      if (
-        traceResult &&
-        typeof traceResult === 'object' &&
-        'then' in traceResult &&
-        typeof traceResult.then === 'function'
-      ) {
-        void traceResult.catch(() => {
-          // Tracing failed silently - it's optional
-        });
-      }
-    } catch {
-      // Don't throw - tracing is optional
     }
 
     extensionContext.subscriptions.push(client);
@@ -233,21 +247,35 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // This runs asynchronously and does not block extension activation
   // The language server uses scheduleReinitialization to wait for file loading to stabilize
   void Effect.runPromise(
-    bootstrapWorkspaceAwareness({
-      fileGlob: '**/lwc/**/*.{js,ts,html}',
-      excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
-      logger: (msg: string) => {
-        channelService.appendLine(`[LWC Bootstrap] ${msg}`);
+    Effect.gen(function* () {
+      let lwcUris: URI[] | undefined;
+      if (process.env.ESBUILD_PLATFORM === 'web' && workspace.workspaceFolders?.length) {
+        const perFolder = yield* Effect.tryPromise({
+          try: () => Promise.all(workspace.workspaceFolders!.map(folder => collectLwcFileUris(folder.uri))),
+          catch: (e: unknown) => new Error(e instanceof Error ? e.message : String(e))
+        });
+        lwcUris = perFolder.flat();
       }
-    })
-  )
-    .then(() => {
-      channelService.appendLine('[LWC] Workspace files loaded into document cache');
-    })
-    .catch((error: unknown) => {
-      const errorMsg = `Failed to bootstrap workspace awareness: ${String(error)}`;
-      channelService.appendLine(`[LWC] ERROR: ${errorMsg}`);
-    });
+
+      const options: BootstrapOptions = {
+        fileGlob: '**/lwc/**/*.{js,ts,html}',
+        excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
+        logger: (msg: string) => {
+          channelService.appendLine(`[LWC Bootstrap] ${msg}`);
+        },
+        uris: lwcUris
+      };
+
+      yield* bootstrapWorkspaceAwareness(options);
+    }).pipe(
+      Effect.catchAll(error =>
+        Effect.sync(() => {
+          const message = error instanceof Error ? error.message : String(error);
+          channelService.appendLine(`[LWC] ERROR: Failed to bootstrap workspace awareness: ${message}`);
+        })
+      )
+    )
+  );
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();

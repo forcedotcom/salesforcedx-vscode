@@ -24,14 +24,20 @@ export default class Server extends BaseServer {
   }
 
   /**
-   * Override to add browser-specific re-indexing logic when LWC files are added after delayed initialization
+   * Override to add browser-specific re-indexing logic when LWC files are added after delayed initialization.
+   * In web mode only the opened document is synced, so when a new .js/.ts is opened (e.g. sibling of .html)
+   * we must re-run the indexer so the component is available for go-to-definition.
    */
   protected async onDidOpen(changeEvent: { document: TextDocument }): Promise<{ isLwcPath: boolean }> {
     const { isLwcPath } = await super.onDidOpen(changeEvent);
 
-    // Delayed initialization already complete - but if this is an LWC file, we may need to re-index
-    // Check if we have any components indexed - if not, delayed init ran too early
     if (this.isDelayedInitializationComplete && isLwcPath && this.componentIndexer) {
+      const uri = changeEvent.document.uri.toLowerCase();
+      const isComponentImpl = uri.endsWith('.js') || uri.endsWith('.ts');
+      if (isComponentImpl) {
+        void scheduleReinitialization(this.fileSystemProvider, () => this.reindexComponents());
+      }
+    } else if (!this.isDelayedInitializationComplete && isLwcPath && this.componentIndexer) {
       const componentCount = this.componentIndexer.getCustomData().length;
       if (componentCount === 0) {
         void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());

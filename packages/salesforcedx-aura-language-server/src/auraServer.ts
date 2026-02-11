@@ -41,7 +41,7 @@ import {
   ReferenceParams
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import URI from 'vscode-uri';
+import { URI } from 'vscode-uri';
 
 import AuraIndexer from './aura-indexer/indexer';
 import {

@@ -845,4 +845,26 @@ export abstract class BaseServer {
       this.isInitializing = false;
     }
   }
+
+  /**
+   * Re-run only the component indexer and refresh data providers.
+   * Used when new LWC .js/.ts files are opened after delayed init (e.g. in browser when sibling is opened).
+   */
+  protected async reindexComponents(): Promise<void> {
+    if (!this.componentIndexer) {
+      return;
+    }
+    this.componentIndexer = new ComponentIndexer({
+      workspaceRoot: this.workspaceRoots[0],
+      fileSystemProvider: this.fileSystemProvider,
+      workspaceType: this.workspaceType
+    });
+    await this.componentIndexer.init();
+    this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
+    this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
+    this.languageService = getLanguageService({
+      customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
+      useDefaultDataProvider: false
+    });
+  }
 }
