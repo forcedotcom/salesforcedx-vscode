@@ -26,7 +26,7 @@ export class SettingsWatcherService extends Effect.Service<SettingsWatcherServic
     );
 
     console.log('SettingsWatcherService started');
-    return { pubsub } as const;
+    return { pubsub };
   }),
   dependencies: []
 }) {}

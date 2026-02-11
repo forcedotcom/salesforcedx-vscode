@@ -8,10 +8,10 @@
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
     {
-      "path": "../salesforcedx-vscode-i18n"
+      "path": "../effect-ext-utils"
     },
     {
-      "path": "../effect-ext-utils"
+      "path": "../salesforcedx-vscode-i18n"
     }
   ]
 }

@@ -1,8 +1,0 @@
----
-alwaysApply: true
----
-
-files ending in .ts must always be in lower camel case
-
-- no hyphens
-- no filenames that start with capital letters

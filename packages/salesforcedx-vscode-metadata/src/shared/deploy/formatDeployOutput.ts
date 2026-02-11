@@ -11,10 +11,10 @@ import * as Effect from 'effect/Effect';
 /** Format deploy results for output */
 export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (result: DeployResult) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const componentSetService = yield* api.services.ComponentSetService;
+  const { isSDRSuccess, isSDRFailure } = yield* api.services.ComponentSetService;
   const fileResponses = result.getFileResponses();
-  const succeeded = fileResponses.filter(componentSetService.isSDRSuccess);
-  const failed = fileResponses.filter(componentSetService.isSDRFailure);
+  const succeeded = fileResponses.filter(isSDRSuccess);
+  const failed = fileResponses.filter(isSDRFailure);
 
   const successSection =
     succeeded.length > 0
