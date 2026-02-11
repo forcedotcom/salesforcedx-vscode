@@ -1308,7 +1308,7 @@ export class ApexDebug extends LoggingDebugSession {
     const systemChannelInfo = clientInfos[0];
     const userChannelInfo = clientInfos[1];
 
-    return this.myStreamingService.subscribe(projectPath, this.myRequestService, systemChannelInfo, userChannelInfo);
+    return await this.myStreamingService.subscribe(projectPath, this.myRequestService, systemChannelInfo, userChannelInfo);
   }
 
   public handleEvent(message: DebuggerMessage): void {
