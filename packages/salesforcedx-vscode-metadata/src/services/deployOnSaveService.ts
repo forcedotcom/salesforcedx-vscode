@@ -14,6 +14,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
+import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { getShowSharedCommands } from './configWatcher';
 import { AllServicesLayer } from './extensionProvider';
 
@@ -22,7 +23,7 @@ const ENQUEUE_DELAY_MS = 1000;
 /** File filtering - exclude files that shouldn't be deployed */
 export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   if (!uri.fsPath.startsWith(workspaceInfo.fsPath)) return false;
   const basename = uri.fsPath.split(/[/\\]/).pop() ?? '';
@@ -43,42 +44,24 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
 
 const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (uris: readonly URI[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, deployService, componentSetService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.MetadataDeployService, api.services.ComponentSetService],
+  const [channelService, componentSetService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
   );
 
   const ignoreConflicts = getIgnoreConflicts();
   yield* channelService.appendToChannel(`Deploy on save triggered (ignoreConflicts: ${ignoreConflicts})`);
 
-  const componentSet = yield* componentSetService.getComponentSetFromUris(uris);
-
-  if (componentSet.size === 0) {
-    return yield* channelService.appendToChannel('Deploy on save: No changes to deploy');
-  }
-
-  yield* channelService.appendToChannel(
-    `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
+  const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
+    yield* componentSetService.getComponentSetFromUris(uris)
   );
 
-  const result = yield* deployService.deploy(componentSet);
-
-  // Handle cancellation
-  if (typeof result === 'string') {
-    return yield* channelService.appendToChannel('Deploy on save cancelled');
-  }
-
-  const failedCount = result.getFileResponses().filter(r => String(r.state) === 'Failed').length;
-  const successCount = result.getFileResponses().length - failedCount;
-
-  yield* channelService.appendToChannel(
-    `Deploy on save complete: ${successCount} succeeded${failedCount > 0 ? `, ${failedCount} failed` : ''}`
-  );
+  return yield* deployComponentSet({ componentSet });
 });
 
 const isInPackageDirectories = Effect.fn('deployOnSave:isInPackageDirectories')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const packageDirs = (yield* (yield* api.services.ProjectService).getSfProject).getPackageDirectories();
+  const packageDirs = (yield* api.services.ProjectService.getSfProject()).getPackageDirectories();
   return packageDirs.some(dir => uri.fsPath.startsWith(dir.fullPath));
 });
 

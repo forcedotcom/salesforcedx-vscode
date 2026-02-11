@@ -21,10 +21,6 @@ ruleTester.run('no-vscode-message-literals', noVscodeMessageLiterals, {
       options: []
     },
     {
-      code: `const msg = 'Some message'; vscode.window.showErrorMessage(msg);`,
-      options: []
-    },
-    {
       code: `vscode.window.showWarningMessage(getLocalizedMessage());`,
       options: []
     },
@@ -84,6 +80,24 @@ ruleTester.run('no-vscode-message-literals', noVscodeMessageLiterals, {
         {
           messageId: 'noLiteral',
           data: { method: 'showInformationMessage' }
+        }
+      ]
+    },
+    {
+      code: `const errorMessage = 'Some error'; vscode.window.showErrorMessage(errorMessage);`,
+      errors: [
+        {
+          messageId: 'noLiteral',
+          data: { method: 'showErrorMessage' }
+        }
+      ]
+    },
+    {
+      code: `const errorMessage = \`Retrieve on load failed: \${String(error)}\`; vscode.window.showErrorMessage(errorMessage);`,
+      errors: [
+        {
+          messageId: 'noLiteral',
+          data: { method: 'showErrorMessage' }
         }
       ]
     }

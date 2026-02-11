@@ -7,25 +7,15 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 /** Deploy local changes to the default org */
-export const projectDeployStart = async (ignoreConflicts = false) =>
-  Effect.runPromise(projectDeployStartEffect(ignoreConflicts).pipe(Effect.provide(AllServicesLayer)));
-
-const projectDeployStartEffect = (ignoreConflicts: boolean) =>
+export const projectDeployStartCommand = (ignoreConflicts = false) =>
   Effect.gen(function* () {
-    yield* Effect.annotateCurrentSpan({ ignoreConflicts });
-
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const [deployService, componentSetService] = yield* Effect.all(
-      [api.services.MetadataDeployService, api.services.ComponentSetService],
-      { concurrency: 'unbounded' }
-    );
-    const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* deployService.getComponentSetForDeploy({ ignoreConflicts })
+    const componentSet = yield* (yield* api.services.ComponentSetService).ensureNonEmptyComponentSet(
+      yield* api.services.MetadataDeployService.getComponentSetForDeploy({ ignoreConflicts })
     );
 
     yield* deployComponentSet({ componentSet });
-  }).pipe(Effect.withSpan('projectDeployStart', { attributes: { ignoreConflicts } }), Effect.provide(AllServicesLayer));
+  });

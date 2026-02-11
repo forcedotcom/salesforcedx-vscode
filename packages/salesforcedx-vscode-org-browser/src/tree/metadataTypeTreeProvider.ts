@@ -7,6 +7,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
@@ -50,43 +51,41 @@ const getChildrenOfTreeItem = (
   Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
     const api = yield* svcProvider.getServicesApi;
-    const describeService = yield* api.services.MetadataDescribeService;
 
+    // this could be the initial load, before the org is set.  Prevents duplication loads of root
+    if (!(yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId) {
+      return yield* Effect.succeed([]);
+    }
     if (!element) {
-      return yield* describeService
-        .describe(refresh)
-        .pipe(
-          Effect.map(types =>
-            types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode)
-          )
-        );
+      const types = yield* api.services.MetadataDescribeService.describe(refresh);
+      return types
+        .toSorted((a: MetadataDescribeResultItem, b: MetadataDescribeResultItem) => (a.xmlName < b.xmlName ? -1 : 1))
+        .map(mdapiDescribeToOrgBrowserNode);
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
-      return yield* describeService
-        .describeCustomObject(
-          element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
-        )
-        .pipe(
-          Effect.flatMap(result =>
-            Effect.all(
-              result.fields
-                // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
-                .filter(f => f.custom)
-                .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-                .map(createCustomFieldNode(treeProvider)(element)),
-              { concurrency: 'unbounded' }
-            )
+      return yield* api.services.MetadataDescribeService.describeCustomObject(
+        element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
+      ).pipe(
+        Effect.flatMap(result =>
+          Effect.all(
+            result.fields
+              // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
+              .filter(f => f.custom)
+              .toSorted((a, b) => (a.name < b.name ? -1 : 1))
+              .map(createCustomFieldNode(treeProvider)(element)),
+            { concurrency: 'unbounded' }
           )
-        );
+        )
+      );
     }
     if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
-      return yield* describeService
-        .listMetadata(`${element.xmlName}Folder`)
-        .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element))));
+      return yield* api.services.MetadataDescribeService.listMetadata(`${element.xmlName}Folder`).pipe(
+        Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element)))
+      );
     }
     if (element.kind === 'type') {
-      return yield* describeService.listMetadata(element.xmlName).pipe(
+      return yield* api.services.MetadataDescribeService.listMetadata(element.xmlName).pipe(
         Effect.flatMap(components =>
           Effect.all(components.filter(globalMetadataFilter).map(listMetadataToComponent(treeProvider)(element)), {
             concurrency: 'unbounded'
@@ -97,7 +96,7 @@ const getChildrenOfTreeItem = (
     if (element.kind === 'folder') {
       const { xmlName, folderName } = element;
       if (!xmlName || !folderName) return yield* Effect.succeed([]);
-      return yield* describeService.listMetadata(xmlName, folderName).pipe(
+      return yield* api.services.MetadataDescribeService.listMetadata(xmlName, folderName).pipe(
         Effect.flatMap(components =>
           Effect.all(components.filter(globalMetadataFilter).map(listMetadataToFolderItem(treeProvider)(element)), {
             concurrency: 'unbounded'
