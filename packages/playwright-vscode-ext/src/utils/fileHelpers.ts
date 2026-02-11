@@ -106,18 +106,25 @@ export const createApexClass = async (page: Page, className: string, content?: s
 
     // Focus the editor and wait so typing does not land in Chat/Agent or elsewhere
     await editor.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
 
     // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
     await executeCommandWithCommandPalette(page, 'Select All');
     await page.waitForTimeout(400); // Let selection take effect and palette close
-
-
     // Delete the selected content and type new content
     await page.keyboard.press('Delete');
     await page.waitForTimeout(200);
-    // Type the content directly (avoid clipboard API which requires permissions on desktop)
-    await page.keyboard.type(content);
+
+    // Use clipboard write with permissions granted (works on both desktop and web)
+    // Grant clipboard permissions first
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    // Write to clipboard
+    await page.evaluate((text: string) => navigator.clipboard.writeText(text), content);
+    await page.waitForTimeout(1000);
+    // Paste the content
+    await executeCommandWithCommandPalette(page, 'Paste');
+    await page.waitForTimeout(1000); // Wait for paste to complete
 
     // Save so the file is persisted and can be deployed / discovered by the test controller
     await executeCommandWithCommandPalette(page, 'File: Save');
