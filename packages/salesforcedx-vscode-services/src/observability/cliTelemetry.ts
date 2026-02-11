@@ -38,4 +38,7 @@ const fetchCliIdFromCli = () => {
 
 /** Get the CLI ID from sf telemetry. Cached permanently. Returns undefined on web  */
 export const getCliId = () =>
-  (process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed(undefined) : fetchCliIdFromCli()).pipe(Effect.cached);
+  (process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed(undefined) : fetchCliIdFromCli()).pipe(
+    Effect.cached,
+    Effect.flatten
+  );

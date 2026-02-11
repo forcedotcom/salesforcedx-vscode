@@ -33,7 +33,8 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const Layer = jest.requireActual('effect/Layer');
 
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
-  const mockFsService = {
+  // Mock FsService as a class-like object with static accessor methods
+  const MockFsService = {
     writeFile: (pathOrUri: unknown, _content: string) =>
       Effect.promise(async () => {
         // Call the global mockWriteFile which is set up by the test
@@ -50,25 +51,35 @@ jest.mock('../../../src/services/extensionProvider', () => {
         };
 
         await (global as any).__mockWriteFile(mockUri, new TextEncoder().encode(_content));
-      })
+      }),
+    Default: Layer.succeed(Context.GenericTag('FsService'), {
+      writeFile: (pathOrUri: unknown, _content: string) =>
+        Effect.promise(async () => {
+          const filePath =
+            typeof pathOrUri === 'string' ? pathOrUri : ((pathOrUri as { fsPath?: string })?.fsPath ?? '');
+          const mockUri = {
+            fsPath: filePath,
+            path: filePath,
+            scheme: 'file',
+            authority: '',
+            query: '',
+            fragment: '',
+            toString: () => `file://${filePath}`
+          };
+          await (global as any).__mockWriteFile(mockUri, new TextEncoder().encode(_content));
+        })
+    })
   };
-  const MockFsServiceTag = Context.GenericTag('FsService');
   const mockServicesApi = {
     services: {
-      FsService: MockFsServiceTag
+      FsService: MockFsService
     }
   };
-  const MockAllServicesLayer = Layer.mergeAll(
-    Layer.effect(
-      MockExtensionProviderService,
-      Effect.sync(() => ({
-        getServicesApi: Effect.succeed(mockServicesApi)
-      }))
-    ),
-    Layer.effect(
-      MockFsServiceTag,
-      Effect.sync(() => mockFsService)
-    )
+  const MockAllServicesLayer = Layer.effect(
+    MockExtensionProviderService,
+    Effect.sync(() => ({
+      getServicesApi: Effect.succeed(mockServicesApi)
+    }))
   );
 
   return {

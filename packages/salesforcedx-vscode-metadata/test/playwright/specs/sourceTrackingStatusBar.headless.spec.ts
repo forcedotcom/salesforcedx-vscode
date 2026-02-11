@@ -25,6 +25,7 @@ import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPag
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 
 test('Source Tracking Status Bar: tracks remote and local changes through full deploy cycle', async ({ page }) => {
   test.setTimeout(DEPLOY_TIMEOUT);
@@ -39,7 +40,7 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     // Disable deploy-on-save so test can control when deploys happen
-    await upsertSettings(page, { 'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'false' });
+    await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
 
     const statusBar = new SourceTrackingStatusBarPage(page);
     await statusBar.waitForVisible(120_000);

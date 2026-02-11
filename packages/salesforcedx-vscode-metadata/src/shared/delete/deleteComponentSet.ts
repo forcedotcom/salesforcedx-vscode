@@ -16,15 +16,14 @@ import { DeleteSourceFailedError } from './deleteErrors';
 /** Check for conflicts if source-tracked */
 const maybeCheckConflicts = Effect.fn('deleteComponentSet:checkConflicts')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const sourceTrackingService = yield* api.services.SourceTrackingService;
-  const tracking = yield* sourceTrackingService.getSourceTracking();
+  const tracking = yield* api.services.SourceTrackingService.getSourceTracking();
 
   if (!tracking) {
     return; // Not source-tracked, no conflict check needed
   }
 
   // Use service method to check conflicts (displays in channel and returns typed error)
-  yield* sourceTrackingService.checkConflicts(tracking);
+  yield* api.services.SourceTrackingService.checkConflicts(tracking);
 });
 
 /** Delete a ComponentSet, handling conflict checking, cancellation, and local file deletion */
@@ -33,13 +32,8 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 }) {
   const { componentSet } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, deployService, deleteService, componentSetService] = yield* Effect.all(
-    [
-      api.services.ChannelService,
-      api.services.MetadataDeployService,
-      api.services.MetadataDeleteService,
-      api.services.ComponentSetService
-    ],
+  const [channelService, componentSetService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
   );
 
@@ -48,11 +42,11 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
   yield* maybeCheckConflicts();
 
   // Mark components for deletion
-  const deleteSet = yield* deleteService.markComponentsForDeletion(componentSet);
+  const deleteSet = yield* api.services.MetadataDeleteService.markComponentsForDeletion(componentSet);
 
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
-  const result = yield* deployService.deploy(deleteSet);
+  const result = yield* api.services.MetadataDeployService.deploy(deleteSet);
 
   // Handle cancellation
   if (typeof result === 'string') {
@@ -72,10 +66,13 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
   }
 
   // Delete local files after successful deploy
-  yield* deleteService.deleteLocalFiles(componentSet, result);
+  yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet, result);
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
-  if (result.getFileResponses().some(componentSetService.isSDRFailure)) {
-    yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('delete_completed_with_errors_message')));
+  const { isSDRFailure } = componentSetService;
+  if (result.getFileResponses().some(isSDRFailure)) {
+    yield* Effect.sync(() => {
+      void vscode.window.showErrorMessage(nls.localize('delete_completed_with_errors_message'));
+    });
   }
 });
