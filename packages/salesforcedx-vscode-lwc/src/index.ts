@@ -71,7 +71,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
   const ourCommands = registerCommands(extensionContext);
   extensionContext.subscriptions.push(ourCommands);
 
-  // Get telemetry service (lazy load - no-op in web mode)
   const telemetryService = await getTelemetryService();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
 
