@@ -10,6 +10,8 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+// @ts-ignore o11y has no types
+import { pdpEventSchema } from 'o11y_schema/sf_pdp';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
@@ -86,15 +88,19 @@ export class O11ySpanExporter implements SpanExporter {
                 measurements
               });
             }
+
             // PFT for new extensions
-            if (this.productFeatureId && typeof span.resource.attributes['command'] === 'string') {
-              this.o11yService.logEvent({
-                eventName: 'vscodeExtension.executed',
-                productFeatureId: this.productFeatureId,
-                contextName: 'orgId::devhubId',
-                contextValue: `${orgId}::${devHubOrgId}`,
-                componentId: `${props['common.extname']}.${span.resource.attributes['command']}`
-              });
+            if (this.productFeatureId && typeof span.attributes['command'] === 'string') {
+              this.o11yService.logEventWithSchema(
+                {
+                  eventName: 'vscodeExtension.executed',
+                  productFeatureId: this.productFeatureId,
+                  contextName: 'orgId::devhubId',
+                  contextValue: `${orgId}::${devHubOrgId}`,
+                  componentId: `${props['common.extname']}.${span.attributes['command']}`
+                },
+                pdpEventSchema
+              );
             }
           });
           resultCallback({ code: ExportResultCode.SUCCESS });

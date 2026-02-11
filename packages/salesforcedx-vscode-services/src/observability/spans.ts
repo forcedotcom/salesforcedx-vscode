@@ -4,19 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { SdkLayerConfig } from './sdkLayerConfig';
 import * as vscode from 'vscode';
+import { type SdkLayerConfig, getSdkLayerConfigFromContext, isExtensionContext } from './sdkLayerConfig';
 import { NodeSdkLayerFor } from './spansNode';
 import { WebSdkLayerFor } from './spansWeb';
-
-export type { SdkLayerConfig } from './sdkLayerConfig';
 
 /**
  * Factory for per-extension SDK layers.
  * Each extension gets its own tracer with extension.name in resource attributes.
  */
-export const SdkLayerFor = (config: SdkLayerConfig) =>
-  process.env.ESBUILD_PLATFORM === 'web' ? WebSdkLayerFor(config) : NodeSdkLayerFor(config);
+export const SdkLayerFor = (input: SdkLayerConfig | vscode.ExtensionContext) => {
+  const config = isExtensionContext(input) ? getSdkLayerConfigFromContext(input) : input;
+  return process.env.ESBUILD_PLATFORM === 'web' ? WebSdkLayerFor(config) : NodeSdkLayerFor(config);
+};
 
 /** Pre-built SDK layer factory for the services extension itself */
 export const ServicesSdkLayer = () => {

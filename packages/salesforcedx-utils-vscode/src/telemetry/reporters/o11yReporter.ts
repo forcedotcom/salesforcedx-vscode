@@ -8,6 +8,8 @@
 import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
 import { O11yService } from '@salesforce/o11y-reporter';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
+// @ts-ignore o11y has no types
+import { pdpEventSchema } from 'o11y_schema/sf_pdp';
 import { Disposable, env, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
@@ -80,13 +82,16 @@ export class O11yReporter
     if (!this.productFeatureId) {
       return;
     }
-    this.o11yService.logEvent({
-      eventName: 'vscodeExtension.executed',
-      productFeatureId: this.productFeatureId,
-      componentId: `${this.extensionId}.${commandId}`,
-      contextName: 'orgId::devhubId',
-      contextValue: `${orgId}::${devHubId}`
-    } satisfies PftEventProperties);
+    this.o11yService.logEventWithSchema(
+      {
+        eventName: 'vscodeExtension.executed',
+        productFeatureId: this.productFeatureId,
+        componentId: `${this.extensionId}.${commandId}`,
+        contextName: 'orgId::devhubId',
+        contextValue: `${orgId}::${devHubId}`
+      } satisfies PftEventProperties,
+      pdpEventSchema
+    );
   }
 
   public sendTelemetryEvent(
