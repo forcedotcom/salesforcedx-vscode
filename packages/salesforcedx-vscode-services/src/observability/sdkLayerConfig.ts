@@ -8,4 +8,5 @@ export type SdkLayerConfig = {
   extensionName: string;
   extensionVersion: string;
   o11yEndpoint?: string;
+  productFeatureId?: string;
 };

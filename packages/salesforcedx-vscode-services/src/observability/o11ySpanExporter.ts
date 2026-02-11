@@ -25,7 +25,8 @@ export class O11ySpanExporter implements SpanExporter {
 
   constructor(
     private extensionName: string,
-    private endpoint: string
+    private endpoint: string,
+    private productFeatureId?: string
   ) {
     this.o11yService = O11yService.getInstance(extensionName);
   }
@@ -50,7 +51,10 @@ export class O11ySpanExporter implements SpanExporter {
       Effect.tryPromise({
         try: async () => {
           await this.ensureInitialized();
-          const { cliId, webUserId } = getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.get(ref)), Effect.runSync);
+          const { cliId, webUserId, orgId, devHubOrgId } = getDefaultOrgRef().pipe(
+            Effect.flatMap(ref => SubscriptionRef.get(ref)),
+            Effect.runSync
+          );
           spans.filter(isTopLevelSpan).forEach(span => {
             const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
             const props = {
@@ -80,6 +84,16 @@ export class O11ySpanExporter implements SpanExporter {
                 exception: error,
                 properties: props,
                 measurements
+              });
+            }
+            // PFT for new extensions
+            if (this.productFeatureId && typeof span.resource.attributes['command'] === 'string') {
+              this.o11yService.logEvent({
+                eventName: 'vscodeExtension.executed',
+                productFeatureId: this.productFeatureId,
+                contextName: 'orgId::devhubId',
+                contextValue: `${orgId}::${devHubOrgId}`,
+                componentId: `${props['common.extname']}.${span.resource.attributes['command']}`
               });
             }
           });
