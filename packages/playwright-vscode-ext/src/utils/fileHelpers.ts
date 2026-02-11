@@ -19,6 +19,8 @@ import {
   assertWelcomeTabExists,
   closeSettingsTab,
   closeWelcomeTabs,
+  disableMonacoAutoClosing,
+  enableMonacoAutoClosing,
   isDesktop,
   waitForVSCodeWorkbench
 } from './helpers';
@@ -94,31 +96,33 @@ export const createApexClass = async (page: Page, className: string, content?: s
 
   // If content is provided, replace the template with it and save (so the file is on disk and deployable)
   if (content !== undefined && content.length > 0) {
-    try{// Close secondary sidebar (Chat/Agent) so keystrokes go to the editor, not the chat input
+    try {
+      // Close secondary sidebar (Chat/Agent) so keystrokes go to the editor, not the chat input
       await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
-      await page.waitForTimeout(300);} catch {
-        // Ignore error - secondary sidebar may not be present
-      }
-
-      // Focus the editor and wait so typing does not land in Chat/Agent or elsewhere
-      await editor.click();
-      await page.waitForTimeout(500);
-
-      // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
-      await executeCommandWithCommandPalette(page, 'Select All');
-      await page.waitForTimeout(400); // Let selection take effect and palette close
-
-      // Delete the selected content first to clear the template
-      await page.keyboard.press('Delete');
-      await page.waitForTimeout(200);
-
-      // Type the content directly (avoid clipboard API which requires permissions on desktop)
-      await page.keyboard.type(content);
-
-      // Save so the file is persisted and can be deployed / discovered by the test controller
-      await executeCommandWithCommandPalette(page, 'File: Save');
-      await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+      await page.waitForTimeout(300);
+    } catch {
+      // Ignore error - secondary sidebar may not be present
     }
+
+    // Focus the editor and wait so typing does not land in Chat/Agent or elsewhere
+    await editor.click();
+    await page.waitForTimeout(500);
+
+    // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
+    await executeCommandWithCommandPalette(page, 'Select All');
+    await page.waitForTimeout(400); // Let selection take effect and palette close
+
+
+    // Delete the selected content and type new content
+    await page.keyboard.press('Delete');
+    await page.waitForTimeout(200);
+    // Type the content directly (avoid clipboard API which requires permissions on desktop)
+    await page.keyboard.type(content);
+
+    // Save so the file is persisted and can be deployed / discovered by the test controller
+    await executeCommandWithCommandPalette(page, 'File: Save');
+    await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+  }
 };
 
 /**
@@ -294,8 +298,14 @@ export const setupMinimalOrgAndAuth = async (page: Page): Promise<void> => {
     className: string,
     content: string
   ): Promise<void> => {
+
+    // Disable auto-closing brackets temporarily to avoid duplicates when typing
+    await disableMonacoAutoClosing(page);
     await createApexClass(page, className, content);
 
+
+    // Re-enable auto-closing brackets
+    await enableMonacoAutoClosing(page);
     // On web, saving the file auto-deploys via push-or-deploy-on-save, so we just wait for completion
     // On desktop, we need to explicitly deploy
     if (isDesktop()) {

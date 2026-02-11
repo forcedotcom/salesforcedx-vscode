@@ -236,3 +236,31 @@ export const validateNoCriticalErrors = async (
     await Promise.resolve(); // Satisfy require-await lint rule
   });
 };
+
+/** Disable Monaco editor auto-closing features (brackets, quotes, etc.) to prevent duplicates during typing */
+export const disableMonacoAutoClosing = async (page: Page): Promise<void> => {
+  await page.evaluate(() => {
+    const monacoEditor = (window as any).monaco?.editor?.getEditors?.()?.[0];
+    if (monacoEditor) {
+      monacoEditor.updateOptions({
+        autoClosingBrackets: 'never',
+        autoClosingQuotes: 'never',
+        autoClosingOvertype: 'never'
+      });
+    }
+  });
+};
+
+/** Re-enable Monaco editor auto-closing features with default language-defined behavior */
+export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
+  await page.evaluate(() => {
+    const monacoEditor = (window as any).monaco?.editor?.getEditors?.()?.[0];
+    if (monacoEditor) {
+      monacoEditor.updateOptions({
+        autoClosingBrackets: 'languageDefined',
+        autoClosingQuotes: 'languageDefined',
+        autoClosingOvertype: 'auto'
+      });
+    }
+  });
+};
