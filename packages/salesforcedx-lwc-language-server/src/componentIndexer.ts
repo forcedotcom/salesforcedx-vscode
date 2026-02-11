@@ -177,40 +177,26 @@ export default class ComponentIndexer {
 
   // visible for testing
   public getComponentEntries(): Entry[] {
-    let files: Entry[] = [];
+    const filterDirMatchesName = (item: Entry): boolean => {
+      const data = path.parse(item.path);
+      return data.dir.endsWith(data.name);
+    };
 
-    switch (this.workspaceType) {
-      case 'SFDX':
-        // workspaceRoot is already normalized by getWorkspaceRoot()
-        const packageDirsPattern = this.getSfdxPackageDirsPattern();
-        // If packageDirsPattern is empty, sfdx-project.json hasn't been loaded yet
-        // Return empty array - component indexer should not be initialized until config is available
-        if (!packageDirsPattern) {
-          return [];
-        }
-        // Pattern matches: {packageDir}/**/*/lwc/**/*.js
-        // The **/* before lwc requires at least one directory level (e.g., main/default/lwc or meta/lwc)
-        const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
-        files = findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
-        const filteredFiles = files.filter((item: Entry): boolean => {
-          const data = path.parse(item.path);
-          const dirEndsWithName = data.dir.endsWith(data.name);
-          return dirEndsWithName;
-        });
-
-        return filteredFiles;
-      default:
-        // For CORE_ALL and CORE_PARTIAL
-        // workspaceRoot is already normalized by getWorkspaceRoot()
-        const defaultPattern = '**/*/modules/**/*.js';
-        files = findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot);
-        const filteredFilesDefault = files.filter((item: Entry): boolean => {
-          const data = path.parse(item.path);
-          const dirEndsWithName = data.dir.endsWith(data.name);
-          return dirEndsWithName;
-        });
-        return filteredFilesDefault;
+    if (this.workspaceType === 'SFDX') {
+      // workspaceRoot is already normalized by getWorkspaceRoot()
+      const packageDirsPattern = this.getSfdxPackageDirsPattern();
+      // If packageDirsPattern is empty, sfdx-project.json hasn't been loaded yet
+      if (!packageDirsPattern) {
+        return [];
+      }
+      // Pattern matches: {packageDir}/**/*/lwc/**/*.js
+      const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
+      return findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot).filter(filterDirMatchesName);
     }
+
+    // For CORE_ALL and CORE_PARTIAL
+    const defaultPattern = '**/*/modules/**/*.js';
+    return findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot).filter(filterDirMatchesName);
   }
 
   public getCustomData(): Tag[] {
