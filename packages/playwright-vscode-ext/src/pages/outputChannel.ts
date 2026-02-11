@@ -21,7 +21,7 @@ import { openCommandPalette } from './commands';
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
 const outputPanelCodeArea = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-lines`);
-const filterInput = (page: Page) => page.getByPlaceholder(/Filter/i);
+const filterInput = (page: Page) => outputPanel(page).getByPlaceholder(/Filter/i);
 
 /** Get all text content from output panel (including scrolled content), normalized */
 const getAllOutputText = async (page: Page): Promise<string> => {
