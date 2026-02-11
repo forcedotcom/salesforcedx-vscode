@@ -145,7 +145,7 @@ const createFiles = Effect.fn('createFiles')(function* (className: string, outpu
 });
 
 /** Create Apex class command */
-export const createApexClass = (commandParams?: CreateApexClassParams) =>
+export const createApexClassCommand = (commandParams?: CreateApexClassParams) =>
   Effect.gen(function* () {
     // Get class name
     const className = commandParams?.name ?? (yield* Effect.promise(async () => await promptForClassName()));

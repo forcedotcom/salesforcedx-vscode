@@ -25,7 +25,7 @@ const rowToLine = (row: StatusOutputRow): string =>
 const formatChanges = (changes: StatusOutputRow[] | undefined, sectionTitle: string): string =>
   changes !== undefined ? [...getTitle(changes, sectionTitle), ...changes.map(rowToLine)].join('\n') : '';
 
-export const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChangesOptions) {
+export const viewChangesCommand = Effect.fn('viewChanges')(function* (options: ViewChangesOptions) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const channel = yield* channelService.getChannel;

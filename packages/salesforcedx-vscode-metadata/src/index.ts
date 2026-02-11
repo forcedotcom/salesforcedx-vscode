@@ -10,18 +10,18 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { createApexClass } from './commands/createApexClass';
-import { deleteSourcePathsEffect } from './commands/deleteSourcePath';
-import { deployManifestEffect } from './commands/deployManifest';
-import { deployActiveEditorEffect, deploySourcePathsEffect } from './commands/deploySourcePath';
-import { generateManifestEffect } from './commands/generateManifest';
-import { projectDeployStart } from './commands/projectDeployStart';
-import { resetRemoteTrackingEffect } from './commands/resetRemoteTracking';
-import { retrieveManifest } from './commands/retrieveManifest';
-import { retrieveSourcePathsEffect } from './commands/retrieveSourcePath';
-import { projectRetrieveStartEffect } from './commands/retrieveStart/projectRetrieveStart';
-import { viewChangesEffect } from './commands/showSourceTrackingDetails';
-import { sourceDiffEffect } from './commands/sourceDiff';
+import { createApexClassCommand } from './commands/createApexClass';
+import { deleteSourcePathsCommand } from './commands/deleteSourcePath';
+import { deployManifestCommand } from './commands/deployManifest';
+import { deployActiveEditorCommand, deploySourcePathsCommand } from './commands/deploySourcePath';
+import { generateManifestCommand } from './commands/generateManifest';
+import { projectDeployStartCommand } from './commands/projectDeployStart';
+import { resetRemoteTrackingCommand } from './commands/resetRemoteTracking';
+import { retrieveManifestCommand } from './commands/retrieveManifest';
+import { retrieveSourcePathsCommand } from './commands/retrieveSourcePath';
+import { projectRetrieveStartCommand } from './commands/retrieveStart/projectRetrieveStart';
+import { viewChangesCommand } from './commands/showSourceTrackingDetails';
+import { sourceDiffCommand } from './commands/sourceDiff';
 import { CORE_CONFIG_SECTION, EXTENSION_NAME, DEPLOY_ON_SAVE_ENABLED } from './constants';
 import { getShowSharedCommands, watchUseMetadataExtensionCommands } from './services/configWatcher';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
@@ -55,35 +55,35 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.all(
     [
       svc.appendToChannel('Registering metadata commands'),
-      registerCommand('sf.metadata.apex.generate.class', createApexClass),
+      registerCommand('sf.metadata.apex.generate.class', createApexClassCommand),
       registerCommand('sf.metadata.delete.source', (sourceUri?: URI, uris?: URI[]) =>
-        deleteSourcePathsEffect(sourceUri, uris)
+        deleteSourcePathsCommand(sourceUri, uris)
       ),
-      registerCommand('sf.metadata.delete.source.current.file', () => deleteSourcePathsEffect(undefined, undefined)),
-      registerCommand('sf.metadata.deploy.active.editor', () => deployActiveEditorEffect()),
-      registerCommand('sf.metadata.deploy.in.manifest', (manifestUri?: URI) => deployManifestEffect(manifestUri)),
+      registerCommand('sf.metadata.delete.source.current.file', () => deleteSourcePathsCommand(undefined, undefined)),
+      registerCommand('sf.metadata.deploy.active.editor', () => deployActiveEditorCommand()),
+      registerCommand('sf.metadata.deploy.in.manifest', (manifestUri?: URI) => deployManifestCommand(manifestUri)),
       registerCommand('sf.metadata.deploy.source.path', (sourceUri: URI, uris: URI[] = []) =>
-        deploySourcePathsEffect(sourceUri, uris)
+        deploySourcePathsCommand(sourceUri, uris)
       ),
-      registerCommand('sf.metadata.project.deploy.start', () => projectDeployStart(false)),
-      registerCommand('sf.metadata.project.deploy.start.ignore.conflicts', () => projectDeployStart(true)),
+      registerCommand('sf.metadata.project.deploy.start', () => projectDeployStartCommand(false)),
+      registerCommand('sf.metadata.project.deploy.start.ignore.conflicts', () => projectDeployStartCommand(true)),
       registerCommand('sf.metadata.project.generate.manifest', (sourceUri?: URI, uris?: URI[]) =>
-        generateManifestEffect(sourceUri, uris)
+        generateManifestCommand(sourceUri, uris)
       ),
-      registerCommand('sf.metadata.project.retrieve.start', () => projectRetrieveStartEffect(false)),
-      registerCommand('sf.metadata.project.retrieve.start.ignore.conflicts', () => projectRetrieveStartEffect(true)),
+      registerCommand('sf.metadata.project.retrieve.start', () => projectRetrieveStartCommand(false)),
+      registerCommand('sf.metadata.project.retrieve.start.ignore.conflicts', () => projectRetrieveStartCommand(true)),
       registerCommand('sf.metadata.retrieve.current.source.file', () =>
-        retrieveSourcePathsEffect(undefined, undefined)
+        retrieveSourcePathsCommand(undefined, undefined)
       ),
-      registerCommand('sf.metadata.retrieve.in.manifest', retrieveManifest),
+      registerCommand('sf.metadata.retrieve.in.manifest', retrieveManifestCommand),
       registerCommand('sf.metadata.retrieve.source.path', (sourceUri?: URI, uris?: URI[]) =>
-        retrieveSourcePathsEffect(sourceUri, uris)
+        retrieveSourcePathsCommand(sourceUri, uris)
       ),
-      registerCommand('sf.metadata.source.diff', (sourceUri?: URI, uris?: URI[]) => sourceDiffEffect(sourceUri, uris)),
-      registerCommand('sf.metadata.source.tracking.reset.remote', () => resetRemoteTrackingEffect()),
-      registerCommand('sf.metadata.view.all.changes', () => viewChangesEffect({ local: true, remote: true })),
-      registerCommand('sf.metadata.view.local.changes', () => viewChangesEffect({ local: true, remote: false })),
-      registerCommand('sf.metadata.view.remote.changes', () => viewChangesEffect({ local: false, remote: true }))
+      registerCommand('sf.metadata.source.diff', (sourceUri?: URI, uris?: URI[]) => sourceDiffCommand(sourceUri, uris)),
+      registerCommand('sf.metadata.source.tracking.reset.remote', () => resetRemoteTrackingCommand()),
+      registerCommand('sf.metadata.view.all.changes', () => viewChangesCommand({ local: true, remote: true })),
+      registerCommand('sf.metadata.view.local.changes', () => viewChangesCommand({ local: true, remote: false })),
+      registerCommand('sf.metadata.view.remote.changes', () => viewChangesCommand({ local: false, remote: true }))
     ],
     { concurrency: 'unbounded' }
   );

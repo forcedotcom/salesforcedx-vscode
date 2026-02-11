@@ -25,7 +25,7 @@ The tsconfig `target`/`lib` properties will ensure you don't use something that'
 
 ### AI guidance
 
-(it's usesful for humans, too!)
+(it's useful for humans, too!)
 
 See [TypeScript skill](../../.claude/skills/typescript/SKILL.md) for AI-enforced coding standards.
 

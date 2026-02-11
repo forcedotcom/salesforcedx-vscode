@@ -35,7 +35,7 @@ const deletePaths = (uris: URI[]) =>
   });
 
 /** Delete source paths from the default org */
-export const deleteSourcePathsEffect = Effect.fn('deleteSourcePaths')(function* (
+export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(function* (
   sourceUri: URI | undefined,
   uris: URI[] | undefined
 ) {
