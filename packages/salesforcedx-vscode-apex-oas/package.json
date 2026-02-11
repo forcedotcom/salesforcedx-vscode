@@ -38,7 +38,7 @@
     "fast-xml-parser": "4.5.3",
     "jsonpath-plus": "10.3.0",
     "vscode-uri": "^3.1.0",
-    "yaml": "2.8.1"
+    "yaml": "2.8.2"
   },
   "devDependencies": {
     "@salesforce/core": "^8.18.4",
