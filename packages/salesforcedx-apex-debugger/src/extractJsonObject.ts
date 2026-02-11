@@ -5,13 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export const extractJsonObject = (str: string): any => {
-let stringValue = str;
-  if (typeof str !== 'string') {
-    stringValue = String(str);
-  }
+  const jsonString = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
 
-  const jsonString = stringValue.substring(stringValue.indexOf('{'), stringValue.lastIndexOf('}') + 1);
-
-  const result = JSON.parse(jsonString);
-  return result;
+  return JSON.parse(jsonString);
 };

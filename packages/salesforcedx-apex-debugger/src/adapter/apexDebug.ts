@@ -1369,7 +1369,7 @@ export class ApexDebug extends LoggingDebugSession {
         break;
       }
     }
-    void this.myStreamingService.markEventProcessed(message.sobject.Type, message.event.replayId);
+    this.myStreamingService.markEventProcessed(message.sobject.Type, message.event.replayId);
   }
 
   public logEvent(message: DebuggerMessage): void {
