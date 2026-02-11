@@ -12,34 +12,26 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const Layer = jest.requireActual('effect/Layer');
 
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
-  const MockConnectionServiceTag = Context.GenericTag('ConnectionService');
 
   // This will be set by tests via __setMockConnection
   let mockConnectionRef: any;
 
-  const mockConnectionService = {
-    get getConnection() {
-      return EffectLib.succeed(mockConnectionRef);
-    }
+  // Mock ConnectionService as a class-like object with static accessor method
+  const MockConnectionService = {
+    getConnection: () => EffectLib.succeed(mockConnectionRef)
   };
 
   const mockServicesApi = {
     services: {
-      ConnectionService: MockConnectionServiceTag
+      ConnectionService: MockConnectionService
     }
   };
 
-  const MockAllServicesLayer = Layer.mergeAll(
-    Layer.effect(
-      MockExtensionProviderService,
-      EffectLib.sync(() => ({
-        getServicesApi: EffectLib.succeed(mockServicesApi)
-      }))
-    ),
-    Layer.effect(
-      MockConnectionServiceTag,
-      EffectLib.sync(() => mockConnectionService)
-    )
+  const MockAllServicesLayer = Layer.effect(
+    MockExtensionProviderService,
+    EffectLib.sync(() => ({
+      getServicesApi: EffectLib.succeed(mockServicesApi)
+    }))
   );
 
   return {

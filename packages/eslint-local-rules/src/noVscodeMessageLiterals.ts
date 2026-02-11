@@ -17,6 +17,19 @@ const isNlsLocalizeCall = (expr: TSESTree.Expression): boolean =>
   expr.callee.property.type === AST_NODE_TYPES.Identifier &&
   expr.callee.property.name === 'localize';
 
+/** Check if an expression is a string literal or template literal without nls.localize() */
+const isStringLiteralOrTemplateWithoutNls = (
+  expr: TSESTree.Expression
+): boolean => {
+  if (expr.type === AST_NODE_TYPES.Literal && typeof expr.value === 'string') {
+    return true;
+  }
+  if (expr.type === AST_NODE_TYPES.TemplateLiteral) {
+    return !expr.expressions.some(isNlsLocalizeCall);
+  }
+  return false;
+};
+
 export const noVscodeMessageLiterals = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
@@ -70,6 +83,35 @@ export const noVscodeMessageLiterals = RuleCreator.withoutDocs({
             messageId: 'noLiteral',
             data: { method: methodName }
           });
+        }
+        return;
+      }
+
+      // Check if argument is an identifier (variable) - track back to definition
+      if (firstArg.type === AST_NODE_TYPES.Identifier) {
+        // Traverse scopes from innermost to outermost to find variable definition
+        let currentScope: ReturnType<typeof context.sourceCode.getScope> | null = context.sourceCode.getScope(node);
+        while (currentScope) {
+          const variable = currentScope.variables.find(v => v.name === firstArg.name);
+          if (variable?.defs[0]) {
+            const def = variable.defs[0];
+            const defNode = def.node;
+            // Check if it's a VariableDeclarator (const/let/var declarations)
+            if (defNode.type === AST_NODE_TYPES.VariableDeclarator && defNode.init) {
+              if (isStringLiteralOrTemplateWithoutNls(defNode.init)) {
+                context.report({
+                  node: firstArg,
+                  messageId: 'noLiteral',
+                  data: { method: methodName }
+                });
+                return;
+              }
+            }
+            // Found the variable but it's not a string literal - stop searching
+            return;
+          }
+          // Move to parent scope
+          currentScope = currentScope.upper;
         }
       }
     }

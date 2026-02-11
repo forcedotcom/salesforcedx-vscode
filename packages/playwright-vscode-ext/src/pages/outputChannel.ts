@@ -31,6 +31,20 @@ const getAllOutputText = async (page: Page): Promise<string> => {
   return (text ?? '').replaceAll('\u00A0', ' ');
 };
 
+/** Wait for output channel to have content */
+const waitForOutputContent = async (page: Page, timeout: number): Promise<boolean> => {
+  const codeArea = outputPanelCodeArea(page);
+  try {
+    await expect(async () => {
+      const text = await codeArea.textContent();
+      expect(text?.trim().length ?? 0).toBeGreaterThan(1);
+    }).toPass({ timeout });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 /** Use filter to ensure output is rendered, then check full DOM content */
 const withOutputFilter = async <T>(page: Page, searchText: string, fn: () => Promise<T>): Promise<T> => {
   const input = filterInput(page);
@@ -118,14 +132,26 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
 };
 
 /** Checks if the output channel contains specific text */
-export const outputChannelContains = async (page: Page, searchText: string): Promise<boolean> =>
-  withOutputFilter(page, searchText, async () => {
+export const outputChannelContains = async (
+  page: Page,
+  searchText: string,
+  opts?: { timeout?: number }
+): Promise<boolean> => {
+  const { timeout = 10_000 } = opts ?? {};
+
+  // First wait for output channel to have content
+  if (!(await waitForOutputContent(page, timeout))) {
+    return false;
+  }
+
+  // Then check if it contains the search text
+  return withOutputFilter(page, searchText, async () => {
     try {
       await expect(async () => {
         // Use getAllOutputText to get full DOM content including scrolled content
         const combinedText = await getAllOutputText(page);
         expect(combinedText.includes(searchText), `Expected "${searchText}" in output`).toBe(true);
-      }).toPass({ timeout: 500 });
+      }).toPass({ timeout });
       const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
       await page.screenshot({ path: `test-results/filter-${safeName}.png` });
       return true;
@@ -135,6 +161,7 @@ export const outputChannelContains = async (page: Page, searchText: string): Pro
       return false;
     }
   });
+};
 
 /**
  * Clears the output channel by clicking the clear button in the output panel toolbar.
@@ -160,11 +187,10 @@ export const waitForOutputChannelText = async (
 ): Promise<void> => {
   const { expectedText, timeout = 30_000 } = opts;
 
-  const codeArea = outputPanelCodeArea(page);
-  await expect(async () => {
-    const text = await codeArea.textContent();
-    expect(text?.trim().length ?? 0).toBeGreaterThan(1);
-  }).toPass({ timeout });
+  // Wait for output channel to have content
+  if (!(await waitForOutputContent(page, timeout))) {
+    throw new Error(`Output channel did not have content within ${timeout}ms`);
+  }
 
   await withOutputFilter(page, expectedText, async () => {
     await expect(async () => {

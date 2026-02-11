@@ -31,8 +31,9 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, OUTPUT_CHANNEL_NAME } from '../../../src/constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { messages } from '../../../src/messages/i18n';
+import packageJson from '../../../package.json';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
@@ -139,7 +140,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
     if (hasPostDeployError) {
       const errorText = await postDeployErrorNotification.textContent();
       // Capture output channel details for debugging
-      await captureOutputChannelDetails(page, OUTPUT_CHANNEL_NAME, 'deploy-error-metadata-output.png');
+      await captureOutputChannelDetails(page, packageJson.displayName, 'deploy-error-metadata-output.png');
       throw new Error(`Deploy failed with error notification: ${errorText}`);
     }
 
@@ -177,7 +178,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
     if (hasPostDeployError) {
       const errorText = await postDeployErrorNotification.textContent();
       // Capture output channel details for debugging
-      await captureOutputChannelDetails(page, OUTPUT_CHANNEL_NAME, 'deploy-error-metadata-output-step2.png');
+      await captureOutputChannelDetails(page, packageJson.displayName, 'deploy-error-metadata-output-step2.png');
       throw new Error(`Deploy failed with error notification: ${errorText}`);
     }
 

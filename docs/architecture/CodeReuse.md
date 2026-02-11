@@ -36,6 +36,8 @@ We're moving towards the `vscode-services` as the shared library of choice (get 
 
 To get TS support outside this repo, `import type {SalesforceVSCodeServicesApi} from '@salesforce/vscode-services'`. See the [extensionProvider.ts](../../packages/salesforcedx-vscode-org-browser/src/services/extensionProvider.ts) in the new org-browser extension as a model.
 
+See [services-extension-consumption skill](../../.claude/skills/services-extension-consumption/SKILL.md) for detailed guidelines on consuming the services extension API.
+
 Then, extensions merely need to ensure that the extension whose services they depend on is installed, running, and active, before using its API.
 
 If your work is going to create something you think belongs in `vscode-services` please open a PR.

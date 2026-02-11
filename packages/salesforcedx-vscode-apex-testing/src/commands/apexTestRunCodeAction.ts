@@ -100,8 +100,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     const sfProject = await Effect.runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const svc = yield* api.services.ProjectService;
-        return yield* svc.getSfProject;
+        return yield* api.services.ProjectService.getSfProject();
       }).pipe(Effect.provide(AllServicesLayer))
     );
 

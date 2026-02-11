@@ -30,6 +30,7 @@ export const createDesktopConfig = (options: DesktopConfigOptions = {}) =>
     },
     timeout: process.env.DEBUG_MODE ? 0 : 60 * 1000,
     maxFailures: process.env.CI ? 3 : 0,
+    globalSetup: require.resolve('./downloadVSCode'),
     projects: [
       {
         name: 'desktop-electron',

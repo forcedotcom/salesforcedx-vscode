@@ -23,8 +23,7 @@ export const readFile = (filePath: string): Promise<string> =>
   Effect.runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const fsService = yield* api.services.FsService;
-      return yield* fsService.readFile(filePath);
+      return yield* api.services.FsService.readFile(filePath);
     }).pipe(Effect.provide(AllServicesLayer))
   );
 

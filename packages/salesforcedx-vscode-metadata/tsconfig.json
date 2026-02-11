@@ -10,17 +10,13 @@
       }
     ]
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
+  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "include": [
     "src/**/*.ts",
     "test/**/*.ts",
     "playwright.config.web.ts",
     "playwright.config.desktop.ts",
+    "package.json",
     "package.nls.json"
   ],
   "references": [

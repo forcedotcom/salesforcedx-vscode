@@ -57,6 +57,8 @@ cons
 
 ### new: playwright
 
+See [.claude/skills/playwright-e2e/SKILL.md](../.claude/skills/playwright-e2e/SKILL.md) for guidelines on writing, running, and debugging Playwright tests.
+
 pros
 
 - fast

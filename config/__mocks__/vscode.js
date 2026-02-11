@@ -105,7 +105,8 @@ const vscode = {
 
   // Commands
   commands: {
-    executeCommand: jest.fn()
+    executeCommand: jest.fn(),
+    registerCommand: jest.fn()
   },
 
   // Environment

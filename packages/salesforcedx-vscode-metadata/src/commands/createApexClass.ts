@@ -12,13 +12,12 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 
-type CreateApexClassParams = {
+export type CreateApexClassParams = {
   readonly name?: string;
   readonly outputDir?: URI;
 };
-class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> { }
+class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
 
 const fromProject = Effect.fn('getApiVersion.fromProject')(function* (project: SfProject) {
   const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
@@ -27,7 +26,7 @@ const fromProject = Effect.fn('getApiVersion.fromProject')(function* (project: S
 
 const fromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
   const connectionService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ConnectionService;
-  const connection = yield* connectionService.getConnection;
+  const connection = yield* connectionService.getConnection();
   return connection.version;
 });
 
@@ -35,7 +34,6 @@ const fromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
 const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) {
   return yield* fromProject(project).pipe(
     Effect.orElse(() => fromConnection()),
-    Effect.provide(AllServicesLayer),
     Effect.catchAll(() => Effect.succeed('65.0'))
   );
 });
@@ -43,10 +41,10 @@ const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) 
 /** Prompt user to select output directory from available package directories */
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   // Build Quick Pick items for each package directory
-  const items = (project.getPackageDirectories()).map(pkg => ({
+  const items = project.getPackageDirectories().map(pkg => ({
     label: `${pkg.path}/main/default/classes`,
     description: pkg.default ? '(default)' : undefined,
     uri: Utils.joinPath(workspaceInfo.uri, pkg.path, 'main', 'default', 'classes')
@@ -84,10 +82,9 @@ const promptForClassName = async (): Promise<string | undefined> => {
 /** Check if files exist and prompt for overwrite if needed */
 const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (clsUri: URI, metaUri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
 
   const [clsExists, metaExists] = yield* Effect.all(
-    [fsService.fileOrFolderExists(clsUri), fsService.fileOrFolderExists(metaUri)],
+    [api.services.FsService.fileOrFolderExists(clsUri), api.services.FsService.fileOrFolderExists(metaUri)],
     { concurrency: 'unbounded' }
   );
 
@@ -97,17 +94,21 @@ const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (
 
   // Prompt user
   const choice = yield* Effect.promise(() =>
-    vscode.window.showWarningMessage(nls.localize('apex_class_already_exists'), { modal: true }, 'Overwrite', 'Cancel')
+    vscode.window.showWarningMessage(
+      nls.localize('apex_class_already_exists'),
+      { modal: true },
+      nls.localize('overwrite_button'),
+      nls.localize('cancel_button')
+    )
   );
 
-  return choice === 'Overwrite' ? true : yield* new UserCancelledOverwriteError();
+  return choice === nls.localize('overwrite_button') ? true : yield* new UserCancelledOverwriteError();
 });
 
 // this really should use the template library, but I need an apex class create for testing purposes and don't have the real one yet
 /** Create Apex class files */
 const createFiles = Effect.fn('createFiles')(function* (className: string, outputDir: URI, apiVersion: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
   const channelService = yield* api.services.ChannelService;
 
   const clsUri = Utils.joinPath(outputDir, `${className}.cls`);
@@ -123,17 +124,16 @@ const createFiles = Effect.fn('createFiles')(function* (className: string, outpu
 
 }`;
 
-  // Create meta file
-  const metaContent = `<?xml version="1.0" encoding="UTF-8"?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${apiVersion}</apiVersion>
-    <status>Active</status>
-</ApexClass>`;
-
   // Write both files - pass URI objects directly
-  yield* Effect.all([fsService.writeFile(clsUri, clsContent), fsService.writeFile(metaUri, metaContent)], {
-    concurrency: 'unbounded'
-  });
+  yield* Effect.all(
+    [
+      api.services.FsService.writeFile(clsUri, clsContent),
+      api.services.FsService.writeFile(metaUri, getMetaContent(apiVersion))
+    ],
+    {
+      concurrency: 'unbounded'
+    }
+  );
 
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
 
@@ -145,40 +145,31 @@ const createFiles = Effect.fn('createFiles')(function* (className: string, outpu
 });
 
 /** Create Apex class command */
-export const createApexClass = async (params?: CreateApexClassParams): Promise<void> =>
-  Effect.runPromise(
-    commandEffect(params).pipe(
-      Effect.provide(AllServicesLayer),
-      Effect.catchTag('UserCancelledOverwriteError', () => Effect.void), // it's fine, they meant to
-      Effect.catchAll((error: Error) =>
-        Effect.promise(() =>
-          vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error))
-        ).pipe(Effect.as(undefined))
-      )
-    )
-  );
+export const createApexClassCommand = (commandParams?: CreateApexClassParams) =>
+  Effect.gen(function* () {
+    // Get class name
+    const className = commandParams?.name ?? (yield* Effect.promise(async () => await promptForClassName()));
+    if (!className) {
+      return yield* Effect.succeed(undefined);
+    }
 
-const commandEffect = Effect.fn('createApexClassCommand')(function* (commandParams?: CreateApexClassParams) {
-  // Get class name
-  const className = commandParams?.name ?? (yield* Effect.promise(async () => await promptForClassName()));
-  if (!className) {
-    return yield* Effect.succeed(undefined);
-  }
+    const project = yield* (yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
+      .ProjectService).getSfProject();
 
-  const project = yield* (yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ProjectService)
-    .getSfProject;
+    const [outputDir, apiVersion] = yield* Effect.all([
+      Effect.suspend(() =>
+        commandParams?.outputDir ? Effect.succeed(commandParams.outputDir) : promptForOutputDir(project)
+      ),
+      getApiVersion(project)
+    ]);
 
-  const [outputDir, apiVersion] = yield* Effect.all([
-    Effect.suspend(() =>
-      commandParams?.outputDir ? Effect.succeed(commandParams.outputDir) : promptForOutputDir(project)
-    ),
-    getApiVersion(project)
-  ]);
+    return outputDir ? yield* createFiles(className, outputDir, apiVersion) : yield* Effect.succeed(undefined);
+  }).pipe(Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(undefined)));
 
-  if (!outputDir) {
-    return yield* Effect.succeed(undefined); // User cancelled
-  }
-
-  // Create files
-  yield* createFiles(className, outputDir, apiVersion);
-});
+const getMetaContent = (apiVersion: string) =>
+  // Create meta file
+  `<?xml version="1.0" encoding="UTF-8"?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>${apiVersion}</apiVersion>
+    <status>Active</status>
+</ApexClass>`;

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DiscoverTestsOptions, ToolingTestClass, ToolingTestsPage } from './schemas';
+import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type * as Either from 'effect/Either';
@@ -20,8 +20,7 @@ const minApiVersion = 65.0;
 export const discoverTests = (options: DiscoverTestsOptions = {}) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const connectionService = yield* api.services.ConnectionService;
-    const connection = yield* connectionService.getConnection;
+    const connection = yield* api.services.ConnectionService.getConnection();
 
     const connectionApiVersion = parseFloat(connection.getApiVersion());
     // Ensure we use an API version that supports the Test Discovery API (>= 65.0)
@@ -86,7 +85,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
       );
     }
 
-    return { classes };
+    return { classes } satisfies TestDiscoveryResult;
   }).pipe(
     Effect.withSpan('apex-test-discovery', {
       attributes: {

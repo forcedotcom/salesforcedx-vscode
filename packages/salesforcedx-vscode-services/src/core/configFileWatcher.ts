@@ -15,7 +15,6 @@ import { FileWatcherService } from '../vscode/fileWatcherService';
 import { ConnectionService } from './connectionService';
 import { clearDefaultOrgRef } from './defaultOrgRef';
 
-
 /** Check if a file path is a config file (global or project-specific) */
 const isConfigFile = (path: string, globalConfigPath: string, projectConfigPattern: string): boolean => {
   const normalizedPath = normalize(path);
@@ -36,13 +35,13 @@ export const watchConfigFiles = () =>
 
       const fileWatcherService = yield* FileWatcherService;
       const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
-      const connectionService = yield* ConnectionService;
 
       // Subscribe to file changes and clear defaultOrgRef when config files change
       yield* Stream.fromQueue(dequeue).pipe(
         Stream.filter(event => isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)),
         Stream.debounce(Duration.millis(5)),
-        Stream.runForEach(() => connectionService.getConnection.pipe(Effect.catchAll(() => clearDefaultOrgRef())))
+        // get connection will cause defaultOrgRef to update, clear the ref if there's any error where we won't have an org connection.
+        Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => clearDefaultOrgRef())))
       );
     })
   );

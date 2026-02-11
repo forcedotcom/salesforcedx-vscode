@@ -31,15 +31,12 @@ export const AllServicesLayer = Layer.unwrapEffect(
     // Merge all the service layers from the API
     return Layer.mergeAll(
       ExtensionProviderServiceLive,
-      api.services.ConfigService.Default,
       api.services.ConnectionService.Default,
+      api.services.ExtensionContextService.Default,
       api.services.FileWatcherService.Default,
       api.services.FsService.Default,
-      api.services.MetadataRegistryService.Default,
       api.services.MetadataRetrieveService.Default,
       api.services.ProjectService.Default,
-      api.services.SettingsService.Default,
-      api.services.WorkspaceService.Default,
       api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint }),
       api.services.ChannelServiceLayer(CHANNEL_NAME)
     );

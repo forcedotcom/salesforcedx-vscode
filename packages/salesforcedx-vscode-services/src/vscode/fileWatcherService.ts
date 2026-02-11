@@ -41,7 +41,7 @@ export class FileWatcherService extends Effect.Service<FileWatcherService>()('Fi
 
     yield* (yield* ChannelService).appendToChannel('FileWatcherService started successfully');
 
-    return { pubsub } as const;
+    return { pubsub };
   }),
   dependencies: [ChannelService.Default]
 }) {}

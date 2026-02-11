@@ -10,14 +10,18 @@ import * as Cache from 'effect/Cache';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { pipe } from 'effect/Function';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';
 
-export class FailedToResolveSfProjectError extends Data.TaggedError('FailedToResolveSfProjectError')<{
-  readonly cause?: Error;
-}> {}
+export class FailedToResolveSfProjectError extends Schema.TaggedError<FailedToResolveSfProjectError>()(
+  'FailedToResolveSfProjectError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.instanceOf(Error))
+  }
+) {}
 
 const setProjectOpenedContext = (value: boolean) =>
   Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:project_opened', value)).pipe(
@@ -27,7 +31,13 @@ const setProjectOpenedContext = (value: boolean) =>
 const resolveSfProject = (fsPath: string) =>
   Effect.tryPromise({
     try: () => SfProject.resolve(fsPath),
-    catch: error => new FailedToResolveSfProjectError(unknownToErrorCause(error))
+    catch: error => {
+      const { cause } = unknownToErrorCause(error);
+      return new FailedToResolveSfProjectError({
+        message: `Failed to resolve SfProject at "${fsPath}": ${cause.message}`,
+        cause
+      });
+    }
   }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }));
 
 // Global cache - created once at module level, not scoped to any consumer
@@ -40,32 +50,40 @@ const globalSfProjectCache = Effect.runSync(
 );
 
 export class ProjectService extends Effect.Service<ProjectService>()('ProjectService', {
-  succeed: {
+  accessors: true,
+  dependencies: [WorkspaceService.Default],
+  effect: Effect.gen(function* () {
+    const workspaceService = yield* WorkspaceService;
+
     /** Check if we're in a Salesforce project (sfdx-project.json exists).  Side effect: sets the 'sf:project_opened' context to true or false */
-    isSalesforceProject: pipe(
-      WorkspaceService,
-      Effect.flatMap(ws => ws.getWorkspaceInfo),
-      Effect.flatMap(workspaceDescription =>
-        workspaceDescription.isEmpty
-          ? setProjectOpenedContext(false).pipe(Effect.as(false))
-          : globalSfProjectCache.get(workspaceDescription.fsPath).pipe(
-              Effect.tap(() => setProjectOpenedContext(true)),
-              Effect.tapError(() => setProjectOpenedContext(false)),
-              Effect.map(() => true),
-              Effect.catchAll(() => Effect.succeed(false))
-            )
-      )
-    ),
+    const isSalesforceProject = Effect.fn('ProjectService.isSalesforceProject')(function* () {
+      const workspaceDescription = yield* workspaceService.getWorkspaceInfo();
+
+      if (workspaceDescription.isEmpty) {
+        yield* setProjectOpenedContext(false);
+        return false;
+      }
+
+      return yield* globalSfProjectCache.get(workspaceDescription.fsPath).pipe(
+        Effect.tap(() => setProjectOpenedContext(true)),
+        Effect.tapError(() => setProjectOpenedContext(false)),
+        Effect.map(() => true),
+        Effect.catchTag('FailedToResolveSfProjectError', () => Effect.succeed(false))
+      );
+    });
+
     /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
-    getSfProject: WorkspaceService.pipe(
-      Effect.flatMap(ws => ws.getWorkspaceInfoOrThrow),
-      Effect.flatMap(workspaceDescription => globalSfProjectCache.get(workspaceDescription.fsPath)),
-      Effect.withSpan('getSfProject'),
-      Effect.tap(() => setProjectOpenedContext(true)),
-      Effect.tapError(() => setProjectOpenedContext(false))
-    )
-  } as const,
-  dependencies: [WorkspaceService.Default]
+    const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
+      const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow();
+      const project = yield* globalSfProjectCache
+        .get(workspaceDescription.fsPath)
+        .pipe(Effect.tapError(() => setProjectOpenedContext(false)));
+      yield* setProjectOpenedContext(true);
+      return project;
+    });
+
+    return { isSalesforceProject, getSfProject };
+  })
 }) {}
 
 export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}

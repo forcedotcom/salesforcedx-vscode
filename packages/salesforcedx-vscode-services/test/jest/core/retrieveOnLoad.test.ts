@@ -5,30 +5,43 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentStatus, type FileResponse, type FileResponseSuccess } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentStatus,
+  RegistryAccess,
+  type FileResponse,
+  type FileResponseFailure,
+  type FileResponseSuccess
+} from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
-import { ComponentSetService } from '../../../src/core/componentSetService';
+import { ComponentSetService, type NonEmptyComponentSet } from '../../../src/core/componentSetService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
-import { WorkspaceService } from '../../../src/vscode/workspaceService';
 
-/** Create a test layer for WorkspaceService with a mock workspace path */
-const createMockWorkspaceService = (workspacePath: string): Layer.Layer<WorkspaceService, never, never> => {
-  const workspaceInfo = {
-    uri: URI.parse(`file://${workspacePath}`),
-    path: `file://${workspacePath}`,
-    fsPath: workspacePath,
-    isEmpty: false as const,
-    isVirtualFs: false,
-    cwd: workspacePath
-  };
+/** Create a mock ComponentSetService that only provides the type guards needed for tests */
+const createMockComponentSetService = (): Layer.Layer<ComponentSetService, never, never> =>
+  Layer.succeed(
+    ComponentSetService,
+    new ComponentSetService({
+      isSDRSuccess: (fileResponse: FileResponse): fileResponse is FileResponseSuccess =>
+        fileResponse.state !== ComponentStatus.Failed,
+      isSDRFailure: (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
+        fileResponse.state === ComponentStatus.Failed,
+      ensureNonEmptyComponentSet: () => Effect.succeed({} as NonEmptyComponentSet),
+      getComponentSetFromUris: () => Effect.succeed({} as never),
+      getComponentSetFromManifest: (_manifestUri: URI) => Effect.succeed({} as never)
+    })
+  );
+
+/** Create a mock MetadataRegistryService with real RegistryAccess (no workspace dependency) */
+const createMockMetadataRegistryService = (): Layer.Layer<MetadataRegistryService, never, never> => {
+  const registryAccess = new RegistryAccess();
   return Layer.succeed(
-    WorkspaceService,
-    new WorkspaceService({
-      getWorkspaceInfo: Effect.succeed(workspaceInfo),
-      getWorkspaceInfoOrThrow: Effect.succeed(workspaceInfo)
+    MetadataRegistryService,
+    new MetadataRegistryService({
+      getRegistry: () => Effect.succeed(registryAccess.getRegistry()),
+      getRegistryAccess: () => Effect.succeed(registryAccess)
     })
   );
 };
@@ -104,13 +117,7 @@ describe('parseRetrieveOnLoad', () => {
 });
 
 describe('filterFileResponses', () => {
-  const workspacePath = '/mock/workspace';
-  const workspaceLayer = createMockWorkspaceService(workspacePath);
-  const testLayer = Layer.mergeAll(
-    ComponentSetService.Default,
-    Layer.provide(MetadataRegistryService.Default, workspaceLayer),
-    workspaceLayer
-  );
+  const testLayer = Layer.mergeAll(createMockComponentSetService(), createMockMetadataRegistryService());
 
   it('should include .cls files for ApexClass and not include cls-meta.xml', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];

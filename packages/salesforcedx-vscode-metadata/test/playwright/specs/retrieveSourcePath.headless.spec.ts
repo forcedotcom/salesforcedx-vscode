@@ -32,6 +32,7 @@ import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPag
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 
 // Skip on Mac desktop (right-click doesn't work)
 (isMacDesktop() ? test.skip.bind(test) : test)(
@@ -58,7 +59,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       await statusBarPage.waitForVisible(120_000);
       await saveScreenshot(page, 'setup.after-status-bar-visible.png');
       await saveScreenshot(page, 'setup.complete.png');
-      await upsertSettings(page, { 'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'false' });
+      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     });
 
     await test.step('create local apex class, deploy to org, and make remote change', async () => {

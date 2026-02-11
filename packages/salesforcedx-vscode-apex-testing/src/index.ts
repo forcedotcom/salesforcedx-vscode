@@ -73,7 +73,7 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
       targetOrgRef.changes.pipe(
         // if we don't have an orgId, try to get the connection to cause another event to fire with it
         Stream.tap((org: { username?: string; orgId?: string }) =>
-          !org.orgId ? connectionService.getConnection : Effect.succeed(undefined)
+          !org.orgId ? connectionService.getConnection() : Effect.succeed(undefined)
         ),
         Stream.filter(hasOrgConnected),
         // Deduplicate: only emit when org key changes
@@ -101,7 +101,7 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
 
     // Trigger connection which populates the TargetOrgRef, then discover tests
     // This handles the startup case where the ref is empty
-    yield* connectionService.getConnection;
+    yield* connectionService.getConnection();
   }).pipe(
     Effect.catchAll(error => {
       console.debug('[Apex Testing] Test discovery setup failed:', error);
@@ -160,9 +160,9 @@ const activateEffect = (context: vscode.ExtensionContext) =>
     // Check if we're in a Salesforce project (also sets VS Code context as side effect)
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const projectService = yield* api.services.ProjectService;
-    const isSalesforceProject = yield* projectService.isSalesforceProject.pipe(
-      Effect.catchAll(() => Effect.succeed(false))
-    );
+    const isSalesforceProject = yield* projectService
+      .isSalesforceProject()
+      .pipe(Effect.catchAll(() => Effect.succeed(false)));
 
     // Only set up project-specific features if we're in a Salesforce project
     if (isSalesforceProject && vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {

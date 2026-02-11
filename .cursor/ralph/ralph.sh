@@ -8,13 +8,13 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-# For each iteration, run Claude Code with the following prompt.
+# For each iteration, run with the following prompt.
 # This prompt is basic, we'll expand it later.
 for ((i=1; i<=$1; i++)); do
   result=$(agent --force -p \
-"@.cursor/plans/simplify_playwright_test_helpers_420ec698.plan.md @.cursor/ralph/progress.txt \
+"@.cursor/plans/simplify_playwright_test_helpers_420ec698.plan.md \
 0a. never edit this ralph.sh file.\
-1.  Review commits, progress.txt, and plan.md to avoid repeating mistakes.\
+1.  Review commits and plan.md to avoid repeating mistakes.\
  If no failures, choose the next highest priority item\
  only work on one item at a time, all the way through the end of this list.\
  if a large simplificaiton fails, try doing it in pieces.

@@ -13,21 +13,10 @@ import * as Option from 'effect/Option';
 import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
-export const retrieveOrgBrowserTreeItemCommand = async (
-  node: OrgBrowserTreeItem,
-  treeProvider: MetadataTypeTreeProvider
-): Promise<void> => {
-  const result = await Effect.runPromise(retrieveEffect(node, treeProvider));
-  if (typeof result === 'string') {
-    void vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));
-  }
-};
-
-const retrieveEffect = (
+export const retrieveEffect = (
   node: OrgBrowserTreeItem,
   treeProvider: MetadataTypeTreeProvider
   // void since we catch all the errors and show the vscode error message
@@ -40,21 +29,21 @@ const retrieveEffect = (
 
     yield* Effect.annotateCurrentSpan({ target: target.value.fullName });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const [projectService, retrieveService] = yield* Effect.all([
-      api.services.ProjectService,
-      api.services.MetadataRetrieveService
+
+    const dirs = (yield* api.services.ProjectService.getSfProject())
+      .getPackageDirectories()
+      .map((directory: { fullPath: string }) => directory.fullPath);
+
+    const localComponents = yield* api.services.MetadataRetrieveService.buildComponentSetFromSource(dirs, [
+      target.value
     ]);
-
-    const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
-
-    const localComponents = yield* retrieveService.buildComponentSetFromSource(dirs, [target.value]);
 
     if (!(yield* confirmOverwrite(localComponents, target.value))) {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
     }
 
     // Run the retrieve operation
-    const result = yield* (yield* OrgBrowserRetrieveService).retrieve([target.value], target.value.fullName !== '*');
+    const result = yield* OrgBrowserRetrieveService.retrieve([target.value], target.value.fullName !== '*');
 
     if (typeof result !== 'string')
       // Handle post-retrieve UI updates
@@ -69,8 +58,7 @@ const retrieveEffect = (
 
     return result;
   }).pipe(
-    Effect.withSpan('orgBrowserRetrieveMetadataCommand'),
-    Effect.provide(AllServicesLayer),
+    // Note: Don't provide AllServicesLayer here - registerCommandWithLayer already provides it.
     Effect.catchAll(error =>
       Effect.sync(() => {
         void vscode.window.showErrorMessage(nls.localize('retrieve_failed', String(error)));
@@ -97,10 +85,11 @@ const getRetrieveTarget = (node: OrgBrowserTreeItem): Option.Option<MetadataMemb
 const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember) =>
   Effect.promise(async () => {
     if (localComponents.size === 0) return true;
+    const yesButton = nls.localize('yes_button');
     const answer = await vscode.window.showWarningMessage(
       nls.localize('confirm_overwrite', String(localComponents.size), target.type),
-      'Yes',
-      'No'
+      yesButton,
+      nls.localize('no_button')
     );
-    return answer === 'Yes';
+    return answer === yesButton;
   });

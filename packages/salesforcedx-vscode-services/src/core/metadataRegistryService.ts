@@ -6,47 +6,53 @@
  */
 
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
-import * as Data from 'effect/Data';
+import * as Cache from 'effect/Cache';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';
 
-export class GetRegistryAccessError extends Data.TaggedError('GetRegistryAccessError')<{
-  readonly cause: unknown;
-}> {}
+export class GetRegistryAccessError extends Schema.TaggedError<GetRegistryAccessError>()('GetRegistryAccessError', {
+  cause: Schema.Unknown
+}) {}
 
-/** Create a new RegistryAccess instance */
-const getRegistryAccess = () =>
-  Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow).pipe(
-    Effect.flatMap(workspaceInfo =>
-      Effect.try({
-        try: () => new RegistryAccess(undefined, workspaceInfo.fsPath),
-        catch: error => new GetRegistryAccessError(unknownToErrorCause(error))
-      })
-    ),
-    Effect.withSpan('getRegistryAccess')
-  );
+const createRegistryAccess = (fsPath: string) =>
+  Effect.try({
+    try: () => new RegistryAccess(undefined, fsPath),
+    catch: error => new GetRegistryAccessError({ cause: unknownToErrorCause(error).cause })
+  }).pipe(Effect.withSpan('createRegistryAccess', { attributes: { fsPath } }));
+
+// Global cache - created once at module level
+const globalRegistryAccessCache = Effect.runSync(
+  Cache.make({
+    capacity: 10,
+    timeToLive: Duration.minutes(10),
+    lookup: createRegistryAccess
+  }).pipe(Effect.withSpan('registryAccessCache'))
+);
 
 export class MetadataRegistryService extends Effect.Service<MetadataRegistryService>()('MetadataRegistryService', {
-  scoped: Effect.gen(function* () {
-    // Create shared registry access once and cache it
-    const cachedGetRegistryAccessEffect = yield* Effect.cached(getRegistryAccess());
+  accessors: true,
+  dependencies: [WorkspaceService.Default],
+  effect: Effect.gen(function* () {
+    const workspaceService = yield* WorkspaceService;
 
-    // Derive registry from the cached registry access
-    const cachedGetRegistryEffect = yield* Effect.cached(
-      Effect.flatMap(cachedGetRegistryAccessEffect, registryAccess =>
-        Effect.try({
-          try: () => registryAccess.getRegistry(),
-          catch: error => new GetRegistryAccessError(unknownToErrorCause(error))
-        })
-      ).pipe(Effect.withSpan('getRegistry (cached)'))
-    );
+    /** Get the registry access (cached by fsPath) */
+    const getRegistryAccess = Effect.fn('MetadataRegistryService.getRegistryAccess')(function* () {
+      const workspaceInfo = yield* workspaceService.getWorkspaceInfoOrThrow();
+      return yield* globalRegistryAccessCache.get(workspaceInfo.fsPath);
+    });
 
-    return {
-      /** Get the metadata registry (cached) */
-      getRegistry: () => cachedGetRegistryEffect,
-      /** Get the registry access (cached) */
-      getRegistryAccess: () => cachedGetRegistryAccessEffect
-    } as const;
+    /** Get the metadata registry (cached by fsPath) */
+    const getRegistry = Effect.fn('MetadataRegistryService.getRegistry')(function* () {
+      const registryAccess = yield* getRegistryAccess();
+      return yield* Effect.try({
+        try: () => registryAccess.getRegistry(),
+        catch: error => new GetRegistryAccessError({ cause: unknownToErrorCause(error).cause })
+      });
+    });
+
+    return { getRegistry, getRegistryAccess };
   })
 }) {}
