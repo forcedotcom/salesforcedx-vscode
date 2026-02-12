@@ -14,7 +14,7 @@ import { getConsoleTracesEnabled, getLocalTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
-export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint }: SdkLayerConfig) =>
+export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
   WebSdk.layer(() => ({
     resource: {
       serviceName: extensionName,
@@ -33,7 +33,7 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint }
         ? [new SpanTransformProcessor(new ApplicationInsightsWebExporter())]
         : []),
       ...(o11yEndpoint && (o11yEndpoint.includes('localhost') || isTelemetryExtensionConfigurationEnabled())
-        ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint))]
+        ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
       ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : [])
     ]
