@@ -24,7 +24,6 @@ import { DevServerService } from './service/devServerService';
 import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
 import { WorkspaceUtils } from './util/workspaceUtils';
 
-// Get telemetry service - now works in both Node.js and web mode
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   const telemetryModule = await import('./telemetry/index.js');
   return telemetryModule.telemetryService;
@@ -71,8 +70,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
   const ourCommands = registerCommands(extensionContext);
   extensionContext.subscriptions.push(ourCommands);
 
-  const telemetryService = await getTelemetryService();
-  const activateTracker = new ActivationTracker(extensionContext, telemetryService);
+  let activateTracker: ActivationTracker | undefined;
+  let telemetryService: TelemetryServiceInterface | undefined;
+  if (process.env.ESBUILD_PLATFORM !== 'web') {
+    telemetryService = await getTelemetryService();
+    activateTracker = new ActivationTracker(extensionContext, telemetryService);
+  }
 
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
@@ -82,11 +85,13 @@ export const activate = async (extensionContext: ExtensionContext) => {
   }
 
   // Initialize telemetry service (now works in both Node.js and web mode)
-  try {
-    await telemetryService.initializeService(extensionContext);
-  } catch (e) {
-    const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
-    channelService.appendLine(errorMsg);
+  if (telemetryService) {
+    try {
+      await telemetryService.initializeService(extensionContext);
+    } catch (e) {
+      const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
+      channelService.appendLine(errorMsg);
+    }
   }
 
   // if we have no workspace folders, exit
@@ -300,7 +305,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
   WorkspaceUtils.instance.init(extensionContext);
 
   // Notify telemetry that our extension is now active
-  void activateTracker.markActivationStop();
+  if (activateTracker) {
+    void activateTracker.markActivationStop();
+  }
 
   channelService.appendLine('Lightning Web Components extension activation complete.');
 };
@@ -309,9 +316,10 @@ export const deactivate = async () => {
   if (DevServerService.instance.isServerHandlerRegistered()) {
     await DevServerService.instance.stopServer();
   }
-  // Get telemetry service for deactivation (no-op in web mode)
-  const telemetryService = await getTelemetryService();
-  telemetryService.sendExtensionDeactivationEvent();
+  if (process.env.ESBUILD_PLATFORM !== 'web') {
+    const telemetryService = await getTelemetryService();
+    telemetryService.sendExtensionDeactivationEvent();
+  }
 };
 
 const getActivationMode = (): string => {

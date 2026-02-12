@@ -30,15 +30,10 @@ const nodeBuild = await build({
 });
 
 // Browser build (VS Code for the Web)
+// Test support is lazy-loaded only when ESBUILD_PLATFORM !== 'web', so jest-editor-support and its Babel deps are tree-shaken; no need to external them
 const browserBuild = await build({
   ...commonConfigBrowser,
-  external: [
-    'vscode',
-    'applicationinsights',
-    '@babel/preset-typescript/package.json',
-    'jest-editor-support',
-    '@babel/core'
-  ],
+  external: ['vscode'],
   entryPoints: ['./src/index.ts'],
   outdir: './dist/web',
   metafile: true
