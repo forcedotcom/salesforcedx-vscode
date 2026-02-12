@@ -175,3 +175,39 @@ export const verifyCommandExists = async (page: Page, commandText: string, timeo
 
   await closeCommandPalette(page, widget);
 };
+
+/** Wait for a command to be available in the command palette (useful when waiting for extensions to load) */
+export const waitForCommandToBeAvailable = async (
+  page: Page,
+  commandText: string,
+  timeoutMs: number = 30_000
+): Promise<void> => {
+  await expect(async () => {
+    await openCommandPalette(page);
+    const widget = page.locator(QUICK_INPUT_WIDGET);
+    const input = widget.locator('input.input');
+
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.click({ timeout: 5000 });
+    
+    // Type the command to search for it
+    await page.keyboard.press('End');
+    await input.pressSequentially(commandText, { delay: 5 });
+
+    // Wait for command list to appear
+    await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+
+    // Verify the command exists in the list
+    const escapedCommand = commandText.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(`^${escapedCommand}`) }).first();
+    
+    // This will throw if command not found, causing retry
+    await expect(commandRow, `Command "${commandText}" should be available`).toBeAttached({ timeout: 2000 });
+
+    // Close command palette
+    await page.keyboard.press('Escape');
+    await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+      // Ignore if already closed
+    });
+  }, `Waiting for command "${commandText}" to be available`).toPass({ timeout: timeoutMs });
+};

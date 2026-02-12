@@ -154,22 +154,53 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         await expect(checkbox).toHaveAttribute('aria-checked', desiredChecked ? 'true' : 'false', { timeout: 10_000 });
       }
     } else {
-      // Handle textbox or spinbutton setting
-      const roleTextbox = row.getByRole('textbox').first();
-      const roleSpinbutton = row.getByRole('spinbutton').first();
+      // Check if this is a dropdown/select setting (combobox)
+      const combobox = row.getByRole('combobox').first();
+      const comboboxCount = await combobox.count();
 
-      const textboxCount = await roleTextbox.count();
+      if (comboboxCount > 0) {
+        // Handle dropdown/select setting
+        await combobox.waitFor({ timeout: 30_000 });
+        
+        // Check if this is a native HTML select or custom VS Code dropdown
+        const isNativeSelect = (await combobox.evaluate(el => el.tagName)) === 'SELECT';
+        
+        if (isNativeSelect) {
+          // Desktop: Use native select API
+          await combobox.selectOption(value);
+        } else {
+          // Web: Use custom dropdown interaction
+          await combobox.click({ timeout: 5000 });
+          
+          // Wait for dropdown options to appear and select the desired value
+          // VS Code dropdowns show options in monaco-list-row elements
+          const option = page
+            .locator('.monaco-list-row[role="option"]')
+            .filter({ hasText: new RegExp(`^${value}$`, 'i') });
+          await option.waitFor({ state: 'visible', timeout: 10_000 });
+          await option.click();
+        }
+        
+        // Verify the value was set
+        await expect(combobox).toHaveValue(value, { timeout: 10_000 });
+      } else {
+        // Handle textbox or spinbutton setting
+        const roleTextbox = row.getByRole('textbox').first();
+        const roleSpinbutton = row.getByRole('spinbutton').first();
 
-      const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
-      await inputElement.waitFor({ timeout: 30_000 });
-      await inputElement.click({ timeout: 5000 });
-      // Clear the input first, then type the new value
-      // This is more reliable than select-all + fill on desktop
-      await inputElement.clear();
-      await expect(inputElement).toBeEmpty({ timeout: 10_000 });
-      await inputElement.fill(value);
-      await inputElement.blur();
-      await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
+        const textboxCount = await roleTextbox.count();
+
+        const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
+        await inputElement.waitFor({ timeout: 30_000 });
+        await inputElement.click({ timeout: 5000 });
+        // Clear the input first, then type the new value
+        // This is more reliable than select-all + fill on desktop
+        await inputElement.clear();
+        await expect(inputElement).toBeEmpty({ timeout: 10_000 });
+        await inputElement.fill(value);
+        await inputElement.blur();
+        await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
+      }
     }
 
     // Capture after state
