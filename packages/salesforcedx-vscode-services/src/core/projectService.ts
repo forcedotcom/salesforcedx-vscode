@@ -65,7 +65,6 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
         yield* setProjectOpenedContext(false);
         return false;
       }
-      console.log('has workspace description', workspaceDescription);
 
       return yield* globalSfProjectCache.get(workspaceDescription.fsPath).pipe(
         Effect.tap(() => setProjectOpenedContext(true)),

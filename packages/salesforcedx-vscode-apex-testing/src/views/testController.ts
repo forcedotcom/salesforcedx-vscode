@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import { TestResult, TestService } from '@salesforce/apex-node';
+import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
@@ -52,14 +52,14 @@ export class ApexTestController {
   private connection: Connection | undefined;
   private testService: TestService | undefined;
   private suiteToClasses: Map<string, Set<string>> = new Map();
-  private localOnlyTag: vscode.TestTag | undefined;
+  private inWorkspaceTag: vscode.TestTag | undefined;
   private orgOnlyTag: vscode.TestTag | undefined;
   private suiteTag: vscode.TestTag | undefined;
 
   constructor() {
     this.controller = vscode.tests.createTestController(TEST_CONTROLLER_ID, nls.localize('test_view_name'));
-    // Create a tag for local-only tests (tests that exist locally but not in org)
-    this.localOnlyTag = new vscode.TestTag('local-only');
+    // Create a tag for tests that exist in both workspace and org (enables filtering in Test Explorer)
+    this.inWorkspaceTag = new vscode.TestTag('in-workspace');
     // Create a tag for org-only tests (tests that exist in org but not in local workspace)
     this.orgOnlyTag = new vscode.TestTag('org-only');
     // Create a tag for test suites
@@ -136,9 +136,18 @@ export class ApexTestController {
 
       // Then populate test classes from org (all tests, not just local)
       const discoveryResult = await Effect.runPromise(discoverTests());
-      await this.populateTestItemsFromOrg(discoveryResult.classes);
+
+      // Always populate whatever classes were discovered, even if discovery was partial
+      if (discoveryResult.classes.length > 0) {
+        await this.populateTestItemsFromOrg(discoveryResult.classes);
+      }
     } catch (error) {
       console.debug('Failed to discover tests:', error);
+      // Try to show a user-friendly error message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
+        void notificationService.showWarningMessage(nls.localize('apex_test_discovery_partial_warning'));
+      }
     }
   }
 
@@ -168,6 +177,7 @@ export class ApexTestController {
   }
 
   private clearTestItems(): void {
+    void vscode.commands.executeCommand('testing.clearTestResults');
     this.controller.items.replace([]);
     this.suiteItems.clear();
     this.classItems.clear();
@@ -206,58 +216,93 @@ export class ApexTestController {
       classMap.set(fullClassName, existing);
     }
 
-    // Create test items for all classes
+    // Create test items for all classes - batch additions to avoid blocking UI
+    const classItemsToAdd: vscode.TestItem[] = [];
+    const BATCH_SIZE = 10; // Smaller batches for more frequent UI updates
+
     for (const [fullClassName, classEntries] of classMap) {
-      // Use the first entry's name as the base class name
-      const baseClassName = classEntries[0].name;
-      // Try to find a local URI for this class
-      // If the class doesn't exist locally, use a virtual document URI for org-only classes
-      const localUri = classNameToUri.get(baseClassName);
-      const uri = localUri ?? createOrgApexClassUri(baseClassName);
-      const isOrgOnly = !localUri;
+      try {
+        // Use the first entry's name as the base class name
+        const baseClassName = classEntries[0].name;
+        // Try to find a local URI for this class
+        // If the class doesn't exist locally, use a virtual document URI for org-only classes
+        const localUri = classNameToUri.get(baseClassName);
+        const uri = localUri ?? createOrgApexClassUri(baseClassName);
+        const isOrgOnly = !localUri;
 
-      // Create class item
-      // For org-only classes, use virtual document URI so they can be opened
-      const classItem = this.controller.createTestItem(createClassId(fullClassName), fullClassName, uri);
-      classItem.canResolveChildren = false;
-      // Tag tests that exist in org but not in local workspace
-      if (isOrgOnly && this.orgOnlyTag) {
-        classItem.tags = [this.orgOnlyTag];
-      }
-      this.classItems.set(fullClassName, classItem);
-
-      // Collect all unique test methods from all entries (in case of duplicates)
-      const methodNames = new Set<string>();
-      for (const entry of classEntries) {
-        for (const testMethod of entry.testMethods ?? []) {
-          methodNames.add(testMethod.name);
-        }
-      }
-
-      // Create method items
-      for (const methodName of methodNames) {
-        const methodId = `${fullClassName}.${methodName}`;
-        // Use line/column from Tooling API if available, otherwise default to (0,0)
-        const line = classEntries[0].testMethods?.find(m => m.name === methodName)?.line ?? 0;
-        const column = classEntries[0].testMethods?.find(m => m.name === methodName)?.column ?? 0;
-        const position = new vscode.Position(Math.max(0, line - 1), Math.max(0, column - 1));
-        // Set range for both local and org-only classes (virtual documents support ranges)
-        const range = new vscode.Range(position, position);
-
-        // Create method item
+        // Create class item
         // For org-only classes, use virtual document URI so they can be opened
-        const methodItem = this.controller.createTestItem(createMethodId(fullClassName, methodName), methodName, uri);
-        methodItem.range = range;
-        methodItem.canResolveChildren = false;
-        // Tag tests that exist in org but not in local workspace
+        const classItem = this.controller.createTestItem(createClassId(fullClassName), fullClassName, uri);
+        classItem.canResolveChildren = false;
         if (isOrgOnly && this.orgOnlyTag) {
-          methodItem.tags = [this.orgOnlyTag];
+          classItem.tags = [this.orgOnlyTag];
+        } else if (this.inWorkspaceTag) {
+          classItem.tags = [this.inWorkspaceTag];
         }
-        this.methodItems.set(methodId, methodItem);
-        classItem.children.add(methodItem);
-      }
+        this.classItems.set(fullClassName, classItem);
 
-      this.controller.items.add(classItem);
+        // Collect all unique test methods from all entries (in case of duplicates)
+        const methodNames = new Set<string>();
+        for (const entry of classEntries) {
+          for (const testMethod of entry.testMethods ?? []) {
+            methodNames.add(testMethod.name);
+          }
+        }
+
+        // Create method items
+        for (const methodName of methodNames) {
+          const methodId = `${fullClassName}.${methodName}`;
+          // Use line/column from Tooling API if available, otherwise default to (0,0)
+          const line = classEntries[0].testMethods?.find(m => m.name === methodName)?.line ?? 0;
+          const column = classEntries[0].testMethods?.find(m => m.name === methodName)?.column ?? 0;
+          const position = new vscode.Position(Math.max(0, line - 1), Math.max(0, column - 1));
+          // Set range for both local and org-only classes (virtual documents support ranges)
+          const range = new vscode.Range(position, position);
+
+          // Create method item
+          // For org-only classes, use virtual document URI so they can be opened
+          const methodItem = this.controller.createTestItem(createMethodId(fullClassName, methodName), methodName, uri);
+          methodItem.range = range;
+          methodItem.canResolveChildren = false;
+          if (isOrgOnly && this.orgOnlyTag) {
+            methodItem.tags = [this.orgOnlyTag];
+          } else if (this.inWorkspaceTag) {
+            methodItem.tags = [this.inWorkspaceTag];
+          }
+          this.methodItems.set(methodId, methodItem);
+          classItem.children.add(methodItem);
+        }
+
+        classItemsToAdd.push(classItem);
+
+        // Add items in batches and yield control to UI thread
+        if (classItemsToAdd.length >= BATCH_SIZE) {
+          for (const item of classItemsToAdd) {
+            this.controller.items.add(item);
+          }
+          classItemsToAdd.length = 0; // Clear array
+          
+          // Yield control to event loop to allow UI to render
+          await new Promise<void>(resolve => {
+            // Use setImmediate to yield control without artificial delay
+            if (typeof setImmediate !== 'undefined') {
+              setImmediate(() => resolve());
+            } else {
+              // Fallback for environments without setImmediate
+              void Promise.resolve().then(() => resolve());
+            }
+          });
+        }
+      } catch (error) {
+        console.error(`Error processing class ${fullClassName}:`, error);
+      }
+    }
+
+    // Add any remaining items
+    if (classItemsToAdd.length > 0) {
+      for (const item of classItemsToAdd) {
+        this.controller.items.add(item);
+      }
     }
   }
 
@@ -414,6 +459,17 @@ export class ApexTestController {
     const startTime = Date.now();
     const run = this.controller.createTestRun(request);
     let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
+
+    // Resolve any suite in testsToRun so we have class data (for empty-suite check and expansion)
+    for (const test of testsToRun) {
+      if (isSuite(test.id)) {
+        const suiteName = extractSuiteName(test.id);
+        if (suiteName && test.children.size === 0) {
+          await this.resolveSuiteChildren(test);
+        }
+      }
+    }
+
     // Expand suites to their classes/methods when running all tests
     // This ensures we use method names instead of suite parameters, which allows running multiple suites
     if (!request.include || request.include.length === 0) {
@@ -454,26 +510,19 @@ export class ApexTestController {
       testsToRun = expandedTests;
     }
 
-    // Check for local-only tests (tests that exist locally but not in org)
-    // These tests cannot be run because they don't exist in the org
-    if (this.localOnlyTag) {
-      const localOnlyTests = testsToRun.filter(test => test.tags?.includes(this.localOnlyTag!));
-      if (localOnlyTests.length > 0) {
-        // Collect test names for the warning message
-        const localOnlyTestNames = localOnlyTests.map(test => {
-          const testName = getTestName(test);
-          // For methods, show Class.Method; for classes, show ClassName
-          return testName;
-        });
-        // Format as a simple list separated by newlines
-        const testNamesList = localOnlyTestNames.join('\n');
-        const introMessage = nls.localize('apex_test_local_only_warning_message', '').replace(': %s', '');
-        const deployMessage = nls.localize('apex_test_local_only_warning_deploy_text');
-        const message = `${introMessage}\n${testNamesList}\n${deployMessage}`;
-        void notificationService.showWarningMessage(message);
+    // Check for empty test suites and show clear error
+    const emptySuiteItems = testsToRun.filter(
+      test => isSuite(test.id) && (this.suiteToClasses.get(extractSuiteName(test.id) ?? '')?.size ?? 0) === 0
+    );
+    if (emptySuiteItems.length > 0) {
+      const emptySuiteNames = emptySuiteItems.map(test => extractSuiteName(test.id)).filter((n): n is string => !!n);
+      for (const suiteItem of emptySuiteItems) {
+        run.errored(suiteItem, new vscode.TestMessage(nls.localize('apex_test_suite_empty_message')));
       }
-      // Filter out local-only tests
-      testsToRun = testsToRun.filter(test => !test.tags?.includes(this.localOnlyTag!));
+      void notificationService.showErrorMessage(
+        nls.localize('apex_test_suite_empty_message_notification', emptySuiteNames.join(', '))
+      );
+      testsToRun = testsToRun.filter(test => !emptySuiteItems.includes(test));
     }
 
     if (testsToRun.length === 0) {
@@ -495,7 +544,8 @@ export class ApexTestController {
         const testNames = testsToRun.map(test => getTestName(test));
         const tmpFolder = await this.getTempFolder();
         const codeCoverage = settings.retrieveTestCodeCoverage();
-        await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun);
+        const runAllTestsInOrg = !request.include || request.include.length === 0;
+        await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun, runAllTestsInOrg);
       }
 
       const durationMs = Date.now() - startTime;
@@ -595,13 +645,23 @@ export class ApexTestController {
     codeCoverage: boolean,
     token: vscode.CancellationToken,
     run: vscode.TestRun,
-    testsToRun: vscode.TestItem[]
+    testsToRun: vscode.TestItem[],
+    runAllTestsInOrg = false
   ): Promise<void> {
     // Ensure connection and testService are initialized
     await this.ensureInitialized();
 
     const testService = this.getTestService();
-    const { payload, hasSuite, hasClass } = await buildTestPayload(testService, testsToRun, testNames, codeCoverage);
+    const { payload, hasSuite, hasClass } = runAllTestsInOrg
+      ? {
+          payload: {
+            testLevel: TestLevel.RunAllTestsInOrg,
+            skipCodeCoverage: !codeCoverage
+          },
+          hasSuite: false,
+          hasClass: false
+        }
+      : await buildTestPayload(testService, testsToRun, testNames, codeCoverage);
 
     if (!payload) {
       throw new Error(nls.localize('apex_test_payload_build_failed_message'));

@@ -90,10 +90,15 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [ChannelService](references/channel-service.md) - Output channel
 - [WorkspaceService](references/workspace-service.md) - Workspace info
 - [ConnectionService](references/connection-service.md) - Org connections
+  <<<<<<< HEAD
 - [ProjectService](references/project-service.md) - Project resolution, packageDirectories
 - [SettingsService](references/settings-service.md) - Settings read/write
 - [FsService](references/fs-service.md) - File ops (web-compatible) and uri/path conversion
-- [EditorService](references/editor-service.md) - Active editor changes and current URI
+- # [EditorService](references/editor-service.md) - Active editor changes and current URI
+- [ProjectService](references/project-service.md) - Project resolution
+- [SettingsService](references/settings-service.md) - Settings read/write
+- [FsService](references/fs-service.md) - File ops (web-compatible)
+  > > > > > > > origin/develop
 
 ## Watchers
 
@@ -202,6 +207,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
+  // useful if registering multiple commands...they all get the layer provided to them
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
 
   yield* registerCommand('sf.my.command', myCommandEffect);
