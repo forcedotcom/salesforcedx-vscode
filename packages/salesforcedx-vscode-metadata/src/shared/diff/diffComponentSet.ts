@@ -27,12 +27,13 @@ type DiffFilePair = ReturnType<typeof createDiffFilePair>;
 /** Get cache directory URI for retrieved metadata */
 const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [workspaceService, defaultOrgRef] = yield* Effect.all(
-    [api.services.WorkspaceService, Effect.succeed(api.services.TargetOrgRef)],
-    { concurrency: 'unbounded' }
+  const [workspaceInfo, defaultOrgRef] = yield* Effect.all(
+    [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), Effect.succeed(api.services.TargetOrgRef)],
+    {
+      concurrency: 'unbounded'
+    }
   );
 
-  const workspaceInfo = yield* workspaceService.getWorkspaceInfoOrThrow;
   const orgId = (yield* SubscriptionRef.get(yield* defaultOrgRef())).orgId;
 
   if (!orgId) {
@@ -46,16 +47,13 @@ const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
 const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(function* (componentSet: NonEmptyComponentSet) {
   yield* Effect.logDebug('before retrieveToCacheDirectory');
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [cacheDirUri, fsService, retrieveService] = yield* Effect.all(
-    [getCacheDirectoryUri(), api.services.FsService, api.services.MetadataRetrieveService],
-    { concurrency: 'unbounded' }
-  );
+  const cacheDirUri = yield* getCacheDirectoryUri();
 
   // Clean up cache directory before retrieving
-  yield* fsService.safeDelete(cacheDirUri, { recursive: true });
+  yield* api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
 
   // Perform retrieve operation to cache directory
-  const result = yield* retrieveService.retrieveComponentSetToDirectory(componentSet, cacheDirUri);
+  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(componentSet, cacheDirUri);
 
   // Handle cancellation
   if (typeof result === 'string') {
@@ -108,7 +106,9 @@ const createMatchedPair = Effect.fn('createMatchedPair')(function* (props: {
   return matchingPath
     ? createDiffFilePair({
         localUri: initialUri,
-        remoteUri: yield* fsService.toUri(matchingPath).pipe(Effect.map(uri => fsService.HashableUri.fromUri(uri))),
+        remoteUri: yield* api.services.FsService.toUri(matchingPath).pipe(
+          Effect.map(uri => fsService.HashableUri.fromUri(uri))
+        ),
         fileName
       })
     : yield* Effect.succeed(undefined);
@@ -117,9 +117,8 @@ const createMatchedPair = Effect.fn('createMatchedPair')(function* (props: {
 const filesAreNotIdentical = (pair: DiffFilePair) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const fsService = yield* api.services.FsService;
     const [buffer1, buffer2] = yield* Effect.all(
-      [fsService.readFile(pair.remoteUri), fsService.readFile(pair.localUri)],
+      [api.services.FsService.readFile(pair.remoteUri), api.services.FsService.readFile(pair.localUri)],
       {
         concurrency: 'unbounded'
       }
@@ -153,9 +152,9 @@ const executeDiff = Effect.fn('executeDiff')(function* (pairs: HashSet.HashSet<D
             return Effect.gen(function* () {
               yield* channelService.appendToChannel(`Diff failed for ${pair.fileName}: ${errorMessage}`);
               yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-              yield* Effect.promise(() =>
-                vscode.window.showErrorMessage(nls.localize('source_diff_failed_for_file', pair.fileName, errorMessage))
-              );
+              yield* Effect.sync(() => {
+                void vscode.window.showErrorMessage(nls.localize('source_diff_failed_for_file', pair.fileName, errorMessage));
+              });
             });
           })
         )
@@ -181,7 +180,9 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
 
   if (!retrieveResult) {
     yield* channelService.appendToChannel('Diff cancelled by user');
-    yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('source_diff_cancelled')));
+    yield* Effect.sync(() => {
+      void vscode.window.showWarningMessage(nls.localize('source_diff_cancelled'));
+    });
     return;
   }
 
@@ -190,7 +191,9 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
   const retrievedComponents = retrieveResult.components.getSourceComponents().toArray();
   if (retrievedComponents.length === 0) {
     yield* channelService.appendToChannel('No components retrieved from org');
-    yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('source_diff_no_results')));
+    yield* Effect.sync(() => {
+      void vscode.window.showWarningMessage(nls.localize('source_diff_no_results'));
+    });
     return;
   }
 
@@ -199,14 +202,18 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
 
   if (HashSet.size(pairsSet) === 0) {
     yield* channelService.appendToChannel('No matching files found to diff');
-    yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('source_diff_no_matching_files')));
+    yield* Effect.sync(() => {
+      void vscode.window.showWarningMessage(nls.localize('source_diff_no_matching_files'));
+    });
     return;
   }
 
   // Execute diffs
   const diffsOpen = yield* executeDiff(pairsSet);
   if (diffsOpen.length === 0) {
-    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('source_diff_all_files_match')));
+    yield* Effect.sync(() => {
+      void vscode.window.showInformationMessage(nls.localize('source_diff_all_files_match'));
+    });
   }
   yield* channelService.appendToChannel(
     `Diff completed for ${HashSet.size(pairsSet)} file${HashSet.size(pairsSet) === 1 ? '' : 's'}`

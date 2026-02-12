@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.16.0",
+  "version": "65.17.3",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -190,12 +190,6 @@
       ]
     },
     "views": {
-      "explorer": [
-        {
-          "id": "sf.tasks.view",
-          "name": "%running_tasks_title_text%"
-        }
-      ],
       "metadata": [
         {
           "id": "metadata",
@@ -220,10 +214,6 @@
         }
       ],
       "view/item/context": [
-        {
-          "command": "sf.task.stop",
-          "when": "view == sf.tasks.view"
-        },
         {
           "command": "sf.metadata.view.component.refresh",
           "when": "view == metadata && viewItem =~ /(folder|type)/",
@@ -413,10 +403,6 @@
         {
           "command": "sf.view.remote.changes",
           "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:show_shared_commands"
-        },
-        {
-          "command": "sf.task.stop",
-          "when": "sf:project_opened"
         },
         {
           "command": "sf.apex.generate.class",
@@ -620,10 +606,6 @@
       {
         "command": "sf.view.remote.changes",
         "title": "%view_remote_changes_text%"
-      },
-      {
-        "command": "sf.task.stop",
-        "title": "%cancel_sf_command_text%"
       },
       {
         "command": "sf.apex.generate.class",

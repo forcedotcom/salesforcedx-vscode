@@ -148,4 +148,92 @@ describe('workspaceContext', () => {
       expect(orgId).not.toBeNull();
     });
   });
+
+  describe('initialization promise logic', () => {
+    let mockWorkspaceContextUtil: any;
+    let mockExtensionContext: any;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockWorkspaceContextUtil = {
+        onOrgChange: jest.fn(),
+        initialize: jest.fn().mockResolvedValue(undefined),
+        getConnection: jest.fn().mockResolvedValue({
+          getAuthInfoFields: () => ({ orgId: '000' })
+        })
+      };
+      jest
+        .spyOn(WorkspaceContextUtil, 'getInstance')
+        .mockReturnValue(mockWorkspaceContextUtil);
+
+      mockExtensionContext = {
+        extension: { id: 'salesforce.salesforcedx-vscode-core' },
+        subscriptions: []
+      };
+    });
+
+    it('should store initialization promise on first initialize() call', async () => {
+      const workspaceContext = WorkspaceContext.getInstance(true);
+
+      const promise = workspaceContext.initialize(mockExtensionContext);
+
+      expect(promise).toBeInstanceOf(Promise);
+      await promise;
+      expect(mockWorkspaceContextUtil.initialize).toHaveBeenCalledTimes(1);
+    });
+
+    it('should only initialize once on multiple initialize() calls', async () => {
+      const workspaceContext = WorkspaceContext.getInstance(true);
+
+      const promise1 = workspaceContext.initialize(mockExtensionContext);
+      const promise2 = workspaceContext.initialize(mockExtensionContext);
+      const promise3 = workspaceContext.initialize(mockExtensionContext);
+
+      await Promise.all([promise1, promise2, promise3]);
+
+      // Should only call the underlying initialize once (idempotent behavior)
+      expect(mockWorkspaceContextUtil.initialize).toHaveBeenCalledTimes(1);
+    });
+
+    it('should wait for initialization before calling getConnection()', async () => {
+      const workspaceContext = WorkspaceContext.getInstance(true);
+      let initializeResolved = false;
+
+      // Make initialize take some time
+      mockWorkspaceContextUtil.initialize.mockImplementation(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+        initializeResolved = true;
+      });
+
+      const initPromise = workspaceContext.initialize(mockExtensionContext);
+      const connPromise = workspaceContext.getConnection();
+
+      // getConnection should not complete until initialize completes
+      expect(initializeResolved).toBe(false);
+
+      await Promise.all([initPromise, connPromise]);
+
+      expect(initializeResolved).toBe(true);
+      expect(mockWorkspaceContextUtil.initialize).toHaveBeenCalledTimes(1);
+      expect(mockWorkspaceContextUtil.getConnection).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle multiple concurrent getConnection() calls during initialization', async () => {
+      const workspaceContext = WorkspaceContext.getInstance(true);
+
+      mockWorkspaceContextUtil.initialize.mockImplementation(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      const initPromise = workspaceContext.initialize(mockExtensionContext);
+      const connPromise1 = workspaceContext.getConnection();
+      const connPromise2 = workspaceContext.getConnection();
+      const connPromise3 = workspaceContext.getConnection();
+
+      await Promise.all([initPromise, connPromise1, connPromise2, connPromise3]);
+
+      expect(mockWorkspaceContextUtil.initialize).toHaveBeenCalledTimes(1);
+      expect(mockWorkspaceContextUtil.getConnection).toHaveBeenCalledTimes(3);
+    });
+  });
 });

@@ -24,7 +24,7 @@ export class ChannelService extends Effect.Service<ChannelService>()('ChannelSer
           // channelLogging is "best effort" and will not cause a failure
           Effect.catchAll(() => Effect.succeed(undefined))
         )
-    } as const;
+    };
   }
 }) {}
 

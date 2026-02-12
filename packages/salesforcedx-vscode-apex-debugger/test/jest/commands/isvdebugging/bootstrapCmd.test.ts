@@ -21,9 +21,6 @@ jest.spyOn(vscode.extensions, 'getExtension').mockReturnValue({
       appendLine: jest.fn(),
       streamCommandOutput: jest.fn(),
       showChannelOutput: jest.fn()
-    },
-    taskViewService: {
-      addCommandExecution: jest.fn()
     }
   },
   isActive: true
