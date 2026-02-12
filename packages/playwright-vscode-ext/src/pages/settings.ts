@@ -106,7 +106,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
     // Screenshot search box state before clear+type (debug: is previous search still there?)
     if (Object.keys(settings).length > 1) {
-      await saveScreenshot(page, `settings.beforeSearch.${id.replace(/\./g, '_')}.png`, false);
+      await saveScreenshot(page, `settings.beforeSearch.${id.replaceAll('.', '_')}.png`, false);
     }
 
     // First try an exact search by full id (section.key)
@@ -114,7 +114,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
     // Screenshot search box state after clear+type (debug: did clear work, is query correct?)
     if (Object.keys(settings).length > 1) {
-      await saveScreenshot(page, `settings.afterSearch.${id.replace(/\./g, '_')}.png`, false);
+      await saveScreenshot(page, `settings.afterSearch.${id.replaceAll('.', '_')}.png`, false);
     }
 
     // Wait for search results to appear - wait for any search result element to indicate search completed
@@ -171,17 +171,17 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       if (comboboxCount > 0) {
         // Handle dropdown/select setting
         await combobox.waitFor({ timeout: 30_000 });
-        
+
         // Check if this is a native HTML select or custom VS Code dropdown
         const isNativeSelect = (await combobox.evaluate(el => el.tagName)) === 'SELECT';
-        
+
         if (isNativeSelect) {
           // Desktop: Use native select API
           await combobox.selectOption(value);
         } else {
           // Web: Use custom dropdown interaction
           await combobox.click({ timeout: 5000 });
-          
+
           // Wait for dropdown options to appear and select the desired value
           // VS Code dropdowns show options in monaco-list-row elements
           const option = page
@@ -190,7 +190,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
           await option.waitFor({ state: 'visible', timeout: 10_000 });
           await option.click();
         }
-        
+
         // Verify the value was set
         await expect(combobox).toHaveValue(value, { timeout: 10_000 });
       } else {
