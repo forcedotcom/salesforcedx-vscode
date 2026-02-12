@@ -194,7 +194,7 @@ export const clearOutputChannel = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 2000 });
 };
 
-/** Wait for output channel to contain specific text */
+/** Wait for output channel to contain specific text. Repeats [clear filter, re-filter, check] until found or timeout to handle streaming content and virtualized DOM. */
 export const waitForOutputChannelText = async (
   page: Page,
   opts: { expectedText: string; timeout?: number }
@@ -205,17 +205,21 @@ export const waitForOutputChannelText = async (
     throw new Error(`Output channel did not have content within ${timeout}ms`);
   }
 
-  await withOutputFilter(
-    page,
-    expectedText,
-    async () => {
-      await expect(async () => {
-        const combinedText = await getAllOutputText(page);
-        expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
-      }).toPass({ timeout });
-    },
-    { timeout }
-  );
+  const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
+  try {
+    await expect(async () => {
+      await input.click({ force: true });
+      await input.fill('', { force: true });
+      await expect(input).toHaveValue('', { timeout: 5000 });
+      await input.fill(expectedText, { force: true });
+      await expect(input).toHaveValue(expectedText, { timeout: 5000 });
+      const combinedText = await getAllOutputText(page);
+      expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
+    }).toPass({ timeout });
+  } finally {
+    await input.click({ force: true }).catch(() => {});
+    await input.fill('', { force: true }).catch(() => {});
+  }
 };
 
 /**
