@@ -18,7 +18,8 @@ export {
   isDesktop,
   isMacDesktop,
   isWindowsDesktop,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  ensureSecondarySideBarHidden
 } from './utils/helpers';
 
 export {

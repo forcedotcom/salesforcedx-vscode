@@ -8,7 +8,11 @@
     "**/.vscode-test": true
   },
   "search.exclude": {
-    "**/out": true
+    "**/out": true,
+    "**/.wireit": true,
+    "**/dist": true,
+    "**/lcov-report": true,
+    "packages/**/extension": true
   },
   "typescript.tsdk": "./node_modules/typescript/lib",
   "eslint.workingDirectories": ["."],
@@ -33,5 +37,8 @@
   "prettier.useTabs": false,
   "prettier.printWidth": 120,
   "prettier.arrowParens": "avoid",
-  "editor.rulers": [120]
+  "editor.rulers": [
+    120
+  ],
+  "editor.autoClosingBrackets": "never"
 }

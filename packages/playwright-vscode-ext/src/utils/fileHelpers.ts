@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
-import { executeCommandWithCommandPalette } from '../pages/commands';
+import { executeCommandWithCommandPalette, waitForCommandToBeAvailable } from '../pages/commands';
 import {
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -20,7 +20,7 @@ import {
   closeSettingsTab,
   closeWelcomeTabs,
   disableMonacoAutoClosing,
-  enableMonacoAutoClosing,
+  ensureSecondarySideBarHidden,
   isDesktop,
   waitForVSCodeWorkbench
 } from './helpers';
@@ -72,8 +72,8 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await closeSettingsTab(page);
   await closeWelcomeTabs(page);
 
-  // Give the extension that provides "SFDX: Create Apex Class" time to finish loading and register the command
-  await page.waitForTimeout(3000);
+  // Wait for the extension to load and register the command
+  await waitForCommandToBeAvailable(page, 'SFDX: Create Apex Class', 30_000);
 
   await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
 
@@ -96,35 +96,26 @@ export const createApexClass = async (page: Page, className: string, content?: s
 
   // If content is provided, replace the template with it and save (so the file is on disk and deployable)
   if (content !== undefined && content.length > 0) {
-    try {
-      // Close secondary sidebar (Chat/Agent) so keystrokes go to the editor, not the chat input
-      await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
-      await page.waitForTimeout(300);
-    } catch {
-      // Ignore error - secondary sidebar may not be present
-    }
+    // Close secondary sidebar (Chat/Agent) so keystrokes go to the editor, not the chat input
+    await ensureSecondarySideBarHidden(page);
 
-    // Focus the editor and wait so typing does not land in Chat/Agent or elsewhere
+    // Focus the editor - click and verify it's ready for input by checking view lines are present
     await editor.click();
-    await page.waitForTimeout(1000);
+    await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
 
     // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
     await executeCommandWithCommandPalette(page, 'Select All');
-    await page.waitForTimeout(400); // Let selection take effect and palette close
-    // Delete the selected content and type new content
+
+    // Delete the selected content
     await page.keyboard.press('Delete');
-    await page.waitForTimeout(200);
 
-    // Use clipboard write with permissions granted (works on both desktop and web)
-    // Grant clipboard permissions first
-    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    // Write to clipboard
+    // Write to clipboard (evaluate completes when write is done)
+    // Note: Clipboard permissions are granted globally in playwright config (createWebConfig.ts & createDesktopConfig.ts)
     await page.evaluate((text: string) => navigator.clipboard.writeText(text), content);
-    await page.waitForTimeout(1000);
+
     // Paste the content
     await executeCommandWithCommandPalette(page, 'Paste');
-    await page.waitForTimeout(1000); // Wait for paste to complete
 
     // Save so the file is persisted and can be deployed / discovered by the test controller
     await executeCommandWithCommandPalette(page, 'File: Save');
@@ -310,9 +301,6 @@ export const setupMinimalOrgAndAuth = async (page: Page): Promise<void> => {
     await disableMonacoAutoClosing(page);
     await createApexClass(page, className, content);
 
-
-    // Re-enable auto-closing brackets
-    await enableMonacoAutoClosing(page);
     // On web, saving the file auto-deploys via push-or-deploy-on-save, so we just wait for completion
     // On desktop, we need to explicitly deploy
     if (isDesktop()) {

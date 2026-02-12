@@ -6,7 +6,9 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { WORKBENCH, TAB, TAB_CLOSE_BUTTON, QUICK_INPUT_WIDGET } from './locators';
+import { executeCommandWithCommandPalette } from '../pages/commands';
+import { upsertSettings } from '../pages/settings';
+import { QUICK_INPUT_WIDGET, TAB, TAB_CLOSE_BUTTON, WORKBENCH } from './locators';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -240,30 +242,56 @@ export const validateNoCriticalErrors = async (
   });
 };
 
-/** Disable Monaco editor auto-closing features (brackets, quotes, etc.) to prevent duplicates during typing */
+/**
+ * Disable Monaco editor auto-closing features (brackets, quotes, etc.) to prevent duplicates during typing.
+ * Uses VS Code settings API for cleaner, more maintainable approach.
+ */
 export const disableMonacoAutoClosing = async (page: Page): Promise<void> => {
-  await page.evaluate(() => {
-    const monacoEditor = (window as any).monaco?.editor?.getEditors?.()?.[0];
-    if (monacoEditor) {
-      monacoEditor.updateOptions({
-        autoClosingBrackets: 'never',
-        autoClosingQuotes: 'never',
-        autoClosingOvertype: 'never'
-      });
-    }
+  await upsertSettings(page, {
+    'editor.autoClosingBrackets': 'never',
+    'editor.autoClosingQuotes': 'never',
+    'editor.autoClosingOvertype': 'never'
   });
+
+  // Close Settings tab so it doesn't interfere with subsequent operations
+  await closeSettingsTab(page);
 };
 
-/** Re-enable Monaco editor auto-closing features with default language-defined behavior */
+/**
+ * Re-enable Monaco editor auto-closing features with default language-defined behavior.
+ * Uses VS Code settings API for cleaner, more maintainable approach.
+ */
 export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
-  await page.evaluate(() => {
-    const monacoEditor = (window as any).monaco?.editor?.getEditors?.()?.[0];
-    if (monacoEditor) {
-      monacoEditor.updateOptions({
-        autoClosingBrackets: 'languageDefined',
-        autoClosingQuotes: 'languageDefined',
-        autoClosingOvertype: 'auto'
-      });
-    }
+  await upsertSettings(page, {
+    'editor.autoClosingBrackets': 'languageDefined',
+    'editor.autoClosingQuotes': 'languageDefined',
+    'editor.autoClosingOvertype': 'auto'
   });
+
+  // Close Settings tab so it doesn't interfere with subsequent operations
+  await closeSettingsTab(page);
+};
+
+/**
+ * Ensure the secondary sidebar (auxiliary bar, typically used for Chat/Copilot) is hidden.
+ * This is idempotent - only hides if currently visible, avoiding toggle state issues.
+ * Useful to prevent keystrokes from going to chat input instead of editor.
+ */
+export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> => {
+  // VS Code's secondary sidebar is in the .part.auxiliarybar element
+  // Check if it's visible (has the 'visible' class or is not 'display: none')
+  const auxiliaryBar = page.locator('.part.auxiliarybar');
+
+  // Check if sidebar exists and is visible
+  const isVisible = await auxiliaryBar.isVisible().catch(() => false);
+
+  if (isVisible) {
+    // Use the explicit Hide command (not Toggle) to ensure we're hiding
+    await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
+
+    // Wait for it to actually hide
+    await auxiliaryBar.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+      // Ignore error - may have been already hidden or command not available
+    });
+  }
 };

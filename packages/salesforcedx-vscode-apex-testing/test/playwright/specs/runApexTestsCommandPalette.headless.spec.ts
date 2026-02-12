@@ -9,6 +9,7 @@ import {
   clearOutputChannel,
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
+  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
@@ -34,7 +35,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
 
   await test.step('setup minimal org with two Apex test classes', async () => {
     await setupMinimalOrgAndAuth(page);
-    await executeCommandWithCommandPalette(page, 'View: Toggle Secondary Side Bar Visibility');
+    await ensureSecondarySideBarHidden(page);
     testClassName = `CommandPaletteTestClass1${Date.now()}`;
     const testClassContent = [
       '@isTest',

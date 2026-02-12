@@ -52,6 +52,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     // Launch fresh Electron instance per test
     electronApp: async ({ vscodeExecutable }, use): Promise<void> => {
       const workspaceDir = await createTestWorkspace(orgAlias);
+      // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
       if (userSettings !== undefined && Object.keys(userSettings).length > 0) {
@@ -111,6 +112,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     // Get first window from Electron app
     page: async ({ electronApp }, use) => {
       const page = await electronApp.firstWindow();
+
+      // Grant clipboard permissions for desktop (Electron)
+      await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
       // Capture console logs (especially errors) for debugging
       page.on('console', msg => {

@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { expect } from '@playwright/test';
 
 import {
   createAndDeployApexTestClass,
+  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -20,6 +20,11 @@ import {
 
 import { test } from '../fixtures';
 
+// Selectors for Test Explorer UI elements
+const TEST_EXPLORER_PANEL = '[id="workbench.view.extension.test"]';
+const TEST_EXPLORER_TREE_ITEM = '[role="treeitem"]';
+const TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]';
+
 test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page }) => {
   test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
@@ -29,7 +34,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
 
   await test.step('setup minimal org with Apex test class', async () => {
     await setupMinimalOrgAndAuth(page);
-    await executeCommandWithCommandPalette(page, 'View: Toggle Secondary Side Bar Visibility');
+    await ensureSecondarySideBarHidden(page);
     testClassName = `ExplorerTestClass${Date.now()}`;
     const testClassContent = [
       '@isTest',
@@ -50,12 +55,12 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
   await test.step('open Test Explorer and refresh tests', async () => {
     await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
     await saveScreenshot(page, 'step.explorer-focused.png');
-    const testExplorerPanel = page.locator('[id="workbench.view.extension.test"]');
+    const testExplorerPanel = page.locator(TEST_EXPLORER_PANEL);
     await testExplorerPanel.waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step.explorer-visible.png');
     await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
     await saveScreenshot(page, 'step.tests-refreshed.png');
-    const testClassItem = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(testClassName, 'i') });
+    const testClassItem = testExplorerPanel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(testClassName, 'i') });
     await testClassItem.waitFor({ state: 'visible', timeout: 60_000 });
     await saveScreenshot(page, 'step.after-discovery-wait.png');
   });
@@ -66,8 +71,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
   });
 
   await test.step('verify test execution output in Test Results', async () => {
-    await page.waitForTimeout(5000);
-    const testResultsTab = page.locator('a.action-label[aria-label="Test Results"]');
+    const testResultsTab = page.locator(TEST_RESULTS_TAB);
     await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
     await testResultsTab.click();
     await saveScreenshot(page, 'step.test-results-tab.png');
@@ -80,11 +84,11 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
   });
 
   await test.step('verify test class appears in Test Explorer', async () => {
-    const testExplorerTree = page.locator('[id="workbench.view.extension.test"] .monaco-list');
+    const testExplorerTree = page.locator(`${TEST_EXPLORER_PANEL} .monaco-list`);
     await testExplorerTree.waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step.tree-visible.png');
-    const testClassItem = page
-      .locator('[role="treeitem"]')
+    const testClassItem = testExplorerTree
+      .locator(TEST_EXPLORER_TREE_ITEM)
       .filter({ hasText: new RegExp(testClassName, 'i') })
       .first();
     await expect(async () => {

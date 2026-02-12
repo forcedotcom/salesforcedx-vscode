@@ -33,16 +33,25 @@ const createApexTestSuiteViaPalette = async (
   await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_create_text);
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+
+  // Type suite name and press Enter (no wait needed - input is ready)
   await page.keyboard.type(testSuiteName);
-  await page.waitForTimeout(1000);
   await page.keyboard.press('Enter');
+
+  // Wait for next prompt (select test classes)
   await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+
+  // Type test class name to filter the list
   await page.keyboard.type(testClassName);
-  await page.waitForTimeout(1000);
+
+  // Wait for the filtered test class to appear in the list
   const testClassRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(testClassName, 'i') });
   await testClassRow.waitFor({ state: 'visible', timeout: 5000 });
+
+  // Click the row to select it
   await testClassRow.click();
-  await page.waitForTimeout(1000);
+
+  // Press Enter to confirm selection
   await page.keyboard.press('Enter');
 };
 
@@ -62,15 +71,21 @@ const selectSuiteInQuickPick = async (
   await suiteOption.click();
 };
 
-/** Select a test class in a quick pick (type to filter, click row to select, wait, then Enter). */
+/** Select a test class in a quick pick (type to filter, click row to select, then Enter). */
 const selectTestClassInQuickPick = async (page: Page, testClassName: string): Promise<void> => {
   await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
+
+  // Type test class name to filter the list
   await page.keyboard.type(testClassName);
-  await page.waitForTimeout(500);
+
+  // Wait for the filtered test class to appear in the list
   const testClassRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(testClassName, 'i') });
   await testClassRow.waitFor({ state: 'visible', timeout: 5000 });
+
+  // Click the row to select it
   await testClassRow.click();
-  await page.waitForTimeout(800);
+
+  // Press Enter to confirm selection
   await page.keyboard.press('Enter');
 };
 
@@ -114,7 +129,6 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
   });
 
   await test.step('create Apex Test Suite with first class', async () => {
-    await page.waitForTimeout(5000);
     testSuiteName = `ApexTestSuite${Date.now()}`;
     await saveScreenshot(page, 'step.create-suite.before.png');
     await createApexTestSuiteViaPalette(page, testSuiteName, testClassName1);
@@ -149,7 +163,6 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
   });
 
   await test.step('run Apex Test Suite', async () => {
-    await page.waitForTimeout(5000);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_run_text);
     await saveScreenshot(page, 'step.run.after-command.png');
     await selectSuiteInQuickPick(page, testSuiteName);
