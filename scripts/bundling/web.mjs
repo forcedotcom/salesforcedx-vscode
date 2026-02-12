@@ -106,13 +106,8 @@ export const commonConfigBrowser = {
     'node:tls': emptyPolyfillsPath,
     'node:http2': emptyPolyfillsPath,
     got: emptyPolyfillsPath, // has a lot of very node-focused references in its dependencies.
-    // applicationinsights is Node.js only and not available in browser
-    applicationinsights: emptyPolyfillsPath,
-    // jest-editor-support is Node.js only and not available in browser (used for test support)
-    'jest-editor-support': emptyPolyfillsPath,
     // tty is Node.js built-in, provide polyfill with isatty function
     tty: ttyPolyfillPath,
-    'node:tty': ttyPolyfillPath,
     // Standard Node.js modules (without node: prefix)
     path: 'path-browserify',
     os: 'os-browserify',
