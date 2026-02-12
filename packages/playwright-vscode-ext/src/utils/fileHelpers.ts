@@ -6,9 +6,35 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { executeCommandWithCommandPalette } from '../pages/commands';
-import { closeSettingsTab, closeWelcomeTabs, isDesktop } from './helpers';
-import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
+import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
+import { executeCommandWithCommandPalette, waitForCommandToBeAvailable } from '../pages/commands';
+import {
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  waitForOutputChannelText
+} from '../pages/outputChannel';
+import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
+import { saveScreenshot } from '../shared/screenshotUtils';
+import {
+  assertWelcomeTabExists,
+  closeSettingsTab,
+  closeWelcomeTabs,
+  disableMonacoAutoClosing,
+  ensureSecondarySideBarHidden,
+  isDesktop,
+  waitForVSCodeWorkbench
+} from './helpers';
+import {
+  DIRTY_EDITOR,
+  EDITOR_WITH_URI,
+  NOTIFICATION_LIST_ITEM,
+  QUICK_INPUT_LIST_ROW,
+  QUICK_INPUT_WIDGET,
+  WORKBENCH
+} from './locators';
+
+/** Default timeout for deploy to complete (10 minutes, matches metadata deploy tests). */
+const DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS = 600_000;
 
 /**
  * Creates a new untitled file with contents.
@@ -46,6 +72,9 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await closeSettingsTab(page);
   await closeWelcomeTabs(page);
 
+  // Wait for the extension to load and register the command
+  await waitForCommandToBeAvailable(page, 'SFDX: Create Apex Class', 30_000);
+
   await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
 
   // First prompt: "Enter Apex class name"
@@ -61,13 +90,76 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
   await page.keyboard.press('Enter');
 
-  // Wait for the editor to open with the new class
-  await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
+  // Wait for the editor to open with the new class (extension writes a template and opens it)
+  const editor = page.locator(EDITOR_WITH_URI).first();
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
 
-  // If content is provided, type it into the editor
-  if (content !== undefined) {
-    await page.keyboard.type(content);
+  // If content is provided, replace the template with it and save (so the file is on disk and deployable)
+  if (content !== undefined && content.length > 0) {
+    // Close secondary sidebar (Chat/Agent) so keystrokes go to the editor, not the chat input
+    await ensureSecondarySideBarHidden(page);
+
+    // Focus the editor - click and verify it's ready for input by checking view lines are present
+    await editor.click();
+    await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+
+    // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
+    await executeCommandWithCommandPalette(page, 'Select All');
+
+    // Delete the selected content
+    await page.keyboard.press('Delete');
+
+
+    // Write to clipboard (evaluate completes when write is done)
+    // Note: Clipboard permissions are granted globally in playwright config (createWebConfig.ts & createDesktopConfig.ts)
+    await page.evaluate((text: string) => navigator.clipboard.writeText(text), content);
+
+    // Paste the content
+    await executeCommandWithCommandPalette(page, 'Paste');
+
+    // Save so the file is persisted and can be deployed / discovered by the test controller
+    await executeCommandWithCommandPalette(page, 'File: Save');
+    await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
   }
+};
+
+/**
+ * Deploys the currently active editor (or selected source) to the org via "SFDX: Deploy This Source to Org".
+ * Waits for the deploy progress notification to appear. Completion: if waitViaOutputChannel is true (e.g. Apex
+ * testing), waits for "deployed" in the Salesforce Metadata output channel; otherwise waits for the notification
+ * to disappear.
+ */
+  export const deployCurrentSourceToOrg = async (
+    page: Page,
+    options?: { deployCompleteTimeoutMs?: number; waitViaOutputChannel?: boolean }
+  ): Promise<void> => {
+    const deployCompleteTimeoutMs =
+    options?.deployCompleteTimeoutMs ?? DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS;
+    const waitViaOutputChannel = options?.waitViaOutputChannel ?? false;
+
+    await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+
+    const deployingNotification = page
+    .locator(NOTIFICATION_LIST_ITEM)
+    .filter({ hasText: /Deploying/i })
+    .first();
+    await expect(
+      deployingNotification,
+      'Deploy progress notification should appear'
+    ).toBeVisible({ timeout: 30_000 });
+
+    if (waitViaOutputChannel) {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Salesforce Metadata', deployCompleteTimeoutMs);
+      await waitForOutputChannelText(page, {
+        expectedText: 'deployed',
+        timeout: deployCompleteTimeoutMs
+      });
+    } else {
+      await expect(deployingNotification).not.toBeVisible({
+        timeout: deployCompleteTimeoutMs
+      });
+    }
 };
 
 /**
@@ -76,110 +168,151 @@ export const createApexClass = async (page: Page, className: string, content?: s
  * that's a limitation of web fs on vscode because search/find files doesn't work yet.
  */
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
-  const widget = page.locator(QUICK_INPUT_WIDGET);
+    const widget = page.locator(QUICK_INPUT_WIDGET);
 
-  if (isDesktop()) {
-    // On macOS desktop, Control+P doesn't work reliably, use command palette instead
-    await executeCommandWithCommandPalette(page, 'Go to File');
+    if (isDesktop()) {
+      // On macOS desktop, Control+P doesn't work reliably, use command palette instead
+      await executeCommandWithCommandPalette(page, 'Go to File');
 
-    // Wait for Quick Open widget to be visible and ready
-    await expect(widget).toBeVisible({ timeout: 10_000 });
-    const input = widget.locator('input.input');
-    await expect(input).toBeVisible({ timeout: 5000 });
-    await input.click({ timeout: 5000 });
+      // Wait for Quick Open widget to be visible and ready
+      await expect(widget).toBeVisible({ timeout: 10_000 });
+      const input = widget.locator('input.input');
+      await expect(input).toBeVisible({ timeout: 5000 });
+      await input.click({ timeout: 5000 });
 
-    // Clear any existing text and ensure input is focused
-    await page.keyboard.press('Control+a');
-    await page.keyboard.press('Delete');
-  } else {
-    // On web Control+P works fine as long as file has been opened in the editor first
-    await page.locator(WORKBENCH).click();
-    await page.keyboard.press('Control+p');
-    await widget.waitFor({ state: 'visible', timeout: 10_000 });
-    // Ensure input is focused and ready (matching original behavior)
-    const input = widget.locator('input.input');
-    await expect(input).toBeVisible({ timeout: 5000 });
-  }
-
-  // Type the filename
-  await page.keyboard.type(fileName);
-
-  // Wait for search results to populate and stabilize
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
-  // Wait for results to be stable (no new results appearing)
-  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 1000 });
-
-  // Find the result that matches the filename
-  const results = page.locator(QUICK_INPUT_LIST_ROW);
-  const resultCount = await results.count();
-  let foundMatch = false;
-  let matchIndex = 0;
-  for (let i = 0; i < resultCount; i++) {
-    const resultText = await results.nth(i).textContent();
-    // Check if the result contains the filename (Quick Open results include path info)
-    // Match if filename appears as a complete word (not part of another filename)
-    if (
-      resultText &&
-      (resultText.includes(`/${fileName}`) || resultText.includes(`\\${fileName}`) || resultText.startsWith(fileName))
-    ) {
-      matchIndex = i;
-      foundMatch = true;
-      break;
+      // Clear any existing text and ensure input is focused
+      await page.keyboard.press('Control+a');
+      await page.keyboard.press('Delete');
+    } else {
+      // On web Control+P works fine as long as file has been opened in the editor first
+      await page.locator(WORKBENCH).click();
+      await page.keyboard.press('Control+p');
+      await widget.waitFor({ state: 'visible', timeout: 10_000 });
+      // Ensure input is focused and ready (matching original behavior)
+      const input = widget.locator('input.input');
+      await expect(input).toBeVisible({ timeout: 5000 });
     }
-  }
 
-  if (!foundMatch) {
-    // Log all available results for debugging
-    const allResults: string[] = [];
-    for (let i = 0; i < Math.min(resultCount, 10); i++) {
-      const text = await results.nth(i).textContent();
-      if (text) allResults.push(text.trim());
+    // Type the filename
+    await page.keyboard.type(fileName);
+
+    // Wait for search results to populate and stabilize
+    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
+    // Wait for results to be stable (no new results appearing)
+    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 1000 });
+
+    // Find the result that matches the filename
+    const results = page.locator(QUICK_INPUT_LIST_ROW);
+    const resultCount = await results.count();
+    let foundMatch = false;
+    let matchIndex = 0;
+    for (let i = 0; i < resultCount; i++) {
+      const resultText = await results.nth(i).textContent();
+      // Check if the result contains the filename (Quick Open results include path info)
+      // Match if filename appears as a complete word (not part of another filename)
+      if (
+        resultText &&
+        (resultText.includes(`/${fileName}`) || resultText.includes(`\\${fileName}`) || resultText.startsWith(fileName))
+      ) {
+        matchIndex = i;
+        foundMatch = true;
+        break;
+      }
     }
-    // Check if Quick Open might be showing command palette results instead of files
-    const firstResult = allResults[0] || '';
-    if (firstResult.toLowerCase().includes('similar commands') || firstResult.toLowerCase().includes('no matching')) {
+
+    if (!foundMatch) {
+      // Log all available results for debugging
+      const allResults: string[] = [];
+      for (let i = 0; i < Math.min(resultCount, 10); i++) {
+        const text = await results.nth(i).textContent();
+        if (text) allResults.push(text.trim());
+      }
+      // Check if Quick Open might be showing command palette results instead of files
+      const firstResult = allResults[0] || '';
+      if (firstResult.toLowerCase().includes('similar commands') || firstResult.toLowerCase().includes('no matching')) {
+        throw new Error(
+          `Quick Open appears to be showing command palette results instead of files. Found ${resultCount} results. First few: ${allResults.join(' | ')}`
+        );
+      }
       throw new Error(
-        `Quick Open appears to be showing command palette results instead of files. Found ${resultCount} results. First few: ${allResults.join(' | ')}`
+        `No exact match found for "${fileName}" in Quick Open. Found ${resultCount} results. First few: ${allResults.join(' | ')}`
       );
     }
-    throw new Error(
-      `No exact match found for "${fileName}" in Quick Open. Found ${resultCount} results. First few: ${allResults.join(' | ')}`
-    );
-  }
 
-  // Navigate to the matching result using arrow keys
-  for (let i = 0; i < matchIndex; i++) {
-    await page.keyboard.press('ArrowDown');
-  }
+    // Navigate to the matching result using arrow keys
+    for (let i = 0; i < matchIndex; i++) {
+      await page.keyboard.press('ArrowDown');
+    }
 
-  // Press Enter to open the selected result
-  await page.keyboard.press('Enter');
+    // Press Enter to open the selected result
+    await page.keyboard.press('Enter');
 
-  // Wait for editor to open with the file
-  await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
+    // Wait for editor to open with the file
+    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
+  };
+
+  /** Edit the currently open file by adding a comment at the top */
+  export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<void> => {
+    const editor = page.locator(EDITOR_WITH_URI).first();
+    await editor.waitFor({ state: 'visible' });
+
+    // Wait for editor content to render (at least one line visible)
+    await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+
+    // Click the editor container first to ensure it's focused
+    // This is needed on all platforms to activate the editor
+    await editor.click();
+
+    // Go to end of first line (class declaration)
+    await page.keyboard.press('Control+Home');
+    await page.keyboard.press('End');
+
+    // Insert new line below and type comment
+    await page.keyboard.press('Enter');
+    await page.keyboard.type(`// ${comment}`);
+
+    // Save file
+    await executeCommandWithCommandPalette(page, 'File: Save');
+    await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
 };
 
-/** Edit the currently open file by adding a comment at the top */
-export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<void> => {
-  const editor = page.locator(EDITOR_WITH_URI).first();
-  await editor.waitFor({ state: 'visible' });
+/**
+ * Setup minimal org + auth with workbench loading in parallel.
+ * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
+ * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
+ */
+export const setupMinimalOrgAndAuth = async (page: Page): Promise<void> => {
+    const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
+    await saveScreenshot(page, 'setup.after-workbench.png');
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    await saveScreenshot(page, 'setup.after-auth-fields.png');
+  };
 
-  // Wait for editor content to render (at least one line visible)
-  await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+  /** Create an Apex test class and deploy it to the org. */
+  export const createAndDeployApexTestClass = async (
+    page: Page,
+    className: string,
+    content: string
+  ): Promise<void> => {
 
-  // Click the editor container first to ensure it's focused
-  // This is needed on all platforms to activate the editor
-  await editor.click();
+    // Disable auto-closing brackets temporarily to avoid duplicates when typing
+    await disableMonacoAutoClosing(page);
+    await createApexClass(page, className, content);
 
-  // Go to end of first line (class declaration)
-  await page.keyboard.press('Control+Home');
-  await page.keyboard.press('End');
+    // On web, saving the file auto-deploys via push-or-deploy-on-save, so we just wait for completion
+    // On desktop, we need to explicitly deploy
+    if (isDesktop()) {
+      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+    }
+    // Web: wait for auto-deploy to complete by checking output channel
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS);
+    await waitForOutputChannelText(page, {
+      expectedText: '2 components deployed',
+      timeout: DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS
+    });
 
-  // Insert new line below and type comment
-  await page.keyboard.press('Enter');
-  await page.keyboard.type(`// ${comment}`);
-
-  // Save file
-  await executeCommandWithCommandPalette(page, 'File: Save');
-  await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
-};
+    await saveScreenshot(page, 'setup.apex-test-class-created.png');
+  };

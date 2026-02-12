@@ -18,14 +18,18 @@ export {
   isDesktop,
   isMacDesktop,
   isWindowsDesktop,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  ensureSecondarySideBarHidden
 } from './utils/helpers';
 
 export {
   createFileWithContents,
   createApexClass,
+  deployCurrentSourceToOrg,
   openFileByName,
-  editAndSaveOpenFile as editOpenFile
+  editAndSaveOpenFile as editOpenFile,
+  setupMinimalOrgAndAuth,
+  createAndDeployApexTestClass
 } from './utils/fileHelpers';
 
 export {
