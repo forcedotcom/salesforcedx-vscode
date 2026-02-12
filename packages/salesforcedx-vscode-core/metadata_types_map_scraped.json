@@ -1279,22 +1279,22 @@
         "Field Type": "CustomHttpHeaders[]"
       },
       {
-        "Description": "The URL of the external system, or if that URL is defined in a named credential, the named credential URL. Corresponds to URL in the user interface.A named credential URL contains the scheme callout:, the name of the named credential, and an optional path. For example: callout:My_Named_Credential/some_path. You can append a query string to a named credential URL. Use a question mark (?) as the separator between the named credential URL and the query string. For example: callout:My_Named_Credential/some_path?format=json.",
+        "Description": "The URL of the external system, or if that URL is defined in a named credential, the named credential URL. Corresponds to the URL in the user interface.A named credential URL contains the scheme callout:, the name of the named credential, and an optional path. For example: callout:My_Named_Credential/some_path. You can append a query string to a named credential URL. Use a question mark (?) as the separator between the named credential URL and the query string. For example: callout:My_Named_Credential/some_path?format=json.",
         "Field Name": "endpoint",
         "Field Type": "string"
       },
       {
-        "Description": "Represents schema descriptors for an external data source used with Salesforce Connect adapter for Amazon DynamoDB (available in API version 55.0 or later) or Amazon Athena (available in API version 56.0 or later).",
+        "Description": "Represents schema descriptors for an external data source used with the Salesforce Connect adapter for Amazon DynamoDB (available in API version 55.0 or later) or Amazon Athena (available in API version 56.0 or later).",
         "Field Name": "externalDataSrcDescriptors",
         "Field Type": "ExternalDataSrcDescriptors[]"
       },
       {
-        "Description": "Lets the Lightning Platform and users in this org create, update, and delete records for external objects associated with the external data source. The external object data is stored outside the org. By default, external objects are read only. Corresponds to Writable External Objects in the user interface. Available in API version 35.0 and later. However, with the cross-org adapter for Salesforce Connect, you can set this field to true only in API version 39.0 and later.",
+        "Description": "Allows the Lightning Platform and users in this org create, update, and delete records for external objects associated with the external data source. The external object data is stored outside the org. By default, external objects are read-only. Corresponds to Writable External Objects in the user interface. Available in API version 35.0 and later. However, with the cross-org adapter for Salesforce Connect, you can set this field to true only in API version 39.0 and later.",
         "Field Name": "isWritable",
         "Field Type": "boolean"
       },
       {
-        "Description": "A user-friendly name for the external data source. The label is displayed in the Salesforce user interface, such as in list views.Examples include Acme Team Marketing Site, or Acme SharePoint.",
+        "Description": "A name for the external data source. The label is displayed in the Salesforce user interface, such as in list views.Examples include Acme Team Marketing Site, or Acme SharePoint.",
         "Field Name": "label",
         "Field Type": "string"
       },
@@ -1309,7 +1309,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Specifies the scope of permissions to request for the access token. Corresponds to Scope in the user interface.",
+        "Description": "Specifies the scope of permissions to request for the access token. Corresponds to the Scope in the user interface.",
         "Field Name": "oauthScope",
         "Field Type": "string"
       },
@@ -1319,7 +1319,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "The password to be used by your org to access the external system. Ensure that the credentials you use have adequate privileges to access the external system, perform searches, return data, and return information about the external system’s metadata.",
+        "Description": "The password your org uses to access the external system. Make sure that the credentials you use have adequate privileges to access the external system, perform searches, return data, and return information about the external system’s metadata.",
         "Field Name": "password",
         "Field Type": "string"
       },
@@ -1334,17 +1334,17 @@
         "Field Type": "Authentication​Protocol​ (enumeration of type string)"
       },
       {
-        "Description": "Used for SharePoint Online. If metadata is not accessible, use this field to create tables and default table fields.",
+        "Description": "Used for SharePoint Online. If metadata isn't accessible, use this field to create tables and default table fields.",
         "Field Name": "repository",
         "Field Type": "string"
       },
       {
-        "Description": "Required. For Salesforce Connect, specifies the adapter that connects to the external system. The valid values are: AmazonAthena—Amazon Athena AmazonDynamoDB—Amazon DynamoDB OData—OData 2.0 adapter OData4—OData 4.0 adapter SfdcOrg—cross-org adapter ApexClassId—DataSource.Provider class that defines the custom adapter created via the Apex Connector Framework For Files Connect, specifies the data source type. The valid values are: ContentHubSharepoint—SharePoint 2010 or 2013 ContentHubSharepointOffice365—SharePoint Online ContentHubSharepointOneDrive—OneDrive for Business ContentHubGDrive—Google Drive ContenHubIsotope—Isotope If Chatter is enabled, you can also specify SimpleURL to access data hosted on a web server that doesn’t require authentication. outgoingemail—A data source used for sending an email through a quick action. The Identity and Wrapper types are reserved for future use. For Digital Lending Configurator, the valid value is AFPPAttribute. The data source name for the Application Form Product Proposal Attribute virtual object. For the federated search external data source type, the valid value is OpenSearch. For Transaction Management in Revenue Cloud, the valid values are: ASPAttribute— The data source name for the Asset State Period Attribute virtual object. Available in API version 63.0 and later. OIAttribute— The data source name for the Order Item Attribute virtual object. Available in API version 63.0 and later. QLIAttribute— The data source name for the Quote Line Item Attribute virtual object. Available in API version 63.0 and later. For SalesAgreement in Manufacturing Cloud, the valid values are: SAPAttribute— The data source name for the SalesAgreement Product Attribute virtual object. Available in API version 60.0 and later.",
+        "Description": "Required. For Salesforce Connect, specifies the adapter that connects to the external system. The valid values are: AmazonAthena—Amazon Athena AmazonDynamoDB—Amazon DynamoDB OData—OData 2.0 adapter OData4—OData 4.0 adapter SfdcOrg—cross-org adapter ApexClassId—DataSource.Provider class that defines the custom adapter created via the Apex Connector Framework For Files Connect, specifies the data source type. The valid values are: ContentHubSharepoint—SharePoint 2010 or 2013 ContentHubSharepointOffice365—SharePoint Online ContentHubSharepointOneDrive—OneDrive for Business ContentHubGDrive—Google Drive ContenHubIsotope—Isotope If Chatter is enabled, you can also specify SimpleURL to access data hosted on a web server that doesn’t require authentication. outgoingemail—A data source used for sending an email through a quick action. The Identity and Wrapper types are reserved for future use. For Digital Lending Configurator, the valid value is AFPPAttribute. The data source name for the Application Form Product Proposal Attribute virtual object. For the federated search external data source type, the valid value is OpenSearch. For Transaction Management in Revenue Cloud, the valid values are: ASPAttribute—The data source name for the Asset State Period Attribute virtual object. Available in API version 63.0 and later. OIAttribute— The data source name for the Order Item Attribute virtual object. Available in API version 63.0 and later. QLIAttribute— The data source name for the Quote Line Item Attribute virtual object. Available in API version 63.0 and later. For SalesAgreement in Manufacturing Cloud, the valid values are: SAPAttribute—The data source name for the SalesAgreement Product Attribute virtual object. Available in API version 60.0 and later. These values are reserved for internal use: ClaimAttributeDS ClaimItemAttributeDS CtrtGrpPlnAttr CtrtGrpPlnGrpClsAttr",
         "Field Name": "type",
         "Field Type": "ExternalData​SourceType​ (enumeration of type string)"
       },
       {
-        "Description": "The username to be used by your org to access the external system. Ensure that the credentials you use have adequate privileges to access the external system, perform searches, return data, and return information about the external system’s metadata.",
+        "Description": "The user name that your org uses to access the external system. Make sure that the credentials you use have adequate privileges to access the external system, perform searches, return data, and return information about the external system’s metadata.",
         "Field Name": "username",
         "Field Type": "string"
       },
@@ -1366,7 +1366,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. Name of the header field. The name must contain at least one alphanumeric character or underscore. It can also include: ! # $ % & ' * + - . ^ _ ` | ~",
+        "Description": "Required. Name of the header field. The name must contain at least one alphanumeric character or underscore. It can also include these characters: ! # $ % & ' * + - . ^ _ ` | ~.",
         "Field Name": "headerFieldName",
         "Field Type": "string"
       },
@@ -1398,7 +1398,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "If the external system supports schema versioning for the data source, the optional descriptor document version tracks the external system's schema version. Several descriptors with different document versions may be active.",
+        "Description": "If the external system supports schema versioning for the data source, the optional descriptor document version tracks the external system's schema version. Several descriptors with different document versions can be active.",
         "Field Name": "descriptorVersion",
         "Field Type": "string"
       },
@@ -1418,7 +1418,7 @@
         "Field Type": "ExternalDataSrcDescSubtype (enumeration of type string)"
       },
       {
-        "Description": "Required. The version that defines the descriptor format and allows compatibility with descriptor formats between Salesforce releases.",
+        "Description": "Required. The version that defines the descriptor format and provides compatibility with descriptor formats between Salesforce releases.",
         "Field Name": "systemVersion",
         "Field Type": "int"
       },
@@ -1428,7 +1428,7 @@
         "Field Type": "ExternalDataSrcDescType (enumeration of type string)"
       }
     ],
-    "short_description": "Represents schema descriptors for an external data source used with Salesforce Connect adapter for Amazon DynamoDB (available in API version 55.0 or later) or Amazon Athena (available in API version 56.0 or later).",
+    "short_description": "Represents schema descriptors for an external data source used with the Salesforce Connect adapter. The schema descriptors are for Amazon DynamoDB (available in API version 55.0 or later) or Amazon Athena (available in API version 56.0 or later).",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm",
     "parent": "Metadata"
   },
@@ -14008,7 +14008,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Used for the settings that describe a value in a custom picklist field. The picklist can have its own unique value set, or inherit the values from a global value set. You can add field dependency values via Metadata API but not remove them.",
+        "Description": "Used for the settings that describe a value in a custom picklist field. The picklist can have its own unique value set, or inherit the values from a global value set. You can add field dependency values via the Metadata API but not remove them.",
         "Field Name": "valueSettings",
         "Field Type": "ValueSettings"
       }
@@ -14037,7 +14037,7 @@
   "ValueSettings": {
     "fields": [
       {
-        "Description": "Applies only to dependent custom picklists. A list of values in the controlling or parent picklist (that the custom picklist values depend on). You can add field dependency values via Metadata API but not remove them.",
+        "Description": "Applies only to dependent custom picklists. A list of values in the controlling or parent picklist (that the custom picklist values depend on). You can add field dependency values via the Metadata API but not remove them.",
         "Field Name": "controllingFieldValue",
         "Field Type": "stringstring[]"
       },
@@ -14074,7 +14074,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Indicates the gender of the noun that represents the object. This is used for languages where words need different treatment depending on their gender.",
+        "Description": "Indicates the gender of the noun that represents the object. Used for languages where words need different treatment depending on their gender.",
         "Field Name": "gender",
         "Field Type": "Gender"
       },
@@ -21831,6 +21831,48 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_featureparameterinteger.htm",
     "parent": "Metadata"
   },
+  "FieldMappingConfig": {
+    "fields": [
+      {
+        "Description": "The description of the field mapping configuration.",
+        "Field Name": "Description",
+        "Field Type": "textarea"
+      },
+      {
+        "Description": "The unqiue name for FieldMappingConfig.",
+        "Field Name": "DeveloperName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The language of the FieldMappingConfig. Possible values are: da—Danish de—German en_US—English es—Spanish es_MX—Spanish (Mexico) fi—Finnish fr—French it—Italian ja—Japanese ko—Korean nl_NL—Dutch no—Norwegian pt_BR—Portuguese (Brazil) ru—Russian sv—Swedish th—Thai zh_CN—Chinese (Simplified) zh_TW—Chinese (Traditional)",
+        "Field Name": "Language",
+        "Field Type": "picklist"
+      },
+      {
+        "Description": "Label for the FieldMappingConfig.",
+        "Field Name": "MasterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The namespace prefix associated with this object. Each Developer Edition organization that creates a managed package has a unique namespace prefix. Limit: 15 characters. You can refer to a component in a managed package by using the namespacePrefix__componentName notation. The namespace prefix can have one of the following values: In Developer Edition organizations, the namespace prefix is set to the namespace prefix of the organization for all objects that support it. There is an exception if an object is in an installed managed package. In that case, the object has the namespace prefix of the installed managed package. This field’s value is the namespace prefix of the Developer Edition organization of the package developer. In organizations that are not Developer Edition organizations, NamespacePrefix is only set for objects that are part of an installed managed package. There is no namespace prefix for all other objects.",
+        "Field Name": "NamespacePrefix",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Specifies the type of process that the field mapping configuration supports. Possible values are: ChangeRequest GiftEntry Incident Problem The default value is GiftEntry.",
+        "Field Name": "ProcessType",
+        "Field Type": "picklist"
+      },
+      {
+        "Description": "The ID of the source object for all of the fields mapped in the configuration. Possible values are: GiftEntry",
+        "Field Name": "SourceObjectId",
+        "Field Type": "picklist"
+      }
+    ],
+    "short_description": "Represents the configuration for fields mapped between a source object and one or more destination objects and fields. This object is available in API version 63.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/npc_fundraising_api_objects_fieldmappingconfig.htm",
+    "parent": "Metadata"
+  },
   "FieldRestrictionRule": {
     "fields": [
       {
@@ -23677,7 +23719,7 @@
         "Field Type": "FlowStageStepExitActionOutputParameter[]"
       },
       {
-        "Description": "The type of the evaluation flow for the custom exit condition. Valid values are: createFieldGnrnPromptTmplResp EvaluationFlow exploreConversationThis value is available in API version 61.0 and later.",
+        "Description": "The type of the evaluation flow for the custom exit condition. Valid values are: EvaluationFlow This value is available in API version 61.0 and later.",
         "Field Name": "exitActionType",
         "Field Type": "InvocableActionType (enumeration of type string)"
       },
@@ -24618,7 +24660,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The type of the step. Valid values are: createFieldGnrnPromptTmplResp—This value is available in API version 62.0 and later. exploreConversation—This value is available in API version 61.0 and later. stepBackground stepInteractive stepMuleSoft",
+        "Description": "Required. The type of the step. Valid values are: stepApproval—An Approval step available only for flow approval processes. This value is available in API version 62.0 and later. stepBackground—A Background step available for both flow approval processes and orchestrations. stepInteractive—An Interactive step available only for orchestrations. stepMuleSoft—A MuleSoft step available only for orchestrations.",
         "Field Name": "actionType",
         "Field Type": "InvocableActionType (enumeration of type string)"
       },
@@ -24653,7 +24695,7 @@
         "Field Type": "FlowStageStepEntryActionOutputParameter[]"
       },
       {
-        "Description": "The type of the evaluation flow used as a custom entry condition for the step. Valid values are: EvaluationFlow exploreConversation—This value is available in API version 61.0 and later.",
+        "Description": "The type of the evaluation flow used as a custom entry condition for the step. Valid values are: EvaluationFlow",
         "Field Name": "entryActionType",
         "Field Type": "InvocableActionType (enumeration of type string)"
       },
@@ -24683,7 +24725,7 @@
         "Field Type": "FlowStageStepExitActionOutputParameter[]"
       },
       {
-        "Description": "The type of the evaluation flow used as a custom exit condition for the step. The only possible value are: EvaluationFlow exploreConversation—This value is available in API version 61.0 and later. .",
+        "Description": "The type of the evaluation flow used as a custom exit condition for the step. The only possible value are: EvaluationFlow .",
         "Field Name": "exitActionType",
         "Field Type": "InvocableActionType (enumeration of type string)"
       },
@@ -48884,13 +48926,23 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether individual users can enable dark mode (true) or not (false) for the Salesforce Cosmos theme. The default value is false. Available only in Salesforce Starter Suite orgs. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
+        "Description": "Indicates whether individual users can enable dark mode (true) or not (false) for the Salesforce Cosmos theme. The default value is false. Available for SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
         "Field Name": "enableSldsV2DarkModeInCosmos (beta)",
         "Field Type": "boolean"
       },
       {
         "Description": "Indicates whether an area displays on a tab home page (corresponds to the Show Quick Create setting), allowing users to create a record quickly with minimal information (true) or not (false). The Quick Create area displays by default on the tab home pages for leads, accounts, contacts, and opportunities. You can control whether the Quick Create area is displayed on all relevant tab home pages.",
         "Field Name": "enableQuickCreate",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether users can sort list views by multiple columns (true) or not (false). The default is true. Available in API version 63.0 and later.",
+        "Field Name": "multiColumnSortLv",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether users can sort related lists by multiple columns (true) or not (false). The default is true. Available in API version 63.0 and later.",
+        "Field Name": "multiColumnSortRL",
         "Field Type": "boolean"
       }
     ],
