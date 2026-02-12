@@ -13,15 +13,12 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Effect } from 'effect';
 import * as path from 'node:path';
-import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
-import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
+import { ExtensionContext, workspace } from 'vscode';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
-import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import { activateLwcTestSupport, shouldActivateLwcTestSupport } from './testSupport';
-import { WorkspaceUtils } from './util/workspaceUtils';
 
 export const activate = async (extensionContext: ExtensionContext) => {
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
@@ -60,10 +57,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
     log(`WorkspaceType detected: ${workspaceType}`);
     return;
   }
-
-  // register commands
-  const ourCommands = registerCommands(extensionContext);
-  extensionContext.subscriptions.push(ourCommands);
 
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
@@ -110,17 +103,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
     activateLwcTestSupport(extensionContext, workspaceType);
   }
 
-  // Initialize utils for user settings
-  WorkspaceUtils.instance.init(extensionContext);
-
   // Notify telemetry that our extension is now active
   void activateTracker.markActivationStop();
 };
 
 export const deactivate = async () => {
-  if (DevServerService.instance.isServerHandlerRegistered()) {
-    await DevServerService.instance.stopServer();
-  }
   log('Lightning Web Components Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
 };
@@ -129,11 +116,3 @@ const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
   return config.get('activationMode') ?? 'autodetect'; // default to autodetect
 };
-
-const registerCommands = (_extensionContext: ExtensionContext): Disposable =>
-  Disposable.from(
-    commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),
-    commands.registerCommand('sf.lightning.lwc.stop', lightningLwcStop),
-    commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
-    commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
-  );

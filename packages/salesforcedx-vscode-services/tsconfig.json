@@ -9,14 +9,24 @@
       }
     ]
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "playwright.config.web.ts", "scripts/**/*.ts", "test/playwright/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "dist"
+  ],
+  "include": [
+    "src/**/*.ts",
+    "playwright.config.web.ts",
+    "scripts/**/*.ts",
+    "test/playwright/**/*.ts"
+  ],
   "references": [
     {
-      "path": "../playwright-vscode-ext"
+      "path": "../salesforcedx-vscode-i18n"
     },
     {
-      "path": "../salesforcedx-vscode-i18n"
+      "path": "../playwright-vscode-ext"
     }
   ]
 }
