@@ -26,7 +26,8 @@ import {
   waitForOutputChannelText,
   isMacDesktop,
   validateNoCriticalErrors,
-  saveScreenshot
+  saveScreenshot,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
@@ -40,6 +41,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
 

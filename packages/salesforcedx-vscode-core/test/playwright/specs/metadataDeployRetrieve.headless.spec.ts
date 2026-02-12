@@ -23,7 +23,8 @@ import {
   validateNoCriticalErrors,
   saveScreenshot,
   EDITOR_WITH_URI,
-  verifyCommandExists
+  verifyCommandExists,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
@@ -48,6 +49,7 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
 

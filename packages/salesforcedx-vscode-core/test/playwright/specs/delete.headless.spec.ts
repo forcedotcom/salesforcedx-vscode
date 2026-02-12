@@ -26,7 +26,8 @@ import {
   validateNoCriticalErrors,
   saveScreenshot,
   NOTIFICATION_LIST_ITEM,
-  openFileByName
+  openFileByName,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
@@ -40,6 +41,7 @@ test('Delete: delete from project and org via command palette and context menus'
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
 

@@ -23,7 +23,8 @@ import {
   outputChannelContains,
   validateNoCriticalErrors,
   saveScreenshot,
-  verifyCommandExists
+  verifyCommandExists,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
@@ -37,6 +38,7 @@ test('Push and Pull: push, pull, and view changes', async ({ page }) => {
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await verifyCommandExists(page, 'SFDX: View Local Changes', 120_000);
 

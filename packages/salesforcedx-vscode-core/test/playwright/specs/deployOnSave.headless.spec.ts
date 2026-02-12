@@ -21,7 +21,8 @@ import {
   waitForOutputChannelText,
   validateNoCriticalErrors,
   saveScreenshot,
-  DIRTY_EDITOR
+  DIRTY_EDITOR,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { expect } from '@playwright/test';
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
@@ -36,6 +37,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     // Ensure core commands are active (not metadata extension commands)

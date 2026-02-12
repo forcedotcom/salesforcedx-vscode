@@ -29,3 +29,7 @@ Organized by branch and run ID.
 ## Workflow Detection
 
 Filter `gh run list` JSON for `workflowName` containing "(Playwright)". Examples: "Metadata E2E (Playwright)" (`metadataE2E.yml`), "Services E2E (Playwright)" (`servicesE2E.yml`), "OrgBrowser E2E (Playwright)" (`orgBrowserE2E.yml`).
+
+## Finding video
+
+the video names are hard. You can often trust the test failures to be the longest (largest file size) videos because waiting for test timeout
