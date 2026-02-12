@@ -13,16 +13,13 @@ import {
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { Effect } from 'effect';
-import { commands, Disposable, ExtensionContext, FileType, workspace } from 'vscode';
+import { ExtensionContext, FileType, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
-import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
+import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
-import { DevServerService } from './service/devServerService';
-// Test support is lazy-loaded to avoid bundling jest-editor-support in web mode
 import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
-import { WorkspaceUtils } from './util/workspaceUtils';
 
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   const telemetryModule = await import('./telemetry/index.js');
@@ -65,10 +62,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
   } catch (e) {
     console.error('[LWC] Failed to append to channel:', e);
   }
-
-  // Register commands (only once)
-  const ourCommands = registerCommands(extensionContext);
-  extensionContext.subscriptions.push(ourCommands);
 
   let activateTracker: ActivationTracker | undefined;
   let telemetryService: TelemetryServiceInterface | undefined;
@@ -301,9 +294,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
     }
   }
 
-  // Initialize utils for user settings
-  WorkspaceUtils.instance.init(extensionContext);
-
   // Notify telemetry that our extension is now active
   if (activateTracker) {
     void activateTracker.markActivationStop();
@@ -313,9 +303,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
 };
 
 export const deactivate = async () => {
-  if (DevServerService.instance.isServerHandlerRegistered()) {
-    await DevServerService.instance.stopServer();
-  }
+  log('Lightning Web Components Extension Deactivated');
   if (process.env.ESBUILD_PLATFORM !== 'web') {
     const telemetryService = await getTelemetryService();
     telemetryService.sendExtensionDeactivationEvent();
@@ -326,11 +314,3 @@ const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
   return config.get('activationMode') ?? 'autodetect'; // default to autodetect
 };
-
-const registerCommands = (_extensionContext: ExtensionContext): Disposable =>
-  Disposable.from(
-    commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),
-    commands.registerCommand('sf.lightning.lwc.stop', lightningLwcStop),
-    commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
-    commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
-  );
