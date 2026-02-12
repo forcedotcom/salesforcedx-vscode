@@ -104,8 +104,18 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
     await settingsLocator(page).first().waitFor({ timeout: 3000 });
 
+    // Screenshot search box state before clear+type (debug: is previous search still there?)
+    if (Object.keys(settings).length > 1) {
+      await saveScreenshot(page, `settings.beforeSearch.${id.replace(/\./g, '_')}.png`, false);
+    }
+
     // First try an exact search by full id (section.key)
     await performSearch(page)(id);
+
+    // Screenshot search box state after clear+type (debug: did clear work, is query correct?)
+    if (Object.keys(settings).length > 1) {
+      await saveScreenshot(page, `settings.afterSearch.${id.replace(/\./g, '_')}.png`, false);
+    }
 
     // Wait for search results to appear - wait for any search result element to indicate search completed
     await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
@@ -184,7 +194,8 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         // Verify the value was set
         await expect(combobox).toHaveValue(value, { timeout: 10_000 });
       } else {
-        // Handle textbox or spinbutton setting
+        // Handle textbox or spinbutton setting.
+        // fill() unreliable on spinbutton (input type=number). Use keyboard select-all + pressSequentially.
         const roleTextbox = row.getByRole('textbox').first();
         const roleSpinbutton = row.getByRole('spinbutton').first();
 
@@ -193,11 +204,10 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
         await inputElement.waitFor({ timeout: 30_000 });
         await inputElement.click({ timeout: 5000 });
-        // Clear the input first, then type the new value
-        // This is more reliable than select-all + fill on desktop
-        await inputElement.clear();
-        await expect(inputElement).toBeEmpty({ timeout: 10_000 });
-        await inputElement.fill(value);
+        // Select all via keyboard (works for both textbox and spinbutton on desktop + web)
+        const selectAllKey = isMacDesktop() ? 'Meta+a' : 'Control+a';
+        await page.keyboard.press(selectAllKey);
+        await inputElement.pressSequentially(value);
         await inputElement.blur();
         await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
       }
