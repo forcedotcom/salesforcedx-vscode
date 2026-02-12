@@ -15,9 +15,8 @@ export const isTelemetryExtensionConfigurationEnabled = (): boolean => {
   // TODO: should we consult the CLI's telemetry preference?
   const enabled =
     workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
-    // on the web, no core extension is every installed so we can't consult the config
+    // on the web, no core extension is ever installed so we can't consult the config
     (process.env.ESBUILD_PLATFORM === 'web' ||
       workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('telemetry.enabled', false));
-  console.log('isTelemetryExtensionConfigurationEnabled', enabled);
   return enabled;
 };
