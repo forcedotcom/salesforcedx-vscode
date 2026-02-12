@@ -19,7 +19,6 @@ import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { telemetryService } from './telemetry';
 import { activateLwcTestSupport, shouldActivateLwcTestSupport } from './testSupport';
-import { WorkspaceUtils } from './util/workspaceUtils';
 
 export const activate = async (extensionContext: ExtensionContext) => {
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
@@ -103,9 +102,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
   if (shouldActivateLwcTestSupport(workspaceType)) {
     activateLwcTestSupport(extensionContext, workspaceType);
   }
-
-  // Initialize utils for user settings
-  WorkspaceUtils.instance.init(extensionContext);
 
   // Notify telemetry that our extension is now active
   void activateTracker.markActivationStop();
