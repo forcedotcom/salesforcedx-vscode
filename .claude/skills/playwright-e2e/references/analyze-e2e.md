@@ -33,3 +33,18 @@ Filter `gh run list` JSON for `workflowName` containing "(Playwright)". Examples
 ## Finding video
 
 the video names are hard. You can often trust the test failures to be the longest (largest file size) videos because waiting for test timeout
+
+Video → screenshot to look at filenames in the test and see which test the video goes with
+
+## Video → screenshots
+
+Extract frames from failing test `.webm` to step through a moment:
+
+- **Prereq:** `brew install ffmpeg` if missing
+- **Cmd** (e.g. 1:29–1:36 → -ss 89 -to 96):
+
+```bash
+mkdir -p .e2e-artifacts/frames && ffmpeg -i <path>/<video>.webm -ss 89 -to 96 -vf "fps=6" -q:v 2 .e2e-artifacts/frames/frame_%04d.png
+```
+
+- `fps=6` ≈ 6 frames/sec; output `frame_0001.png`+

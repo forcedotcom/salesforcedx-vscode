@@ -48,11 +48,13 @@ const withOutputFilter = async <T>(
   await input.click({ force: true });
   await input.fill(searchText, { force: true });
   await expect(input).toHaveValue(searchText, { timeout: 5000 });
+  await page.keyboard.press('Enter');
   try {
     return await fn();
   } finally {
     await input.click({ force: true });
     await input.fill('', { force: true });
+    await page.keyboard.press('Enter');
     await expect(input).toHaveValue('', { timeout: 5000 });
   }
 };
@@ -211,14 +213,17 @@ export const waitForOutputChannelText = async (
       await input.click({ force: true });
       await input.fill('', { force: true });
       await expect(input).toHaveValue('', { timeout: 5000 });
+      await page.keyboard.press('Enter');
       await input.fill(expectedText, { force: true });
       await expect(input).toHaveValue(expectedText, { timeout: 5000 });
+      await page.keyboard.press('Enter');
       const combinedText = await getAllOutputText(page);
       expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
     }).toPass({ timeout });
   } finally {
     await input.click({ force: true }).catch(() => {});
     await input.fill('', { force: true }).catch(() => {});
+    await page.keyboard.press('Enter').catch(() => {});
   }
 };
 
