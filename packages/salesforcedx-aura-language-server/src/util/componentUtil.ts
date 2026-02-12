@@ -16,7 +16,7 @@ const splitPath = (filePath: path.ParsedPath): string[] => {
   return pathElements;
 };
 
-export const nameFromFile = (
+const nameFromFile = (
   file: string,
   sfdxProject: boolean,
   converter: (a: string, b: string) => string
@@ -32,7 +32,7 @@ export const nameFromFile = (
   return null;
 };
 
-export const nameFromDirectory = (
+const nameFromDirectory = (
   file: string,
   sfdxProject: boolean,
   converter: (a: string, b: string) => string
