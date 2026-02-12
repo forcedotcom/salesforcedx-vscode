@@ -21,7 +21,41 @@ import { openCommandPalette } from './commands';
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
 const outputPanelCodeArea = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-lines`);
-const filterInput = (page: Page) => outputPanel(page).getByPlaceholder(/Filter/i);
+const filterInput = (page: Page) =>
+  page.getByPlaceholder(/Filter \(e\.g\./i).first();
+
+const ensureOutputFilterReady = async (page: Page, timeout: number) => {
+  const panel = outputPanel(page);
+  const outputTab = panel.getByRole('tab', { name: /Output/i }).first();
+  const tabVisible = await outputTab.isVisible().catch(() => false);
+  if (tabVisible) await outputTab.hover({ force: true });
+  const input = filterInput(page);
+  await expect(input, 'Output filter should be visible and usable').toBeVisible({ timeout });
+  return input;
+};
+
+/**
+ * Use output filter to force rendering in virtualized output channels.
+ */
+const withOutputFilter = async <T>(
+  page: Page,
+  searchText: string,
+  fn: () => Promise<T>,
+  opts?: { timeout?: number }
+): Promise<T> => {
+  const { timeout = 10_000 } = opts ?? {};
+  const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
+  await input.click({ force: true });
+  await input.fill(searchText, { force: true });
+  await expect(input).toHaveValue(searchText, { timeout: 5000 });
+  try {
+    return await fn();
+  } finally {
+    await input.click({ force: true });
+    await input.fill('', { force: true });
+    await expect(input).toHaveValue('', { timeout: 5000 });
+  }
+};
 
 /** Get all text content from output panel (including scrolled content), normalized */
 const getAllOutputText = async (page: Page): Promise<string> => {
@@ -45,26 +79,6 @@ const waitForOutputContent = async (page: Page, timeout: number): Promise<boolea
   }
 };
 
-/** Use filter to ensure output is rendered, then check full DOM content */
-const withOutputFilter = async <T>(page: Page, searchText: string, fn: () => Promise<T>): Promise<T> => {
-  const input = filterInput(page);
-  await input.waitFor({ state: 'visible', timeout: 5000 });
-  await input.focus();
-  // Clear existing value by selecting all and deleting
-  await page.keyboard.press('Control+KeyA');
-  await page.keyboard.press('Backspace');
-  // Fill the search text - this triggers VS Code to process/render the output
-  await input.fill(searchText);
-  await expect(input).toHaveValue(searchText, { timeout: 5000 });
-  try {
-    return await fn();
-  } finally {
-    // Clear filter - ensure input is focused, then clear using fill
-    await input.focus();
-    await input.fill('');
-    await expect(input).toHaveValue('', { timeout: 5000 });
-  }
-};
 
 /** Opens the Output panel (idempotent - safe to call if already open) */
 export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
@@ -139,28 +153,28 @@ export const outputChannelContains = async (
 ): Promise<boolean> => {
   const { timeout = 10_000 } = opts ?? {};
 
-  // First wait for output channel to have content
-  if (!(await waitForOutputContent(page, timeout))) {
+  if (!(await waitForOutputContent(page, timeout))) return false;
+
+  try {
+    await withOutputFilter(
+      page,
+      searchText,
+      async () => {
+        await expect(async () => {
+          const combinedText = await getAllOutputText(page);
+          expect(combinedText.includes(searchText), `Expected "${searchText}" in output`).toBe(true);
+        }).toPass({ timeout });
+      },
+      { timeout }
+    );
+    const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
+    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
+    return true;
+  } catch {
+    const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
+    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return false;
   }
-
-  // Then check if it contains the search text
-  return withOutputFilter(page, searchText, async () => {
-    try {
-      await expect(async () => {
-        // Use getAllOutputText to get full DOM content including scrolled content
-        const combinedText = await getAllOutputText(page);
-        expect(combinedText.includes(searchText), `Expected "${searchText}" in output`).toBe(true);
-      }).toPass({ timeout });
-      const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
-      await page.screenshot({ path: `test-results/filter-${safeName}.png` });
-      return true;
-    } catch {
-      const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
-      await page.screenshot({ path: `test-results/filter-${safeName}.png` });
-      return false;
-    }
-  });
 };
 
 /**
@@ -187,18 +201,21 @@ export const waitForOutputChannelText = async (
 ): Promise<void> => {
   const { expectedText, timeout = 30_000 } = opts;
 
-  // Wait for output channel to have content
   if (!(await waitForOutputContent(page, timeout))) {
     throw new Error(`Output channel did not have content within ${timeout}ms`);
   }
 
-  await withOutputFilter(page, expectedText, async () => {
-    await expect(async () => {
-      // Use getAllOutputText to get full DOM content including scrolled content
-      const combinedText = await getAllOutputText(page);
-      expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
-    }).toPass({ timeout });
-  });
+  await withOutputFilter(
+    page,
+    expectedText,
+    async () => {
+      await expect(async () => {
+        const combinedText = await getAllOutputText(page);
+        expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
+      }).toPass({ timeout });
+    },
+    { timeout }
+  );
 };
 
 /**
