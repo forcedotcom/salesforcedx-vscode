@@ -20,4 +20,4 @@
 
 #### salesforcedx-vscode-core
 
-- We fixed an issue in the CLI Integration extension that caused the Agentforce Vibes extension to display the "No Default Org Set" page on startup. ([PR #6847](https://github.com/forcedotcom/salesforcedx-vscode/pull/6847))
+- We fixed an issue in the CLI Integration extension that caused the Agentforce Vibes extension to display the `No Default Org Set` message on startup. ([PR #6847](https://github.com/forcedotcom/salesforcedx-vscode/pull/6847))
