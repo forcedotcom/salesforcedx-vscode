@@ -88,6 +88,7 @@ jspm_packages/
 
 # Generated vscode package
 *.vsix
+.vsix-web-run
 
 # VS Code tests
 .vscode-test

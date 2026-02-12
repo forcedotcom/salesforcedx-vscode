@@ -56,13 +56,14 @@
   "scripts": {
     "vscode:bundle": "wireit",
     "run:web": "wireit",
+    "run:web:vsix": "wireit",
     "vscode:prepublish": "npm prune --production",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .vsix-web-run *.vsix",
     "test": "wireit"
   },
   "wireit": {
@@ -110,6 +111,15 @@
       "service": true,
       "dependencies": [
         "vscode:bundle",
+        "../salesforcedx-vscode-org-browser:vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle"
+      ]
+    },
+    "run:web:vsix": {
+      "command": "node scripts/runWebFromVsix.mjs",
+      "service": true,
+      "dependencies": [
+        "vscode:package:legacy",
         "../salesforcedx-vscode-org-browser:vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle"
       ]
