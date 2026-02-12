@@ -29,7 +29,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, workspaceRoots);
 
     const fsPath = '/workspace/src/file.js';
-    expect(provider.getFileContent(fsPath)).toBe(content);
+    expect(provider.getFileContentSync(fsPath)).toBe(content);
     const stat = provider.getFileStat(fsPath);
     expect(stat?.type).toBe('file');
     expect(stat?.exists).toBe(true);
@@ -43,7 +43,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
 
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, workspaceRoots);
 
-    expect(provider.getFileContent(uri)).toBe(content);
+    expect(provider.getFileContentSync(uri)).toBe(content);
     const stat = provider.getFileStat(uri);
     expect(stat?.type).toBe('file');
     expect(stat?.exists).toBe(true);
@@ -57,7 +57,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, workspaceRoots);
 
     const fsPath = '/workspace/src/components/button.js';
-    expect(provider.getFileContent(fsPath)).toBe(content);
+    expect(provider.getFileContentSync(fsPath)).toBe(content);
 
     // Check that parent directories are created
     expect(provider.directoryExists(normalizePath('/workspace'))).toBe(true);
@@ -93,8 +93,8 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     await syncDocumentToTextDocumentsProvider(normalizedPath1, content1, provider, workspaceRoots);
     await syncDocumentToTextDocumentsProvider(normalizedPath2, content2, provider, workspaceRoots);
 
-    expect(provider.getFileContent('/workspace/src/file1.js')).toBe(content1);
-    expect(provider.getFileContent('/workspace/src/file2.js')).toBe(content2);
+    expect(provider.getFileContentSync('/workspace/src/file1.js')).toBe(content1);
+    expect(provider.getFileContentSync('/workspace/src/file2.js')).toBe(content2);
 
     const entries = provider.getDirectoryListing(normalizePath('/workspace/src'));
     expect(entries).toHaveLength(2);
@@ -112,7 +112,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     await syncDocumentToTextDocumentsProvider(normalizedPath, content2, provider, workspaceRoots);
 
     // Content should be updated
-    expect(provider.getFileContent('/workspace/src/file.js')).toBe(content2);
+    expect(provider.getFileContentSync('/workspace/src/file.js')).toBe(content2);
 
     // Directory listing should only have one entry
     const entries = provider.getDirectoryListing(normalizePath('/workspace/src'));
@@ -147,7 +147,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
 
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, workspaceRoots);
 
-    expect(provider.getFileContent('/workspace/root.js')).toBe(content);
+    expect(provider.getFileContentSync('/workspace/root.js')).toBe(content);
     expect(provider.directoryExists(normalizePath('/workspace'))).toBe(true);
   });
 
@@ -158,7 +158,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
 
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, workspaceRoots);
 
-    expect(provider.getFileContent('/workspace/src/empty.js')).toBe('');
+    expect(provider.getFileContentSync('/workspace/src/empty.js')).toBe('');
     const stat = provider.getFileStat('/workspace/src/empty.js');
     expect(stat?.size).toBe(0);
   });
@@ -171,7 +171,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, workspaceRoots);
 
     const fsPath = '/workspace/src/components/ui/buttons/primary.js';
-    expect(provider.getFileContent(fsPath)).toBe(content);
+    expect(provider.getFileContentSync(fsPath)).toBe(content);
 
     // All parent directories should exist
     expect(provider.directoryExists(normalizePath('/workspace'))).toBe(true);
@@ -192,9 +192,9 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     // URI.parse converts Windows paths - check that content was stored
     // The exact path format depends on the platform, but content should be accessible
     const allFiles = provider.getAllFileUris();
-    const fileWithContent = allFiles.find(file => provider.getFileContent(file) === content);
+    const fileWithContent = allFiles.find(file => provider.getFileContentSync(file) === content);
     expect(fileWithContent).toBeDefined();
-    expect(provider.getFileContent(fileWithContent!)).toBe(content);
+    expect(provider.getFileContentSync(fileWithContent!)).toBe(content);
   });
 
   it('should update file stat when syncing same file with different content', async () => {
@@ -224,7 +224,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
 
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, workspaceRoots);
 
-    expect(provider.getFileContent('/workspace/src/file-name_123.js')).toBe(content);
+    expect(provider.getFileContentSync('/workspace/src/file-name_123.js')).toBe(content);
     const entries = provider.getDirectoryListing(normalizePath('/workspace/src'));
     expect(entries[0].name).toBe('file-name_123.js');
   });

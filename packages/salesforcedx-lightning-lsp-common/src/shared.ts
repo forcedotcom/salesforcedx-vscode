@@ -85,7 +85,7 @@ export const detectWorkspaceHelper = async (
 
   const packageJson = path.join(root, 'package.json');
   try {
-    const packageInfoContent = fileSystemProvider.getFileContent(`${packageJson}`);
+    const packageInfoContent = fileSystemProvider.getFileContentSync(`${packageJson}`);
     if (!packageInfoContent) {
       throw new Error('Package info not found');
     }

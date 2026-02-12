@@ -45,7 +45,7 @@ beforeAll(() => {
 
 const verifyJsconfigCore = async (fileSystemProvider: FileSystemDataProvider, jsconfigPath: string): Promise<void> => {
   const normalizedPath = normalizePath(jsconfigPath);
-  const jsconfigContent = Buffer.from(fileSystemProvider.getFileContent(normalizedPath) ?? '').toString('utf8');
+  const jsconfigContent = Buffer.from(fileSystemProvider.getFileContentSync(normalizedPath) ?? '').toString('utf8');
   expect(jsconfigContent).toContain('"compilerOptions": {');
   const jsconfig = JSON.parse(jsconfigContent);
   expect(jsconfig.compilerOptions.experimentalDecorators).toBe(true);
@@ -169,7 +169,7 @@ describe('WorkspaceContext', () => {
       // Ignore if file doesn't exist
     }
     try {
-      const sourceContent = sfdxFileSystemProvider.getFileContent(jsconfigPathUtilsOrig) ?? '';
+      const sourceContent = sfdxFileSystemProvider.getFileContentSync(jsconfigPathUtilsOrig) ?? '';
       void sfdxFileSystemProvider.updateFileContent(jsconfigPathUtils, sourceContent);
     } catch {
       // File operations failed - this might be expected in test cleanup
@@ -207,7 +207,7 @@ describe('WorkspaceContext', () => {
 
     // verify newly created jsconfig.json
     const jsconfigForceAppContent = Buffer.from(
-      sfdxFileSystemProvider.getFileContent(jsconfigPathForceApp) ?? ''
+      sfdxFileSystemProvider.getFileContentSync(jsconfigPathForceApp) ?? ''
     ).toString('utf8');
     expect(jsconfigForceAppContent).toContain('"compilerOptions": {');
     const jsconfigForceApp = JSON.parse(jsconfigForceAppContent);
@@ -217,7 +217,7 @@ describe('WorkspaceContext', () => {
     expect(jsconfigForceApp.compilerOptions.baseUrl).toBeDefined(); // baseUrl/paths set when indexing
     expect(jsconfigForceApp.typeAcquisition).toEqual({ include: ['jest'] });
     // verify updated jsconfig.json
-    const jsconfigUtilsContent = Buffer.from(sfdxFileSystemProvider.getFileContent(jsconfigPathUtils) ?? '').toString(
+    const jsconfigUtilsContent = Buffer.from(sfdxFileSystemProvider.getFileContentSync(jsconfigPathUtils) ?? '').toString(
       'utf8'
     );
     expect(jsconfigUtilsContent).toContain('"compilerOptions": {');
@@ -231,7 +231,7 @@ describe('WorkspaceContext', () => {
 
     // .forceignore
     const forceignoreContent = Buffer.from(
-      sfdxFileSystemProvider.getFileContent(path.resolve(context.workspaceRoots[0], '.forceignore')) ?? ''
+      sfdxFileSystemProvider.getFileContentSync(path.resolve(context.workspaceRoots[0], '.forceignore')) ?? ''
     ).toString('utf8');
     expect(forceignoreContent).toContain('**/jsconfig.json');
     expect(forceignoreContent).toContain('**/.eslintrc.json');
@@ -252,13 +252,13 @@ describe('WorkspaceContext', () => {
       sfdxFileSystemProvider.fileExists(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts'))
     ).toBe(true);
     const schemaContents = Buffer.from(
-      sfdxFileSystemProvider.getFileContent(
+      sfdxFileSystemProvider.getFileContentSync(
         path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'schema.d.ts')
       ) ?? ''
     ).toString('utf8');
     expect(schemaContents).toContain("declare module '@salesforce/schema' {");
     const apexContents = Buffer.from(
-      sfdxFileSystemProvider.getFileContent(
+      sfdxFileSystemProvider.getFileContentSync(
         path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts')
       ) ?? ''
     ).toString('utf8');
@@ -314,7 +314,7 @@ describe('WorkspaceContext', () => {
     await verifyTypingsCore(coreProjectFileSystemProvider);
 
     const settings = JSON.parse(
-      Buffer.from(coreProjectFileSystemProvider.getFileContent(settingsPath) ?? '').toString('utf8')
+      Buffer.from(coreProjectFileSystemProvider.getFileContentSync(settingsPath) ?? '').toString('utf8')
     );
     verifyCoreSettings(settings);
   });

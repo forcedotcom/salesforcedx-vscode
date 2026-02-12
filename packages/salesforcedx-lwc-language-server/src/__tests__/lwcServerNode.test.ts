@@ -44,9 +44,9 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
 const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: string, fileSystemProvider: any) => {
   try {
     const normalizedFile = actualUtils.normalizePath?.(file);
-    const content = fileSystemProvider?.getFileContent?.(normalizedFile);
+    const content = fileSystemProvider?.getFileContentSync?.(normalizedFile);
     if (!content) {
-      const fallbackContent = fileSystemProvider?.getFileContent?.(file);
+      const fallbackContent = fileSystemProvider?.getFileContentSync?.(file);
       if (!fallbackContent) {
         throw new Error('File not found', { cause: file });
       }
@@ -177,7 +177,7 @@ const hoverUri = URI.file(hoverFilename).toString();
 
 const createDocument = (filePath: string, languageId: string): TextDocument => {
   const docUri = URI.file(filePath).toString();
-  const content = server.fileSystemProvider.getFileContent(filePath) ?? '';
+  const content = server.fileSystemProvider.getFileContentSync(filePath) ?? '';
   return TextDocument.create(docUri, languageId, 0, content);
 };
 
@@ -218,7 +218,7 @@ const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServ
   const allFiles = sfdxFileSystemProvider.getAllFileUris();
   const fileSystemProvider = testServer.fileSystemProvider;
   for (const fileUri of allFiles) {
-    const content = sfdxFileSystemProvider.getFileContent(fileUri);
+    const content = sfdxFileSystemProvider.getFileContentSync(fileUri);
     if (content) {
       await fileSystemProvider.updateFileContent(fileUri, content);
     }
@@ -878,7 +878,7 @@ describe('lwcServerNode', () => {
         let attempts = 0;
         while (attempts < maxAttempts) {
           const tsConfigContent =
-            provider.getFileContent(baseTsconfigPath) ?? server.fileSystemProvider.getFileContent(baseTsconfigPath);
+            provider.getFileContentSync(baseTsconfigPath) ?? server.fileSystemProvider.getFileContentSync(baseTsconfigPath);
           if (tsConfigContent) {
             const tsConfig = JSON.parse(tsConfigContent);
             pathMappingLength = Object.keys(tsConfig.compilerOptions?.paths ?? {}).length;
@@ -893,7 +893,7 @@ describe('lwcServerNode', () => {
         }
 
         const sfdxTsConfigContent =
-          provider.getFileContent(baseTsconfigPath) ?? server.fileSystemProvider.getFileContent(baseTsconfigPath);
+          provider.getFileContentSync(baseTsconfigPath) ?? server.fileSystemProvider.getFileContentSync(baseTsconfigPath);
         expect(sfdxTsConfigContent).not.toBeUndefined();
         const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!);
         const pathMapping = Object.keys(sfdxTsConfig.compilerOptions.paths);
@@ -910,7 +910,7 @@ describe('lwcServerNode', () => {
         try {
           // After delayed initialization, tsconfig is written to fileSystemProvider
           const provider = serverInstance ? serverInstance.fileSystemProvider : server.fileSystemProvider;
-          const sfdxTsConfigContent = provider.getFileContent(baseTsconfigPath);
+          const sfdxTsConfigContent = provider.getFileContentSync(baseTsconfigPath);
           if (!sfdxTsConfigContent) {
             // If tsconfig doesn't exist, return empty array for tests
             return [];

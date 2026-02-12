@@ -355,10 +355,10 @@ export const createTagFromFile = async (
   try {
     // file is already normalized (comes from entry.path), and getFileContent normalizes internally
     // Try both with and without file:// prefix
-    let content = fileSystemProvider.getFileContent(file);
+    let content = fileSystemProvider.getFileContentSync(file);
     if (!content) {
       const fileWithPrefix = file.startsWith('file://') ? file : `file://${file}`;
-      content = fileSystemProvider.getFileContent(fileWithPrefix);
+      content = fileSystemProvider.getFileContentSync(fileWithPrefix);
     }
     if (!content) {
       return null;

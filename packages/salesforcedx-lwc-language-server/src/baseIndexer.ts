@@ -57,11 +57,11 @@ const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProv
     // Try to find the exact match
     const exactMatch = allFileUris.find(uri => normalizePath(uri) === filename);
 
-    const content = fileSystemProvider.getFileContent(filename);
+    const content = fileSystemProvider.getFileContentSync(filename);
 
     // If content not found with direct path, try with exact match URI if found
     if (!content && exactMatch) {
-      const contentFromUri = fileSystemProvider.getFileContent(exactMatch);
+      const contentFromUri = fileSystemProvider.getFileContentSync(exactMatch);
       if (contentFromUri) {
         try {
           return JSON.parse(contentFromUri);

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import {
   Connection,
@@ -22,10 +23,19 @@ import { FileStat, DirectoryEntry, WorkspaceConfig } from '../types/fileSystemTy
 import { NormalizedPath, normalizePath } from '../utils';
 
 /**
+ * Optional effect to read file content (e.g. from FsService) when not in cache.
+ * Used by getFileContent to read through to workspace FS when running in Effect context.
+ */
+export type ReadFileEffect = (uri: string) => Effect.Effect<string, unknown>;
+
+/**
  * Interface for file system operations
  */
 export interface IFileSystemProvider {
-  getFileContent(uri: string): string | undefined;
+  /** Effect-based: returns from cache, or runs readFile (e.g. FsService) on miss. Use with Effect.runPromise or yield*. */
+  getFileContent(uri: string): Effect.Effect<string | undefined, never>;
+  /** Sync: returns from in-memory cache only. Use when not in an Effect context. */
+  getFileContentSync(uri: string): string | undefined;
   getDirectoryListing(uri: NormalizedPath): DirectoryEntry[];
   getFileStat(uri: string): FileStat | undefined;
   fileExists(uri: string): boolean;
@@ -64,6 +74,11 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   private fileStats: Map<NormalizedPath, FileStat> = new Map();
   private workspaceConfig: WorkspaceConfig | null = null;
   private workspaceFolderUris: string[] = [];
+  private readonly readFileEffect?: ReadFileEffect;
+
+  constructor(readFileEffect?: ReadFileEffect) {
+    this.readFileEffect = readFileEffect;
+  }
 
   /**
    * Set workspace folder URIs to use correct scheme when creating files
@@ -259,9 +274,31 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   }
 
   /**
-   * Get file content
+   * Get file content: from cache first, then via readFile effect (e.g. FsService) on miss.
+   * Run with Effect.runPromise(provider.getFileContent(uri)) or yield* inside Effect.gen.
    */
-  public getFileContent(uri: string): string | undefined {
+  public getFileContent(uri: string): Effect.Effect<string | undefined, never> {
+    const key = normalizePath(uri);
+    const cached = this.fileContents.get(key);
+    if (cached !== undefined) {
+      return Effect.succeed(cached);
+    }
+    if (!this.readFileEffect) {
+      return Effect.succeed(undefined);
+    }
+    return this.readFileEffect(uri).pipe(
+      Effect.map(content => {
+        this.fileContents.set(key, content);
+        return content;
+      }),
+      Effect.catchAll(() => Effect.succeed(undefined))
+    );
+  }
+
+  /**
+   * Get file content from the in-memory cache only (sync). Use when not in an Effect context.
+   */
+  public getFileContentSync(uri: string): string | undefined {
     return this.fileContents.get(normalizePath(uri));
   }
 

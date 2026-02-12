@@ -42,7 +42,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 
 const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProvider): SfdxProjectConfig => {
   const configPath = getSfdxProjectFile(root);
-  const configText = fileSystemProvider.getFileContent(configPath);
+  const configText = fileSystemProvider.getFileContentSync(configPath);
 
   if (!configText) {
     throw new Error(nls.localize('config_file_not_found_message'));
@@ -102,7 +102,7 @@ export const updateForceIgnoreFile = (
 ): void => {
   let forceignoreContent = '';
   try {
-    const data = fileSystemProvider.getFileContent(forceignorePath);
+    const data = fileSystemProvider.getFileContentSync(forceignorePath);
     if (!data) {
       throw new Error(nls.localize('forceignore_file_not_found_message'));
     }
@@ -361,7 +361,7 @@ export abstract class BaseWorkspaceContext {
         }
 
         if (jsconfigExists) {
-          const existingConfigContent = this.fileSystemProvider.getFileContent(jsconfigPath);
+          const existingConfigContent = this.fileSystemProvider.getFileContentSync(jsconfigPath);
           if (!existingConfigContent) {
             throw new Error(nls.localize('existing_config_content_not_found_message'));
           }
@@ -493,7 +493,7 @@ export abstract class BaseWorkspaceContext {
     try {
       const sourcePath = path.join(resourceTypingsDir, 'lds.d.ts');
       const destPath = path.join(typingsDir, 'lds.d.ts');
-      const content = this.fileSystemProvider.getFileContent(sourcePath);
+      const content = this.fileSystemProvider.getFileContentSync(sourcePath);
       if (content) {
         void this.fileSystemProvider.updateFileContent(destPath, content);
       }
@@ -503,7 +503,7 @@ export abstract class BaseWorkspaceContext {
     try {
       const sourcePath = path.join(resourceTypingsDir, 'messageservice.d.ts');
       const destPath = path.join(typingsDir, 'messageservice.d.ts');
-      const content = this.fileSystemProvider.getFileContent(sourcePath);
+      const content = this.fileSystemProvider.getFileContentSync(sourcePath);
       if (content) {
         void this.fileSystemProvider.updateFileContent(destPath, content);
       }
@@ -517,7 +517,7 @@ export abstract class BaseWorkspaceContext {
       try {
         const sourcePath = path.join(resourceTypingsDir, 'copied', file.name);
         const destPath = path.join(typingsDir, file.name);
-        const content = this.fileSystemProvider.getFileContent(sourcePath);
+        const content = this.fileSystemProvider.getFileContentSync(sourcePath);
         if (content) {
           void this.fileSystemProvider.updateFileContent(destPath, content);
         }

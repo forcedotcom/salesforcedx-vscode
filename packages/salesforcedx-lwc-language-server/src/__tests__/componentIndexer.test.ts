@@ -235,7 +235,7 @@ describe('ComponentIndexer', () => {
           await componentIndexer.updateSfdxTsConfigPath();
 
           // Read and parse the updated tsconfig
-          const updatedTsconfigContent = sfdxFileSystemProvider.getFileContent(sfdxPath);
+          const updatedTsconfigContent = sfdxFileSystemProvider.getFileContentSync(sfdxPath);
           expect(updatedTsconfigContent).not.toBeUndefined();
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const tsconfig = JSON.parse(updatedTsconfigContent!);

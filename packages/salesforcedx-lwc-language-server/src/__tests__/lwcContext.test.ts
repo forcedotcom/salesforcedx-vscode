@@ -129,7 +129,7 @@ describe('LWCWorkspaceContext', () => {
     await context.configureProjectForTs();
 
     // verify forceignore
-    const forceignoreBuffer = sfdxFileSystemProvider.getFileContent(forceignorePath);
+    const forceignoreBuffer = sfdxFileSystemProvider.getFileContentSync(forceignorePath);
     if (!forceignoreBuffer) {
       throw new Error('Forceignore file not found');
     }
@@ -138,7 +138,7 @@ describe('LWCWorkspaceContext', () => {
     expect(forceignoreContent).toContain('**/*.ts');
 
     // verify tsconfig.sfdx.json
-    const baseTsConfigBuffer = sfdxFileSystemProvider.getFileContent(baseTsconfigPathForceApp);
+    const baseTsConfigBuffer = sfdxFileSystemProvider.getFileContentSync(baseTsconfigPathForceApp);
     if (!baseTsConfigBuffer) {
       throw new Error('Base tsconfig file not found');
     }
@@ -155,7 +155,7 @@ describe('LWCWorkspaceContext', () => {
     });
 
     //verify newly create tsconfig.json
-    const tsconfigBuffer = sfdxFileSystemProvider.getFileContent(tsconfigPathForceApp);
+    const tsconfigBuffer = sfdxFileSystemProvider.getFileContentSync(tsconfigPathForceApp);
     if (!tsconfigBuffer) {
       throw new Error('Tsconfig file not found');
     }

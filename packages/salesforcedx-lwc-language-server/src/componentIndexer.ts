@@ -240,7 +240,7 @@ export default class ComponentIndexer {
       const indexPath: string = path.join(this.workspaceRoot, CUSTOM_COMPONENT_INDEX_FILE);
 
       if (this.fileSystemProvider.fileExists(indexPath)) {
-        const content = this.fileSystemProvider.getFileContent(indexPath);
+        const content = this.fileSystemProvider.getFileContentSync(indexPath);
         if (content) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const index: TagAttrs[] = JSON.parse(content);
@@ -312,7 +312,7 @@ export default class ComponentIndexer {
 
     if (fileExists) {
       try {
-        const content = this.fileSystemProvider.getFileContent(sfdxTsConfigPath);
+        const content = this.fileSystemProvider.getFileContentSync(sfdxTsConfigPath);
         if (content) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const sfdxTsConfig: SfdxTsConfig = JSON.parse(content);

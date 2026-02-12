@@ -141,7 +141,7 @@ export const readAsTextDocument = (path: string, fileSystemProvider: FileSystemD
   const normalizedPath = normalizePath(path);
   // Create a proper file:// URI for the TextDocument
   const uri = URI.file(normalizedPath).toString();
-  const content = fileSystemProvider.getFileContent(normalizedPath) ?? '';
+  const content = fileSystemProvider.getFileContentSync(normalizedPath) ?? '';
   return TextDocument.create(uri, languageId(path), 0, content);
 };
 

@@ -86,7 +86,7 @@ describe('TypingIndexer', () => {
         'customlabels.d.ts'
       );
       expect(sfdxFileSystemProvider.fileExists(`${customLabelPath}`)).toBeTrue();
-      const content = sfdxFileSystemProvider.getFileContent(`${customLabelPath}`);
+      const content = sfdxFileSystemProvider.getFileContentSync(`${customLabelPath}`);
       expect(content).toInclude('declare module');
     });
   });

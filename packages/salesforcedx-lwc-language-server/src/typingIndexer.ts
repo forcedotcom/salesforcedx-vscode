@@ -103,7 +103,7 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
   for (const filename of customLabelFiles) {
     const uri = normalizePath(filename);
     if (indexer.fileSystemProvider.fileExists(uri)) {
-      const content = indexer.fileSystemProvider.getFileContent(uri);
+      const content = indexer.fileSystemProvider.getFileContentSync(uri);
       if (content) {
         const data = Buffer.from(content, 'utf8');
         const typing = await declarationsFromCustomLabels(data);
