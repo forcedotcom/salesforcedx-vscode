@@ -56,7 +56,8 @@ export const initializeO11yReporter = async (
   o11yUploadEndpoint: string,
   userId: string,
   version: string,
-  webUserId: string
+  webUserId: string,
+  productFeatureId: string | undefined
 ): Promise<void> => {
   if (o11yReporterInstances.has(extName)) return;
 
@@ -65,7 +66,14 @@ export const initializeO11yReporter = async (
     return;
   }
 
-  const o11yReporterInstance = new O11yReporter(extName, version, o11yUploadEndpoint, userId, webUserId);
+  const o11yReporterInstance = new O11yReporter(
+    extName,
+    version,
+    o11yUploadEndpoint,
+    userId,
+    webUserId,
+    productFeatureId
+  );
   const initPromise = o11yReporterInstance
     .initialize(extName)
     .catch(err => {

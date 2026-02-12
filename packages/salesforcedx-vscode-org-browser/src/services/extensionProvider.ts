@@ -9,8 +9,6 @@ import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { ExtensionContext } from 'vscode';
-import * as vscode from 'vscode';
-import { EXTENSION_NAME } from '../constants';
 import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
 
 const ExtensionProviderServiceLive = Layer.effect(
@@ -30,9 +28,6 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
-      const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
-      const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
-      const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
       // ErrorHandlerService depends on ChannelService, provide the extension's channel
       const channelLayer = api.services.ChannelServiceLayer('Salesforce Org Browser');
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
@@ -45,10 +40,10 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.MetadataRegistryService.Default,
         api.services.MetadataDescribeService.Default,
         api.services.ProjectService.Default,
-        api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint }),
+        api.services.SdkLayerFor(context),
+        channelLayer,
         api.services.WorkspaceService.Default,
         api.services.SourceTrackingService.Default,
-        channelLayer,
         errorHandlerWithChannel,
         OrgBrowserRetrieveService.Default
       );

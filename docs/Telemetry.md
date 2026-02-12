@@ -42,8 +42,56 @@ OrgBrowser extension is using open-telemetry via the Effect framework. See the [
 
 The advantage of otel is the ability to use spans and traces to provide logging and telemetry in a unified way across platforms including web.
 
+## PFT/PDP
+
+If you need events to go to a Product Feature Taxonomy Id other than VSCode Extensions, add `productFeatureId` to your extension's package.json. You must also set `enableO11y` and `o11yUploadEndpoint` (o11y init is skipped otherwise; see telemetry.ts lines 146-149). Example (from salesforcedx-vscode-metadata):
+
+```json
+"enableO11y": "true",
+"o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+"productFeatureId": "aJCEE0000000mLm4AI"
+```
+
+IDs must start with `aJC` (see `salesforcedx-utils-vscode/src/telemetry/schema.ts`).
+
+### Using old telemetry
+
+If using the old TelemetryService stuff from core extension, you'll get events for CommandExecution. From an extension outside this repo (with `extensionDependency` on `salesforce.salesforcedx-vscode-core`):
+
+**Option A: Use SfCommandletExecutor** – telemetry is sent automatically when the command completes. Extend `SfCommandletExecutor`, implement `build()`, run via `SfCommandlet`:
+
+```ts
+// In your command handler – get executor class from core API:
+const api = await coreExt.activate();
+const { SfCommandletExecutor, SfCommandlet, SfWorkspaceChecker } = api;
+```
+
+**Option B: Manual sendCommandEvent**
+
+```ts
+const telemetryService = api.services.TelemetryService.getInstance(context.extension.packageJSON.name);
+await telemetryService.initializeService(context);
+// …
+telemetryService.sendCommandEvent('my_command_log_name', startTime, properties, measurements);
+```
+
+properties must to include (nothing else will got to PDP, but you might want them in splunk)
+
+```ts
+{
+  commandName: 'foo'; // name it whatever you like.  If it's a real "command" in package.json, this will normally be the commandId
+}
+```
+
+### new services extension
+
+If using the New services extension, use `registerCommandWithLayer` from the services API.
+
+Commands registered this way get automatic spans, which go to all the configured telemetry destinations (o11y, appInsights, local docker, etc). See [services-extension-consumption skill](../.claude/skills/services-extension-consumption/SKILL.md)
+
 ## See Also
 
+- [services-extension-consumption](../.claude/skills/services-extension-consumption/SKILL.md) - Consuming salesforcedx-vscode-services API
 - [Observability README](../packages/salesforcedx-vscode-services/src/observability/README.md) - OpenTelemetry with Effect documentation
 - [Extensions - Logging](./architecture/Extensions.md#logging) - console and outputChannel logging options
 - [contributing/telemetry.md](../contributing/telemetry.md) - telemetry implementation details for this repo
