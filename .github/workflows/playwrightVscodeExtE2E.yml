@@ -36,11 +36,6 @@ jobs:
         run: |
           npm run test:web -w @salesforce/playwright-vscode-ext
 
-      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
-      - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
-        run: npx playwright install chromium --with-deps
-
       - name: Run Playwright web tests (parallel)
         if: steps.try-run.outcome == 'failure'
         id: parallel-run

@@ -45,10 +45,6 @@ jobs:
         run: |
           npm i -g @salesforce/cli
 
-      - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
-        run: npx playwright install chromium --with-deps
-
       - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'
         shell: bash
