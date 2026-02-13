@@ -7,9 +7,6 @@
 
 export const EXTENSION_NAME = 'salesforcedx-vscode-metadata';
 
-// Output channel name
-export const OUTPUT_CHANNEL_NAME = 'Salesforce Metadata';
-
 // Configuration keys
 export const CORE_CONFIG_SECTION = 'salesforcedx-vscode-core';
 export const DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';

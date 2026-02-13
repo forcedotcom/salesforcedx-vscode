@@ -103,8 +103,7 @@ export const writeAndOpenTestReport = async (
     await Effect.runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const svc = yield* api.services.FsService;
-        yield* svc.writeFile(reportPath, content);
+        yield* api.services.FsService.writeFile(reportPath, content);
       }).pipe(Effect.provide(AllServicesLayer))
     );
   } catch (error) {

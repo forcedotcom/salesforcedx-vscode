@@ -28,19 +28,17 @@ export const AllServicesLayer = Layer.unwrapEffect(
     const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
     const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
     const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
+    const productFeatureId = extension?.packageJSON?.productFeatureId;
     // Merge all the service layers from the API
     return Layer.mergeAll(
       ExtensionProviderServiceLive,
-      api.services.ConfigService.Default,
       api.services.ConnectionService.Default,
+      api.services.ExtensionContextService.Default,
       api.services.FileWatcherService.Default,
       api.services.FsService.Default,
-      api.services.MetadataRegistryService.Default,
       api.services.MetadataRetrieveService.Default,
       api.services.ProjectService.Default,
-      api.services.SettingsService.Default,
-      api.services.WorkspaceService.Default,
-      api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint }),
+      api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint, productFeatureId }),
       api.services.ChannelServiceLayer(CHANNEL_NAME)
     );
   }).pipe(Effect.provide(ExtensionProviderServiceLive))

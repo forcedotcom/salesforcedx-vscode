@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { nls } from '../messages';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { ComponentSetService } from './componentSetService';
@@ -21,10 +22,10 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
   fileResponses: FileResponse[],
   members: MetadataMember[]
 ) {
-  const componentSetService = yield* ComponentSetService;
+  const { isSDRSuccess } = yield* ComponentSetService;
   const allowedSuffixes = yield* getAllowedSuffixes(members);
   return fileResponses
-    .filter(componentSetService.isSDRSuccess)
+    .filter(isSDRSuccess)
     .filter(fileResponseHasPath)
     .map(fileResponse => fileResponse.filePath?.replaceAll('\\', '/'))
     .filter(filePath => allowedSuffixes.some(suffix => filePath.endsWith(suffix)));
@@ -46,7 +47,7 @@ export const parseRetrieveOnLoad = (value: string): MetadataMember[] =>
 
 /** Get unique file suffixes for metadata types */
 const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: MetadataMember[]) {
-  const registry = yield* (yield* MetadataRegistryService).getRegistryAccess();
+  const registry = yield* MetadataRegistryService.getRegistryAccess();
 
   const suffixes = Array.from(new Set(members.map(member => member.type)))
     .map(mdType => registry.getTypeByName(mdType))
@@ -64,11 +65,9 @@ const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: M
 /** Effect to retrieve metadata on load based on setting */
 export const retrieveOnLoadEffect = () =>
   Effect.gen(function* () {
-    const [settingsService, channelService] = yield* Effect.all([SettingsService, ChannelService], {
-      concurrency: 'unbounded'
-    });
+    const channelService = yield* ChannelService;
 
-    const retrieveOnLoadValue = yield* settingsService.getRetrieveOnLoad;
+    const retrieveOnLoadValue = yield* SettingsService.getRetrieveOnLoad();
 
     if (retrieveOnLoadValue.length === 0) {
       return;
@@ -84,7 +83,7 @@ export const retrieveOnLoadEffect = () =>
       `Retrieving metadata on load: ${members.map(m => `${m.type}:${m.fullName}`).join(', ')}`
     );
 
-    const result = yield* (yield* MetadataRetrieveService).retrieve(members);
+    const result = yield* MetadataRetrieveService.retrieve(members);
 
     if (typeof result === 'string') {
       return yield* channelService.appendToChannel(`Retrieve canceled: ${result}`);
@@ -117,7 +116,7 @@ export const retrieveOnLoadEffect = () =>
     Effect.withSpan('retrieveOnLoadEffect'),
     Effect.catchAll(error =>
       Effect.gen(function* () {
-        const errorMessage = `Retrieve on load failed: ${String(error)}`;
+        const errorMessage = nls.localize('retrieve_on_load_failed', String(error));
         yield* (yield* ChannelService).appendToChannel(errorMessage);
         yield* Effect.sync(() => {
           void vscode.window.showErrorMessage(errorMessage);
