@@ -24,9 +24,9 @@ type SoqlWithComments = {
 };
 
 export const parseHeaderComments = (originalSoqlText: string): SoqlWithComments => {
-  const [, headerComments, soqlText] = HEADER_COMMENT_EXTRACTION_REGEX.exec(originalSoqlText) || [];
+  const [, headerComments, soqlText] = HEADER_COMMENT_EXTRACTION_REGEX.exec(originalSoqlText) ?? [];
 
-  const commentLineCount = (headerComments.match(/(\n|\r|\r\n)/g) || []).length;
+  const commentLineCount = (headerComments.match(/(\n|\r|\r\n)/g) ?? []).length;
   const headerPaddedSoqlText = originalSoqlText.replace(
     HEADER_COMMENT_EXTRACTION_REGEX,
     (wholeMatch, headerText: string, bodyText: string) => `${headerText.replaceAll(/[^\n\r]/gm, ' ')}${bodyText}`

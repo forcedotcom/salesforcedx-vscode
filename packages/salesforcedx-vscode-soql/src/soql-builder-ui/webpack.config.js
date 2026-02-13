@@ -11,9 +11,12 @@ module.exports = {
     },
     alias: {
       os: 'os-browserify/browser',
-      '@salesforce/soql-common': path.resolve(__dirname, '../soql-common'),
       '@salesforce/soql-model': path.resolve(__dirname, '../soql-model')
-    }
+    },
+    modules: [
+      'node_modules',
+      path.resolve(__dirname, '../../../../node_modules')
+    ]
   },
   plugins: [
     new webpack.ProvidePlugin({

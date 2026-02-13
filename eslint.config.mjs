@@ -48,6 +48,7 @@ export default [
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
+      'packages/soql-common/src/soql-parser.lib/**',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts',
       'packages/salesforcedx-lwc-language-server/src/javascript/__tests__/fixtures/**',

@@ -11,9 +11,8 @@ module.exports = Object.assign({}, baseConfig, {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
   },
-  // Map @salesforce/soql-common and @salesforce/soql-model to actual source paths for Jest
+  // Map @salesforce/soql-model to actual source path for Jest
   moduleNameMapper: {
-    '^@salesforce/soql-common/(.*)$': '<rootDir>/src/soql-common/$1',
     '^@salesforce/soql-model/(.*)$': '<rootDir>/src/soql-model/$1'
   }
 });
