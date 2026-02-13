@@ -74,7 +74,6 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
 
   const orderBy = queryModel.orderBy
     ? queryModel.orderBy.orderByExpressions
-      // TODO: Deal with empty OrderBy.  returns unmodelled syntax.
       .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
       .map(expression => {
         return {
