@@ -21,7 +21,8 @@ import {
   saveScreenshot,
   validateNoCriticalErrors,
   EDITOR_WITH_URI,
-  executeCommandWithCommandPalette
+  executeCommandWithCommandPalette,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
@@ -46,7 +47,7 @@ test('EditorWatcher: deploy commands show/hide based on active editor location',
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
-
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     statusBarPage = new SourceTrackingStatusBarPage(page);

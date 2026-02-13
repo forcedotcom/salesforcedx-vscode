@@ -8,7 +8,12 @@
 import { expect } from '@playwright/test';
 import { openSettingsUI, upsertSettings } from '../../../src/pages/settings';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
-import { waitForVSCodeWorkbench, assertWelcomeTabExists, closeWelcomeTabs } from '../../../src/utils/helpers';
+import {
+  waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
+  ensureSecondarySideBarHidden
+} from '../../../src/utils/helpers';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
@@ -17,6 +22,7 @@ test.describe('Settings', () => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
   });
 
   test('should open settings UI', async ({ page }) => {

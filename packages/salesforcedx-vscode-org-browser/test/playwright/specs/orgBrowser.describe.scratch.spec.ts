@@ -7,7 +7,11 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings, createDreamhouseOrg } from '@salesforce/playwright-vscode-ext';
+import {
+  upsertScratchOrgAuthFieldsToSettings,
+  createDreamhouseOrg,
+  ensureSecondarySideBarHidden
+} from '@salesforce/playwright-vscode-ext';
 
 test.setTimeout(10 * 60 * 1000);
 
@@ -15,6 +19,7 @@ test.beforeEach(async ({ page }) => {
   const createResult = await createDreamhouseOrg();
   const orgBrowserPage = new OrgBrowserPage(page);
   await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+  await ensureSecondarySideBarHidden(page);
 });
 
 test('Org Browser high-level validation: a few types from describe', async ({ page }) => {

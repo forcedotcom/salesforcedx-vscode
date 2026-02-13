@@ -28,7 +28,8 @@ import {
   selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
-  outputChannelContains
+  outputChannelContains,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -90,6 +91,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     statusBarPage = new SourceTrackingStatusBarPage(page);

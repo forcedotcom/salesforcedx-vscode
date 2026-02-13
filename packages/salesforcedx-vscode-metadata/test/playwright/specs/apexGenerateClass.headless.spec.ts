@@ -20,7 +20,8 @@ import {
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW,
   EDITOR_WITH_URI,
-  assertWelcomeTabExists
+  assertWelcomeTabExists,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
@@ -37,7 +38,7 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
-
+    await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');

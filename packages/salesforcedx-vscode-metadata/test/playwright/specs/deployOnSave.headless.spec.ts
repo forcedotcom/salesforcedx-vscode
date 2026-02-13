@@ -22,7 +22,8 @@ import {
   waitForOutputChannelText,
   createApexClass,
   editOpenFile,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -38,6 +39,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     // Wait for extension to fully activate (needed for desktop settings to be available)
