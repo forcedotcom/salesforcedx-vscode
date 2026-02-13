@@ -6,7 +6,7 @@
  *
  */
 
-import { getBodyClass, getWindow, getLocalStorage } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
+import { getBodyClass, getWindow } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
 
 describe('Globals should', () => {
   it('expose window', () => {
@@ -14,8 +14,5 @@ describe('Globals should', () => {
   });
   it('expose getBodyClass', () => {
     expect(getBodyClass).toBeTruthy();
-  });
-  it('expose localstorage', () => {
-    expect(getLocalStorage).toBeTruthy();
   });
 });

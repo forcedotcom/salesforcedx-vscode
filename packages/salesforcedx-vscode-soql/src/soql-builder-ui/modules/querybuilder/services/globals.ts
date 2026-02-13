@@ -14,10 +14,6 @@ export const getBodyClass = (): string | null => {
   return window.document.body.getAttribute('class');
 };
 
-export const getLocalStorage = (): Storage => {
-  return localStorage;
-};
-
 /* eslint-disable @typescript-eslint/ban-ts-comment,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call */
 
 let vsCode;
