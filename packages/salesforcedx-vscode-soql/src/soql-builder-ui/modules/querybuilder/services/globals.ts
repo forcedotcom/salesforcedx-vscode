@@ -20,22 +20,13 @@ export const getLocalStorage = (): Storage => {
 
 /* eslint-disable @typescript-eslint/ban-ts-comment,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call */
 
-export const hasVscode = (): boolean => {
-  // @ts-ignore
-  return 'undefined' !== typeof acquireVsCodeApi;
-};
-
 let vsCode;
 
 export const getVscode = (): unknown => {
-  if (hasVscode()) {
-    if (!vsCode) {
-      // @ts-ignore
-      // eslint-disable-next-line no-undef
-      vsCode = acquireVsCodeApi();
-    }
-
-    return vsCode;
+  if (!vsCode) {
+    // @ts-ignore
+    // eslint-disable-next-line no-undef
+    vsCode = acquireVsCodeApi();
   }
-  return false;
+  return vsCode;
 };
