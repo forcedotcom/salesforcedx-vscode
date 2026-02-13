@@ -28,7 +28,6 @@ import {
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import { MessageServiceFactory } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/messageServiceFactory';
 import { IMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
-import { StandaloneMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/standaloneMessageService';
 import * as globals from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
 
 class TestMessageService implements IMessageService {
@@ -70,7 +69,7 @@ describe('App should', () => {
     return event;
   };
   beforeEach(() => {
-    messageService = new TestMessageService() as unknown as StandaloneMessageService;
+    messageService = new TestMessageService() as unknown as IMessageService;
     // eslint-disable-next-line @typescript-eslint/unbound-method
     originalCreateFn = MessageServiceFactory.create;
     MessageServiceFactory.create = () => {
