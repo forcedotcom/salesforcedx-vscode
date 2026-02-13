@@ -80,7 +80,8 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "generate-types"
+        "generate-types",
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
