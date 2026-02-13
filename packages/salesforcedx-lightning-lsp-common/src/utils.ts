@@ -97,7 +97,8 @@ export const getBasename = (textDocument: TextDocument): string => {
   return filePath ? basename(filePath, ext) : '';
 };
 
-export const getSfdxResource = (resourceName: string): string => join(__dirname, RESOURCES_DIR, 'sfdx', resourceName);
+export const getSfdxResource = (dirName: string, resourceName: string): string =>
+  join(dirName, RESOURCES_DIR, 'sfdx', resourceName);
 
 export const memoize = <T>(fn: () => T): (() => T) => {
   let cache: T | undefined;

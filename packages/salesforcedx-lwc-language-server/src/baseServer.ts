@@ -12,6 +12,7 @@ import {
   AttributeInfo,
   FileSystemDataProvider,
   BaseWorkspaceContext,
+  type BaseWorkspaceContextOptions,
   syncDocumentToTextDocumentsProvider,
   scheduleReinitialization,
   NormalizedPath,
@@ -157,6 +158,11 @@ export abstract class BaseServer {
 
   protected abstract createConnection(): Connection;
 
+  /** Override in Node to pass sfdxTypingsDir (avoids __dirname in common for web). */
+  protected getContextOptions(): BaseWorkspaceContextOptions | undefined {
+    return undefined;
+  }
+
   public onInitialize(params: InitializeParams): InitializeResult {
     this.workspaceFolders = params.workspaceFolders ?? [];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -177,7 +183,12 @@ export abstract class BaseServer {
     this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
     // Create context but don't initialize yet - wait for files to be loaded via onDidOpen
-    this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
+    this.context = new LWCWorkspaceContext(
+      this.workspaceRoots,
+      this.fileSystemProvider,
+      this.connection,
+      this.getContextOptions()
+    );
 
     // Create component indexer with fileSystemProvider (will be re-initialized after delayed init)
     this.componentIndexer = new ComponentIndexer({
@@ -747,7 +758,6 @@ export abstract class BaseServer {
   protected async configureTypeScriptSupport(): Promise<void> {
     const hasTsEnabled = await this.isTsSupportEnabled();
     if (hasTsEnabled) {
-      this.context.setConnection(this.connection);
       await this.context.configureProjectForTs();
       if (this.componentIndexer) {
         await this.componentIndexer.updateSfdxTsConfigPath(this.connection);

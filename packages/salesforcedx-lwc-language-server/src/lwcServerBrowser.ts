@@ -6,7 +6,7 @@
  */
 // Browser-specific version that extends BaseServer
 // Overrides connection creation and adds browser-specific logic for web mode
-import { scheduleReinitialization } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { BaseWorkspaceContextOptions, scheduleReinitialization } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   createConnection,
   BrowserMessageReader,
@@ -45,5 +45,9 @@ export default class Server extends BaseServer {
     }
 
     return { isLwcPath };
+  }
+
+  protected override getContextOptions(): BaseWorkspaceContextOptions | undefined {
+    return { sfdxTypingsDir: '~/MyProject/.sfdx/typings/lwc' };
   }
 }
