@@ -27,21 +27,37 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install Salesforce CLI
-        run: |
-          npm i -g @salesforce/cli
+      - uses: google/wireit@setup-github-actions-caching/v2
 
       - name: Install dependencies
         run: npm ci
 
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, Playwright runs and fails fast (no chromium). We then run full setup below and retry.
+      - name: Try E2E tests
+        id: try-run
+        env:
+          CI: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-services -- --reporter=html
+
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        run: |
+          npm i -g @salesforce/cli
+
       - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
         shell: bash
         run: sf project generate -n minimal-project
 
       - name: create scratch org
+        if: steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -50,6 +66,7 @@ jobs:
         working-directory: minimal-project
 
       - name: Run Services E2E tests (parallel)
+        if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
@@ -82,7 +99,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Cleanup scratch org
-        if: always()
+        if: always() && steps.try-run.outcome == 'failure'
         continue-on-error: true
         run: |
           sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true

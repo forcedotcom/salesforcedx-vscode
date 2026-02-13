@@ -23,16 +23,27 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - uses: google/wireit@setup-github-actions-caching/v2
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Compile
-        run: npm run compile -w @salesforce/playwright-vscode-ext
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
+      # When cache misses, Playwright runs and fails fast (no chromium). We then run Install Playwright below and retry.
+      - name: Try E2E tests
+        id: try-run
+        env:
+          CI: 1
+        run: |
+          npm run test:web -w @salesforce/playwright-vscode-ext
 
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Run Playwright web tests (parallel)
+        if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
@@ -84,16 +95,28 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - uses: google/wireit@setup-github-actions-caching/v2
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Compile
-        run: npm run compile -w @salesforce/playwright-vscode-ext
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
+      # When cache misses, Playwright runs and fails fast (no chromium). We then run Install Playwright below and retry.
+      - name: Try E2E tests
+        id: try-run
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+        run: |
+          npm run test:desktop -w @salesforce/playwright-vscode-ext
 
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Run Playwright desktop tests (parallel)
+        if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
