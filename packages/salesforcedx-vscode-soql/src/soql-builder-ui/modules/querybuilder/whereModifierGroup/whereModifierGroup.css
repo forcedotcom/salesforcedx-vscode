@@ -7,8 +7,6 @@
  */
 
 @import 'querybuilder/cssCommon';
-/* TODO: may need to set a min width for the group to prevent resizing with fields */
-/* TODO: use correct CSS Vars for el background, border and conainer background */
 
 .modifier__group {
   display: flex;
