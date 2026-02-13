@@ -154,6 +154,8 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   if (!isMacDesktop()) {
     await test.step('retrieve via editor context menu', async () => {
       await clearOutputChannel(page);
+      // make sure the command is available, ie, context has been set after the last retrieve
+      await verifyCommandExists(page, 'SFDX: Retrieve This Source from Org', 120_000);
       await executeEditorContextMenuCommand(page, 'SFDX: Retrieve This Source from Org', `${className}.cls`);
       await waitForOutputChannelText(page, {
         expectedText: 'Ended SFDX: Retrieve This Source from Org',
