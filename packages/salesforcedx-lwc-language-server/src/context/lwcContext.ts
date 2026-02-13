@@ -22,21 +22,12 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as ejs from 'ejs';
 import * as path from 'node:path';
-import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 /**
  * Holds information and utility methods for a LWC workspace
  */
 export class LWCWorkspaceContext extends BaseWorkspaceContext {
-  private connection?: Connection;
-
-  /**
-   * Set the LSP connection for file operations (works in both Node.js and web)
-   */
-  public setConnection(connection: Connection): void {
-    this.connection = connection;
-  }
   /**
    * Clear the memoized namespace cache to force re-detection
    */
