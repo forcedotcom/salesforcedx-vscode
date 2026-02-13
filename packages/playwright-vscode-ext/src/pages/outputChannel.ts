@@ -185,7 +185,8 @@ export const outputChannelContains = async (
  */
 export const clearOutputChannel = async (page: Page): Promise<void> => {
   const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
-  await clearButton.click();
+  // force: true - notification toasts overlay the output panel and intercept pointer events
+  await clearButton.click({ force: true });
 
   // Wait for the clear action to take effect - output should be completely empty
   const codeArea = outputPanelCodeArea(page);
