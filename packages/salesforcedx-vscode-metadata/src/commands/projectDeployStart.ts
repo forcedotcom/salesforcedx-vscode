@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 /** Deploy local changes to the default org */
-export const projectDeployStart = (ignoreConflicts = false) =>
+export const projectDeployStartCommand = (ignoreConflicts = false) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSet = yield* (yield* api.services.ComponentSetService).ensureNonEmptyComponentSet(

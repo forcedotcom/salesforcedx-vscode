@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.16.0",
+  "version": "65.17.3",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,17 +24,14 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.23.3",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-lwc-language-server": "*",
-    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "applicationinsights": "1.0.7",
     "effect": "^3.19.14",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
-    "rxjs": "^5.4.1",
     "strip-ansi": "^5.2.0",
     "uuid": "^3.3.3",
     "vscode-languageclient": "^9.0.1",
@@ -68,7 +65,6 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-core:compile",
@@ -195,12 +191,7 @@
       ]
     },
     "menus": {
-      "editor/context": [
-        {
-          "command": "sf.lightning.lwc.preview",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
-        }
-      ],
+      "editor/context": [],
       "editor/title": [
         {
           "command": "sf.lightning.lwc.test.editorTitle.run",
@@ -223,12 +214,7 @@
           "group": "navigation"
         }
       ],
-      "editor/title/context": [
-        {
-          "command": "sf.lightning.lwc.preview",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
-        }
-      ],
+      "editor/title/context": [],
       "view/title": [
         {
           "command": "sf.lightning.lwc.test.runAllTests",
@@ -272,29 +258,8 @@
           "group": "inline"
         }
       ],
-      "explorer/context": [
-        {
-          "command": "sf.lightning.lwc.preview",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
-        }
-      ],
+      "explorer/context": [],
       "commandPalette": [
-        {
-          "command": "sf.lightning.lwc.start",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.lightning.lwc.stop",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.lightning.lwc.open",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.lightning.lwc.preview",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
-        },
         {
           "command": "sf.lightning.lwc.test.file.run",
           "when": "false"
@@ -350,22 +315,6 @@
       ]
     },
     "commands": [
-      {
-        "command": "sf.lightning.lwc.start",
-        "title": "%lightning_lwc_start_text%"
-      },
-      {
-        "command": "sf.lightning.lwc.stop",
-        "title": "%lightning_lwc_stop_text%"
-      },
-      {
-        "command": "sf.lightning.lwc.open",
-        "title": "%lightning_lwc_open_text%"
-      },
-      {
-        "command": "sf.lightning.lwc.preview",
-        "title": "%lightning_lwc_preview_text%"
-      },
       {
         "command": "sf.lightning.lwc.test.runAllTests",
         "title": "%lightning_lwc_test_run_all_tests_text%",
@@ -498,26 +447,7 @@
     "configuration": {
       "type": "object",
       "title": "%lightning_lwc_preferences%",
-      "properties": {
-        "salesforcedx-vscode-lwc.preview.rememberDevice": {
-          "type": "boolean",
-          "default": true,
-          "description": "%lightning_lwc_remember_device_description%"
-        },
-        "salesforcedx-vscode-lwc.preview.logLevel": {
-          "type": "string",
-          "description": "%lightning_lwc_mobile_log_level%",
-          "enum": [
-            "trace",
-            "debug",
-            "info",
-            "warn",
-            "error",
-            "fatal"
-          ],
-          "default": "warn"
-        }
-      }
+      "properties": {}
     }
   }
 }

@@ -32,7 +32,7 @@ const displayErrorMessage = Effect.fn('displayErrorMessage')(function* (msg: str
 //
 // When editing a file and "Retrieve This Source from Org" is executed,
 // sourceUri is passed, but uris is undefined.
-export const retrieveSourcePathsEffect = (sourceUri: URI | undefined, uris: URI[] | undefined) =>
+export const retrieveSourcePathsCommand = (sourceUri: URI | undefined, uris: URI[] | undefined) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const resolvedSourceUri =

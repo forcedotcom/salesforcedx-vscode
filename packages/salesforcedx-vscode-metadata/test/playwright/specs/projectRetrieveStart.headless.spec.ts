@@ -19,7 +19,8 @@ import {
   validateNoCriticalErrors,
   ensureOutputPanelOpen,
   selectOutputChannel,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
@@ -38,6 +39,7 @@ test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');

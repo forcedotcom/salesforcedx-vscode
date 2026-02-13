@@ -7,6 +7,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
@@ -51,6 +52,10 @@ const getChildrenOfTreeItem = (
     const svcProvider = yield* ExtensionProviderService;
     const api = yield* svcProvider.getServicesApi;
 
+    // this could be the initial load, before the org is set.  Prevents duplication loads of root
+    if (!(yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId) {
+      return yield* Effect.succeed([]);
+    }
     if (!element) {
       const types = yield* api.services.MetadataDescribeService.describe(refresh);
       return types

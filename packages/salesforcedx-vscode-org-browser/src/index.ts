@@ -6,10 +6,13 @@
  */
 
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Schedule from 'effect/Schedule';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
@@ -41,6 +44,15 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
 
+  // get a connection to initiate the ref
+  yield* api.services.ConnectionService.getConnection();
+  // wait for the target org ref to have an orgId
+  const targetOrgRef = yield* api.services.TargetOrgRef();
+  yield* Effect.repeat(SubscriptionRef.get(targetOrgRef), {
+    until: org => isNotUndefined(org.orgId),
+    schedule: Schedule.exponential(Duration.millis(10))
+  });
+
   const treeProvider = new MetadataTypeTreeProvider();
   // Register the tree provider
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
@@ -49,31 +61,40 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
 
   // Register commands
-  yield* registerCommand(`${TREE_VIEW_ID}.refreshType`, (node: OrgBrowserTreeItem) =>
-    Effect.promise(() => treeProvider.refreshType(node))
-  );
-  yield* registerCommand(`${TREE_VIEW_ID}.collapseAll`, () =>
-    Effect.promise(() => vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`))
-  );
-  yield* registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem) =>
-    retrieveEffect(node, treeProvider).pipe(
-      Effect.tap(result =>
-        typeof result === 'string'
-          ? Effect.sync(() => {
-              void vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));
-            })
-          : Effect.void
+  yield* Effect.all(
+    [
+      registerCommand(`${TREE_VIEW_ID}.refreshType`, (node: OrgBrowserTreeItem) =>
+        Effect.promise(() => treeProvider.refreshType(node))
+      ),
+      registerCommand(`${TREE_VIEW_ID}.collapseAll`, () =>
+        Effect.promise(() => vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`))
+      ),
+      registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem) =>
+        retrieveEffect(node, treeProvider).pipe(
+          Effect.tap(result =>
+            typeof result === 'string'
+              ? Effect.sync(() => {
+                  void vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));
+                })
+              : Effect.void
+          )
+        )
       )
-    )
+    ],
+    { concurrency: 'unbounded' }
   );
-  // const connectionService = yield* api.services.ConnectionService;
-  const targetOrgRef = yield* api.services.TargetOrgRef();
+
   yield* Effect.forkDaemon(
-    targetOrgRef.changes.pipe(
+    Stream.merge(
+      // get the initial state
+      Stream.fromEffect(SubscriptionRef.get(targetOrgRef)),
+      // get the ongoing changes
+      targetOrgRef.changes
+    ).pipe(
+      Stream.filter(isNotUndefined),
       Stream.map(org => org.orgId),
       Stream.changes,
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
-      Stream.filter(isNotUndefined),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
       Stream.runForEach(() => Effect.promise(() => treeProvider.refreshType()))
     )

@@ -22,7 +22,7 @@ const deployUris = (uris: Set<URI>) =>
     yield* deployComponentSet({ componentSet });
   });
 
-export const deployActiveEditorEffect = () =>
+export const deployActiveEditorCommand = () =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
@@ -47,7 +47,7 @@ export const deployActiveEditorEffect = () =>
 // sourceUri is passed, but uris is undefined.
 
 /** Deploy source paths to the default org */
-export const deploySourcePathsEffect = (sourceUri: URI, uris: URI[] = []) =>
+export const deploySourcePathsCommand = (sourceUri: URI, uris: URI[] = []) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ sourceUri, uris });
     return yield* deployUris(new Set([sourceUri, ...uris]));

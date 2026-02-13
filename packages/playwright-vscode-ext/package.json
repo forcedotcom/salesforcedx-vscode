@@ -59,8 +59,10 @@
       "files": [
         "src/**/*.ts",
         "test/playwright/**/*.ts",
-        "playwright.config.web.ts"
-      ]
+        "playwright.config.web.ts",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:desktop": {
       "env": {
@@ -73,8 +75,10 @@
       ],
       "files": [
         "test/playwright/**/*.ts",
-        "playwright.config.desktop.ts"
-      ]
+        "playwright.config.desktop.ts",
+        "package*.json"
+      ],
+      "output": []
     }
   }
 }

@@ -67,7 +67,10 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // So we match the command name exactly at the start of the text
   const escapedCommand = command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'); // for searching with regex since () are common
   // Match command exactly at the start - this ensures exact match while allowing additional text after
-  const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(`^${escapedCommand}`), hasNotText }).first();
+  const commandRow = widget
+    .locator(QUICK_INPUT_LIST_ROW)
+    .filter({ hasText: new RegExp(`^${escapedCommand}`), hasNotText })
+    .first();
 
   await expect(commandRow).toBeAttached({ timeout: 2000 });
 
@@ -78,7 +81,7 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   });
 
   // Wait for the command palette to close after executing the command
-  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+  await widget.waitFor({ state: 'hidden', timeout: 500 }).catch(() => {
     // If it doesn't close (e.g., multi-step commands), that's ok
   });
 };
@@ -96,7 +99,10 @@ export const executeCommandWithCommandPalette = async (
 const searchCommandInPalette = async (
   page: Page,
   commandText: string
-): Promise<{ widget: ReturnType<Page['locator']>; getFirst20Rows: () => Promise<Awaited<ReturnType<ReturnType<Page['locator']>['all']>>> }> => {
+): Promise<{
+  widget: ReturnType<Page['locator']>;
+  getFirst20Rows: () => Promise<Awaited<ReturnType<ReturnType<Page['locator']>['all']>>>;
+}> => {
   await openCommandPalette(page);
   const widget = page.locator(QUICK_INPUT_WIDGET);
   const input = widget.locator('input.input');
@@ -144,12 +150,20 @@ export const verifyCommandDoesNotExist = async (page: Page, commandText: string)
 
 /** Verify a command exists in the command palette using retry pattern */
 export const verifyCommandExists = async (page: Page, commandText: string, timeout?: number): Promise<void> => {
-  const { widget, getFirst20Rows } = await searchCommandInPalette(page, commandText);
+  const widget = page.locator(QUICK_INPUT_WIDGET);
 
-  // Use retry pattern to allow VS Code rendering and context updates
+  // Use retry pattern: dismiss and re-search each iteration so results are fresh
   await expect(async () => {
-    const first20Rows = await getFirst20Rows();
+    await dismissAllQuickInputWidgets(page);
+    await openCommandPalette(page);
 
+    const input = widget.locator('input.input');
+    await input.click({ timeout: 5000 });
+    await input.pressSequentially(commandText, { delay: 5 });
+
+    await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+
+    const first20Rows = (await widget.locator(QUICK_INPUT_LIST_ROW).all()).slice(0, 20);
     for (const row of first20Rows) {
       const rowText = await row.textContent();
       if (rowText?.trim().toLowerCase().includes(commandText.toLowerCase())) {
@@ -160,4 +174,40 @@ export const verifyCommandExists = async (page: Page, commandText: string, timeo
   }).toPass({ timeout: timeout ?? 10_000 });
 
   await closeCommandPalette(page, widget);
+};
+
+/** Wait for a command to be available in the command palette (useful when waiting for extensions to load) */
+export const waitForCommandToBeAvailable = async (
+  page: Page,
+  commandText: string,
+  timeoutMs: number = 30_000
+): Promise<void> => {
+  await expect(async () => {
+    await openCommandPalette(page);
+    const widget = page.locator(QUICK_INPUT_WIDGET);
+    const input = widget.locator('input.input');
+
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.click({ timeout: 5000 });
+    
+    // Type the command to search for it
+    await page.keyboard.press('End');
+    await input.pressSequentially(commandText, { delay: 5 });
+
+    // Wait for command list to appear
+    await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+
+    // Verify the command exists in the list
+    const escapedCommand = commandText.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(`^${escapedCommand}`) }).first();
+    
+    // This will throw if command not found, causing retry
+    await expect(commandRow, `Command "${commandText}" should be available`).toBeAttached({ timeout: 2000 });
+
+    // Close command palette
+    await page.keyboard.press('Escape');
+    await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+      // Ignore if already closed
+    });
+  }, `Waiting for command "${commandText}" to be available`).toPass({ timeout: timeoutMs });
 };

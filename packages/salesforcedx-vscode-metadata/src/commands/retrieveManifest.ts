@@ -12,7 +12,7 @@ import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 
 /** Retrieve from the default org using a a manifest file*/
-export const retrieveManifest = (manifestUri?: URI) =>
+export const retrieveManifestCommand = (manifestUri?: URI) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ manifestUri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;

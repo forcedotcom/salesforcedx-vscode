@@ -21,7 +21,7 @@ const isApplyResult = (
   'fileResponsesFromDelete' in value;
 
 /** Retrieve remote changes from the default org */
-export const projectRetrieveStartEffect = (ignoreConflicts: boolean) =>
+export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ ignoreConflicts });
 

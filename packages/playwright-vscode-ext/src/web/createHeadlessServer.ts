@@ -14,18 +14,23 @@ type HeadlessServerOptions = {
   extensionName: string;
   /** The __dirname from the calling headlessServer.ts file (used to resolve extension paths) */
   callerDirname: string;
+  /** Additional extension directory names to load (services is always included automatically) */
+  additionalExtensionDirs?: string[];
 };
 
 /** Creates and starts a headless VS Code web server for testing an extension with services */
 export const createHeadlessServer = async (options: HeadlessServerOptions): Promise<void> => {
   try {
-    // callerDirname is '<pkg>/out/test/playwright/web' → go up four levels to '<pkg>'
+    // callerDirname is '<pkg>/out/test/playwright/web' -> go up four levels to '<pkg>'
     const extensionDevelopmentPath = path.resolve(options.callerDirname, '..', '..', '..', '..');
-    const servicesExtensionPath = path.resolve(extensionDevelopmentPath, '..', 'salesforcedx-vscode-services');
 
+    // Collect all extension paths: services + any additional
+    const extensionPaths = (options.additionalExtensionDirs ?? [])
+      .concat(['salesforcedx-vscode-services'])
+      .map(dir => path.resolve(extensionDevelopmentPath, '..', dir));
     console.log(`🌐 Starting VS Code Web (headless) for ${options.extensionName} tests...`);
     console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
-    console.log(`📦 Services extension path: ${servicesExtensionPath}`);
+    console.log(`📦 Extension paths: ${extensionPaths.join(', ')}`);
 
     const repoRoot = resolveRepoRoot(options.callerDirname);
     const testRunnerDataDir = path.join(repoRoot, '.vscode-test-web');
@@ -38,7 +43,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       printServerLog: true,
       verbose: true,
       extensionDevelopmentPath,
-      extensionPaths: [servicesExtensionPath],
+      extensionPaths,
       testRunnerDataDir,
       browserOptions: [
         '--disable-web-security',

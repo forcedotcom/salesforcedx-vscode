@@ -33,5 +33,7 @@ https://github.com/redhat-developer/vscode-extension-tester - pageObject/Selecto
 
 ## Things to ignore
 
+**When analyzing failures, ignore these (expected, not errors):**
+
 - TS extension activation: `Error: Activating extension 'vscode.typescript-language-features'`
-- All installed extensions temporarily disabled (other extensions, not ours)
+- **All installed extensions temporarily disabled** (other extensions, not ours) - expected notification

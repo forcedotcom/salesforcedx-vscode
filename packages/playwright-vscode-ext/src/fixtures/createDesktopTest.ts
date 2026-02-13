@@ -19,10 +19,18 @@ type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
   orgAlias?: string;
+  /** Additional extension directory names to load (ex: ['salesforcedx-vscode-metadata'] for apex-testing "SFDX: Create Apex Class") */
+  additionalExtensionDirs?: string[];
+  /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
+  disableOtherExtensions?: boolean;
+  /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
+  userSettings?: Record<string, unknown>;
 };
 
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
-export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOptions) => {
+export const createDesktopTest = (options: CreateDesktopTestOptions) => {
+  const { fixturesDir, orgAlias, additionalExtensionDirs = [], disableOtherExtensions = true, userSettings } = options;
+
   const test = base.extend<TestFixtures, WorkerFixtures>({
     // Download VS Code once per worker (cached at repo root .vscode-test/)
     vscodeExecutable: [
@@ -41,37 +49,42 @@ export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOp
       // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
-      // Isolate extensions directory as well (to avoid parallel install conflicts)
+      if (userSettings !== undefined && Object.keys(userSettings).length > 0) {
+        const userSettingsDir = path.join(userDataDir, 'User');
+        await fs.mkdir(userSettingsDir, { recursive: true });
+        await fs.writeFile(path.join(userSettingsDir, 'settings.json'), JSON.stringify(userSettings, null, 2));
+      }
       const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
       await fs.mkdir(extensionsDir, { recursive: true });
 
-      // fixturesDir is '<pkg>/test/playwright/fixtures' → go up three levels to '<pkg>'
       const packageRoot = path.resolve(fixturesDir, '..', '..', '..');
-      // Extension path is the package root (contains package.json and bundled dist/index.js)
-      const extensionPath = packageRoot;
-      const servicesPath = path.resolve(packageRoot, '..', 'salesforcedx-vscode-services');
 
-      // Video directory for this test
+      // Collect all extension paths: current extension + services + any additional
+
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
       await fs.mkdir(videosDir, { recursive: true });
 
+      const extensionArgs = [
+        // Extension path is the package root (contains package.json and bundled dist/index.js)
+        packageRoot,
+        ...additionalExtensionDirs
+          .concat(['salesforcedx-vscode-services'])
+          .map(dir => path.resolve(packageRoot, '..', dir))
+      ].map(p => `--extensionDevelopmentPath=${p}`);
+
+      const launchArgs = [
+        `--user-data-dir=${userDataDir}`,
+        `--extensions-dir=${extensionsDir}`,
+        ...extensionArgs,
+        ...(disableOtherExtensions ? ['--disable-extensions'] : []),
+        '--disable-workspace-trust',
+        '--no-sandbox',
+        workspaceDir
+      ];
+
       const electronApp = await electron.launch({
         executablePath: vscodeExecutable,
-        args: [
-          // Unique user data directory for parallel test isolation
-          `--user-data-dir=${userDataDir}`,
-          // Unique extensions directory to avoid parallel install conflicts
-          `--extensions-dir=${extensionsDir}`,
-          // Load both extensions (current extension depends on services)
-          `--extensionDevelopmentPath=${extensionPath}`,
-          `--extensionDevelopmentPath=${servicesPath}`,
-          '--disable-extensions', // Disable other extensions
-          '--disable-workspace-trust', // Skip workspace trust modal
-          '--no-sandbox', // Disable sandbox for file system access (needed for SF CLI auth files)
-
-          workspaceDir
-        ],
-
+        args: launchArgs,
         env: { ...process.env, VSCODE_DESKTOP: '1' } as Record<string, string>,
         timeout: 60_000,
         recordVideo: {
@@ -94,6 +107,9 @@ export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOp
     page: async ({ electronApp }, use) => {
       const page = await electronApp.firstWindow();
 
+      // Grant clipboard permissions for desktop (Electron)
+      await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
       // Capture console logs (especially errors) for debugging
       page.on('console', msg => {
         if (
@@ -110,6 +126,9 @@ export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOp
         }
       });
 
+      // Electron ignores config's use.viewport — set explicitly for consistent sizing across CI runners
+      await page.setViewportSize({ width: 1920, height: 1080 });
+
       const { WORKBENCH } = await import('../utils/locators.js');
       await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
       await use(page);
@@ -120,6 +139,15 @@ export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOp
       console.log('\n🔍 DEBUG_MODE: Test failed - pausing to keep VS Code window open.');
       console.log('Press Resume in Playwright Inspector or close VS Code window to continue.');
       await page.pause();
+    }
+
+    // Rename video with test name for easy identification
+    const video = page.video();
+    if (video) {
+      const videoPath = await video.path();
+      const safeName = testInfo.titlePath.join('-').replaceAll(/[^a-zA-Z0-9-]/g, '_');
+      const newPath = path.join(path.dirname(videoPath), `${safeName}.webm`);
+      await fs.rename(videoPath, newPath).catch(() => {});
     }
   });
   return test;

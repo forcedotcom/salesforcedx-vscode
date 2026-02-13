@@ -203,7 +203,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
   // Set shared commands visibility context (inverse of useMetadataExtensionCommands)
-  const useMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
+  // Only hide shared commands if metadata extension is installed AND config is enabled
+  const metadataExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-metadata');
+  const useMetadataCommands = metadataExtension && salesforceCoreSettings.getUseMetadataExtensionCommands();
   await vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !useMetadataCommands);
   // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();
@@ -272,8 +274,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     // Register configuration change listener for shared commands visibility
     vscode.workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration(`${SFDX_CORE_CONFIGURATION_NAME}.${USE_METADATA_EXTENSION_COMMANDS}`)) {
-        const updatedUseMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
-        void vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !updatedUseMetadataCommands);
+        void vscode.commands.executeCommand(
+          'setContext',
+          'sf:show_shared_commands',
+          !metadataExtension || !salesforceCoreSettings.getUseMetadataExtensionCommands()
+        );
       }
     }),
     registerConflictView(),
@@ -301,6 +306,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       errorToString(error)
     );
   }
+
+  setImmediate(() => {
+    void WorkspaceContext.getInstance().initialize(extensionContext);
+  });
 
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
