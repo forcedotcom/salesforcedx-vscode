@@ -2,12 +2,8 @@ name: Apex Testing E2E (Playwright)
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'packages/salesforcedx-vscode-apex-testing/**'
-      - 'packages/salesforcedx-vscode-services/**'
-      - 'packages/playwright-vscode-ext/**'
-      - '.github/workflows/apexTestingE2E.yml'
+  push:
+    branches-ignore: [main, develop]
 
 jobs:
   e2e-web:
@@ -37,6 +33,7 @@ jobs:
       # When cache misses, Playwright runs and fails fast (no chromium). We then run full setup below and retry.
       - name: Try E2E tests
         id: try-run
+        continue-on-error: true
         env:
           CI: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
@@ -45,32 +42,32 @@ jobs:
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: npm i -g @salesforce/cli
 
       - name: Install Playwright browsers and OS deps
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Auth to dev hub (global)
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
         shell: bash
 
       - name: Generate minimal project
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         shell: bash
         run: sf project generate -n minimal-project
 
       - name: Create scratch org
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         shell: bash
         run: |
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
       - name: Run Apex Testing E2E tests (parallel)
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
@@ -143,6 +140,7 @@ jobs:
       # When cache misses, Playwright runs and fails fast (no chromium). We then run full setup below and retry.
       - name: Try E2E tests
         id: try-run
+        continue-on-error: true
         env:
           CI: 1
           VSCODE_DESKTOP: 1
@@ -152,32 +150,32 @@ jobs:
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: npm i -g @salesforce/cli
 
       - name: Auth to dev hub (global)
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
         shell: bash
 
       - name: Install Playwright browsers and OS deps
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Generate minimal project
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         shell: bash
         run: sf project generate -n minimal-project
 
       - name: Create scratch org
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         shell: bash
         run: |
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
       - name: Run Apex Testing E2E tests (parallel)
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:

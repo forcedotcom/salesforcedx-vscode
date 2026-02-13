@@ -2,11 +2,8 @@ name: Services E2E (Playwright)
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'packages/salesforcedx-vscode-services/**'
-      - 'packages/playwright-vscode-ext/**'
-      - '.github/workflows/servicesE2E.yml'
+  push:
+    branches-ignore: [main, develop]
 
 jobs:
   e2e-web:
@@ -36,6 +33,7 @@ jobs:
       # When cache misses, Playwright runs and fails fast (no chromium). We then run full setup below and retry.
       - name: Try E2E tests
         id: try-run
+        continue-on-error: true
         env:
           CI: 1
         run: |
@@ -43,21 +41,21 @@ jobs:
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: |
           npm i -g @salesforce/cli
 
       - name: Install Playwright browsers and OS deps
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Generate minimal project
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         shell: bash
         run: sf project generate -n minimal-project
 
       - name: create scratch org
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -66,7 +64,7 @@ jobs:
         working-directory: minimal-project
 
       - name: Run Services E2E tests (parallel)
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:

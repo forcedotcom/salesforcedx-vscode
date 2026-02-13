@@ -2,10 +2,8 @@ name: Playwright VS Code Ext E2E Tests
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'packages/playwright-vscode-ext/**'
-      - '.github/workflows/playwrightVscodeExtE2E.yml'
+  push:
+    branches-ignore: [main, develop]
 
 jobs:
   e2e-web:
@@ -32,6 +30,7 @@ jobs:
       # When cache misses, Playwright runs and fails fast (no chromium). We then run Install Playwright below and retry.
       - name: Try E2E tests
         id: try-run
+        continue-on-error: true
         env:
           CI: 1
         run: |
@@ -39,11 +38,11 @@ jobs:
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Playwright browsers and OS deps
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Run Playwright web tests (parallel)
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
@@ -104,6 +103,7 @@ jobs:
       # When cache misses, Playwright runs and fails fast (no chromium). We then run Install Playwright below and retry.
       - name: Try E2E tests
         id: try-run
+        continue-on-error: true
         env:
           CI: 1
           VSCODE_DESKTOP: 1
@@ -112,11 +112,11 @@ jobs:
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Playwright browsers and OS deps
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Run Playwright desktop tests (parallel)
-        if: failure() && steps.try-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
