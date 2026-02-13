@@ -59,15 +59,6 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
-      - name: Set display resolution (macOS)
-        if: runner.os == 'macOS'
-        run: "/Library/Application Support/VMware Tools/vmware-resolutionSet" 1920 1080
-
-      - name: Set display resolution (Windows)
-        if: runner.os == 'Windows'
-        run: Set-DisplayResolution -Width 1920 -Height 1080 -Force
-        shell: pwsh
-
       - name: Run Core headless tests (desktop config)
         env:
           CI: 1

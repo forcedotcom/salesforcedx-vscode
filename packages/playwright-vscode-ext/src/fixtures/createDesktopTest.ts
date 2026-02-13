@@ -126,6 +126,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         }
       });
 
+      // Electron ignores config's use.viewport — set explicitly for consistent sizing across CI runners
+      await page.setViewportSize({ width: 1920, height: 1080 });
+
       const { WORKBENCH } = await import('../utils/locators.js');
       await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
       await use(page);
