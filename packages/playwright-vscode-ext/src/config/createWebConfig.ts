@@ -46,7 +46,9 @@ export const createWebConfig = (options: WebConfigOptions = {}) =>
       {
         name: 'chromium',
         use: { ...devices['Desktop Chrome'] },
-        retries: 2,
+        // E2E_NO_RETRIES: workflow try-run sets this env var to fail fast on cache miss (missing org/chromium).
+        // Using env var instead of CLI arg preserves wireit cache key. See workflow comments for details.
+        retries: process.env.E2E_NO_RETRIES ? 0 : 2,
         snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/chromium/{arg}{ext}'
       }
     ],

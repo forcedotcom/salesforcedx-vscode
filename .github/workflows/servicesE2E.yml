@@ -30,12 +30,15 @@ jobs:
         run: npm ci
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
-      # When cache misses, Playwright runs and fails fast (no chromium). We then run full setup below and retry.
+      # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
+        timeout-minutes: 5
         env:
           CI: 1
+          E2E_NO_RETRIES: 1
         run: |
           npm run test:web -w salesforcedx-vscode-services -- --reporter=html
 

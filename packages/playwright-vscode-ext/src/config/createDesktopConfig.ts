@@ -34,7 +34,9 @@ export const createDesktopConfig = (options: DesktopConfigOptions = {}) =>
     projects: [
       {
         name: 'desktop-electron',
-        retries: process.env.CI ? 2 : 0, // No retries locally for faster feedback
+        // E2E_NO_RETRIES: workflow try-run sets this env var to fail fast on cache miss (missing org/chromium).
+        // Using env var instead of CLI arg preserves wireit cache key. See workflow comments for details.
+        retries: process.env.E2E_NO_RETRIES ? 0 : process.env.CI ? 2 : 0,
         snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/desktop-{platform}/{arg}{ext}'
       }
     ]
