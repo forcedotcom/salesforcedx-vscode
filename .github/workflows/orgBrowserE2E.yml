@@ -52,12 +52,23 @@ jobs:
           sf org assign permset -n dreamhouse
         working-directory: dreamhouse-lwc
 
-      - name: Run Org Browser headless tests (headless config)
+      - name: Run Org Browser E2E tests (parallel)
+        id: parallel-run
+        continue-on-error: true
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
         run: |
           npm run test:web -w salesforcedx-vscode-org-browser -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
@@ -120,13 +131,25 @@ jobs:
           sf org assign permset -n dreamhouse
         working-directory: dreamhouse-lwc
 
-      - name: Run Org Browser headless tests (headless config)
+      - name: Run Org Browser E2E tests (parallel)
+        id: parallel-run
+        continue-on-error: true
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
+          VSCODE_DESKTOP: 1
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()

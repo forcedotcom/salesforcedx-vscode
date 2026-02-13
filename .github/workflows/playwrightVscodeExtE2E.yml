@@ -32,11 +32,21 @@ jobs:
       - name: Install Playwright browsers and OS deps
         run: npx playwright install chromium --with-deps
 
-      - name: Run Playwright web tests
+      - name: Run Playwright web tests (parallel)
+        id: parallel-run
+        continue-on-error: true
         env:
           CI: 1
         run: |
           npm run test:web -w @salesforce/playwright-vscode-ext
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:web -w @salesforce/playwright-vscode-ext -- --last-failed
 
       - name: Upload Playwright HTML report
         if: always()
@@ -83,12 +93,23 @@ jobs:
       - name: Install Playwright browsers and OS deps
         run: npx playwright install chromium --with-deps
 
-      - name: Run Playwright desktop tests
+      - name: Run Playwright desktop tests (parallel)
+        id: parallel-run
+        continue-on-error: true
         env:
           CI: 1
           VSCODE_DESKTOP: 1
         run: |
           npm run test:desktop -w @salesforce/playwright-vscode-ext
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:desktop -w @salesforce/playwright-vscode-ext -- --last-failed
 
       - name: Upload Playwright HTML report
         if: always()

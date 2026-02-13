@@ -49,12 +49,21 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
         working-directory: minimal-project
 
-      - name: Run Services headless tests (headless config)
+      - name: Run Services E2E tests (parallel)
+        id: parallel-run
+        continue-on-error: true
         env:
           CI: 1
-        # compile the entire project to
         run: |
           npm run test:web -w salesforcedx-vscode-services -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-services -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()

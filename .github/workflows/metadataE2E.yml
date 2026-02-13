@@ -67,15 +67,27 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json  --wait 30
         working-directory: minimal-project
 
-      - name: Run Metadata headless tests (headless config)
+      - name: Run Metadata E2E tests (parallel)
+        id: parallel-run
+        continue-on-error: true
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: hub
           CI: 1
-        # compile the entire project to
         run: |
           npm run test:web -w salesforcedx-vscode-metadata -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: hub
+          CI: 1
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
@@ -173,16 +185,29 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
         working-directory: non-tracking-project
 
-      - name: Run Metadata headless tests (headless config)
+      - name: Run Metadata E2E tests (parallel)
+        id: parallel-run
+        continue-on-error: true
         env:
           CI: 1
           VSCODE_DESKTOP: 1
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-        # compile the entire project to
         run: |
           npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()

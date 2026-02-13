@@ -16,9 +16,9 @@ type WebConfigOptions = {
 export const createWebConfig = (options: WebConfigOptions = {}) =>
   defineConfig({
     testDir: options.testDir ?? './test/playwright/specs',
-    fullyParallel: !process.env.CI,
+    fullyParallel: !process.env.E2E_SEQUENTIAL,
     forbidOnly: !!process.env.CI,
-    ...(process.env.CI ? { workers: 1 } : {}),
+    ...(process.env.E2E_SEQUENTIAL ? { workers: 1 } : {}), // Sequential when E2E_SEQUENTIAL=1 (used for retry step)
     reporter: process.env.CI
       ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit.xml' }]]
       : [['html', { open: 'never' }], ['list']],

@@ -51,12 +51,23 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
-      - name: Run Apex Testing headless tests (web)
+      - name: Run Apex Testing E2E tests (parallel)
+        id: parallel-run
+        continue-on-error: true
         env:
           CI: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
           npm run test:web -w salesforcedx-vscode-apex-testing -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-apex-testing -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
@@ -127,13 +138,25 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
-      - name: Run Apex Testing headless tests (desktop)
+      - name: Run Apex Testing E2E tests (parallel)
+        id: parallel-run
+        continue-on-error: true
         env:
           CI: 1
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
           npm run test:desktop -w salesforcedx-vscode-apex-testing -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-apex-testing -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
