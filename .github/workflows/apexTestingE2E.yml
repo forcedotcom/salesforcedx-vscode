@@ -5,6 +5,10 @@ on:
   push:
     branches-ignore: [main, develop]
 
+concurrency:
+  group: ci-${{ github.ref }}-apexTestingE2E
+  cancel-in-progress: true
+
 jobs:
   e2e-web:
     runs-on: ubuntu-latest
