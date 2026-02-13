@@ -182,8 +182,11 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts"
-      ]
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     }
   },
   "nyc": {
