@@ -39,11 +39,11 @@ jobs:
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Run Playwright web tests (parallel)
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
@@ -52,7 +52,7 @@ jobs:
           npm run test:web -w @salesforce/playwright-vscode-ext
 
       - name: Retry failed tests (sequential)
-        if: steps.parallel-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           E2E_SEQUENTIAL: 1
@@ -112,11 +112,11 @@ jobs:
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Run Playwright desktop tests (parallel)
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
@@ -126,7 +126,7 @@ jobs:
           npm run test:desktop -w @salesforce/playwright-vscode-ext
 
       - name: Retry failed tests (sequential)
-        if: steps.parallel-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           VSCODE_DESKTOP: 1

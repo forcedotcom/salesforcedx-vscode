@@ -49,26 +49,26 @@ jobs:
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         run: |
           npm i -g @salesforce/cli
 
       - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Clone dreamhouse
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         shell: bash
         run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
 
       - name: Auth to dev hub (global)
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
         shell: bash
 
       - name: create scratch org and set up dreamhouse
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -78,12 +78,12 @@ jobs:
         working-directory: dreamhouse-lwc
 
       - name: Generate minimal project
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         shell: bash
         run: sf project generate -n minimal-project
 
       - name: create scratch org
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -91,7 +91,7 @@ jobs:
         working-directory: minimal-project
 
       - name: Run Metadata E2E tests (parallel)
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
@@ -103,7 +103,7 @@ jobs:
           npm run test:web -w salesforcedx-vscode-metadata -- --reporter=html
 
       - name: Retry failed tests (sequential)
-        if: steps.parallel-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
@@ -182,26 +182,26 @@ jobs:
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         run: |
           npm i -g @salesforce/cli
 
       - name: Auth to dev hub (global)
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
         shell: bash
 
       - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
       - name: Clone dreamhouse
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         shell: bash
         run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
 
       - name: create scratch org and set up dreamhouse
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -211,12 +211,12 @@ jobs:
         working-directory: dreamhouse-lwc
 
       - name: Generate minimal project
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         shell: bash
         run: sf project generate -n minimal-project
 
       - name: create scratch org
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -224,12 +224,12 @@ jobs:
         working-directory: minimal-project
 
       - name: Generate non-tracking project
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         shell: bash
         run: sf project generate -n non-tracking-project
 
       - name: create non-tracking scratch org
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -237,7 +237,7 @@ jobs:
         working-directory: non-tracking-project
 
       - name: Run Metadata E2E tests (parallel)
-        if: steps.try-run.outcome == 'failure'
+        if: failure() && steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
@@ -250,7 +250,7 @@ jobs:
           npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
 
       - name: Retry failed tests (sequential)
-        if: steps.parallel-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           VSCODE_DESKTOP: 1
