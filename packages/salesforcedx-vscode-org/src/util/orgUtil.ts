@@ -117,12 +117,12 @@ export const setTargetOrgOrAlias = async (usernameOrAlias: string): Promise<void
   // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
   const workspacePath = workspaceUtils.getRootWorkspacePath();
   try {
+    process.chdir(workspacePath);
     // checks if the usernameOrAlias is non-empty and active.
     if (usernameOrAlias) {
       // throws an error if the org associated with the usernameOrAlias is expired.
       await Org.create({ aliasOrUsername: usernameOrAlias });
     }
-    process.chdir(workspacePath);
     await setUsernameOrAlias(usernameOrAlias);
   } finally {
     process.chdir(originalDirectory);
