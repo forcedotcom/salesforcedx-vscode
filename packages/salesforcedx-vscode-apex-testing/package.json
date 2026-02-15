@@ -16,6 +16,9 @@
   },
   "version": "65.17.3",
   "publisher": "salesforce",
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
+  "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
@@ -32,6 +35,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
+    "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.25.12"
   },
   "extensionDependencies": [
@@ -40,6 +44,12 @@
   "scripts": {
     "vscode:bundle": "wireit",
     "run:web": "wireit",
+    "test:web": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:debug": "npm run test:web -- --debug",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -154,11 +164,46 @@
       "service": true,
       "dependencies": [
         "vscode:bundle:local",
-        "../salesforcedx-vscode-org-browser:vscode:bundle:local",
+        "../salesforcedx-vscode-services:vscode:bundle:local",
         "../salesforcedx-vscode-metadata:vscode:bundle:local"
       ],
       "files": [
         "test/**/*.ts"
+      ]
+    },
+    "test:web": {
+      "command": "playwright test --config=playwright.config.web.ts test/playwright/specs/testExplorer.headless.spec.ts",
+      "dependencies": [
+        "compile",
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.web.ts",
+        "test/playwright/**/*.ts"
+      ]
+    },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts"
+      ]
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:web",
+        "test:desktop"
       ]
     }
   },

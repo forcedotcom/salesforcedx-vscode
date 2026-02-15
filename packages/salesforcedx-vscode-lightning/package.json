@@ -1,4 +1,7 @@
 {
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
+  "productFeatureId": "aJCEE0000000mLm4AI",
   "activationEvents": [
     "workspaceContains:**/aura/**",
     "workspaceContains:**/workspace-user.xml"

@@ -10,6 +10,8 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+// @ts-ignore o11y has no types
+import { pdpEventSchema } from 'o11y_schema/sf_pdp';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
@@ -25,7 +27,8 @@ export class O11ySpanExporter implements SpanExporter {
 
   constructor(
     private extensionName: string,
-    private endpoint: string
+    private endpoint: string,
+    private productFeatureId?: string
   ) {
     this.o11yService = O11yService.getInstance(extensionName);
   }
@@ -50,7 +53,10 @@ export class O11ySpanExporter implements SpanExporter {
       Effect.tryPromise({
         try: async () => {
           await this.ensureInitialized();
-          const { cliId, webUserId } = getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.get(ref)), Effect.runSync);
+          const { cliId, webUserId, orgId, devHubOrgId } = getDefaultOrgRef().pipe(
+            Effect.flatMap(ref => SubscriptionRef.get(ref)),
+            Effect.runSync
+          );
           spans.filter(isTopLevelSpan).forEach(span => {
             const success = span.status?.code !== SpanStatusCode.ERROR;
             const props = {
@@ -81,6 +87,20 @@ export class O11ySpanExporter implements SpanExporter {
                 properties: props,
                 measurements
               });
+            }
+
+            // PFT for new extensions
+            if (this.productFeatureId && typeof span.attributes['command'] === 'string') {
+              this.o11yService.logEventWithSchema(
+                {
+                  eventName: 'vscodeExtension.executed',
+                  productFeatureId: this.productFeatureId,
+                  contextName: 'orgId::devhubId',
+                  contextValue: `${orgId}::${devHubOrgId}`,
+                  componentId: `${props['common.extname']}.${span.attributes['command']}`
+                },
+                pdpEventSchema
+              );
             }
           });
           resultCallback({ code: ExportResultCode.SUCCESS });
