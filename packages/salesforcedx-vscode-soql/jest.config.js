@@ -13,6 +13,7 @@ module.exports = Object.assign({}, baseConfig, {
   },
   // Map @salesforce/soql-model to actual source path for Jest
   moduleNameMapper: {
+    ...baseConfig.moduleNameMapper,
     '^@salesforce/soql-model/(.*)$': '<rootDir>/src/soql-model/$1'
   }
 });
