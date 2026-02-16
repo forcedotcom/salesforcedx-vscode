@@ -34,6 +34,15 @@
   width: var(--soql-selection-container-width);
 }
 
+/* TODO: we should change the name of the var
+the width of all the children should be
+default to the width of the parent.
+*/
+.section_selection-container {
+  min-width: var(--soql-input-width);
+  max-width: var(--soql-input-width);
+}
+
 .section_label-container label {
   display: inline-block;
   padding-top: 4px;
