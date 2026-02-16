@@ -5,7 +5,14 @@
     "strictNullChecks": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.json", "src/**/*.js", "resources/**/*.js", "typings/*.d.ts", "jest/*.js"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.json",
+    "src/**/*.js",
+    "resources/**/*.js",
+    "typings/*.d.ts",
+    "jest/*.js"
+  ],
   "exclude": [
     "node_modules",
     "src/tern/**/*.js",
@@ -23,10 +30,10 @@
       "path": "../salesforcedx-utils"
     },
     {
-      "path": "../salesforcedx-vscode-i18n"
+      "path": "../salesforcedx-vscode-services"
     },
     {
-      "path": "../salesforcedx-vscode-services"
+      "path": "../salesforcedx-vscode-i18n"
     }
   ]
 }
