@@ -4,14 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import { FileType, Uri, workspace } from 'vscode';
+import { toUriEffect } from './services/extensionProvider';
 
 // utility methods shared with the vscode extension
 
+/** Resolve path to URI via extension API (FsService.toUri). */
+const toUri = async (filePath: string): Promise<Uri> => {
+  const uri = await Effect.runPromise(toUriEffect(filePath));
+  // FsService returns vscode-uri URI; workspace.fs expects vscode.Uri
+  return Uri.parse(uri.toString());
+};
+
 const SFDX_PROJECT = 'sfdx-project.json';
 
-export type WorkspaceType =
+type WorkspaceType =
   | 'STANDARD'
   | 'STANDARD_LWC'
   | 'MONOREPO'
@@ -21,17 +30,16 @@ export type WorkspaceType =
   | 'CORE_PARTIAL'
   | 'UNKNOWN';
 
-export const isLWC = (type: WorkspaceType): boolean =>
-  type === 'SFDX' || type === 'STANDARD_LWC' || type === 'CORE_ALL' || type === 'CORE_PARTIAL';
-
 export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX_PROJECT);
 
 /**
  * Checks if a file exists using VS Code workspace API
+ * In web mode, preserves the workspace folder's URI scheme (memfs, file, etc.)
  */
-const fileExists = async (filePath: string): Promise<boolean> => {
+const fileExists = async (filePath: string, baseRoot?: string): Promise<boolean> => {
   try {
-    const fileUri = Uri.file(filePath);
+    const resolvedPath = baseRoot ? path.resolve(baseRoot, filePath) : path.resolve(filePath);
+    const fileUri = await toUri(resolvedPath);
     const stat = await workspace.fs.stat(fileUri);
     return stat.type === FileType.File;
   } catch {
@@ -41,10 +49,12 @@ const fileExists = async (filePath: string): Promise<boolean> => {
 
 /**
  * Reads file content as string using VS Code workspace API
+ * In web mode, preserves the workspace folder's URI scheme (memfs, file, etc.)
  */
-const readFileContent = async (filePath: string): Promise<string | null> => {
+const readFileContent = async (filePath: string, baseRoot?: string): Promise<string | null> => {
   try {
-    const fileUri = Uri.file(filePath);
+    const resolvedPath = baseRoot ? path.resolve(baseRoot, filePath) : path.resolve(filePath);
+    const fileUri = await toUri(resolvedPath);
     const fileContent = await workspace.fs.readFile(fileUri);
     return Buffer.from(fileContent).toString('utf8');
   } catch {
@@ -57,22 +67,22 @@ const readFileContent = async (filePath: string): Promise<string | null> => {
  * @returns WorkspaceType for singular root
  */
 const detectWorkspaceTypeHelper = async (root: string): Promise<WorkspaceType> => {
-  if (await fileExists(getSfdxProjectFile(root))) {
+  if (await fileExists(getSfdxProjectFile(root), root)) {
     return 'SFDX';
   }
-  if (await fileExists(path.join(root, 'workspace-user.xml'))) {
+  if (await fileExists(path.join(root, 'workspace-user.xml'), root)) {
     return 'CORE_ALL';
   }
-  if (await fileExists(path.join(root, '..', 'workspace-user.xml'))) {
+  if (await fileExists(path.join(root, '..', 'workspace-user.xml'), root)) {
     return 'CORE_PARTIAL';
   }
 
-  if (await fileExists(path.join(root, 'lwc.config.json'))) {
+  if (await fileExists(path.join(root, 'lwc.config.json'), root)) {
     return 'STANDARD_LWC';
   }
 
   const packageJson = path.join(root, 'package.json');
-  const packageJsonContent = await readFileContent(packageJson);
+  const packageJsonContent = await readFileContent(packageJson, root);
   if (packageJsonContent) {
     try {
       const packageInfo: unknown = JSON.parse(packageJsonContent);
@@ -120,7 +130,7 @@ const detectWorkspaceTypeHelper = async (root: string): Promise<WorkspaceType> =
           return 'MONOREPO';
         }
 
-        if (await fileExists(path.join(root, 'lerna.json'))) {
+        if (await fileExists(path.join(root, 'lerna.json'), root)) {
           return 'MONOREPO';
         }
 
