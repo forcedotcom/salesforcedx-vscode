@@ -58,9 +58,7 @@ const getChildrenOfTreeItem = (
     }
     if (!element) {
       const types = yield* api.services.MetadataDescribeService.describe(refresh);
-      return types
-        .toSorted((a: MetadataDescribeResultItem, b: MetadataDescribeResultItem) => (a.xmlName < b.xmlName ? -1 : 1))
-        .map(mdapiDescribeToOrgBrowserNode);
+      return types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
@@ -111,29 +109,24 @@ const getChildrenOfTreeItem = (
     Effect.provide(AllServicesLayer)
   );
 
-const listMetadataToComponent =
-  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) => (c: MetadataListResultItem) =>
-    Effect.gen(function* () {
-      const treeItem = new OrgBrowserTreeItem({
-        kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
-        namespace: c.namespacePrefix,
-        xmlName: element.xmlName,
-        componentName: c.fullName,
-        label: c.fullName
-      });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-        treeItem,
-        c,
-        treeProvider,
-        parent: element,
-        originalSpan: yield* Effect.currentSpan
-      });
-      return treeItem;
-    }).pipe(
-      Effect.withSpan('listMetadataToComponent', {
-        attributes: { xmlName: element.xmlName, componentName: c.fullName }
-      })
-    );
+const listMetadataToComponent = (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
+  Effect.fn('listMetadataToComponent')(function* (c: MetadataListResultItem) {
+    const treeItem = new OrgBrowserTreeItem({
+      kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
+      namespace: c.namespacePrefix,
+      xmlName: element.xmlName,
+      componentName: c.fullName,
+      label: c.fullName
+    });
+    yield* Queue.offer(backgroundFilePresenceCheckQueue, {
+      treeItem,
+      c,
+      treeProvider,
+      parent: element,
+      originalSpan: yield* Effect.currentSpan
+    });
+    return treeItem;
+  });
 
 const listMetadataToFolder =
   (element: OrgBrowserTreeItem) =>
@@ -146,30 +139,25 @@ const listMetadataToFolder =
       label: c.fullName
     });
 
-const listMetadataToFolderItem =
-  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) => (c: MetadataListResultItem) =>
-    Effect.gen(function* () {
-      const treeItem = new OrgBrowserTreeItem({
-        kind: 'component',
-        namespace: c.namespacePrefix,
-        xmlName: element.xmlName,
-        folderName: element.folderName,
-        componentName: c.fullName,
-        label: c.fullName
-      });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-        treeItem,
-        c,
-        treeProvider,
-        parent: element,
-        originalSpan: yield* Effect.currentSpan
-      });
-      return treeItem;
-    }).pipe(
-      Effect.withSpan('listMetadataToFolderItem', {
-        attributes: { xmlName: element.xmlName, componentName: c.fullName }
-      })
-    );
+const listMetadataToFolderItem = (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
+  Effect.fn('listMetadataToFolderItem')(function* (c: MetadataListResultItem) {
+    const treeItem = new OrgBrowserTreeItem({
+      kind: 'component',
+      namespace: c.namespacePrefix,
+      xmlName: element.xmlName,
+      folderName: element.folderName,
+      componentName: c.fullName,
+      label: c.fullName
+    });
+    yield* Queue.offer(backgroundFilePresenceCheckQueue, {
+      treeItem,
+      c,
+      treeProvider,
+      parent: element,
+      originalSpan: yield* Effect.currentSpan
+    });
+    return treeItem;
+  });
 
 const mdapiDescribeToOrgBrowserNode = (t: MetadataDescribeResultItem): OrgBrowserTreeItem =>
   new OrgBrowserTreeItem({

@@ -7,25 +7,24 @@
 import type { MetadataTypeTreeProvider } from './metadataTypeTreeProviderTypes';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { backgroundFilePresenceCheckQueue } from './filePresence';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField, MetadataListResultItem } from './types';
 
 export const createCustomFieldNode =
-  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) => (f: CustomObjectField) =>
-    Effect.gen(function* () {
+  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
+    Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
       // Create a MetadataListResultItem-like object for the custom field
       const fieldMetadata: MetadataListResultItem = {
-        fullName: `${element.componentName}.${removeNamespacePrefix(element)(f).name}`,
+        fullName: `${element.componentName}.${removeNamespacePrefix(element)(field).name}`,
         type: 'CustomField'
       };
 
       const treeItem = new OrgBrowserTreeItem({
         kind: 'component',
         xmlName: 'CustomField',
-        componentName: `${element.componentName}.${f.name}`,
-        label: getFieldLabel(removeNamespacePrefix(element)(f))
+        componentName: `${element.componentName}.${field.name}`,
+        label: getFieldLabel(removeNamespacePrefix(element)(field))
       });
       yield* Queue.offer(backgroundFilePresenceCheckQueue, {
         treeItem,
@@ -35,12 +34,7 @@ export const createCustomFieldNode =
         originalSpan: yield* Effect.currentSpan
       });
       return treeItem;
-    }).pipe(
-      Effect.withSpan('createCustomFieldNode', {
-        attributes: { xmlName: 'CustomField', componentName: `${element.componentName}.${f.name}` }
-      }),
-      Effect.provide(AllServicesLayer)
-    );
+    });
 
 /** build out the label for a CustomField */
 const getFieldLabel = (f: CustomObjectField): string => {
