@@ -13,6 +13,10 @@ import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
+async function getConnection() {
+  return WorkspaceContextUtil.getInstance().getConnection();
+}
+
 export class O11yReporter
   extends Disposable
   implements TelemetryReporter, TelemetryReporterWithModifiableUserProperties
@@ -45,7 +49,7 @@ export class O11yReporter
   }
 
   public async initialize(extensionName: string): Promise<void> {
-    await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint);
+    await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint, getConnection);
 
     // Enable automatic batching with 30-second periodic flush
     this.batchingCleanup = this.o11yService.enableAutoBatching({
