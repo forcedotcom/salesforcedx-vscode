@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
+import * as Match from 'effect/Match';
 import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -22,28 +22,22 @@ export const retrieveEffect = (
   // void since we catch all the errors and show the vscode error message
 ) =>
   Effect.gen(function* () {
-    const target = getRetrieveTarget(node);
-    if (target._tag === 'None') {
+    const members = yield* getRetrieveMembers(node, treeProvider);
+    if (members.length === 0) {
       return;
     }
 
-    yield* Effect.annotateCurrentSpan({ target: target.value.fullName });
+    yield* Effect.annotateCurrentSpan({ memberCount: members.length });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-    const dirs = (yield* api.services.ProjectService.getSfProject())
-      .getPackageDirectories()
-      .map((directory: { fullPath: string }) => directory.fullPath);
+    const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
 
-    const localComponents = yield* api.services.MetadataRetrieveService.buildComponentSetFromSource(dirs, [
-      target.value
-    ]);
-
-    if (!(yield* confirmOverwrite(localComponents, target.value))) {
+    if (!(yield* confirmOverwrite(projectComponentSet, members))) {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
     }
 
     // Run the retrieve operation
-    const result = yield* OrgBrowserRetrieveService.retrieve([target.value], target.value.fullName !== '*');
+    const result = yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1);
 
     if (typeof result !== 'string')
       // Handle post-retrieve UI updates
@@ -58,7 +52,6 @@ export const retrieveEffect = (
 
     return result;
   }).pipe(
-    // Note: Don't provide AllServicesLayer here - registerCommandWithLayer already provides it.
     Effect.catchAll(error =>
       Effect.sync(() => {
         void vscode.window.showErrorMessage(nls.localize('retrieve_failed', String(error)));
@@ -66,28 +59,36 @@ export const retrieveEffect = (
     )
   );
 
-const getRetrieveTarget = (node: OrgBrowserTreeItem): Option.Option<MetadataMember> => {
-  if (node.kind === 'folderType') {
-    // folderType nodes don't have retrieve functionality
-    return Option.none();
-  }
-  if (node.kind === 'type') {
-    // called retrieve on the entire type
-    return Option.some({ type: node.xmlName, fullName: '*' });
-  }
+const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataTypeTreeProvider) =>
+  Match.value(node).pipe(
+    Match.when(
+      (n): n is OrgBrowserTreeItem & { componentName: string } =>
+        (n.kind === 'component' || n.kind === 'customObject') && n.componentName !== undefined,
+      n => Effect.succeed([{ type: n.xmlName, fullName: n.componentName }])
+    ),
+    Match.when({ kind: 'type' }, n =>
+      Effect.promise(() => treeProvider.getChildren(n)).pipe(
+        Effect.map(children =>
+          children
+            .filter((c): c is OrgBrowserTreeItem & { componentName: string } => Boolean(c.componentName))
+            .map(c => ({ type: n.xmlName, fullName: c.componentName }))
+        )
+      )
+    ),
+    Match.orElse(() => Effect.succeed([]))
+  );
 
-  if ((node.kind === 'component' || node.kind === 'customObject') && node.componentName !== undefined) {
-    return Option.some({ type: node.xmlName, fullName: node.componentName });
-  }
-  return Option.none();
-};
+const getOverwriteCount = (projectComponentSet: ComponentSet, members: MetadataMember[]): number =>
+  members.reduce((n, m) => n + (projectComponentSet.has(m) ? 1 : 0), 0);
 
-const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember) =>
+const confirmOverwrite = (projectComponentSet: ComponentSet, members: MetadataMember[]) =>
   Effect.promise(async () => {
-    if (localComponents.size === 0) return true;
+    const overwriteCount = getOverwriteCount(projectComponentSet, members);
+    if (overwriteCount === 0) return true;
+    const typeName = members[0]?.type ?? 'Unknown';
     const yesButton = nls.localize('yes_button');
     const answer = await vscode.window.showWarningMessage(
-      nls.localize('confirm_overwrite', String(localComponents.size), target.type),
+      nls.localize('confirm_overwrite', String(overwriteCount), typeName),
       yesButton,
       nls.localize('no_button')
     );
