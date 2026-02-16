@@ -90,15 +90,10 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [ChannelService](references/channel-service.md) - Output channel
 - [WorkspaceService](references/workspace-service.md) - Workspace info
 - [ConnectionService](references/connection-service.md) - Org connections
-  <<<<<<< HEAD
 - [ProjectService](references/project-service.md) - Project resolution, packageDirectories
 - [SettingsService](references/settings-service.md) - Settings read/write
 - [FsService](references/fs-service.md) - File ops (web-compatible) and uri/path conversion
-- # [EditorService](references/editor-service.md) - Active editor changes and current URI
-- [ProjectService](references/project-service.md) - Project resolution
-- [SettingsService](references/settings-service.md) - Settings read/write
-- [FsService](references/fs-service.md) - File ops (web-compatible)
-  > > > > > > > origin/develop
+- [EditorService](references/editor-service.md) - Active editor changes and current URI
 
 ## Watchers
 

@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import { test } from '../fixtures';
 import {
   setupConsoleMonitoring,
@@ -31,9 +33,16 @@ import {
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
 
-(isMacDesktop() ? test.skip.bind(test) : test)(
-  'Manifest Builder: generate manifest, deploy and retrieve via manifest',
-  async ({ page }) => {
+const MANIFEST_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+  <types>
+    <members>*</members>
+    <name>ApexClass</name>
+  </types>
+  <version>64.0</version>
+</Package>`;
+
+test('Manifest Builder: generate manifest, deploy and retrieve via manifest', async ({ page, workspaceDir }) => {
     test.setTimeout(COMMAND_TIMEOUT);
     const consoleErrors = setupConsoleMonitoring(page);
 
@@ -55,9 +64,9 @@ import { createApexClassCore } from '../coreHelpers';
       await saveScreenshot(page, 'setup.class-created.png');
     });
 
-    await test.step('generate manifest file', async () => {
+    await test.step('generate manifest file', async step => {
+      step.skip(isMacDesktop(), 'Explorer context menu not available on Mac Desktop');
       // Command is only available via explorer context menu, not command palette
-      // (Test is skipped on Mac Desktop where context menus don't work)
       await executeExplorerContextMenuCommand(page, /classes/i, 'SFDX: Generate Manifest File');
 
       // Wait for filename prompt and accept default
@@ -70,6 +79,13 @@ import { createApexClassCore } from '../coreHelpers';
       const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
       await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
       await saveScreenshot(page, 'manifest.file-opened.png');
+    });
+
+    await test.step('create manifest file via fs (Mac only)', async step => {
+      step.skip(!isMacDesktop(), 'Only run on Mac Desktop');
+      await fs.mkdir(path.join(workspaceDir, 'manifest'), { recursive: true });
+      await fs.writeFile(path.join(workspaceDir, 'manifest', 'package.xml'), MANIFEST_XML);
+      await openFileByName(page, 'package.xml');
     });
 
     await test.step('deploy source in manifest', async () => {
@@ -98,5 +114,4 @@ import { createApexClassCore } from '../coreHelpers';
     });
 
     await validateNoCriticalErrors(test, consoleErrors);
-  }
-);
+  });
