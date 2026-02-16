@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataTypeTreeProvider } from './metadataTypeTreeProviderTypes';
+import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
 import { backgroundFilePresenceCheckQueue } from './filePresence';
@@ -12,7 +13,7 @@ import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField, MetadataListResultItem } from './types';
 
 export const createCustomFieldNode =
-  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
+  (projectComponentSet: ComponentSet) => (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
     Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
       // Create a MetadataListResultItem-like object for the custom field
       const fieldMetadata: MetadataListResultItem = {
@@ -31,7 +32,8 @@ export const createCustomFieldNode =
         c: fieldMetadata,
         treeProvider,
         parent: element,
-        originalSpan: yield* Effect.currentSpan
+        originalSpan: yield* Effect.currentSpan,
+        projectComponentSet
       });
       return treeItem;
     });

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -51,7 +52,6 @@ const getChildrenOfTreeItem = (
   Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
     const api = yield* svcProvider.getServicesApi;
-
     // this could be the initial load, before the org is set.  Prevents duplication loads of root
     if (!(yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId) {
       return yield* Effect.succeed([]);
@@ -62,6 +62,7 @@ const getChildrenOfTreeItem = (
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
+      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       return yield* api.services.MetadataDescribeService.describeCustomObject(
         element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
       ).pipe(
@@ -71,7 +72,7 @@ const getChildrenOfTreeItem = (
               // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
               .filter(f => f.custom)
               .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-              .map(createCustomFieldNode(treeProvider)(element)),
+              .map(createCustomFieldNode(projectComponentSet)(treeProvider)(element)),
             { concurrency: 'unbounded' }
           )
         )
@@ -83,22 +84,34 @@ const getChildrenOfTreeItem = (
       );
     }
     if (element.kind === 'type') {
+      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       return yield* api.services.MetadataDescribeService.listMetadata(element.xmlName).pipe(
         Effect.flatMap(components =>
-          Effect.all(components.filter(globalMetadataFilter).map(listMetadataToComponent(treeProvider)(element)), {
-            concurrency: 'unbounded'
-          })
+          Effect.all(
+            components
+              .filter(globalMetadataFilter)
+              .map(listMetadataToComponent(projectComponentSet)(treeProvider)(element)),
+            {
+              concurrency: 'unbounded'
+            }
+          )
         )
       );
     }
     if (element.kind === 'folder') {
       const { xmlName, folderName } = element;
       if (!xmlName || !folderName) return yield* Effect.succeed([]);
+      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       return yield* api.services.MetadataDescribeService.listMetadata(xmlName, folderName).pipe(
         Effect.flatMap(components =>
-          Effect.all(components.filter(globalMetadataFilter).map(listMetadataToFolderItem(treeProvider)(element)), {
-            concurrency: 'unbounded'
-          })
+          Effect.all(
+            components
+              .filter(globalMetadataFilter)
+              .map(listMetadataToFolderItem(projectComponentSet)(treeProvider)(element)),
+            {
+              concurrency: 'unbounded'
+            }
+          )
         )
       );
     }
@@ -109,24 +122,26 @@ const getChildrenOfTreeItem = (
     Effect.provide(AllServicesLayer)
   );
 
-const listMetadataToComponent = (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
-  Effect.fn('listMetadataToComponent')(function* (c: MetadataListResultItem) {
-    const treeItem = new OrgBrowserTreeItem({
-      kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
-      namespace: c.namespacePrefix,
-      xmlName: element.xmlName,
-      componentName: c.fullName,
-      label: c.fullName
+const listMetadataToComponent =
+  (projectComponentSet: ComponentSet) => (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
+    Effect.fn('listMetadataToComponent')(function* (c: MetadataListResultItem) {
+      const treeItem = new OrgBrowserTreeItem({
+        kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
+        namespace: c.namespacePrefix,
+        xmlName: element.xmlName,
+        componentName: c.fullName,
+        label: c.fullName
+      });
+      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
+        treeItem,
+        c,
+        treeProvider,
+        parent: element,
+        originalSpan: yield* Effect.currentSpan,
+        projectComponentSet
+      });
+      return treeItem;
     });
-    yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-      treeItem,
-      c,
-      treeProvider,
-      parent: element,
-      originalSpan: yield* Effect.currentSpan
-    });
-    return treeItem;
-  });
 
 const listMetadataToFolder =
   (element: OrgBrowserTreeItem) =>
@@ -139,25 +154,27 @@ const listMetadataToFolder =
       label: c.fullName
     });
 
-const listMetadataToFolderItem = (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
-  Effect.fn('listMetadataToFolderItem')(function* (c: MetadataListResultItem) {
-    const treeItem = new OrgBrowserTreeItem({
-      kind: 'component',
-      namespace: c.namespacePrefix,
-      xmlName: element.xmlName,
-      folderName: element.folderName,
-      componentName: c.fullName,
-      label: c.fullName
+const listMetadataToFolderItem =
+  (projectComponentSet: ComponentSet) => (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
+    Effect.fn('listMetadataToFolderItem')(function* (c: MetadataListResultItem) {
+      const treeItem = new OrgBrowserTreeItem({
+        kind: 'component',
+        namespace: c.namespacePrefix,
+        xmlName: element.xmlName,
+        folderName: element.folderName,
+        componentName: c.fullName,
+        label: c.fullName
+      });
+      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
+        treeItem,
+        c,
+        treeProvider,
+        parent: element,
+        originalSpan: yield* Effect.currentSpan,
+        projectComponentSet
+      });
+      return treeItem;
     });
-    yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-      treeItem,
-      c,
-      treeProvider,
-      parent: element,
-      originalSpan: yield* Effect.currentSpan
-    });
-    return treeItem;
-  });
 
 const mdapiDescribeToOrgBrowserNode = (t: MetadataDescribeResultItem): OrgBrowserTreeItem =>
   new OrgBrowserTreeItem({

@@ -40,6 +40,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
         api.services.ConnectionService.Default,
+        api.services.ComponentSetService.Default,
         api.services.ExtensionContextServiceLayer(context),
         api.services.MetadataRetrieveService.Default,
         api.services.MetadataRegistryService.Default,
