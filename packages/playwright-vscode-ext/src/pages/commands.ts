@@ -41,7 +41,7 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     const input = widget.locator('input.input');
     await expect(input).toBeVisible({ timeout: 5000 });
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
-  }).toPass({ timeout: 20_000 });
+  }).toPass({ timeout: 10_000 });
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
@@ -189,7 +189,7 @@ export const waitForCommandToBeAvailable = async (
 
     await expect(input).toBeVisible({ timeout: 5000 });
     await input.click({ timeout: 5000 });
-    
+
     // Type the command to search for it
     await page.keyboard.press('End');
     await input.pressSequentially(commandText, { delay: 5 });
@@ -199,8 +199,11 @@ export const waitForCommandToBeAvailable = async (
 
     // Verify the command exists in the list
     const escapedCommand = commandText.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(`^${escapedCommand}`) }).first();
-    
+    const commandRow = widget
+      .locator(QUICK_INPUT_LIST_ROW)
+      .filter({ hasText: new RegExp(`^${escapedCommand}`) })
+      .first();
+
     // This will throw if command not found, causing retry
     await expect(commandRow, `Command "${commandText}" should be available`).toBeAttached({ timeout: 2000 });
 

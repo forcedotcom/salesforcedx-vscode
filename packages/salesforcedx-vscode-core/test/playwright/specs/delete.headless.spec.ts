@@ -31,6 +31,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
+import packageNls from '../../../package.nls.json';
 
 test('Delete: delete from project and org via command palette and context menus', async ({ page }) => {
   test.setTimeout(COMMAND_TIMEOUT);
@@ -43,7 +44,7 @@ test('Delete: delete from project and org via command palette and context menus'
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-    await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
+    await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
 
     // Ensure core commands are active (not metadata extension commands)
     await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
@@ -53,29 +54,29 @@ test('Delete: delete from project and org via command palette and context menus'
     await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
     await saveScreenshot(page, 'setup.output-channel-ready.png');
 
-    await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
+    await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
 
     // Create the apex class under test
     await createApexClassCore(page, className);
     await saveScreenshot(page, 'setup.class-created.png');
 
     // Wait for extension to fully activate (context keys like sf:has_target_org)
-    await verifyCommandExists(page, 'SFDX: Delete This from Project and Org', 120_000);
+    await verifyCommandExists(page, packageNls.delete_source_this_source_text, 120_000);
   });
 
   await test.step('delete from project and org', async () => {
     // Push first to sync with org
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Push Source to Default Org and Ignore Conflicts');
+    await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_ignore_conflicts_default_org_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Push Source to Default Org and Ignore Conflicts',
+      expectedText: `Ended ${packageNls.project_deploy_start_ignore_conflicts_default_org_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'delete.push-complete.png');
 
     // Execute delete command
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Delete This from Project and Org');
+    await executeCommandWithCommandPalette(page, packageNls.delete_source_this_source_text);
 
     // Wait for and accept the confirmation notification
     const deleteConfirmation = page
@@ -88,7 +89,7 @@ test('Delete: delete from project and org via command palette and context menus'
 
     // Wait for delete to complete
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Delete from Project and Org',
+      expectedText: `Ended ${packageNls.delete_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'delete.complete.png');
@@ -101,9 +102,9 @@ test('Delete: delete from project and org via command palette and context menus'
 
       // Push both to org
       await clearOutputChannel(page);
-      await executeCommandWithCommandPalette(page, 'SFDX: Push Source to Default Org and Ignore Conflicts');
+      await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_ignore_conflicts_default_org_text);
       await waitForOutputChannelText(page, {
-        expectedText: 'Ended SFDX: Push Source to Default Org and Ignore Conflicts',
+        expectedText: `Ended ${packageNls.project_deploy_start_ignore_conflicts_default_org_text}`,
         timeout: COMMAND_TIMEOUT
       });
       await saveScreenshot(page, 'delete-ctx.push-complete.png');
@@ -112,7 +113,7 @@ test('Delete: delete from project and org via command palette and context menus'
     await test.step('delete via editor context menu', async () => {
       await clearOutputChannel(page);
       await openFileByName(page, `${className}Del1.cls`);
-      await executeEditorContextMenuCommand(page, 'SFDX: Delete This from Project and Org', `${className}Del1.cls`);
+      await executeEditorContextMenuCommand(page, packageNls.delete_source_this_source_text, `${className}Del1.cls`);
 
       const deleteConfirmation = page
         .locator(NOTIFICATION_LIST_ITEM)
@@ -122,7 +123,7 @@ test('Delete: delete from project and org via command palette and context menus'
       await deleteConfirmation.getByRole('button', { name: 'Delete Source' }).click();
 
       await waitForOutputChannelText(page, {
-        expectedText: 'Ended SFDX: Delete from Project and Org',
+        expectedText: `Ended ${packageNls.delete_source_text}`,
         timeout: COMMAND_TIMEOUT
       });
       await saveScreenshot(page, 'delete-editor-context.complete.png');
@@ -133,7 +134,7 @@ test('Delete: delete from project and org via command palette and context menus'
       await executeExplorerContextMenuCommand(
         page,
         new RegExp(`${className}Del2\\.cls`),
-        'SFDX: Delete from Project and Org'
+        packageNls.delete_source_text
       );
 
       const deleteConfirmation = page
@@ -144,7 +145,7 @@ test('Delete: delete from project and org via command palette and context menus'
       await deleteConfirmation.getByRole('button', { name: 'Delete Source' }).click();
 
       await waitForOutputChannelText(page, {
-        expectedText: 'Ended SFDX: Delete from Project and Org',
+        expectedText: `Ended ${packageNls.delete_source_text}`,
         timeout: COMMAND_TIMEOUT
       });
       await saveScreenshot(page, 'delete-explorer-context.complete.png');

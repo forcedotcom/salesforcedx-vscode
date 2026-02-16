@@ -27,6 +27,7 @@ import {
 import { expect } from '@playwright/test';
 import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
 import { createApexClassCore } from '../coreHelpers';
+import packageNls from '../../../package.nls.json';
 
 test('Deploy On Save: automatically deploys when file is saved', async ({ page }) => {
   test.setTimeout(COMMAND_TIMEOUT);
@@ -54,7 +55,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
 
     // Wait for extension to fully activate (context keys like sf:has_target_org)
     // Use a command that doesn't require a file to be open
-    await verifyCommandExists(page, 'SFDX: View Local Changes', 120_000);
+    await verifyCommandExists(page, packageNls.view_local_changes_text, 120_000);
   });
 
   await test.step('create apex class and verify deploy-on-save triggers', async () => {
@@ -70,7 +71,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
 
     // Wait for deploy-on-save to complete
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Deploy This Source to Org',
+      expectedText: `Ended ${packageNls.deploy_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'deploy-on-save.complete.png');
