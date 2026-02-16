@@ -7,11 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import {
-  CORE_CONFIG_SECTION,
-  DEPLOY_ON_SAVE_ENABLED,
-  DEPLOY_ON_SAVE_IGNORE_CONFLICTS
-} from '../constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, DEPLOY_ON_SAVE_IGNORE_CONFLICTS } from '../constants';
 
 /** Check if deploy on save is enabled */
 export const getDeployOnSaveEnabled = Effect.fn('getDeployOnSaveEnabled')(function* () {

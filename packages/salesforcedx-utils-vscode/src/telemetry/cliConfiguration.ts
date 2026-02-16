@@ -15,6 +15,10 @@ export const disableCLITelemetry = () => {
 };
 
 export const isCLITelemetryAllowed = async (): Promise<boolean> => {
+  // In web mode, ConfigAggregator may not work correctly, so default to allowing telemetry
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    return true;
+  }
   try {
     const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
     return !isTelemetryDisabled;

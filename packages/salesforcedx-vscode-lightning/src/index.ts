@@ -6,12 +6,8 @@
  */
 
 import { DirectoryEntry, FileSystemDataProvider, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
-import {
-  bootstrapWorkspaceAwareness,
-  detectWorkspaceType,
-  TelemetryService,
-  TimingUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { bootstrapWorkspaceAwareness } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceLoader';
+import { detectWorkspaceType, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { Effect } from 'effect';
 import { log } from 'node:console';
 import * as path from 'node:path';

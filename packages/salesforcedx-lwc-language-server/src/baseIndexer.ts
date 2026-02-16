@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { IFileSystemProvider, NormalizedPath, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  IFileSystemProvider,
+  Logger,
+  NormalizedPath,
+  normalizePath
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
 /** Package directory configuration in sfdx-project.json */
@@ -46,14 +51,40 @@ const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProv
   const filename = normalizePath(path.join(root, 'sfdx-project.json'));
 
   if (fileSystemProvider) {
+    // Also check with URI format in case that's needed
+    const allFileUris = fileSystemProvider.getAllFileUris();
+
+    // Try to find the exact match
+    const exactMatch = allFileUris.find(uri => normalizePath(uri) === filename);
+
     const content = fileSystemProvider.getFileContent(filename);
+
+    // If content not found with direct path, try with exact match URI if found
+    if (!content && exactMatch) {
+      const contentFromUri = fileSystemProvider.getFileContent(exactMatch);
+      if (contentFromUri) {
+        try {
+          return JSON.parse(contentFromUri);
+        } catch (error) {
+          Logger.error(
+            `[getSfdxConfig] Error parsing JSON from URI: ${error instanceof Error ? error.message : String(error)}`,
+            error
+          );
+        }
+      }
+    }
+
     if (content) {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      return JSON.parse(content) as SfdxProjectConfig;
+      try {
+        return JSON.parse(content);
+      } catch (error) {
+        Logger.error(
+          `[getSfdxConfig] Error parsing JSON: ${error instanceof Error ? error.message : String(error)}`,
+          error
+        );
+      }
     }
   }
-
-  // Fallback - return empty config
   return {};
 };
 
@@ -65,5 +96,11 @@ export const getSfdxPackageDirsPattern = (
   const config = getSfdxConfig(workspaceRoot, fileSystemProvider);
   const dirs = config.packageDirectories;
   const paths: string[] = dirs?.map(item => item.path) ?? [];
-  return paths.length === 1 ? paths[0] : `{${paths.join()}}`;
+
+  if (paths.length === 0) {
+    return '';
+  }
+
+  const result = paths.length === 1 ? paths[0] : `{${paths.join(',')}}`;
+  return result;
 };

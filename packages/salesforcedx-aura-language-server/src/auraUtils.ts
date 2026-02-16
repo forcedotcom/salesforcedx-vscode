@@ -10,7 +10,6 @@ import { createScanner } from 'vscode-html-languageservice/lib/umd/parser/htmlSc
 import { FileChangeType, FileEvent, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Location } from 'vscode-languageserver-types';
-
 /**
  * Regex pattern to match Aura expression syntax in HTML templates.
  *
