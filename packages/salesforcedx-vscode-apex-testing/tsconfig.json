@@ -12,21 +12,16 @@
     "playwright.config.desktop.ts",
     "package.nls.json"
   ],
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
+  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
     {
       "path": "../effect-ext-utils"
     },
     {
-      "path": "../salesforcedx-vscode-i18n"
+      "path": "../playwright-vscode-ext"
     },
     {
-      "path": "../playwright-vscode-ext"
+      "path": "../salesforcedx-vscode-i18n"
     }
   ]
 }
