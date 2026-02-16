@@ -4,13 +4,13 @@ overview: Create a new `salesforcedx-vscode-apex-log` extension that owns execut
 todos:
   - id: services-traceflag
     content: Add TraceFlagService to salesforcedx-vscode-services (effect-based, using connection.tooling directly)
-    status: pending
+    status: completed
   - id: services-apexlog
     content: Add ApexLogService to salesforcedx-vscode-services (listLogs, getLogBody, deleteLogs)
-    status: pending
+    status: completed
   - id: services-export
     content: Export TraceFlagService + ApexLogService from services API and update services-types
-    status: pending
+    status: completed
   - id: scaffold-extension
     content: 'Create salesforcedx-vscode-apex-log package: package.json, tsconfig, esbuild, i18n, extensionProvider, constants'
     status: pending
@@ -95,7 +95,7 @@ graph TB
 
 Location: `packages/salesforcedx-vscode-services/src/core/traceFlagService.ts`
 
-Uses `connection.tooling.*` directly (no `@salesforce/apex-node` dependency -- web-safe).
+Uses `connection.tooling.*` directly (no `@salesforce/apex-node` dependency -- web-safe). Type API responses with `@salesforce/types/tooling` (`TraceFlag`, `DebugLevel`) and validate/decode with Effect.Schema where needed.
 
 ```typescript
 export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceFlagService', {
@@ -129,6 +129,8 @@ Errors (in `packages/salesforcedx-vscode-services/src/errors/`):
 ### ApexLogService
 
 Location: `packages/salesforcedx-vscode-services/src/core/apexLogService.ts`
+
+Type API responses with `@salesforce/types/tooling` (`ApexLog`). Decode list results with Effect.Schema for safe parsing.
 
 ```typescript
 export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogService', {
@@ -169,9 +171,13 @@ packages/salesforcedx-vscode-apex-log/
       logGet.ts                 # Effect-based reimplementation
     statusBar/
       traceFlagStatusBar.ts     # green/red indicator
+    schemas/
+      logCategory.ts            # LogCategorySchema, LogCategoryLevelSchema
+      traceFlagConfig.ts        # TraceFlagsJsonSchema, TraceFlagEntrySchema
+      executeResult.ts          # ExecuteAnonymousResultSchema
+      apexLogListItem.ts        # ApexLogListItemSchema
     traceFlags/
       traceFlagJsonSync.ts      # bidirectional JSON file sync
-      schema.ts                 # JSON schema + Effect Schema types
     logs/
       logStorage.ts             # save/open log files
   test/
@@ -200,6 +206,7 @@ packages/salesforcedx-vscode-apex-log/
   "activationEvents": ["workspaceContains:sfdx-project.json", "onFileSystem:memfs"],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/types": "^1.6.0",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.19.14"
   },
@@ -413,6 +420,150 @@ Tests in `packages/salesforcedx-vscode-apex-log/test/playwright/specs/`:
 - ApexLogService: mock tooling queries
 - ExecuteAnonymousService: mock tooling API
 - JSON sync logic: mock file system + service calls
+
+## Types & Schemas (Effect.Schema + @salesforce/types)
+
+All domain types use Effect.Schema for runtime validation, encoding, and decoding. Existing Salesforce API types come from `@salesforce/types` ([forcedotcom/wsdl](https://github.com/forcedotcom/wsdl), [partner.ts](https://github.com/forcedotcom/wsdl/blob/7fd4f2bbc93d4716c80fc144885738f61a0e66f0/src/partner.ts), [tooling.ts](https://github.com/forcedotcom/wsdl/blob/main/src/tooling.ts)).
+
+### Dependency
+
+```json
+"dependencies": {
+  "@salesforce/types": "^1.6.0",
+  "effect": "^3.19.14"
+}
+```
+
+### Reuse from @salesforce/types
+
+| Import                                                                                                                                | Use                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `@salesforce/types/tooling`: `LogCategory`, `LogCategoryLevel`, `ApexLogLevel`, `TraceFlag`, `DebugLevel`, `ApexLog`, `TraceFlagType` | API response typing, TraceFlag/DebugLevel/ApexLog sObject shapes |
+| `@salesforce/types/partner`: `LogInfo`, `Error`                                                                                       | Execute anonymous / Tooling API error shapes                     |
+
+Use as **type constraints** where we pass through Tooling API responses. For our schemas, we define Effect.Schema that validate/decode to these shapes or subsets.
+
+### Effect.Schema usage
+
+1. **Enums** – `Schema.Literal` union for `ApexLogLevel` (NONE, FINEST, …) and `LogCategory` (ApexCode, Database, …). Match `@salesforce/types/tooling` [ApexLogLevel](https://github.com/forcedotcom/wsdl/blob/main/src/tooling.ts) (DebugLevel fields) and [LogCategory](https://github.com/forcedotcom/wsdl/blob/main/src/tooling.ts).
+2. **Domain structs** – `Schema.Struct` for traceFlags.json, execute result, simplified ApexLog list items.
+3. **Decoding** – `Schema.decodeUnknown` / `Schema.decodeUnknownSync` for JSON files and API responses.
+4. **Encoding** – `Schema.encode` for writing traceFlags.json.
+5. **JSON Schema** – Use `Schema.toJson()` (or equivalent) to produce `traceFlags.schema.json` for `contributes.jsonValidation`.
+
+References: [Effect Schema intro](https://effect.website/docs/schema/introduction/), [effect-best-practices](../.claude/skills/effect-best-practices/SKILL.md).
+
+### Schema module layout (`packages/salesforcedx-vscode-apex-log/src/schemas/`)
+
+```
+schemas/
+  logCategory.ts      # ApexLogLevelSchema, LogCategorySchema (Schema.Literal unions)
+  traceFlagConfig.ts  # TraceFlagsJsonSchema, TraceFlagEntrySchema, DefaultDebugLevelsSchema
+  executeResult.ts   # ExecuteAnonymousResultSchema (success, compiled, compileProblem, etc.)
+  apexLogListItem.ts # ApexLogListItemSchema (id, Application, DurationMilliseconds, StartTime, LogLength)
+```
+
+### Example: traceFlags.json schema
+
+```typescript
+// schemas/logCategory.ts
+import { Schema } from 'effect';
+
+// ApexLogLevel from @salesforce/types/tooling (DebugLevel fields)
+const APEX_LOG_LEVEL_VALUES = [
+  'NONE',
+  'INTERNAL',
+  'FINEST',
+  'FINER',
+  'FINE',
+  'DEBUG',
+  'INFO',
+  'WARN',
+  'ERROR'
+] as const;
+export const ApexLogLevelSchema = Schema.Union(...APEX_LOG_LEVEL_VALUES.map(v => Schema.Literal(v)));
+export type ApexLogLevel = Schema.Schema.Type<typeof ApexLogLevelSchema>;
+
+// Align with @salesforce/types/tooling LogCategory
+const LOG_CATEGORIES = [
+  'ApexCode',
+  'ApexProfiling',
+  'Callout',
+  'Database',
+  'System',
+  'Validation',
+  'Visualforce',
+  'Workflow',
+  'Nba',
+  'Wave',
+  'Data_access',
+  'All'
+] as const;
+export const LogCategorySchema = Schema.Union(...LOG_CATEGORIES.map(c => Schema.Literal(c)));
+```
+
+```typescript
+// schemas/traceFlagConfig.ts
+import { Schema } from 'effect';
+import { ApexLogLevelSchema } from './logCategory';
+
+const DebugLevelOverridesSchema = Schema.Struct({
+  apexCode: Schema.optional(ApexLogLevelSchema),
+  apexProfiling: Schema.optional(ApexLogLevelSchema),
+  callout: Schema.optional(ApexLogLevelSchema),
+  database: Schema.optional(ApexLogLevelSchema),
+  system: Schema.optional(ApexLogLevelSchema),
+  validation: Schema.optional(ApexLogLevelSchema),
+  visualforce: Schema.optional(ApexLogLevelSchema),
+  workflow: Schema.optional(ApexLogLevelSchema)
+});
+
+export const TraceFlagEntrySchema = Schema.Struct({
+  id: Schema.optional(Schema.String),
+  tracedEntityName: Schema.String,
+  tracedEntityId: Schema.String,
+  logType: Schema.Literal('DEVELOPER_LOG'),
+  startDate: Schema.String,
+  expirationDate: Schema.String,
+  debugLevel: Schema.optional(DebugLevelOverridesSchema),
+  isActive: Schema.Boolean
+});
+
+export const DefaultDebugLevelsSchema = DebugLevelOverridesSchema;
+
+export const TraceFlagsJsonSchema = Schema.Struct({
+  defaultDebugLevels: Schema.optional(DefaultDebugLevelsSchema),
+  defaultDurationMinutes: Schema.optional(Schema.Number),
+  traceFlags: Schema.Array(TraceFlagEntrySchema)
+});
+```
+
+### Example: execute result schema
+
+```typescript
+// schemas/executeResult.ts
+import { Schema } from 'effect';
+
+export const ExecuteAnonymousResultSchema = Schema.Struct({
+  success: Schema.Boolean,
+  compiled: Schema.Boolean,
+  compileProblem: Schema.NullOr(Schema.String),
+  exceptionMessage: Schema.NullOr(Schema.String),
+  exceptionStackTrace: Schema.NullOr(Schema.String),
+  line: Schema.Number,
+  column: Schema.Number,
+  executedAt: Schema.String // ISO datetime
+});
+export type ExecuteAnonymousResult = Schema.Schema.Type<typeof ExecuteAnonymousResultSchema>;
+```
+
+### Services: Schema.TaggedError
+
+All service errors use `Schema.TaggedError` per effect-best-practices (see existing patterns in `connectionService.ts`, `projectService.ts`).
+
+### JSON Schema for IntelliSense
+
+Generate `resources/traceFlags.schema.json` from `TraceFlagsJsonSchema` (e.g. via build script using `Schema.toJson()` or `@effect/schema/json-schema`) and wire via `contributes.jsonValidation`.
 
 ## Cross-Cutting Concerns
 

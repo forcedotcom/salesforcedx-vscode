@@ -33,6 +33,18 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
         : yield* Effect.fail(new NoActiveEditorError({ message: 'No active text editor is currently open' }));
     });
 
-    return { pubsub: editorPubSub, getActiveEditorUri };
+    /** Get text from active editor (selection if selection=true and non-empty, else full document), fails with NoActiveEditorError if none */
+    const getActiveEditorText = (selection: boolean) =>
+      Effect.fn('EditorService.getActiveEditorText')(function* () {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+          return yield* Effect.fail(new NoActiveEditorError({ message: 'No active text editor is currently open' }));
+        }
+        return selection && !editor.selection.isEmpty
+          ? editor.document.getText(editor.selection)
+          : editor.document.getText();
+      })();
+
+    return { pubsub: editorPubSub, getActiveEditorUri, getActiveEditorText };
   })
 }) {}

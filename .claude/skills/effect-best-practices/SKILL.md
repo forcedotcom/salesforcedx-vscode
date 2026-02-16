@@ -19,6 +19,7 @@ This skill enforces opinionated, consistent patterns for Effect-TS codebases. Th
 | Error Handling | `catchTag`/`catchTags` | `catchAll` or `mapError` |
 | IDs | `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string` for entity IDs |
 | Functions | `Effect.fn("Service.method")` | Anonymous generators |
+| Naming | `FooCommand` for commands, domain names for helpers | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging | `Effect.log` with structured data | `console.log` |
 | Config | `Config.*` with validation | `process.env` directly (except build-time vars like `ESBUILD_*`) |
 | Options | `Option.match` with both cases | `Option.getOrThrow` |
@@ -237,6 +238,10 @@ const transfer = Effect.fn("AccountService.transfer")(
         // ...
     }
 )
+
+// Naming: Don't append Effect. For commands use FooCommand; for helpers/lifecycle use domain names.
+// WRONG: logGetEffect, executeAnonymousDocumentEffect, activateEffect
+// CORRECT: logGetCommand, executeAnonymousDocumentCommand, executeAnonymous (helper), activation (lifecycle)
 ```
 
 ## Layer Composition

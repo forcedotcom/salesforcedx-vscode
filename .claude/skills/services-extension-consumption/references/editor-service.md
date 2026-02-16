@@ -7,7 +7,7 @@ Active editor changes and URI access. Accessor pattern: call methods directly.
 Include in your services layer:
 
 ```typescript
-api.services.EditorService.Default
+api.services.EditorService.Default;
 ```
 
 ## Methods
@@ -17,8 +17,21 @@ api.services.EditorService.Default
 Get URI from active editor, fails with `NoActiveEditorError` if none:
 
 ```typescript
-const uri = yield* api.services.EditorService.getActiveEditorUri();
+const uri = yield * api.services.EditorService.getActiveEditorUri();
 // Returns: URI
+// Throws: NoActiveEditorError if no active editor
+```
+
+### getActiveEditorText
+
+Get text from active editor, fails with `NoActiveEditorError` if none:
+
+```typescript
+const fullText = yield * api.services.EditorService.getActiveEditorText(false);
+const selectedText = yield * api.services.EditorService.getActiveEditorText(true);
+// selection=true: selection text if non-empty, else full document
+// selection=false: full document text
+// Returns: string
 // Throws: NoActiveEditorError if no active editor
 ```
 
@@ -27,7 +40,7 @@ const uri = yield* api.services.EditorService.getActiveEditorUri();
 PubSub stream of active editor changes (`vscode.TextEditor | undefined`):
 
 ```typescript
-const editorService = yield* api.services.EditorService;
+const editorService = yield * api.services.EditorService;
 // editorService.pubsub: PubSub.PubSub<vscode.TextEditor | undefined>
 ```
 
@@ -39,23 +52,22 @@ Watch active editor changes:
 import * as Duration from 'effect/Duration';
 import * as Stream from 'effect/Stream';
 
-const editorService = yield* api.services.EditorService;
+const editorService = yield * api.services.EditorService;
 
 // Get initial state and merge with changes
-yield* Stream.merge(
-  Stream.fromEffect(
-    editorService.getActiveEditorUri().pipe(
-      Effect.catchTag('NoActiveEditorError', () => Effect.succeed(undefined))
-    )
-  ),
-  Stream.fromPubSub(editorService.pubsub).pipe(Stream.map(editor => editor?.document.uri))
-).pipe(
-  Stream.debounce(Duration.millis(50)),
-  Stream.changes,
-  Stream.runForEach(uri => {
-    // Handle editor change
-  })
-);
+yield *
+  Stream.merge(
+    Stream.fromEffect(
+      editorService.getActiveEditorUri().pipe(Effect.catchTag('NoActiveEditorError', () => Effect.succeed(undefined)))
+    ),
+    Stream.fromPubSub(editorService.pubsub).pipe(Stream.map(editor => editor?.document.uri))
+  ).pipe(
+    Stream.debounce(Duration.millis(50)),
+    Stream.changes,
+    Stream.runForEach(uri => {
+      // Handle editor change
+    })
+  );
 ```
 
 ## Examples
@@ -63,27 +75,26 @@ yield* Stream.merge(
 From `salesforcedx-vscode-services` (package directories context):
 
 ```typescript
-const [editorService, projectService] = yield* Effect.all([EditorService, ProjectService]);
+const [editorService, projectService] = yield * Effect.all([EditorService, ProjectService]);
 
-yield* Stream.merge(
-  Stream.fromEffect(
-    editorService.getActiveEditorUri().pipe(
-      Effect.catchTag('NoActiveEditorError', () => Effect.succeed(undefined))
+yield *
+  Stream.merge(
+    Stream.fromEffect(
+      editorService.getActiveEditorUri().pipe(Effect.catchTag('NoActiveEditorError', () => Effect.succeed(undefined)))
+    ),
+    Stream.fromPubSub(editorService.pubsub).pipe(Stream.map(editor => editor?.document.uri))
+  ).pipe(
+    Stream.debounce(Duration.millis(50)),
+    Stream.changes,
+    Stream.runForEach(uri =>
+      uri
+        ? projectService.isInPackageDirectories(uri).pipe(
+            Effect.flatMap(setInPackageDirectoriesContext),
+            Effect.catchAll(() => setInPackageDirectoriesContext(false))
+          )
+        : setInPackageDirectoriesContext(false)
     )
-  ),
-  Stream.fromPubSub(editorService.pubsub).pipe(Stream.map(editor => editor?.document.uri))
-).pipe(
-  Stream.debounce(Duration.millis(50)),
-  Stream.changes,
-  Stream.runForEach(uri =>
-    uri
-      ? projectService.isInPackageDirectories(uri).pipe(
-          Effect.flatMap(setInPackageDirectoriesContext),
-          Effect.catchAll(() => setInPackageDirectoriesContext(false))
-        )
-      : setInPackageDirectoriesContext(false)
-  )
-);
+  );
 ```
 
 ## Notes

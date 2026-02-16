@@ -9,11 +9,13 @@ import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
+import { ApexLogService } from './core/apexLogService';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { getDefaultOrgRef } from './core/defaultOrgRef';
+import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
@@ -23,6 +25,7 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
+import { TraceFlagService } from './core/traceFlagService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -45,12 +48,14 @@ import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
   services: {
+    ApexLogService: typeof ApexLogService;
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
     ComponentSetService: typeof ComponentSetService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
     registerCommandWithLayer: typeof registerCommandWithLayer;
+    ExecuteAnonymousService: typeof ExecuteAnonymousService;
     EditorService: typeof EditorService;
     ErrorHandlerService: typeof ErrorHandlerService;
     ExtensionContextService: typeof ExtensionContextService;
@@ -68,6 +73,7 @@ export type SalesforceVSCodeServicesApi = {
     SettingsService: typeof SettingsService;
     SourceTrackingService: typeof SourceTrackingService;
     TargetOrgRef: typeof getDefaultOrgRef;
+    TraceFlagService: typeof TraceFlagService;
     WorkspaceService: typeof WorkspaceService;
   };
 };
@@ -100,6 +106,19 @@ export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
 export type { MetadataDescribeError, ListMetadataError } from './core/metadataDescribeService';
+export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
+export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
+export type {
+  ApexLogBodyFetchError,
+  ApexLogQueryError
+} from './errors/apexLogErrors';
+export type {
+  DebugLevelCreateError,
+  TraceFlagCreateError,
+  TraceFlagNotFoundError,
+  TraceFlagUpdateError,
+  UserIdNotFoundError
+} from './errors/traceFlagErrors';
 export type { GetRegistryAccessError } from './core/metadataRegistryService';
 export type { FsServiceError } from './vscode/fsService';
 export type { SettingsError } from './vscode/settingsService';
@@ -173,6 +192,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   /** they're global in the sense that they should be the same for all extension */
   const globalLayers = Layer.mergeAll(
+    ExecuteAnonymousService.Default,
+    ApexLogService.Default,
     ComponentSetService.Default,
     ConfigService.Default,
     ConnectionService.Default,
@@ -187,6 +208,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     SettingsService.Default,
     SettingsWatcherService.Default,
     SourceTrackingService.Default,
+    TraceFlagService.Default,
     WorkspaceService.Default
   );
 
@@ -213,11 +235,13 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   // Return API for other extensions to consume
   return {
     services: {
+      ApexLogService,
       ChannelService,
       ChannelServiceLayer,
       ComponentSetService,
       ConfigService,
       ConnectionService,
+      ExecuteAnonymousService,
       registerCommandWithLayer,
       EditorService,
       ErrorHandlerService,
@@ -236,6 +260,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       SettingsService,
       SourceTrackingService,
       TargetOrgRef: getDefaultOrgRef,
+      TraceFlagService,
       WorkspaceService
     }
   };
@@ -273,6 +298,7 @@ export {
   MetadataDeleteService,
   type MetadataDeleteService as MetadataDeleteServiceType
 } from './core/metadataDeleteService';
+export { type ApexLogListItem, type ApexLogService } from './core/apexLogService';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
 export {
   MetadataDeployService,
@@ -283,4 +309,5 @@ export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
+export { type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';

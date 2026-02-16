@@ -1,0 +1,7 @@
+{
+  "displayName": "Salesforce Apex Log",
+  "description": "Execute anonymous Apex, retrieve Apex logs, and manage trace flags",
+  "apexLog.command.logGet": "SFDX: Get Apex Debug Logs",
+  "apexLog.command.executeDocument": "SFDX: Execute Anonymous Apex with Currently Open Editor",
+  "apexLog.command.executeSelection": "SFDX: Execute Anonymous Apex with Editor's Selected Text"
+}

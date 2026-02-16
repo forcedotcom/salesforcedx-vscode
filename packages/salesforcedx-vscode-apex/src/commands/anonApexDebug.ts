@@ -64,24 +64,18 @@ class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameters> {
   }
 }
 
-class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
+class AnonApexLibraryDebugExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
 
-  private isDebugging: boolean;
-
-  constructor(isDebugging: boolean) {
+  constructor() {
     super(nls.localize('apex_execute_text'), 'apex_execute_library', OUTPUT_CHANNEL);
-
-    this.isDebugging = isDebugging;
   }
 
   public async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
-    if (this.isDebugging) {
-      if (!(await this.setUpTraceFlags(connection))) {
-        return false;
-      }
+    if (!(await this.setUpTraceFlags(connection))) {
+      return false;
     }
 
     const executeService = new ExecuteService(connection);
@@ -93,21 +87,12 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
     });
 
     this.processResult(result, apexFilePath, selection);
-
-    if (this.isDebugging) {
-      return await this.launchReplayDebugger(result.logs);
-    }
-
-    return true;
+    return await this.launchReplayDebugger(result.logs);
   }
 
   private async setUpTraceFlags(connection: Connection): Promise<boolean> {
     const traceFlags = new TraceFlags(connection);
-    if (!(await traceFlags.ensureTraceFlags())) {
-      return false;
-    }
-
-    return true;
+    return traceFlags.ensureTraceFlags();
   }
 
   private processResult(
@@ -125,12 +110,10 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
 
   private async launchReplayDebugger(logs?: string | undefined): Promise<boolean> {
     const logFilePath = this.getLogFilePath();
-    if (!this.saveLogFile(logFilePath, logs)) {
+    if (!logFilePath || !logs || !(await this.saveLogFile(logFilePath, logs))) {
       return false;
     }
-
     await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath);
-
     return true;
   }
 
@@ -138,19 +121,13 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
     const outputDir = projectPaths.debugLogsFolder();
     const now = new Date();
     const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
-    const logFilePath = path.join(outputDir, `${localDateFormatted}.log`);
-
-    return logFilePath;
+    return path.join(outputDir, `${localDateFormatted}.log`);
   }
 
   private async saveLogFile(logFilePath: string, logs?: string): Promise<boolean> {
-    if (!logFilePath || !logs) {
-      return false;
-    }
-
+    if (!logFilePath || !logs) return false;
     await createDirectory(path.dirname(logFilePath));
     await writeFile(logFilePath, logs);
-
     return true;
   }
 
@@ -162,71 +139,40 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
       outputText += `\n${response.logs}`;
     } else {
       const diagnostic = response.diagnostic![0];
-
-      if (!response.compiled) {
-        outputText += `Error: Line: ${diagnostic.lineNumber}, Column: ${diagnostic.columnNumber}\n`;
-        outputText += `Error: ${diagnostic.compileProblem}\n`;
-      } else {
-        outputText += `${nls.localize('apex_execute_compile_success')}\n`;
-        outputText += `Error: ${diagnostic.exceptionMessage}\n`;
-        outputText += `Error: ${diagnostic.exceptionStackTrace}\n`;
-        outputText += `\n${response.logs}`;
-      }
+      outputText += !response.compiled
+        ? `Error: Line: ${diagnostic.lineNumber}, Column: ${diagnostic.columnNumber}\nError: ${diagnostic.compileProblem}\n`
+        : `${nls.localize('apex_execute_compile_success')}\nError: ${diagnostic.exceptionMessage}\nError: ${diagnostic.exceptionStackTrace}\n\n${response.logs}`;
     }
     channelService.appendLine(outputText);
   }
 
   private handleDiagnostics(response: ExecuteAnonymousResponse, filePath: string, selection?: vscode.Range) {
-    AnonApexLibraryExecuteExecutor.diagnostics.clear();
-
+    AnonApexLibraryDebugExecutor.diagnostics.clear();
     if (response.diagnostic) {
       const { compileProblem, exceptionMessage, lineNumber, columnNumber } = response.diagnostic[0];
-      let message;
-      if (compileProblem && compileProblem !== '') {
-        message = compileProblem;
-      } else if (exceptionMessage && exceptionMessage !== '') {
-        message = exceptionMessage;
-      } else {
-        message = nls.localize('apex_execute_unexpected_error');
-      }
-      const vscDiagnostic: vscode.Diagnostic = {
-        message,
-        severity: vscode.DiagnosticSeverity.Error,
-        source: filePath,
-        range: this.adjustErrorRange(Number(lineNumber), Number(columnNumber), selection)
-      };
-
-      AnonApexLibraryExecuteExecutor.diagnostics.set(URI.file(filePath), [vscDiagnostic]);
+      const message =
+        compileProblem && compileProblem !== ''
+          ? compileProblem
+          : exceptionMessage && exceptionMessage !== ''
+            ? exceptionMessage
+            : nls.localize('apex_execute_unexpected_error');
+      AnonApexLibraryDebugExecutor.diagnostics.set(URI.file(filePath), [
+        {
+          message,
+          severity: vscode.DiagnosticSeverity.Error,
+          source: filePath,
+          range: getZeroBasedRange(lineNumber ? lineNumber + (selection?.start.line ?? 0) : 1, columnNumber ?? 1)
+        }
+      ]);
     }
   }
-
-  private adjustErrorRange(
-    lineNumber: number | undefined,
-    columnNumber: number | undefined,
-    selection?: vscode.Range
-  ): vscode.Range {
-    const lineOffset = selection ? selection.start.line : 0;
-    const adjustedLine = lineNumber ? lineNumber + lineOffset : 1;
-    return getZeroBasedRange(adjustedLine, columnNumber ?? 1);
-  }
 }
-
-export const anonApexExecute = async () => {
-  const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
-    new AnonApexGatherer(),
-    new AnonApexLibraryExecuteExecutor(false)
-  );
-
-  await commandlet.run();
-};
 
 export const anonApexDebug = async () => {
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
     new AnonApexGatherer(),
-    new AnonApexLibraryExecuteExecutor(true)
+    new AnonApexLibraryDebugExecutor()
   );
-
   await commandlet.run();
 };

@@ -17,7 +17,7 @@ import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { anonApexDebug } from './anonApexExecute';
+import { anonApexDebug } from './anonApexDebug';
 
 export const launchApexReplayDebuggerWithCurrentFile = async () => {
   const editor = vscode.window.activeTextEditor;
