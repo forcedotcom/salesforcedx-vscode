@@ -6397,6 +6397,24 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchprocessjobdefinition.htm",
     "parent": "Metadata"
   },
+  "BatchDataSource": {
+    "fields": [],
+    "short_description": "Represents the source of information whose records must be processed by the Batch Management job.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchprocessjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchDataSrcFilterCriteria": {
+    "fields": [],
+    "short_description": "Represents the filter conditions that decide which records must be processed by the Batch Management job.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchprocessjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchDataSourceOrderField": {
+    "fields": [],
+    "short_description": "Represents the fields that are used to group data.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchprocessjobdefinition.htm",
+    "parent": "Metadata"
+  },
   "BillingSettings": {
     "fields": [
       {
@@ -8290,7 +8308,7 @@
         "Field Type": "picklist"
       }
     ],
-    "short_description": "Represents a campaign influence model used by Customizable Campaign Influence. You can’t configure Customizable Campaign Influence via the Metadata API, but you can add a campaign influence model.",
+    "short_description": "Represents a campaign influence model used by Customizable Campaign Influence. You can’t configure Customizable Campaign Influence via the Metadata API, but you can add a campaign influence model. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_campaigninfluencemodel.htm",
     "parent": "Metadata"
   },
@@ -8475,7 +8493,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the information about the fields that appear in care provider search results.This type extends the Metadata metadata type and inherits its fullName field.",
+    "short_description": "Represents the information about the fields that appear in care provider search results. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_careprovidersearchconfig.htm",
     "parent": "Metadata"
   },
@@ -16238,7 +16256,13 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the information about a dataset link associated with a decision table. In a dataset link, select an object for whose records, the decision table must provide an outcome.This type extends the Metadata metadata type and inherits its fullName field.",
+    "short_description": "Represents the information about a dataset link associated with a decision table. In a dataset link, select an object for whose records, the decision table must provide an outcome. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_decisiontabledatasetlink.htm",
+    "parent": "Metadata"
+  },
+  "DecisionTblDatasetParameters": {
+    "fields": [],
+    "short_description": "Represents the mapping between a decision table parameter and a field of the object selected in the dataset link.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_decisiontabledatasetlink.htm",
     "parent": "Metadata"
   },
@@ -27479,6 +27503,48 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_globalvaluesettranslation.htm",
     "parent": "Metadata"
   },
+  "GoogleAppsSettings": {
+    "fields": [
+      {
+        "Description": "Indicates whether the Gmail Buttons setting is enabled (true) or not (false).",
+        "Field Name": "enableGmailButtons",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Gmail Buttons and Links are enabled (true) or not (false).",
+        "Field Name": "enableGmailButtonsAndLinks",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Gmail Links setting is enabled (true) or not (false).",
+        "Field Name": "enableGmailLinks",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Add Google Docs to Salesforce setting is enabled (true) or not (false).",
+        "Field Name": "enableGoogleDocs",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Add Google Docs button on the Libraries tab is enabled (true) or not (false).",
+        "Field Name": "enableGoogleDocsTab",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Google Talk Sidebar Component is enabled (true) or not (false).",
+        "Field Name": "enableGoogleTalk",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Specifies the domain registered for your organization’s Google Apps account.",
+        "Field Name": "googleAppsDomain",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents the settings for Google Apps in Salesforce. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_googleappssettings.htm",
+    "parent": "Metadata"
+  },
   "Group": {
     "fields": [
       {
@@ -27672,7 +27738,7 @@
   "IdentityVerificationProcFld": {
     "fields": [
       {
-        "Description": "The custom label for the field that contains the verification data.Translation of custom field labels isn't supported in API version 54.0.",
+        "Description": "The custom label for the field that contains the verification data. Translation of custom field labels isn't supported in API version 54.0.",
         "Field Name": "customFieldLabel",
         "Field Type": "string"
       },
@@ -29292,7 +29358,7 @@
         "Field Type": "LightningDesignSystemVersion (enumeration of type string)"
       },
       {
-        "Description": "Indicates whether individual users can enable dark mode (true) or not (false) for this LightningExperienceTheme. The default value is false. Available only for custom SLDS 2 themes in Salesforce Starter Suite orgs. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
+        "Description": "Indicates whether individual users can enable dark mode (true) or not (false) for this LightningExperienceTheme. The default value is false. Available for custom SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
         "Field Name": "isDarkModeEnabled (beta)",
         "Field Type": "boolean"
       },
@@ -31880,6 +31946,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "A meaningful description of the named credential.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
         "Description": "The URL or root URL of the callout endpoint. Corresponds to URL in the user interface.This field is valid only when NamedCredentialType is set to Legacy. This field is deprecated in API version 56.0.",
         "Field Name": "endpoint",
         "Field Type": "string"
@@ -33536,7 +33607,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the details of the mapping between a form and a Salesforce object using Intelligent Form Reader.This type extends the Metadata metadata type and inherits its fullName field.",
+    "short_description": "Represents the details of the mapping between a form and a Salesforce object using Intelligent Form Reader. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm",
     "parent": "Metadata"
   },
@@ -44014,7 +44085,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s Sales Engagement settings. With Sales Engagement, you can make your inside sales team as effective as possible.",
+    "short_description": "Represents an org’s Sales Engagement settings. With Sales Engagement, you can make your inside sales team as effective as possible. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_highvelocitysalessettings.htm",
     "parent": "Metadata"
   },
@@ -48629,7 +48700,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s Territory2 settings. Use Territory2 settings to set the access level that Sales Territories users have to records associated with sales territories, and to enable features. The standard record access settings apply to accounts and opportunities. With Private default internal access for contacts or cases, you can also set access for those records.This type extends the Metadata metadata type and inherits its fullName field.",
+    "short_description": "Represents an org’s Territory2 settings. Use Territory2 settings to set the access level that Sales Territories users have to records associated with sales territories, and to enable features. The standard record access settings apply to accounts and opportunities. With Private default internal access for contacts or cases, you can also set access for those records. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_territory2settings.htm",
     "parent": "Metadata"
   },

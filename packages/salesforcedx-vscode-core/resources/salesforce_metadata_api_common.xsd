@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-02-08T13:25:49.515Z
-Total metadata types: 1528
+Generated on: 2026-02-15T13:26:20.876Z
+Total metadata types: 1533
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -8720,6 +8720,45 @@ Total metadata types: 1528
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="BatchDataSource">
+  <xsd:annotation>
+   <xsd:documentation>Represents the source of information whose records must be processed by the Batch Management job.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchprocessjobdefinition.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="BatchDataSourceOrderField">
+  <xsd:annotation>
+   <xsd:documentation>Represents the fields that are used to group data.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchprocessjobdefinition.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="BatchDataSrcFilterCriteria">
+  <xsd:annotation>
+   <xsd:documentation>Represents the filter conditions that decide which records must be processed by the Batch Management job.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchprocessjobdefinition.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="BatchProcessJobDefinition">
   <xsd:annotation>
    <xsd:documentation>Represents the details of a Batch Management job definition. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
@@ -8734,7 +8773,7 @@ Total metadata types: 1528
        <xsd:appinfo>Type: integer</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="dataSource" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     <xsd:element name="dataSource" minOccurs="0" maxOccurs="unbounded" type="BatchDataSource">
       <xsd:annotation>
        <xsd:documentation>Required. Source of information whose records must be processed by the Batch Management job.</xsd:documentation>
        <xsd:appinfo>Type: BatchDataSource[]</xsd:appinfo>
@@ -11604,7 +11643,7 @@ Total metadata types: 1528
  </xsd:complexType>
  <xsd:complexType name="CampaignInfluenceModel">
   <xsd:annotation>
-   <xsd:documentation>Represents a campaign influence model used by Customizable Campaign Influence. You can’t configure Customizable Campaign Influence via the Metadata API, but you can add a campaign influence model.</xsd:documentation>
+   <xsd:documentation>Represents a campaign influence model used by Customizable Campaign Influence. You can’t configure Customizable Campaign Influence via the Metadata API, but you can add a campaign influence model. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_campaigninfluencemodel.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -11916,7 +11955,7 @@ Total metadata types: 1528
  </xsd:complexType>
  <xsd:complexType name="CareProviderSearchConfig">
   <xsd:annotation>
-   <xsd:documentation>Represents the information about the fields that appear in care provider search results.This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:documentation>Represents the information about the fields that appear in care provider search results. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_careprovidersearchconfig.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -23793,7 +23832,7 @@ Total metadata types: 1528
  </xsd:complexType>
  <xsd:complexType name="DecisionTableDatasetLink">
   <xsd:annotation>
-   <xsd:documentation>Represents the information about a dataset link associated with a decision table. In a dataset link, select an object for whose records, the decision table must provide an outcome.This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:documentation>Represents the information about a dataset link associated with a decision table. In a dataset link, select an object for whose records, the decision table must provide an outcome. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_decisiontabledatasetlink.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -23805,7 +23844,7 @@ Total metadata types: 1528
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="decisionTblDatasetParameters" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     <xsd:element name="decisionTblDatasetParameters" minOccurs="0" maxOccurs="unbounded" type="DecisionTblDatasetParameters">
       <xsd:annotation>
        <xsd:documentation>Mapping between a decision table parameter and a field of the object selected in the dataset link.</xsd:documentation>
        <xsd:appinfo>Type: DecisionTblDatasetParameters</xsd:appinfo>
@@ -23969,6 +24008,19 @@ Total metadata types: 1528
        <xsd:appinfo>Type: DTSourceCriteriaValueType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="DecisionTblDatasetParameters">
+  <xsd:annotation>
+   <xsd:documentation>Represents the mapping between a decision table parameter and a field of the object selected in the dataset link.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_decisiontabledatasetlink.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -42717,6 +42769,61 @@ Total metadata types: 1528
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="GoogleAppsSettings">
+  <xsd:annotation>
+   <xsd:documentation>Represents the settings for Google Apps in Salesforce. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_googleappssettings.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="enableGmailButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Gmail Buttons setting is enabled (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableGmailButtonsAndLinks" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Gmail Buttons and Links are enabled (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableGmailLinks" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Gmail Links setting is enabled (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableGoogleDocs" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Add Google Docs to Salesforce setting is enabled (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableGoogleDocsTab" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Add Google Docs button on the Libraries tab is enabled (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableGoogleTalk" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Google Talk Sidebar Component is enabled (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="googleAppsDomain" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the domain registered for your organization’s Google Apps account.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="Group">
   <xsd:annotation>
    <xsd:documentation>Represents a set of public groups, which can have users, roles, and other groups.</xsd:documentation>
@@ -42756,7 +42863,7 @@ Total metadata types: 1528
  </xsd:complexType>
  <xsd:complexType name="HighVelocitySalesSettings">
   <xsd:annotation>
-   <xsd:documentation>Represents an org’s Sales Engagement settings. With Sales Engagement, you can make your inside sales team as effective as possible.</xsd:documentation>
+   <xsd:documentation>Represents an org’s Sales Engagement settings. With Sales Engagement, you can make your inside sales team as effective as possible. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_highvelocitysalessettings.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -43430,7 +43537,7 @@ Total metadata types: 1528
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="customFieldLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The custom label for the field that contains the verification data.Translation of custom field labels isn&apos;t supported in API version 54.0.</xsd:documentation>
+       <xsd:documentation>The custom label for the field that contains the verification data. Translation of custom field labels isn&apos;t supported in API version 54.0.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -46563,7 +46670,7 @@ Total metadata types: 1528
      </xsd:element>
      <xsd:element name="isDarkModeEnabled_beta" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether individual users can enable dark mode (true) or not (false) for this LightningExperienceTheme. The default value is false. Available only for custom SLDS 2 themes in Salesforce Starter Suite orgs. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
+       <xsd:documentation>Indicates whether individual users can enable dark mode (true) or not (false) for this LightningExperienceTheme. The default value is false. Available for custom SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -51057,6 +51164,12 @@ Total metadata types: 1528
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>A meaningful description of the named credential.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="endpoint" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The URL or root URL of the callout endpoint. Corresponds to URL in the user interface.This field is valid only when NamedCredentialType is set to Legacy. This field is deprecated in API version 56.0.</xsd:documentation>
@@ -53390,7 +53503,7 @@ Total metadata types: 1528
  </xsd:complexType>
  <xsd:complexType name="OcrTemplate">
   <xsd:annotation>
-   <xsd:documentation>Represents the details of the mapping between a form and a Salesforce object using Intelligent Form Reader.This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:documentation>Represents the details of the mapping between a form and a Salesforce object using Intelligent Form Reader. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -68136,7 +68249,7 @@ Total metadata types: 1528
  </xsd:complexType>
  <xsd:complexType name="Territory2Settings">
   <xsd:annotation>
-   <xsd:documentation>Represents an org’s Territory2 settings. Use Territory2 settings to set the access level that Sales Territories users have to records associated with sales territories, and to enable features. The standard record access settings apply to accounts and opportunities. With Private default internal access for contacts or cases, you can also set access for those records.This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:documentation>Represents an org’s Territory2 settings. Use Territory2 settings to set the access level that Sales Territories users have to records associated with sales territories, and to enable features. The standard record access settings apply to accounts and opportunities. With Private default internal access for contacts or cases, you can also set access for those records. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_territory2settings.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -73392,6 +73505,9 @@ Total metadata types: 1528
  <xsd:element name="BatchCalcJobAggregate" type="BatchCalcJobAggregate"/>
  <xsd:element name="BatchCalcJobCustomNode" type="BatchCalcJobCustomNode"/>
  <xsd:element name="BatchCalcJobCustomNodeParameter" type="BatchCalcJobCustomNodeParameter"/>
+ <xsd:element name="BatchDataSource" type="BatchDataSource"/>
+ <xsd:element name="BatchDataSourceOrderField" type="BatchDataSourceOrderField"/>
+ <xsd:element name="BatchDataSrcFilterCriteria" type="BatchDataSrcFilterCriteria"/>
  <xsd:element name="BatchProcessJobDefinition" type="BatchProcessJobDefinition"/>
  <xsd:element name="BillingSettings" type="BillingSettings"/>
  <xsd:element name="BlacklistedConsumer" type="BlacklistedConsumer"/>
@@ -73677,6 +73793,7 @@ Total metadata types: 1528
  <xsd:element name="DecisionTableDatasetLink" type="DecisionTableDatasetLink"/>
  <xsd:element name="DecisionTableParameter" type="DecisionTableParameter"/>
  <xsd:element name="DecisionTableSourceCriteria" type="DecisionTableSourceCriteria"/>
+ <xsd:element name="DecisionTblDatasetParameters" type="DecisionTblDatasetParameters"/>
  <xsd:element name="DefaultShortcut" type="DefaultShortcut"/>
  <xsd:element name="DelegateGroup" type="DelegateGroup"/>
  <xsd:element name="DeploymentSettings" type="DeploymentSettings"/>
@@ -74065,6 +74182,7 @@ Total metadata types: 1528
  <xsd:element name="GlobalQuickActionTranslation" type="GlobalQuickActionTranslation"/>
  <xsd:element name="GlobalValueSet" type="GlobalValueSet"/>
  <xsd:element name="GlobalValueSetTranslation" type="GlobalValueSetTranslation"/>
+ <xsd:element name="GoogleAppsSettings" type="GoogleAppsSettings"/>
  <xsd:element name="Group" type="Group"/>
  <xsd:element name="HighVelocitySalesSettings" type="HighVelocitySalesSettings"/>
  <xsd:element name="HistoryRetentionPolicy" type="HistoryRetentionPolicy"/>
