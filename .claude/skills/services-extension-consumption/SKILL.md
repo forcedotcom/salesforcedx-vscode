@@ -46,6 +46,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
         api.services.ExtensionContextServiceLayer(context),
+        api.services.sdkLayerFor(context)
         // ... other services
         channelLayer,
         errorHandlerWithChannel
@@ -71,10 +72,10 @@ Use `registerCommandWithLayer` pre-loaded with AllServicesLayer:
 ```typescript
 import { myCommandEffect } from './commands/myCommand';
 
-const api = yield* (yield* ExtensionProviderService).getServicesApi;
+const api = yield * (yield * ExtensionProviderService).getServicesApi;
 const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
 
-yield* registerCommand('sf.my.command', myCommandEffect);
+yield * registerCommand('sf.my.command', myCommandEffect);
 ```
 
 Commands auto:
@@ -201,9 +202,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
-  
+
   yield* registerCommand('sf.my.command', myCommandEffect);
-  
+
   yield* api.services.ChannelService.appendToChannel('Extension activation complete.');
 });
 ```

@@ -6,6 +6,7 @@
  */
 
 import * as path from 'node:path';
+import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { nls } from './messages';
 import { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
@@ -41,11 +42,14 @@ const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirec
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
 const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProvider): SfdxProjectConfig => {
+  const configPath = getSfdxProjectFile(root);
+  const configText = fileSystemProvider.getFileContent(configPath);
+
+  if (!configText) {
+    throw new Error(nls.localize('config_file_not_found_message'));
+  }
+
   try {
-    const configText = fileSystemProvider.getFileContent(getSfdxProjectFile(root));
-    if (!configText) {
-      throw new Error(nls.localize('config_file_not_found_message'));
-    }
     const config: unknown = JSON.parse(configText);
     if (!isRecord(config)) {
       throw new Error(nls.localize('invalid_config_format_message'));
@@ -60,8 +64,9 @@ const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProv
       sfdxPackageDirsPattern: `{${sfdxPackageDirsPattern}}`
     };
   } catch (e) {
+    // JSON parsing errors are real problems - throw them
     const errorMessage = e instanceof Error ? e.message : String(e);
-    throw new Error(nls.localize('sfdx_project_file_invalid_message', getSfdxProjectFile(root), errorMessage));
+    throw new Error(nls.localize('sfdx_project_file_invalid_message', configPath, errorMessage));
   }
 };
 
@@ -216,6 +221,15 @@ export const getModulesDirs = (
 };
 
 /**
+ * Options for BaseWorkspaceContext. Use these to pass web-safe paths (e.g. from import.meta.url)
+ * instead of relying on __dirname, which is not available in web bundles.
+ */
+export interface BaseWorkspaceContextOptions {
+  /** Path to the SFDX typings resource dir (resources/sfdx/typings). When set, writeTypings() copies from here. Omit on web if typings are not available. */
+  sfdxTypingsDir?: string;
+}
+
+/**
  * Holds information and utility methods for a workspace
  */
 export abstract class BaseWorkspaceContext {
@@ -225,17 +239,28 @@ export abstract class BaseWorkspaceContext {
   protected findNamespaceRootsUsingTypeCache: () => Promise<{ lwc: string[]; aura: string[] }>;
   public initSfdxProjectConfigCache: () => SfdxProjectConfig;
   public fileSystemProvider: FileSystemDataProvider;
+  private readonly sfdxTypingsDir?: string;
+  public connection?: Connection;
+
   /**
    * @param workspaceRoots
-   * @return BaseWorkspaceContext representing the workspace with workspaceRoots
+   * @param fileSystemProvider
+   * @param options Optional. Pass sfdxTypingsDir for typings copy (web-safe; avoids __dirname).
    */
-  constructor(workspaceRoots: NormalizedPath[] | NormalizedPath, fileSystemProvider: FileSystemDataProvider) {
+  constructor(
+    workspaceRoots: NormalizedPath[] | NormalizedPath,
+    fileSystemProvider: FileSystemDataProvider,
+    connection?: Connection,
+    options?: BaseWorkspaceContextOptions
+  ) {
     // Normalize workspaceRoots to ensure consistent path format (especially Windows drive letter casing)
     this.workspaceRoots = Array.isArray(workspaceRoots) ? workspaceRoots : [workspaceRoots];
 
     this.findNamespaceRootsUsingTypeCache = utils.memoize(() => this.findNamespaceRootsUsingType());
     this.initSfdxProjectConfigCache = utils.memoize(() => this.initSfdxProject());
     this.fileSystemProvider = fileSystemProvider;
+    this.connection = connection;
+    this.sfdxTypingsDir = options?.sfdxTypingsDir;
   }
 
   /**
@@ -269,7 +294,8 @@ export abstract class BaseWorkspaceContext {
   public async isFileInsideModulesRoots(file: string): Promise<boolean> {
     // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
     const normalizedFile = utils.normalizePath(file);
-    return (await this.findNamespaceRootsUsingTypeCache()).lwc.some(root => utils.pathStartsWith(normalizedFile, root));
+    const namespaceRoots = await this.findNamespaceRootsUsingTypeCache();
+    return namespaceRoots.lwc.some(root => utils.pathStartsWith(normalizedFile, root));
   }
 
   public async isFileInsideAuraRoots(file: string): Promise<boolean> {
@@ -478,19 +504,18 @@ export abstract class BaseWorkspaceContext {
 
   private writeTypings(): void {
     const typingsDir = getTypingsDir(this.type, this.workspaceRoots);
-    if (!typingsDir) {
+    if (!typingsDir || !this.sfdxTypingsDir) {
       return;
     }
-    // TODO should we just be copying every file in this directory rather than hardcoding?
-    // copy typings to typingsDir
-    const resourceTypingsDir = utils.getSfdxResource('typings');
+    // sfdxTypingsDir is injected by the host (Node or web) so we don't rely on __dirname (not available in web).
+    const resourceTypingsDir = this.sfdxTypingsDir;
     this.fileSystemProvider.updateDirectoryListing(typingsDir, []);
     try {
       const sourcePath = path.join(resourceTypingsDir, 'lds.d.ts');
       const destPath = path.join(typingsDir, 'lds.d.ts');
       const content = this.fileSystemProvider.getFileContent(sourcePath);
       if (content) {
-        void this.fileSystemProvider.updateFileContent(destPath, content);
+        void this.fileSystemProvider.updateFileContent(destPath, content, this.connection);
       }
     } catch {
       // ignore
@@ -500,7 +525,7 @@ export abstract class BaseWorkspaceContext {
       const destPath = path.join(typingsDir, 'messageservice.d.ts');
       const content = this.fileSystemProvider.getFileContent(sourcePath);
       if (content) {
-        void this.fileSystemProvider.updateFileContent(destPath, content);
+        void this.fileSystemProvider.updateFileContent(destPath, content, this.connection);
       }
     } catch {
       // ignore
@@ -514,7 +539,7 @@ export abstract class BaseWorkspaceContext {
         const destPath = path.join(typingsDir, file.name);
         const content = this.fileSystemProvider.getFileContent(sourcePath);
         if (content) {
-          void this.fileSystemProvider.updateFileContent(destPath, content);
+          void this.fileSystemProvider.updateFileContent(destPath, content, this.connection);
         }
       } catch {
         // ignore

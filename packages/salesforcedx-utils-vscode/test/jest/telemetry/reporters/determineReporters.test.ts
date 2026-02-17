@@ -139,7 +139,7 @@ describe('initializeO11yReporter', () => {
     const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
     const webUserId = 'test-webUserId';
     await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
-    expect(O11yReporterMock).toHaveBeenCalledWith(extName, version, o11yUploadEndpoint, userId, webUserId);
+    expect(O11yReporterMock).toHaveBeenCalledWith(extName, version, o11yUploadEndpoint, userId, webUserId, undefined);
     expect(initializeMock).toHaveBeenCalledWith(extName);
   });
 
