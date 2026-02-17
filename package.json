@@ -11,6 +11,7 @@
   "dependencies": {
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
+    "@salesforce/o11y-reporter": "1.8.0",
     "@salesforce/vscode-service-provider": "1.5.0",
     "jsforce": "^3.10.10",
     "memfs": "^4.17.2",
