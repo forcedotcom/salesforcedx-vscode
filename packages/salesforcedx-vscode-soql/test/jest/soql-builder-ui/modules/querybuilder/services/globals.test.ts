@@ -6,19 +6,13 @@
  *
  */
 
-import { getBodyClass, getWindow, hasVscode } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
-import { getLocalStorage } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
+import { getBodyClass, getWindow } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
+
 describe('Globals should', () => {
   it('expose window', () => {
     expect(getWindow()).toBeTruthy();
   });
   it('expose getBodyClass', () => {
     expect(getBodyClass).toBeTruthy();
-  });
-  it('expose localstorage', () => {
-    expect(getLocalStorage).toBeTruthy();
-  });
-  it('expose vscode', () => {
-    expect(hasVscode()).toBeTruthy();
   });
 });

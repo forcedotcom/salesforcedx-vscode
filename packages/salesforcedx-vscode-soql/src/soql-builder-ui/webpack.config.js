@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
+const path = require('path');
 module.exports = {
   output: {
     filename: 'app.js'
@@ -9,8 +10,13 @@ module.exports = {
       fs: false
     },
     alias: {
-      os: 'os-browserify/browser'
-    }
+      os: 'os-browserify/browser',
+      '@salesforce/soql-model': path.resolve(__dirname, '../soql-model')
+    },
+    modules: [
+      'node_modules',
+      path.resolve(__dirname, '../../../../node_modules')
+    ]
   },
   plugins: [
     new webpack.ProvidePlugin({

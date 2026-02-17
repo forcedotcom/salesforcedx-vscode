@@ -441,7 +441,7 @@ AuraStorage.prototype.buildPayload = function(key, value, now) {
             value = this.adapter.encodeValue(value);
             encoded = true;
             size += value.length;
-        } catch (e) {
+        } catch {
             // if encoding is required in the store, it will reject later on when attempting to encode again
             // because encoded will be false
         }

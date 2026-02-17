@@ -343,7 +343,7 @@ ComponentDefLoader.prototype.retrievePending = function(pending) {
 	    try {
 		$A.clientService.setCurrentAccess(pending.access);
 		$A.clientService.parseAndFireEvent(e.event);
-	    } catch (e1) {
+	    } catch {
 		// ignore event exception, continue with callbacks with original error
 	    } finally {
 		$A.clientService.releaseCurrentAccess();

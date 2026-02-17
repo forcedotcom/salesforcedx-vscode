@@ -6,43 +6,50 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Impl,
-  Soql,
-  SoqlModelUtils,
-  ModelSerializer,
-  ModelDeserializer
-} from '@salesforce/soql-model';
+import { ConditionOperator, Query, Select, SelectExprs, UiOperatorValue } from '@salesforce/soql-model/model/model';
+import { SoqlModelUtils } from '@salesforce/soql-model/model/util';
+import { ModelSerializer } from '@salesforce/soql-model/serialization/serializer';
+import { deserialize } from '@salesforce/soql-model/serialization/deserializer';
+import { FieldCompareConditionImpl } from '@salesforce/soql-model/model/impl/fieldCompareConditionImpl';
+import { FieldRefImpl } from '@salesforce/soql-model/model/impl/fieldRefImpl';
+import { FieldSelectionImpl } from '@salesforce/soql-model/model/impl/fieldSelectionImpl';
+import { FromImpl } from '@salesforce/soql-model/model/impl/fromImpl';
+import { HeaderCommentsImpl } from '@salesforce/soql-model/model/impl/headerCommentsImpl';
+import { IncludesConditionImpl } from '@salesforce/soql-model/model/impl/includesConditionImpl';
+import { InListConditionImpl } from '@salesforce/soql-model/model/impl/inListConditionImpl';
+import { LimitImpl } from '@salesforce/soql-model/model/impl/limitImpl';
+import { LiteralImpl } from '@salesforce/soql-model/model/impl/literalImpl';
+import { OrderByExpressionImpl } from '@salesforce/soql-model/model/impl/orderByExpressionImpl';
+import { OrderByImpl } from '@salesforce/soql-model/model/impl/orderByImpl';
+import { QueryImpl } from '@salesforce/soql-model/model/impl/queryImpl';
+import { SelectCountImpl } from '@salesforce/soql-model/model/impl/selectCountImpl';
+import { SelectExprsImpl } from '@salesforce/soql-model/model/impl/selectExprsImpl';
+import { WhereImpl } from '@salesforce/soql-model/model/impl/whereImpl';
 import { SELECT_COUNT, ToolingModelJson } from './model';
 
-export function convertSoqlToUiModel(soql: string): ToolingModelJson {
-  const queryModel = new ModelDeserializer(soql).deserialize();
+export const convertSoqlToUiModel = (soql: string): ToolingModelJson => {
+  const queryModel = deserialize(soql);
   const uimodel = convertSoqlModelToUiModel(queryModel);
   return uimodel;
-}
+};
 
 // eslint-disable-next-line complexity
-export function convertSoqlModelToUiModel(
-  queryModel: Soql.Query
-): ToolingModelJson {
+const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
   const unsupported = [];
-  const headerComments = queryModel.headerComments
-    ? queryModel.headerComments.text
-    : undefined;
+  const headerComments = queryModel.headerComments ? queryModel.headerComments.text : undefined;
 
   const fields =
-    queryModel.select &&
-    (queryModel.select as Soql.SelectExprs).selectExpressions
-      ? (queryModel.select as Soql.SelectExprs).selectExpressions
-          .filter((expr) => !SoqlModelUtils.containsUnmodeledSyntax(expr))
-          .map((expr) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            if (expr.field.fieldName) {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
-              return expr.field.fieldName;
-            }
-            return undefined;
-          })
+    queryModel.select && (queryModel.select as SelectExprs).selectExpressions
+      ? (queryModel.select as SelectExprs).selectExpressions
+        .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+        .map(expr => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          if (expr.field.fieldName) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
+            return expr.field.fieldName;
+          }
+          return undefined;
+        })
       : [SELECT_COUNT];
 
   const sObject = queryModel.from && queryModel.from.sobjectName;
@@ -67,21 +74,18 @@ export function convertSoqlModelToUiModel(
 
   const orderBy = queryModel.orderBy
     ? queryModel.orderBy.orderByExpressions
-        // TODO: Deal with empty OrderBy.  returns unmodelled syntax.
-        .filter((expr) => !SoqlModelUtils.containsUnmodeledSyntax(expr))
-        .map((expression) => {
-          return {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            field: expression.field.fieldName,
-            order: expression.order,
-            nulls: expression.nullsOrder
-          };
-        })
+      .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+      .map(expression => {
+        return {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          field: expression.field.fieldName,
+          order: expression.order,
+          nulls: expression.nullsOrder
+        };
+      })
     : [];
 
-  const limit = queryModel.limit
-    ? queryModel.limit.limit.toString()
-    : undefined;
+  const limit = queryModel.limit ? queryModel.limit.limit.toString() : undefined;
 
   const errors = queryModel.errors;
   for (const key in queryModel) {
@@ -111,37 +115,33 @@ export function convertSoqlModelToUiModel(
   // USEFUL console.log('Soql -> Ui ', JSON.stringify(toolingModelTemplate.orderBy));
 
   return toolingModelTemplate;
-}
+};
 
-export function convertUiModelToSoql(uiModel: ToolingModelJson): string {
+export const convertUiModelToSoql = (uiModel: ToolingModelJson): string => {
   const soqlModel = convertUiModelToSoqlModel(uiModel);
   const soql = convertSoqlModelToSoql(soqlModel);
   return soql;
-}
+};
 
-function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
-  let select: Soql.Select;
-  const isSelectCount =
-    uiModel.fields.length === 1 &&
-    uiModel.fields[0].toLowerCase() === SELECT_COUNT.toLowerCase();
+const convertUiModelToSoqlModel = (uiModel: ToolingModelJson): Query => {
+  let select: Select;
+  const isSelectCount = uiModel.fields.length === 1 && uiModel.fields[0].toLowerCase() === SELECT_COUNT.toLowerCase();
   if (isSelectCount) {
-    select = new Impl.SelectCountImpl();
+    select = new SelectCountImpl();
   } else {
-    const selectExprs = uiModel.fields.map(
-      (field) => new Impl.FieldSelectionImpl(new Impl.FieldRefImpl(field))
-    );
-    select = new Impl.SelectExprsImpl(selectExprs);
+    const selectExprs = uiModel.fields.map(field => new FieldSelectionImpl(new FieldRefImpl(field)));
+    select = new SelectExprsImpl(selectExprs);
   }
 
   let whereExprsImpl;
   if (uiModel.where && uiModel.where.conditions.length) {
-    const simpleGroupArray = uiModel.where.conditions.map((condition) => {
+    const simpleGroupArray = uiModel.where.conditions.map(condition => {
       const uiModelCondition = condition.condition;
       let returnCondition;
 
       const field =
         uiModelCondition.field && uiModelCondition.field.fieldName
-          ? new Impl.FieldRefImpl(uiModelCondition.field.fieldName)
+          ? new FieldRefImpl(uiModelCondition.field.fieldName)
           : undefined;
 
       enum ConditionType {
@@ -152,54 +152,37 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
       let conditionType = ConditionType.FieldCompare;
       // eslint-disable-next-line default-case
       switch (uiModelCondition.operator) {
-        case Soql.ConditionOperator.In:
-        case Soql.ConditionOperator.NotIn: {
+        case ConditionOperator.In:
+        case ConditionOperator.NotIn: {
           conditionType = ConditionType.In;
           break;
         }
-        case Soql.ConditionOperator.Includes:
-        case Soql.ConditionOperator.Excludes: {
+        case ConditionOperator.Includes:
+        case ConditionOperator.Excludes: {
           conditionType = ConditionType.Includes;
           break;
         }
       }
 
       const compareValue = uiModelCondition.compareValue
-        ? new Impl.LiteralImpl(
-            uiModelCondition.compareValue.type,
-            uiModelCondition.compareValue.value
-          )
+        ? new LiteralImpl(uiModelCondition.compareValue.value)
         : uiModelCondition.values
-        ? uiModelCondition.values.map(
-            (value) => new Impl.LiteralImpl(value.type, value.value)
-          )
-        : undefined;
+          ? uiModelCondition.values.map(value => new LiteralImpl(value.value))
+          : undefined;
 
       if (field && compareValue) {
         // eslint-disable-next-line default-case
         switch (conditionType) {
           case ConditionType.FieldCompare: {
-            returnCondition = new Impl.FieldCompareConditionImpl(
-              field,
-              uiModelCondition.operator,
-              compareValue
-            );
+            returnCondition = new FieldCompareConditionImpl(field, uiModelCondition.operator, compareValue);
             break;
           }
           case ConditionType.In: {
-            returnCondition = new Impl.InListConditionImpl(
-              field,
-              uiModelCondition.operator,
-              compareValue
-            );
+            returnCondition = new InListConditionImpl(field, uiModelCondition.operator, compareValue);
             break;
           }
           case ConditionType.Includes: {
-            returnCondition = new Impl.IncludesConditionImpl(
-              field,
-              uiModelCondition.operator,
-              compareValue
-            );
+            returnCondition = new IncludesConditionImpl(field, uiModelCondition.operator, compareValue);
             break;
           }
         }
@@ -207,32 +190,19 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
 
       return returnCondition;
     });
-    whereExprsImpl = SoqlModelUtils.arrayToSimpleGroup(
-      simpleGroupArray,
-      uiModel.where.andOr
-    );
+    whereExprsImpl = SoqlModelUtils.arrayToSimpleGroup(simpleGroupArray, uiModel.where.andOr);
   }
 
-  const where =
-    whereExprsImpl && Object.keys(whereExprsImpl).length
-      ? new Impl.WhereImpl(whereExprsImpl)
-      : undefined;
+  const where = whereExprsImpl && Object.keys(whereExprsImpl).length ? new WhereImpl(whereExprsImpl) : undefined;
 
   const orderByExprs = uiModel.orderBy.map(
-    (orderBy) =>
-      new Impl.OrderByExpressionImpl(
-        new Impl.FieldRefImpl(orderBy.field),
-        orderBy.order,
-        orderBy.nulls
-      )
+    orderBy => new OrderByExpressionImpl(new FieldRefImpl(orderBy.field), orderBy.order, orderBy.nulls)
   );
-  const orderBy =
-    orderByExprs.length > 0 ? new Impl.OrderByImpl(orderByExprs) : undefined;
-  const limit =
-    uiModel.limit.length > 0 ? new Impl.LimitImpl(uiModel.limit) : undefined;
-  const queryModel = new Impl.QueryImpl(
+  const orderBy = orderByExprs.length > 0 ? new OrderByImpl(orderByExprs) : undefined;
+  const limit = uiModel.limit.length > 0 ? new LimitImpl(uiModel.limit) : undefined;
+  const queryModel = new QueryImpl(
     select,
-    new Impl.FromImpl(uiModel.sObject),
+    new FromImpl(uiModel.sObject),
     where,
     undefined,
     undefined,
@@ -240,20 +210,18 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
     limit
   );
   if (uiModel.headerComments) {
-    queryModel.headerComments = new Impl.HeaderCommentsImpl(
-      uiModel.headerComments
-    );
+    queryModel.headerComments = new HeaderCommentsImpl(uiModel.headerComments);
   }
   return queryModel;
-}
+};
 
-function convertSoqlModelToSoql(soqlModel: Soql.Query): string {
+const convertSoqlModelToSoql = (soqlModel: Query): string => {
   const serializer = new ModelSerializer(soqlModel);
   const query = serializer.serialize();
   return query;
-}
+};
 
-export function soqlStringLiteralToDisplayValue(soqlString: string): string {
+export const soqlStringLiteralToDisplayValue = (soqlString: string): string => {
   let displayValue = soqlString;
 
   // unquote
@@ -270,9 +238,9 @@ export function soqlStringLiteralToDisplayValue(soqlString: string): string {
   displayValue = displayValue.replace(/\\\\/g, '\\');
 
   return displayValue;
-}
+};
 
-export function displayValueToSoqlStringLiteral(displayString: string): string {
+export const displayValueToSoqlStringLiteral = (displayString: string): string => {
   // string
   let normalized = displayString;
 
@@ -285,13 +253,13 @@ export function displayValueToSoqlStringLiteral(displayString: string): string {
   normalized = `'${normalized}'`;
 
   return normalized;
-}
+};
 
 /* ======= LIKE OPERATOR UTILS ======= */
 const WILD_CARD = '%';
 
 /* LIKE_START ABC% */
-export function isLikeStart(value: string): boolean {
+export const isLikeStart = (value: string): boolean => {
   if (value && value.length) {
     value = soqlStringLiteralToDisplayValue(value);
     if (value.endsWith(WILD_CARD) && !value.startsWith(WILD_CARD)) {
@@ -299,9 +267,9 @@ export function isLikeStart(value: string): boolean {
     }
   }
   return false;
-}
+};
 /* LIKE_END %ABC */
-export function isLikeEnds(value: string): boolean {
+export const isLikeEnds = (value: string): boolean => {
   if (value && value.length) {
     value = soqlStringLiteralToDisplayValue(value);
     if (value.startsWith(WILD_CARD) && !value.endsWith(WILD_CARD)) {
@@ -309,9 +277,9 @@ export function isLikeEnds(value: string): boolean {
     }
   }
   return false;
-}
+};
 /* LIKE_CONTAINS %ABC% */
-export function isLikeContains(value: string): boolean {
+export const isLikeContains = (value: string): boolean => {
   if (value && value.length) {
     value = soqlStringLiteralToDisplayValue(value);
     if (value.startsWith(WILD_CARD) && value.endsWith(WILD_CARD)) {
@@ -319,46 +287,43 @@ export function isLikeContains(value: string): boolean {
     }
   }
   return false;
-}
+};
 
-export function addWildCardToValue(
-  operatorValue: Soql.UiOperatorValue,
-  rawValue: string
-): string {
+export const addWildCardToValue = (operatorValue: UiOperatorValue, rawValue: string): string => {
   let value = stripWildCardPadding(rawValue);
   switch (operatorValue) {
-    case Soql.UiOperatorValue.LIKE_START:
+    case 'LIKE_START':
       value = `${value}${WILD_CARD}`;
       break;
-    case Soql.UiOperatorValue.LIKE_END:
+    case 'LIKE_END':
       value = `${WILD_CARD}${value}`;
       break;
-    case Soql.UiOperatorValue.LIKE_CONTAINS:
+    case 'LIKE_CONTAINS':
       value = `${WILD_CARD}${value}${WILD_CARD}`;
       break;
     default:
       break;
   }
   return value;
-}
+};
 
-export function stripWildCardPadding(rawStr: string): string {
+export const stripWildCardPadding = (rawStr: string): string => {
   let value = rawStr;
   value = trimWildCardRight(value);
   value = trimWildCardLeft(value);
   return value;
-}
+};
 
-function trimWildCardLeft(rawStr: string): string {
+const trimWildCardLeft = (rawStr: string): string => {
   if (!rawStr.startsWith(WILD_CARD)) {
     return rawStr;
   }
   return trimWildCardLeft(rawStr.substring(1));
-}
+};
 
-function trimWildCardRight(rawStr: string): string {
+const trimWildCardRight = (rawStr: string): string => {
   if (!rawStr.endsWith(WILD_CARD)) {
     return rawStr;
   }
   return trimWildCardRight(rawStr.substring(0, rawStr.length - 1));
-}
+};

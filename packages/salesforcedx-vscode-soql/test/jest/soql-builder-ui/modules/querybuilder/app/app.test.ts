@@ -26,9 +26,7 @@ import {
   MessageType,
   SoqlEditorEvent
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
-import { MessageServiceFactory } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/messageServiceFactory';
 import { IMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
-import { StandaloneMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/standaloneMessageService';
 import * as globals from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
 
 class TestMessageService implements IMessageService {
@@ -62,20 +60,14 @@ describe('App should', () => {
     payload: accountQuery
   };
   const querybuilderFromSelector = 'querybuilder-from';
-  let originalCreateFn;
-  function createSoqlEditorEvent(queryOverride = accountQuery, eventOverride?) {
+  const createSoqlEditorEvent = (queryOverride = accountQuery, eventOverride?) => {
     const query = queryOverride;
     const event = { ...soqlEditorEvent, ...eventOverride };
     event.payload = query;
     return event;
-  }
+  };
   beforeEach(() => {
-    messageService = new TestMessageService() as unknown as StandaloneMessageService;
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    originalCreateFn = MessageServiceFactory.create;
-    MessageServiceFactory.create = () => {
-      return messageService;
-    };
+    messageService = new TestMessageService() as unknown as IMessageService;
     loadSObjectDefinitionsSpy = jest.spyOn(ToolingSDK.prototype, 'loadSObjectDefinitions');
     loadSObjectMetadataSpy = jest.spyOn(ToolingSDK.prototype, 'loadSObjectMetatada');
     jest.spyOn(globals, 'getBodyClass').mockReturnValue('vscode-dark');
@@ -83,11 +75,14 @@ describe('App should', () => {
     app = createElement('querybuilder-app', {
       is: TestApp
     });
+    // Inject the test message service
+    app.messageService = messageService;
+    app.toolingSDK = new ToolingSDK(messageService);
+    app.modelService = new ToolingModelService(messageService);
     document.body.appendChild(app);
   });
 
   afterEach(() => {
-    MessageServiceFactory.create = originalCreateFn;
     jest.clearAllMocks();
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);

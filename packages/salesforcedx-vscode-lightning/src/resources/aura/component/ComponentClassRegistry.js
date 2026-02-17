@@ -167,7 +167,7 @@ ComponentClassRegistry.prototype.buildLibraries = function(componentProperties) 
             if (!library) {
                 try {
                     library = $A.componentService.evaluateModuleDef(descriptor);
-                } catch (e) {
+                } catch {
                     // ignore module not found
                 }
             }

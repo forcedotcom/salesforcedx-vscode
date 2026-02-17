@@ -1,0 +1,99 @@
+{
+  "name": "@salesforce/soql-common",
+  "version": "1.0.0",
+  "description": "Common SOQL parsing utilities",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode.git",
+    "directory": "packages/soql-common"
+  },
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/main/packages/soql-common#readme",
+  "main": "out/src/index.js",
+  "types": "out/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/src/index.d.ts",
+      "default": "./out/src/index.js"
+    },
+    "./soqlComments": {
+      "types": "./out/src/soqlComments.d.ts",
+      "default": "./out/src/soqlComments.js"
+    },
+    "./soql-parser.lib": {
+      "types": "./src/soql-parser.lib/index.d.ts",
+      "default": "./src/soql-parser.lib/index.js"
+    },
+    "./soql-parser.lib/*": {
+      "types": "./src/soql-parser.lib/*.d.ts",
+      "default": "./src/soql-parser.lib/*.js"
+    }
+  },
+  "files": [
+    "out/src/**/*.js",
+    "out/src/**/*.d.ts",
+    "out/src/**/*.js.map",
+    "src/soql-parser.lib/**",
+    "LICENSE.txt",
+    "README.md"
+  ],
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty && shx mkdir -p out/src && shx cp -R src/soql-parser.lib out/src/soql-parser.lib",
+      "clean": "if-file-deleted",
+      "files": [
+        "src/**/*.ts",
+        "src/soql-parser.lib/**",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        "package.json"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "antlr4ts": "^0.5.0-alpha.3"
+  }
+}

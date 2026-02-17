@@ -102,7 +102,7 @@ MemoryAdapter.prototype.getItems = function(keys /* , includeExpired*/) {
                 try {
                     // note that json.encode() will throw on cyclic graphs so caller must handle it.
                     innerItem = JSON.parse($A.util.json.encode(innerItem));
-                } catch (ignore) {
+                } catch {
                     // should never happen: creation of MemoryAdapter.Item does a deep copy
                 }
 

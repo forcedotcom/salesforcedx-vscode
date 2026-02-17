@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { Field, FieldSelection, SyntaxOptions, UnmodeledSyntax } from '../model';
+
+export class FieldSelectionImpl implements FieldSelection {
+  public readonly kind = 'fieldSelection' as const;
+  public field: Field;
+  public alias?: UnmodeledSyntax;
+  constructor(field: Field, alias?: UnmodeledSyntax) {
+    this.field = field;
+    this.alias = alias;
+  }
+
+  public toSoqlSyntax(options?: SyntaxOptions): string {
+    return this.alias ? `${this.field.toSoqlSyntax()} ${this.alias.toSoqlSyntax(options)}` : this.field.toSoqlSyntax();
+  }
+}

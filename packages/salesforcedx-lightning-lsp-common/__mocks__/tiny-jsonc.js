@@ -17,7 +17,7 @@ module.exports = {
 
       try {
         return JSON.parse(cleaned);
-      } catch (e) {
+      } catch {
         // Return empty object on parse error to match readJsonSync behavior
         return {};
       }

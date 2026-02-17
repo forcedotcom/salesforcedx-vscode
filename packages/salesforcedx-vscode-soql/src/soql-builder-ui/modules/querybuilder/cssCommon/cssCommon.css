@@ -7,10 +7,9 @@
  */
 
 /* NOTE ABOUT THEMING
-  * :host(.dark) :host(.contrast) ONLY triggers inside vscode themes,
-  *  so variables are available in that context
-  * in order to support standalone and contexts outside of vscode
-  * variables are not used in default styles
+  * Styles use VSCode CSS variables (e.g. --vscode-foreground) with fallbacks to custom properties
+  * VSCode automatically updates these variables based on the active theme (light/dark/high-contrast)
+  * Only high-contrast mode has specific :host(.contrast) overrides where needed
   */
 
 *,
@@ -64,10 +63,7 @@ default to the width of the parent.
   align-items: center;
   height: 1.25rem;
   font-size: smaller;
-  background-color: var(
-    --vscode-list-inactiveSelectionBackground,
-    var(--soql-color-medium-grey)
-  );
+  background-color: var(--vscode-list-inactiveSelectionBackground, var(--soql-color-medium-grey));
   color: var(--vscode-foreground, var(--soql-white));
   padding: 4px 4px;
   border-radius: 3px;
@@ -88,8 +84,7 @@ button,
 input,
 select {
   height: 1.5rem;
-  border: 1px solid
-    var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
+  border: 1px solid var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
   border-radius: 3px;
 }
 
@@ -97,10 +92,7 @@ input,
 select {
   background-color: var(--vscode-sideBar-background, var(--soql-background));
   color: var(--vscode-foreground, var(--soql-foreground));
-  border-color: var(
-    --vscode-list-inactiveSelectionBackground,
-    var(--soql-color-light-grey)
-  );
+  border-color: var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
 }
 input[type='number'] {
   padding-left: 0.25rem;
@@ -116,30 +108,21 @@ select:focus {
 
 button {
   color: var(--vscode-button-foreground, var(--soql-white));
-  background-color: var(
-    --vscode-button-background,
-    var(--soql-color-medium-blue)
-  );
+  background-color: var(--vscode-button-background, var(--soql-color-medium-blue));
   border: 0;
   border-radius: 3px;
   padding: 0 15px 0 15px;
   cursor: pointer;
 }
 button:hover {
-  background-color: var(
-    --vscode-button-hoverBackground,
-    var(--soql-color-blue-text)
-  );
+  background-color: var(--vscode-button-hoverBackground, var(--soql-color-blue-text));
 }
 button:active {
   box-shadow: 0 0 0.3em 0em #454444;
 }
 
 .btn--disabled {
-  background-color: var(
-    --vscode-list-inactiveSelectionBackground,
-    var(--soql-color-medium-grey)
-  );
+  background-color: var(--vscode-list-inactiveSelectionBackground, var(--soql-color-medium-grey));
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -162,9 +145,7 @@ button:active {
 .tooltip::before {
   content: attr(data-text); /* grab the text */
   position: absolute;
-  transform: scale(
-    0
-  ); /* this keeps it from being reactive to :hover when it is not visible */
+  transform: scale(0); /* this keeps it from being reactive to :hover when it is not visible */
   opacity: 0;
   transition: opacity ease-in 0.2s;
 
@@ -195,8 +176,7 @@ button:active {
 
   /* the arrow - a trick that uses the after psuedo element with thick border and makes 3 sides transparent */
   border: 10px solid var(--vscode-sideBar-background, var(--soql-background));
-  border-color: var(--vscode-sideBar-background, var(--soql-background))
-    transparent transparent transparent;
+  border-color: var(--vscode-sideBar-background, var(--soql-background)) transparent transparent transparent;
 }
 
 .tooltip--error::before {

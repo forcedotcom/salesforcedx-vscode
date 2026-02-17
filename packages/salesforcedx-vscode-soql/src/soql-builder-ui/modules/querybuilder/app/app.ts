@@ -9,7 +9,7 @@
 import { LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
 import { ToolingSDK } from '../services/toolingSDK';
-import { MessageServiceFactory } from '../services/message/messageServiceFactory';
+import { VscodeMessageService } from '../services/message/vscodeMessageService';
 
 import { ToolingModelService } from '../services/toolingModelService';
 import { IMessageService } from '../services/message/iMessageService';
@@ -68,7 +68,7 @@ export default class App extends LightningElement {
 
   public constructor() {
     super();
-    this.messageService = MessageServiceFactory.create();
+    this.messageService = new VscodeMessageService();
     this.toolingSDK = new ToolingSDK(this.messageService);
     this.modelService = new ToolingModelService(this.messageService);
   }

@@ -30,7 +30,7 @@ debounce.mockImplementation((callback) => {
 describe('WhereModifierGroup should', () => {
   let modifierGroup;
 
-  function getModifierElements() {
+  const getModifierElements = () => {
     const selectFieldEl = modifierGroup.shadowRoot.querySelector(
       'querybuilder-custom-select'
     );
@@ -44,9 +44,9 @@ describe('WhereModifierGroup should', () => {
       selectOperatorEl,
       criteriaInputEl
     };
-  }
+  };
 
-  function setModifiersToHaveAValue(scope: string) {
+  const setModifiersToHaveAValue = (scope: string) => {
     const { selectFieldEl, selectOperatorEl, criteriaInputEl } =
       getModifierElements();
 

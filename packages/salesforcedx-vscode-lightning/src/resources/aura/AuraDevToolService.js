@@ -19,6 +19,7 @@
  * @constructor
  * @protected
  */
+// eslint-disable-next-line no-unused-vars
 var AuraDevToolService = function() {
 
     /**

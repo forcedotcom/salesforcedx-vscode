@@ -40,9 +40,9 @@ import {
 import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
 import { activateTagClosing } from './tagClosing';
 
-namespace TagCloseRequest {
-  export const type: RequestType<TextDocumentPositionParams, string, any> = new RequestType('html/tag');
-}
+const TagCloseRequest = {
+  type: new RequestType<TextDocumentPositionParams, string, any>('html/tag')
+} as const;
 
 // hoisted to module scope since it's used in deactivate
 let telemetryService: ReturnType<SalesforceVSCodeCoreApi['services']['TelemetryService']['getInstance']> | undefined;

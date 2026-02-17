@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface SoqlWithComments {
+type SoqlWithComments = {
   // Original complete SOQL string, untouched:
   originalSoqlText: string;
 
@@ -21,12 +21,12 @@ export interface SoqlWithComments {
 
   // Pure SOQL code, without comments or empty lines at the top:
   soqlText: string;
-}
+};
 
 export const parseHeaderComments = (originalSoqlText: string): SoqlWithComments => {
-  const [, headerComments, soqlText] = HEADER_COMMENT_EXTRACTION_REGEX.exec(originalSoqlText) || [];
+  const [, headerComments, soqlText] = HEADER_COMMENT_EXTRACTION_REGEX.exec(originalSoqlText) ?? [];
 
-  const commentLineCount = (headerComments.match(/(\n|\r|\r\n)/g) || []).length;
+  const commentLineCount = (headerComments.match(/(\n|\r|\r\n)/g) ?? []).length;
   const headerPaddedSoqlText = originalSoqlText.replace(
     HEADER_COMMENT_EXTRACTION_REGEX,
     (wholeMatch, headerText: string, bodyText: string) => `${headerText.replaceAll(/[^\n\r]/gm, ' ')}${bodyText}`

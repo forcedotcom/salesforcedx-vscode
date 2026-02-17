@@ -925,7 +925,7 @@ Aura.Utils.DateTimeFormat.prototype.formatNumberField = function(num, minDigits,
     if (localized && !this.formatErrorFromIntl) {
         try {
             return this.locale.formatNumber(num, minDigits, 0);
-        } catch (e) {
+        } catch {
             // This should never happen, but on IE11, when profiler is enabled,
             // Intl.NumberFormat will fail to be initiated. This only impacts
             // perf testing for now.

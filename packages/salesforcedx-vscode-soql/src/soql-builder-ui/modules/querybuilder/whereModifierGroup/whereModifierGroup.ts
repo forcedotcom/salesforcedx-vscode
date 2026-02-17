@@ -13,11 +13,9 @@
  */
 import { api, LightningElement, track } from 'lwc';
 import { debounce } from 'debounce';
-import {
-  Soql,
-  ValidatorFactory,
-  splitMultiInputValues
-} from '@salesforce/soql-model';
+import { LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
+import { ValidatorFactory } from '@salesforce/soql-model/validators/validatorFactory';
+import { splitMultiInputValues } from '@salesforce/soql-model/validators/inputUtils';
 import { JsonMap } from '@salesforce/types';
 import { OperatorOption, operatorOptions } from '../services/model';
 import { SObjectTypeUtils } from '../services/sobjectUtils';
@@ -211,31 +209,31 @@ export default class WhereModifierGroup extends LightningElement {
 
   public isMultipleValueOperator(operatorValue: string): boolean {
     return (
-      operatorValue === Soql.UiOperatorValue.IN ||
-      operatorValue === Soql.UiOperatorValue.NOT_IN ||
-      operatorValue === Soql.UiOperatorValue.INCLUDES ||
-      operatorValue === Soql.UiOperatorValue.EXCLUDES
+      operatorValue === 'IN' ||
+      operatorValue === 'NOT_IN' ||
+      operatorValue === 'INCLUDES' ||
+      operatorValue === 'EXCLUDES'
     );
   }
 
   public isSpecialLikeCondition(operatorValue: string): boolean {
     return (
-      operatorValue === Soql.UiOperatorValue.LIKE_START ||
-      operatorValue === Soql.UiOperatorValue.LIKE_END ||
-      operatorValue === Soql.UiOperatorValue.LIKE_CONTAINS
+      operatorValue === 'LIKE_START' ||
+      operatorValue === 'LIKE_END' ||
+      operatorValue === 'LIKE_CONTAINS'
     );
   }
 
   // This is the value displayed in modifier <input>
   public displayValue(
-    type: Soql.LiteralType,
+    type: LiteralType,
     rawValue: string,
     operatorValue?: string
   ): string {
     let displayValue = rawValue;
     // eslint-disable-next-line default-case
     switch (type) {
-      case Soql.LiteralType.String:
+      case 'STRING':
         displayValue = soqlStringLiteralToDisplayValue(rawValue);
         if (this.isSpecialLikeCondition(operatorValue)) {
           displayValue = stripWildCardPadding(displayValue);
@@ -247,21 +245,21 @@ export default class WhereModifierGroup extends LightningElement {
   }
   // This is represents the compareValue in the SOQL Query
   public normalizeInput(
-    type: Soql.SObjectFieldType,
+    type: SObjectFieldType,
     value: string,
-    operatorValue?: Soql.UiOperatorValue
+    operatorValue?: UiOperatorValue
   ): string {
     let normalized = value;
     if (!this.isMultipleValueOperator(this._currentOperatorValue)) {
       switch (type) {
-        case Soql.SObjectFieldType.Boolean:
-        case Soql.SObjectFieldType.Integer:
-        case Soql.SObjectFieldType.Long:
-        case Soql.SObjectFieldType.Double:
-        case Soql.SObjectFieldType.Date:
-        case Soql.SObjectFieldType.DateTime:
-        case Soql.SObjectFieldType.Time:
-        case Soql.SObjectFieldType.Currency: {
+        case SObjectFieldType.Boolean:
+        case SObjectFieldType.Integer:
+        case SObjectFieldType.Long:
+        case SObjectFieldType.Double:
+        case SObjectFieldType.Date:
+        case SObjectFieldType.DateTime:
+        case SObjectFieldType.Time:
+        case SObjectFieldType.Currency: {
           // do nothing
           break;
         }
@@ -282,50 +280,50 @@ export default class WhereModifierGroup extends LightningElement {
     return normalized;
   }
 
-  public getSObjectFieldType(fieldName: string): Soql.SObjectFieldType {
+  public getSObjectFieldType(fieldName: string): SObjectFieldType {
     return this.sobjectTypeUtils
       ? this.sobjectTypeUtils.getType(fieldName)
-      : Soql.SObjectFieldType.AnyType;
+      : SObjectFieldType.AnyType;
   }
 
   public getPicklistValues(fieldName: string): string[] {
     // values need to be quoted
     return this.sobjectTypeUtils
       ? this.sobjectTypeUtils
-          .getPicklistValues(fieldName)
-          .map((value) => `'${value}'`)
+        .getPicklistValues(fieldName)
+        .map((value) => `'${value}'`)
       : [];
   }
 
   public getCriteriaType(
-    type: Soql.SObjectFieldType,
+    type: SObjectFieldType,
     value: string
-  ): Soql.LiteralType {
-    let criteriaType = Soql.LiteralType.String;
+  ): LiteralType {
+    let criteriaType: LiteralType = 'STRING';
     if (value.toLowerCase() === 'null') {
-      return Soql.LiteralType.Null;
+      return 'NULL';
     }
     // eslint-disable-next-line default-case
     switch (type) {
-      case Soql.SObjectFieldType.Boolean: {
-        criteriaType = Soql.LiteralType.Boolean;
+      case SObjectFieldType.Boolean: {
+        criteriaType = 'BOOLEAN';
         break;
       }
-      case Soql.SObjectFieldType.Currency: {
-        criteriaType = Soql.LiteralType.Currency;
+      case SObjectFieldType.Currency: {
+        criteriaType = 'CURRENCY';
         break;
       }
-      case Soql.SObjectFieldType.DateTime:
-      case Soql.SObjectFieldType.Date:
-      case Soql.SObjectFieldType.Time: {
-        criteriaType = Soql.LiteralType.Date;
+      case SObjectFieldType.DateTime:
+      case SObjectFieldType.Date:
+      case SObjectFieldType.Time: {
+        criteriaType = 'DATE';
         break;
       }
-      case Soql.SObjectFieldType.Integer:
-      case Soql.SObjectFieldType.Long:
-      case Soql.SObjectFieldType.Percent:
-      case Soql.SObjectFieldType.Double: {
-        criteriaType = Soql.LiteralType.Number;
+      case SObjectFieldType.Integer:
+      case SObjectFieldType.Long:
+      case SObjectFieldType.Percent:
+      case SObjectFieldType.Double: {
+        criteriaType = 'NUMBER';
         break;
       }
     }
@@ -441,7 +439,7 @@ export default class WhereModifierGroup extends LightningElement {
   }
 }
 
-function selectionEventHandler(e): void {
+const selectionEventHandler = function(e): void {
   e.preventDefault();
   // note: this.validateInput() will change state by setting this.condition
   if (this.checkAllModifiersHaveValues() && this.validateInput()) {
@@ -453,4 +451,4 @@ function selectionEventHandler(e): void {
     });
     this.dispatchEvent(modGroupSelectionEvent);
   }
-}
+};

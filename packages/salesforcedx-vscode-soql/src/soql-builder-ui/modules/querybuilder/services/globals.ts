@@ -6,36 +6,23 @@
  *
  */
 
-export function getWindow(): Window {
+export const getWindow = (): Window => {
   return window;
-}
+};
 
-export function getBodyClass(): string | null {
+export const getBodyClass = (): string | null => {
   return window.document.body.getAttribute('class');
-}
-
-export function getLocalStorage(): Storage {
-  return localStorage;
-}
+};
 
 /* eslint-disable @typescript-eslint/ban-ts-comment,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call */
 
-export function hasVscode(): boolean {
-  // @ts-ignore
-  return 'undefined' !== typeof acquireVsCodeApi;
-}
-
 let vsCode;
 
-export function getVscode(): unknown {
-  if (hasVscode()) {
-    if (!vsCode) {
-      // @ts-ignore
-      // eslint-disable-next-line no-undef
-      vsCode = acquireVsCodeApi();
-    }
-
-    return vsCode;
+export const getVscode = (): unknown => {
+  if (!vsCode) {
+    // @ts-ignore
+    // eslint-disable-next-line no-undef
+    vsCode = acquireVsCodeApi();
   }
-  return false;
-}
+  return vsCode;
+};

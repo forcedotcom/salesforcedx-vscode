@@ -234,7 +234,7 @@ IndexedDBAdapter.prototype.getTransaction = function(mode) {
 IndexedDBAdapter.prototype.getObjectStore = function() {
     try {
         return this.transaction.objectStore(this.tableName);
-    } catch (e) {
+    } catch {
         // firefox 59 does not mix promises and indexeddb transactions, so we have to re-create the transaction
         this.transaction = this.db.transaction([this.tableName], this.transaction["mode"]);
         return this.transaction.objectStore(this.tableName);

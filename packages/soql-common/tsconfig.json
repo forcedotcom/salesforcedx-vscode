@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "out"
+  },
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "dist",
+    "src/soql-parser.lib"
+  ],
+  "include": ["src/**/*.ts"],
+  "references": []
+}

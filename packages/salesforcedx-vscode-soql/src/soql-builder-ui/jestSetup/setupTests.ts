@@ -71,9 +71,9 @@ export class VsCodeApi {
   }
 }
 export const vscodeInstance = new VsCodeApi();
-export function acquireVsCodeApi(): VsCodeApi {
+export const acquireVsCodeApi = (): VsCodeApi => {
   return vscodeInstance;
-}
+};
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 globalThis.acquireVsCodeApi = acquireVsCodeApi;

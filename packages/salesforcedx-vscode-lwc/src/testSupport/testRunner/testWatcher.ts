@@ -84,7 +84,7 @@ class TestWatcher {
    * @param testUri uri of the test
    */
   public setWatchingContext(testUri: URI) {
-    if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.uri.fsPath === testUri.fsPath) {
+    if (vscode.window.activeTextEditor?.document.uri.fsPath === testUri.fsPath) {
       vscode.commands.executeCommand(
         'setContext',
         SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT,

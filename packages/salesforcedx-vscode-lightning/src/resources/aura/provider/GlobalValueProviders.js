@@ -344,7 +344,7 @@ GlobalValueProviders.prototype.load = function(gvps) {
         Aura["afterBootstrapReady"].push(function () {
             try {
                 this.merge(gvps, true);
-            } catch (e) {
+            } catch {
                 $A.warning("GlobalValueProviders merge failed.");
             }
         }.bind(this));
