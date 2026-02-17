@@ -78,8 +78,21 @@ const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataType
     Match.orElse(() => Effect.succeed([]))
   );
 
+/** ComponentSet.has() returns false for CustomFields in monolithic format; use getComponentFilenamesByNameAndType */
+const isMemberPresentInProject = (projectComponentSet: ComponentSet, m: MetadataMember): boolean => {
+  if (projectComponentSet.has(m)) return true;
+  if (m.type === 'CustomField') {
+    const fieldPaths = projectComponentSet.getComponentFilenamesByNameAndType({
+      fullName: m.fullName,
+      type: 'CustomField'
+    });
+    return fieldPaths.length > 0;
+  }
+  return false;
+};
+
 const getOverwriteCount = (projectComponentSet: ComponentSet, members: MetadataMember[]): number =>
-  members.reduce((n, m) => n + (projectComponentSet.has(m) ? 1 : 0), 0);
+  members.reduce((n, m) => n + (isMemberPresentInProject(projectComponentSet, m) ? 1 : 0), 0);
 
 const confirmOverwrite = (projectComponentSet: ComponentSet, members: MetadataMember[]) =>
   Effect.promise(async () => {
