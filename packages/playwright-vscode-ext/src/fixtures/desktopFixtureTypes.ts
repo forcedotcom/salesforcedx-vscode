@@ -14,6 +14,7 @@ export type WorkerFixtures = {
 
 /** Test-scoped fixtures (fresh for each test) */
 export type TestFixtures = {
+  workspaceDir: string;
   electronApp: ElectronApplication;
   page: Page;
 };
