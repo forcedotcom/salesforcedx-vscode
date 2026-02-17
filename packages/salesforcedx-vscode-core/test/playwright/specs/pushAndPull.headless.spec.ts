@@ -35,6 +35,7 @@ test('Push and Pull: push, pull, and view changes', async ({ page }) => {
 
   const SOURCE_STATUS_HEADER = 'Source Status';
 
+
   await test.step('setup: workbench, settings, output channel', async () => {
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);

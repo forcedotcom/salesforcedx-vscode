@@ -14,8 +14,11 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.17.0",
+  "version": "65.18.0",
   "publisher": "salesforce",
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
+  "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
@@ -25,7 +28,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.24.0",
-    "@salesforce/o11y-reporter": "1.7.0",
+    "@salesforce/o11y-reporter": "^1.7.4",
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -36,7 +39,7 @@
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
-    "fast-xml-parser": "^4.3.2",
+    "fast-xml-parser": "^5.3.4",
     "glob": "^11.1.0",
     "rxjs": "^5.4.1",
     "vscode-uri": "^3.1.0"
@@ -71,7 +74,7 @@
       "main": "dist/src/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/o11y-reporter": "1.7.0"
+        "@salesforce/o11y-reporter": "^1.7.4"
       },
       "devDependencies": {}
     }

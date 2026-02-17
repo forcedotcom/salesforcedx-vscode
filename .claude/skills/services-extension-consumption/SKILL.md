@@ -46,6 +46,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
         api.services.ExtensionContextServiceLayer(context),
+        api.services.sdkLayerFor(context)
         // ... other services
         channelLayer,
         errorHandlerWithChannel

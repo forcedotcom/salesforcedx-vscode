@@ -118,7 +118,7 @@ describe('LWCWorkspaceContext', () => {
     const mockConnection = {
       sendRequest: jest.fn().mockResolvedValue({ applied: true })
     } as any;
-    context.setConnection(mockConnection);
+    context.connection = mockConnection;
     const baseTsconfigPathForceApp = resolve(join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json'));
     const tsconfigPathForceApp = resolve(join(FORCE_APP_ROOT, 'lwc', 'tsconfig.json'));
     const tsconfigPathUtils = resolve(join(UTILS_ROOT, 'lwc', 'tsconfig.json'));

@@ -19,11 +19,22 @@ export {
   SfdxTsConfig,
   TsConfigPaths,
   normalizePath,
-  type NormalizedPath
+  type NormalizedPath,
+  nameFromFile,
+  nameFromDirectory,
+  componentFromFile,
+  componentFromDirectory
 } from './utils';
 
 // Re-export from base-context
-export { BaseWorkspaceContext, Indexer, AURA_EXTENSIONS, getModulesDirs, updateForceIgnoreFile } from './baseContext';
+export {
+  BaseWorkspaceContext,
+  type BaseWorkspaceContextOptions,
+  Indexer,
+  AURA_EXTENSIONS,
+  getModulesDirs,
+  updateForceIgnoreFile
+} from './baseContext';
 
 // Re-export from shared
 export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper, detectWorkspaceType } from './shared';
