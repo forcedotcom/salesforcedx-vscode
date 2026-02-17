@@ -221,6 +221,9 @@ const getMockVSCode = () => {
     ThemeColor: jest.fn(),
     window: {
       activeTextEditor: jest.fn(),
+      onDidChangeActiveTextEditor: jest.fn(() => ({
+        dispose: jest.fn()
+      })),
       showInformationMessage: jest.fn(),
       showWarningMessage: jest.fn(),
       showErrorMessage: jest.fn(),

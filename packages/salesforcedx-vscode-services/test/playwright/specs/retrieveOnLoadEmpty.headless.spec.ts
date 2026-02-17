@@ -18,7 +18,8 @@ import {
   outputChannelContains,
   createMinimalOrg,
   filterErrors,
-  waitForVSCodeWorkbench
+  waitForVSCodeWorkbench,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
 
@@ -26,6 +27,7 @@ test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await assertWelcomeTabExists(page);
   await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
 });
 
 test('handles empty retrieveOnLoad setting gracefully', async ({ page }) => {

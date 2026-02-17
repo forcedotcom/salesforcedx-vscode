@@ -36,8 +36,8 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
   effect: Effect.gen(function* () {
     const trackingService = yield* SourceTrackingService;
     const connectionService = yield* ConnectionService;
-    const project = yield* ProjectService.getSfProject();
     const workspaceService = yield* WorkspaceService;
+    const projectService = yield* ProjectService;
 
     /** Get ComponentSet of local changes for deploy */
     const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* (
@@ -82,7 +82,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       );
 
       const connection = yield* connectionService.getConnection();
-      components.projectDirectory = project.getPath();
+      components.projectDirectory = (yield* projectService.getSfProject()).getPath();
 
       const deployFiber = yield* Effect.fork(
         Effect.tryPromise({

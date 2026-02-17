@@ -9,7 +9,8 @@ import { expect } from '@playwright/test';
 import {
   closeWelcomeTabs,
   waitForWorkspaceReady,
-  waitForVSCodeWorkbench
+  waitForVSCodeWorkbench,
+  ensureSecondarySideBarHidden
 } from '../../../src/utils/helpers';
 import { WORKBENCH } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
@@ -30,6 +31,7 @@ test.describe('Helper Functions', () => {
 
     await test.step('Close welcome tabs if present', async () => {
       await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
       // Verify no welcome tab remains visible by checking tab titles
       const tabs = page.locator('.tabs-container .tab');
       const tabCount = await tabs.count();
