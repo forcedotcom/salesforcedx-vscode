@@ -8,24 +8,17 @@
 import { test } from '../fixtures';
 import {
   setupConsoleMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
-  verifyCommandExists,
   executeCommandWithCommandPalette,
-  ensureOutputPanelOpen,
-  selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
   validateNoCriticalErrors,
   saveScreenshot,
   DIRTY_EDITOR,
-  ensureSecondarySideBarHidden
+  verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 import { expect } from '@playwright/test';
-import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
+import { COMMAND_TIMEOUT } from '../constants';
+import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
 import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
@@ -35,26 +28,13 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
   const className = `DeployOnSaveTest${Date.now()}`;
 
   await test.step('setup: workbench, settings, enable deploy-on-save', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-
-    // Ensure core commands are active (not metadata extension commands)
-    await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
-
-    // Enable deploy-on-save before creating class (set separately to avoid search box concatenation)
-    await upsertSettings(page, { 'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'true' });
-    await upsertSettings(page, { 'salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave': 'true' });
-
-    // Open output panel and select Salesforce CLI channel
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
-    await saveScreenshot(page, 'setup.output-channel-ready.png');
-
-    // Wait for extension to fully activate (context keys like sf:has_target_org)
-    // Use a command that doesn't require a file to be open
+    await setupWorkbenchSettingsAndOutputChannel(page, {
+      extraSettings: {
+        'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'true',
+        'salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave': 'true'
+      }
+    });
+    // Wait for extension to fully activate (context keys like sf:has_target_org). Use a command that doesn't require a file to be open.
     await verifyCommandExists(page, packageNls.view_local_changes_text, 120_000);
   });
 

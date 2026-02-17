@@ -9,10 +9,6 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
   upsertSettings,
   editOpenFile,
   openFileByName,
@@ -20,16 +16,14 @@ import {
   verifyCommandExists,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  ensureOutputPanelOpen,
-  selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
   isMacDesktop,
   validateNoCriticalErrors,
-  saveScreenshot,
-  ensureSecondarySideBarHidden
+  saveScreenshot
 } from '@salesforce/playwright-vscode-ext';
-import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
+import { COMMAND_TIMEOUT } from '../constants';
+import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
 import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
@@ -39,20 +33,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   const className = `DeployRetrieveTest${Date.now()}`;
 
   await test.step('setup: workbench, settings, create apex class', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-    await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
-
-    // Ensure core commands are active (not metadata extension commands)
-    await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
-
-    // Open output panel and select Salesforce CLI channel
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
-    await saveScreenshot(page, 'setup.output-channel-ready.png');
+    await setupWorkbenchSettingsAndOutputChannel(page);
 
     // Create the apex class under test
     await createApexClassCore(page, className);

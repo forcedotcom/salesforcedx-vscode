@@ -8,23 +8,15 @@
 import { test } from '../fixtures';
 import {
   setupConsoleMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   editOpenFile,
   executeCommandWithCommandPalette,
-  ensureOutputPanelOpen,
-  selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
   validateNoCriticalErrors,
-  saveScreenshot,
-  verifyCommandExists,
-  ensureSecondarySideBarHidden
+  saveScreenshot
 } from '@salesforce/playwright-vscode-ext';
-import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
+import { COMMAND_TIMEOUT } from '../constants';
+import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
 import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
@@ -37,18 +29,7 @@ test('Push and Pull: push, pull, and view changes', async ({ page }) => {
 
 
   await test.step('setup: workbench, settings, output channel', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-    await verifyCommandExists(page, packageNls.view_local_changes_text, 120_000);
-
-    await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
-
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
-    await saveScreenshot(page, 'setup.complete.png');
+    await setupWorkbenchSettingsAndOutputChannel(page);
   });
 
   await test.step('view all changes (empty)', async () => {

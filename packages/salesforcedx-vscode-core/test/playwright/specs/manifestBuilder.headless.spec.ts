@@ -10,27 +10,19 @@ import * as path from 'node:path';
 import { test } from '../fixtures';
 import {
   setupConsoleMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   openFileByName,
   executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
-  ensureOutputPanelOpen,
-  selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
   isMacDesktop,
   validateNoCriticalErrors,
   saveScreenshot,
   EDITOR,
-  QUICK_INPUT_WIDGET,
-  verifyCommandExists,
-  ensureSecondarySideBarHidden
+  QUICK_INPUT_WIDGET
 } from '@salesforce/playwright-vscode-ext';
-import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
+import { COMMAND_TIMEOUT } from '../constants';
+import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
 import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
@@ -48,17 +40,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     const consoleErrors = setupConsoleMonitoring(page);
 
     await test.step('setup: workbench, settings, create apex class', async () => {
-      const createResult = await createMinimalOrg();
-      await waitForVSCodeWorkbench(page);
-      await closeWelcomeTabs(page);
-      await ensureSecondarySideBarHidden(page);
-      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-      await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
-
-      await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
-
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
+      await setupWorkbenchSettingsAndOutputChannel(page);
 
       // Create an apex class to include in the manifest
       await createApexClassCore(page, `ManifestTest${Date.now()}`);

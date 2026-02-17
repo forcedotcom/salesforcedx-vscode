@@ -9,24 +9,16 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   editOpenFile,
   executeCommandWithCommandPalette,
-  ensureOutputPanelOpen,
-  selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
   validateNoCriticalErrors,
   saveScreenshot,
-  EDITOR_WITH_URI,
-  verifyCommandExists,
-  ensureSecondarySideBarHidden
+  EDITOR_WITH_URI
 } from '@salesforce/playwright-vscode-ext';
-import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
+import { COMMAND_TIMEOUT } from '../constants';
+import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
 import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
@@ -47,18 +39,7 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
   };
 
   await test.step('setup: workbench, settings, output channel', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-    await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
-
-    await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
-
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
-    await saveScreenshot(page, 'setup.complete.png');
+    await setupWorkbenchSettingsAndOutputChannel(page);
   });
 
   await test.step('create and deploy v1', async () => {
