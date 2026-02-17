@@ -32,6 +32,10 @@ _Note_ for developers that are employed by Salesforce telemetry can not be disab
 - Initialize the telemetry service on the extension's `activate` call and initialize it using `salesforce-vscode-core` telemetry service
 - Use the telemetry service where needed in the extension
 
+## Live QA
+
+If you want to see stuff hitting telemery (o11y, appinsights, pft, etc) from locally bundled extensions, you have to take it out of DevMode. Search for `isDevMode` in the codebase...and manually make that `false`.
+
 ## Logging telemetry to a file
 
 Often it is useful to be able to validate values being sent to telemetry without having to look into where the telemetry is reported.

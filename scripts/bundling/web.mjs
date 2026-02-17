@@ -11,6 +11,7 @@ const processPolyfillPath = join(__dirname, 'process-polyfill.js');
 const bufferGlobalPath = join(__dirname, 'buffer-global.js');
 const fsPolyfillPath = join(__dirname, 'fs-polyfill.js');
 const urlPolyfillPath = join(__dirname, 'url-polyfill.js');
+const ttyPolyfillPath = join(__dirname, 'tty-polyfill.js');
 
 // Plugin to transform jszip's nodestream check to always return true
 const jszipNodestreamTransformPlugin = () => ({
@@ -105,6 +106,8 @@ export const commonConfigBrowser = {
     'node:tls': emptyPolyfillsPath,
     'node:http2': emptyPolyfillsPath,
     got: emptyPolyfillsPath, // has a lot of very node-focused references in its dependencies.
+    // tty is Node.js built-in, provide polyfill with isatty function
+    tty: ttyPolyfillPath,
     // Standard Node.js modules (without node: prefix)
     path: 'path-browserify',
     os: 'os-browserify',

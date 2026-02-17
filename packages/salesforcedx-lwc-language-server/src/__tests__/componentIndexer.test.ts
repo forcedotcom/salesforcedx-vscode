@@ -168,7 +168,7 @@ describe('ComponentIndexer', () => {
 
       describe('updateSfdxTsConfigPath', () => {
         it('updates tsconfig.sfdx.json path mapping', async () => {
-          // Clean up any files created by other tests (e.g., newlyAddedFile from lwcServer.test.ts)
+          // Clean up any files created by other tests (e.g., newlyAddedFile from lwcServerNode.test.ts)
           // This ensures the test only sees the expected components
           const newlyAddedFileDir = path.join(
             SFDX_WORKSPACE_ROOT,
