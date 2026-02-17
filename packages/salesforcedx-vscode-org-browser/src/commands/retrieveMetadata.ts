@@ -78,8 +78,22 @@ const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataType
     Match.orElse(() => Effect.succeed([]))
   );
 
+/** CustomField in monolithic format lives in CustomObject file; ComponentSet.has() only sees CustomObject */
+const isMemberPresentInProject = (projectComponentSet: ComponentSet, m: MetadataMember): boolean => {
+  if (projectComponentSet.has(m)) return true;
+  if (m.type === 'CustomField') {
+    const objectFullName = m.fullName.split('.')[0];
+    const objectPaths = projectComponentSet.getComponentFilenamesByNameAndType({
+      fullName: objectFullName,
+      type: 'CustomObject'
+    });
+    if (objectPaths.length > 0) return true;
+  }
+  return false;
+};
+
 const getOverwriteCount = (projectComponentSet: ComponentSet, members: MetadataMember[]): number =>
-  members.reduce((n, m) => n + (projectComponentSet.has(m) ? 1 : 0), 0);
+  members.reduce((n, m) => n + (isMemberPresentInProject(projectComponentSet, m) ? 1 : 0), 0);
 
 const confirmOverwrite = (projectComponentSet: ComponentSet, members: MetadataMember[]) =>
   Effect.promise(async () => {

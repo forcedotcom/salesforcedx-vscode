@@ -4,38 +4,37 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { MetadataTypeTreeProvider } from './metadataTypeTreeProviderTypes';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import * as Queue from 'effect/Queue';
-import { backgroundFilePresenceCheckQueue } from './filePresence';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
-import { CustomObjectField, MetadataListResultItem } from './types';
+import { CustomObjectField } from './types';
 
 export const createCustomFieldNode =
-  (projectComponentSet: ComponentSet) => (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) =>
+  (projectComponentSet: ComponentSet) => (element: OrgBrowserTreeItem) =>
     Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
-      // Create a MetadataListResultItem-like object for the custom field
-      const fieldMetadata: MetadataListResultItem = {
-        fullName: `${element.componentName}.${removeNamespacePrefix(element)(field).name}`,
-        type: 'CustomField'
-      };
-
-      const treeItem = new OrgBrowserTreeItem({
-        kind: 'component',
-        xmlName: 'CustomField',
-        componentName: `${element.componentName}.${field.name}`,
-        label: getFieldLabel(removeNamespacePrefix(element)(field))
+      return yield* Effect.sync(() => {
+        // Try CustomField first (decomposed: objects/Foo__c/fields/T__c.field-meta.xml)
+        // Fall back to CustomObject (monolithic: fields live in objects/Foo__c.object-meta.xml)
+        const fieldFullName = `${element.componentName}.${removeNamespacePrefix(element)(field).name}`;
+        const customFieldPaths = projectComponentSet.getComponentFilenamesByNameAndType({
+          fullName: fieldFullName,
+          type: 'CustomField'
+        });
+        const filePaths =
+          customFieldPaths.length > 0
+            ? customFieldPaths
+            : projectComponentSet.getComponentFilenamesByNameAndType({
+                fullName: element.componentName!,
+                type: 'CustomObject'
+              });
+        return new OrgBrowserTreeItem({
+          kind: 'component',
+          xmlName: 'CustomField',
+          componentName: `${element.componentName}.${field.name}`,
+          label: getFieldLabel(removeNamespacePrefix(element)(field)),
+          filePresent: filePaths.length > 0
+        });
       });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-        treeItem,
-        c: fieldMetadata,
-        treeProvider,
-        parent: element,
-        originalSpan: yield* Effect.currentSpan,
-        projectComponentSet
-      });
-      return treeItem;
     });
 
 /** build out the label for a CustomField */
