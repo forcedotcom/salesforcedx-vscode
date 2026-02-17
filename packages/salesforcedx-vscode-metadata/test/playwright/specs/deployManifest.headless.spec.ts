@@ -27,7 +27,8 @@ import {
   captureOutputChannelDetails,
   NOTIFICATION_LIST_ITEM,
   EDITOR,
-  QUICK_INPUT_WIDGET
+  QUICK_INPUT_WIDGET,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -54,6 +55,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     statusBarPage = new SourceTrackingStatusBarPage(page);

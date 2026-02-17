@@ -20,7 +20,8 @@ import {
   validateNoCriticalErrors,
   isDesktop,
   HUB_ORG_ALIAS,
-  NON_TRACKING_ORG_ALIAS
+  NON_TRACKING_ORG_ALIAS,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
@@ -40,6 +41,7 @@ import packageNls from '../../../package.nls.json';
       await waitForVSCodeWorkbench(page);
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
       // Disable deploy-on-save so test can control when deploys happen

@@ -2,11 +2,8 @@ name: Services E2E (Playwright)
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'packages/salesforcedx-vscode-services/**'
-      - 'packages/playwright-vscode-ext/**'
-      - '.github/workflows/servicesE2E.yml'
+  push:
+    branches-ignore: [main, develop]
 
 jobs:
   e2e-web:
@@ -27,21 +24,37 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install Salesforce CLI
-        run: |
-          npm i -g @salesforce/cli
+      - uses: google/wireit@setup-github-actions-caching/v2
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers and OS deps
-        run: npx playwright install chromium --with-deps
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-services -- --reporter=html
+
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        run: |
+          npm i -g @salesforce/cli
 
       - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
         shell: bash
         run: sf project generate -n minimal-project
 
       - name: create scratch org
+        if: steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -49,12 +62,22 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
         working-directory: minimal-project
 
-      - name: Run Services headless tests (headless config)
+      - name: Run Services E2E tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
         env:
           CI: 1
-        # compile the entire project to
         run: |
           npm run test:web -w salesforcedx-vscode-services -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-services -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
@@ -73,7 +96,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Cleanup scratch org
-        if: always()
+        if: always() && steps.try-run.outcome == 'failure'
         continue-on-error: true
         run: |
           sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true

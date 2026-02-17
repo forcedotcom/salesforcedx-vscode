@@ -11,7 +11,8 @@ import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
   closeWelcomeTabs,
-  isMacDesktop
+  isMacDesktop,
+  ensureSecondarySideBarHidden
 } from '../../../src/utils/helpers';
 import { QUICK_INPUT_WIDGET, WORKBENCH } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
@@ -21,6 +22,7 @@ test.describe('Command Palette', () => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
   });
 
   test('should open command palette with F1', async ({ page }) => {

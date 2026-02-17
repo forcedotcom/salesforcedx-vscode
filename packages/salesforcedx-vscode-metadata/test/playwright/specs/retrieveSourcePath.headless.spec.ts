@@ -26,7 +26,8 @@ import {
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
-  upsertSettings
+  upsertSettings,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -51,6 +52,7 @@ import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/consta
       await waitForVSCodeWorkbench(page);
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
       await saveScreenshot(page, 'setup.after-workbench.png');
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);
       await saveScreenshot(page, 'setup.after-auth-fields.png');

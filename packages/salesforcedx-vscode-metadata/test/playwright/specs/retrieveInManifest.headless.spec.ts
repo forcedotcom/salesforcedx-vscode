@@ -28,7 +28,8 @@ import {
   waitForOutputChannelText,
   EDITOR,
   QUICK_INPUT_WIDGET,
-  NOTIFICATION_LIST_ITEM
+  NOTIFICATION_LIST_ITEM,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -52,6 +53,7 @@ test.setTimeout(RETRIEVE_TIMEOUT);
       await waitForVSCodeWorkbench(page);
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
       await saveScreenshot(page, 'setup.after-workbench.png');
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);
       await saveScreenshot(page, 'setup.after-auth-fields.png');

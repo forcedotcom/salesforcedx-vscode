@@ -26,7 +26,8 @@ import {
   isDesktop,
   isMacDesktop,
   QUICK_INPUT_WIDGET,
-  EDITOR
+  EDITOR,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
@@ -49,6 +50,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       await waitForVSCodeWorkbench(page);
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
       // Disable deploy-on-save so test can control when deploys happen

@@ -10,7 +10,8 @@ import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
   upsertScratchOrgAuthFieldsToSettings,
   createDreamhouseOrg,
-  NOTIFICATION_LIST_ITEM
+  NOTIFICATION_LIST_ITEM,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 import { RETRIEVE_TIMEOUT_MS } from '../constants';
@@ -21,6 +22,7 @@ test.beforeEach(async ({ page }) => {
   const createResult = await createDreamhouseOrg();
   const orgBrowserPage = new OrgBrowserPage(page);
   await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+  await ensureSecondarySideBarHidden(page);
 });
 
 test('Org Browser - CustomObject retrieval: customobject headless: retrieve Broker__c', async ({ page }) => {

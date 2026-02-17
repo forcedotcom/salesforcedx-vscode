@@ -11,7 +11,8 @@ import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
   closeWelcomeTabs,
-  waitForWorkspaceReady
+  waitForWorkspaceReady,
+  ensureSecondarySideBarHidden
 } from '../../../src/utils/helpers';
 import { EDITOR_WITH_URI, TAB } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
@@ -22,6 +23,7 @@ test.describe('File Operations', () => {
     await waitForWorkspaceReady(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
   });
 
   test('should create file with contents', async ({ page }) => {

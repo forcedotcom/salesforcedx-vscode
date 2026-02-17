@@ -23,7 +23,8 @@ import {
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
-  NOTIFICATION_LIST_ITEM
+  NOTIFICATION_LIST_ITEM,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -45,6 +46,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');

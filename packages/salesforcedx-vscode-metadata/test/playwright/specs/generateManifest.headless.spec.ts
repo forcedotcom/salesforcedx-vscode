@@ -23,7 +23,8 @@ import {
   validateNoCriticalErrors,
   saveScreenshot,
   EDITOR,
-  QUICK_INPUT_WIDGET
+  QUICK_INPUT_WIDGET,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
@@ -41,6 +42,7 @@ import { messages } from '../../../src/messages/i18n';
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');

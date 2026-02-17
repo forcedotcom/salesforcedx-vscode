@@ -59,12 +59,6 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
   return yield* deployComponentSet({ componentSet });
 });
 
-const isInPackageDirectories = Effect.fn('deployOnSave:isInPackageDirectories')(function* (uri: URI) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const packageDirs = (yield* api.services.ProjectService.getSfProject()).getPackageDirectories();
-  return packageDirs.some(dir => uri.fsPath.startsWith(dir.fullPath));
-});
-
 /** Handle errors from deploy on save */
 const handleDeployError = (error: unknown) =>
   Effect.gen(function* () {
@@ -103,7 +97,7 @@ export const createDeployOnSaveService = () =>
       Stream.filterEffect(() => getDeployOnSaveEnabled()),
       Stream.tap(uri => channelService.appendToChannel(`Deploy on save service received URI: ${uri.fsPath}`)),
       Stream.filterEffect(shouldDeploy),
-      Stream.filterEffect(isInPackageDirectories),
+      Stream.filterEffect(api.services.ProjectService.isInPackageDirectories),
       Stream.tap(uri =>
         channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${uri.fsPath}`)
       ),

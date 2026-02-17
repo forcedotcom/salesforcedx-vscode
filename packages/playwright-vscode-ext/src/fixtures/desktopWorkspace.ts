@@ -13,7 +13,7 @@ import { DREAMHOUSE_ORG_ALIAS } from '../orgs/dreamhouseScratchOrgSetup';
 
 /** Create a temporary workspace directory with sfdx-project.json for desktop tests */
 export const createTestWorkspace = async (orgAlias = DREAMHOUSE_ORG_ALIAS): Promise<string> => {
-  const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-orgbrowser-test-'));
+  const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-e2e-test-'));
 
   await Promise.all([
     // Create sfdx-project.json

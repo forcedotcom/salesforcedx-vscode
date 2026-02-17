@@ -43,9 +43,10 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
 
+  const showSharedCommands = getShowSharedCommands();
   // you don't have the core ext (ex: web) OR you have it and have the setting to use the metadata extension commands
   yield* Effect.promise(() =>
-    vscode.commands.executeCommand('setContext', `${EXTENSION_NAME}.showSharedCommands`, getShowSharedCommands())
+    vscode.commands.executeCommand('setContext', `${EXTENSION_NAME}.showSharedCommands`, showSharedCommands)
   );
 
   // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
@@ -94,7 +95,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     // Start deploy on save service
     Effect.forkIn(createDeployOnSaveService(), yield* getExtensionScope()),
     // Register source tracking status bar
-    Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope()),
+    ...(showSharedCommands ? [Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope())] : []),
     // Watch for config changes to update showSharedCommands context
     Effect.forkIn(watchUseMetadataExtensionCommands(), yield* getExtensionScope())
   ]);

@@ -21,7 +21,8 @@ import {
   clearOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { nls } from '../../../src/messages';
@@ -38,7 +39,7 @@ test('View Changes Commands: each view changes command shows correct sections in
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
-
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     const statusBar = new SourceTrackingStatusBarPage(page);

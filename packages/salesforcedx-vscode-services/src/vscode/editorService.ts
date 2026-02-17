@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as PubSub from 'effect/PubSub';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -16,7 +17,14 @@ export class NoActiveEditorError extends Schema.TaggedError<NoActiveEditorError>
 
 export class EditorService extends Effect.Service<EditorService>()('EditorService', {
   accessors: true,
-  effect: Effect.gen(function* () {
+  scoped: Effect.gen(function* () {
+    const editorPubSub = yield* PubSub.sliding<vscode.TextEditor | undefined>(10_000);
+    const disposable = vscode.window.onDidChangeActiveTextEditor(editor => {
+      Effect.runSync(PubSub.publish(editorPubSub, editor));
+    });
+    Effect.runSync(PubSub.publish(editorPubSub, vscode.window.activeTextEditor));
+    yield* Effect.addFinalizer(() => Effect.sync(() => disposable?.dispose()));
+
     /** Get URI from active editor, fails with NoActiveEditorError if none */
     const getActiveEditorUri = Effect.fn('EditorService.getActiveEditorUri')(function* () {
       const editor = vscode.window.activeTextEditor;
@@ -25,6 +33,6 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
         : yield* Effect.fail(new NoActiveEditorError({ message: 'No active text editor is currently open' }));
     });
 
-    return { getActiveEditorUri };
+    return { pubsub: editorPubSub, getActiveEditorUri };
   })
 }) {}
