@@ -262,7 +262,7 @@ export const removeExpiredAndDeletedOrgs = async (): Promise<string[]> => {
 };
 
 /** Default org configuration type */
-export type DefaultOrgConfig = {
+type DefaultOrgConfig = {
   defaultDevHubProperty: string | undefined;
   defaultOrgProperty: string | undefined;
   defaultDevHubUsername: string | undefined;
