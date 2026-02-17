@@ -13,20 +13,11 @@ export const createCustomFieldNode =
   (projectComponentSet: ComponentSet) => (element: OrgBrowserTreeItem) =>
     Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
       return yield* Effect.sync(() => {
-        // Try CustomField first (decomposed: objects/Foo__c/fields/T__c.field-meta.xml)
-        // Fall back to CustomObject (monolithic: fields live in objects/Foo__c.object-meta.xml)
         const fieldFullName = `${element.componentName}.${removeNamespacePrefix(element)(field).name}`;
-        const customFieldPaths = projectComponentSet.getComponentFilenamesByNameAndType({
+        const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
           fullName: fieldFullName,
           type: 'CustomField'
         });
-        const filePaths =
-          customFieldPaths.length > 0
-            ? customFieldPaths
-            : projectComponentSet.getComponentFilenamesByNameAndType({
-                fullName: element.componentName!,
-                type: 'CustomObject'
-              });
         return new OrgBrowserTreeItem({
           kind: 'component',
           xmlName: 'CustomField',
