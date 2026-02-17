@@ -43,9 +43,14 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       { scope: 'worker' }
     ],
 
+    // Create workspace directory (shared with electronApp so tests can access path)
+    workspaceDir: async ({}, use): Promise<void> => {
+      const dir = await createTestWorkspace(orgAlias);
+      await use(dir);
+    },
+
     // Launch fresh Electron instance per test
-    electronApp: async ({ vscodeExecutable }, use): Promise<void> => {
-      const workspaceDir = await createTestWorkspace(orgAlias);
+    electronApp: async ({ vscodeExecutable, workspaceDir }, use): Promise<void> => {
       // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
