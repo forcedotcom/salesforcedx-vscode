@@ -78,16 +78,15 @@ const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataType
     Match.orElse(() => Effect.succeed([]))
   );
 
-/** CustomField in monolithic format lives in CustomObject file; ComponentSet.has() only sees CustomObject */
+/** ComponentSet.has() returns false for CustomFields in monolithic format; use getComponentFilenamesByNameAndType */
 const isMemberPresentInProject = (projectComponentSet: ComponentSet, m: MetadataMember): boolean => {
   if (projectComponentSet.has(m)) return true;
   if (m.type === 'CustomField') {
-    const objectFullName = m.fullName.split('.')[0];
-    const objectPaths = projectComponentSet.getComponentFilenamesByNameAndType({
-      fullName: objectFullName,
-      type: 'CustomObject'
+    const fieldPaths = projectComponentSet.getComponentFilenamesByNameAndType({
+      fullName: m.fullName,
+      type: 'CustomField'
     });
-    if (objectPaths.length > 0) return true;
+    return fieldPaths.length > 0;
   }
   return false;
 };
