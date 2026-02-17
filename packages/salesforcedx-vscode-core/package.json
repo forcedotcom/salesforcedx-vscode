@@ -45,6 +45,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@salesforce/playwright-vscode-ext": "*",
     "@types/jest": "^29.5.5",
     "esbuild": "0.25.12",
     "jest": "^29.7.0",
@@ -52,6 +54,9 @@
     "nyc": "^15",
     "ts-jest": "^29.4.1"
   },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-services"
+  ],
   "packaging": {
     "assets": [
       "LICENSE.txt",
@@ -83,7 +88,9 @@
     "compile": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
-    "test": "wireit"
+    "test": "wireit",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug"
   },
   "wireit": {
     "compile": {
@@ -165,6 +172,24 @@
       "dependencies": [
         "vscode:bundle"
       ]
+    },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     }
   },
   "nyc": {

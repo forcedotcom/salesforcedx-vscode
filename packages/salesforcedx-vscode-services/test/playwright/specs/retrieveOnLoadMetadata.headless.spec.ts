@@ -20,7 +20,8 @@ import {
   createMinimalOrg,
   validateNoCriticalErrors,
   TAB,
-  waitForVSCodeWorkbench
+  waitForVSCodeWorkbench,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
@@ -29,6 +30,7 @@ test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await assertWelcomeTabExists(page);
   await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
 });
 
 test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', async ({ page }) => {

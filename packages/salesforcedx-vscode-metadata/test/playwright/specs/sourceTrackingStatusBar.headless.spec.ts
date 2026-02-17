@@ -19,7 +19,8 @@ import {
   upsertSettings,
   createApexClass,
   editOpenFile,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -37,6 +38,7 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     // Disable deploy-on-save so test can control when deploys happen

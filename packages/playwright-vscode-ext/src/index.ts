@@ -56,7 +56,7 @@ export { createNonTrackingOrg, NON_TRACKING_ORG_ALIAS, HUB_ORG_ALIAS } from './o
 // Pages
 export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
 
-export { executeCommandWithCommandPalette, openCommandPalette, verifyCommandDoesNotExist } from './pages/commands';
+export { executeCommandWithCommandPalette, openCommandPalette, verifyCommandDoesNotExist, verifyCommandExists } from './pages/commands';
 
 export { executeEditorContextMenuCommand, executeExplorerContextMenuCommand } from './pages/contextMenu';
 

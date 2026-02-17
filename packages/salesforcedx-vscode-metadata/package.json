@@ -65,6 +65,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
       "files": [
@@ -165,8 +166,11 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.web.ts"
-      ]
+        "playwright.config.web.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
@@ -179,8 +183,11 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts"
-      ]
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:e2e": {
       "dependencies": [
@@ -240,7 +247,7 @@
       "commandPalette": [
         {
           "command": "sf.metadata.source.diff",
-          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.project.deploy.start",
@@ -280,7 +287,7 @@
         },
         {
           "command": "sf.metadata.delete.source.current.file",
-          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.deploy.source.path",
@@ -288,7 +295,7 @@
         },
         {
           "command": "sf.metadata.deploy.active.editor",
-          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands&& sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
@@ -304,7 +311,7 @@
         },
         {
           "command": "sf.metadata.retrieve.current.source.file",
-          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.retrieve.in.manifest",
@@ -318,11 +325,11 @@
       "editor/context": [
         {
           "command": "sf.metadata.delete.source",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.deploy.source.path",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
@@ -330,7 +337,7 @@
         },
         {
           "command": "sf.metadata.retrieve.source.path",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.retrieve.in.manifest",
@@ -342,17 +349,17 @@
         },
         {
           "command": "sf.metadata.source.diff",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         }
       ],
       "explorer/context": [
         {
           "command": "sf.metadata.delete.source",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.deploy.source.path",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
@@ -360,7 +367,7 @@
         },
         {
           "command": "sf.metadata.retrieve.source.path",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.retrieve.in.manifest",
@@ -372,7 +379,7 @@
         },
         {
           "command": "sf.metadata.source.diff",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         }
       ]
     },
