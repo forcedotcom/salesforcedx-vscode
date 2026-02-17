@@ -6,15 +6,11 @@
  */
 
 import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
-import * as path from 'node:path';
-
-const packageRoot = path.resolve(__dirname, '..', '..', '..');
-const metadataPath = path.resolve(packageRoot, '..', 'salesforcedx-vscode-metadata');
 
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
-  additionalExtensionPaths: [metadataPath],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
   disableOtherExtensions: false,
   userSettings: {
     'github.gitAuthentication': false,

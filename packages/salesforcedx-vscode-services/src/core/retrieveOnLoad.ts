@@ -65,8 +65,6 @@ const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: M
 /** Effect to retrieve metadata on load based on setting */
 export const retrieveOnLoadEffect = () =>
   Effect.gen(function* () {
-    const channelService = yield* ChannelService;
-
     const retrieveOnLoadValue = yield* SettingsService.getRetrieveOnLoad();
 
     if (retrieveOnLoadValue.length === 0) {
@@ -74,6 +72,7 @@ export const retrieveOnLoadEffect = () =>
     }
 
     const members = parseRetrieveOnLoad(retrieveOnLoadValue);
+    const channelService = yield* ChannelService;
 
     if (members.length === 0) {
       return yield* channelService.appendToChannel('No valid metadata members found in retrieveOnLoad setting');

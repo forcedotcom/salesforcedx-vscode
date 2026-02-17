@@ -6,15 +6,12 @@
  */
 
 import { createHeadlessServer, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
-import * as path from 'node:path';
 
 if (require.main === module) {
-  const extensionDevelopmentPath = path.resolve(__dirname, '..', '..', '..', '..');
-  const metadataExtensionPath = path.resolve(extensionDevelopmentPath, '..', 'salesforcedx-vscode-metadata');
   void createHeadlessServer({
     extensionName: 'Apex Testing',
     callerDirname: __dirname,
-    additionalExtensionPaths: [metadataExtensionPath]
+    additionalExtensionDirs: ['salesforcedx-vscode-metadata']
   });
   setupSignalHandlers();
 }

@@ -12,7 +12,8 @@ import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
   closeWelcomeTabs,
-  isMacDesktop
+  isMacDesktop,
+  ensureSecondarySideBarHidden
 } from '../../../src/utils/helpers';
 import { EDITOR_WITH_URI, QUICK_INPUT_WIDGET } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
@@ -22,6 +23,7 @@ test.describe('Context Menu', () => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
   });
 
   test('should execute editor context menu command', async ({ page }) => {

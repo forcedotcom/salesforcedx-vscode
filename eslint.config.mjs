@@ -609,7 +609,9 @@ export default [
       'packages/salesforcedx-vscode-apex-testing/test/**/*.ts',
       'packages/salesforcedx-vscode-services/playwright*.ts',
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
-      'packages/salesforcedx-vscode-metadata/playwright*.ts'
+      'packages/salesforcedx-vscode-metadata/playwright*.ts',
+      'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-core/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import

@@ -30,6 +30,7 @@ import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStor
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
+import { watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
@@ -126,10 +127,19 @@ const activationEffect = (context: vscode.ExtensionContext) =>
       );
     }
     // watch default org changes to update VS Code context variables and other services
-    // watch the config files for changes, which various services use to invalidate caches
-    yield* Effect.all([Effect.forkIn(watchDefaultOrgContext(), scope), Effect.forkIn(watchConfigFiles(), scope)], {
-      concurrency: 'unbounded'
-    });
+    yield* Effect.all(
+      [
+        // watch default org changes to update VS Code context variables and other services
+        Effect.forkIn(watchDefaultOrgContext(), scope),
+        // watch the config files for changes, which various services use to invalidate caches
+        Effect.forkIn(watchConfigFiles(), scope),
+        // watch active editor changes to update package directories context
+        Effect.forkIn(watchPackageDirectoriesContext(), scope)
+      ],
+      {
+        concurrency: 'unbounded'
+      }
+    );
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -166,6 +176,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ComponentSetService.Default,
     ConfigService.Default,
     ConnectionService.Default,
+    EditorService.Default,
     FileWatcherService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,

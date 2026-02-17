@@ -28,7 +28,8 @@ import {
   selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
-  outputChannelContains
+  outputChannelContains,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -44,17 +45,18 @@ const verifyDiffCompleted = async (page: Page, className: string, screenshotPref
   await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: DEPLOY_TIMEOUT });
 
   // Verify retrieve succeeded
-  expect(await outputChannelContains(page, '0 components retrieved'), 'Should not show "0 components retrieved"').toBe(
-    false
-  );
+  expect(
+    await outputChannelContains(page, '0 components retrieved', { timeout: 100 }),
+    'Should not show "0 components retrieved"'
+  ).toBe(false);
 
   expect(
-    await outputChannelContains(page, 'No components retrieved from org'),
+    await outputChannelContains(page, 'No components retrieved from org', { timeout: 100 }),
     'Should not show "No components retrieved from org"'
   ).toBe(false);
 
   expect(
-    await outputChannelContains(page, 'No matching files found to diff'),
+    await outputChannelContains(page, 'No matching files found to diff', { timeout: 100 }),
     'Should not show "No matching files found to diff"'
   ).toBe(false);
 
@@ -89,6 +91,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     statusBarPage = new SourceTrackingStatusBarPage(page);
