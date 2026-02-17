@@ -41,8 +41,8 @@ import {
   ReferenceParams
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 
-import URI from 'vscode-uri';
 import AuraIndexer from './aura-indexer/indexer';
 import {
   getAuraBindingTemplateDeclaration,
@@ -263,9 +263,7 @@ export default class Server {
         return list;
       }
 
-      const isAuraJavascript = await this.context.isAuraJavascript(document);
-
-      if (isAuraJavascript) {
+      if (await this.context.isAuraJavascript(document)) {
         const result = await onCompletion(completionParams, this.fileSystemProvider);
         return result;
       }
@@ -291,9 +289,7 @@ export default class Server {
     }
 
     try {
-      const isAuraMarkup = await this.context.isAuraMarkup(document);
-
-      if (isAuraMarkup) {
+      if (await this.context.isAuraMarkup(document)) {
         if (!this.isDelayedInitializationComplete) {
           return {
             contents: nls.localize('server_initializing_message')
