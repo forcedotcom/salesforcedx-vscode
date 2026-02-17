@@ -49,7 +49,7 @@ const diffItems = (items: string[], compareItems: string[]): string[] => {
 
 // Utility function to create new meta typings
 const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
-  const newFiles = diffItems(await getMetaFiles(indexer), getMetaTypings(indexer));
+  const newFiles = diffItems(await getMetaFiles(indexer), await getMetaTypings(indexer));
 
   // Process and write each typing file immediately
   for (const filename of newFiles) {
@@ -72,13 +72,13 @@ const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> =
 };
 
 // Utility function to delete stale meta typings
-const deleteStaleMetaTypings = (indexer: TypingIndexerData): void => {
-  const staleTypings = diffItems(getMetaTypings(indexer), getMetaFiles(indexer));
+const deleteStaleMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
+  const staleTypings = diffItems(await getMetaTypings(indexer), await getMetaFiles(indexer));
   const filesToDelete: string[] = [];
 
   for (const filename of staleTypings) {
     const uri = normalizePath(filename);
-    if (indexer.fileSystemProvider.fileExists(uri)) {
+    if (await indexer.fileSystemProvider.fileExists(uri)) {
       filesToDelete.push(uri);
     }
   }
@@ -97,13 +97,13 @@ const deleteStaleMetaTypings = (indexer: TypingIndexerData): void => {
 
 // Utility function to save custom label typings
 const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void> => {
-  const customLabelFiles = getCustomLabelFiles(indexer);
+  const customLabelFiles = await getCustomLabelFiles(indexer);
   const typings: string[] = [];
 
   for (const filename of customLabelFiles) {
     const uri = normalizePath(filename);
-    if (indexer.fileSystemProvider.fileExists(uri)) {
-      const content = indexer.fileSystemProvider.getFileContentSync(uri);
+    if (await indexer.fileSystemProvider.fileExists(uri)) {
+      const content = await indexer.fileSystemProvider.getFileContent(uri);
       if (content) {
         const data = Buffer.from(content, 'utf8');
         const typing = await declarationsFromCustomLabels(data);
@@ -131,7 +131,7 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
 };
 
 // Utility function to get meta files
-const getMetaFiles = (indexer: TypingIndexerData): string[] => {
+const getMetaFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
   // For mock file system, check for specific meta files that should exist
   const metaFiles: string[] = [];
   const possibleMetaFiles = [
@@ -146,7 +146,7 @@ const getMetaFiles = (indexer: TypingIndexerData): string[] => {
 
   for (const metaFile of possibleMetaFiles) {
     const filePath = normalizePath(path.join(indexer.workspaceRoot, metaFile));
-    if (indexer.fileSystemProvider.fileExists(filePath)) {
+    if (await indexer.fileSystemProvider.fileExists(filePath)) {
       metaFiles.push(filePath);
     }
   }
@@ -156,7 +156,7 @@ const getMetaFiles = (indexer: TypingIndexerData): string[] => {
 
 // Utility function to get meta typings
 // visible for testing
-export const getMetaTypings = (indexer: TypingIndexerData): string[] => {
+export const getMetaTypings = async (indexer: TypingIndexerData): Promise<string[]> => {
   // For mock file system, we need to check what files actually exist
   // instead of using glob.sync which searches the real file system
   const typingsBaseDir = indexer.typingsBaseDir;
@@ -172,7 +172,7 @@ export const getMetaTypings = (indexer: TypingIndexerData): string[] => {
 
   for (const filename of possibleFiles) {
     const filePath = path.join(typingsBaseDir, filename);
-    if (indexer.fileSystemProvider.fileExists(normalizePath(filePath))) {
+    if (await indexer.fileSystemProvider.fileExists(normalizePath(filePath))) {
       metaTypings.push(path.resolve(filePath));
     }
   }
@@ -181,13 +181,13 @@ export const getMetaTypings = (indexer: TypingIndexerData): string[] => {
 };
 
 // Utility function to get custom label files
-const getCustomLabelFiles = (indexer: TypingIndexerData): string[] => {
+const getCustomLabelFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
   // For mock file system, check for the specific custom labels file
   const customLabelsPath = path.join(
     indexer.workspaceRoot,
     'force-app/main/default/labels/CustomLabels.labels-meta.xml'
   );
-  if (indexer.fileSystemProvider.fileExists(normalizePath(customLabelsPath))) {
+  if (await indexer.fileSystemProvider.fileExists(normalizePath(customLabelsPath))) {
     return [customLabelsPath];
   }
   return [];
@@ -256,9 +256,9 @@ export default class TypingIndexer {
 
     // Initialize typings for SFDX workspaces
     if (this.projectType === 'SFDX') {
-      this.metaFiles = getMetaFiles(this);
+      this.metaFiles = await getMetaFiles(this);
       await this.createNewMetaTypings();
-      this.deleteStaleMetaTypings();
+      await this.deleteStaleMetaTypings();
       await this.saveCustomLabelTypings();
     }
   }
@@ -269,7 +269,7 @@ export default class TypingIndexer {
   }
 
   // visible for testing
-  public deleteStaleMetaTypings(): void {
+  public async deleteStaleMetaTypings(): Promise<void> {
     return deleteStaleMetaTypings(this);
   }
 

@@ -113,7 +113,7 @@ export const memoize = <T>(fn: () => T): (() => T) => {
 
 export const readJsonSync = async (file: string, fileSystemProvider: IFileSystemProvider): Promise<SfdxTsConfig> => {
   try {
-    const content = fileSystemProvider.getFileContentSync(`${file}`);
+    const content = await fileSystemProvider.getFileContent(`${file}`);
     if (!content) {
       return {};
     }

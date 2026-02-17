@@ -45,7 +45,7 @@ export const detectWorkspaceHelper = async (
 
   try {
     const sfdxProjectFile = getSfdxProjectFile(root);
-    const fileStat = fileSystemProvider.getFileStat(sfdxProjectFile);
+    const fileStat = await fileSystemProvider.getFileStat(sfdxProjectFile);
 
     if (fileStat?.type === 'file') {
       return 'SFDX';
@@ -55,7 +55,7 @@ export const detectWorkspaceHelper = async (
   }
 
   try {
-    const fileStat = fileSystemProvider.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
+    const fileStat = await fileSystemProvider.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
     if (fileStat?.type === 'file') {
       return 'CORE_ALL';
     }
@@ -65,7 +65,7 @@ export const detectWorkspaceHelper = async (
 
   try {
     const parentWorkspaceUserUri = path.join(root, '..', 'workspace-user.xml');
-    const fileStat = fileSystemProvider.getFileStat(`${parentWorkspaceUserUri}`);
+    const fileStat = await fileSystemProvider.getFileStat(`${parentWorkspaceUserUri}`);
     if (fileStat?.type === 'file') {
       return 'CORE_PARTIAL';
     }
@@ -75,7 +75,7 @@ export const detectWorkspaceHelper = async (
 
   try {
     const lwcConfigUri = path.join(root, 'lwc.config.json');
-    const fileStat = fileSystemProvider.getFileStat(`${lwcConfigUri}`);
+    const fileStat = await fileSystemProvider.getFileStat(`${lwcConfigUri}`);
     if (fileStat?.type === 'file') {
       return 'STANDARD_LWC';
     }
@@ -85,7 +85,7 @@ export const detectWorkspaceHelper = async (
 
   const packageJson = path.join(root, 'package.json');
   try {
-    const packageInfoContent = fileSystemProvider.getFileContentSync(`${packageJson}`);
+    const packageInfoContent = await fileSystemProvider.getFileContent(`${packageJson}`);
     if (!packageInfoContent) {
       throw new Error('Package info not found');
     }
@@ -111,7 +111,7 @@ export const detectWorkspaceHelper = async (
 
     try {
       const lernaJsonUri = path.join(root, 'lerna.json');
-      const fileStat = fileSystemProvider.getFileStat(`${lernaJsonUri}`);
+      const fileStat = await fileSystemProvider.getFileStat(`${lernaJsonUri}`);
       if (fileStat?.type === 'file') {
         return 'MONOREPO';
       }

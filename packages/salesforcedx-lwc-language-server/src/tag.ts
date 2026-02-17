@@ -77,7 +77,7 @@ export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFile
   } else if (file && fileSystemProvider) {
     try {
       // file is already normalized, and getFileStat normalizes internally
-      const stat = fileSystemProvider.getFileStat(`file://${file}`);
+      const stat = await fileSystemProvider.getFileStat(`file://${file}`);
       updatedAt = stat ? new Date(stat.mtime) : new Date();
     } catch {
       // If file doesn't exist or can't be read, use current date
@@ -182,12 +182,16 @@ export const getTagLocation = (tag: Tag, fileSystemProvider?: IFileSystemProvide
  * Finds files matching a pattern in a directory using FileSystemDataProvider
  * This replaces fast-glob for web compatibility
  */
-const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvider: IFileSystemProvider): string[] => {
+const findFilesInDirectory = async (
+  dirPath: string,
+  pattern: RegExp,
+  fileSystemProvider: IFileSystemProvider
+): Promise<string[]> => {
   const results: string[] = [];
   // Normalize path the same way FileSystemDataProvider normalizes paths
   const normalizedDirPath = normalizePath(dirPath);
 
-  if (!fileSystemProvider.directoryExists(normalizedDirPath)) {
+  if (!(await fileSystemProvider.directoryExists(normalizedDirPath))) {
     return results;
   }
 
@@ -206,7 +210,10 @@ const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvid
 };
 
 // Utility function to get all locations
-export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvider): Location[] => {
+export const getAllLocations = async (
+  tag: Tag,
+  fileSystemProvider: IFileSystemProvider
+): Promise<Location[]> => {
   // tag.file is already normalized (comes from entry.path which is normalized by FileSystemDataProvider)
   const { dir, name } = path.parse(tag.file);
   // Normalize dir because path.parse() returns backslashes on Windows
@@ -231,7 +238,7 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
 
   // Match files like name.html or name.css
   const pattern = new RegExp(`^${name.replaceAll(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
-  const filteredFiles = findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
+  const filteredFiles = await findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
 
   const locations = filteredFiles.map(convertFileToLocation);
 
@@ -329,7 +336,7 @@ export const updateTagMetadata = async (
   if (fileSystemProvider) {
     try {
       // tag.file is already normalized, and getFileStat normalizes internally
-      const stat = fileSystemProvider.getFileStat(`file://${tag.file}`);
+      const stat = await fileSystemProvider.getFileStat(`file://${tag.file}`);
       tag.updatedAt = stat ? new Date(stat.mtime) : new Date();
     } catch {
       // If file doesn't exist or can't be read, use current date
@@ -355,10 +362,10 @@ export const createTagFromFile = async (
   try {
     // file is already normalized (comes from entry.path), and getFileContent normalizes internally
     // Try both with and without file:// prefix
-    let content = fileSystemProvider.getFileContentSync(file);
+    let content = await fileSystemProvider.getFileContent(file);
     if (!content) {
       const fileWithPrefix = file.startsWith('file://') ? file : `file://${file}`;
-      content = fileSystemProvider.getFileContentSync(fileWithPrefix);
+      content = await fileSystemProvider.getFileContent(fileWithPrefix);
     }
     if (!content) {
       return null;

@@ -12,12 +12,15 @@ import { normalizePath } from './utils';
 /**
  * Check if a directory contains module roots
  */
-const isModuleRoot = (subdirs: string[], fileSystemProvider: IFileSystemProvider): boolean => {
+const isModuleRoot = async (
+  subdirs: string[],
+  fileSystemProvider: IFileSystemProvider
+): Promise<boolean> => {
   for (const subdir of subdirs) {
     // Is a root if any subdir matches a name/name.js with name.js being a module
     const basename = path.basename(subdir);
     const modulePath = normalizePath(path.join(subdir, `${basename}.js`));
-    const stat = fileSystemProvider.getFileStat(modulePath);
+    const stat = await fileSystemProvider.getFileStat(modulePath);
     if (stat?.type === 'file') {
       return true;
     }
@@ -54,7 +57,7 @@ const traverse = async (
 
   // Is a root if we have a folder called lwc
   const isDirLWC =
-    isModuleRoot(dirs, fileSystemProvider) ||
+    (await isModuleRoot(dirs, fileSystemProvider)) ||
     (!path.parse(normalizedCandidate).ext && path.parse(normalizedCandidate).name === 'lwc');
   if (isDirLWC) {
     // normalizedCandidate is already normalized and absolute, so we can use it directly
@@ -112,7 +115,7 @@ export const findNamespaceRoots = async (
 
   // Normalize root path before calling getFileStat to ensure path format consistency
   const normalizedRoot = normalizePath(root);
-  const stat = fileSystemProvider.getFileStat(normalizedRoot);
+  const stat = await fileSystemProvider.getFileStat(normalizedRoot);
   if (stat?.type === 'directory') {
     await traverse(normalizedRoot, maxDepth, roots, fileSystemProvider);
   }

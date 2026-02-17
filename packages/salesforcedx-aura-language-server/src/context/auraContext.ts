@@ -45,16 +45,16 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
           const utilsLwcPath = normalizePath(path.join(utilsPath, 'lwc'));
           const registeredLwcPath = normalizePath(path.join(registeredEmptyPath, 'lwc'));
 
-          if (this.fileSystemProvider.directoryExists(lwcPath)) {
+          if (await this.fileSystemProvider.directoryExists(lwcPath)) {
             roots.lwc.push(lwcPath);
           }
-          if (this.fileSystemProvider.directoryExists(utilsLwcPath)) {
+          if (await this.fileSystemProvider.directoryExists(utilsLwcPath)) {
             roots.lwc.push(utilsLwcPath);
           }
-          if (this.fileSystemProvider.directoryExists(registeredLwcPath)) {
+          if (await this.fileSystemProvider.directoryExists(registeredLwcPath)) {
             roots.lwc.push(registeredLwcPath);
           }
-          if (this.fileSystemProvider.directoryExists(auraPath)) {
+          if (await this.fileSystemProvider.directoryExists(auraPath)) {
             roots.aura.push(auraPath);
           }
         }
@@ -64,12 +64,12 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         const projects = this.fileSystemProvider.getDirectoryListing(this.workspaceRoots[0]);
         for (const project of projects) {
           const modulesDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'modules'));
-          if (this.fileSystemProvider.directoryExists(modulesDir)) {
+          if (await this.fileSystemProvider.directoryExists(modulesDir)) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
           }
           const auraDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'components'));
-          if (this.fileSystemProvider.directoryExists(auraDir)) {
+          if (await this.fileSystemProvider.directoryExists(auraDir)) {
             // The components directory itself is the Aura namespace root
             // (findNamespaceRoots only detects LWC, not Aura)
             roots.aura.push(auraDir);
@@ -80,12 +80,12 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         // optimization: search only inside modules/
         for (const ws of this.workspaceRoots) {
           const modulesDir = normalizePath(path.join(ws, 'modules'));
-          if (this.fileSystemProvider.directoryExists(modulesDir)) {
+          if (await this.fileSystemProvider.directoryExists(modulesDir)) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
           }
           const auraDir = normalizePath(path.join(ws, 'components'));
-          if (this.fileSystemProvider.directoryExists(auraDir)) {
+          if (await this.fileSystemProvider.directoryExists(auraDir)) {
             // The components directory itself is the Aura namespace root
             // (findNamespaceRoots only detects LWC, not Aura)
             roots.aura.push(auraDir);
@@ -110,7 +110,7 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
     const namespaceRoots = await this.findNamespaceRootsUsingTypeCache();
 
     for (const namespaceRoot of namespaceRoots.aura) {
-      const markupFiles = findAuraMarkupIn(namespaceRoot, this);
+      const markupFiles = await findAuraMarkupIn(namespaceRoot, this);
       files.push(...markupFiles);
     }
     return files;
@@ -129,7 +129,10 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
   }
 }
 
-const findAuraMarkupIn = (namespaceRoot: string, context: AuraWorkspaceContext): NormalizedPath[] => {
+const findAuraMarkupIn = async (
+  namespaceRoot: string,
+  context: AuraWorkspaceContext
+): Promise<NormalizedPath[]> => {
   const files: NormalizedPath[] = [];
 
   try {
@@ -137,13 +140,13 @@ const findAuraMarkupIn = (namespaceRoot: string, context: AuraWorkspaceContext):
 
     for (const dir of dirs) {
       const componentDir = normalizePath(path.join(namespaceRoot, dir.name));
-      const isDir = context.fileSystemProvider.directoryExists(componentDir);
+      const isDir = await context.fileSystemProvider.directoryExists(componentDir);
 
       if (isDir) {
         for (const ext of AURA_EXTENSIONS) {
           // Construct path using namespaceRoot and dir.name to preserve original casing
           const markupFile = normalizePath(path.join(namespaceRoot, dir.name, dir.name + ext));
-          if (context.fileSystemProvider.fileExists(markupFile)) {
+          if (await context.fileSystemProvider.fileExists(markupFile)) {
             files.push(markupFile);
           }
         }

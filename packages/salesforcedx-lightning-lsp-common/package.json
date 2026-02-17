@@ -21,6 +21,11 @@
       "require": "./out/src/workspaceLoader.js",
       "types": "./out/src/workspaceLoader.d.ts"
     },
+    "./workspaceReadFileHandler": {
+      "import": "./out/src/workspaceReadFileHandler.js",
+      "require": "./out/src/workspaceReadFileHandler.js",
+      "types": "./out/src/workspaceReadFileHandler.d.ts"
+    },
     "./testUtils": {
       "import": "./out/src/__tests__/testUtils.js",
       "require": "./out/src/__tests__/testUtils.js",
@@ -91,6 +96,7 @@
     }
   },
   "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "ejs": "^3.1.10",

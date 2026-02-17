@@ -136,12 +136,15 @@ const languageId = (path: string): string => {
   return '';
 };
 
-export const readAsTextDocument = (path: string, fileSystemProvider: FileSystemDataProvider): TextDocument => {
+export const readAsTextDocument = async (
+  path: string,
+  fileSystemProvider: FileSystemDataProvider
+): Promise<TextDocument> => {
   // Normalize path for cross-platform compatibility
   const normalizedPath = normalizePath(path);
   // Create a proper file:// URI for the TextDocument
   const uri = URI.file(normalizedPath).toString();
-  const content = fileSystemProvider.getFileContentSync(normalizedPath) ?? '';
+  const content = (await fileSystemProvider.getFileContent(normalizedPath)) ?? '';
   return TextDocument.create(uri, languageId(path), 0, content);
 };
 

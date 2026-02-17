@@ -45,7 +45,7 @@ beforeAll(() => {
 
 const verifyJsconfigCore = async (fileSystemProvider: FileSystemDataProvider, jsconfigPath: string): Promise<void> => {
   const normalizedPath = normalizePath(jsconfigPath);
-  const jsconfigContent = Buffer.from(fileSystemProvider.getFileContentSync(normalizedPath) ?? '').toString('utf8');
+  const jsconfigContent = Buffer.from((await fileSystemProvider.getFileContent(normalizedPath)) ?? '').toString('utf8');
   expect(jsconfigContent).toContain('"compilerOptions": {');
   const jsconfig = JSON.parse(jsconfigContent);
   expect(jsconfig.compilerOptions.experimentalDecorators).toBe(true);
@@ -66,8 +66,8 @@ const verifyJsconfigCore = async (fileSystemProvider: FileSystemDataProvider, js
 
 const verifyTypingsCore = async (fileSystemProvider: FileSystemDataProvider): Promise<void> => {
   const typingsPath = path.join(CORE_ALL_ROOT, '.vscode', 'typings', 'lwc');
-  expect(fileSystemProvider.fileExists(path.join(typingsPath, 'engine.d.ts'))).toBe(true);
-  expect(fileSystemProvider.fileExists(path.join(typingsPath, 'lds.d.ts'))).toBe(true);
+  expect(await fileSystemProvider.fileExists(path.join(typingsPath, 'engine.d.ts'))).toBe(true);
+  expect(await fileSystemProvider.fileExists(path.join(typingsPath, 'lds.d.ts'))).toBe(true);
   try {
     fileSystemProvider.updateFileStat(typingsPath, {
       type: 'directory',
@@ -169,7 +169,7 @@ describe('WorkspaceContext', () => {
       // Ignore if file doesn't exist
     }
     try {
-      const sourceContent = sfdxFileSystemProvider.getFileContentSync(jsconfigPathUtilsOrig) ?? '';
+      const sourceContent = (await sfdxFileSystemProvider.getFileContent(jsconfigPathUtilsOrig)) ?? '';
       void sfdxFileSystemProvider.updateFileContent(jsconfigPathUtils, sourceContent);
     } catch {
       // File operations failed - this might be expected in test cleanup
@@ -199,15 +199,15 @@ describe('WorkspaceContext', () => {
 
     // verify typings/jsconfig after configuration:
 
-    expect(sfdxFileSystemProvider.fileExists(jsconfigPathUtils)).toBe(true);
-    context.configureProject();
+    expect(await sfdxFileSystemProvider.fileExists(jsconfigPathUtils)).toBe(true);
+    await context.configureProject();
 
     const { sfdxPackageDirsPattern } = await context.initSfdxProjectConfigCache();
     expect(sfdxPackageDirsPattern).toBe('{force-app,utils,registered-empty-folder}');
 
     // verify newly created jsconfig.json
     const jsconfigForceAppContent = Buffer.from(
-      sfdxFileSystemProvider.getFileContentSync(jsconfigPathForceApp) ?? ''
+      (await sfdxFileSystemProvider.getFileContent(jsconfigPathForceApp)) ?? ''
     ).toString('utf8');
     expect(jsconfigForceAppContent).toContain('"compilerOptions": {');
     const jsconfigForceApp = JSON.parse(jsconfigForceAppContent);
@@ -217,9 +217,9 @@ describe('WorkspaceContext', () => {
     expect(jsconfigForceApp.compilerOptions.baseUrl).toBeDefined(); // baseUrl/paths set when indexing
     expect(jsconfigForceApp.typeAcquisition).toEqual({ include: ['jest'] });
     // verify updated jsconfig.json
-    const jsconfigUtilsContent = Buffer.from(sfdxFileSystemProvider.getFileContentSync(jsconfigPathUtils) ?? '').toString(
-      'utf8'
-    );
+    const jsconfigUtilsContent = Buffer.from(
+      (await sfdxFileSystemProvider.getFileContent(jsconfigPathUtils)) ?? ''
+    ).toString('utf8');
     expect(jsconfigUtilsContent).toContain('"compilerOptions": {');
     const jsconfigUtils = JSON.parse(jsconfigUtilsContent);
     expect(jsconfigUtils.compilerOptions.target).toBe('es2017');
@@ -231,7 +231,7 @@ describe('WorkspaceContext', () => {
 
     // .forceignore
     const forceignoreContent = Buffer.from(
-      sfdxFileSystemProvider.getFileContentSync(path.resolve(context.workspaceRoots[0], '.forceignore')) ?? ''
+      (await sfdxFileSystemProvider.getFileContent(path.resolve(context.workspaceRoots[0], '.forceignore'))) ?? ''
     ).toString('utf8');
     expect(forceignoreContent).toContain('**/jsconfig.json');
     expect(forceignoreContent).toContain('**/.eslintrc.json');
@@ -241,26 +241,26 @@ describe('WorkspaceContext', () => {
 
     // typings
     expect(
-      sfdxFileSystemProvider.fileExists(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'lds.d.ts'))
+      await sfdxFileSystemProvider.fileExists(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'lds.d.ts'))
     ).toBe(true);
     expect(
-      sfdxFileSystemProvider.fileExists(
+      await sfdxFileSystemProvider.fileExists(
         path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'engine.d.ts')
       )
     ).toBe(true);
     expect(
-      sfdxFileSystemProvider.fileExists(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts'))
+      await sfdxFileSystemProvider.fileExists(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts'))
     ).toBe(true);
     const schemaContents = Buffer.from(
-      sfdxFileSystemProvider.getFileContentSync(
+      (await sfdxFileSystemProvider.getFileContent(
         path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'schema.d.ts')
-      ) ?? ''
+      )) ?? ''
     ).toString('utf8');
     expect(schemaContents).toContain("declare module '@salesforce/schema' {");
     const apexContents = Buffer.from(
-      sfdxFileSystemProvider.getFileContentSync(
+      (await sfdxFileSystemProvider.getFileContent(
         path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts')
-      ) ?? ''
+      )) ?? ''
     ).toString('utf8');
     expect(apexContents).not.toContain('declare type');
   });
@@ -308,13 +308,13 @@ describe('WorkspaceContext', () => {
     }
 
     // configure and verify typings/jsconfig after configuration:
-    context.configureProject();
+    await context.configureProject();
 
     await verifyJsconfigCore(coreProjectFileSystemProvider, jsconfigPath);
     await verifyTypingsCore(coreProjectFileSystemProvider);
 
     const settings = JSON.parse(
-      Buffer.from(coreProjectFileSystemProvider.getFileContentSync(settingsPath) ?? '').toString('utf8')
+      Buffer.from((await coreProjectFileSystemProvider.getFileContent(settingsPath)) ?? '').toString('utf8')
     );
     verifyCoreSettings(settings);
   });
@@ -326,7 +326,7 @@ describe('WorkspaceContext', () => {
     const tsconfigPathForce = path.join(context.workspaceRoots[0], 'tsconfig.json');
 
     // configure and verify typings/jsconfig after configuration:
-    context.configureProject();
+    await context.configureProject();
 
     // For CORE_ALL, getModulesDirs only processes the first workspace root and looks for
     // project subdirectories. Since CORE_MULTI_ROOT[0] doesn't have project subdirectories,
@@ -334,7 +334,7 @@ describe('WorkspaceContext', () => {
     // verify newly created jsconfig.json (if any were created)
     // Note: This test may need adjustment based on actual CORE_ALL behavior with multiple roots
     // For now, just verify the tsconfig still exists
-    expect(coreMultiFileSystemProvider.fileExists(normalizePath(tsconfigPathForce))).toBe(true);
+    expect(await coreMultiFileSystemProvider.fileExists(normalizePath(tsconfigPathForce))).toBe(true);
     await verifyTypingsCore(coreMultiFileSystemProvider);
 
     coreMultiFileSystemProvider.updateFileStat(normalizePath(tsconfigPathForce), {
@@ -357,7 +357,7 @@ describe('WorkspaceContext', () => {
     // No cleanup needed - updateFileContent() will overwrite the existing content.
 
     // configure and verify typings/jsconfig after configuration:
-    context.configureProject();
+    await context.configureProject();
 
     // verify newly created jsconfig.json
     await verifyJsconfigCore(coreFileSystemProvider, jsconfigPathGlobal);

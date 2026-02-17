@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Effect from 'effect/Effect';
+import type { WorkspaceReadFileResult, WorkspaceStatResult } from '../lspCustomRequests';
 import * as path from 'node:path';
 import {
   Connection,
@@ -23,23 +23,16 @@ import { FileStat, DirectoryEntry, WorkspaceConfig } from '../types/fileSystemTy
 import { NormalizedPath, normalizePath } from '../utils';
 
 /**
- * Optional effect to read file content (e.g. from FsService) when not in cache.
- * Used by getFileContent to read through to workspace FS when running in Effect context.
- */
-export type ReadFileEffect = (uri: string) => Effect.Effect<string, unknown>;
-
-/**
  * Interface for file system operations
  */
 export interface IFileSystemProvider {
-  /** Effect-based: returns from cache, or runs readFile (e.g. FsService) on miss. Use with Effect.runPromise or yield*. */
-  getFileContent(uri: string): Effect.Effect<string | undefined, never>;
-  /** Sync: returns from in-memory cache only. Use when not in an Effect context. */
-  getFileContentSync(uri: string): string | undefined;
+  /** Returns from cache, or via workspace/readFile from client on cache miss when configured with setReadFileFromConnection. */
+  getFileContent(uri: string): Promise<string | undefined>;
   getDirectoryListing(uri: NormalizedPath): DirectoryEntry[];
-  getFileStat(uri: string): FileStat | undefined;
-  fileExists(uri: string): boolean;
-  directoryExists(uri: NormalizedPath): boolean;
+  /** Returns from cache, or via workspace/stat from client on cache miss when configured with setReadStatFromConnection. */
+  getFileStat(uri: string): Promise<FileStat | undefined>;
+  fileExists(uri: string): Promise<boolean>;
+  directoryExists(uri: NormalizedPath): Promise<boolean>;
   /**
    * Update file content from client
    * If connection is provided, uses LSP workspace/applyEdit to create/write the file (works in both Node.js and web)
@@ -74,10 +67,25 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   private fileStats: Map<NormalizedPath, FileStat> = new Map();
   private workspaceConfig: WorkspaceConfig | null = null;
   private workspaceFolderUris: string[] = [];
-  private readonly readFileEffect?: ReadFileEffect;
+  private connectionForRead?: Connection;
+  private readFileRequestMethod?: string;
+  private connectionForStat?: Connection;
+  private statRequestMethod?: string;
 
-  constructor(readFileEffect?: ReadFileEffect) {
-    this.readFileEffect = readFileEffect;
+  /**
+   * When set, getFileContent uses workspace/readFile on cache miss so the client (e.g. FsService) can read the file.
+   */
+  public setReadFileFromConnection(connection: Connection, requestMethod: string): void {
+    this.connectionForRead = connection;
+    this.readFileRequestMethod = requestMethod;
+  }
+
+  /**
+   * When set, getFileStat uses workspace/stat on cache miss so the client (e.g. FsService) can stat the file/directory.
+   */
+  public setReadStatFromConnection(connection: Connection, requestMethod: string): void {
+    this.connectionForStat = connection;
+    this.statRequestMethod = requestMethod;
   }
 
   /**
@@ -274,32 +282,36 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   }
 
   /**
-   * Get file content: from cache first, then via readFile effect (e.g. FsService) on miss.
-   * Run with Effect.runPromise(provider.getFileContent(uri)) or yield* inside Effect.gen.
+   * Get file content: from cache first, then via workspace/readFile from client on cache miss when setReadFileFromConnection was called.
    */
-  public getFileContent(uri: string): Effect.Effect<string | undefined, never> {
+  public async getFileContent(uri: string): Promise<string | undefined> {
     const key = normalizePath(uri);
     const cached = this.fileContents.get(key);
     if (cached !== undefined) {
-      return Effect.succeed(cached);
+      return cached;
     }
-    if (!this.readFileEffect) {
-      return Effect.succeed(undefined);
-    }
-    return this.readFileEffect(uri).pipe(
-      Effect.map(content => {
-        this.fileContents.set(key, content);
-        return content;
-      }),
-      Effect.catchAll(() => Effect.succeed(undefined))
-    );
-  }
+    if (this.connectionForRead && this.readFileRequestMethod) {
+      try {
+        const fileUri = this.getFileUriForPath(key);
+        const result = await this.connectionForRead.sendRequest<WorkspaceReadFileResult>(this.readFileRequestMethod, {
+          uri: fileUri
+        });
 
-  /**
-   * Get file content from the in-memory cache only (sync). Use when not in an Effect context.
-   */
-  public getFileContentSync(uri: string): string | undefined {
-    return this.fileContents.get(normalizePath(uri));
+        if (result.error) {
+          Logger.error(`[FileSystemDataProvider] workspace/readFile failed for ${key}: ${result.error}`);
+          return undefined;
+        }
+        if (result.content !== undefined) {
+          this.fileContents.set(key, result.content);
+        }
+        return result.content;
+      } catch (e) {
+        Logger.error(
+          `[FileSystemDataProvider] workspace/readFile failed for ${key}: ${e instanceof Error ? e.message : String(e)}`
+        );
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -385,30 +397,55 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   }
 
   /**
-   * Get file stat
+   * Get file stat: from cache first, then via workspace/stat from client on cache miss when setReadStatFromConnection was called.
    */
-  public getFileStat(uri: string): FileStat | undefined {
-    return this.fileStats.get(normalizePath(uri));
+  public async getFileStat(uri: string): Promise<FileStat | undefined> {
+    const key = normalizePath(uri);
+
+    if (this.connectionForStat && this.statRequestMethod) {
+      try {
+        const fileUri = this.getFileUriForPath(key);
+        const result = await this.connectionForStat.sendRequest<WorkspaceStatResult>(this.statRequestMethod, {
+          uri: fileUri
+        });
+        if (result.error) {
+          return undefined;
+        }
+        if (result.stat !== undefined) {
+          this.fileStats.set(key, result.stat);
+          return result.stat;
+        }
+      } catch (e) {
+        const cached = this.fileStats.get(key);
+        if (cached !== undefined) {
+          return cached;
+        }
+        Logger.warn(
+          `[FileSystemDataProvider] workspace/stat failed for ${key}: ${e instanceof Error ? e.message : String(e)}`
+        );
+      }
+    }
+    // When no connection or request didn't return a stat, use local cache (e.g. tests with pre-populated provider)
+    return this.fileStats.get(key);
   }
 
   /**
-   * Check if file exists
+   * Check if file or directory exists. Uses cache first, then workspace/stat from client on miss when setReadStatFromConnection was called.
    */
-  public fileExists(uri: string): boolean {
-    const stat = this.fileStats.get(normalizePath(uri));
+  public async fileExists(uri: string): Promise<boolean> {
+    const stat = await this.getFileStat(uri);
     return stat?.exists ?? false;
   }
 
   /**
-   * Check if directory exists
+   * Check if directory exists. Uses getFileStat (cache + workspace/stat) first, then directory listings and inferred paths.
    * A directory exists if:
-   * 1. It has a file stat with type 'directory', OR
+   * 1. getFileStat returns a stat with type 'directory', OR
    * 2. It has a directory listing (even if no explicit stat was created), OR
    * 3. Any files exist with paths that start with this directory path (inferred existence)
-   * - Checks both fileStats (files with stats) and fileContents (files with content)
    */
-  public directoryExists(uri: NormalizedPath): boolean {
-    const stat = this.fileStats.get(uri);
+  public async directoryExists(uri: NormalizedPath): Promise<boolean> {
+    const stat = await this.getFileStat(uri);
     if (stat?.exists && stat.type === 'directory') {
       return true;
     }
@@ -456,17 +493,14 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   }
 
   /**
-   * Get all file URIs
+   * Get all file URIs (from cache only; does not trigger client requests).
    */
   public getAllFileUris(): NormalizedPath[] {
     const allKeys = Array.from(this.fileStats.keys());
-
-    const existingFiles = allKeys.filter(uri => {
-      const stat = this.getFileStat(uri);
+    return allKeys.filter(uri => {
+      const stat = this.fileStats.get(uri);
       return stat?.exists ?? false;
     });
-
-    return existingFiles;
   }
 
   /**

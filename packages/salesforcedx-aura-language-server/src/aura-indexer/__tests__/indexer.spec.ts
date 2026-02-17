@@ -59,7 +59,7 @@ describe('indexer parsing content', () => {
   it('aura indexer', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
     context.initialize('SFDX');
-    context.configureProject();
+    await context.configureProject();
 
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
@@ -94,13 +94,13 @@ describe('indexer parsing content', () => {
   it('should index a valid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
     context.initialize('SFDX');
-    context.configureProject();
+    await context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });
 
     const auraFilename = path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp');
-    const tagInfo = auraIndexer.indexFile(auraFilename, true);
+    const tagInfo = await auraIndexer.indexFile(auraFilename, true);
     expect(tagInfo).toBeObject();
     expect(tagInfo?.name).toEqual('c:wireLdsCmp');
     expect(tagInfo?.file).toEndWith('wireLdsCmp.cmp');
@@ -115,7 +115,7 @@ describe('indexer parsing content', () => {
   xit('should handle indexing an invalid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
     context.initialize('SFDX');
-    context.configureProject();
+    await context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });

@@ -7,6 +7,7 @@
 
 import { DirectoryEntry, FileSystemDataProvider, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { bootstrapWorkspaceAwareness } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceLoader';
+import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { detectWorkspaceType, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { Effect } from 'effect';
 import { log } from 'node:console';
@@ -135,6 +136,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
   try {
     await client.start();
     console.log('Aura Language Server started successfully');
+    registerWorkspaceReadFileHandler(client);
+    log('Workspace read file handler registered');
   } catch (error) {
     const errorMessage = `Failed to start Aura Language Server: ${String(error)}`;
     log(errorMessage);

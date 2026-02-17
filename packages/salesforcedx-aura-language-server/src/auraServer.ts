@@ -14,7 +14,9 @@ import {
   scheduleReinitialization,
   normalizePath,
   NormalizedPath,
-  WorkspaceType
+  WorkspaceType,
+  WORKSPACE_READ_FILE_REQUEST,
+  WORKSPACE_STAT_REQUEST
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
@@ -116,6 +118,10 @@ export default class Server {
         Logger.warn(nls.localize('no_workspace_found_message'));
         return { capabilities: {} };
       }
+
+      this.fileSystemProvider.setWorkspaceFolderUris((workspaceFolders ?? []).map(f => f.uri));
+      this.fileSystemProvider.setReadFileFromConnection(this.connection, WORKSPACE_READ_FILE_REQUEST);
+      this.fileSystemProvider.setReadStatFromConnection(this.connection, WORKSPACE_STAT_REQUEST);
 
       // Set up document event handlers
       this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
@@ -604,7 +610,7 @@ export default class Server {
       this.documents.onDidClose(event => this.onDidClose(event));
 
       // Configure project with updated context
-      this.context.configureProject();
+      await this.context.configureProject();
 
       this.isDelayedInitializationComplete = true;
 

@@ -21,7 +21,7 @@ const ensureDirectoryTracked = async (
   workspaceRoots: string[]
 ): Promise<void> => {
   // Check if directory is already tracked
-  if (provider.directoryExists(dirPath)) {
+  if (await provider.directoryExists(dirPath)) {
     return;
   }
 

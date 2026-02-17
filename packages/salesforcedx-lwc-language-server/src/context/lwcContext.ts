@@ -59,16 +59,16 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           const utilsLwcPath = normalizePath(path.join(utilsPath, 'lwc'));
           const registeredLwcPath = normalizePath(path.join(registeredEmptyPath, 'lwc'));
 
-          if (this.fileSystemProvider.directoryExists(lwcPath)) {
+          if (await this.fileSystemProvider.directoryExists(lwcPath)) {
             roots.lwc.push(lwcPath);
           }
-          if (this.fileSystemProvider.directoryExists(utilsLwcPath)) {
+          if (await this.fileSystemProvider.directoryExists(utilsLwcPath)) {
             roots.lwc.push(utilsLwcPath);
           }
-          if (this.fileSystemProvider.directoryExists(registeredLwcPath)) {
+          if (await this.fileSystemProvider.directoryExists(registeredLwcPath)) {
             roots.lwc.push(registeredLwcPath);
           }
-          if (this.fileSystemProvider.directoryExists(auraPath)) {
+          if (await this.fileSystemProvider.directoryExists(auraPath)) {
             roots.aura.push(auraPath);
           }
         }
@@ -79,7 +79,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         for (const entry of projectDirs) {
           const project = entry.name;
           const modulesDir = normalizePath(path.join(this.workspaceRoots[0], project, 'modules'));
-          if (this.fileSystemProvider.directoryExists(modulesDir)) {
+          if (await this.fileSystemProvider.directoryExists(modulesDir)) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc.map(root => normalizePath(root)));
           }
@@ -89,7 +89,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         // optimization: search only inside modules/
         for (const ws of this.workspaceRoots) {
           const modulesDir = normalizePath(path.join(ws, 'modules'));
-          if (this.fileSystemProvider.directoryExists(modulesDir)) {
+          if (await this.fileSystemProvider.directoryExists(modulesDir)) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc.map(root => normalizePath(root)));
           }
@@ -164,7 +164,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
     const forceignore = path.join(this.workspaceRoots[0], '.forceignore');
     // TODO: We should only be looking through modules that have TS files
-    const modulesDirs = getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
+    const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
       this.initSfdxProjectConfigCache()
     );
 
@@ -181,7 +181,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         size: tsConfigContent.length
       });
       await this.fileSystemProvider.updateFileContent(tsConfigPath, tsConfigContent, this.connection);
-      updateForceIgnoreFile(forceignore, true, this.fileSystemProvider);
+      await updateForceIgnoreFile(forceignore, true, this.fileSystemProvider);
     }
   }
 

@@ -17,7 +17,9 @@ import {
   scheduleReinitialization,
   NormalizedPath,
   WorkspaceType,
-  normalizePath
+  normalizePath,
+  WORKSPACE_READ_FILE_REQUEST,
+  WORKSPACE_STAT_REQUEST
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { basename, dirname, parse } from 'node:path';
@@ -171,6 +173,8 @@ export abstract class BaseServer {
     // Set workspace folder URIs in file system provider first so it can convert URIs correctly
     const workspaceFolderUris = this.workspaceFolders.map(folder => folder.uri);
     this.fileSystemProvider.setWorkspaceFolderUris(workspaceFolderUris);
+    this.fileSystemProvider.setReadFileFromConnection(this.connection, WORKSPACE_READ_FILE_REQUEST);
+    this.fileSystemProvider.setReadStatFromConnection(this.connection, WORKSPACE_STAT_REQUEST);
 
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // Use uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
@@ -576,7 +580,7 @@ export abstract class BaseServer {
     });
   }
 
-  public onDefinition(params: TextDocumentPositionParams): Location[] {
+  public async onDefinition(params: TextDocumentPositionParams): Promise<Location[]> {
     try {
       const cursorInfo: CursorInfo | null = this.cursorInfo(params);
 
@@ -592,7 +596,7 @@ export abstract class BaseServer {
         case 'tag':
           if (tag) {
             try {
-              result = getAllLocations(tag, this.fileSystemProvider);
+              result = await getAllLocations(tag, this.fileSystemProvider);
             } catch (error) {
               Logger.error(
                 `[onDefinition] Error getting all locations for tag ${cursorInfo.tag}: ${error instanceof Error ? error.message : String(error)}`,
@@ -803,7 +807,7 @@ export abstract class BaseServer {
       // For SFDX workspaces, wait for sfdx-project.json to be loaded before initializing component indexer
       if (this.workspaceType === 'SFDX') {
         const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
-        if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+        if (!(await this.fileSystemProvider.fileExists(sfdxProjectPath))) {
           this.isInitializing = false;
           return;
         }

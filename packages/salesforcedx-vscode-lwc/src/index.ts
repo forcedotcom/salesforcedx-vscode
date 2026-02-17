@@ -10,6 +10,7 @@ import {
   bootstrapWorkspaceAwareness,
   type BootstrapOptions
 } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceLoader';
+import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { Effect } from 'effect';
@@ -142,6 +143,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
     try {
       await client.start();
       channelService.appendLine('LWC Language Server client started');
+      registerWorkspaceReadFileHandler(client);
+      channelService.appendLine('Workspace read file handler registered');
     } catch (startError) {
       const errorMsg = `[LWC] Failed to start client: ${startError instanceof Error ? startError.message : String(startError)}`;
       channelService.appendLine(errorMsg);

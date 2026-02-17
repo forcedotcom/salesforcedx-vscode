@@ -49,7 +49,7 @@ describe('TypingIndexer', () => {
 
       for (const filename of filepaths) {
         const filepath = path.join(typingIndexer.typingsBaseDir, filename);
-        const exists = sfdxFileSystemProvider.fileExists(`${filepath}`);
+        const exists = await sfdxFileSystemProvider.fileExists(`${filepath}`);
         expect(exists).toBeTrue();
       }
     });
@@ -66,8 +66,8 @@ describe('TypingIndexer', () => {
 
       await typingIndexer.deleteStaleMetaTypings();
 
-      expect(sfdxFileSystemProvider.fileExists(`${typing}`)).toBeTrue();
-      expect(sfdxFileSystemProvider.fileExists(`${staleTyping}`)).toBeFalse();
+      expect(await sfdxFileSystemProvider.fileExists(`${typing}`)).toBeTrue();
+      expect(await sfdxFileSystemProvider.fileExists(`${staleTyping}`)).toBeFalse();
     });
   });
 
@@ -85,14 +85,14 @@ describe('TypingIndexer', () => {
         'lwc',
         'customlabels.d.ts'
       );
-      expect(sfdxFileSystemProvider.fileExists(`${customLabelPath}`)).toBeTrue();
-      const content = sfdxFileSystemProvider.getFileContentSync(`${customLabelPath}`);
+      expect(await sfdxFileSystemProvider.fileExists(`${customLabelPath}`)).toBeTrue();
+      const content = await sfdxFileSystemProvider.getFileContent(`${customLabelPath}`);
       expect(content).toInclude('declare module');
     });
   });
 
   describe('#metaFilePaths', () => {
-    test('it returns all the paths of meta files', () => {
+    test('it returns all the paths of meta files', async () => {
       const metaFilePaths: string[] = typingIndexer.metaFiles.toSorted();
       // metaFilePaths are normalized, so normalize expected paths for comparison
       const expectedMetaFilePaths: string[] = [
@@ -140,7 +140,7 @@ describe('TypingIndexer', () => {
         void sfdxFileSystemProvider.updateFileContent(`${filePath}`, 'foobar');
       }
 
-      const metaFilePaths: string[] = getMetaTypings(typingIndexer);
+      const metaFilePaths: string[] = await getMetaTypings(typingIndexer);
 
       expectedMetaFileTypingPaths.forEach(expectedPath => {
         expect(metaFilePaths).toContain(expectedPath);

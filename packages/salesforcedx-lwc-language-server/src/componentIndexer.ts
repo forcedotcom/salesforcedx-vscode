@@ -88,7 +88,11 @@ const expandBraces = (pattern: string): string[] => {
  * Traverses directories using FileSystemDataProvider and matches files against a glob pattern
  * This replaces fast-glob for web compatibility
  */
-const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvider, basePath: string): Entry[] => {
+const findFilesWithGlob = async (
+  pattern: string,
+  fileSystemProvider: IFileSystemProvider,
+  basePath: string
+): Promise<Entry[]> => {
   const results: Entry[] = [];
   // Normalize basePath the same way FileSystemDataProvider normalizes paths
   const normalizedBasePath = normalizePath(basePath);
@@ -141,7 +145,7 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
     );
 
     if (matches) {
-      const fileStat = fileSystemProvider.getFileStat(fileUri);
+      const fileStat = await fileSystemProvider.getFileStat(fileUri);
       results.push({
         path: fileUri,
         stats: fileStat
@@ -171,12 +175,12 @@ export default class ComponentIndexer {
     }
   }
 
-  private getSfdxPackageDirsPattern(): string {
+  private async getSfdxPackageDirsPattern(): Promise<string> {
     return getSfdxPackageDirsPattern(this.attributes.workspaceRoot, this.fileSystemProvider);
   }
 
   // visible for testing
-  public getComponentEntries(): Entry[] {
+  public async getComponentEntries(): Promise<Entry[]> {
     const filterDirMatchesName = (item: Entry): boolean => {
       const data = path.parse(item.path);
       return data.dir.endsWith(data.name);
@@ -184,19 +188,19 @@ export default class ComponentIndexer {
 
     if (this.workspaceType === 'SFDX') {
       // workspaceRoot is already normalized by getWorkspaceRoot()
-      const packageDirsPattern = this.getSfdxPackageDirsPattern();
+      const packageDirsPattern = await this.getSfdxPackageDirsPattern();
       // If packageDirsPattern is empty, sfdx-project.json hasn't been loaded yet
       if (!packageDirsPattern) {
         return [];
       }
       // Pattern matches: {packageDir}/**/*/lwc/**/*.js
       const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
-      return findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot).filter(filterDirMatchesName);
+      return (await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot)).filter(filterDirMatchesName);
     }
 
     // For CORE_ALL and CORE_PARTIAL
     const defaultPattern = '**/*/modules/**/*.js';
-    return findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot).filter(filterDirMatchesName);
+    return (await findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot)).filter(filterDirMatchesName);
   }
 
   public getCustomData(): Tag[] {
@@ -239,8 +243,8 @@ export default class ComponentIndexer {
     try {
       const indexPath: string = path.join(this.workspaceRoot, CUSTOM_COMPONENT_INDEX_FILE);
 
-      if (this.fileSystemProvider.fileExists(indexPath)) {
-        const content = this.fileSystemProvider.getFileContentSync(indexPath);
+      if (await this.fileSystemProvider.fileExists(indexPath)) {
+        const content = await this.fileSystemProvider.getFileContent(indexPath);
         if (content) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const index: TagAttrs[] = JSON.parse(content);
@@ -267,7 +271,7 @@ export default class ComponentIndexer {
     // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
     const sfdxTsConfigPath = path.join(this.workspaceRoot, '.sfdx', 'tsconfig.sfdx.json');
 
-    const fileExists = this.fileSystemProvider.fileExists(sfdxTsConfigPath);
+    const fileExists = await this.fileSystemProvider.fileExists(sfdxTsConfigPath);
 
     if (fileExists) {
       try {
@@ -308,18 +312,18 @@ export default class ComponentIndexer {
   public async updateSfdxTsConfigPath(connection?: Connection): Promise<void> {
     const sfdxTsConfigPath = path.join(this.workspaceRoot, '.sfdx', 'tsconfig.sfdx.json');
 
-    const fileExists = this.fileSystemProvider.fileExists(sfdxTsConfigPath);
+    const fileExists = await this.fileSystemProvider.fileExists(sfdxTsConfigPath);
 
     if (fileExists) {
       try {
-        const content = this.fileSystemProvider.getFileContentSync(sfdxTsConfigPath);
+        const content = await this.fileSystemProvider.getFileContent(sfdxTsConfigPath);
         if (content) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const sfdxTsConfig: SfdxTsConfig = JSON.parse(content);
           // The assumption here is that sfdxTsConfig will not be modified by the user as
           // it is located in the .sfdx directory.
           sfdxTsConfig.compilerOptions = sfdxTsConfig.compilerOptions ?? { paths: {} };
-          sfdxTsConfig.compilerOptions.paths = this.getTsConfigPathMapping();
+          sfdxTsConfig.compilerOptions.paths = await this.getTsConfigPathMapping();
 
           // Update the actual tsconfig file
           await this.fileSystemProvider.updateFileContent(
@@ -335,17 +339,17 @@ export default class ComponentIndexer {
   }
 
   // visible for testing
-  public getTsConfigPathMapping(): TsConfigPaths {
+  public async getTsConfigPathMapping(): Promise<TsConfigPaths> {
     const files: TsConfigPaths = {};
     if (this.workspaceType === 'SFDX') {
       // workspaceRoot is already normalized by getWorkspaceRoot()
-      const packageDirsPattern = this.getSfdxPackageDirsPattern();
+      const packageDirsPattern = await this.getSfdxPackageDirsPattern();
       // Use **/* after lwc to match any depth (e.g., utils/meta/lwc/todo_util/todo_util.js)
       // Construct glob pattern with forward slashes (path.join uses backslashes on Windows)
       // Normalize packageDirsPattern to ensure forward slashes
       const normalizedPackageDirs = normalizePath(packageDirsPattern);
       const sfdxPattern = `${normalizedPackageDirs}/**/*/lwc/**/*.{js,ts}`;
-      const filePaths = findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
+      const filePaths = await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
       for (const filePath of filePaths) {
         const { dir, name: fileName } = path.parse(filePath.path);
         const folderName = path.basename(dir);
@@ -371,15 +375,15 @@ export default class ComponentIndexer {
     return files;
   }
 
-  private getUnIndexedFiles(): Entry[] {
-    const componentEntries = this.getComponentEntries();
+  private async getUnIndexedFiles(): Promise<Entry[]> {
+    const componentEntries = await this.getComponentEntries();
     const customData = this.getCustomData();
     const unIndexed = unIndexedFiles(componentEntries, customData);
     return unIndexed;
   }
 
-  public getStaleTags(): Tag[] {
-    const componentEntries = this.getComponentEntries();
+  public async getStaleTags(): Promise<Tag[]> {
+    const componentEntries = await this.getComponentEntries();
 
     return this.getCustomData().filter(tag => !componentEntries.some(entry => entry.path === tag.file));
   }
@@ -393,14 +397,14 @@ export default class ComponentIndexer {
     // For SFDX workspaces, ensure sfdx-project.json is loaded before initializing
     if (this.workspaceType === 'SFDX') {
       const sfdxProjectPath = normalizePath(path.join(this.attributes.workspaceRoot, 'sfdx-project.json'));
-      if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+      if (!(await this.fileSystemProvider.fileExists(sfdxProjectPath))) {
         return;
       }
     }
 
     await this.loadTagsFromIndex();
 
-    const unIndexedFilesResult = this.getUnIndexedFiles();
+    const unIndexedFilesResult = await this.getUnIndexedFiles();
 
     const promises = unIndexedFilesResult.map(async entry => {
       const tag = await createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime);
@@ -420,7 +424,7 @@ export default class ComponentIndexer {
       this.tags.set(tagName, tag);
     });
 
-    const staleTags = this.getStaleTags();
+    const staleTags = await this.getStaleTags();
     staleTags.forEach(tag => {
       if (tag) {
         this.tags.delete(getTagName(tag));

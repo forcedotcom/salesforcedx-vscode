@@ -58,6 +58,15 @@ export {
   DecoratorTargetMethod
 } from './decorators';
 
+// WORKSPACE_READ_FILE_REQUEST is used by server and client. registerWorkspaceReadFileHandler is
+// client-only (uses effect-ext-utils/vscode); export it from ./workspaceReadFileHandler so the
+// server bundle never loads it (server runs in a separate process without vscode).
+export {
+  WORKSPACE_READ_FILE_REQUEST,
+  WORKSPACE_STAT_REQUEST,
+  WORKSPACE_READ_DIRECTORY_REQUEST
+} from './lspCustomRequests';
+
 // Re-export from file system providers
 export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
 export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';

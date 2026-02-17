@@ -155,7 +155,7 @@ const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: 
 const searchAuraResourcesPath = async (dir: string, fileSystemProvider: FileSystemDataProvider): Promise<string> => {
   try {
     const resourcesPath = path.join(dir, 'resources', 'aura');
-    const fileStat = fileSystemProvider.getFileStat(resourcesPath);
+    const fileStat = await fileSystemProvider.getFileStat(resourcesPath);
 
     if (fileStat) {
       return resourcesPath;
@@ -169,7 +169,7 @@ const searchAuraResourcesPath = async (dir: string, fileSystemProvider: FileSyst
     const allDirectoryUris = fileSystemProvider.getAllDirectoryUris();
     for (const directoryUri of allDirectoryUris) {
       if (directoryUri.endsWith('resources/aura')) {
-        const stat = fileSystemProvider.getFileStat(directoryUri);
+        const stat = await fileSystemProvider.getFileStat(directoryUri);
         if (stat?.type === 'directory') {
           return directoryUri;
         }
@@ -185,7 +185,7 @@ const searchAuraResourcesPath = async (dir: string, fileSystemProvider: FileSyst
     const allDirectoryUris = fileSystemProvider.getAllDirectoryUris();
     for (const directoryUri of allDirectoryUris) {
       if (directoryUri.endsWith('resources/aura')) {
-        const stat = fileSystemProvider.getFileStat(directoryUri);
+        const stat = await fileSystemProvider.getFileStat(directoryUri);
         if (stat?.type === 'directory') {
           return directoryUri;
         }
@@ -212,7 +212,7 @@ const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<voi
   files.sort(auraInstanceLastSort);
 
   for (const file of files) {
-    const content = fileSystemProvider.getFileContent(file);
+    const content = await fileSystemProvider.getFileContent(file);
     if (!content) {
       throw new Error(nls.localize('file_not_found_message'));
     }
@@ -288,13 +288,13 @@ export const startServer = async (
     projectDir: rootPath,
     getFile: (filename: string, callback: (error: Error | undefined, content?: string) => void): void => {
       // note: this isn't invoked
-      try {
-        const content = fileSystemProvider.getFileContent(path.resolve(rootPath, filename));
-        callback(undefined, content);
-      } catch (error) {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        callback(error as Error);
-      }
+      void fileSystemProvider
+        .getFileContent(path.resolve(rootPath, filename))
+        .then(content => callback(undefined, content))
+        .catch((error: unknown) => {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          callback(error as Error);
+        });
     }
   };
   theRootPath = wsroot;
@@ -445,7 +445,7 @@ export const onTypeDefinition = async (
   const info = await ternRequest(textDocumentPosition, 'type');
   if (info?.origin) {
     try {
-      const content = fileSystemProvider.getFileContent(info.origin);
+      const content = await fileSystemProvider.getFileContent(info.origin);
       if (!content) {
         throw new Error('File not found');
       }

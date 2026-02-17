@@ -41,9 +41,12 @@ const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirec
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
-const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProvider): SfdxProjectConfig => {
+const readSfdxProjectConfig = async (
+  root: string,
+  fileSystemProvider: IFileSystemProvider
+): Promise<SfdxProjectConfig> => {
   const configPath = getSfdxProjectFile(root);
-  const configText = fileSystemProvider.getFileContentSync(configPath);
+  const configText = await fileSystemProvider.getFileContent(configPath);
 
   if (!configText) {
     throw new Error(nls.localize('config_file_not_found_message'));
@@ -96,14 +99,14 @@ const getCoreSettings = (workspaceRoots: string[]): Record<string, unknown> =>
     'perforce.port': 'ssl:host:port'
   });
 
-export const updateForceIgnoreFile = (
+export const updateForceIgnoreFile = async (
   forceignorePath: string,
   addTsConfig: boolean,
   fileSystemProvider: IFileSystemProvider
-): void => {
+): Promise<void> => {
   let forceignoreContent = '';
   try {
-    const data = fileSystemProvider.getFileContentSync(forceignorePath);
+    const data = await fileSystemProvider.getFileContent(forceignorePath);
     if (!data) {
       throw new Error(nls.localize('forceignore_file_not_found_message'));
     }
@@ -132,19 +135,20 @@ export const updateForceIgnoreFile = (
   void fileSystemProvider.updateFileContent(forceignorePath, forceignoreContent.trim());
 };
 
-export const getModulesDirs = (
+export const getModulesDirs = async (
   workspaceType: WorkspaceType,
   workspaceRoots: string[],
   fileSystemProvider: IFileSystemProvider,
-  getSfdxProjectConfig: () => SfdxProjectConfig
-): NormalizedPath[] => {
+  getSfdxProjectConfig: () => SfdxProjectConfig | Promise<SfdxProjectConfig>
+): Promise<NormalizedPath[]> => {
   // Normalize workspaceRoots at the start to ensure consistent path format
   // This ensures all path operations use normalized paths
   const normalizedWorkspaceRoots = workspaceRoots.map(root => utils.normalizePath(root));
   const modulesDirs: NormalizedPath[] = [];
   switch (workspaceType) {
-    case 'SFDX':
-      const { packageDirectories } = getSfdxProjectConfig();
+    case 'SFDX': {
+      const config = await Promise.resolve(getSfdxProjectConfig());
+      const { packageDirectories } = config;
       for (const pkg of packageDirectories) {
         // Check both new SFDX structure (main/default) and old structure (meta)
         const newPkgDir = path.join(normalizedWorkspaceRoots[0], pkg.path, 'main', 'default');
@@ -152,14 +156,14 @@ export const getModulesDirs = (
 
         // Check for LWC components in new structure
         const newLwcDir = utils.normalizePath(path.join(newPkgDir, 'lwc'));
-        const newLwcDirStat = fileSystemProvider.getFileStat(newLwcDir);
+        const newLwcDirStat = await fileSystemProvider.getFileStat(newLwcDir);
         if (newLwcDirStat?.type === 'directory') {
           // Add the LWC directory itself, not individual components
           modulesDirs.push(newLwcDir);
         } else {
           // New structure doesn't exist, check for LWC components in old structure
           const oldLwcDir = utils.normalizePath(path.join(oldPkgDir, 'lwc'));
-          const oldLwcDirStat = fileSystemProvider.getFileStat(oldLwcDir);
+          const oldLwcDirStat = await fileSystemProvider.getFileStat(oldLwcDir);
           if (oldLwcDirStat?.type === 'directory') {
             modulesDirs.push(oldLwcDir);
           }
@@ -169,6 +173,7 @@ export const getModulesDirs = (
         // and this method is primarily used for TypeScript configuration
       }
       break;
+    }
     case 'CORE_ALL':
       // For CORE_ALL, return the modules directories for each project
       const projects = fileSystemProvider.getDirectoryListing(normalizedWorkspaceRoots[0]);
@@ -178,7 +183,7 @@ export const getModulesDirs = (
         const modulesDir = path.join(normalizedWorkspaceRoots[0], project.name, 'modules');
         let pathExists = false;
         try {
-          const fileStat = fileSystemProvider.getFileStat(modulesDir);
+          const fileStat = await fileSystemProvider.getFileStat(modulesDir);
           if (fileStat?.type === 'directory') {
             pathExists = true;
           }
@@ -197,7 +202,7 @@ export const getModulesDirs = (
         const modulesDir = path.join(ws, 'modules');
         let pathExists = false;
         try {
-          const fileStat = fileSystemProvider.getFileStat(modulesDir);
+          const fileStat = await fileSystemProvider.getFileStat(modulesDir);
           if (fileStat?.type === 'directory') {
             pathExists = true;
           }
@@ -237,7 +242,7 @@ export abstract class BaseWorkspaceContext {
   public workspaceRoots: NormalizedPath[];
 
   protected findNamespaceRootsUsingTypeCache: () => Promise<{ lwc: string[]; aura: string[] }>;
-  public initSfdxProjectConfigCache: () => SfdxProjectConfig;
+  public initSfdxProjectConfigCache: () => Promise<SfdxProjectConfig>;
   public fileSystemProvider: FileSystemDataProvider;
   private readonly sfdxTypingsDir?: string;
   public connection?: Connection;
@@ -257,7 +262,7 @@ export abstract class BaseWorkspaceContext {
     this.workspaceRoots = Array.isArray(workspaceRoots) ? workspaceRoots : [workspaceRoots];
 
     this.findNamespaceRootsUsingTypeCache = utils.memoize(() => this.findNamespaceRootsUsingType());
-    this.initSfdxProjectConfigCache = utils.memoize(() => this.initSfdxProject());
+    this.initSfdxProjectConfigCache = utils.memoize(async () => this.initSfdxProject());
     this.fileSystemProvider = fileSystemProvider;
     this.connection = connection;
     this.sfdxTypingsDir = options?.sfdxTypingsDir;
@@ -314,11 +319,11 @@ export abstract class BaseWorkspaceContext {
   /**
    * Configures the project
    */
-  public configureProject(): void {
+  public async configureProject(): Promise<void> {
     this.writeSettingsJson();
     this.writeCodeWorkspace();
-    this.writeJsconfigJson();
-    this.writeTypings();
+    await this.writeJsconfigJson();
+    await this.writeTypings();
   }
 
   private writeSettingsJson(): void {
@@ -333,14 +338,14 @@ export abstract class BaseWorkspaceContext {
     updateConfigFile(this.fileSystemProvider)(workspacePath, JSON.stringify(workspace, null, 2));
   }
 
-  private writeJsconfigJson(): void {
+  private async writeJsconfigJson(): Promise<void> {
     switch (this.type) {
       case 'SFDX':
-        this.writeSfdxJsconfig();
+        await this.writeSfdxJsconfig();
         break;
       case 'CORE_ALL':
       case 'CORE_PARTIAL':
-        this.writeCoreJsconfig();
+        await this.writeCoreJsconfig();
         break;
       default:
         // No jsconfig needed for other workspace types
@@ -348,8 +353,8 @@ export abstract class BaseWorkspaceContext {
     }
   }
 
-  private writeSfdxJsconfig(): void {
-    const modulesDirs = getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
+  private async writeSfdxJsconfig(): Promise<void> {
+    const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
       this.initSfdxProjectConfigCache()
     );
 
@@ -359,7 +364,7 @@ export abstract class BaseWorkspaceContext {
       // Skip if tsconfig.json already exists
       const tsconfigPath = path.join(modulesDir, 'tsconfig.json');
       try {
-        const fileStat = this.fileSystemProvider.getFileStat(tsconfigPath);
+        const fileStat = await this.fileSystemProvider.getFileStat(tsconfigPath);
         if (fileStat?.type === 'file' && fileStat?.exists === true) {
           continue;
         }
@@ -373,7 +378,7 @@ export abstract class BaseWorkspaceContext {
         // If jsconfig already exists, read and update it
         let jsconfigExists = false;
         try {
-          const fileStat = this.fileSystemProvider.getFileStat(jsconfigPath);
+          const fileStat = await this.fileSystemProvider.getFileStat(jsconfigPath);
           if (fileStat?.type === 'file' && fileStat?.exists === true) {
             jsconfigExists = true;
           }
@@ -382,7 +387,7 @@ export abstract class BaseWorkspaceContext {
         }
 
         if (jsconfigExists) {
-          const existingConfigContent = this.fileSystemProvider.getFileContentSync(jsconfigPath);
+          const existingConfigContent = await this.fileSystemProvider.getFileContent(jsconfigPath);
           if (!existingConfigContent) {
             throw new Error(nls.localize('existing_config_content_not_found_message'));
           }
@@ -464,11 +469,11 @@ export abstract class BaseWorkspaceContext {
 
     // Update forceignore
     const forceignorePath = path.join(this.workspaceRoots[0], '.forceignore');
-    updateForceIgnoreFile(forceignorePath, false, this.fileSystemProvider);
+    await updateForceIgnoreFile(forceignorePath, false, this.fileSystemProvider);
   }
 
-  private writeCoreJsconfig(): void {
-    const modulesDirs = getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
+  private async writeCoreJsconfig(): Promise<void> {
+    const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
       this.initSfdxProjectConfigCache()
     );
 
@@ -477,7 +482,7 @@ export abstract class BaseWorkspaceContext {
 
       // Skip if tsconfig.json already exists
       const tsconfigPath = path.join(modulesDir, 'tsconfig.json');
-      const fileStat = this.fileSystemProvider.getFileStat(tsconfigPath);
+      const fileStat = await this.fileSystemProvider.getFileStat(tsconfigPath);
       if (fileStat?.type === 'file' && fileStat?.exists === true) {
         // Remove tsconfig.json if it exists (as per test expectation)
         this.fileSystemProvider.updateDirectoryListing(tsconfigPath, []);
@@ -502,7 +507,7 @@ export abstract class BaseWorkspaceContext {
     }
   }
 
-  private writeTypings(): void {
+  private async writeTypings(): Promise<void> {
     const typingsDir = getTypingsDir(this.type, this.workspaceRoots);
     if (!typingsDir || !this.sfdxTypingsDir) {
       return;
@@ -513,7 +518,7 @@ export abstract class BaseWorkspaceContext {
     try {
       const sourcePath = path.join(resourceTypingsDir, 'lds.d.ts');
       const destPath = path.join(typingsDir, 'lds.d.ts');
-      const content = this.fileSystemProvider.getFileContentSync(sourcePath);
+      const content = await this.fileSystemProvider.getFileContent(sourcePath);
       if (content) {
         void this.fileSystemProvider.updateFileContent(destPath, content, this.connection);
       }
@@ -523,7 +528,7 @@ export abstract class BaseWorkspaceContext {
     try {
       const sourcePath = path.join(resourceTypingsDir, 'messageservice.d.ts');
       const destPath = path.join(typingsDir, 'messageservice.d.ts');
-      const content = this.fileSystemProvider.getFileContentSync(sourcePath);
+      const content = await this.fileSystemProvider.getFileContent(sourcePath);
       if (content) {
         void this.fileSystemProvider.updateFileContent(destPath, content, this.connection);
       }
@@ -537,7 +542,7 @@ export abstract class BaseWorkspaceContext {
       try {
         const sourcePath = path.join(resourceTypingsDir, 'copied', file.name);
         const destPath = path.join(typingsDir, file.name);
-        const content = this.fileSystemProvider.getFileContentSync(sourcePath);
+        const content = await this.fileSystemProvider.getFileContent(sourcePath);
         if (content) {
           void this.fileSystemProvider.updateFileContent(destPath, content, this.connection);
         }
@@ -547,7 +552,7 @@ export abstract class BaseWorkspaceContext {
     }
   }
 
-  private initSfdxProject(): SfdxProjectConfig {
+  private async initSfdxProject(): Promise<SfdxProjectConfig> {
     return readSfdxProjectConfig(this.workspaceRoots[0], this.fileSystemProvider);
   }
 }

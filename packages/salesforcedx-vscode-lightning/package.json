@@ -86,7 +86,8 @@
   },
   "displayName": "Aura Components",
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-services"
   ],
   "main": "./out/src",
   "name": "salesforcedx-vscode-lightning",

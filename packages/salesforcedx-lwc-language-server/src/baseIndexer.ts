@@ -47,7 +47,10 @@ export const getWorkspaceRoot = (workspaceRoot: string): NormalizedPath => {
 };
 
 /** Get SFDX configuration from sfdx-project.json */
-const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProvider): SfdxProjectConfig => {
+const getSfdxConfig = async (
+  root: NormalizedPath,
+  fileSystemProvider: IFileSystemProvider
+): Promise<SfdxProjectConfig> => {
   const filename = normalizePath(path.join(root, 'sfdx-project.json'));
 
   if (fileSystemProvider) {
@@ -57,11 +60,11 @@ const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProv
     // Try to find the exact match
     const exactMatch = allFileUris.find(uri => normalizePath(uri) === filename);
 
-    const content = fileSystemProvider.getFileContentSync(filename);
+    const content = await fileSystemProvider.getFileContent(filename);
 
     // If content not found with direct path, try with exact match URI if found
     if (!content && exactMatch) {
-      const contentFromUri = fileSystemProvider.getFileContentSync(exactMatch);
+      const contentFromUri = await fileSystemProvider.getFileContent(exactMatch);
       if (contentFromUri) {
         try {
           return JSON.parse(contentFromUri);
@@ -89,11 +92,11 @@ const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProv
 };
 
 /** Get SFDX package directories pattern from sfdx-project.json */
-export const getSfdxPackageDirsPattern = (
+export const getSfdxPackageDirsPattern = async (
   workspaceRoot: NormalizedPath,
   fileSystemProvider: IFileSystemProvider
-): string => {
-  const config = getSfdxConfig(workspaceRoot, fileSystemProvider);
+): Promise<string> => {
+  const config = await getSfdxConfig(workspaceRoot, fileSystemProvider);
   const dirs = config.packageDirectories;
   const paths: string[] = dirs?.map(item => item.path) ?? [];
 

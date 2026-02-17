@@ -187,7 +187,7 @@ describe('ComponentIndexer', () => {
             path.join(newlyAddedFileDir, '__tests__', 'newlyAddedFile', 'newlyAddedFile.ts')
           ];
           for (const filePath of possibleFiles) {
-            if (sfdxFileSystemProvider.fileExists(filePath)) {
+            if (await sfdxFileSystemProvider.fileExists(filePath)) {
               sfdxFileSystemProvider.updateFileStat(filePath, {
                 type: 'file',
                 exists: false,
@@ -235,7 +235,7 @@ describe('ComponentIndexer', () => {
           await componentIndexer.updateSfdxTsConfigPath();
 
           // Read and parse the updated tsconfig
-          const updatedTsconfigContent = sfdxFileSystemProvider.getFileContentSync(sfdxPath);
+          const updatedTsconfigContent = await sfdxFileSystemProvider.getFileContent(sfdxPath);
           expect(updatedTsconfigContent).not.toBeUndefined();
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const tsconfig = JSON.parse(updatedTsconfigContent!);
