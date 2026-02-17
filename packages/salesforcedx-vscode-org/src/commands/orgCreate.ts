@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,
@@ -22,9 +23,11 @@ import {
   workspaceUtils,
   errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';
 import { FileSelector, FileSelection } from '../parameterGatherers/fileSelector';
 import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreateResultParser';
@@ -82,6 +85,17 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
           // Use the alias that was provided when creating the org
           if (response.data.alias) {
             await setTargetOrgOrAlias(response.data.alias);
+            // Explicitly refresh TargetOrgRef so the status bar updates immediately.
+            // The config file watcher may race with our write; this ensures the ref is updated.
+            await Effect.runPromise(
+              Effect.gen(function* () {
+                const api = yield* (yield* ExtensionProviderService).getServicesApi;
+                yield* api.services.ConnectionService.getConnection();
+              }).pipe(
+                Effect.provide(AllServicesLayer),
+                Effect.catchAll(() => Effect.void)
+              )
+            );
           }
 
           // Set workspace org type to source-tracked for newly created scratch orgs

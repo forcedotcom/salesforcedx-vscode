@@ -88,12 +88,22 @@ describe('OrgList tests', () => {
     let showQuickPickMock: jest.SpyInstance;
     let executeCommandMock: jest.SpyInstance;
     let listAllAuthorizationsMock: jest.SpyInstance;
+    let getDefaultOrgConfigurationMock: jest.SpyInstance;
+
+    const defaultConfig = {
+      defaultDevHubProperty: undefined,
+      defaultOrgProperty: undefined,
+      defaultDevHubUsername: undefined,
+      defaultOrgUsername: undefined
+    };
 
     beforeEach(() => {
       showQuickPickMock = jest.spyOn(vscode.window, 'showQuickPick');
       executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
       listAllAuthorizationsMock = jest.spyOn(AuthInfo, 'listAllAuthorizations');
+      getDefaultOrgConfigurationMock = jest.spyOn(orgUtil, 'getDefaultOrgConfiguration');
       listAllAuthorizationsMock.mockResolvedValue([]);
+      getDefaultOrgConfigurationMock.mockResolvedValue(defaultConfig);
     });
 
     afterEach(() => {
@@ -102,7 +112,10 @@ describe('OrgList tests', () => {
 
     describe('Org picker SFDX commands', () => {
       it('should handle org login web authorization selection', async () => {
-        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_login_web_authorize_org_text')}`);
+        showQuickPickMock.mockResolvedValueOnce({
+          label: `$(plus) ${nls.localize('org_login_web_authorize_org_text')}`,
+          commandId: 'sf.org.login.web'
+        });
 
         const result = await orgListModule.setDefaultOrg();
 
@@ -111,7 +124,10 @@ describe('OrgList tests', () => {
       });
 
       it('should handle org login web dev hub authorization selection', async () => {
-        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_login_web_authorize_dev_hub_text')}`);
+        showQuickPickMock.mockResolvedValueOnce({
+          label: `$(plus) ${nls.localize('org_login_web_authorize_dev_hub_text')}`,
+          commandId: 'sf.org.login.web.dev.hub'
+        });
 
         const result = await orgListModule.setDefaultOrg();
 
@@ -120,7 +136,10 @@ describe('OrgList tests', () => {
       });
 
       it('should handle create default scratch org selection', async () => {
-        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_create_default_scratch_org_text')}`);
+        showQuickPickMock.mockResolvedValueOnce({
+          label: `$(plus) ${nls.localize('org_create_default_scratch_org_text')}`,
+          commandId: 'sf.org.create'
+        });
 
         const result = await orgListModule.setDefaultOrg();
 
@@ -129,7 +148,10 @@ describe('OrgList tests', () => {
       });
 
       it('should handle org login access token selection', async () => {
-        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_login_access_token_text')}`);
+        showQuickPickMock.mockResolvedValueOnce({
+          label: `$(plus) ${nls.localize('org_login_access_token_text')}`,
+          commandId: 'sf.org.login.access.token'
+        });
 
         const result = await orgListModule.setDefaultOrg();
 
@@ -138,7 +160,10 @@ describe('OrgList tests', () => {
       });
 
       it('should handle org list clean selection', async () => {
-        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_list_clean_text')}`);
+        showQuickPickMock.mockResolvedValueOnce({
+          label: `$(plus) ${nls.localize('org_list_clean_text')}`,
+          commandId: 'sf.org.list.clean'
+        });
 
         const result = await orgListModule.setDefaultOrg();
 
@@ -162,8 +187,13 @@ describe('OrgList tests', () => {
         aliases: ['MyOrg']
       });
       listAllAuthorizationsMock.mockResolvedValueOnce([orgAuth]);
-      const orgSelection = 'MyOrg - user@example.com';
-      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+      showQuickPickMock.mockImplementationOnce(items => {
+        const orgItem = (items as orgListModule.OrgQuickPickItem[]).find(item => item.orgUsername);
+        expect(orgItem!.label).toContain('MyOrg');
+        expect(orgItem!.label).toContain('user@example.com');
+        expect(orgItem!.label).toMatch(/\| .* \| /);
+        return Promise.resolve(orgItem!);
+      });
 
       const result = await orgListModule.setDefaultOrg();
 
@@ -174,11 +204,16 @@ describe('OrgList tests', () => {
     it('should handle organization selection with alias containing dashes', async () => {
       const orgAuth = createOrgAuthorization({
         username: 'foo@bar.com',
-        aliases: ['My Organization - Dev Sandbox']
+        aliases: ['My Organization - Dev Sandbox'],
+        isSandbox: true
       });
       listAllAuthorizationsMock.mockResolvedValueOnce([orgAuth]);
-      const orgSelection = 'My Organization - Dev Sandbox - foo@bar.com';
-      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+      showQuickPickMock.mockImplementationOnce(items => {
+        const orgItem = (items as orgListModule.OrgQuickPickItem[]).find(item => item.orgUsername);
+        expect(orgItem!.label).toContain('My Organization - Dev Sandbox');
+        expect(orgItem!.label).toContain('foo@bar.com');
+        return Promise.resolve(orgItem!);
+      });
 
       const result = await orgListModule.setDefaultOrg();
 
@@ -189,11 +224,16 @@ describe('OrgList tests', () => {
     it('should handle organization selection with multiple dashes in alias', async () => {
       const orgAuth = createOrgAuthorization({
         username: 'admin@company.com',
-        aliases: ['Sales - Force - Dev - Hub']
+        aliases: ['Sales - Force - Dev - Hub'],
+        isDevHub: true
       });
       listAllAuthorizationsMock.mockResolvedValueOnce([orgAuth]);
-      const orgSelection = 'Sales - Force - Dev - Hub - admin@company.com';
-      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+      showQuickPickMock.mockImplementationOnce(items => {
+        const orgItem = (items as orgListModule.OrgQuickPickItem[]).find(item => item.orgUsername);
+        expect(orgItem!.label).toContain('Sales - Force - Dev - Hub');
+        expect(orgItem!.label).toContain('admin@company.com');
+        return Promise.resolve(orgItem!);
+      });
 
       const result = await orgListModule.setDefaultOrg();
 
@@ -207,8 +247,12 @@ describe('OrgList tests', () => {
         aliases: []
       });
       listAllAuthorizationsMock.mockResolvedValueOnce([orgAuth]);
-      const orgSelection = 'user@example.com';
-      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+      showQuickPickMock.mockImplementationOnce(items => {
+        const orgItem = (items as orgListModule.OrgQuickPickItem[]).find(item => item.orgUsername);
+        expect(orgItem!.label).toBe('$(cloud) | user@example.com');
+        expect(orgItem!.orgAlias).toBeUndefined();
+        return Promise.resolve(orgItem!);
+      });
 
       const result = await orgListModule.setDefaultOrg();
 
@@ -222,13 +266,18 @@ describe('OrgList tests', () => {
         aliases: ['alias1', 'alias2', 'alias3']
       });
       listAllAuthorizationsMock.mockResolvedValueOnce([orgAuth]);
-      const orgSelection = 'alias1,alias2,alias3 - user@example.com';
-      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+      showQuickPickMock.mockImplementationOnce(items => {
+        const orgItem = (items as orgListModule.OrgQuickPickItem[]).find(item => item.orgUsername);
+        expect(orgItem!.label).toContain('alias1, alias2, alias3');
+        expect(orgItem!.label).toContain('user@example.com');
+        expect(orgItem!.orgAlias).toBe('alias1');
+        return Promise.resolve(orgItem!);
+      });
 
       const result = await orgListModule.setDefaultOrg();
 
       expect(result).toEqual({ type: 'CONTINUE', data: {} });
-      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'alias1,alias2,alias3');
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'alias1');
     });
 
     it('should filter out expired orgs from the list', async () => {
@@ -243,20 +292,74 @@ describe('OrgList tests', () => {
         isExpired: false
       });
       listAllAuthorizationsMock.mockResolvedValueOnce([expiredOrg, activeOrg]);
-      const orgSelection = 'ActiveOrg - active@example.com';
-      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+      showQuickPickMock.mockImplementationOnce(items => {
+        const orgItems = (items as orgListModule.OrgQuickPickItem[]).filter(item => item.orgUsername);
+        expect(orgItems).toHaveLength(1);
+        expect(orgItems[0].orgUsername).toBe('active@example.com');
+        expect(orgItems[0].orgAlias).toBe('ActiveOrg');
+        return Promise.resolve(orgItems[0]);
+      });
 
       const result = await orgListModule.setDefaultOrg();
 
       expect(result).toEqual({ type: 'CONTINUE', data: {} });
-      expect(showQuickPickMock).toHaveBeenCalledWith(
-        expect.arrayContaining(['ActiveOrg - active@example.com']),
-        expect.any(Object)
-      );
-      expect(showQuickPickMock).toHaveBeenCalledWith(
-        expect.not.arrayContaining(['ExpiredOrg - expired@example.com']),
-        expect.any(Object)
-      );
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'ActiveOrg');
+    });
+
+    it('should sort orgs: Scratch, Sandbox, Other, DevHub, Defaults; alphabetical within each', async () => {
+      const defaultOrg = createOrgAuthorization({
+        username: 'default@example.com',
+        aliases: ['DefaultOrg'],
+        isDevHub: true
+      });
+      const scratchOrg = createOrgAuthorization({
+        username: 'scratch@example.com',
+        aliases: ['ScratchOrg'],
+        isScratchOrg: true
+      });
+      const sandboxOrg = createOrgAuthorization({
+        username: 'sandbox@example.com',
+        aliases: ['SandboxOrg'],
+        isSandbox: true
+      });
+      const regularOrg = createOrgAuthorization({
+        username: 'regular@example.com',
+        aliases: ['RegularOrg'],
+        isDevHub: false,
+        isSandbox: false,
+        isScratchOrg: false
+      });
+      const devHubOrg = createOrgAuthorization({
+        username: 'devhub@example.com',
+        aliases: ['DevHubOrg'],
+        isDevHub: true
+      });
+      getDefaultOrgConfigurationMock.mockResolvedValueOnce({
+        defaultDevHubProperty: 'DefaultOrg',
+        defaultOrgProperty: 'DefaultOrg',
+        defaultDevHubUsername: 'default@example.com',
+        defaultOrgUsername: 'default@example.com'
+      });
+      listAllAuthorizationsMock.mockResolvedValueOnce([
+        defaultOrg,
+        scratchOrg,
+        sandboxOrg,
+        regularOrg,
+        devHubOrg
+      ]);
+      showQuickPickMock.mockImplementationOnce(items => {
+        const orgItems = (items as orgListModule.OrgQuickPickItem[]).filter(item => item.orgUsername);
+        expect(orgItems[0].orgAlias).toBe('ScratchOrg');
+        expect(orgItems[1].orgAlias).toBe('SandboxOrg');
+        expect(orgItems[2].orgAlias).toBe('RegularOrg');
+        expect(orgItems[3].orgAlias).toBe('DevHubOrg');
+        expect(orgItems[4].orgAlias).toBe('DefaultOrg');
+        return Promise.resolve(orgItems[0]);
+      });
+
+      const result = await orgListModule.setDefaultOrg();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
     });
   });
 });
