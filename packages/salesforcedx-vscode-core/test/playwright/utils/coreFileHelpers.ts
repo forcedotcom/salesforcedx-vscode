@@ -6,6 +6,7 @@
  */
 
 import type { Page } from '@playwright/test';
+import packageNls from '../../../package.nls.json';
 import {
   executeCommandWithCommandPalette,
   closeSettingsTab,
@@ -20,7 +21,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await closeSettingsTab(page);
   await closeWelcomeTabs(page);
 
-  await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
+  await executeCommandWithCommandPalette(page, packageNls.apex_generate_class_text);
 
   // First prompt: "Enter desired filename" (core extension uses this prompt)
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
