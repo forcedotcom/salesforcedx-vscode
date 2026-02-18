@@ -99,8 +99,6 @@ Aura.bootstrapMark = function (mark, value) {
 })();
 //#end
 
-function noop() {}
-
 // This, $A, is supposed to be our ONLY window-polluting top-level variable.
 // Everything else in Aura is attached to it.
 // window['$A'] = {};

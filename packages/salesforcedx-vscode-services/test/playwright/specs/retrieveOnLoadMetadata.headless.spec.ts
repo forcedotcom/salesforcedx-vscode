@@ -16,7 +16,6 @@ import {
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
-  outputChannelContains,
   createMinimalOrg,
   validateNoCriticalErrors,
   TAB,
@@ -52,18 +51,13 @@ test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', a
     await selectOutputChannel(page, SERVICES_CHANNEL_NAME);
 
     await waitForOutputChannelText(page, { expectedText: 'Retrieving metadata on load', timeout: 60_000 });
-
-    const hasCustomObject = await outputChannelContains(page, 'CustomObject:Activity');
-    const hasWorkflow = await outputChannelContains(page, 'Workflow:Case');
-
-    expect(hasCustomObject, 'Should show CustomObject:Activity in retrieval message').toBe(true);
-    expect(hasWorkflow, 'Should show Workflow:Case in retrieval message').toBe(true);
+    await waitForOutputChannelText(page, { expectedText: 'CustomObject:Activity' });
+    await waitForOutputChannelText(page, { expectedText: 'Workflow:Case' });
   });
 
   await test.step('verify success message in output channel', async () => {
     await waitForOutputChannelText(page, { expectedText: 'Retrieve on load completed', timeout: 300_000 });
-    const hasFileCount = await outputChannelContains(page, 'files retrieved successfully');
-    expect(hasFileCount, 'Should show file count in success message').toBe(true);
+    await waitForOutputChannelText(page, { expectedText: 'files retrieved successfully' });
   });
 
   await test.step('verify editor tabs contain retrieved files', async () => {

@@ -9,10 +9,6 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
   upsertSettings,
   editOpenFile,
   openFileByName,
@@ -20,17 +16,16 @@ import {
   verifyCommandExists,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  ensureOutputPanelOpen,
-  selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
   isMacDesktop,
   validateNoCriticalErrors,
-  saveScreenshot,
-  ensureSecondarySideBarHidden
+  saveScreenshot
 } from '@salesforce/playwright-vscode-ext';
-import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
+import { COMMAND_TIMEOUT } from '../constants';
+import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
 import { createApexClassCore } from '../coreHelpers';
+import packageNls from '../../../package.nls.json';
 
 test('Deploy and Retrieve: deploy and retrieve via command palette and context menus', async ({ page }) => {
   test.setTimeout(COMMAND_TIMEOUT);
@@ -38,34 +33,21 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   const className = `DeployRetrieveTest${Date.now()}`;
 
   await test.step('setup: workbench, settings, create apex class', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-    await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
-
-    // Ensure core commands are active (not metadata extension commands)
-    await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
-
-    // Open output panel and select Salesforce CLI channel
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
-    await saveScreenshot(page, 'setup.output-channel-ready.png');
+    await setupWorkbenchSettingsAndOutputChannel(page);
 
     // Create the apex class under test
     await createApexClassCore(page, className);
     await saveScreenshot(page, 'setup.class-created.png');
 
     // Wait for extension to fully activate (context keys like sf:has_target_org)
-    await verifyCommandExists(page, 'SFDX: Deploy This Source to Org', 120_000);
+    await verifyCommandExists(page, packageNls.deploy_this_source_text, 120_000);
   });
 
   await test.step('deploy via command palette (ST enabled)', async () => {
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Deploy This Source to Org',
+      expectedText: `Ended ${packageNls.deploy_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'deploy-st.complete.png');
@@ -73,9 +55,9 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
 
   await test.step('deploy again with no changes (ST enabled)', async () => {
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Deploy This Source to Org',
+      expectedText: `Ended ${packageNls.deploy_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'deploy-st-no-changes.complete.png');
@@ -84,9 +66,9 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   await test.step('modify and deploy (ST enabled)', async () => {
     await clearOutputChannel(page);
     await editOpenFile(page, 'deploy modification');
-    await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Deploy This Source to Org',
+      expectedText: `Ended ${packageNls.deploy_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'deploy-st-modified.complete.png');
@@ -96,10 +78,10 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   if (!isMacDesktop()) {
     await test.step('deploy via editor context menu', async () => {
       await clearOutputChannel(page);
-      await verifyCommandExists(page, 'SFDX: Deploy This Source to Org', 120_000);
-      await executeEditorContextMenuCommand(page, 'SFDX: Deploy This Source to Org', `${className}.cls`);
+      await verifyCommandExists(page, packageNls.deploy_this_source_text, 120_000);
+      await executeEditorContextMenuCommand(page, packageNls.deploy_this_source_text, `${className}.cls`);
       await waitForOutputChannelText(page, {
-        expectedText: 'Ended SFDX: Deploy This Source to Org',
+        expectedText: `Ended ${packageNls.deploy_this_source_text}`,
         timeout: COMMAND_TIMEOUT
       });
       await saveScreenshot(page, 'deploy-editor-context.complete.png');
@@ -110,10 +92,10 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
       await executeExplorerContextMenuCommand(
         page,
         new RegExp(`${className}\\.cls`),
-        'SFDX: Deploy This Source to Org'
+        packageNls.deploy_this_source_text
       );
       await waitForOutputChannelText(page, {
-        expectedText: 'Ended SFDX: Deploy This Source to Org',
+        expectedText: `Ended ${packageNls.deploy_this_source_text}`,
         timeout: COMMAND_TIMEOUT
       });
       await saveScreenshot(page, 'deploy-explorer-context.complete.png');
@@ -122,9 +104,9 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
 
   await test.step('retrieve via command palette', async () => {
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Retrieve This Source from Org');
+    await executeCommandWithCommandPalette(page, packageNls.retrieve_this_source_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Retrieve This Source from Org',
+      expectedText: `Ended ${packageNls.retrieve_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'retrieve.complete.png');
@@ -137,9 +119,9 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
 
     // Retrieve should overwrite local with org version (without the marker)
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Retrieve This Source from Org');
+    await executeCommandWithCommandPalette(page, packageNls.retrieve_this_source_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Retrieve This Source from Org',
+      expectedText: `Ended ${packageNls.retrieve_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
 
@@ -155,10 +137,10 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
     await test.step('retrieve via editor context menu', async () => {
       await clearOutputChannel(page);
       // make sure the command is available, ie, context has been set after the last retrieve
-      await verifyCommandExists(page, 'SFDX: Retrieve This Source from Org', 120_000);
-      await executeEditorContextMenuCommand(page, 'SFDX: Retrieve This Source from Org', `${className}.cls`);
+      await verifyCommandExists(page, packageNls.retrieve_this_source_text, 120_000);
+      await executeEditorContextMenuCommand(page, packageNls.retrieve_this_source_text, `${className}.cls`);
       await waitForOutputChannelText(page, {
-        expectedText: 'Ended SFDX: Retrieve This Source from Org',
+        expectedText: `Ended ${packageNls.retrieve_this_source_text}`,
         timeout: COMMAND_TIMEOUT
       });
       await saveScreenshot(page, 'retrieve-editor-context.complete.png');
@@ -169,10 +151,10 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
       await executeExplorerContextMenuCommand(
         page,
         new RegExp(`${className}\\.cls`),
-        'SFDX: Retrieve This Source from Org'
+        packageNls.retrieve_this_source_text
       );
       await waitForOutputChannelText(page, {
-        expectedText: 'Ended SFDX: Retrieve This Source from Org',
+        expectedText: `Ended ${packageNls.retrieve_this_source_text}`,
         timeout: COMMAND_TIMEOUT
       });
       await saveScreenshot(page, 'retrieve-explorer-context.complete.png');
@@ -186,11 +168,11 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
     // Ensure apex class file is open (command requires active editor)
     await openFileByName(page, `${className}.cls`);
     // Wait for command to be available after setting change
-    await verifyCommandExists(page, 'SFDX: Deploy This Source to Org', 120_000);
+    await verifyCommandExists(page, packageNls.deploy_this_source_text, 120_000);
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Deploy This Source to Org',
+      expectedText: `Ended ${packageNls.deploy_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'deploy-no-st.complete.png');

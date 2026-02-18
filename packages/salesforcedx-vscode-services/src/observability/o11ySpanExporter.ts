@@ -58,7 +58,7 @@ export class O11ySpanExporter implements SpanExporter {
             Effect.runSync
           );
           spans.filter(isTopLevelSpan).forEach(span => {
-            const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
+            const success = span.status?.code !== SpanStatusCode.ERROR;
             const props = {
               ...convertAttributes(span.resource.attributes),
               ...getExtensionNameAndVersionAttributes(span.resource.attributes),
