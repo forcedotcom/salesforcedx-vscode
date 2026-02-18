@@ -392,7 +392,7 @@ AuraHistoryService.prototype.getHistoryState = function(){
 	var historyState = null;
 	try {
 		historyState = window.history["state"] && window.history["state"]["hash"];
-	} catch (e) {
+	} catch {
 		// continue regardless of error
 	}
 	return historyState;

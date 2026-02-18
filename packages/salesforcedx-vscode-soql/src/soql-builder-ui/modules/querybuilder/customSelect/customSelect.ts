@@ -13,7 +13,7 @@ import { api, track, LightningElement } from 'lwc';
  * @event option__selection - This is emitted everytime a valid option is selected. detail { value: optionValue }
  *
  */
-interface CustomSelectEvent extends CustomEvent {
+type CustomSelectEvent = CustomEvent & {
   detail: {
     target: HTMLInputElement;
   };

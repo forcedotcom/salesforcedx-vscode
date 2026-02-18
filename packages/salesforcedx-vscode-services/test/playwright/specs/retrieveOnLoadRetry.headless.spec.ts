@@ -57,8 +57,7 @@ test('handles project resolution with retry logic', async ({ page }) => {
 
   await test.step('verify retrieval completes successfully', async () => {
     await waitForOutputChannelText(page, { expectedText: 'Retrieve on load completed', timeout: 300_000 });
-    const hasFileCount = await outputChannelContains(page, 'files retrieved successfully');
-    expect(hasFileCount, 'Should show file count in success message').toBe(true);
+    await waitForOutputChannelText(page, { expectedText: 'files retrieved successfully' });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

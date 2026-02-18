@@ -41,7 +41,7 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     const input = widget.locator('input.input');
     await expect(input).toBeVisible({ timeout: 5000 });
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
-  }).toPass({ timeout: 20_000 });
+  }).toPass({ timeout: 10_000 });
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {

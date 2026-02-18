@@ -67,7 +67,7 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
   let currentTextDocument: TextDocument;
   let scriptFileVersion = 0;
   const updateCurrentTextDocument = (doc: TextDocument) => {
-    if (!currentTextDocument || doc.uri !== currentTextDocument.uri || doc.version !== currentTextDocument.version) {
+    if (doc.uri !== currentTextDocument?.uri || doc.version !== currentTextDocument?.version) {
       currentTextDocument = jsDocuments.get(doc);
       scriptFileVersion++;
     }
