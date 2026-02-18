@@ -95,10 +95,10 @@ yield* api.services.FsService.rename(oldPath, newPath);
 
 ### readJSON
 
-Read + parse JSON with schema validation:
+Read + parse JSON with schema validation. Standalone (not on FsService) due to Effect accessor limitation with generics:
 
 ```typescript
-const data = yield* api.services.FsService.readJSON(filePath, schema);
+const data = yield* api.services.readJSON(filePath, schema);
 ```
 
 ### toUri

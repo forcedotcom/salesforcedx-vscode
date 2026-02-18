@@ -178,6 +178,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ConnectionService.Default,
     EditorService.Default,
     FileWatcherService.Default,
+    FsService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,
     MetadataRegistryService.Default,
