@@ -33,11 +33,6 @@ export const parseMyDomain = (instanceUrl: string): string => {
   return suffix ? hostname.slice(0, -suffix.length) : hostname;
 };
 
-const getDbName = (): string => {
-  const instanceUrl = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim();
-  const myDomain = instanceUrl ? parseMyDomain(instanceUrl) : 'default';
-  return `fsProviderDB-${myDomain}`;
-};
 const STORE_NAME = 'files';
 const DB_VERSION = 1;
 
@@ -54,7 +49,8 @@ const ensureOpenRequestEvent = (event: Event): Event & { target: IDBOpenDBReques
 
 export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageService>()('IndexedDBStorageService', {
   scoped: Effect.gen(function* () {
-    const dbName = getDbName();
+    const dbName =
+      vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim() ?? 'default';
 
     const db = yield* Effect.async<IDBDatabase, Error>(resume => {
       const openRequest = indexedDB.open(dbName, DB_VERSION);
