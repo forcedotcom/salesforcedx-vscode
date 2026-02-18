@@ -9,7 +9,6 @@
 export { CancellationToken } from './types/cancellationToken';
 export { CommandExecution } from './types/commandExecution';
 export { Command } from './types/command';
-export { OrgInfo } from './types/orgInfo';
 export { LineBreakpointInfo } from './types/debugger';
 
 // Constants

@@ -15,7 +15,7 @@ import {
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
-import { updateConfigAndStateAggregators } from '../../util';
+import { updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { AccessTokenParams, AccessTokenParamsGatherer } from './authParamsGatherer';
 
 class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {

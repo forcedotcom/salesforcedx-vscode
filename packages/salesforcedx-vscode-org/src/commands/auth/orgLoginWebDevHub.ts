@@ -20,7 +20,7 @@ import {
 import * as vscode from 'vscode';
 import { ORG_LOGIN_WEB } from '../../constants';
 import { nls } from '../../messages';
-import { updateConfigAndStateAggregators } from '../../util';
+import { updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
 
 class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {

@@ -14,3 +14,6 @@ export {
 
 export { closeExtensionScope, getExtensionScope } from './extensionScope';
 export type { SalesforceVSCodeServicesApi } from './extensionProvider';
+
+export { createTable } from './table';
+export type { Column, Row } from './table';
