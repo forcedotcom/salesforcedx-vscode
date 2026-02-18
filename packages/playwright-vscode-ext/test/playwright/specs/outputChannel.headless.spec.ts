@@ -10,8 +10,7 @@ import {
   ensureOutputPanelOpen,
   selectOutputChannel,
   clearOutputChannel,
-  waitForOutputChannelText,
-  outputChannelContains
+  waitForOutputChannelText
 } from '../../../src/pages/outputChannel';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import {
@@ -83,8 +82,7 @@ test.describe('Output Channel', () => {
     });
 
     await test.step('Check if output contains text', async () => {
-      const contains = await outputChannelContains(page, 'Salesforce');
-      expect(contains).toBe(true);
+      await waitForOutputChannelText(page, { expectedText: 'Salesforce', timeout: 10_000 });
     });
   });
 

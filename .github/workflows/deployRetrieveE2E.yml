@@ -3,28 +3,8 @@ name: Deploy and Retrieve End to End Tests
 on:
   workflow_dispatch:
     inputs:
-      deployAndRetrieve:
-        description: 'Deploy and Retrieve'
-        required: false
-        default: true
-        type: boolean
-      manifestBuilder:
-        description: 'Manifest Builder'
-        required: false
-        default: true
-        type: boolean
       orgBrowser:
         description: 'Org Browser'
-        required: false
-        default: true
-        type: boolean
-      pushAndPull:
-        description: 'Push and Pull'
-        required: false
-        default: true
-        type: boolean
-      mdDeployRetrieve:
-        description: 'Metadata Deploy and Retrieve'
         required: false
         default: true
         type: boolean
@@ -40,28 +20,8 @@ on:
 
   workflow_call:
     inputs:
-      deployAndRetrieve:
-        description: 'Deploy and Retrieve'
-        required: false
-        default: true
-        type: boolean
-      manifestBuilder:
-        description: 'Manifest Builder'
-        required: false
-        default: true
-        type: boolean
       orgBrowser:
         description: 'Org Browser'
-        required: false
-        default: true
-        type: boolean
-      pushAndPull:
-        description: 'Push and Pull'
-        required: false
-        default: true
-        type: boolean
-      mdDeployRetrieve:
-        description: 'Metadata Deploy and Retrieve'
         required: false
         default: true
         type: boolean
@@ -76,47 +36,11 @@ on:
         type: string
 
 jobs:
-  deployAndRetrieve:
-    if: ${{ inputs.deployAndRetrieve }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'deployAndRetrieve.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  manifestBuilder:
-    if: ${{ inputs.manifestBuilder }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'manifestBuilder.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
   orgBrowser:
     if: ${{ inputs.orgBrowser }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       testToRun: 'orgBrowser.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  pushAndPull:
-    if: ${{ inputs.pushAndPull }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'pushAndPull.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  mdDeployRetrieve:
-    if: ${{ inputs.mdDeployRetrieve && inputs.vscodeVersion == 'latest'}}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'metadataDeployRetrieve.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}

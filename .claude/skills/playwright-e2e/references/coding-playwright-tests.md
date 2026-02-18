@@ -57,3 +57,11 @@ No way to read/interact with context menus (right click) on mac+Desktop+electron
 
 - Use `f1` for commands, not meta-shift-P
 - Use `Control` for all. No ControlOrMeta
+
+## Commands and i18n
+
+Prefer `package.nls.json` for command titles instead of hardcoded strings.
+
+- Protects tests when command labels change or are localized
+- Pattern: `import packageNls from '../../../package.nls.json'` (adjust path for package root)
+- Use for `executeCommandWithCommandPalette`, `executeExplorerContextMenuCommand`, `executeEditorContextMenuCommand`, `verifyCommandExists`, and `waitForOutputChannelText` expectedText (e.g. `Ended ${packageNls.deploy_this_source_text}`)

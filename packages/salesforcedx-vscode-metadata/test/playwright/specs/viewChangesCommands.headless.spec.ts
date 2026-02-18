@@ -61,21 +61,14 @@ test('View Changes Commands: each view changes command shows correct sections in
     await waitForOutputChannelText(page, { expectedText: titleAllChanges });
     await page.screenshot({ path: 'test-results/03-after-wait-title.png' });
 
-    // Verify title is present
-    const hasTitle = await outputChannelContains(page, titleAllChanges);
-    expect(hasTitle, `View All Changes should show "${titleAllChanges}" title`).toBe(true);
-
     const sectionRemote = nls.localize('source_tracking_section_remote_changes');
     const sectionLocal = nls.localize('source_tracking_section_local_changes');
 
     // Verify both remote and local sections are present
-    const hasRemote = await outputChannelContains(page, sectionRemote);
+    await waitForOutputChannelText(page, { expectedText: sectionRemote });
     await page.screenshot({ path: 'test-results/04-after-remote-check.png' });
-    expect(hasRemote, `View All Changes should show "${sectionRemote}" section`).toBe(true);
-
-    const hasLocal = await outputChannelContains(page, sectionLocal);
+    await waitForOutputChannelText(page, { expectedText: sectionLocal });
     await page.screenshot({ path: 'test-results/05-after-local-check.png' });
-    expect(hasLocal, `View All Changes should show "${sectionLocal}" section`).toBe(true);
   });
 
   await test.step('View Local Changes shows local section title', async () => {
@@ -92,8 +85,7 @@ test('View Changes Commands: each view changes command shows correct sections in
     await waitForOutputChannelText(page, { expectedText: titleLocalChanges });
 
     // Verify local section header is present (section is "Local Changes (X):")
-    const hasLocal = await outputChannelContains(page, `${sectionLocal} (`);
-    expect(hasLocal, `View Local Changes should show "${sectionLocal}" section`).toBe(true);
+    await waitForOutputChannelText(page, { expectedText: `${sectionLocal} (` });
 
     // Verify remote section is NOT present
     const hasRemote = await outputChannelContains(page, `${sectionRemote} (`);
@@ -114,8 +106,7 @@ test('View Changes Commands: each view changes command shows correct sections in
     await waitForOutputChannelText(page, { expectedText: titleRemoteChanges });
 
     // Verify remote section header is present (section is "Remote Changes (X):")
-    const hasRemote = await outputChannelContains(page, `${sectionRemote} (`);
-    expect(hasRemote, `View Remote Changes should show "${sectionRemote}" section`).toBe(true);
+    await waitForOutputChannelText(page, { expectedText: `${sectionRemote} (` });
 
     // Verify local section is NOT present
     const hasLocal = await outputChannelContains(page, `${sectionLocal} (`);

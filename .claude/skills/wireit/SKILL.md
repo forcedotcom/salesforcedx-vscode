@@ -31,6 +31,13 @@ Full documentation: https://github.com/google/wireit
   - manually changing code in node_modules then running compile or bundle
   - npm link'd packages (ex: symlinks to node libraries locally modified)
 
+## Extra Arguments (passing CLI flags through wireit)
+
+ref: https://github.com/google/wireit?tab=readme-ov-file#extra-arguments
+
+- `npm run {script} -- {script args}` — single `--` forwards args to underlying command
+- ex: `npm run build -- --verbose` passes `--verbose` to the command in `wireit.build.command`
+
 ## Common Patterns
 
 top level `compile`, `lint`, `test` should run all of that in the various packages. When creating new packages, update these.

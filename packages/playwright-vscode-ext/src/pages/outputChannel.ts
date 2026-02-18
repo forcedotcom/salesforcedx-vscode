@@ -21,8 +21,7 @@ import { openCommandPalette } from './commands';
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
 const outputPanelCodeArea = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-lines`);
-const filterInput = (page: Page) =>
-  page.getByPlaceholder(/Filter \(e\.g\./i).first();
+const filterInput = (page: Page) => page.getByPlaceholder(/Filter \(e\.g\./i).first();
 
 const ensureOutputFilterReady = async (page: Page, timeout: number) => {
   const panel = outputPanel(page);
@@ -32,31 +31,6 @@ const ensureOutputFilterReady = async (page: Page, timeout: number) => {
   const input = filterInput(page);
   await expect(input, 'Output filter should be visible and usable').toBeVisible({ timeout });
   return input;
-};
-
-/**
- * Use output filter to force rendering in virtualized output channels.
- */
-const withOutputFilter = async <T>(
-  page: Page,
-  searchText: string,
-  fn: () => Promise<T>,
-  opts?: { timeout?: number }
-): Promise<T> => {
-  const { timeout = 10_000 } = opts ?? {};
-  const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
-  await input.click({ force: true });
-  await input.fill(searchText, { force: true });
-  await expect(input).toHaveValue(searchText, { timeout: 5000 });
-  await page.keyboard.press('Enter');
-  try {
-    return await fn();
-  } finally {
-    await input.click({ force: true });
-    await input.fill('', { force: true });
-    await page.keyboard.press('Enter');
-    await expect(input).toHaveValue('', { timeout: 5000 });
-  }
 };
 
 /** Get all text content from output panel (including scrolled content), normalized */
@@ -81,6 +55,27 @@ const waitForOutputContent = async (page: Page, timeout: number): Promise<boolea
   }
 };
 
+/** wait for output channel to contain text. Throws if not found. Assumes output has content. */
+const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, timeout: number): Promise<void> => {
+  const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
+  try {
+    await expect(async () => {
+      await input.click({ force: true });
+      await input.fill('', { force: true });
+      await expect(input).toHaveValue('', { timeout: 5000 });
+      await page.keyboard.press('Enter');
+      await input.fill(expectedText, { force: true });
+      await expect(input).toHaveValue(expectedText, { timeout: 5000 });
+      await page.keyboard.press('Enter');
+      const combinedText = await getAllOutputText(page);
+      expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
+    }).toPass({ timeout });
+  } finally {
+    await input.click({ force: true }).catch(() => {});
+    await input.fill('', { force: true }).catch(() => {});
+    await page.keyboard.press('Enter').catch(() => {});
+  }
+};
 
 /** Opens the Output panel (idempotent - safe to call if already open) */
 export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
@@ -157,23 +152,12 @@ export const outputChannelContains = async (
 
   if (!(await waitForOutputContent(page, timeout))) return false;
 
+  const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
   try {
-    await withOutputFilter(
-      page,
-      searchText,
-      async () => {
-        await expect(async () => {
-          const combinedText = await getAllOutputText(page);
-          expect(combinedText.includes(searchText), `Expected "${searchText}" in output`).toBe(true);
-        }).toPass({ timeout });
-      },
-      { timeout }
-    );
-    const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
+    await waitForOutputChannelTextCommon(page, searchText, timeout);
     await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return true;
   } catch {
-    const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
     await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return false;
   }
@@ -208,24 +192,7 @@ export const waitForOutputChannelText = async (
     throw new Error(`Output channel did not have content within ${timeout}ms`);
   }
 
-  const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
-  try {
-    await expect(async () => {
-      await input.click({ force: true });
-      await input.fill('', { force: true });
-      await expect(input).toHaveValue('', { timeout: 5000 });
-      await page.keyboard.press('Enter');
-      await input.fill(expectedText, { force: true });
-      await expect(input).toHaveValue(expectedText, { timeout: 5000 });
-      await page.keyboard.press('Enter');
-      const combinedText = await getAllOutputText(page);
-      expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
-    }).toPass({ timeout });
-  } finally {
-    await input.click({ force: true }).catch(() => {});
-    await input.fill('', { force: true }).catch(() => {});
-    await page.keyboard.press('Enter').catch(() => {});
-  }
+  await waitForOutputChannelTextCommon(page, expectedText, timeout);
 };
 
 /**

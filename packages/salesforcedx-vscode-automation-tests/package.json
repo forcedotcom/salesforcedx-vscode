@@ -25,6 +25,7 @@
       ],
       "output": [
         "lib/**",
+        "!lib/test/testData/files/*",
         "tsconfig.tsbuildinfo"
       ]
     },
