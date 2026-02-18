@@ -99,6 +99,23 @@ const fileOrFolderExists = Effect.fn('fsService.fileOrFolderExists')(function* (
     catch: e => new Error(String(e))
   }).pipe(Effect.catchAll(() => Effect.succeed(false)));
 });
+
+const showTextDocument = Effect.fn('fsService.showTextDocument')(function* (
+  filePath: string | URI,
+  options?: vscode.TextDocumentShowOptions
+) {
+  const uri = toUri(filePath);
+  return yield* Effect.tryPromise({
+    try: () => vscode.window.showTextDocument(vscode.Uri.parse(uri.toString()), options),
+    catch: e =>
+      new FsServiceError({
+        ...unknownToErrorCause(e),
+        function: 'showTextDocument',
+        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+      })
+  });
+});
+
 export class FsService extends Effect.Service<FsService>()('FsService', {
   accessors: true,
   dependencies: [],
@@ -111,6 +128,8 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
       /** Write file to filesystem, creating directories if they don't exist */
       writeFile,
       fileOrFolderExists,
+      /** Open the file at the given path in an editor tab. Options passed to vscode.window.showTextDocument (e.g. preview, viewColumn). */
+      showTextDocument,
       isDirectory: (path: string | URI) =>
         Effect.tryPromise(
           async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.Directory

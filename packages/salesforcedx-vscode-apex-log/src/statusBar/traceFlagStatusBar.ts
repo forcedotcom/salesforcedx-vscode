@@ -5,5 +5,150 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Status bar implementation deferred to Phase 4
-export const initTraceFlagStatusBar = (): void => {};
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Array from 'effect/Array';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Order from 'effect/Order';
+import * as PubSub from 'effect/PubSub';
+import * as Schedule from 'effect/Schedule';
+import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { TraceFlagItem } from 'salesforcedx-vscode-services';
+import * as vscode from 'vscode';
+import { nls } from '../messages';
+import { messages } from '../messages/i18n';
+
+const STATUS_BAR_ID = 'apex-trace-flag-status';
+const STATUS_BAR_PRIORITY = 48;
+
+const stopLink = (rec: TraceFlagItem) =>
+  ` [${nls.localize('trace_flag_tooltip_stop')}](command:sf.apex.traceFlags.deleteForId?${encodeURIComponent(rec.id)})`;
+
+const byName = Order.mapInput(Order.string, (r: TraceFlagItem) => r.tracedEntityName ?? r.tracedEntityId ?? '');
+
+const byExpirationDesc = Order.mapInput(Order.reverse(Order.Date), (r: TraceFlagItem) => r.expirationDate);
+
+const toLogTypeKey = (r: TraceFlagItem): 'DEVELOPER_LOG' | 'USER_DEBUG' | 'CLASS_TRACING' | 'TRIGGERS' | 'OTHER' => {
+  if (r.tracedEntityId?.startsWith('01q')) return 'TRIGGERS';
+  const { logType } = r;
+  return logType === 'DEVELOPER_LOG' || logType === 'USER_DEBUG' || logType === 'CLASS_TRACING' ? logType : 'OTHER';
+};
+
+const LOG_TYPE_ORDER: ('DEVELOPER_LOG' | 'USER_DEBUG' | 'CLASS_TRACING' | 'TRIGGERS' | 'OTHER')[] = [
+  'DEVELOPER_LOG',
+  'USER_DEBUG',
+  'CLASS_TRACING',
+  'TRIGGERS',
+  'OTHER'
+];
+
+const LABEL_KEYS: Record<(typeof LOG_TYPE_ORDER)[number], keyof typeof messages> = {
+  DEVELOPER_LOG: 'trace_flag_tooltip_developer_log',
+  USER_DEBUG: 'trace_flag_tooltip_user_debug',
+  CLASS_TRACING: 'trace_flag_tooltip_classes',
+  TRIGGERS: 'trace_flag_tooltip_triggers',
+  OTHER: 'trace_flag_tooltip_other'
+};
+
+const buildTooltip = (activeRecords: TraceFlagItem[]): vscode.MarkdownString => {
+  const byKey = LOG_TYPE_ORDER.reduce<Record<(typeof LOG_TYPE_ORDER)[number], TraceFlagItem[]>>(
+    (acc, key) => ({
+      ...acc,
+      [key]: Array.sort(
+        activeRecords.filter(r => toLogTypeKey(r) === key),
+        byName
+      )
+    }),
+    { DEVELOPER_LOG: [], USER_DEBUG: [], CLASS_TRACING: [], TRIGGERS: [], OTHER: [] }
+  );
+  const tooltip = new vscode.MarkdownString();
+  tooltip.isTrusted = true;
+  const sections = LOG_TYPE_ORDER.map(key => ({ recs: byKey[key], labelKey: LABEL_KEYS[key] }));
+  sections
+    .filter(s => s.recs.length > 0)
+    .forEach((s, i) => {
+      if (i > 0) tooltip.appendMarkdown('\n---\n\n');
+      tooltip.appendMarkdown(`**${nls.localize(s.labelKey)}**\n`);
+      s.recs.forEach(r => {
+        tooltip.appendMarkdown(`- ${r.tracedEntityName ?? r.tracedEntityId ?? r.id}${stopLink(r)}\n`);
+      });
+    });
+  tooltip.appendMarkdown(`\n\n---\n\n**${nls.localize('trace_flag_tooltip_users')}**\n`);
+  tooltip.appendMarkdown(
+    `[${nls.localize('trace_flag_tooltip_add_user')}](command:sf.apex.traceFlags.createForUser)\n`
+  );
+  tooltip.appendMarkdown(
+    `\n---\n\n[${nls.localize('trace_flag_tooltip_full_details')}](command:sf.apex.traceFlags.open)`
+  );
+  return tooltip;
+};
+
+const refresh = (statusBarItem: vscode.StatusBarItem) =>
+  Effect.fn('ApexLog.traceFlagStatusBar.refresh')(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const ref = yield* api.services.TargetOrgRef();
+    const { orgId } = yield* SubscriptionRef.get(ref);
+    if (!orgId) {
+      statusBarItem.hide();
+      return;
+    }
+    const traceFlagService = yield* api.services.TraceFlagService;
+    yield* traceFlagService.cleanupExpired().pipe(
+      Effect.tapError(e => Effect.logWarning(String(e))),
+      Effect.catchAll(() => Effect.void)
+    );
+    const items = yield* traceFlagService.getTraceFlags().pipe(
+      Effect.tapError(e => Effect.logError(String(e))),
+      Effect.catchAll(() => Effect.succeed([]))
+    );
+    const activeRecords = items.filter(rec => rec.isActive);
+    const firstActive = Array.sort(activeRecords, byExpirationDesc)[0];
+    statusBarItem.tooltip = buildTooltip(activeRecords);
+    statusBarItem.command = 'sf.apex.traceFlags.open';
+    if (firstActive) {
+      const until = firstActive.expirationDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      statusBarItem.text = `$(debug-alt) ${nls.localize('trace_flag_active', until)}`;
+      statusBarItem.backgroundColor = undefined;
+    } else {
+      statusBarItem.text = `$(debug-disconnect) ${nls.localize('trace_flag_inactive')}`;
+      statusBarItem.backgroundColor = undefined;
+    }
+    statusBarItem.show();
+  });
+
+export const createTraceFlagStatusBar = (traceFlagRefreshPubSub: PubSub.PubSub<void>) =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const statusBarItem = vscode.window.createStatusBarItem(
+      STATUS_BAR_ID,
+      vscode.StatusBarAlignment.Left,
+      STATUS_BAR_PRIORITY
+    );
+    statusBarItem.name = 'Salesforce: Trace Flag';
+    const targetOrgRef = yield* api.services.TargetOrgRef();
+    const orgChangeStream = Stream.concat(
+      Stream.fromEffect(SubscriptionRef.get(targetOrgRef)),
+      targetOrgRef.changes
+    ).pipe(
+      Stream.map(orgInfo => orgInfo.orgId),
+      Stream.changes,
+      Stream.as(undefined)
+    );
+    const pollStream = Stream.fromSchedule(Schedule.fixed(Duration.minutes(2))).pipe(
+      Stream.filter(() => vscode.window.state.active)
+    );
+    const refreshTriggerStream = Stream.fromPubSub(traceFlagRefreshPubSub);
+    yield* Effect.fork(
+      Stream.mergeAll([orgChangeStream, pollStream, refreshTriggerStream], { concurrency: 'unbounded' }).pipe(
+        Stream.debounce(Duration.millis(300)),
+        Stream.runForEach(() => refresh(statusBarItem)())
+      )
+    );
+    yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+    yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
+    yield* Effect.sleep(Duration.infinity);
+  });

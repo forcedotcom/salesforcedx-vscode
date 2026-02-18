@@ -1,0 +1,6 @@
+---
+description: Run verification after code changes
+alwaysApply: true
+---
+
+After making code changes, follow the verification checklist in .claude/skills/verification/SKILL.md: compile, lint, test, bundle, knip, check:dupes.

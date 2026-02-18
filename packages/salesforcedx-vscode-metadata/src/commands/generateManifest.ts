@@ -48,13 +48,13 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
-
+    const fsService = yield* api.services.FsService;
     // Build manifest directory path
     const manifestFileUri = Utils.joinPath(workspacePath, 'manifest', fileName);
 
     const shouldWrite =
       // doesn't exist
-      !(yield* api.services.FsService.fileOrFolderExists(manifestFileUri)) ||
+      !(yield* fsService.fileOrFolderExists(manifestFileUri)) ||
       // exists and user wants to overwrite
       (yield* promptForOverwrite(fileName)) === nls.localize('overwrite_button');
 
@@ -64,14 +64,10 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
     }
 
     // Write the manifest file (FsService.writeFile automatically creates directories)
-    yield* api.services.FsService.writeFile(manifestFileUri, packageXML);
+    yield* fsService.writeFile(manifestFileUri, packageXML);
     yield* channelService.appendToChannel(`Manifest file created: ${manifestFileUri.toString()}`);
 
-    // Open the generated manifest file
-    yield* Effect.promise(async () => {
-      const doc = await vscode.workspace.openTextDocument(manifestFileUri);
-      await vscode.window.showTextDocument(doc);
-    });
+    yield* fsService.showTextDocument(manifestFileUri);
 
     return manifestFileUri;
   });

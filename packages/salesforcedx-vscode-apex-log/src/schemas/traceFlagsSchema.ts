@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Either from 'effect/Either';
 import * as Schema from 'effect/Schema';
 
 /** Apex debug level verbosity */
@@ -22,52 +23,54 @@ export const DebugLevelSchema = Schema.Literal(
 
 export type DebugLevel = Schema.Schema.Type<typeof DebugLevelSchema>;
 
-/** Salesforce ID: 3-char prefix + 12 base (+ optional 3-char suffix for 18-char) */
-const salesforceIdPattern = (prefix: string) => new RegExp(`^${prefix}[a-zA-Z0-9]{12}([a-zA-Z0-9]{3})?$`);
+/** Build trace-flags JSON schemas from the shared TraceFlagItemStruct (provided by services API at runtime, or directly in build scripts). */
+export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, never>) => {
+  const TraceFlagsByLogTypeSchema = Schema.Struct({
+    DEVELOPER_LOG: Schema.optional(
+      Schema.Array(itemStruct).pipe(
+        Schema.annotations({
+          description: 'Standard debug logs for users. Captures Apex execution, database operations, and system events.'
+        })
+      )
+    ),
+    USER_DEBUG: Schema.optional(
+      Schema.Array(itemStruct).pipe(
+        Schema.annotations({
+          description: 'User debug statements (System.debug). Captures output from Debug.log() and similar.'
+        })
+      )
+    ),
+    CLASS_TRACING: Schema.optional(
+      Schema.Array(itemStruct).pipe(
+        Schema.annotations({
+          description: 'Apex class execution traces. Used for profiling and debugging specific classes.'
+        })
+      )
+    ),
+    TRIGGERS: Schema.optional(
+      Schema.Array(itemStruct).pipe(
+        Schema.annotations({ description: 'Apex trigger execution traces. TracedEntityId prefix 01q.' })
+      )
+    ),
+    OTHER: Schema.optional(
+      Schema.Array(itemStruct).pipe(Schema.annotations({ description: 'Other trace flag types.' }))
+    )
+  });
 
-/** TraceFlag object prefix (7tf) - https://force-center.com/idprefixes */
-const TraceFlagIdSchema = Schema.String.pipe(
-  Schema.pattern(salesforceIdPattern('7tf'), { description: 'TraceFlag Id (prefix 7tf)' })
-);
+  /** Schema for .sf/orgs/{orgId}/traceFlags.json - used for decode/encode and JSON Schema generation. traceFlags grouped by logType, active only. */
+  const TraceFlagsConfigSchema = Schema.Struct({
+    defaultDebugLevels: Schema.optional(Schema.Record({ key: Schema.String, value: DebugLevelSchema })),
+    defaultDurationMinutes: Schema.optional(Schema.Number),
+    traceFlags: Schema.optional(TraceFlagsByLogTypeSchema)
+  }).pipe(Schema.annotations({ jsonSchema: { title: 'Trace Flags Configuration' } }));
 
-/** TracedEntityId: User (005), ApexClass (01p), ApexTrigger (01q) */
-const TracedEntityIdSchema = Schema.String.pipe(
-  Schema.pattern(salesforceIdPattern('(005|01p|01q)'), {
-    description: 'User (005), ApexClass (01p), or ApexTrigger (01q) Id'
-  })
-);
+  /** Encodes TraceFlagsConfig to JSON string (pretty-printed). */
+  const encodeTraceFlagsConfigToJson = (config: Schema.Schema.Type<typeof TraceFlagsConfigSchema>): string =>
+    JSON.stringify(Schema.encodeSync(TraceFlagsConfigSchema)(config), undefined, 2);
 
-/** Optional date: reject empty/whitespace; Tooling API StartDate/ExpirationDate are optional */
-const OptionalDateSchema = Schema.optional(
-  Schema.String.pipe(
-    Schema.filter((s): s is string => s.trim().length > 0, { message: () => 'date must be non-empty if provided' })
-  ).pipe(
-    Schema.transform(Schema.Date, {
-      strict: true,
-      decode: fromA => fromA,
-      encode: (_toI, toA) => toA.toISOString()
-    })
-  )
-);
+  /** Decodes TraceFlagsConfig from JSON string. Returns undefined on invalid JSON or schema mismatch. */
+  const decodeTraceFlagsConfigFromJson = (json: string): Schema.Schema.Type<typeof TraceFlagsConfigSchema> | undefined =>
+    Either.getOrElse(Schema.decodeUnknownEither(Schema.parseJson(TraceFlagsConfigSchema))(json), () => undefined);
 
-/** Schema for traceFlags.json items (strings in file, Date in app) */
-const TraceFlagItemSchema = Schema.Struct({
-  id: Schema.optional(TraceFlagIdSchema),
-  tracedEntityName: Schema.optional(Schema.String),
-  tracedEntityId: Schema.optional(TracedEntityIdSchema),
-  logType: Schema.optional(Schema.Literal('DEVELOPER_LOG')),
-  startDate: OptionalDateSchema,
-  expirationDate: OptionalDateSchema,
-  isActive: Schema.optional(Schema.Boolean)
-});
-
-export type TraceFlagItem = Schema.Schema.Type<typeof TraceFlagItemSchema>;
-
-/** Schema for .sf/orgs/{orgId}/traceFlags.json - used for decode/encode and JSON Schema generation */
-export const TraceFlagsConfigSchema = Schema.Struct({
-  defaultDebugLevels: Schema.optional(Schema.Record({ key: Schema.String, value: DebugLevelSchema })),
-  defaultDurationMinutes: Schema.optional(Schema.Number),
-  traceFlags: Schema.optional(Schema.Array(TraceFlagItemSchema))
-}).pipe(Schema.annotations({ jsonSchema: { title: 'Trace Flags Configuration' } }));
-
-export type TraceFlagsConfig = Schema.Schema.Type<typeof TraceFlagsConfigSchema>;
+  return { TraceFlagsConfigSchema, encodeTraceFlagsConfigToJson, decodeTraceFlagsConfigFromJson };
+};

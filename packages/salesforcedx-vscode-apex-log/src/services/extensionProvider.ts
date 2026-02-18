@@ -38,6 +38,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         ExtensionProviderServiceLive,
         api.services.ApexLogService.Default,
         api.services.ConnectionService.Default,
+        api.services.FsService.Default,
         api.services.EditorService.Default,
         api.services.ExecuteAnonymousService.Default,
         api.services.ExtensionContextServiceLayer(context),

@@ -7,7 +7,12 @@
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
+import * as ParseResult from 'effect/ParseResult';
+import { isString } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import {
   DebugLevelCreateError,
@@ -18,40 +23,26 @@ import {
 } from '../errors/traceFlagErrors';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
+import { TraceFlagItemSchema, type TraceFlagLogType, type ToolingTraceFlagRecord } from './schemas/traceFlagSchemas';
 import { unknownToErrorCause } from './shared';
 
-type TraceFlagRecord = {
-  Id: string;
-  LogType: string;
-  DebugLevelId: string;
-  StartDate?: string;
-  ExpirationDate?: string;
-  DebugLevel?: {
-    ApexCode?: string;
-    Visualforce?: string;
-    DeveloperName?: string;
-  };
-  TracedEntityId?: string;
-};
-
-type DebugLevelRecord = {
-  Id: string;
-  DeveloperName?: string;
-  ApexCode?: string;
-  Visualforce?: string;
-};
+export { TraceFlagItemStruct, TraceFlagLogType } from './schemas/traceFlagSchemas';
+export type { TraceFlagItem } from './schemas/traceFlagSchemas';
 
 const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 const VISUALFORCE_DEBUG_LEVEL = 'FINER';
-const REPLAY_DEBUGGER_LEVELS = 'ReplayDebuggerLevels';
+
+/** DebugLevel.DeveloperName used for replay-debugger trace flags. Created on demand via getOrCreateDebugLevel. */
+export const REPLAY_DEBUGGER_LEVELS = 'ReplayDebuggerLevels';
 
 const toToolingCreateTraceFlag = (
   userId: string,
   debugLevelId: string,
-  expirationDate: Date
+  expirationDate: Date,
+  logType: TraceFlagLogType = 'DEVELOPER_LOG'
 ): Record<string, unknown> => ({
   TracedEntityId: userId,
-  LogType: 'DEVELOPER_LOG',
+  LogType: logType,
   DebugLevelId: debugLevelId,
   StartDate: new Date().toISOString(),
   ExpirationDate: expirationDate.toISOString()
@@ -59,6 +50,8 @@ const toToolingCreateTraceFlag = (
 
 const calculateExpirationDate = (from: Date, duration = Duration.minutes(30)): Date =>
   new Date(from.getTime() + Duration.toMillis(duration));
+
+const idListToInClause = (ids: string[]) => ids.map(id => `'${id}'`).join(',');
 
 const getUserIdOrFail = Effect.gen(function* () {
   const ref = yield* getDefaultOrgRef();
@@ -77,39 +70,100 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
     const getTraceFlags = Effect.fn('TraceFlagService.getTraceFlags')(function* () {
       const conn = yield* connectionService.getConnection();
-      const userId = yield* getUserIdOrFail;
       const query = `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName, TracedEntityId
-        FROM TraceFlag
-        WHERE LogType='DEVELOPER_LOG' AND TracedEntityId='${userId}'`;
-      return yield* Effect.tryPromise({
-        try: () => conn.tooling.query<TraceFlagRecord>(query),
+        FROM TraceFlag`;
+      const traceFlagRecords = (yield* Effect.tryPromise({
+        try: () => conn.tooling.query<ToolingTraceFlagRecord>(query),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
           return new TraceFlagNotFoundError({ message: `Failed to query trace flags: ${cause.message}` });
         }
-      });
+      })).records;
+      const entitiesToResolve = [...new Set(traceFlagRecords.map(r => r.TracedEntityId).filter(isString))];
+
+      if (entitiesToResolve.length === 0) {
+        return yield* Effect.all(
+          traceFlagRecords.map(r => Schema.decodeUnknown(TraceFlagItemSchema)(r)),
+          { concurrency: 'unbounded' }
+        );
+      }
+      const byPrefix = Object.groupBy(entitiesToResolve, id => id.slice(0, 3));
+
+      const queryIdName = (soql: string, tooling: boolean) =>
+        Effect.tryPromise(() =>
+          tooling ? conn.tooling.query<{ Id: string; Name: string }>(soql) : conn.query<{ Id: string; Name: string }>(soql)
+        ).pipe(Effect.map(r => r.records));
+      // get the names for these IDs
+      const idToName = yield* Stream.fromIterable(
+        Object.entries(byPrefix).filter((entry): entry is [string, string[]] => entry[1] !== undefined)
+      ).pipe(
+        Stream.flatMap(([prefix, ids]) =>
+          Match.value(prefix).pipe(
+            Match.when(
+              '005',
+              () => queryIdName(`SELECT Id, Name FROM User WHERE Id IN (${idListToInClause(ids)})`, false)
+            ),
+            Match.when(
+              '01p',
+              () => queryIdName(`SELECT Id, Name FROM ApexClass WHERE Id IN (${idListToInClause(ids)})`, true)
+            ),
+            Match.when(
+              '01q',
+              () => queryIdName(`SELECT Id, Name FROM ApexTrigger WHERE Id IN (${idListToInClause(ids)})`, true)
+            ),
+            Match.orElse(() => Effect.succeed([]))
+          )
+        ),
+        Stream.mapEffect(result =>
+          Schema.decodeUnknown(Schema.Array(Schema.Struct({ Id: Schema.String, Name: Schema.String })))(result)
+        ),
+        Stream.flatMap(Stream.fromIterable),
+        Stream.runFold(new Map<string, string>(), (map, row) => map.set(row.Id, row.Name))
+      );
+
+      return yield* Effect.all(
+        traceFlagRecords
+          .map(rec => (rec.TracedEntityId ? { ...rec, TracedEntityName: idToName.get(rec.TracedEntityId) } : rec))
+          .map(r => Schema.decodeUnknown(TraceFlagItemSchema)(r)),
+        { concurrency: 'unbounded' }
+      ).pipe(
+        Effect.mapError((parseError: ParseResult.ParseError) => {
+          const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
+          return new TraceFlagNotFoundError({ message: `Failed to decode trace flag records: ${msg}` });
+        })
+      );
     });
 
-    const getTraceFlagForUser = Effect.fn('TraceFlagService.getTraceFlagForUser')(function* (userId: string) {
+    const getTraceFlagForUser = Effect.fn('TraceFlagService.getTraceFlagForUser')(function* (
+      userId: string,
+      logType: TraceFlagLogType = 'DEVELOPER_LOG'
+    ) {
       const conn = yield* connectionService.getConnection();
       const query = `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName
         FROM TraceFlag
-        WHERE LogType='DEVELOPER_LOG' AND TracedEntityId='${userId}' AND DebugLevel.DeveloperName='${REPLAY_DEBUGGER_LEVELS}'`;
+        WHERE LogType='${logType}' AND TracedEntityId='${userId}' AND DebugLevel.DeveloperName='${REPLAY_DEBUGGER_LEVELS}'`;
       const result = yield* Effect.tryPromise({
-        try: () => conn.tooling.query<TraceFlagRecord>(query),
+        try: () => conn.tooling.query<ToolingTraceFlagRecord>(query),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
           return new TraceFlagNotFoundError({ message: `Failed to query trace flag: ${cause.message}` });
         }
       });
-      return result.totalSize > 0 ? Option.some(result.records[0]) : Option.none();
+      if (result.totalSize === 0) return Option.none();
+      const item = yield* Schema.decodeUnknown(TraceFlagItemSchema)(result.records[0]).pipe(
+        Effect.mapError((parseError: ParseResult.ParseError) => {
+          const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
+          return new TraceFlagNotFoundError({ message: `Failed to decode trace flag: ${msg}` });
+        })
+      );
+      return Option.some(item);
     });
 
     const getOrCreateDebugLevel = Effect.fn('TraceFlagService.getOrCreateDebugLevel')(function* () {
       const conn = yield* connectionService.getConnection();
       const existing = yield* Effect.tryPromise({
         try: () =>
-          conn.tooling.query<DebugLevelRecord>(
+          conn.tooling.query<{ Id: string }>(
             `SELECT Id FROM DebugLevel WHERE DeveloperName = '${REPLAY_DEBUGGER_LEVELS}' LIMIT 1`
           ),
         catch: error => {
@@ -144,12 +198,14 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     const createTraceFlag = Effect.fn('TraceFlagService.createTraceFlag')(function* (
       userId: string,
       debugLevelId: string,
-      duration = Duration.minutes(30)
+      duration = Duration.minutes(30),
+      logType: TraceFlagLogType = 'DEVELOPER_LOG'
     ) {
       const conn = yield* connectionService.getConnection();
       const expirationDate = calculateExpirationDate(new Date(), duration);
       const result = yield* Effect.tryPromise({
-        try: () => conn.tooling.create('TraceFlag', toToolingCreateTraceFlag(userId, debugLevelId, expirationDate)),
+        try: () =>
+          conn.tooling.create('TraceFlag', toToolingCreateTraceFlag(userId, debugLevelId, expirationDate, logType)),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
           return new TraceFlagCreateError({
@@ -217,15 +273,18 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       });
     });
 
-    const ensureTraceFlag = Effect.fn('TraceFlagService.ensureTraceFlag')(function* (duration = Duration.minutes(30)) {
-      const userId = yield* getUserIdOrFail;
-      const existing = yield* getTraceFlagForUser(userId);
+    const ensureTraceFlag = Effect.fn('TraceFlagService.ensureTraceFlag')(function* (
+      userId: string,
+      duration = Duration.minutes(30),
+      logType: TraceFlagLogType = 'DEVELOPER_LOG'
+    ) {
+      const existing = yield* getTraceFlagForUser(userId, logType);
 
       return yield* Option.match(existing, {
         onNone: () =>
           Effect.gen(function* () {
             const debugLevelId = yield* getOrCreateDebugLevel();
-            const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration);
+            const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
             if (!traceFlagId) {
               return yield* Effect.fail(new TraceFlagCreateError({ message: 'Create returned no ID' }));
             }
@@ -233,16 +292,16 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           }),
         onSome: traceFlag =>
           Effect.gen(function* () {
-            const expirationDate = traceFlag.ExpirationDate ? new Date(traceFlag.ExpirationDate) : new Date();
+            const expirationDate = traceFlag.expirationDate;
             const validExpiration =
               expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
                 ? expirationDate
                 : calculateExpirationDate(new Date(), duration);
-            yield* updateTraceFlag(traceFlag.Id, {
-              debugLevelId: traceFlag.DebugLevelId,
+            yield* updateTraceFlag(traceFlag.id, {
+              debugLevelId: traceFlag.debugLevelId,
               expirationDate: validExpiration
             });
-            return { created: false, traceFlagId: traceFlag.Id };
+            return { created: false, traceFlagId: traceFlag.id };
           })
       });
     });
@@ -253,9 +312,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       return yield* Option.match(existing, {
         onNone: () => Effect.succeed(false),
         onSome: tf =>
-          new Date(tf.ExpirationDate ?? 0) < new Date()
-            ? deleteTraceFlag(tf.Id).pipe(Effect.as(true))
-            : Effect.succeed(false)
+          tf.expirationDate < new Date() ? deleteTraceFlag(tf.id).pipe(Effect.as(true)) : Effect.succeed(false)
       });
     });
 

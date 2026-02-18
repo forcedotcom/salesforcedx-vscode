@@ -13,12 +13,23 @@ import {
   getExtensionScope
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as PubSub from 'effect/PubSub';
 import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
+import { createAnonymousApexScriptCommand } from './commands/createAnonymousApexScript';
 import { executeAnonymousDocumentCommand, executeAnonymousSelectionCommand } from './commands/executeAnonymous';
 import { logGetCommand } from './commands/logGet';
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
+import {
+  createTraceFlagForCurrentUserCommand,
+  createTraceFlagForUserCommand,
+  deleteTraceFlagForCurrentUserCommand,
+  deleteTraceFlagForIdCommand,
+  openTraceFlagsCommand
+} from './traceFlags/traceFlagJsonSync';
+import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -41,15 +52,37 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   );
 
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const traceFlagRefreshPubSub = yield* PubSub.sliding<void>(1);
 
   yield* Effect.all(
     [
       registerCommand('sf.apex.log.get', logGetCommand),
+      registerCommand('sf.apex.traceFlags.open', () =>
+        openTraceFlagsCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+      ),
+      registerCommand('sf.apex.traceFlags.createForCurrentUser', () =>
+        createTraceFlagForCurrentUserCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+      ),
+      registerCommand('sf.apex.traceFlags.deleteForCurrentUser', () =>
+        deleteTraceFlagForCurrentUserCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+      ),
+      registerCommand('sf.apex.traceFlags.createForUser', () =>
+        createTraceFlagForUserCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+      ),
+      registerCommand('sf.apex.traceFlags.deleteForId', (traceFlagId: string) =>
+        deleteTraceFlagForIdCommand(traceFlagId).pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+      ),
+      registerCommand('sf.create.anonymous.apex.script', createAnonymousApexScriptCommand),
       registerCommand('sf.anon.apex.execute.document', executeAnonymousDocumentCommand),
       registerCommand('sf.anon.apex.execute.selection', executeAnonymousSelectionCommand)
     ],
     { concurrency: 'unbounded' }
   );
+
+  registerTraceFlagsCodeLensProvider(context);
+
+  const scope = yield* getExtensionScope();
+  yield* Effect.forkIn(createTraceFlagStatusBar(traceFlagRefreshPubSub), scope).pipe(Effect.asVoid);
 
   yield* api.services.ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} activation complete.`))

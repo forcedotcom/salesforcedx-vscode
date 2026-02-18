@@ -25,7 +25,7 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
-import { TraceFlagService } from './core/traceFlagService';
+import { TraceFlagItemStruct, TraceFlagService } from './core/traceFlagService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -73,6 +73,7 @@ export type SalesforceVSCodeServicesApi = {
     SettingsService: typeof SettingsService;
     SourceTrackingService: typeof SourceTrackingService;
     TargetOrgRef: typeof getDefaultOrgRef;
+    TraceFlagItemStruct: typeof TraceFlagItemStruct;
     TraceFlagService: typeof TraceFlagService;
     WorkspaceService: typeof WorkspaceService;
   };
@@ -108,10 +109,7 @@ export type { MetadataDeleteError } from './core/metadataDeleteService';
 export type { MetadataDescribeError, ListMetadataError } from './core/metadataDescribeService';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
-export type {
-  ApexLogBodyFetchError,
-  ApexLogQueryError
-} from './errors/apexLogErrors';
+export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
 export type {
   DebugLevelCreateError,
   TraceFlagCreateError,
@@ -199,6 +197,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ConnectionService.Default,
     EditorService.Default,
     FileWatcherService.Default,
+    FsService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,
     MetadataRegistryService.Default,
@@ -260,6 +259,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       SettingsService,
       SourceTrackingService,
       TargetOrgRef: getDefaultOrgRef,
+      TraceFlagItemStruct,
       TraceFlagService,
       WorkspaceService
     }
@@ -309,5 +309,5 @@ export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
-export { type TraceFlagService } from './core/traceFlagService';
+export { type TraceFlagItem, type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';

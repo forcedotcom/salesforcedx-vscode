@@ -17,7 +17,8 @@ const executeAnonymous = (code: string) =>
     const execService = yield* api.services.ExecuteAnonymousService;
 
     // if we created it just for this execution, we'll clean it up at the end.
-    const { created, traceFlagId } = yield* traceFlagService.ensureTraceFlag();
+    const userId = yield* traceFlagService.getUserId();
+    const { created, traceFlagId } = yield* traceFlagService.ensureTraceFlag(userId);
     const result = yield* execService.executeAnonymous(code);
 
     const logs = yield* logService.listLogs(5);

@@ -131,7 +131,6 @@
         "CHANGELOG.md",
         "LICENSE.txt",
         "images/**",
-        "syntaxes/**",
         "resources/**"
       ],
       "output": [
@@ -150,26 +149,6 @@
     "breakpoints": [
       {
         "language": "apex"
-      }
-    ],
-    "languages": [
-      {
-        "id": "apexlog",
-        "aliases": [
-          "ApexLog",
-          "DebugLog"
-        ],
-        "extensions": [
-          ".log"
-        ],
-        "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "apexlog",
-        "scopeName": "text.log",
-        "path": "./syntaxes/apexlog.tmLanguage.json"
       }
     ],
     "menus": {

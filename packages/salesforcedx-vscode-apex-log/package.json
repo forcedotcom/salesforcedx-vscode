@@ -29,6 +29,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/core": "^8.23.3",
     "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.25.12",
@@ -44,6 +45,7 @@
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
+    "copy:grammars": "wireit",
     "compile": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
@@ -72,11 +74,38 @@
         "resources/traceFlags.schema.json"
       ]
     },
+    "copy:grammars": {
+      "command": "shx mkdir -p syntaxes && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./syntaxes/",
+      "files": [
+        "../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+      ],
+      "output": [
+        "syntaxes/apex.tmLanguage"
+      ]
+    },
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
+        "copy:grammars",
         "../salesforcedx-vscode-services:vscode:bundle"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "vscode:bundle:local": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "copy:grammars",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -144,7 +173,8 @@
         "CHANGELOG.md",
         "LICENSE.txt",
         "images/**",
-        "resources/**"
+        "resources/**",
+        "syntaxes/**"
       ],
       "output": [
         "*.vsix"
@@ -191,34 +221,135 @@
       "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
-        "vscode:bundle"
+        "vscode:bundle:local",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
       ],
       "files": [
-        "test/playwright/**/*.ts"
+        "test/playwright/**/*.ts",
+        "syntaxes/**"
       ]
     }
   },
   "contributes": {
+    "languages": [
+      {
+        "id": "apexlog",
+        "aliases": [
+          "ApexLog",
+          "DebugLog"
+        ],
+        "extensions": [
+          ".log"
+        ],
+        "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
+      },
+      {
+        "id": "apex-anon",
+        "aliases": [
+          "Anonymous Apex"
+        ],
+        "extensions": [
+          ".apex"
+        ],
+        "configuration": "./syntaxes/apex.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "apexlog",
+        "scopeName": "text.apexlog",
+        "path": "./syntaxes/apexlog.tmLanguage.json"
+      },
+      {
+        "language": "apex-anon",
+        "scopeName": "source.apex",
+        "path": "./syntaxes/apex.tmLanguage"
+      }
+    ],
     "menus": {
       "commandPalette": [
         {
+          "command": "sf.create.anonymous.apex.script",
+          "when": "sf:project_opened"
+        },
+        {
           "command": "sf.anon.apex.execute.selection",
-          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && editorHasSelection && sf:has_target_org"
         },
         {
           "command": "sf.anon.apex.execute.document",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && !editorHasSelection && sf:has_target_org"
         },
         {
           "command": "sf.apex.log.get",
           "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.open",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.createForCurrentUser",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.deleteForCurrentUser",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.createForUser",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.deleteForId",
+          "when": "sf:project_opened && sf:has_target_org"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sf.anon.apex.execute.selection",
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.anon.apex.execute.document",
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && !editorHasSelection && sf:has_target_org"
         }
       ]
     },
     "commands": [
       {
+        "command": "sf.create.anonymous.apex.script",
+        "title": "%apexLog.command.createAnonymousApexScript%",
+        "category": "Salesforce"
+      },
+      {
         "command": "sf.apex.log.get",
         "title": "%apexLog.command.logGet%",
+        "category": "Salesforce"
+      },
+      {
+        "command": "sf.apex.traceFlags.open",
+        "title": "%apexLog.command.traceFlagsOpen%",
+        "category": "Salesforce"
+      },
+      {
+        "command": "sf.apex.traceFlags.createForCurrentUser",
+        "title": "%apexLog.command.traceFlagsCreateForCurrentUser%",
+        "category": "Salesforce"
+      },
+      {
+        "command": "sf.apex.traceFlags.deleteForCurrentUser",
+        "title": "%apexLog.command.traceFlagsDeleteForCurrentUser%",
+        "category": "Salesforce"
+      },
+      {
+        "command": "sf.apex.traceFlags.createForUser",
+        "title": "%apexLog.command.traceFlagsCreateForUser%",
+        "category": "Salesforce"
+      },
+      {
+        "command": "sf.apex.traceFlags.deleteForId",
+        "title": "%apexLog.command.traceFlagsDeleteForId%",
         "category": "Salesforce"
       },
       {

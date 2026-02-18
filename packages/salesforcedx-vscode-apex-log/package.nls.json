@@ -1,7 +1,13 @@
 {
   "displayName": "Salesforce Apex Log",
   "description": "Execute anonymous Apex, retrieve Apex logs, and manage trace flags",
+  "apexLog.command.createAnonymousApexScript": "SFDX: Create Anonymous Apex Script",
   "apexLog.command.logGet": "SFDX: Get Apex Debug Logs",
   "apexLog.command.executeDocument": "SFDX: Execute Anonymous Apex with Currently Open Editor",
-  "apexLog.command.executeSelection": "SFDX: Execute Anonymous Apex with Editor's Selected Text"
+  "apexLog.command.executeSelection": "SFDX: Execute Anonymous Apex with Editor's Selected Text",
+  "apexLog.command.traceFlagsOpen": "SFDX: Open Trace Flags",
+  "apexLog.command.traceFlagsCreateForCurrentUser": "Create trace flag for current user",
+  "apexLog.command.traceFlagsDeleteForCurrentUser": "Turn off trace flag for current user",
+  "apexLog.command.traceFlagsCreateForUser": "SFDX: Create Trace Flag for Another User",
+  "apexLog.command.traceFlagsDeleteForId": "Remove trace flag"
 }

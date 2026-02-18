@@ -13,37 +13,37 @@ todos:
     status: completed
   - id: scaffold-extension
     content: 'Create salesforcedx-vscode-apex-log package: package.json, tsconfig, esbuild, i18n, extensionProvider, constants'
-    status: pending
+    status: completed
   - id: wireit-scripts
     content: Add wireit scripts to new ext + update root package.json compile/lint/test/bundle deps
-    status: pending
+    status: completed
   - id: cmd-log-get
     content: Implement sf.apex.log.get command (Effect-based, uses ApexLogService)
-    status: pending
+    status: completed
   - id: cmd-exec-anon
     content: Implement sf.anon.apex.execute.document and .selection (auto trace flag, auto log retrieval)
-    status: pending
+    status: completed
   - id: exec-anon-service
     content: Implement ExecuteAnonymousService (local to ext, REST-based for web compat)
-    status: pending
+    status: completed
   - id: status-bar
     content: Create trace flag status bar item (green/red, click opens traceFlags.json, reacts to org changes)
-    status: pending
+    status: completed
   - id: traceflag-json
     content: Implement traceFlags.json bidirectional sync + JSON schema + jsonValidation contribution
-    status: pending
+    status: completed
   - id: exec-results-storage
     content: Implement .sf/orgs/{orgId}/anonymousApex/ storage for exec results + logs
-    status: pending
+    status: completed
   - id: remove-from-apex
     content: Remove sf.apex.log.get, sf.anon.apex.execute.* from salesforcedx-vscode-apex
-    status: pending
+    status: completed
   - id: remove-legacy-traceflags
     content: Remove TraceFlags helper from utils-vscode, remove start/stop debug logging from core
-    status: pending
+    status: completed
   - id: update-extension-pack
     content: Add salesforcedx-vscode-apex-log to salesforcedx-vscode-expanded extension pack
-    status: pending
+    status: completed
   - id: playwright-tests
     content: Write Playwright E2E tests (web + desktop) for execute anonymous, log get, status bar, trace flag JSON
     status: pending

@@ -221,7 +221,11 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
           });
 
       // update the org ref in the background
-      yield* maybeUpdateDefaultOrgRef(conn).pipe(Effect.forkDaemon);
+      yield* maybeUpdateDefaultOrgRef(conn).pipe(
+        Effect.tapError(e => Effect.logWarning(String(e))),
+        Effect.catchAll(() => Effect.void),
+        Effect.forkDaemon
+      );
       return conn;
     });
 
