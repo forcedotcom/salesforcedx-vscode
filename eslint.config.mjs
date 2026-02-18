@@ -42,10 +42,14 @@ export default [
       '**/.wireit/**',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-aura-language-server/src/tern/**',
+      'packages/salesforcedx-vscode-lightning/tern/**',
+      'packages/salesforcedx-vscode-lightning/extension/tern/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
+      'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
+      'packages/soql-common/src/soql-parser.lib/**',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts',
       'packages/salesforcedx-lwc-language-server/src/javascript/__tests__/fixtures/**',
@@ -55,6 +59,28 @@ export default [
       '**/.vscode-test/**',
       '**/playwright-report/**'
     ]
+  },
+  {
+    files: ['**/*.js', '**/*.mjs'],
+    languageOptions: {
+      sourceType: 'module',
+      ecmaVersion: 'latest',
+      globals: {
+        ...globals.node
+      }
+    },
+    plugins: {
+      import: eslintPluginImport
+    },
+    rules: {
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          ignoreRestSiblings: true
+        }
+      ]
+    }
   },
   {
     files: ['**/*.ts'],
@@ -609,7 +635,9 @@ export default [
       'packages/salesforcedx-vscode-apex-testing/test/**/*.ts',
       'packages/salesforcedx-vscode-services/playwright*.ts',
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
-      'packages/salesforcedx-vscode-metadata/playwright*.ts'
+      'packages/salesforcedx-vscode-metadata/playwright*.ts',
+      'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-core/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import

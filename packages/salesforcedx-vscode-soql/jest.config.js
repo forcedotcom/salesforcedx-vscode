@@ -10,5 +10,10 @@ module.exports = Object.assign({}, baseConfig, {
   // This package doesn't use dynamic imports, so it's safe
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
+  },
+  // Map @salesforce/soql-model to actual source path for Jest
+  moduleNameMapper: {
+    ...baseConfig.moduleNameMapper,
+    '^@salesforce/soql-model/(.*)$': '<rootDir>/src/soql-model/$1'
   }
 });

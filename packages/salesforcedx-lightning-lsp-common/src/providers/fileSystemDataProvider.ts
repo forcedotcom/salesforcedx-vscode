@@ -443,6 +443,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * 1. getFileStat returns a stat with type 'directory', OR
    * 2. It has a directory listing (even if no explicit stat was created), OR
    * 3. Any files exist with paths that start with this directory path (inferred existence)
+   * - Checks both fileStats (files with stats) and fileContents (files with content)
    */
   public async directoryExists(uri: NormalizedPath): Promise<boolean> {
     const stat = await this.getFileStat(uri);

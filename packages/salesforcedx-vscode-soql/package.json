@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "65.17.3",
+  "version": "65.18.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -38,10 +38,11 @@
     "@salesforce/core": "^8.23.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
+    "@salesforce/soql-common": "*",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
-    "@salesforce/soql-model": "1.0.0",
     "@salesforce/vscode-i18n": "*",
+    "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
@@ -83,6 +84,7 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../soql-common:compile",
         "../salesforcedx-sobjects-faux-generator:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",

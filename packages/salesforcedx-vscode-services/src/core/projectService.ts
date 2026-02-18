@@ -12,6 +12,8 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
+import { toUri } from '../vscode/fsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';
 
@@ -74,15 +76,32 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
 
     /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
     const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
-      const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow();
+      const workspacePath = (yield* workspaceService.getWorkspaceInfoOrThrow()).fsPath;
       const project = yield* globalSfProjectCache
-        .get(workspaceDescription.fsPath)
+        .get(workspacePath)
         .pipe(Effect.tapError(() => setProjectOpenedContext(false)));
       yield* setProjectOpenedContext(true);
       return project;
     });
 
-    return { isSalesforceProject, getSfProject };
+    /** Check if a URI is within any package directory */
+    const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
+      return (
+        (yield* isSalesforceProject()) &&
+        (yield* getSfProject())
+          .getPackageDirectories()
+          // normalizes paths to forward slashes
+          .map(dir => toUri(dir.fullPath).path)
+          // Remove trailing forwardslash if present
+          .map(dir => dir.replace(/\/$/, ''))
+          .some(
+            dir =>
+              // Use URI.path which is normalized (always uses /) regardless of OS
+              uri.path.startsWith(`${dir}/`) || uri.path === dir
+          )
+      );
+    });
+    return { isSalesforceProject, getSfProject, isInPackageDirectories };
   })
 }) {}
 

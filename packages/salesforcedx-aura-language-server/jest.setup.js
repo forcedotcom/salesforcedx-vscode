@@ -1,6 +1,5 @@
 // Suppress specific console warnings during tests
 const originalWarn = console.warn;
-const originalLog = console.log;
 const originalInfo = console.info;
 
 console.warn = (...args) => {
@@ -13,7 +12,7 @@ console.warn = (...args) => {
     originalWarn.apply(console, args);
 };
 
-console.log = (...args) => {
+console.log = () => {
     // Suppress all console.log during tests to avoid noise
     return;
 };

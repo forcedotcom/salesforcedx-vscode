@@ -210,10 +210,7 @@ const findFilesInDirectory = async (
 };
 
 // Utility function to get all locations
-export const getAllLocations = async (
-  tag: Tag,
-  fileSystemProvider: IFileSystemProvider
-): Promise<Location[]> => {
+export const getAllLocations = async (tag: Tag, fileSystemProvider: IFileSystemProvider): Promise<Location[]> => {
   // tag.file is already normalized (comes from entry.path which is normalized by FileSystemDataProvider)
   const { dir, name } = path.parse(tag.file);
   // Normalize dir because path.parse() returns backslashes on Windows

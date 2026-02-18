@@ -418,7 +418,7 @@ TestInstance.prototype.getDump = function(clearSessionStorage) {
             if ($A.util.isFunction(actual)) {
                 try {
                     actual = actual();
-                } catch (e) {
+                } catch {
                     actual = [ "<error evaluating>" ];
                 }
             }

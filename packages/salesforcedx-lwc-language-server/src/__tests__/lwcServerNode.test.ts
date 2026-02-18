@@ -841,7 +841,8 @@ describe('lwcServerNode', () => {
 
         const provider = server.fileSystemProvider;
         expect(
-          (await provider.fileExists(baseTsconfigPath)) ?? (await server.fileSystemProvider.fileExists(baseTsconfigPath))
+          (await provider.fileExists(baseTsconfigPath)) ??
+            (await server.fileSystemProvider.fileExists(baseTsconfigPath))
         ).toBe(false);
         const tsconfigPaths = await getTsConfigPaths();
         expect(tsconfigPaths.length).toBe(0);
@@ -988,10 +989,7 @@ describe('lwcServerNode', () => {
         // Use fileSystemProvider to find tsconfig files
         const tsconfigPaths = await getTsConfigPaths();
         for (const tsconfigPath of tsconfigPaths) {
-          if (
-            (await provider.fileExists(tsconfigPath)) ||
-            (await server.fileSystemProvider.fileExists(tsconfigPath))
-          ) {
+          if ((await provider.fileExists(tsconfigPath)) || (await server.fileSystemProvider.fileExists(tsconfigPath))) {
             if (await provider.fileExists(tsconfigPath)) {
               deleteFromProvider(provider, tsconfigPath);
             }

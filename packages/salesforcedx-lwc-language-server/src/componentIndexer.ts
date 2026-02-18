@@ -195,12 +195,16 @@ export default class ComponentIndexer {
       }
       // Pattern matches: {packageDir}/**/*/lwc/**/*.js
       const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
-      return (await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot)).filter(filterDirMatchesName);
+      return (await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot)).filter(
+        filterDirMatchesName
+      );
     }
 
     // For CORE_ALL and CORE_PARTIAL
     const defaultPattern = '**/*/modules/**/*.js';
-    return (await findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot)).filter(filterDirMatchesName);
+    return (await findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot)).filter(
+      filterDirMatchesName
+    );
   }
 
   public getCustomData(): Tag[] {
