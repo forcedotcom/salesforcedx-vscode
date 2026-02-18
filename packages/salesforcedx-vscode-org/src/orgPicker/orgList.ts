@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { Duration } from 'effect';
 import * as Effect from 'effect/Effect';
+import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
@@ -17,8 +18,10 @@ import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';
 import { determineOrgMarkers, getAuthFieldsFor, getDefaultOrgConfiguration } from '../util/orgUtil';
 
+type OrgType = 'DevHub' | 'Sandbox' | 'Scratch' | 'Org';
+
 /** Org type derived from OrgAuthorization (no async calls) */
-const getOrgTypeFromAuth = (orgAuth: OrgAuthorization): 'DevHub' | 'Sandbox' | 'Scratch' | 'Org' => {
+const getOrgTypeFromAuth = (orgAuth: OrgAuthorization): OrgType => {
   if (orgAuth.isDevHub) {
     return 'DevHub';
   }
@@ -31,8 +34,21 @@ const getOrgTypeFromAuth = (orgAuth: OrgAuthorization): 'DevHub' | 'Sandbox' | '
   return 'Org';
 };
 
+const orgTypeToLabel = (type: OrgType): string => {
+  switch (type) {
+    case 'Scratch':
+      return 'Scratch Orgs';
+    case 'DevHub':
+      return 'Dev Hubs';
+    case 'Sandbox':
+      return 'Sandboxes';
+    default:
+      return 'Other Orgs';
+  }
+};
+
 /** Codicon name for org type */
-const getIconForOrgType = (type: 'DevHub' | 'Sandbox' | 'Scratch' | 'Org'): string => {
+const getIconForOrgType = (type: OrgType): string => {
   switch (type) {
     case 'DevHub':
       return '$(server)';
@@ -44,91 +60,84 @@ const getIconForOrgType = (type: 'DevHub' | 'Sandbox' | 'Scratch' | 'Org'): stri
       return '$(cloud)';
   }
 };
-
 /** QuickPickItem for org selection with metadata for handling */
 export interface OrgQuickPickItem extends vscode.QuickPickItem {
   orgUsername?: string;
   orgAlias?: string;
   commandId?: string;
+  orgType?: OrgType;
 }
 
-/** First-position icons: default markers (🌳/🍁) when applicable, then type icon */
+/** First-position icons: type icon, then default markers (🌳/🍁) when applicable */
 const getFirstIcons = (defaultMarkers: string, typeIcon: string): string => {
   const markers = defaultMarkers ? (defaultMarkers === '🌳,🍁' ? '🌳🍁' : defaultMarkers) : '';
-  return markers ? `${markers} ${typeIcon}` : typeIcon;
+  return markers ? `${typeIcon} ${markers}` : typeIcon;
 };
 
-/** Sort: Scratch, Sandbox, Other, DevHub, Defaults; within each, alphabetical by alias or username. Exported for test. */
-export const sortOrgs = (
-  orgs: OrgAuthorization[],
-  defaultConfig: Awaited<ReturnType<typeof getDefaultOrgConfiguration>>
-): OrgAuthorization[] => {
-  const getPrimaryKey = (o: OrgAuthorization): number => {
-    const markers = determineOrgMarkers(o, defaultConfig);
-    if (markers) return 4; // Defaults last
+type DefaultOrgConfig = Awaited<ReturnType<typeof getDefaultOrgConfiguration>>;
+
+const byTypeAndMarkers = (): Order.Order<OrgAuthorization> =>
+  Order.mapInput(Order.number, (o: OrgAuthorization) => {
     if (o.isScratchOrg) return 0;
     if (o.isSandbox) return 1;
     if (o.isDevHub) return 3;
-    return 2; // Org (other)
-  };
-  const getSecondaryKey = (o: OrgAuthorization): string =>
-    (o.aliases?.[0] ?? o.username ?? '').toLowerCase();
-
-  return [...orgs].toSorted((a, b) => {
-    const pa = getPrimaryKey(a);
-    const pb = getPrimaryKey(b);
-    if (pa !== pb) return pa - pb;
-    return getSecondaryKey(a).localeCompare(getSecondaryKey(b));
+    return 2;
   });
-};
 
-/** Build QuickPick items from orgs with icons | alias(s) | type | username */
-const buildOrgQuickPickItems = (
-  orgs: OrgAuthorization[],
-  defaultConfig: Awaited<ReturnType<typeof getDefaultOrgConfiguration>>
-): OrgQuickPickItem[] =>
-  orgs.map(orgAuth => {
+const byAliasFirst: Order.Order<OrgAuthorization> = Order.mapInput(
+  Order.reverse(Order.boolean),
+  (o: OrgAuthorization) => !!o.aliases?.[0]
+);
+
+const byAliasOrUsername: Order.Order<OrgAuthorization> = Order.mapInput(Order.string, (o: OrgAuthorization) =>
+  (o.aliases?.[0] ?? o.username ?? '').toLowerCase()
+);
+
+/** Sort: Scratch, Sandbox, Other, DevHub, Defaults; within each, aliases first then alphabetical. Exported for test. */
+const orgOrder = (): Order.Order<OrgAuthorization> =>
+  Order.combineAll([byTypeAndMarkers(), byAliasFirst, byAliasOrUsername]);
+
+/** Build QuickPick items from orgs: icons + (alias(s) | username when alias present) */
+const orgAuthToQuickPickItem =
+  (defaultConfig: Awaited<ReturnType<typeof getDefaultOrgConfiguration>>) =>
+  (orgAuth: OrgAuthorization): OrgQuickPickItem => {
     const defaultMarkers = determineOrgMarkers(orgAuth, defaultConfig);
     const orgType = getOrgTypeFromAuth(orgAuth);
     const typeIcon = getIconForOrgType(orgType);
     const firstIcons = getFirstIcons(defaultMarkers, typeIcon);
-    const aliasDisplay =
-      orgAuth.aliases && orgAuth.aliases.length > 0 ? orgAuth.aliases.join(', ') : null;
-    const label =
-      aliasDisplay !== null ? `${firstIcons} | ${aliasDisplay} | ${orgAuth.username}` : `${firstIcons} | ${orgAuth.username}`;
+    const aliasDisplay = orgAuth.aliases?.length ? orgAuth.aliases.join(', ') : undefined;
+    const label = aliasDisplay
+      ? `${firstIcons} ${aliasDisplay} | ${orgAuth.username}`
+      : `${firstIcons} ${orgAuth.username}`;
     return {
       label,
       detail: orgAuth.error ?? undefined,
       orgUsername: orgAuth.username,
-      orgAlias: orgAuth.aliases?.[0]
+      orgAlias: orgAuth.aliases?.[0],
+      orgType
     };
-  });
+  };
 
 /** Action items for SFDX commands */
 const ACTION_ITEMS: OrgQuickPickItem[] = [
   {
     label: `$(plus) ${nls.localize('org_login_web_authorize_org_text')}`,
-    description: '',
     commandId: 'sf.org.login.web'
   },
   {
     label: `$(plus) ${nls.localize('org_login_web_authorize_dev_hub_text')}`,
-    description: '',
     commandId: 'sf.org.login.web.dev.hub'
   },
   {
     label: `$(plus) ${nls.localize('org_create_default_scratch_org_text')}`,
-    description: '',
     commandId: 'sf.org.create'
   },
   {
     label: `$(plus) ${nls.localize('org_login_access_token_text')}`,
-    description: '',
     commandId: 'sf.org.login.access.token'
   },
   {
     label: `$(plus) ${nls.localize('org_list_clean_text')}`,
-    description: '',
     commandId: 'sf.org.list.clean'
   }
 ];
@@ -140,15 +149,32 @@ export const isOrgExpired = async (targetOrgOrAlias: string): Promise<boolean> =
   return expirationDate ? expirationDate < new Date() : false;
 };
 
+export const authorizationsToQuickPickItems = (
+  authorizations: OrgAuthorization[],
+  defaultConfig: DefaultOrgConfig
+): OrgQuickPickItem[] =>
+  authorizations
+    .filter(o => o.isExpired !== true)
+    .toSorted(orgOrder())
+    .map(orgAuthToQuickPickItem(defaultConfig));
+
 export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> => {
-  const allAuthorizations = await AuthInfo.listAllAuthorizations();
-  const defaultConfig = await getDefaultOrgConfiguration();
+  const [defaultConfig, authorizations] = await Promise.all([
+    getDefaultOrgConfiguration(),
+    AuthInfo.listAllAuthorizations()
+  ]);
 
-  const activeOrgs = allAuthorizations.filter(o => o.isExpired !== true);
-  const sortedOrgs = sortOrgs(activeOrgs, defaultConfig);
-  const orgItems = buildOrgQuickPickItems(sortedOrgs, defaultConfig);
-
-  const quickPickList: OrgQuickPickItem[] = [...ACTION_ITEMS, ...orgItems];
+  const quickPickList = [
+    ...ACTION_ITEMS,
+    { kind: vscode.QuickPickItemKind?.Separator ?? -1, label: '' },
+    ...authorizationsToQuickPickItems(authorizations, defaultConfig).flatMap((item, index, array) => {
+      // add a separator if the previous item is not the same type as the current item
+      if (item.orgType && (index === 0 || item.orgType !== array[index - 1].orgType)) {
+        return [{ kind: vscode.QuickPickItemKind?.Separator ?? -1, label: orgTypeToLabel(item.orgType) }, item];
+      }
+      return [item];
+    })
+  ];
 
   const selection = await vscode.window.showQuickPick(quickPickList, {
     placeHolder: nls.localize('org_select_text'),
