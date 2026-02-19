@@ -36,6 +36,7 @@ import { watchDefaultOrgContext } from './vscode/context';
 import { watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
+import { setExtensionContext } from './vscode/extensionContext';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
 import { FileWatcherService } from './vscode/fileWatcherService';
@@ -165,6 +166,7 @@ const activationEffect = (context: vscode.ExtensionContext) =>
  * Consumers should get both from the API, not via direct imports.
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
+  setExtensionContext(context);
   const extensionScope = Effect.runSync(getExtensionScope());
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -190,6 +192,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   /** they're global in the sense that they should be the same for all extension */
   const globalLayers = Layer.mergeAll(
+    ExtensionContextService.Default,
     ExecuteAnonymousService.Default,
     ApexLogService.Default,
     ComponentSetService.Default,

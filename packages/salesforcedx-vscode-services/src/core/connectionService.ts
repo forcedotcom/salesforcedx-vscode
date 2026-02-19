@@ -14,7 +14,6 @@ import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
-import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
@@ -291,9 +290,7 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
 
     const webUserId =
       existingOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
-        ? // ooh, now we know who they are, so we set that.
-          // Pipe the extension context in for ServicesExtension so we don't get context from another ext
-          yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
+        ? yield* setWebUserId(orgId, userId)
         : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
 
     const updates = Object.fromEntries(
