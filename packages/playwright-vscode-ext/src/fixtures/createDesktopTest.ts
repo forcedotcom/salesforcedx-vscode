@@ -141,8 +141,17 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         if (process.platform === 'darwin' && process.env.CI) {
           // macOS CI: electronApp.close() hangs indefinitely via CDP, leaving an unresolved
           // Promise that Playwright's worker teardown waits on (60s timeout). Skip close()
-          // and kill the process tree directly — Playwright detects the exit event and cleans up.
+          // and kill the process tree directly, then wait for Playwright's internal process
+          // watcher to register the exit before returning from fixture teardown.
+          const proc = electronApp.process?.();
           killPids(descendants);
+          if (proc?.exitCode === null) {
+            await new Promise<void>(resolve => {
+              proc.on('exit', () => resolve());
+              setTimeout(resolve, 10_000);
+            });
+          }
+          console.log(`[teardown] exitCode=${proc?.exitCode}`);
         } else {
           try {
             const closed = await Promise.race([
