@@ -1,1 +1,4 @@
 grammars
+src/soql-common/soql-parser.lib/*.test.js
+src/soql-common/soql-parser.lib/*.test.d.ts
+src/soql-common/soql-parser.lib/*.test.js.map

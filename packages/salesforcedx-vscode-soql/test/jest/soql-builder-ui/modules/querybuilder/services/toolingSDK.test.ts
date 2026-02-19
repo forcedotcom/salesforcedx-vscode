@@ -20,11 +20,11 @@ describe('Tooling SDK Service', () => {
   const window = getWindow();
   let vscode;
 
-  function postMessageFromVSCode(message): void {
+  const postMessageFromVSCode = (message): void => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const messageEvent = new MessageEvent('message', { data: message });
     window.dispatchEvent(messageEvent);
-  }
+  };
 
   beforeEach(() => {
     messageService = new VscodeMessageService();

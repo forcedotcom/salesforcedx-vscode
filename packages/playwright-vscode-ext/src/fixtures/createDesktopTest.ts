@@ -9,11 +9,32 @@
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron } from '@playwright/test';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+import type { ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+
 import { filterErrors } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
 import { createTestWorkspace } from './desktopWorkspace';
+
+/** Close timeout before force-kill (non-macOS-CI path). */
+const CLOSE_TIMEOUT_MS = 5000;
+
+/**
+ * Force-kill an Electron process tree on macOS/Linux. Playwright spawns Electron
+ * with detached:true, giving it its own process group (PGID = PID). Sending
+ * SIGKILL to -pid kills the entire group (main + GPU + crashpad + utility).
+ * Then destroy stdio pipes so Node.js emits the ChildProcess 'exit' event —
+ * without this, Playwright's worker teardown waits for pipe EOF and times out.
+ */
+const forceKillProcessGroup = (proc: ChildProcess): void => {
+  const { pid } = proc;
+  if (typeof pid !== 'number') return;
+  try { process.kill(-pid, 'SIGKILL'); } catch {}
+  proc.stdin?.destroy();
+  proc.stdout?.destroy();
+  proc.stderr?.destroy();
+};
 
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
@@ -37,15 +58,21 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       async ({}, use): Promise<void> => {
         const repoRoot = resolveRepoRoot(fixturesDir);
         const cachePath = path.join(repoRoot, '.vscode-test');
-        const executablePath = await downloadAndUnzipVSCode({ cachePath });
+        const version = process.env.PLAYWRIGHT_DESKTOP_VSCODE_VERSION ?? undefined;
+        const executablePath = await downloadAndUnzipVSCode({ version, cachePath });
         await use(executablePath);
       },
       { scope: 'worker' }
     ],
 
+    // Create workspace directory (shared with electronApp so tests can access path)
+    workspaceDir: async ({}, use): Promise<void> => {
+      const dir = await createTestWorkspace(orgAlias);
+      await use(dir);
+    },
+
     // Launch fresh Electron instance per test
-    electronApp: async ({ vscodeExecutable }, use): Promise<void> => {
-      const workspaceDir = await createTestWorkspace(orgAlias);
+    electronApp: async ({ vscodeExecutable, workspaceDir }, use): Promise<void> => {
       // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
@@ -96,10 +123,36 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       try {
         await use(electronApp);
       } finally {
-        // Ensure cleanup happens even if test fails
-        try {
-          await electronApp.close();
-        } catch {}
+        const proc = electronApp.process?.();
+        console.log(`[teardown] pid=${proc?.pid} platform=${process.platform} CI=${process.env.CI}`);
+
+        if (process.platform !== 'win32' && process.env.CI) {
+          // macOS/Linux CI: electronApp.close() hangs via CDP, leaving a dangling Promise
+          // that Playwright's worker teardown waits on (60s timeout). Kill the entire
+          // process group and destroy stdio pipes so the ChildProcess 'exit' event fires.
+          if (proc) {
+            forceKillProcessGroup(proc);
+            // Wait for Node.js to register the exit (pipes closed → 'close' event → 'exit' event)
+            await new Promise<void>(resolve => {
+              if (proc.exitCode !== null) { resolve(); return; }
+              proc.on('close', () => resolve());
+              setTimeout(resolve, 10_000);
+            });
+          }
+          console.log(`[teardown] exitCode=${proc?.exitCode} killed=${proc?.killed}`);
+        } else {
+          try {
+            await Promise.race([
+              electronApp.close(),
+              new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
+            ]);
+          } catch {}
+          // Force-kill if close didn't work (Windows timeout fallback)
+          if (proc?.exitCode === null && process.platform === 'win32') {
+            try { process.kill(proc.pid!, 'SIGKILL'); } catch {}
+          }
+        }
+        console.log('[teardown] done');
       }
     },
 

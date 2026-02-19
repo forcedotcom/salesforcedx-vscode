@@ -37,7 +37,7 @@ jest.mock('../../resources/transformed-aura-system.json', () =>
 import { FileSystemDataProvider, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
-import URI from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { AuraWorkspaceContext } from '../../context/auraContext';
 import AuraIndexer from '../indexer';
 

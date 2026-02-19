@@ -270,7 +270,7 @@ type DefaultOrgConfig = {
 };
 
 /** Get default org and devhub configuration */
-const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
+export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
   const configAggregator = await Effect.runPromise(getConfigAggregatorEffect.pipe(Effect.provide(AllServicesLayer)));
   const defaultDevHubProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
   const defaultOrgProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
@@ -284,7 +284,7 @@ const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
 };
 
 /** Determine the type of org (DevHub, Sandbox, Org, or Scratch) */
-const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
+export const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
   if (orgAuth.isDevHub) {
     return 'DevHub';
   } else if (authFields && !authFields.expirationDate) {
@@ -294,7 +294,7 @@ const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): st
 };
 
 /** Determine default org markers for display */
-const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: DefaultOrgConfig): string => {
+export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: DefaultOrgConfig): string => {
   const possibleDefaults = new Set([...(orgAuth.aliases ?? []), orgAuth.username].filter(Boolean));
 
   // Check if this org is the default DevHub (by property value or resolved username)

@@ -9,6 +9,7 @@ import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
+import { AliasService } from './core/alias';
 import { ApexLogService } from './core/apexLogService';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
@@ -192,6 +193,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   /** they're global in the sense that they should be the same for all extension */
   const globalLayers = Layer.mergeAll(
+    AliasService.Default,
     ExtensionContextService.Default,
     ExecuteAnonymousService.Default,
     ApexLogService.Default,

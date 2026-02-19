@@ -14,8 +14,11 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.17.3",
+  "version": "65.18.0",
   "publisher": "salesforce",
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
+  "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
@@ -38,12 +41,13 @@
     "@opentelemetry/sdk-trace-web": "2.2.0",
     "@salesforce/core": "^8.23.4",
     "@salesforce/vscode-i18n": "*",
-    "@salesforce/o11y-reporter": "1.6.0",
-    "@salesforce/source-deploy-retrieve": "^12.31.9",
+    "@salesforce/o11y-reporter": "^1.7.4",
+    "@salesforce/source-deploy-retrieve": "^12.31.12",
     "@salesforce/source-tracking": "^7.8.1",
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.19.14",
     "jsforce": "^3.10.2",
+    "o11y_schema": "^260.44.0",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {

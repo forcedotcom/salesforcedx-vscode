@@ -14,8 +14,11 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.17.3",
+  "version": "65.18.0",
   "publisher": "salesforce",
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
+  "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
@@ -32,7 +35,7 @@
   "devDependencies": {
     "@salesforce/core": "^8.23.3",
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.31.9",
+    "@salesforce/source-deploy-retrieve": "^12.31.12",
     "esbuild": "0.25.12",
     "salesforcedx-vscode-services": "*"
   },
@@ -77,11 +80,11 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "vscode:bundle": {
+    "vscode:bundle:local": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "../salesforcedx-vscode-services:vscode:bundle"
+        "../salesforcedx-vscode-services:vscode:bundle:local"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -93,11 +96,11 @@
         "dist"
       ]
     },
-    "vscode:bundle:local": {
+    "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "../salesforcedx-vscode-services:vscode:bundle:local"
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -212,8 +215,8 @@
       "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
-        "vscode:bundle:local",
-        "../salesforcedx-vscode-metadata:vscode:bundle:local"
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "test/playwright/**/*.ts"

@@ -8,7 +8,8 @@ module.exports = {
   coverageReporters: ['lcov', 'text', 'json'],
   resetMocks: true,
   moduleNameMapper: {
-    '^vscode$': '<rootDir>/../../scripts/setup-jest.ts'
+    '^vscode$': '<rootDir>/../../scripts/setup-jest.ts',
+    '^o11y_schema/sf_pdp$': '<rootDir>/../../config/__mocks__/o11y_schema_sf_pdp.js'
   },
   // Ignore .vscode-test directories to prevent Haste module map conflicts
   modulePathIgnorePatterns: ['/.vscode-test/'],

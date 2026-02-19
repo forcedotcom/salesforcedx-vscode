@@ -22,19 +22,6 @@ const uri = yield * api.services.EditorService.getActiveEditorUri();
 // Throws: NoActiveEditorError if no active editor
 ```
 
-### getActiveEditorText
-
-Get text from active editor, fails with `NoActiveEditorError` if none:
-
-```typescript
-const fullText = yield * api.services.EditorService.getActiveEditorText(false);
-const selectedText = yield * api.services.EditorService.getActiveEditorText(true);
-// selection=true: selection text if non-empty, else full document
-// selection=false: full document text
-// Returns: string
-// Throws: NoActiveEditorError if no active editor
-```
-
 ### pubsub
 
 PubSub stream of active editor changes (`vscode.TextEditor | undefined`):

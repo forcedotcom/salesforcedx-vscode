@@ -20,6 +20,9 @@
   ],
   "references": [
     {
+      "path": "../effect-ext-utils"
+    },
+    {
       "path": "../salesforcedx-lightning-lsp-common"
     },
     {
@@ -30,9 +33,6 @@
     },
     {
       "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../salesforcedx-vscode-core"
     }
   ]
 }
