@@ -256,6 +256,7 @@ describe('OrgList tests', () => {
         expect(items).toMatchInlineSnapshot(`
 [
   {
+    "description": undefined,
     "detail": undefined,
     "label": "$(cloud) user@example.com",
     "orgAlias": undefined,
@@ -274,8 +275,9 @@ describe('OrgList tests', () => {
         expect(items).toMatchInlineSnapshot(`
 [
   {
+    "description": "user@example.com",
     "detail": undefined,
-    "label": "$(cloud) MyOrg | user@example.com",
+    "label": "$(cloud) MyOrg",
     "orgAlias": "MyOrg",
     "orgType": "Org",
     "orgUsername": "user@example.com",
@@ -298,8 +300,9 @@ describe('OrgList tests', () => {
         expect(items).toMatchInlineSnapshot(`
 [
   {
+    "description": "foo@bar.com",
     "detail": undefined,
-    "label": "$(beaker) My Organization - Dev Sandbox | foo@bar.com",
+    "label": "$(beaker) My Organization - Dev Sandbox",
     "orgAlias": "My Organization - Dev Sandbox",
     "orgType": "Sandbox",
     "orgUsername": "foo@bar.com",
@@ -322,14 +325,44 @@ describe('OrgList tests', () => {
         expect(items).toMatchInlineSnapshot(`
 [
   {
+    "description": "admin@company.com",
     "detail": undefined,
-    "label": "$(server) Sales - Force - Dev - Hub | admin@company.com",
+    "label": "$(server) Sales - Force - Dev - Hub",
     "orgAlias": "Sales - Force - Dev - Hub",
     "orgType": "DevHub",
     "orgUsername": "admin@company.com",
   },
 ]
 `);
+      });
+
+      it('default org gets detail "Default Org"', () => {
+        const items = authorizationsToQuickPickItems(
+          [createOrgAuthorization({ username: 'user@example.com', aliases: ['MyOrg'] })],
+          { ...defaultConfig, defaultOrgProperty: 'MyOrg', defaultOrgUsername: 'user@example.com' }
+        );
+        expect(items[0].detail).toBe('🍁 Default Org');
+      });
+
+      it('default devhub gets detail "Default Dev Hub"', () => {
+        const items = authorizationsToQuickPickItems(
+          [createOrgAuthorization({ username: 'hub@example.com', aliases: ['Hub'], isDevHub: true })],
+          { ...defaultConfig, defaultDevHubProperty: 'Hub', defaultDevHubUsername: 'hub@example.com' }
+        );
+        expect(items[0].detail).toBe('🌳 Default Dev Hub');
+      });
+
+      it('org that is both default org and default devhub gets combined detail', () => {
+        const items = authorizationsToQuickPickItems(
+          [createOrgAuthorization({ username: 'both@example.com', aliases: ['Both'], isDevHub: true })],
+          {
+            defaultOrgProperty: 'Both',
+            defaultOrgUsername: 'both@example.com',
+            defaultDevHubProperty: 'Both',
+            defaultDevHubUsername: 'both@example.com'
+          }
+        );
+        expect(items[0].detail).toBe('🌳🍁 Default Org · Default Dev Hub');
       });
 
       it('comma-separated aliases: label, orgAlias first, sf.config.set receives orgAlias', () => {
@@ -340,8 +373,9 @@ describe('OrgList tests', () => {
         expect(items).toMatchInlineSnapshot(`
 [
   {
+    "description": "user@example.com",
     "detail": undefined,
-    "label": "$(cloud) alias1, alias2, alias3 | user@example.com",
+    "label": "$(cloud) alias1, alias2, alias3",
     "orgAlias": "alias1",
     "orgType": "Org",
     "orgUsername": "user@example.com",
