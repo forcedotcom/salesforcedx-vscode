@@ -30,6 +30,7 @@ export const messages = {
   trace_flag_tooltip_users: 'Users',
   trace_flag_tooltip_full_details: 'Full trace flag details',
   trace_flag_pick_user: 'Type to search for another user to trace',
+  trace_flag_pick_debug_level: 'Select a debug level',
   trace_flag_codelens_create_for_user: 'Add trace for another user',
   trace_flag_tooltip_add_user: 'Add trace for another user',
   trace_flag_tooltip_stop: 'Remove',

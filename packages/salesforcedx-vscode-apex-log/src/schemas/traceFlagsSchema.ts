@@ -23,6 +23,27 @@ export const DebugLevelSchema = Schema.Literal(
 
 export type DebugLevel = Schema.Schema.Type<typeof DebugLevelSchema>;
 
+/** Log category verbosity — NONE through FINEST (cumulative). */
+const LogCategoryLevel = Schema.Literal('NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'FINE', 'FINER', 'FINEST');
+
+/** Shape for DebugLevel items in the JSON file (camelCase, all fields). https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_debuglevel.htm */
+const DebugLevelItemStruct = Schema.Struct({
+  id: Schema.String.pipe(Schema.annotations({ description: 'Salesforce record ID of the DebugLevel.' })),
+  developerName: Schema.String.pipe(Schema.annotations({ description: 'Unique API name for this debug level.' })),
+  masterLabel: Schema.String.pipe(Schema.annotations({ description: 'User-facing label for this debug level.' })),
+  language: Schema.NullOr(Schema.String).pipe(Schema.annotations({ description: 'Language of the MasterLabel.' })),
+  apexCode: LogCategoryLevel.pipe(Schema.annotations({ description: 'Apex code execution: DML, SOQL/SOSL, triggers, and test methods.' })),
+  apexProfiling: LogCategoryLevel.pipe(Schema.annotations({ description: 'Cumulative profiling info: namespace limits, emails sent.' })),
+  callout: LogCategoryLevel.pipe(Schema.annotations({ description: 'Request-response XML from external web service and API calls.' })),
+  database: LogCategoryLevel.pipe(Schema.annotations({ description: 'DML statements and inline SOQL/SOSL queries.' })),
+  nba: LogCategoryLevel.pipe(Schema.annotations({ description: 'Einstein Next Best Action strategy execution.' })),
+  system: LogCategoryLevel.pipe(Schema.annotations({ description: 'System method calls such as System.debug().' })),
+  validation: LogCategoryLevel.pipe(Schema.annotations({ description: 'Validation rule names and evaluation results.' })),
+  visualforce: LogCategoryLevel.pipe(Schema.annotations({ description: 'Visualforce events, view state serialization/deserialization.' })),
+  wave: LogCategoryLevel.pipe(Schema.annotations({ description: 'CRM Analytics (Wave) logging.' })),
+  workflow: LogCategoryLevel.pipe(Schema.annotations({ description: 'Workflow rules, flows, and process builder actions.' }))
+});
+
 /** Build trace-flags JSON schemas from the shared TraceFlagItemStruct (provided by services API at runtime, or directly in build scripts). */
 export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, never>) => {
   const TraceFlagsByLogTypeSchema = Schema.Struct({
@@ -61,7 +82,12 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
   const TraceFlagsConfigSchema = Schema.Struct({
     defaultDebugLevels: Schema.optional(Schema.Record({ key: Schema.String, value: DebugLevelSchema })),
     defaultDurationMinutes: Schema.optional(Schema.Number),
-    traceFlags: Schema.optional(TraceFlagsByLogTypeSchema)
+    traceFlags: Schema.optional(TraceFlagsByLogTypeSchema),
+    debugLevels: Schema.optional(
+      Schema.Array(DebugLevelItemStruct).pipe(
+        Schema.annotations({ description: 'All DebugLevel records from the org.' })
+      )
+    )
   }).pipe(Schema.annotations({ jsonSchema: { title: 'Trace Flags Configuration' } }));
 
   /** Encodes TraceFlagsConfig to JSON string (pretty-printed). */

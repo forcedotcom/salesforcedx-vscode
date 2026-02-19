@@ -23,11 +23,18 @@ import {
 } from '../errors/traceFlagErrors';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
-import { TraceFlagItemSchema, type TraceFlagLogType, type ToolingTraceFlagRecord } from './schemas/traceFlagSchemas';
+import {
+  DebugLevelItemSchema,
+  TraceFlagItemSchema,
+  ToolingDebugLevelStruct,
+  type ToolingDebugLevelRecord,
+  type TraceFlagLogType,
+  type ToolingTraceFlagRecord
+} from './schemas/traceFlagSchemas';
 import { unknownToErrorCause } from './shared';
 
-export { TraceFlagItemStruct, TraceFlagLogType } from './schemas/traceFlagSchemas';
-export type { TraceFlagItem } from './schemas/traceFlagSchemas';
+export { DebugLevelItemSchema, TraceFlagItemStruct, TraceFlagLogType } from './schemas/traceFlagSchemas';
+export type { DebugLevelItem, TraceFlagItem } from './schemas/traceFlagSchemas';
 
 const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 const VISUALFORCE_DEBUG_LEVEL = 'FINER';
@@ -130,6 +137,27 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
         Effect.mapError((parseError: ParseResult.ParseError) => {
           const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
           return new TraceFlagNotFoundError({ message: `Failed to decode trace flag records: ${msg}` });
+        })
+      );
+    });
+
+    const getDebugLevels = Effect.fn('TraceFlagService.getDebugLevels')(function* () {
+      const conn = yield* connectionService.getConnection();
+      const query = `SELECT ${Object.keys(ToolingDebugLevelStruct.fields).join(', ')} FROM DebugLevel`;
+      const result = yield* Effect.tryPromise({
+        try: () => conn.tooling.query<ToolingDebugLevelRecord>(query),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new TraceFlagNotFoundError({ message: `Failed to query debug levels: ${cause.message}` });
+        }
+      });
+      return yield* Effect.all(
+        result.records.map(r => Schema.decodeUnknown(DebugLevelItemSchema)(r)),
+        { concurrency: 'unbounded' }
+      ).pipe(
+        Effect.mapError((parseError: ParseResult.ParseError) => {
+          const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
+          return new TraceFlagNotFoundError({ message: `Failed to decode debug level records: ${msg}` });
         })
       );
     });
@@ -276,14 +304,15 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     const ensureTraceFlag = Effect.fn('TraceFlagService.ensureTraceFlag')(function* (
       userId: string,
       duration = Duration.minutes(30),
-      logType: TraceFlagLogType = 'DEVELOPER_LOG'
+      logType: TraceFlagLogType = 'DEVELOPER_LOG',
+      existingDebugLevelId?: string
     ) {
       const existing = yield* getTraceFlagForUser(userId, logType);
 
       return yield* Option.match(existing, {
         onNone: () =>
           Effect.gen(function* () {
-            const debugLevelId = yield* getOrCreateDebugLevel();
+            const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
             const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
             if (!traceFlagId) {
               return yield* Effect.fail(new TraceFlagCreateError({ message: 'Create returned no ID' }));
@@ -322,6 +351,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
     return {
       getTraceFlags,
+      getDebugLevels,
       getTraceFlagForUser,
       createTraceFlag,
       updateTraceFlag,

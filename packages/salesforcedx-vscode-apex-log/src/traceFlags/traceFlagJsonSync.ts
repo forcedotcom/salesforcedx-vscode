@@ -10,7 +10,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { TraceFlagItem } from 'salesforcedx-vscode-services';
+import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
@@ -63,9 +63,20 @@ const ensureTraceFlagsFile = Effect.fn('ApexLog.ensureTraceFlagsFile')(function*
       )
     );
 
+  const debugLevels = yield* traceFlagService
+    .getDebugLevels()
+    .pipe(
+      Effect.catchAll(e =>
+        channelService
+          .appendToChannel(`Debug levels fetch failed: ${String(e)}`)
+          .pipe(Effect.andThen(Effect.succeed<DebugLevelItem[]>([])))
+      )
+    );
+
   const result = encodeTraceFlagsConfigToJson({
     defaultDurationMinutes: 30,
-    traceFlags: groupByLogType(traceFlags)
+    traceFlags: groupByLogType(traceFlags),
+    debugLevels
   });
   yield* fsService.writeFile(uri, result);
   return uri;
@@ -135,7 +146,7 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
   }
 );
 
-type UserRecord = { Id: string; FirstName: string; LastName: string; Username: string };
+type UserRecord = { Id: string; FirstName: string; LastName: string; Username: string; UserType: string };
 
 type UserQuickPickItem = vscode.QuickPickItem & { userId: string };
 
@@ -147,7 +158,7 @@ const toUserQuickPickItems = (records: UserRecord[], excludeUserId: string): Use
     .filter(r => r.Id !== excludeUserId)
     .map(r => ({
       label: `${r.FirstName ?? ''} ${r.LastName ?? ''}`.trim(),
-      description: r.Username,
+      description: `${r.Username}  (${r.UserType})`,
       userId: r.Id
     }));
 
@@ -157,7 +168,8 @@ const toUserRecords = (searchRecords: { [field: string]: unknown }[]): UserRecor
     Id: String(r.Id ?? ''),
     FirstName: String(r.FirstName ?? ''),
     LastName: String(r.LastName ?? ''),
-    Username: String(r.Username ?? '')
+    Username: String(r.Username ?? ''),
+    UserType: String(r.UserType ?? '')
   }));
 
 /** Show a QuickPick that searches org users via SOSL as the user types (debounced). */
@@ -178,7 +190,7 @@ const pickOrgUser = (
       picker.busy = true;
       try {
         const escaped = term.replaceAll(/['"\\]/g, '');
-        const sosl = `FIND {${escaped}} IN NAME FIELDS RETURNING User(Id, FirstName, LastName, Username WHERE IsActive = true ORDER BY LastName, FirstName) LIMIT 50`;
+        const sosl = `FIND {${escaped}} IN NAME FIELDS RETURNING User(Id, FirstName, LastName, Username, UserType WHERE IsActive = true ORDER BY LastName, FirstName) LIMIT 50`;
         const { searchRecords } = await conn.search(sosl);
         if (!disposed) {
           picker.items = toUserQuickPickItems(toUserRecords(searchRecords), currentUserId);
@@ -216,6 +228,20 @@ const pickOrgUser = (
     picker.show();
   });
 
+type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
+
+/** Show a QuickPick of org DebugLevels. */
+const pickDebugLevel = async (items: DebugLevelItem[]): Promise<DebugLevelQuickPickItem | undefined> =>
+  vscode.window.showQuickPick<DebugLevelQuickPickItem>(
+    items.map(dl => ({
+      label: dl.masterLabel,
+      description: `Apex=${dl.apexCode} Vf=${dl.visualforce} DB=${dl.database}`,
+      detail: dl.developerName,
+      debugLevelId: dl.id
+    })),
+    { placeHolder: nls.localize('trace_flag_pick_debug_level'), matchOnDescription: true, matchOnDetail: true }
+  );
+
 /** Create trace flag for another org user (prompted via SOSL-powered picker), refresh JSON. */
 export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTraceFlagForUser')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -229,11 +255,14 @@ export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTr
   const picked = yield* Effect.promise(() => pickOrgUser(conn, currentUserId));
   yield* Effect.annotateCurrentSpan('createTraceFlagForUser', { attributes: { userId: picked?.userId ?? 'none' } });
   if (!picked) return;
+  const traceFlagService = yield* api.services.TraceFlagService;
+  const debugLevels = yield* traceFlagService.getDebugLevels();
+  const pickedLevel = yield* Effect.promise(() => pickDebugLevel(debugLevels));
+  if (!pickedLevel) return;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const uri = Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgId, 'traceFlags.json');
   const minutes = yield* readDefaultDurationMinutes(uri);
-  const traceFlagService = yield* api.services.TraceFlagService;
-  yield* traceFlagService.ensureTraceFlag(picked.userId, Duration.minutes(minutes), 'USER_DEBUG');
+  yield* traceFlagService.ensureTraceFlag(picked.userId, Duration.minutes(minutes), 'USER_DEBUG', pickedLevel.debugLevelId);
   yield* ensureTraceFlagsFile(orgId);
 });
 

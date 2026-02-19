@@ -309,5 +309,5 @@ export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
-export { type TraceFlagItem, type TraceFlagService } from './core/traceFlagService';
+export { type DebugLevelItem, type TraceFlagItem, type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
