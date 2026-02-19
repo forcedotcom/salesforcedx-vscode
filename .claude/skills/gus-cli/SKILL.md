@@ -10,7 +10,10 @@ Interact with Gus (Salesforce Agile Accelerator org) via sf CLI. Requires alias 
 ## Safety
 
 - **Queries** (sf data query, sf alias list): run without asking
-- **Writes** (create, update, delete): **confirm with user before executing**
+- **Writes** (create, update, delete): **do not execute until user explicitly confirms**
+  - Present the draft (subject, epic, details, assignee). Ask: "Create this work item?" or "Update work item X?"
+  - Only run `sf data create record` / `sf data update record` after user says yes (or equivalent)
+  - Answering scope questions (e.g. "just createProject") is not confirmation—still ask
 - **Epic selection**: when unsure which epic a work item belongs in, ask the user
 
 ## Prerequisites
@@ -75,6 +78,8 @@ Closed statuses: see ## Status__c values. Use `LIMIT 50` (or 100) when querying 
 sf data create record -s ADM_Work__c -o gus -v "Subject__c='...' Assignee__c='<userId>' Scrum_Team__c='a00B0000000w9xPIAQ' Product_Tag__c='a1aB000000005G3IAI' Story_Points__c=2 RecordTypeId='0129000000006gDAAQ' Epic__c='<epicId>'"
 ```
 
+**After create:** Always provide the work item link. Format: `https://gus.lightning.force.com/lightning/r/ADM_Work__c/<recordId>/view` (replace `<recordId>` with the Id from the create output, e.g. `a07EE00002V3a8YYAR`). Example: [a07EE00002V3a8YYAR](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002V3a8YYAR/view).
+
 **Update:** If User Story has null `Story_Points__c`, set `Story_Points__c=2`. Never modify `Sprint__c`. `Details__c` can store PR links, notes.
 
 ```
@@ -121,7 +126,8 @@ When unsure which epic: ask the user.
 4. Subject__c: concise from PR title
 5. Details__c: PR link + key bullets; see .claude/skills/concise/SKILL.md
 6. RecordTypeId: `012T00000004MUHIA2` (Bug)
-7. Confirm with user before `sf data create record`
+7. Show draft, ask "Create this work item?" — run `sf data create record` only after yes
+8. After create: provide WI link (see **After create** above)
 
 **What's unfinished in this epic**
 1. Get epic Id from user or context (branch name, prior query)
