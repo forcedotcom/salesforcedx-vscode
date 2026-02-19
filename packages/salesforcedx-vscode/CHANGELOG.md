@@ -1,23 +1,15 @@
-# 65.17.3 - February 13, 2026
+# 65.18.0 - February 18, 2026
 
 ## Added
 
-#### salesforcedx-vscode-apex-testing
-
-#### salesforcedx-vscode-metadata
-
-#### salesforcedx-vscode-org-browser
-
-#### salesforcedx-vscode-services
-
-- We made some changes under the hood. ([PR #6831](https://github.com/forcedotcom/salesforcedx-vscode/pull/6831))
-
-## Fixed
-
-#### salesforcedx-apex-debugger
-
-- We fixed an issue where the Apex Interactive Debugger threw an error and failed to launch. ([PR #6846](https://github.com/forcedotcom/salesforcedx-vscode/pull/6846), [ISSUE #6787](https://github.com/forcedotcom/salesforcedx-vscode/issues/6787))
-
 #### salesforcedx-vscode-core
 
-- We fixed an issue in the CLI Integration extension that caused the Agentforce Vibes extension to display the `No Default Org Set` message on startup. ([PR #6847](https://github.com/forcedotcom/salesforcedx-vscode/pull/6847))
+- We removed the following commands associated with the deprecated Local Dev Server:
+  - `SFDX: Start Local Development Server`
+  - `SFDX: Stop Local Development Server`
+  - `SFDX: Open Local Development Server`
+  - `SFDX: Preview Component Locally`
+
+Check out the improved version of the Local Dev Server by installing the [Salesforce Live Preview (Beta)](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-ui-preview) extension! ([PR #6849](https://github.com/forcedotcom/salesforcedx-vscode/pull/6849))
+
+- We made some changes under the hood. ([PR #6848](https://github.com/forcedotcom/salesforcedx-vscode/pull/6848))
