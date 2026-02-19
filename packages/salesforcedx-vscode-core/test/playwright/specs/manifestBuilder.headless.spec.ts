@@ -96,7 +96,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     await saveScreenshot(page, 'manifest-retrieve.complete.png');
   });
 
-  await test.step('generate manifest file (not mac)', async step => {
+  await test.step('generate manifest file (non mac)', async step => {
     step.skip(isMacDesktop(), 'Explorer context menu not available on Mac Desktop');
     // Command is only available via explorer context menu, not command palette
     await executeExplorerContextMenuCommand(page, /classes/i, 'SFDX: Generate Manifest File');

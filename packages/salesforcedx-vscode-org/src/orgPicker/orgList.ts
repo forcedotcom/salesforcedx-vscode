@@ -61,18 +61,12 @@ const getIconForOrgType = (type: OrgType): string => {
   }
 };
 /** QuickPickItem for org selection with metadata for handling */
-export interface OrgQuickPickItem extends vscode.QuickPickItem {
+interface OrgQuickPickItem extends vscode.QuickPickItem {
   orgUsername?: string;
   orgAlias?: string;
   commandId?: string;
   orgType?: OrgType;
 }
-
-/** First-position icons: type icon, then default markers (🌳/🍁) when applicable */
-const getFirstIcons = (defaultMarkers: string, typeIcon: string): string => {
-  const markers = defaultMarkers ? (defaultMarkers === '🌳,🍁' ? '🌳🍁' : defaultMarkers) : '';
-  return markers ? `${typeIcon} ${markers}` : typeIcon;
-};
 
 type DefaultOrgConfig = Awaited<ReturnType<typeof getDefaultOrgConfiguration>>;
 
@@ -104,14 +98,20 @@ const orgAuthToQuickPickItem =
     const defaultMarkers = determineOrgMarkers(orgAuth, defaultConfig);
     const orgType = getOrgTypeFromAuth(orgAuth);
     const typeIcon = getIconForOrgType(orgType);
-    const firstIcons = getFirstIcons(defaultMarkers, typeIcon);
     const aliasDisplay = orgAuth.aliases?.length ? orgAuth.aliases.join(', ') : undefined;
-    const label = aliasDisplay
-      ? `${firstIcons} ${aliasDisplay} | ${orgAuth.username}`
-      : `${firstIcons} ${orgAuth.username}`;
+    const label = aliasDisplay ? `${typeIcon} ${aliasDisplay}` : `${typeIcon} ${orgAuth.username}`;
+    const defaultSuffix =
+      defaultMarkers === '🌳,🍁'
+        ? 'Default Org · Default Dev Hub 🌳🍁'
+        : defaultMarkers === '🍁'
+          ? 'Default Org 🍁'
+          : defaultMarkers === '🌳'
+            ? 'Default Dev Hub 🌳'
+            : undefined;
+    const descriptionParts = [aliasDisplay ? orgAuth.username : undefined, defaultSuffix].filter(Boolean);
     return {
       label,
-      detail: orgAuth.error ?? undefined,
+      description: descriptionParts.length > 0 ? descriptionParts.join(' — ') : undefined,
       orgUsername: orgAuth.username,
       orgAlias: orgAuth.aliases?.[0],
       orgType
@@ -207,7 +207,6 @@ export const createOrgPicker = Effect.fn(function* () {
   yield* Effect.addFinalizer(() => Effect.sync(() => orgOpenStatusBarItem.dispose()));
 
   orgPickerStatuBarItem.command = 'sf.set.default.org';
-  orgPickerStatuBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
   // we always show this one, even if there is no org
   orgPickerStatuBarItem.show();
 
@@ -225,8 +224,13 @@ export const createOrgPicker = Effect.fn(function* () {
       Stream.tap(orgInfo =>
         Effect.sync(() => (orgInfo.username ? orgOpenStatusBarItem.show() : orgOpenStatusBarItem.hide()))
       ),
-      Stream.mapEffect(orgInfo => getStatusBarText(orgInfo)),
-      Stream.runForEach(text => Effect.sync(() => (orgPickerStatuBarItem.text = text)))
+      Stream.mapEffect(orgInfo => getStatusBarContent(orgInfo)),
+      Stream.runForEach(({ text, tooltip }) =>
+        Effect.sync(() => {
+          orgPickerStatuBarItem.text = text;
+          orgPickerStatuBarItem.tooltip = tooltip;
+        })
+      )
     )
   );
 
@@ -234,15 +238,31 @@ export const createOrgPicker = Effect.fn(function* () {
   yield* Effect.sleep(Duration.infinity);
 });
 
-const getStatusBarText = Effect.fn('updateTargetOrgDisplay')(function* ({
-  username,
-  aliases,
-  isScratch
-}: typeof DefaultOrgInfoSchema.Type) {
+type OrgTypeFromInfo = 'Scratch' | 'Sandbox' | 'Org';
+
+const getOrgTypeFromInfo = (orgInfo: typeof DefaultOrgInfoSchema.Type): OrgTypeFromInfo =>
+  orgInfo.isScratch ? 'Scratch' : orgInfo.isSandbox ? 'Sandbox' : 'Org';
+
+const getStatusBarContent = Effect.fn('updateTargetOrgDisplay')(function* (orgInfo: typeof DefaultOrgInfoSchema.Type) {
+  const { username, aliases, isScratch } = orgInfo;
   if (!username) {
-    return nls.localize('missing_default_org');
+    return {
+      text: nls.localize('missing_default_org'),
+      tooltip: nls.localize('status_bar_org_picker_tooltip')
+    };
   }
   const isExpired = isScratch ? yield* Effect.promise(() => isOrgExpired(username)) : false;
+  const orgType = getOrgTypeFromInfo(orgInfo);
+  const typeIcon = getIconForOrgType(orgType);
+  const displayName = aliases?.[0] ?? username;
+  const text = `${typeIcon} ${displayName}${isExpired ? ' $(warning)' : ''}`;
 
-  return `${isExpired ? '$(warning)' : '$(plug)'} ${aliases?.[0] ?? username}`;
+  const tooltip = new vscode.MarkdownString();
+  tooltip.appendMarkdown(`**Type: ${orgType}**${isExpired ? ' — Expired' : ''}\n\n`);
+  if (aliases?.length) {
+    tooltip.appendMarkdown(`Alias: ${aliases.join(', ')}\n\n`);
+  }
+  tooltip.appendMarkdown(`Username: ${username}\n\n---\n\n*Click to switch default org*`);
+
+  return { text, tooltip };
 });
