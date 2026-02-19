@@ -212,10 +212,7 @@
       ]
     }
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "onFileSystem:memfs"
-  ],
+  "activationEvents": [],
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
   "types": "./out/src/index.d.ts",
@@ -230,7 +227,13 @@
       ]
     },
     "views": {
-      "test": []
+      "test": [
+        {
+          "id": "sf.test.view",
+          "name": "%test_view_name%",
+          "when": "sf:project_opened"
+        }
+      ]
     },
     "menus": {
       "view/title": [

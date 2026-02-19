@@ -165,8 +165,11 @@ const activateEffect = (context: vscode.ExtensionContext) =>
       .pipe(Effect.catchAll(() => Effect.succeed(false)));
 
     // Only set up project-specific features if we're in a Salesforce project
-    if (isSalesforceProject && vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    if (isSalesforceProject) {
       const testOutlineProvider = getTestOutlineProvider();
+      context.subscriptions.push(
+        vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider)
+      );
       const testController = getTestController();
       yield* Effect.log('[Apex Testing] Test controller created');
 
