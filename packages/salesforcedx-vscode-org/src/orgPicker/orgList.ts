@@ -61,7 +61,7 @@ const getIconForOrgType = (type: OrgType): string => {
   }
 };
 /** QuickPickItem for org selection with metadata for handling */
-export interface OrgQuickPickItem extends vscode.QuickPickItem {
+interface OrgQuickPickItem extends vscode.QuickPickItem {
   orgUsername?: string;
   orgAlias?: string;
   commandId?: string;
@@ -99,21 +99,19 @@ const orgAuthToQuickPickItem =
     const orgType = getOrgTypeFromAuth(orgAuth);
     const typeIcon = getIconForOrgType(orgType);
     const aliasDisplay = orgAuth.aliases?.length ? orgAuth.aliases.join(', ') : undefined;
-    const label = aliasDisplay
-      ? `${typeIcon} ${aliasDisplay}`
-      : `${typeIcon} ${orgAuth.username}`;
-    const detail =
+    const label = aliasDisplay ? `${typeIcon} ${aliasDisplay}` : `${typeIcon} ${orgAuth.username}`;
+    const defaultSuffix =
       defaultMarkers === '🌳,🍁'
-        ? '🌳🍁 Default Org · Default Dev Hub'
+        ? 'Default Org · Default Dev Hub 🌳🍁'
         : defaultMarkers === '🍁'
-          ? '🍁 Default Org'
+          ? 'Default Org 🍁'
           : defaultMarkers === '🌳'
-            ? '🌳 Default Dev Hub'
+            ? 'Default Dev Hub 🌳'
             : undefined;
+    const descriptionParts = [aliasDisplay ? orgAuth.username : undefined, defaultSuffix].filter(Boolean);
     return {
       label,
-      description: aliasDisplay ? orgAuth.username : undefined,
-      detail,
+      description: descriptionParts.length > 0 ? descriptionParts.join(' — ') : undefined,
       orgUsername: orgAuth.username,
       orgAlias: orgAuth.aliases?.[0],
       orgType
@@ -245,9 +243,7 @@ type OrgTypeFromInfo = 'Scratch' | 'Sandbox' | 'Org';
 const getOrgTypeFromInfo = (orgInfo: typeof DefaultOrgInfoSchema.Type): OrgTypeFromInfo =>
   orgInfo.isScratch ? 'Scratch' : orgInfo.isSandbox ? 'Sandbox' : 'Org';
 
-const getStatusBarContent = Effect.fn('updateTargetOrgDisplay')(function* (
-  orgInfo: typeof DefaultOrgInfoSchema.Type
-) {
+const getStatusBarContent = Effect.fn('updateTargetOrgDisplay')(function* (orgInfo: typeof DefaultOrgInfoSchema.Type) {
   const { username, aliases, isScratch } = orgInfo;
   if (!username) {
     return {

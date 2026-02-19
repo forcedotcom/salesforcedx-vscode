@@ -257,7 +257,6 @@ describe('OrgList tests', () => {
 [
   {
     "description": undefined,
-    "detail": undefined,
     "label": "$(cloud) user@example.com",
     "orgAlias": undefined,
     "orgType": "Org",
@@ -276,7 +275,6 @@ describe('OrgList tests', () => {
 [
   {
     "description": "user@example.com",
-    "detail": undefined,
     "label": "$(cloud) MyOrg",
     "orgAlias": "MyOrg",
     "orgType": "Org",
@@ -301,7 +299,6 @@ describe('OrgList tests', () => {
 [
   {
     "description": "foo@bar.com",
-    "detail": undefined,
     "label": "$(beaker) My Organization - Dev Sandbox",
     "orgAlias": "My Organization - Dev Sandbox",
     "orgType": "Sandbox",
@@ -326,7 +323,6 @@ describe('OrgList tests', () => {
 [
   {
     "description": "admin@company.com",
-    "detail": undefined,
     "label": "$(server) Sales - Force - Dev - Hub",
     "orgAlias": "Sales - Force - Dev - Hub",
     "orgType": "DevHub",
@@ -336,23 +332,31 @@ describe('OrgList tests', () => {
 `);
       });
 
-      it('default org gets detail "Default Org"', () => {
+      it('default org with alias: description has username then default suffix', () => {
         const items = authorizationsToQuickPickItems(
           [createOrgAuthorization({ username: 'user@example.com', aliases: ['MyOrg'] })],
           { ...defaultConfig, defaultOrgProperty: 'MyOrg', defaultOrgUsername: 'user@example.com' }
         );
-        expect(items[0].detail).toBe('🍁 Default Org');
+        expect(items[0].description).toBe('user@example.com — Default Org 🍁');
       });
 
-      it('default devhub gets detail "Default Dev Hub"', () => {
+      it('default devhub with alias: description has username then default suffix', () => {
         const items = authorizationsToQuickPickItems(
           [createOrgAuthorization({ username: 'hub@example.com', aliases: ['Hub'], isDevHub: true })],
           { ...defaultConfig, defaultDevHubProperty: 'Hub', defaultDevHubUsername: 'hub@example.com' }
         );
-        expect(items[0].detail).toBe('🌳 Default Dev Hub');
+        expect(items[0].description).toBe('hub@example.com — Default Dev Hub 🌳');
       });
 
-      it('org that is both default org and default devhub gets combined detail', () => {
+      it('default org without alias: description is just default suffix', () => {
+        const items = authorizationsToQuickPickItems(
+          [createOrgAuthorization({ username: 'user@example.com', aliases: [] })],
+          { ...defaultConfig, defaultOrgProperty: 'user@example.com', defaultOrgUsername: 'user@example.com' }
+        );
+        expect(items[0].description).toBe('Default Org 🍁');
+      });
+
+      it('org that is both default org and default devhub gets combined description', () => {
         const items = authorizationsToQuickPickItems(
           [createOrgAuthorization({ username: 'both@example.com', aliases: ['Both'], isDevHub: true })],
           {
@@ -362,7 +366,7 @@ describe('OrgList tests', () => {
             defaultDevHubUsername: 'both@example.com'
           }
         );
-        expect(items[0].detail).toBe('🌳🍁 Default Org · Default Dev Hub');
+        expect(items[0].description).toBe('both@example.com — Default Org · Default Dev Hub 🌳🍁');
       });
 
       it('comma-separated aliases: label, orgAlias first, sf.config.set receives orgAlias', () => {
@@ -374,7 +378,6 @@ describe('OrgList tests', () => {
 [
   {
     "description": "user@example.com",
-    "detail": undefined,
     "label": "$(cloud) alias1, alias2, alias3",
     "orgAlias": "alias1",
     "orgType": "Org",
