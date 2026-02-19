@@ -20,25 +20,27 @@ import { createTestWorkspace } from './desktopWorkspace';
 /** Close timeout before force-kill. Electron on Mac CI can hang on graceful close. */
 const CLOSE_TIMEOUT_MS = 50_000;
 
-/** Kill a process and all its descendants. Electron spawns GPU/utility/crashpad children that outlive the main process. */
-const killProcessTree = (pid: number): void => {
+/** Collect all descendant PIDs (recursive). Must be called while the root process is still alive. */
+const getDescendantPids = (pid: number): number[] => {
   try {
-    if (process.platform === 'win32') {
-      execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore' });
-    } else {
-      // SIGKILL children first (pgrep -P finds direct children), then the parent
-      const children = execSync(`pgrep -P ${pid}`, { encoding: 'utf8' }).trim();
-      children
-        .split('\n')
-        .filter(Boolean)
-        .map(Number)
-        .filter(n => !isNaN(n))
-        .forEach(childPid => killProcessTree(childPid));
-      process.kill(pid, 'SIGKILL');
-    }
+    if (process.platform === 'win32') return [];
+    const children = execSync(`pgrep -P ${pid}`, { encoding: 'utf8' })
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map(Number)
+      .filter(n => !isNaN(n));
+    return [...children, ...children.flatMap(getDescendantPids)];
   } catch {
-    // process already exited
+    return [];
   }
+};
+
+/** SIGKILL a list of PIDs, ignoring already-exited processes. */
+const killPids = (pids: number[]): void => {
+  pids.forEach(p => {
+    try { process.kill(p, 'SIGKILL'); } catch {}
+  });
 };
 
 type CreateDesktopTestOptions = {
@@ -128,18 +130,18 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       try {
         await use(electronApp);
       } finally {
+        // Snapshot the full process tree BEFORE close — once the parent exits, children are
+        // reparented to PID 1 and pgrep -P can no longer find them.
         const pid = electronApp.process?.()?.pid;
-        // Electron on Mac CI: close() may return but leave orphan GPU/utility/crashpad children
-        // that cause Playwright's worker teardown to exceed 60s. Always kill the full tree.
+        const descendants = typeof pid === 'number' ? [pid, ...getDescendantPids(pid)] : [];
         try {
           await Promise.race([
             electronApp.close(),
             new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
           ]);
         } catch {}
-        if (typeof pid === 'number') {
-          killProcessTree(pid);
-        }
+        // Kill any survivors (GPU, crashpad, utility) that outlived close()
+        killPids(descendants);
       }
     },
 
