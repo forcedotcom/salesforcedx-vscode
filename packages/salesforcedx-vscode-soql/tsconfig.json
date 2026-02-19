@@ -4,7 +4,10 @@
     "rootDir": ".",
     "outDir": "out",
     "strict": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "paths": {
+      "@salesforce/soql-model/*": ["./src/soql-model/*"]
+    }
   },
   "exclude": [
     "node_modules",
@@ -17,6 +20,9 @@
   ],
   "include": ["src/**/*.ts"],
   "references": [
+    {
+      "path": "../soql-common"
+    },
     {
       "path": "../salesforcedx-sobjects-faux-generator"
     },

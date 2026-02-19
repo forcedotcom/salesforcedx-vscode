@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 import { JsonMap } from '@salesforce/ts-types';
 import { SoqlEditorEvent } from './soqlEditorEvent';
 
-export interface IMessageService {
+export type IMessageService = {
   messagesToUI: Observable<SoqlEditorEvent>;
   sendMessage(message: SoqlEditorEvent): void;
   setState(state: JsonMap): void;
