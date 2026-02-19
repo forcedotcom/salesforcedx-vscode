@@ -14,10 +14,7 @@ import { nls } from '../messages';
 import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
 import { AllServicesLayer } from '../services/extensionProvider';
 
-const TRACE_FLAGS_DOCUMENT_SELECTOR = {
-  language: 'json',
-  pattern: '**/.sf/orgs/*/traceFlags.json'
-};
+const TRACE_FLAGS_DOCUMENT_SELECTOR = { language: 'json', scheme: 'sf-traceflags' };
 
 const hasActiveTraceFlagEffect = Effect.fn(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -57,15 +54,20 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
     Effect.tapError(e => Effect.logWarning(String(e))),
     Effect.catchAll(() => Effect.succeed(false))
   );
-  const createLenses = hasActive
-    ? []
-    : [
-        new CodeLens(new Range(0, 0, 0, 0), {
-          command: 'sf.apex.traceFlags.createForCurrentUser',
-          title: nls.localize('trace_flag_codelens_create') ?? 'Create trace flag for current user',
-          tooltip: nls.localize('trace_flag_codelens_create') ?? 'Create trace flag for current user'
-        })
-      ];
+  const devLogIdx = text.indexOf('"DEVELOPER_LOG"');
+  const createLenses =
+    hasActive || devLogIdx < 0
+      ? []
+      : (() => {
+          const pos = document.positionAt(devLogIdx);
+          return [
+            new CodeLens(new Range(pos.line, 0, pos.line, 0), {
+              command: 'sf.apex.traceFlags.createForCurrentUser',
+              title: nls.localize('trace_flag_codelens_create') ?? 'Create trace flag for current user',
+              tooltip: nls.localize('trace_flag_codelens_create') ?? 'Create trace flag for current user'
+            })
+          ];
+        })();
   const userDebugIdx = text.indexOf('"USER_DEBUG"');
   const userDebugLenses =
     userDebugIdx < 0

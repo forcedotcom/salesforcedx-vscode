@@ -15,6 +15,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
+import { TraceFlagsContentProviderService } from '../traceFlags/traceFlagsContentProvider';
 
 const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
@@ -36,6 +37,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
+        TraceFlagsContentProviderService.Default,
         api.services.ApexLogService.Default,
         api.services.ConnectionService.Default,
         api.services.FsService.Default,
@@ -56,9 +58,4 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
 
-// eslint-disable-next-line functional/no-let -- Module-level mutable for setAllServicesLayer (tests/debug)
-export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
-
-export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
-  AllServicesLayer = layer;
-};
+export { AllServicesLayer, setAllServicesLayer } from './allServicesLayerRef';

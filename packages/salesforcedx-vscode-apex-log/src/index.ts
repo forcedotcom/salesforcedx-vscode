@@ -25,6 +25,7 @@ import { createLogAutoCollect, createLogCollectorStateRef } from './logs/logAuto
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import {
+  createLogLevelCommand,
   createTraceFlagForCurrentUserCommand,
   createTraceFlagForUserCommand,
   deleteTraceFlagForCurrentUserCommand,
@@ -32,6 +33,7 @@ import {
   openTraceFlagsCommand
 } from './traceFlags/traceFlagJsonSync';
 import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';
+import { SCHEME as TRACE_FLAGS_SCHEME, TraceFlagsContentProviderService } from './traceFlags/traceFlagsContentProvider';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -74,6 +76,9 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       registerCommand('sf.apex.traceFlags.createForUser', () =>
         createTraceFlagForUserCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
       ),
+      registerCommand('sf.apex.traceFlags.createLogLevel', () =>
+        createLogLevelCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+      ),
       registerCommand('sf.apex.traceFlags.deleteForId', (traceFlagId: string) =>
         deleteTraceFlagForIdCommand(traceFlagId).pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
       ),
@@ -84,6 +89,10 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
     { concurrency: 'unbounded' }
   );
 
+  const { provider } = yield* TraceFlagsContentProviderService;
+  context.subscriptions.push(
+    vscode.workspace.registerTextDocumentContentProvider(TRACE_FLAGS_SCHEME, provider)
+  );
   registerTraceFlagsCodeLensProvider(context);
 
   const scope = yield* getExtensionScope();

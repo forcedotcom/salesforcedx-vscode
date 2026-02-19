@@ -76,10 +76,9 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
     )
   });
 
-  /** Schema for .sf/orgs/{orgId}/traceFlags.json - used for decode/encode and JSON Schema generation. traceFlags grouped by logType, active only. */
+  /** Schema for trace flags virtual doc - used for decode/encode and JSON Schema generation. traceFlags grouped by logType, active only. defaultDurationMinutes now in workspace config. */
   const TraceFlagsConfigSchema = Schema.Struct({
     defaultDebugLevels: Schema.optional(Schema.Record({ key: Schema.String, value: DebugLevelSchema })),
-    defaultDurationMinutes: Schema.optional(Schema.Number),
     traceFlags: Schema.optional(TraceFlagsByLogTypeSchema),
     debugLevels: Schema.optional(
       Schema.Array(DebugLevelItemStruct).pipe(

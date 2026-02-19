@@ -16,79 +16,23 @@ import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
+import type { DebugLevelItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
+import { TraceFlagsContentProviderService, createTraceFlagsUri } from './traceFlagsContentProvider';
 
-type TraceFlagsByLogType = {
-  DEVELOPER_LOG?: TraceFlagItem[];
-  USER_DEBUG?: TraceFlagItem[];
-  CLASS_TRACING?: TraceFlagItem[];
-  TRIGGERS?: TraceFlagItem[];
-  OTHER?: TraceFlagItem[];
-};
-
-type TraceFlagsLogTypeKey = keyof TraceFlagsByLogType;
-
-/** Group by logType; route 01q (triggers) to TRIGGERS. Always return all section keys with [] when empty. */
-const groupByLogType = (items: TraceFlagItem[]): TraceFlagsByLogType => {
-  const active = items.filter(item => item.isActive);
-  const byKey: Record<TraceFlagsLogTypeKey, TraceFlagItem[]> = {
-    DEVELOPER_LOG: [],
-    USER_DEBUG: [],
-    CLASS_TRACING: [],
-    TRIGGERS: [],
-    OTHER: []
-  };
-  active.forEach(item => {
-    const key: TraceFlagsLogTypeKey = item.tracedEntityId?.startsWith('01q') ? 'TRIGGERS' : item.logType;
-    byKey[key].push(item);
-  });
-  return byKey;
-};
-
-/** Ensure traceFlags.json exists for the current org, populate from org, return its URI */
-const ensureTraceFlagsFile = Effect.fn('ApexLog.ensureTraceFlagsFile')(function* (orgId: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { encodeTraceFlagsConfigToJson } = buildTraceFlagsSchemas(api.services.TraceFlagItemStruct);
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const traceFlagService = yield* api.services.TraceFlagService;
-  const fsService = yield* api.services.FsService;
-  const channelService = yield* api.services.ChannelService;
-  const uri = Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgId, 'traceFlags.json');
-
-  const traceFlags = yield* traceFlagService
-    .getTraceFlags()
-    .pipe(
-      Effect.catchAll(e =>
-        channelService
-          .appendToChannel(`Trace flags fetch failed: ${String(e)}`)
-          .pipe(Effect.andThen(Effect.succeed<TraceFlagItem[]>([])))
-      )
-    );
-
-  const debugLevels = yield* traceFlagService
-    .getDebugLevels()
-    .pipe(
-      Effect.catchAll(e =>
-        channelService
-          .appendToChannel(`Debug levels fetch failed: ${String(e)}`)
-          .pipe(Effect.andThen(Effect.succeed<DebugLevelItem[]>([])))
-      )
-    );
-
-  const result = encodeTraceFlagsConfigToJson({
-    defaultDurationMinutes: 30,
-    traceFlags: groupByLogType(traceFlags),
-    debugLevels
-  });
-  yield* fsService.writeFile(uri, result);
-  return uri;
+const readDefaultDurationMinutes = Effect.fn('ApexLog.readDefaultDurationMinutes')(function* () {
+  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-log');
+  const val = config.get<number>('traceFlagsDefaultDurationMinutes', 30);
+  return val > 0 ? val : 30;
 });
 
-/** Open trace flags JSON for the current target org. Creates and populates the file if missing. */
+const refreshTraceFlagsView = Effect.fn('ApexLog.refreshTraceFlagsView')(function* (orgId: string) {
+  const { refresh } = yield* TraceFlagsContentProviderService;
+  yield* Effect.sync(() => refresh(orgId));
+});
+
+/** Open trace flags JSON for the current target org (virtual doc, read-only). */
 export const openTraceFlagsCommand = Effect.fn('ApexLog.Command.openTraceFlags')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const ref = yield* api.services.TargetOrgRef();
@@ -96,26 +40,11 @@ export const openTraceFlagsCommand = Effect.fn('ApexLog.Command.openTraceFlags')
   if (!orgId) {
     return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
   }
-  const uri = yield* ensureTraceFlagsFile(orgId);
+  const uri = createTraceFlagsUri(orgId);
   yield* api.services.FsService.showTextDocument(uri);
 });
 
-const DEFAULT_DURATION_MINUTES = 30;
-
-const readDefaultDurationMinutes = Effect.fn('ApexLog.readDefaultDurationMinutes')(function* (
-  uri: ReturnType<typeof Utils.joinPath>
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas(api.services.TraceFlagItemStruct);
-  const fsService = yield* api.services.FsService;
-  const read = yield* fsService.readFile(uri).pipe(Effect.option);
-  if (Option.isNone(read)) return DEFAULT_DURATION_MINUTES;
-  const config = decodeTraceFlagsConfigFromJson(read.value);
-  const minutes = config?.defaultDurationMinutes ?? DEFAULT_DURATION_MINUTES;
-  return minutes > 0 ? minutes : DEFAULT_DURATION_MINUTES;
-});
-
-/** Create/extends trace flag for current user using defaultDurationMinutes from JSON, refreshes JSON. */
+/** Create/extends trace flag for current user using defaultDurationMinutes from config, refreshes virtual doc. */
 export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.createTraceFlagForCurrentUser')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -124,16 +53,14 @@ export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.c
     if (!orgId || !userId) {
       return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
     }
-    const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-    const uri = Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgId, 'traceFlags.json');
-    const minutes = yield* readDefaultDurationMinutes(uri);
+    const minutes = yield* readDefaultDurationMinutes();
     const traceFlagService = yield* api.services.TraceFlagService;
     yield* traceFlagService.ensureTraceFlag(userId, Duration.minutes(minutes));
-    yield* ensureTraceFlagsFile(orgId);
+    yield* refreshTraceFlagsView(orgId);
   }
 );
 
-/** Delete trace flag for current user, refresh JSON. */
+/** Delete trace flag for current user, refresh virtual doc. */
 export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.deleteTraceFlagForCurrentUser')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -148,7 +75,7 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
       onNone: () => Effect.void,
       onSome: tf => traceFlagService.deleteTraceFlag(tf.id)
     });
-    yield* ensureTraceFlagsFile(orgId);
+    yield* refreshTraceFlagsView(orgId);
   }
 );
 
@@ -275,7 +202,7 @@ const pickDebugLevel = async (items: DebugLevelItem[]): Promise<DebugLevelQuickP
     { placeHolder: nls.localize('trace_flag_pick_debug_level'), matchOnDescription: true, matchOnDetail: true }
   );
 
-/** Create trace flag for another org user (prompted via SOSL-powered picker), refresh JSON. */
+/** Create trace flag for another org user (prompted via SOSL-powered picker), refresh virtual doc. */
 export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTraceFlagForUser')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const ref = yield* api.services.TargetOrgRef();
@@ -292,19 +219,165 @@ export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTr
   const debugLevels = yield* traceFlagService.getDebugLevels();
   const pickedLevel = yield* Effect.promise(() => pickDebugLevel(debugLevels));
   if (!pickedLevel) return;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const uri = Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgId, 'traceFlags.json');
-  const minutes = yield* readDefaultDurationMinutes(uri);
+  const minutes = yield* readDefaultDurationMinutes();
   yield* traceFlagService.ensureTraceFlag(
     picked.userId,
     Duration.minutes(minutes),
     'USER_DEBUG',
     pickedLevel.debugLevelId
   );
-  yield* ensureTraceFlagsFile(orgId);
+  yield* refreshTraceFlagsView(orgId);
 });
 
-/** Delete trace flag by Id, refresh JSON. */
+type LogCategoryLevel = 'NONE' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'FINE' | 'FINER' | 'FINEST';
+
+type DebugLevelCategory = {
+  key: keyof Pick<
+    Record<string, LogCategoryLevel>,
+    | 'apexCode'
+    | 'apexProfiling'
+    | 'callout'
+    | 'database'
+    | 'nba'
+    | 'system'
+    | 'validation'
+    | 'visualforce'
+    | 'wave'
+    | 'workflow'
+  >;
+  label: string;
+  default: LogCategoryLevel;
+};
+
+const DEBUG_LEVEL_CATEGORIES: DebugLevelCategory[] = [
+  { key: 'apexCode', label: 'Apex code', default: 'DEBUG' },
+  { key: 'apexProfiling', label: 'Apex profiling', default: 'NONE' },
+  { key: 'callout', label: 'Callout', default: 'NONE' },
+  { key: 'database', label: 'Database', default: 'INFO' },
+  { key: 'nba', label: 'NBA', default: 'NONE' },
+  { key: 'system', label: 'System', default: 'DEBUG' },
+  { key: 'validation', label: 'Validation', default: 'NONE' },
+  { key: 'visualforce', label: 'Visualforce', default: 'INFO' },
+  { key: 'wave', label: 'Wave', default: 'NONE' },
+  { key: 'workflow', label: 'Workflow', default: 'NONE' }
+];
+
+const LOG_LEVELS: LogCategoryLevel[] = ['NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'FINE', 'FINER', 'FINEST'];
+
+const sanitizeDeveloperName = (s: string): string =>
+  s.replaceAll(/\W+/g, '_').replaceAll(/^_|_$/g, '').toUpperCase() || 'DebugLevel';
+
+const pickLogLevel = async (
+  category: DebugLevelCategory,
+  defaultValue: LogCategoryLevel
+): Promise<LogCategoryLevel | undefined> => {
+  const items = LOG_LEVELS.map(l => ({ label: l, level: l }));
+  const defaultItem = items.find(i => i.level === defaultValue);
+  return new Promise<LogCategoryLevel | undefined>(resolve => {
+    const picker = vscode.window.createQuickPick<{ label: string; level: LogCategoryLevel }>();
+    picker.items = items;
+    picker.activeItems = defaultItem ? [defaultItem] : [];
+    picker.placeholder = nls.localize('trace_flag_create_log_level_pick', category.label);
+    picker.title = category.label;
+    picker.onDidAccept(() => {
+      const selected = picker.activeItems[0];
+      picker.dispose();
+      resolve(selected?.level);
+    });
+    picker.onDidHide(() => {
+      picker.dispose();
+      resolve(undefined);
+    });
+    picker.show();
+  });
+};
+
+/** Create a new DebugLevel in the org via Tooling API, refresh virtual doc. */
+export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const ref = yield* api.services.TargetOrgRef();
+  const { orgId } = yield* SubscriptionRef.get(ref);
+  if (!orgId) {
+    return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
+  }
+  const conn = yield* api.services.ConnectionService.getConnection();
+
+  const masterLabel = yield* Effect.promise(() =>
+    vscode.window.showInputBox({
+      prompt: nls.localize('trace_flag_create_log_level_master_label'),
+      title: nls.localize('trace_flag_create_log_level_title')
+    })
+  );
+  if (!masterLabel?.trim()) return;
+
+  const defaultDevName = sanitizeDeveloperName(masterLabel.trim());
+  const developerName = yield* Effect.promise(() =>
+    vscode.window.showInputBox({
+      prompt: nls.localize('trace_flag_create_log_level_developer_name'),
+      value: defaultDevName,
+      title: nls.localize('trace_flag_create_log_level_title')
+    })
+  );
+  if (!developerName?.trim()) return;
+
+  const useDefaultsPick = yield* Effect.promise(() =>
+    vscode.window.showQuickPick(
+      [
+        { label: nls.localize('trace_flag_create_log_level_use_defaults_yes'), value: true },
+        { label: nls.localize('trace_flag_create_log_level_use_defaults_no'), value: false }
+      ],
+      {
+        placeHolder: nls.localize('trace_flag_create_log_level_use_defaults'),
+        title: nls.localize('trace_flag_create_log_level_title')
+      }
+    )
+  );
+  if (useDefaultsPick === undefined) return;
+  const useDefaults = useDefaultsPick.value;
+
+  const levelsOrUndef: Record<string, LogCategoryLevel> | undefined = useDefaults
+    ? Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map(c => [c.key, c.default]))
+    : yield* Effect.gen(function* () {
+        const picked = yield* Effect.all(
+          DEBUG_LEVEL_CATEGORIES.map(cat =>
+            Effect.promise(() => pickLogLevel(cat, cat.default)).pipe(
+              Effect.flatMap(p => (p === undefined ? Effect.fail(undefined) : Effect.succeed(p)))
+            )
+          ),
+          { concurrency: 1 }
+        );
+        return Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map((c, i) => [c.key, picked[i]!]));
+      }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+  if (!levelsOrUndef) return;
+  const levels = levelsOrUndef;
+
+  const payload = {
+    MasterLabel: masterLabel.trim(),
+    DeveloperName: developerName.trim(),
+    ApexCode: levels.apexCode ?? 'NONE',
+    ApexProfiling: levels.apexProfiling ?? 'NONE',
+    Callout: levels.callout ?? 'NONE',
+    Database: levels.database ?? 'NONE',
+    Nba: levels.nba ?? 'NONE',
+    System: levels.system ?? 'NONE',
+    Validation: levels.validation ?? 'NONE',
+    Visualforce: levels.visualforce ?? 'NONE',
+    Wave: levels.wave ?? 'NONE',
+    Workflow: levels.workflow ?? 'NONE'
+  };
+
+  const result = yield* Effect.tryPromise({
+    try: () => conn.tooling.create('DebugLevel', payload),
+    catch: e => new Error(`Failed to create debug level: ${String(e)}`)
+  });
+  if (!result.success) {
+    yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed')));
+    return;
+  }
+  yield* refreshTraceFlagsView(orgId);
+});
+
+/** Delete trace flag by Id, refresh virtual doc. */
 export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTraceFlagForId')(function* (
   traceFlagId: string
 ) {
@@ -317,5 +390,5 @@ export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTrac
   }
   const traceFlagService = yield* api.services.TraceFlagService;
   yield* traceFlagService.deleteTraceFlag(traceFlagId);
-  yield* ensureTraceFlagsFile(orgId);
+  yield* refreshTraceFlagsView(orgId);
 });

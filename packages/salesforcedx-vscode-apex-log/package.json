@@ -240,6 +240,13 @@
           "minimum": -1,
           "maximum": 300,
           "description": "%apexLog.configuration.logPollIntervalSeconds.description%"
+        },
+        "salesforcedx-vscode-apex-log.traceFlagsDefaultDurationMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "%apexLog.configuration.traceFlagsDefaultDurationMinutes.description%"
         }
       }
     },
@@ -317,6 +324,10 @@
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
+          "command": "sf.apex.traceFlags.createLogLevel",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
           "command": "sf.apex.traceFlags.deleteForId",
           "when": "sf:project_opened && sf:has_target_org"
         }
@@ -369,6 +380,11 @@
         "category": "Salesforce"
       },
       {
+        "command": "sf.apex.traceFlags.createLogLevel",
+        "title": "%apexLog.command.traceFlagsCreateLogLevel%",
+        "category": "Salesforce"
+      },
+      {
         "command": "sf.apex.traceFlags.deleteForId",
         "title": "%apexLog.command.traceFlagsDeleteForId%",
         "category": "Salesforce"
@@ -386,7 +402,7 @@
     ],
     "jsonValidation": [
       {
-        "fileMatch": ".sf/orgs/*/traceFlags.json",
+        "fileMatch": "sf-traceflags:**",
         "url": "./resources/traceFlags.schema.json"
       }
     ]
