@@ -11,3 +11,8 @@ export class LogGetNoLogsError extends Schema.TaggedError<LogGetNoLogsError>()(
   'LogGetNoLogsError',
   { message: Schema.String }
 ) {}
+
+export class OpenLogsFolderError extends Schema.TaggedError<OpenLogsFolderError>()(
+  'OpenLogsFolderError',
+  { message: Schema.String, cause: Schema.instanceOf(Error) }
+) {}

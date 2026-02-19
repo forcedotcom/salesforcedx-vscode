@@ -138,12 +138,17 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
         Effect.tryPromise(async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.File).pipe(
           Effect.catchAll(() => Effect.succeed(false))
         ),
-      createDirectory: (dirPath: string) =>
+      createDirectory: (dirPath: string | URI) =>
         Effect.tryPromise({
           try: async () => {
             await vscode.workspace.fs.createDirectory(toUri(dirPath));
           },
-          catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'createDirectory', filePath: dirPath })
+          catch: e =>
+            new FsServiceError({
+              ...unknownToErrorCause(e),
+              function: 'createDirectory',
+              filePath: UriOrStringToString(dirPath)
+            })
         }),
       deleteFile: (filePath: string, options = {}) =>
         Effect.tryPromise({

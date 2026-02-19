@@ -9,25 +9,24 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { saveExecResultAndOpenLog } from '../logs/logStorage';
 
-const executeAnonymous = (code: string) =>
-  Effect.fn('ApexLog.Command.executeAnonymous')(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const traceFlagService = yield* api.services.TraceFlagService;
-    const logService = yield* api.services.ApexLogService;
-    const execService = yield* api.services.ExecuteAnonymousService;
+const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(function* (code: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const traceFlagService = yield* api.services.TraceFlagService;
+  const logService = yield* api.services.ApexLogService;
+  const execService = yield* api.services.ExecuteAnonymousService;
 
-    // if we created it just for this execution, we'll clean it up at the end.
-    const userId = yield* traceFlagService.getUserId();
-    const { created, traceFlagId } = yield* traceFlagService.ensureTraceFlag(userId);
-    const result = yield* execService.executeAnonymous(code);
+  const userId = yield* traceFlagService.getUserId();
+  const { created, traceFlagId } = yield* traceFlagService.ensureTraceFlag(userId);
+  const result = yield* execService.executeAnonymous(code);
 
-    const logs = yield* logService.listLogs(5);
-    const body = logs.length > 0 ? yield* logService.getLogBody(logs[0].id) : '';
-    yield* saveExecResultAndOpenLog(code, result, body);
+  // TODO: be smarter about which logs we get, based on what's in the log records
+  const logs = yield* logService.listLogs(5);
+  const body = logs.length > 0 ? yield* logService.getLogBody(logs[0].id) : '';
+  yield* saveExecResultAndOpenLog(code, result, body);
 
-    created && traceFlagId ? yield* traceFlagService.deleteTraceFlag(traceFlagId) : yield* Effect.void;
-    return result;
-  })();
+  created && traceFlagId ? yield* traceFlagService.deleteTraceFlag(traceFlagId) : yield* Effect.void;
+  return result;
+});
 
 export const executeAnonymousDocumentCommand = Effect.fn('ApexLog.Command.executeAnonymousDocument')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

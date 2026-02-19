@@ -9,7 +9,7 @@ import * as Either from 'effect/Either';
 import * as Schema from 'effect/Schema';
 
 /** Apex debug level verbosity */
-export const DebugLevelSchema = Schema.Literal(
+const DebugLevelSchema = Schema.Literal(
   'NONE',
   'INTERNAL',
   'FINEST',
@@ -20,8 +20,6 @@ export const DebugLevelSchema = Schema.Literal(
   'WARN',
   'ERROR'
 );
-
-export type DebugLevel = Schema.Schema.Type<typeof DebugLevelSchema>;
 
 /** Log category verbosity — NONE through FINEST (cumulative). */
 const LogCategoryLevel = Schema.Literal('NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'FINE', 'FINER', 'FINEST');

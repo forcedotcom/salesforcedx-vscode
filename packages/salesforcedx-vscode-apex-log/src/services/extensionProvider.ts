@@ -56,6 +56,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
 
+// eslint-disable-next-line functional/no-let -- Module-level mutable for setAllServicesLayer (tests/debug)
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {

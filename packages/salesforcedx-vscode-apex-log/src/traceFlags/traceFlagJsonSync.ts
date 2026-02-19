@@ -6,9 +6,15 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
+import * as Queue from 'effect/Queue';
+import * as Ref from 'effect/Ref';
+import * as Runtime from 'effect/Runtime';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -172,61 +178,88 @@ const toUserRecords = (searchRecords: { [field: string]: unknown }[]): UserRecor
     UserType: String(r.UserType ?? '')
   }));
 
-/** Show a QuickPick that searches org users via SOSL as the user types (debounced). */
-const pickOrgUser = (
-  conn: { search: (sosl: string) => Promise<{ searchRecords: { [field: string]: unknown }[] }> },
+type ConnectionLike = { search: (sosl: string) => Promise<{ searchRecords: { [field: string]: unknown }[] }> };
+
+/** Run SOSL search and update picker items. Ignore failures so user can keep typing. */
+const searchUsersEffect = (
+  term: string,
+  picker: vscode.QuickPick<UserQuickPickItem>,
+  conn: ConnectionLike,
   currentUserId: string
-): Promise<UserQuickPickItem | undefined> =>
-  new Promise(resolve => {
-    const picker = vscode.window.createQuickPick<UserQuickPickItem>();
-    picker.placeholder = nls.localize('trace_flag_pick_user');
-    picker.matchOnDescription = true;
-    picker.items = [];
-    let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-    let disposed = false;
-
-    const searchUsers = async (term: string) => {
-      if (disposed) return;
+) =>
+  Effect.gen(function* () {
+    yield* Effect.sync(() => {
       picker.busy = true;
-      try {
-        const escaped = term.replaceAll(/['"\\]/g, '');
-        const sosl = `FIND {${escaped}} IN NAME FIELDS RETURNING User(Id, FirstName, LastName, Username, UserType WHERE IsActive = true ORDER BY LastName, FirstName) LIMIT 50`;
-        const { searchRecords } = await conn.search(sosl);
-        if (!disposed) {
-          picker.items = toUserQuickPickItems(toUserRecords(searchRecords), currentUserId);
-        }
-      } catch {
-        // silently ignore search failures; user can keep typing
-      } finally {
-        if (!disposed) picker.busy = false;
-      }
-    };
+    });
+    const escaped = term.replaceAll(/['"\\]/g, '');
+    const sosl = `FIND {${escaped}} IN NAME FIELDS RETURNING User(Id, FirstName, LastName, Username, UserType WHERE IsActive = true ORDER BY LastName, FirstName) LIMIT 50`;
+    const { searchRecords } = yield* Effect.tryPromise({
+      try: () => conn.search(sosl),
+      catch: () => new Error('search failed')
+    });
+    yield* Effect.sync(() => {
+      picker.items = toUserQuickPickItems(toUserRecords(searchRecords), currentUserId);
+      picker.busy = false;
+    });
+  }).pipe(
+    // Ignore search failures so user can keep typing and retry
+    Effect.catchAll(() =>
+      Effect.sync(() => {
+        picker.busy = false;
+      })
+    )
+  );
 
-    picker.onDidChangeValue(value => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      if (value.length < SOSL_MIN_CHARS) {
-        picker.items = [];
-        return;
+/** Show a QuickPick that searches org users via SOSL as the user types (debounced). */
+const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (conn: ConnectionLike, currentUserId: string) {
+  const runtime = yield* Effect.runtime();
+  const run = Runtime.runFork(runtime);
+
+  const queue = yield* Queue.unbounded<string>();
+  const deferred = yield* Deferred.make<UserQuickPickItem | undefined>();
+  const acceptedRef = yield* Ref.make(false);
+
+  const picker = vscode.window.createQuickPick<UserQuickPickItem>();
+  picker.placeholder = nls.localize('trace_flag_pick_user');
+  picker.matchOnDescription = true;
+  picker.items = [];
+
+  const accept = (item: UserQuickPickItem | undefined) =>
+    Runtime.runCallback(runtime)(
+      Ref.modify(acceptedRef, (a: boolean) => [a, true]),
+      {
+        onExit: (exit: Exit.Exit<boolean, never>) => {
+          if (Exit.isSuccess(exit) && !exit.value) {
+            run(
+              Effect.gen(function* () {
+                yield* Queue.shutdown(queue);
+                yield* Deferred.succeed(deferred, item);
+              })
+            );
+          }
+          picker.dispose();
+        }
       }
-      debounceTimer = setTimeout(() => void searchUsers(value), SOSL_DEBOUNCE_MS);
-    });
-    const accept = (item: UserQuickPickItem | undefined) => {
-      if (disposed) return;
-      disposed = true;
-      picker.dispose();
-      resolve(item);
-    };
-    picker.onDidChangeSelection(items => {
-      accept(items[0]);
-    });
-    picker.onDidAccept(() => {
-      accept(picker.activeItems[0]);
-    });
-    picker.onDidHide(() => {
-      accept(undefined);
-    });
-    picker.show();
+    )();
+
+  picker.onDidChangeValue(value => {
+    value.length < SOSL_MIN_CHARS ? (picker.items = []) : run(Queue.offer(queue, value));
   });
+  picker.onDidChangeSelection(items => accept(items[0]));
+  picker.onDidAccept(() => accept(picker.activeItems[0]));
+  picker.onDidHide(() => accept(undefined));
+
+  yield* Effect.fork(
+    Stream.fromQueue(queue).pipe(
+      Stream.debounce(Duration.millis(SOSL_DEBOUNCE_MS)),
+      Stream.filter(s => s.length >= SOSL_MIN_CHARS),
+      Stream.runForEach(term => searchUsersEffect(term, picker, conn, currentUserId))
+    )
+  );
+  picker.show();
+
+  return yield* Deferred.await(deferred);
+});
 
 type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
 
@@ -252,7 +285,7 @@ export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTr
   }
   const connectionService = yield* api.services.ConnectionService;
   const conn = yield* connectionService.getConnection();
-  const picked = yield* Effect.promise(() => pickOrgUser(conn, currentUserId));
+  const picked = yield* pickOrgUser(conn, currentUserId);
   yield* Effect.annotateCurrentSpan('createTraceFlagForUser', { attributes: { userId: picked?.userId ?? 'none' } });
   if (!picked) return;
   const traceFlagService = yield* api.services.TraceFlagService;
@@ -262,7 +295,12 @@ export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTr
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const uri = Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgId, 'traceFlags.json');
   const minutes = yield* readDefaultDurationMinutes(uri);
-  yield* traceFlagService.ensureTraceFlag(picked.userId, Duration.minutes(minutes), 'USER_DEBUG', pickedLevel.debugLevelId);
+  yield* traceFlagService.ensureTraceFlag(
+    picked.userId,
+    Duration.minutes(minutes),
+    'USER_DEBUG',
+    pickedLevel.debugLevelId
+  );
   yield* ensureTraceFlagsFile(orgId);
 });
 

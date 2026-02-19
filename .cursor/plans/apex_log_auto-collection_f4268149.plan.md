@@ -4,28 +4,28 @@ overview: Auto-collect Apex debug logs when active trace flags exist, polling at
 todos:
   - id: log-storage
     content: Create src/logs/logStorage.ts with saveLog, saveAndOpenLog, saveExecResultAndOpenLog
-    status: pending
+    status: completed
   - id: vscode-setting
     content: Add contributes.configuration for logPollIntervalSeconds to package.json
-    status: pending
+    status: completed
   - id: log-auto-collect
     content: Create src/logs/logAutoCollect.ts with polling stream, ID tracking, save-to-disk logic
-    status: pending
+    status: completed
   - id: shared-state
     content: Create SubscriptionRef<LogCollectorState> for poller -> status bar communication
-    status: pending
+    status: completed
   - id: status-bar-update
     content: Update traceFlagStatusBar.ts to read LogCollectorState and show cloud-download icon + count
-    status: pending
+    status: completed
   - id: activation-wiring
     content: Wire logAutoCollect into index.ts activation alongside status bar
-    status: pending
+    status: completed
   - id: i18n-messages
     content: Add auto-collect messages to i18n.ts
-    status: pending
+    status: completed
   - id: verify
     content: 'Run verification checklist: compile, lint, test, bundle, knip, check:dupes'
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -58,13 +58,15 @@ Add `contributes.configuration` to [package.json](packages/salesforcedx-vscode-a
     "salesforcedx-vscode-apex-log.logPollIntervalSeconds": {
       "type": "number",
       "default": 30,
-      "minimum": 5,
+      "minimum": -1,
       "maximum": 300,
-      "description": "Polling interval in seconds for auto-collecting Apex debug logs when trace flags are active."
+      "description": "Polling interval in seconds for auto-collecting Apex debug logs when trace flags are active. Set to -1 to disable auto-collection."
     }
   }
 }
 ```
+
+When the value is `-1`, the poller stream is not started (or is stopped if the setting changes mid-session). The status bar reverts to its current behavior -- trace flag status only, no `$(cloud-download)` icon. The setting is read reactively via `vscode.workspace.onDidChangeConfiguration` so toggling takes effect without reload.
 
 ## New file: `logAutoCollect.ts`
 
@@ -74,7 +76,8 @@ Core logic:
 
 - Maintain a `HashSet<string>` of already-fetched log IDs (in-memory, reset on org change)
 - Poll cycle: `listLogs()` -> filter out known IDs -> `getLogBody()` for each new one -> save to disk via `FsService`
-- Use `Stream.fromSchedule(Schedule.fixed(Duration.seconds(interval)))` gated by `Stream.filter(() => hasActiveTraceFlags && vscode.window.state.active)`
+- Use `Stream.fromSchedule(Schedule.fixed(Duration.seconds(interval)))` gated by `Stream.filter(() => interval > 0 && hasActiveTraceFlags && vscode.window.state.active)`
+- When interval is `-1`, the poller stream emits nothing (disabled)
 - On org change, clear the known-IDs set
 - Wire into the same `traceFlagRefreshPubSub` so trace flag creation/deletion triggers an immediate poll
 

@@ -16,7 +16,7 @@ This skill enforces opinionated, consistent patterns for Effect-TS codebases. Th
 | Dependencies | `dependencies: [Dep.Default]` in service | Manual `Layer.provide` at usage sites |
 | Errors | `Schema.TaggedError` with `message` field | Plain classes or generic Error |
 | Error Specificity | `UserNotFoundError`, `SessionExpiredError` | Generic `NotFoundError`, `BadRequestError` |
-| Error Handling | `catchTag`/`catchTags` | `catchAll` or `mapError` |
+| Error Handling | `catchTag`/`catchTags`; catch only when needed | `catchAll`; swallowing; catching "just in case" |
 | IDs | `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string` for entity IDs |
 | Functions | `Effect.fn("Service.method")` | Anonymous generators |
 | Naming | `FooCommand` for commands, domain names for helpers | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
@@ -128,6 +128,15 @@ yield* effect.pipe(
 )
 ```
 
+### When to Catch (and When Not To)
+
+**Most errors surface to the user** (message/toast at runtime). Only catch when:
+
+- **Genuinely ignore** – accept failure and continue (e.g. optional pre-create)
+- **Better message** – default vague; map to clearer domain error
+
+Catch sparingly. No `catchAll` or "swallow to be safe." Use `catchTag`/`catchTags`; log or fail with improved error.
+
 ### Prefer Explicit Over Generic Errors
 
 **Every distinct failure reason deserves its own error type.** Don't collapse multiple failure modes into generic HTTP errors.
@@ -238,6 +247,13 @@ const transfer = Effect.fn("AccountService.transfer")(
         // ...
     }
 )
+
+// WRONG - params on wrapper arrow, generator has none (closure capture)
+// Enforced by local/no-effect-fn-wrapper
+const findByIdBad = (id: UserId) =>
+    Effect.fn("UserService.findById")(function* () {
+        yield* repo.findById(id)  // id from closure
+    })
 
 // Naming: Don't append Effect. For commands use FooCommand; for helpers/lifecycle use domain names.
 // WRONG: logGetEffect, executeAnonymousDocumentEffect, activateEffect
@@ -389,6 +405,9 @@ yield* Effect.gen(function* () {
 
 // FORBIDDEN - catchAll losing type info
 yield* effect.pipe(Effect.catchAll(() => Effect.fail(new GenericError())))
+
+// FORBIDDEN - swallowing errors (most errors surface to user; only catch when ignoring intentionally or providing better message)
+yield* effect.pipe(Effect.catchAll(() => Effect.void))
 
 // FORBIDDEN - console.log
 console.log("debug") // Use Effect.log

@@ -20,6 +20,8 @@ import * as vscode from 'vscode';
 import { createAnonymousApexScriptCommand } from './commands/createAnonymousApexScript';
 import { executeAnonymousDocumentCommand, executeAnonymousSelectionCommand } from './commands/executeAnonymous';
 import { logGetCommand } from './commands/logGet';
+import { openLogsFolderCommand } from './commands/openLogsFolder';
+import { createLogAutoCollect, createLogCollectorStateRef } from './logs/logAutoCollect';
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import {
@@ -54,9 +56,12 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   const traceFlagRefreshPubSub = yield* PubSub.sliding<void>(1);
 
+  const logCollectorStateRef = yield* createLogCollectorStateRef();
+
   yield* Effect.all(
     [
       registerCommand('sf.apex.log.get', logGetCommand),
+      registerCommand('sf.apex.log.openFolder', openLogsFolderCommand),
       registerCommand('sf.apex.traceFlags.open', () =>
         openTraceFlagsCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
       ),
@@ -82,7 +87,14 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   registerTraceFlagsCodeLensProvider(context);
 
   const scope = yield* getExtensionScope();
-  yield* Effect.forkIn(createTraceFlagStatusBar(traceFlagRefreshPubSub), scope).pipe(Effect.asVoid);
+  yield* Effect.forkIn(
+    createTraceFlagStatusBar(traceFlagRefreshPubSub, logCollectorStateRef),
+    scope
+  ).pipe(Effect.asVoid);
+  yield* Effect.forkIn(
+    createLogAutoCollect(traceFlagRefreshPubSub, logCollectorStateRef),
+    scope
+  ).pipe(Effect.asVoid);
 
   yield* api.services.ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} activation complete.`))

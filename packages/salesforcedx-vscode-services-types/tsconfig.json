@@ -5,8 +5,19 @@
     "rootDir": "src",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "out", "../salesforcedx-vscode-services"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "out",
+    "../salesforcedx-vscode-services"
+  ]
 }

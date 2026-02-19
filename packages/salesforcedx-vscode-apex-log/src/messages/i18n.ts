@@ -34,7 +34,7 @@ export const messages = {
   trace_flag_codelens_create_for_user: 'Add trace for another user',
   trace_flag_tooltip_add_user: 'Add trace for another user',
   trace_flag_tooltip_stop: 'Remove',
-  execute_success: 'Anonymous Apex executed successfully',
-  execute_compile_error: 'Compile error: %s',
-  execute_runtime_error: 'Runtime error: %s'
+  log_auto_collect_fetched: 'Auto-collected log %s (%s - %s)',
+  log_auto_collect_tooltip: 'Auto-collected: %s logs',
+  log_auto_collect_open_folder: 'Open logs folder'
 } as const;

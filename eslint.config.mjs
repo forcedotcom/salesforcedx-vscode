@@ -108,6 +108,7 @@ export default [
           ]
         }
       ],
+      'local/no-effect-fn-wrapper': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-vscode-message-literals': 'error',
       'workspaces/no-relative-imports': 'error',
@@ -529,6 +530,7 @@ export default [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
     ],
     rules: {
