@@ -43,7 +43,8 @@
     "ts-jest": "^29.4.1"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-services"
+    "salesforce.salesforcedx-vscode-services",
+    "salesforce.salesforcedx-vscode-media"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
