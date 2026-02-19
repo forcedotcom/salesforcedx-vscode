@@ -134,25 +134,29 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       try {
         await use(electronApp);
       } finally {
-        // Snapshot the full process tree BEFORE close — once the parent exits, children are
-        // reparented to PID 1 and pgrep -P can no longer find them.
         const pid = electronApp.process?.()?.pid;
         const descendants = typeof pid === 'number' ? [pid, ...getDescendantPids(pid)] : [];
         console.log(`[teardown] pid=${pid} descendants=${JSON.stringify(descendants)}`);
-        try {
-          const closed = await Promise.race([
-            electronApp.close().then(() => true as const),
-            new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
-          ]);
-          console.log(`[teardown] close returned, timedOut=${closed === false}`);
-        } catch (e: unknown) {
-          console.log(`[teardown] close threw: ${String(e)}`);
+
+        if (process.platform === 'darwin' && process.env.CI) {
+          // macOS CI: electronApp.close() hangs indefinitely via CDP, leaving an unresolved
+          // Promise that Playwright's worker teardown waits on (60s timeout). Skip close()
+          // and kill the process tree directly — Playwright detects the exit event and cleans up.
+          killPids(descendants);
+        } else {
+          try {
+            const closed = await Promise.race([
+              electronApp.close().then(() => true as const),
+              new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
+            ]);
+            if (closed === false) {
+              killPids(descendants);
+            }
+          } catch {
+            killPids(descendants);
+          }
         }
-        // Kill any survivors (GPU, crashpad, utility) that outlived close()
-        killPids(descendants);
-        // Let Playwright's internal process watcher detect exit events before fixture teardown returns
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        console.log('[teardown] killPids done');
+        console.log('[teardown] done');
       }
     },
 
