@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
+import { AuthFields, AuthInfo, ConfigAggregator, OrgAuthorization, OrgConfigProperties } from '@salesforce/core';
 import { CancelResponse, ConfigUtil, ContinueResponse, OrgUserInfo } from '@salesforce/salesforcedx-utils-vscode';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
@@ -70,6 +70,7 @@ export class OrgList implements vscode.Disposable {
 
   public async filterAuthInfo(orgAuthorizations: OrgAuthorization[], showExpired: boolean = false): Promise<string[]> {
     const targetDevHub = await getDevHubUsername();
+    const defaultConfig = await this.getDefaultOrgConfiguration();
 
     const authList = [];
     for (const orgAuth of orgAuthorizations) {
@@ -98,15 +99,68 @@ export class OrgList implements vscode.Disposable {
       }
 
       const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
+      const alias = aliases?.length > 0 ? aliases[0] : '';
       let authListItem = aliases?.length > 0 ? `${aliases.join(',')} - ${orgAuth.username}` : orgAuth.username;
 
       if (isExpired) {
         authListItem += ` - ${nls.localize('org_expired')} ${String.fromCodePoint(0x27_4c)}`; // cross-mark
       }
 
-      authList.push(authListItem);
+      const marker = this.determineOrgMarkers(orgAuth, alias, defaultConfig);
+      authList.push(marker ? `${marker} ${authListItem}` : authListItem);
     }
     return authList;
+  }
+
+  private async getDefaultOrgConfiguration(): Promise<{
+    defaultDevHubProperty: string | undefined;
+    defaultOrgProperty: string | undefined;
+    defaultDevHubUsername: string | undefined;
+    defaultOrgUsername: string | undefined;
+  }> {
+    const configAggregator = await ConfigAggregator.create();
+    const defaultDevHubProperty = configAggregator.getPropertyValue(OrgConfigProperties.TARGET_DEV_HUB);
+    const defaultOrgProperty = configAggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG);
+    return {
+      defaultDevHubProperty: String(defaultDevHubProperty),
+      defaultOrgProperty: String(defaultOrgProperty),
+      defaultDevHubUsername: await ConfigUtil.getUsernameFor(String(defaultDevHubProperty)),
+      defaultOrgUsername: await ConfigUtil.getUsernameFor(String(defaultOrgProperty))
+    };
+  }
+
+  private determineOrgMarkers(
+    orgAuth: OrgAuthorization,
+    alias: string,
+    defaultConfig: {
+      defaultDevHubProperty: string | undefined;
+      defaultOrgProperty: string | undefined;
+      defaultDevHubUsername: string | undefined;
+      defaultOrgUsername: string | undefined;
+    }
+  ): string {
+    const possibleDefaults = new Set([alias, orgAuth.username].filter(Boolean));
+    const matchesDevHubProperty =
+      defaultConfig.defaultDevHubProperty && possibleDefaults.has(String(defaultConfig.defaultDevHubProperty));
+    const matchesDevHubUsername =
+      defaultConfig.defaultDevHubUsername && orgAuth.username === defaultConfig.defaultDevHubUsername;
+    const isDefaultDevHub = orgAuth.isDevHub && (matchesDevHubProperty ?? matchesDevHubUsername);
+    const matchesOrgProperty =
+      defaultConfig.defaultOrgProperty && possibleDefaults.has(String(defaultConfig.defaultOrgProperty));
+    const matchesOrgUsername =
+      defaultConfig.defaultOrgUsername && orgAuth.username === defaultConfig.defaultOrgUsername;
+    const isDefaultOrg = matchesOrgProperty ?? matchesOrgUsername;
+
+    if (isDefaultDevHub && isDefaultOrg) {
+      return '$(sf-org-tree) $(sf-org-leaf)';
+    }
+    if (isDefaultDevHub) {
+      return '$(sf-org-tree)';
+    }
+    if (isDefaultOrg) {
+      return '$(sf-org-leaf)';
+    }
+    return '';
   }
 
   public async updateOrgList(): Promise<string[]> {
@@ -160,9 +214,10 @@ export class OrgList implements vscode.Disposable {
       }
       default: {
         // Extract the username or alias from the selection
-        // Format is: "alias1,alias2,alias3 - username" or "alias1,alias2,alias3 - username - Expired ❌"
-        // or just "username" or "username - Expired ❌"
-        const cleanSelection = selection.endsWith(' - Expired ❌') ? selection.replace(' - Expired ❌', '') : selection;
+        // Format may have leading icons: "$(sf-org-tree) $(sf-org-leaf) alias - username"
+        // or "alias1,alias2,alias3 - username" or "alias1,alias2,alias3 - username - Expired ❌"
+        let cleanSelection = selection.replace(/^(\$\(sf-org-(?:tree|leaf)\)\s*)+/, '');
+        cleanSelection = cleanSelection.endsWith(' - Expired ❌') ? cleanSelection.replace(' - Expired ❌', '') : cleanSelection;
         const lastDashIndex = cleanSelection.lastIndexOf(' - ');
         const usernameOrAlias = lastDashIndex !== -1 ? cleanSelection.substring(0, lastDashIndex) : cleanSelection;
 

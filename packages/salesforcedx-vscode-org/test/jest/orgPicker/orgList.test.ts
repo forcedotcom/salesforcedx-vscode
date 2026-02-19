@@ -4,7 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, OrgAuthorization, StateAggregator } from '@salesforce/core';
+import { ConfigAggregator, AuthFields, OrgAuthorization, StateAggregator } from '@salesforce/core';
+
+jest.mock('@salesforce/core', () => {
+  const actual = jest.requireActual<typeof import('@salesforce/core')>('@salesforce/core');
+  return {
+    ...actual,
+    ConfigAggregator: {
+      create: jest.fn()
+    }
+  };
+});
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
@@ -83,6 +93,10 @@ describe('OrgList tests', () => {
     orgList = new OrgList();
     getAuthFieldsForMock = jest.spyOn(orgUtil, 'getAuthFieldsFor');
     getUsernameForMock = jest.spyOn(ConfigUtil, 'getUsernameFor');
+    // getDefaultOrgConfiguration calls getUsernameFor twice with "undefined" when no default org/dev hub
+    getUsernameForMock.mockImplementation((key: string) =>
+      Promise.resolve(key === 'undefined' ? undefined : key)
+    );
     getDevHubUsernameMock = jest.spyOn(util, 'getDevHubUsername');
     getAllMock = jest.fn();
     fakeStateAggregator = {
@@ -92,6 +106,9 @@ describe('OrgList tests', () => {
     };
     jest.spyOn(StateAggregator, 'create').mockResolvedValue(fakeStateAggregator);
     getAllAliasesForMock = jest.spyOn(ConfigUtil, 'getAllAliasesFor');
+    jest.mocked(ConfigAggregator.create).mockResolvedValue({
+      getPropertyValue: jest.fn().mockReturnValue(undefined)
+    } as any);
   });
 
   afterEach(() => {
@@ -146,6 +163,7 @@ describe('OrgList tests', () => {
 
     it('should return a list of valid org authorizations', async () => {
       const orgAuths = [validOrgAuth, orgAuthScratchOrg, orgAuthWithError];
+      getUsernameForMock.mockResolvedValueOnce(undefined).mockResolvedValueOnce(undefined); // getDefaultOrgConfiguration
       getUsernameForMock.mockResolvedValueOnce(validOrgAuth.username);
       getUsernameForMock.mockResolvedValueOnce(orgAuthScratchOrg.username);
       getAuthFieldsForMock.mockResolvedValueOnce(validOrgAuth as AuthFields);
@@ -173,6 +191,7 @@ describe('OrgList tests', () => {
       };
 
       const orgAuths = [validOrgAuth, expiredOrgAuth];
+      getUsernameForMock.mockResolvedValueOnce(undefined).mockResolvedValueOnce(undefined); // getDefaultOrgConfiguration
       getUsernameForMock.mockResolvedValueOnce(validOrgAuth.username);
       getUsernameForMock.mockResolvedValueOnce(expiredOrgAuth.username);
       getAuthFieldsForMock.mockResolvedValueOnce(validOrgAuth as AuthFields);
@@ -187,6 +206,36 @@ describe('OrgList tests', () => {
 
       // Should only return the valid org, not the expired one
       expect(result).toEqual([validOrgAuth.username]);
+    });
+
+    it('should prefix default dev hub with tree icon and default scratch org with leaf icon', async () => {
+      const devHubAuth = createOrgAuthorization({
+        username: 'devhub@example.com',
+        isDevHub: true
+      });
+      const scratchOrgAuth = createOrgAuthorization({
+        username: 'scratch@example.com',
+        isScratchOrg: true
+      });
+      const orgAuths = [devHubAuth, scratchOrgAuth];
+      getAuthFieldsForMock.mockResolvedValueOnce(devHubAuth as AuthFields).mockResolvedValueOnce(scratchOrgAuth as AuthFields);
+      getDevHubUsernameMock.mockResolvedValue(dummyDevHubUsername);
+      getAllAliasesForMock.mockResolvedValue([]);
+      getUsernameForMock
+        .mockResolvedValueOnce('devhub@example.com') // defaultDevHubUsername
+        .mockResolvedValueOnce('scratch@example.com'); // defaultOrgUsername
+      jest.mocked(ConfigAggregator.create).mockResolvedValueOnce({
+        getPropertyValue: jest.fn().mockImplementation((prop: string) =>
+          prop === 'target-dev-hub' ? 'devhub@example.com' : prop === 'target-org' ? 'scratch@example.com' : undefined
+        )
+      } as any);
+
+      const result = await orgList.filterAuthInfo(orgAuths);
+
+      expect(result[0]).toContain('$(sf-org-tree)');
+      expect(result[0]).toContain('devhub@example.com');
+      expect(result[1]).toContain('$(sf-org-leaf)');
+      expect(result[1]).toContain('scratch@example.com');
     });
 
     it('should include expired orgs when showExpired is true', async () => {
@@ -205,6 +254,7 @@ describe('OrgList tests', () => {
       };
 
       const orgAuths = [validOrgAuth, expiredOrgAuth];
+      getUsernameForMock.mockResolvedValueOnce(undefined).mockResolvedValueOnce(undefined); // getDefaultOrgConfiguration
       getUsernameForMock.mockResolvedValueOnce(validOrgAuth.username);
       getUsernameForMock.mockResolvedValueOnce(expiredOrgAuth.username);
       getAuthFieldsForMock.mockResolvedValueOnce(validOrgAuth as AuthFields);
@@ -429,6 +479,16 @@ describe('OrgList tests', () => {
         expect(result).toEqual({ type: 'CANCEL' });
         expect(executeCommandMock).not.toHaveBeenCalled();
       });
+    });
+
+    it('should handle organization selection with default dev hub marker', async () => {
+      const orgSelection = '$(sf-org-tree) MyOrg - user@example.com';
+      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'MyOrg');
     });
 
     it('should handle organization selection with simple alias', async () => {

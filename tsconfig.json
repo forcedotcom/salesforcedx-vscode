@@ -80,6 +80,9 @@
       "path": "packages/salesforcedx-vscode-org-browser"
     },
     {
+      "path": "packages/salesforcedx-vscode-media"
+    },
+    {
       "path": "packages/salesforcedx-vscode-org"
     },
     {
