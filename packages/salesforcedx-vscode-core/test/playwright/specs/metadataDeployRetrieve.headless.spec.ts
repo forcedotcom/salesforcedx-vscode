@@ -9,25 +9,18 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   editOpenFile,
   executeCommandWithCommandPalette,
-  ensureOutputPanelOpen,
-  selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
   validateNoCriticalErrors,
   saveScreenshot,
-  EDITOR_WITH_URI,
-  verifyCommandExists,
-  ensureSecondarySideBarHidden
+  EDITOR_WITH_URI
 } from '@salesforce/playwright-vscode-ext';
-import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
+import { COMMAND_TIMEOUT } from '../constants';
+import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
 import { createApexClassCore } from '../coreHelpers';
+import packageNls from '../../../package.nls.json';
 
 test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', async ({ page }) => {
   test.setTimeout(COMMAND_TIMEOUT);
@@ -46,18 +39,7 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
   };
 
   await test.step('setup: workbench, settings, output channel', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-    await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
-
-    await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
-
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
-    await saveScreenshot(page, 'setup.complete.png');
+    await setupWorkbenchSettingsAndOutputChannel(page);
   });
 
   await test.step('create and deploy v1', async () => {
@@ -66,9 +48,9 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
     await saveScreenshot(page, 'v1.after-create.png');
 
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Deploy This Source to Org',
+      expectedText: `Ended ${packageNls.deploy_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'v1.deploy-complete.png');
@@ -81,9 +63,9 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
     await saveScreenshot(page, 'v2.after-edit.png');
 
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Deploy This Source to Org',
+      expectedText: `Ended ${packageNls.deploy_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
     await saveScreenshot(page, 'v2.deploy-complete.png');
@@ -91,9 +73,9 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
 
   await test.step('retrieve v2 and verify unchanged', async () => {
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Retrieve This Source from Org');
+    await executeCommandWithCommandPalette(page, packageNls.retrieve_this_source_text);
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Retrieve This Source from Org',
+      expectedText: `Ended ${packageNls.retrieve_this_source_text}`,
       timeout: COMMAND_TIMEOUT
     });
 

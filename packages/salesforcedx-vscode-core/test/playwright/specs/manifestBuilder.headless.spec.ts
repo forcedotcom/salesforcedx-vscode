@@ -10,28 +10,21 @@ import * as path from 'node:path';
 import { test } from '../fixtures';
 import {
   setupConsoleMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   openFileByName,
   executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
-  ensureOutputPanelOpen,
-  selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
   isMacDesktop,
   validateNoCriticalErrors,
   saveScreenshot,
   EDITOR,
-  QUICK_INPUT_WIDGET,
-  verifyCommandExists,
-  ensureSecondarySideBarHidden
+  QUICK_INPUT_WIDGET
 } from '@salesforce/playwright-vscode-ext';
-import { COMMAND_TIMEOUT, OUTPUT_CHANNEL } from '../constants';
+import { COMMAND_TIMEOUT } from '../constants';
+import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
 import { createApexClassCore } from '../coreHelpers';
+import packageNls from '../../../package.nls.json';
 
 const MANIFEST_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
@@ -47,17 +40,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     const consoleErrors = setupConsoleMonitoring(page);
 
     await test.step('setup: workbench, settings, create apex class', async () => {
-      const createResult = await createMinimalOrg();
-      await waitForVSCodeWorkbench(page);
-      await closeWelcomeTabs(page);
-      await ensureSecondarySideBarHidden(page);
-      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-      await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
-
-      await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
-
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
+      await setupWorkbenchSettingsAndOutputChannel(page);
 
       // Create an apex class to include in the manifest
       await createApexClassCore(page, `ManifestTest${Date.now()}`);
@@ -67,7 +50,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     await test.step('generate manifest file', async step => {
       step.skip(isMacDesktop(), 'Explorer context menu not available on Mac Desktop');
       // Command is only available via explorer context menu, not command palette
-      await executeExplorerContextMenuCommand(page, /classes/i, 'SFDX: Generate Manifest File');
+      await executeExplorerContextMenuCommand(page, /classes/i, packageNls.project_generate_manifest);
 
       // Wait for filename prompt and accept default
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
@@ -93,7 +76,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
       await openFileByName(page, 'package.xml');
       await clearOutputChannel(page);
 
-      await executeCommandWithCommandPalette(page, 'SFDX: Deploy Source in Manifest to Org');
+      await executeCommandWithCommandPalette(page, packageNls.deploy_in_manifest_text);
       await waitForOutputChannelText(page, {
         expectedText: 'Deployed Source',
         timeout: COMMAND_TIMEOUT
@@ -105,7 +88,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
       await openFileByName(page, 'package.xml');
       await clearOutputChannel(page);
 
-      await executeCommandWithCommandPalette(page, 'SFDX: Retrieve Source in Manifest from Org');
+      await executeCommandWithCommandPalette(page, packageNls.retrieve_in_manifest_text);
       await waitForOutputChannelText(page, {
         expectedText: 'Retrieved Source',
         timeout: COMMAND_TIMEOUT

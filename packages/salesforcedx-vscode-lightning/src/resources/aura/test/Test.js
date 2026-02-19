@@ -1032,7 +1032,7 @@ TestInstance.prototype.overrideFunction = function(instance, name, newFunction) 
         var f;
         try {
             f = instance[key];
-        } catch (e) {
+        } catch {
             // IE: Handle "Unspecified error" for properties like "fileCreatedDate"
             continue;
         }
@@ -2296,7 +2296,7 @@ TestInstance.prototype.createHttpRequest = function() {
         try {
             this.httpType = 'msxml2';
             return new ActiveXObject("Msxml2.XMLHTTP");
-        } catch (e) {
+        } catch {
             this.httpType = 'msxml';
             // If this throws, we are out of ideas anyway, so just "let it throw, let it throw, let it throw".
             return new ActiveXObject("Microsoft.XMLHTTP");
@@ -2414,7 +2414,7 @@ window.onerror = (function() {
         if ((e && e["name"] === "AuraError") || msg) {
                 try {
                     $A["test"].auraError.call($A["test"], "ERROR", msg);
-                } catch(err) {
+                } catch {
                     // The error may have broken the test runner loop so tear down to guarantee the test is completed.
                     $A["test"].doTearDown();
                 }
