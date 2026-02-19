@@ -9,7 +9,7 @@
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron } from '@playwright/test';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
-import { execSync } from 'node:child_process';
+import type { ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
@@ -17,34 +17,23 @@ import { filterErrors } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
 import { createTestWorkspace } from './desktopWorkspace';
 
-/**
- * Close timeout before force-kill. Electron on Mac CI hangs on graceful close;
- * keep short so SIGKILL happens early and Playwright detects the exit event
- * well within its 60s worker teardown window.
- */
+/** Close timeout before force-kill (non-macOS-CI path). */
 const CLOSE_TIMEOUT_MS = 5000;
 
-/** Collect all descendant PIDs (recursive). Must be called while the root process is still alive. */
-const getDescendantPids = (pid: number): number[] => {
-  try {
-    if (process.platform === 'win32') return [];
-    const children = execSync(`pgrep -P ${pid}`, { encoding: 'utf8' })
-      .trim()
-      .split('\n')
-      .filter(Boolean)
-      .map(Number)
-      .filter(n => !isNaN(n));
-    return [...children, ...children.flatMap(getDescendantPids)];
-  } catch {
-    return [];
-  }
-};
-
-/** SIGKILL a list of PIDs, ignoring already-exited processes. */
-const killPids = (pids: number[]): void => {
-  pids.forEach(p => {
-    try { process.kill(p, 'SIGKILL'); } catch {}
-  });
+/**
+ * Force-kill an Electron process tree on macOS/Linux. Playwright spawns Electron
+ * with detached:true, giving it its own process group (PGID = PID). Sending
+ * SIGKILL to -pid kills the entire group (main + GPU + crashpad + utility).
+ * Then destroy stdio pipes so Node.js emits the ChildProcess 'exit' event —
+ * without this, Playwright's worker teardown waits for pipe EOF and times out.
+ */
+const forceKillProcessGroup = (proc: ChildProcess): void => {
+  const { pid } = proc;
+  if (typeof pid !== 'number') return;
+  try { process.kill(-pid, 'SIGKILL'); } catch {}
+  proc.stdin?.destroy();
+  proc.stdout?.destroy();
+  proc.stderr?.destroy();
 };
 
 type CreateDesktopTestOptions = {
@@ -134,35 +123,33 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       try {
         await use(electronApp);
       } finally {
-        const pid = electronApp.process?.()?.pid;
-        const descendants = typeof pid === 'number' ? [pid, ...getDescendantPids(pid)] : [];
-        console.log(`[teardown] pid=${pid} descendants=${JSON.stringify(descendants)}`);
+        const proc = electronApp.process?.();
+        console.log(`[teardown] pid=${proc?.pid} platform=${process.platform} CI=${process.env.CI}`);
 
-        if (process.platform === 'darwin' && process.env.CI) {
-          // macOS CI: electronApp.close() hangs indefinitely via CDP, leaving an unresolved
-          // Promise that Playwright's worker teardown waits on (60s timeout). Skip close()
-          // and kill the process tree directly, then wait for Playwright's internal process
-          // watcher to register the exit before returning from fixture teardown.
-          const proc = electronApp.process?.();
-          killPids(descendants);
-          if (proc?.exitCode === null) {
+        if (process.platform !== 'win32' && process.env.CI) {
+          // macOS/Linux CI: electronApp.close() hangs via CDP, leaving a dangling Promise
+          // that Playwright's worker teardown waits on (60s timeout). Kill the entire
+          // process group and destroy stdio pipes so the ChildProcess 'exit' event fires.
+          if (proc) {
+            forceKillProcessGroup(proc);
+            // Wait for Node.js to register the exit (pipes closed → 'close' event → 'exit' event)
             await new Promise<void>(resolve => {
-              proc.on('exit', () => resolve());
+              if (proc.exitCode !== null) { resolve(); return; }
+              proc.on('close', () => resolve());
               setTimeout(resolve, 10_000);
             });
           }
-          console.log(`[teardown] exitCode=${proc?.exitCode}`);
+          console.log(`[teardown] exitCode=${proc?.exitCode} killed=${proc?.killed}`);
         } else {
           try {
-            const closed = await Promise.race([
-              electronApp.close().then(() => true as const),
+            await Promise.race([
+              electronApp.close(),
               new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
             ]);
-            if (closed === false) {
-              killPids(descendants);
-            }
-          } catch {
-            killPids(descendants);
+          } catch {}
+          // Force-kill if close didn't work (Windows timeout fallback)
+          if (proc?.exitCode === null && process.platform === 'win32') {
+            try { process.kill(proc.pid!, 'SIGKILL'); } catch {}
           }
         }
         console.log('[teardown] done');
