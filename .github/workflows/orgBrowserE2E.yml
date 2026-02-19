@@ -5,6 +5,10 @@ on:
   push:
     branches-ignore: [main, develop]
 
+concurrency:
+  group: ci-${{ github.ref }}-orgBrowserE2E
+  cancel-in-progress: true
+
 jobs:
   e2e-web:
     runs-on: ubuntu-latest
@@ -109,6 +113,7 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

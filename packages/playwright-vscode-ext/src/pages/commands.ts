@@ -95,34 +95,6 @@ export const executeCommandWithCommandPalette = async (
   await executeCommand(page, command, hasNotText);
 };
 
-/** Shared helper: opens command palette, types command text, waits for list, returns widget and rows getter */
-const searchCommandInPalette = async (
-  page: Page,
-  commandText: string
-): Promise<{
-  widget: ReturnType<Page['locator']>;
-  getFirst20Rows: () => Promise<Awaited<ReturnType<ReturnType<Page['locator']>['all']>>>;
-}> => {
-  await openCommandPalette(page);
-  const widget = page.locator(QUICK_INPUT_WIDGET);
-  const input = widget.locator('input.input');
-
-  await expect(input).toBeVisible({ timeout: 5000 });
-  // Click input directly to ensure focus (Windows needs explicit click, focus() alone may not work)
-  await input.click({ timeout: 5000 });
-  await input.pressSequentially(commandText, { delay: 5 });
-
-  // Wait for command list to appear
-  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
-
-  const getFirst20Rows = async () => {
-    const listRows = widget.locator(QUICK_INPUT_LIST_ROW);
-    return (await listRows.all()).slice(0, 20);
-  };
-
-  return { widget, getFirst20Rows };
-};
-
 /** Shared helper: closes command palette */
 const closeCommandPalette = async (page: Page, widget: ReturnType<Page['locator']>): Promise<void> => {
   await page.keyboard.press('Escape');
@@ -131,28 +103,20 @@ const closeCommandPalette = async (page: Page, widget: ReturnType<Page['locator'
   });
 };
 
-/** Verify a command does not exist in the command palette */
-export const verifyCommandDoesNotExist = async (page: Page, commandText: string): Promise<void> => {
-  const { widget, getFirst20Rows } = await searchCommandInPalette(page, commandText);
+const DEFAULT_VERIFY_TIMEOUT = 10_000;
 
-  const first20Rows = await getFirst20Rows();
-
-  // Check that the command is not in the list
-  for (const row of first20Rows) {
-    const rowText = await row.textContent();
-    if (rowText?.trim().toLowerCase().includes(commandText.toLowerCase())) {
-      throw new Error(`Command "${commandText}" should not exist but was found in command palette`);
-    }
-  }
-
-  await closeCommandPalette(page, widget);
-};
-
-/** Verify a command exists in the command palette using retry pattern */
-export const verifyCommandExists = async (page: Page, commandText: string, timeout?: number): Promise<void> => {
+/**
+ * Shared retry loop: dismiss stale widgets, open command palette, type commandText,
+ * read first 20 rows, pass them to `check`. Caller throws to retry or returns to succeed.
+ */
+const retryCommandPaletteSearch = async (
+  page: Page,
+  commandText: string,
+  check: (rowTexts: string[]) => void,
+  timeout: number
+): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
 
-  // Use retry pattern: dismiss and re-search each iteration so results are fresh
   await expect(async () => {
     await dismissAllQuickInputWidgets(page);
     await openCommandPalette(page);
@@ -163,54 +127,42 @@ export const verifyCommandExists = async (page: Page, commandText: string, timeo
 
     await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
 
-    const first20Rows = (await widget.locator(QUICK_INPUT_LIST_ROW).all()).slice(0, 20);
-    for (const row of first20Rows) {
-      const rowText = await row.textContent();
-      if (rowText?.trim().toLowerCase().includes(commandText.toLowerCase())) {
-        return; // Found it!
-      }
-    }
-    throw new Error(`Command "${commandText}" not found yet`);
-  }).toPass({ timeout: timeout ?? 10_000 });
+    const rows = await widget.locator(QUICK_INPUT_LIST_ROW).all();
+    const rowTexts = await Promise.all(
+      rows.slice(0, 20).map(async row => (await row.textContent())?.trim().toLowerCase() ?? '')
+    );
+    check(rowTexts);
+  }).toPass({ timeout });
 
   await closeCommandPalette(page, widget);
 };
 
-/** Wait for a command to be available in the command palette (useful when waiting for extensions to load) */
-export const waitForCommandToBeAvailable = async (
-  page: Page,
-  commandText: string,
-  timeoutMs: number = 30_000
-): Promise<void> => {
-  await expect(async () => {
-    await openCommandPalette(page);
-    const widget = page.locator(QUICK_INPUT_WIDGET);
-    const input = widget.locator('input.input');
+/** Verify a command exists in the command palette (retries until found or timeout) */
+export const verifyCommandExists = async (page: Page, commandText: string, timeout?: number): Promise<void> => {
+  const lowerCommand = commandText.toLowerCase();
+  await retryCommandPaletteSearch(
+    page,
+    commandText,
+    rowTexts => {
+      if (!rowTexts.some(t => t.includes(lowerCommand))) {
+        throw new Error(`Command "${commandText}" not found yet`);
+      }
+    },
+    timeout ?? DEFAULT_VERIFY_TIMEOUT
+  );
+};
 
-    await expect(input).toBeVisible({ timeout: 5000 });
-    await input.click({ timeout: 5000 });
-
-    // Type the command to search for it
-    await page.keyboard.press('End');
-    await input.pressSequentially(commandText, { delay: 5 });
-
-    // Wait for command list to appear
-    await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
-
-    // Verify the command exists in the list
-    const escapedCommand = commandText.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const commandRow = widget
-      .locator(QUICK_INPUT_LIST_ROW)
-      .filter({ hasText: new RegExp(`^${escapedCommand}`) })
-      .first();
-
-    // This will throw if command not found, causing retry
-    await expect(commandRow, `Command "${commandText}" should be available`).toBeAttached({ timeout: 2000 });
-
-    // Close command palette
-    await page.keyboard.press('Escape');
-    await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
-      // Ignore if already closed
-    });
-  }, `Waiting for command "${commandText}" to be available`).toPass({ timeout: timeoutMs });
+/** Verify a command does not exist in the command palette (retries until gone or timeout) */
+export const verifyCommandDoesNotExist = async (page: Page, commandText: string, timeout?: number): Promise<void> => {
+  const lowerCommand = commandText.toLowerCase();
+  await retryCommandPaletteSearch(
+    page,
+    commandText,
+    rowTexts => {
+      if (rowTexts.some(t => t.includes(lowerCommand))) {
+        throw new Error(`Command "${commandText}" still visible (context may not have updated)`);
+      }
+    },
+    timeout ?? DEFAULT_VERIFY_TIMEOUT
+  );
 };
