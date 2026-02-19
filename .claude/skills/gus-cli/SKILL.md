@@ -75,10 +75,10 @@ Closed statuses: see ## Status__c values. Use `LIMIT 50` (or 100) when querying 
 sf data create record -s ADM_Work__c -o gus -v "Subject__c='...' Assignee__c='<userId>' Scrum_Team__c='a00B0000000w9xPIAQ' Product_Tag__c='a1aB000000005G3IAI' Story_Points__c=2 RecordTypeId='0129000000006gDAAQ' Epic__c='<epicId>'"
 ```
 
-**Update:** If User Story has null `Story_Points__c`, set `Story_Points__c=2`. Never modify `Sprint__c`.
+**Update:** If User Story has null `Story_Points__c`, set `Story_Points__c=2`. Never modify `Sprint__c`. `Details__c` can store PR links, notes.
 
 ```
-sf data update record -s ADM_Work__c -i <recordId> -o gus -v "Status__c='In Progress' Subject__c='...'"
+sf data update record -s ADM_Work__c -i <recordId> -o gus -v "Status__c='In Progress' Subject__c='...' Details__c='...'"
 ```
 
 ## Epics (ADM_Epic__c)
