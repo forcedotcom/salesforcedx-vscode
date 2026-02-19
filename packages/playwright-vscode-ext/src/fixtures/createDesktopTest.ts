@@ -134,14 +134,19 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         // reparented to PID 1 and pgrep -P can no longer find them.
         const pid = electronApp.process?.()?.pid;
         const descendants = typeof pid === 'number' ? [pid, ...getDescendantPids(pid)] : [];
+        console.log(`[teardown] pid=${pid} descendants=${JSON.stringify(descendants)}`);
         try {
-          await Promise.race([
-            electronApp.close(),
+          const closed = await Promise.race([
+            electronApp.close().then(() => true as const),
             new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
           ]);
-        } catch {}
+          console.log(`[teardown] close returned, timedOut=${closed === false}`);
+        } catch (e: unknown) {
+          console.log(`[teardown] close threw: ${String(e)}`);
+        }
         // Kill any survivors (GPU, crashpad, utility) that outlived close()
         killPids(descendants);
+        console.log('[teardown] killPids done');
       }
     },
 
