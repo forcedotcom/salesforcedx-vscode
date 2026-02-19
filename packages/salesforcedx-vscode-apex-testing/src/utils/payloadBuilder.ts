@@ -17,8 +17,7 @@ interface PayloadBuildResult {
 
 /**
  * Builds a test execution payload based on the tests to run.
- * For namespaced classes, constructs the payload manually to ensure the full
- * class name (Namespace.ClassName) is preserved in the className field.
+ * Delegates to TestService.buildAsyncPayload which correctly handles namespaces.
  */
 export const buildTestPayload = async (
   testService: TestService,
@@ -79,48 +78,15 @@ export const buildTestPayload = async (
   const methodNames = methodItems.map(item => getTestName(item));
 
   if (methodNames.length > 0) {
-    // Check if any method names are from namespaced classes (have 3+ parts like Namespace.Class.Method)
-    const hasNamespacedMethods = methodNames.some(name => name.split('.').length > 2);
-
-    if (hasNamespacedMethods) {
-      // For namespaced classes, we must construct the payload manually because
-      // buildAsyncPayload incorrectly parses "Namespace.Class.Method" and the API
-      // rejects the resulting payload with className without namespace
-      const methodsByClass = new Map<string, string[]>();
-      for (const methodName of methodNames) {
-        const parts = methodName.split('.');
-        // For "Namespace.Class.Method" -> className = "Namespace.Class", method = "Method"
-        // For "Class.Method" -> className = "Class", method = "Method"
-        const method = parts.at(-1)!;
-        const className = parts.slice(0, -1).join('.');
-
-        const existingMethods = methodsByClass.get(className) ?? [];
-        existingMethods.push(method);
-        methodsByClass.set(className, existingMethods);
-      }
-
-      const tests = Array.from(methodsByClass.entries()).map(([className, methods]) => ({
-        className,
-        testMethods: methods
-      }));
-
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      payload = {
-        tests,
-        testLevel: TestLevel.RunSpecifiedTests,
-        skipCodeCoverage: !codeCoverage
-      } as AsyncTestArrayConfiguration;
-    } else {
-      // No namespaced methods, use buildAsyncPayload as normal
-      payload = await testService.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        methodNames.join(','),
-        undefined,
-        undefined,
-        undefined,
-        !codeCoverage
-      );
-    }
+    // Use buildAsyncPayload for methods - now correctly handles namespaces
+    payload = await testService.buildAsyncPayload(
+      TestLevel.RunSpecifiedTests,
+      methodNames.join(','),
+      undefined,
+      undefined,
+      undefined,
+      !codeCoverage
+    );
   } else if (testNames.length > 0) {
     // No method items - use class names
     // Filter out any suite names that might be in testNames
@@ -141,18 +107,16 @@ export const buildTestPayload = async (
         !codeCoverage
       );
     } else if (classNames.length > 1) {
-      // Multiple classes - build array payload manually
-      const tests: { className: string; testMethods: string[] }[] = classNames.map(className => ({
-        className,
-        testMethods: []
-      }));
-
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      payload = {
-        tests,
-        testLevel: TestLevel.RunSpecifiedTests,
-        skipCodeCoverage: !codeCoverage
-      } as AsyncTestArrayConfiguration;
+      // Multiple classes - use buildAsyncPayload with comma-separated class names
+      // Now correctly handles namespaces
+      payload = await testService.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        classNames.join(','),
+        undefined,
+        undefined,
+        !codeCoverage
+      );
     }
   }
 
