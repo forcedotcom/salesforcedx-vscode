@@ -30,6 +30,14 @@ const runPollCycle = Effect.fn('ApexLog.pollCycle')(function* (knownIds: Set<str
       code: `import * as Effect from 'effect/Effect';
 const fn = Effect.fn('noParams')(function* () { yield* Effect.void; });`,
       filename: 'packages/salesforcedx-vscode-services/src/test.ts'
+    },
+    {
+      code: `import * as Effect from 'effect/Effect';
+const createNode = (projectComponentSet: unknown) => (element: { name: string }) =>
+  Effect.fn('createNode')(function* (field: { id: string }) {
+    return \`\${element.name}.\${field.id}\`;
+  });`,
+      filename: 'packages/salesforcedx-vscode-org-browser/src/tree/customField.ts'
     }
   ],
   invalid: [

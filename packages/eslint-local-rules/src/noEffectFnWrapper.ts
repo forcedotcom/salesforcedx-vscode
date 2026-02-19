@@ -20,15 +20,13 @@ const isEffectFnCall = (node: TSESTree.CallExpression): TSESTree.FunctionExpress
   if (prop.type !== AST_NODE_TYPES.Identifier || prop.name !== 'fn') return undefined;
 
   const gen = node.arguments[0];
-  if (!gen || gen.type !== AST_NODE_TYPES.FunctionExpression) return undefined;
+  if (gen?.type !== AST_NODE_TYPES.FunctionExpression) return undefined;
   if (!gen.generator) return undefined;
 
   return gen;
 };
 
-const getBodyExpression = (
-  body: TSESTree.ArrowFunctionExpression['body']
-): TSESTree.CallExpression | undefined => {
+const getBodyExpression = (body: TSESTree.ArrowFunctionExpression['body']): TSESTree.CallExpression | undefined => {
   if (body.type === AST_NODE_TYPES.CallExpression) return body;
   if (body.type === AST_NODE_TYPES.BlockStatement) {
     const stmt = body.body[0];
@@ -64,47 +62,52 @@ export const noEffectFnWrapper = RuleCreator.withoutDocs({
   },
   defaultOptions: [],
   create: context => ({
-      ArrowFunctionExpression: (node: TSESTree.ArrowFunctionExpression): void => {
-        const bodyExpr = getBodyExpression(node.body);
-        if (!bodyExpr) return;
+    ArrowFunctionExpression: (node: TSESTree.ArrowFunctionExpression): void => {
+      const bodyExpr = getBodyExpression(node.body);
+      if (!bodyExpr) return;
 
-        let effectFnCall: TSESTree.CallExpression;
-        let trailingInvoke = false;
+      let effectFnCall: TSESTree.CallExpression;
+      let trailingInvoke = false;
 
-        const innerGen = isEffectFnCall(bodyExpr);
-        if (innerGen !== undefined) {
-          effectFnCall = bodyExpr;
-        } else {
-          const unwrapped = unwrapInvokedEffectFn(bodyExpr);
-          if (!unwrapped) return;
-          effectFnCall = unwrapped.effectFnCall;
-          trailingInvoke = unwrapped.trailingInvoke;
-        }
-
-        const gen = isEffectFnCall(effectFnCall);
-        if (!gen) return;
-
-        const sourceCode = context.sourceCode ?? context.getSourceCode();
-
-        context.report({
-          node,
-          messageId: 'noEffectFnWrapper',
-          fix: fixer => {
-            const effectFnInner = effectFnCall.callee as TSESTree.CallExpression;
-            const fnName = sourceCode.getText(effectFnInner.arguments[0]);
-            const genText = sourceCode.getText(gen);
-            const genBodyMatch = genText.match(/function\*\s*\([^)]*\)\s*\{([\s\S]*)\}/);
-            const genBody = genBodyMatch ? genBodyMatch[1] : genText.slice(genText.indexOf('{') + 1, -1);
-            const paramsText =
-              node.params.length > 0
-                ? node.params.map(p => sourceCode.getText(p)).join(', ')
-                : gen.params.map(p => sourceCode.getText(p)).join(', ');
-            const newGen = `function* (${paramsText}) {${genBody}}`;
-            const newEffectFnCall = `Effect.fn(${fnName})(${newGen})`;
-            const suffix = trailingInvoke ? '()' : '';
-            return fixer.replaceTextRange(node.range, `${newEffectFnCall}${suffix}`);
-          }
-        });
+      const innerGen = isEffectFnCall(bodyExpr);
+      if (innerGen !== undefined) {
+        effectFnCall = bodyExpr;
+      } else {
+        const unwrapped = unwrapInvokedEffectFn(bodyExpr);
+        if (!unwrapped) return;
+        effectFnCall = unwrapped.effectFnCall;
+        trailingInvoke = unwrapped.trailingInvoke;
       }
-    })
+
+      const gen = isEffectFnCall(effectFnCall);
+      if (!gen) return;
+
+      // Skip when both arrow and generator have params - arrow params are curried/closure for the generator
+      // (e.g. (element) => Effect.fn(...)(function* (field) { ... element ... })). Parameterless wrappers
+      // and pass-through (arrow param -> generator) are still flagged.
+      if (node.params.length > 0 && gen.params.length > 0) return;
+
+      const sourceCode = context.sourceCode ?? context.getSourceCode();
+
+      context.report({
+        node,
+        messageId: 'noEffectFnWrapper',
+        fix: fixer => {
+          const effectFnInner = effectFnCall.callee as TSESTree.CallExpression;
+          const fnName = sourceCode.getText(effectFnInner.arguments[0]);
+          const genText = sourceCode.getText(gen);
+          const genBodyMatch = genText.match(/function\*\s*\([^)]*\)\s*\{([\s\S]*)\}/);
+          const genBody = genBodyMatch ? genBodyMatch[1] : genText.slice(genText.indexOf('{') + 1, -1);
+          const paramsText =
+            node.params.length > 0
+              ? node.params.map(p => sourceCode.getText(p)).join(', ')
+              : gen.params.map(p => sourceCode.getText(p)).join(', ');
+          const newGen = `function* (${paramsText}) {${genBody}}`;
+          const newEffectFnCall = `Effect.fn(${fnName})(${newGen})`;
+          const suffix = trailingInvoke ? '()' : '';
+          return fixer.replaceTextRange(node.range, `${newEffectFnCall}${suffix}`);
+        }
+      });
+    }
+  })
 });
