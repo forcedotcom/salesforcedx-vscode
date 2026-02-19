@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExecuteAnonymousResponse, ExecuteService } from '@salesforce/apex-node';
-import type { Connection } from '@salesforce/core';
+import type { ApexDiagnostic } from '@salesforce/apex-node';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   CancelResponse,
   ContinueResponse,
@@ -13,20 +13,29 @@ import {
   ParametersGatherer,
   SfCommandlet,
   SfWorkspaceChecker,
-  TraceFlags,
   getYYYYMMddHHmmssDateFormat,
   hasRootWorkspace,
   projectPaths,
   createDirectory,
+  readFile,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL, channelService } from '../channels';
-import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
+import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { getZeroBasedRange } from './range';
+
+type ExecResultAdapted = {
+  compiled: boolean;
+  success: boolean;
+  logs?: string;
+  diagnostic?: ApexDiagnostic[];
+};
 
 type ApexExecuteParameters = {
   apexCode?: string;
@@ -72,31 +81,61 @@ class AnonApexLibraryDebugExecutor extends LibraryCommandletExecutor<ApexExecute
   }
 
   public async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
-    const vscodeCoreExtension = await getVscodeCoreExtension();
-    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
-    if (!(await this.setUpTraceFlags(connection))) {
+    if (!(await ensureTraceFlagsForCurrentUser())) {
       return false;
     }
 
-    const executeService = new ExecuteService(connection);
     const { apexCode, fileName: apexFilePath, selection } = response.data;
+    const code = apexCode ?? (apexFilePath ? await readFile(apexFilePath) : undefined);
+    if (!code) {
+      return false;
+    }
 
-    const result = await executeService.executeAnonymous({
-      apexFilePath,
-      apexCode
-    });
+    const { result, logBody } = await Effect.runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const execService = yield* api.services.ExecuteAnonymousService;
+        const logService = yield* api.services.ApexLogService;
+        const execResult = yield* execService.executeAnonymous(code).pipe(
+          Effect.catchAll(() => Effect.succeed(undefined))
+        );
+        if (!execResult) {
+          return { result: undefined, logBody: undefined };
+        }
+        const logs = yield* logService.listLogs(5).pipe(Effect.catchAll(() => Effect.succeed([])));
+        const logId = logs[0]?.id;
+        const body = logId ? yield* logService.getLogBody(logId).pipe(Effect.catchAll(() => Effect.succeed(''))) : '';
+        return { result: execResult, logBody: body };
+      }).pipe(Effect.provide(AllServicesLayer))
+    );
 
-    this.processResult(result, apexFilePath, selection);
-    return await this.launchReplayDebugger(result.logs);
-  }
+    if (!result) {
+      return false;
+    }
 
-  private async setUpTraceFlags(connection: Connection): Promise<boolean> {
-    const traceFlags = new TraceFlags(connection);
-    return traceFlags.ensureTraceFlags();
+    const adapted: ExecResultAdapted = {
+      compiled: result.compiled,
+      success: result.success,
+      logs: logBody || undefined,
+      diagnostic: !result.success
+        ? [
+            {
+              lineNumber: result.line,
+              columnNumber: result.column,
+              compileProblem: result.compileProblem ?? '',
+              exceptionMessage: result.exceptionMessage ?? '',
+              exceptionStackTrace: result.exceptionStackTrace ?? ''
+            }
+          ]
+        : undefined
+    };
+
+    this.processResult(adapted, apexFilePath, selection);
+    return await this.launchReplayDebugger(adapted.logs);
   }
 
   private processResult(
-    result: ExecuteAnonymousResponse,
+    result: ExecResultAdapted,
     apexFilePath: string | undefined,
     selection: vscode.Range | undefined
   ) {
@@ -131,7 +170,7 @@ class AnonApexLibraryDebugExecutor extends LibraryCommandletExecutor<ApexExecute
     return true;
   }
 
-  private outputResult(response: ExecuteAnonymousResponse): void {
+  private outputResult(response: ExecResultAdapted): void {
     let outputText = '';
     if (response.success) {
       outputText += `${nls.localize('apex_execute_compile_success')}\n`;
@@ -146,7 +185,7 @@ class AnonApexLibraryDebugExecutor extends LibraryCommandletExecutor<ApexExecute
     channelService.appendLine(outputText);
   }
 
-  private handleDiagnostics(response: ExecuteAnonymousResponse, filePath: string, selection?: vscode.Range) {
+  private handleDiagnostics(response: ExecResultAdapted, filePath: string, selection?: vscode.Range) {
     AnonApexLibraryDebugExecutor.diagnostics.clear();
     if (response.diagnostic) {
       const { compileProblem, exceptionMessage, lineNumber, columnNumber } = response.diagnostic[0];

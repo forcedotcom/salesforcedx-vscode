@@ -10,7 +10,6 @@ import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverageHandler as CodeCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
-import { anonApexDebug, launchApexReplayDebuggerWithCurrentFile } from './commands';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
@@ -96,12 +95,6 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
   const anonApexRunDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.run.delegate', () =>
     vscode.commands.executeCommand('sf.anon.apex.execute.document')
   );
-  const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
-  const anonApexDebugDocumentCmd = vscode.commands.registerCommand('sf.apex.debug.document', anonApexDebug);
-  const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
-    'sf.launch.apex.replay.debugger.with.current.file',
-    launchApexReplayDebuggerWithCurrentFile
-  );
   const restartApexLanguageServerCmd = vscode.commands.registerCommand(
     'sf.apex.languageServer.restart',
     async (source?: 'commandPalette' | 'statusBar') => {
@@ -110,11 +103,8 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
   );
 
   return vscode.Disposable.from(
-    anonApexDebugDelegateCmd,
-    anonApexDebugDocumentCmd,
     anonApexRunDelegateCmd,
     apexToggleColorizerCmd,
-    launchApexReplayDebuggerWithCurrentFileCmd,
     restartApexLanguageServerCmd
   );
 };

@@ -28,6 +28,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.4.7",
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -39,11 +40,13 @@
     "@salesforce/core": "^8.23.2",
     "esbuild": "0.25.12",
     "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -65,7 +68,8 @@
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-core:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -145,7 +149,10 @@
     "onDebugResolve:apex",
     "onCommand:extension.replay-debugger.getLogFileName",
     "onCommand:sf.launch.replay.debugger.logfile",
-    "onCommand:sf.launch.replay.debugger.logfile.path"
+    "onCommand:sf.launch.replay.debugger.logfile.path",
+    "onCommand:sf.anon.apex.debug.delegate",
+    "onCommand:sf.apex.debug.document",
+    "onCommand:sf.launch.apex.replay.debugger.with.current.file"
   ],
   "main": "./dist/index.js",
   "contributes": {
@@ -175,6 +182,18 @@
         {
           "command": "sf.test.view.debugSingleTest",
           "when": "false"
+        },
+        {
+          "command": "sf.anon.apex.debug.delegate",
+          "when": "sf:project_opened && editorLangId == 'apex'"
+        },
+        {
+          "command": "sf.apex.debug.document",
+          "when": "sf:project_opened && editorLangId == 'apex'"
+        },
+        {
+          "command": "sf.launch.apex.replay.debugger.with.current.file",
+          "when": "sf:project_opened && !inDebugMode"
         }
       ],
       "view/title": [
@@ -230,6 +249,18 @@
           "light": "resources/light/debug.svg",
           "dark": "resources/dark/debug.svg"
         }
+      },
+      {
+        "command": "sf.anon.apex.debug.delegate",
+        "title": "%anon_apex_execute_selection_text%"
+      },
+      {
+        "command": "sf.apex.debug.document",
+        "title": "%apex_debug_document_text%"
+      },
+      {
+        "command": "sf.launch.apex.replay.debugger.with.current.file",
+        "title": "%launch_apex_replay_debugger_with_selected_file%"
       }
     ],
     "views": {

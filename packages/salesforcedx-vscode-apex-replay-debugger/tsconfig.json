@@ -20,6 +20,9 @@
   ],
   "references": [
     {
+      "path": "../effect-ext-utils"
+    },
+    {
       "path": "../salesforcedx-apex-replay-debugger"
     },
     {
@@ -36,6 +39,9 @@
     },
     {
       "path": "../salesforcedx-vscode-core"
+    },
+    {
+      "path": "../salesforcedx-vscode-services"
     }
   ]
 }

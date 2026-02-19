@@ -73,13 +73,12 @@ const launchAnonymousApexReplayDebugger = async () => {
 };
 
 const launchApexReplayDebugger = async (apexTestClassName: string) => {
-  // Launch using QuickLaunch (the same way the "Debug All Tests" code lens runs)
   await vscode.commands.executeCommand('sf.test.view.debugTests', {
     name: apexTestClassName
   });
 };
 
-class AnonApexLaunchReplayDebuggerExecutor extends SfCommandletExecutor<{}> {
+class AnonApexLaunchReplayDebuggerExecutor extends SfCommandletExecutor<Record<string, never>> {
   public build(): Command {
     return new CommandBuilder(nls.localize('launch_apex_replay_debugger_with_selected_file'))
       .withLogName('launch_apex_replay_debugger_with_selected_file')

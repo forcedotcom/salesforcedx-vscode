@@ -53,7 +53,6 @@ export {
   projectPaths,
   TOOLS
 } from './helpers/paths';
-export { TraceFlags } from './helpers/traceFlags';
 export {
   difference,
   extractJson,
