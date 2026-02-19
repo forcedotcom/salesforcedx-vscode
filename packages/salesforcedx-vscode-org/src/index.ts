@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from './channels';
 import {
@@ -21,9 +24,9 @@ import {
   orgOpen
 } from './commands';
 import { ORG_OPEN_COMMAND } from './constants';
-import { OrgDecorator } from './decorators/orgDecorator';
-import { OrgList } from './orgPicker/orgList';
-import { setUpOrgExpirationWatcher } from './util/orgUtil';
+import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './extensionProvider';
+import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
+import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 
 /** Register all org/auth commands */
 const registerCommands = (): vscode.Disposable =>
@@ -47,32 +50,42 @@ const registerCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen)
   );
 
-/** Register org picker commands */
-const registerOrgPickerCommands = (orgListParam: OrgList): vscode.Disposable => {
-  const setDefaultOrgCmd = vscode.commands.registerCommand('sf.set.default.org', () => orgListParam.setDefaultOrg());
-  return vscode.Disposable.from(setDefaultOrgCmd);
-};
-
 /** Initialize org picker and org status bar */
-const initializeOrgPicker = (extensionContext: vscode.ExtensionContext): void => {
-  const orgListParam = new OrgList();
-  const orgDecorator = new OrgDecorator();
-  extensionContext.subscriptions.push(orgListParam, orgDecorator, registerOrgPickerCommands(orgListParam));
+const initializeStatusBarItems = Effect.gen(function* () {
+  yield* Effect.forkIn(createOrgPicker(), yield* getExtensionScope());
 
-  // Set up org expiration watcher
-  void setUpOrgExpirationWatcher(orgListParam);
-};
+  // Register org picker commands
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const contextService = yield* api.services.ExtensionContextService;
+  const context = yield* contextService.getContext;
+  const setDefaultOrgCmd = vscode.commands.registerCommand('sf.set.default.org', setDefaultOrg);
+  context.subscriptions.push(setDefaultOrgCmd);
 
-export const activate = (extensionContext: vscode.ExtensionContext): void => {
+  // alert user about orgs that are expiring soon
+  yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
+});
+
+export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Salesforce Org Management extension activated');
 
+  const extensionScope = Effect.runSync(getExtensionScope());
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await Effect.runPromise(
+    activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer)).pipe(Scope.extend(extensionScope))
+  );
+};
+
+const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
+  extensionContext: vscode.ExtensionContext
+) {
   // Register output channel
   extensionContext.subscriptions.push(OUTPUT_CHANNEL, registerCommands());
 
   // Initialize org picker and status bar
-  initializeOrgPicker(extensionContext);
-};
+  yield* initializeStatusBarItems;
+});
 
 export const deactivate = (): void => {
+  Effect.runSync(closeExtensionScope());
   console.log('Salesforce Org Management extension deactivated');
 };

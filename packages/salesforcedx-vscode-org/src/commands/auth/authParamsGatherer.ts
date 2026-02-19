@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { getVscodeCoreExtension } from '../../coreExtensionUtils';
+import { AllServicesLayer } from '../../extensionProvider';
 import { nls } from '../../messages';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
@@ -183,8 +185,11 @@ export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string
 }
 
 const getProjectLoginUrl = async (): Promise<string | undefined> => {
-  // Get core API services
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const SalesforceProjectConfig = vscodeCoreExtension.exports.services.SalesforceProjectConfig;
-  return await SalesforceProjectConfig.getValue('sfdcLoginUrl');
+  const getProjectLoginUrlEffect = Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const configService = yield* api.services.ConfigService;
+    const configAggregator = yield* configService.getConfigAggregator();
+    return configAggregator.getPropertyValue<string>('sfdcLoginUrl') ?? undefined;
+  });
+  return Effect.runPromise(getProjectLoginUrlEffect.pipe(Effect.provide(AllServicesLayer)));
 };

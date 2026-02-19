@@ -164,12 +164,49 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
       }).pipe(Effect.withSpan('getComponentSetFromManifest'));
     });
 
+    // TODO: have all orgs, regardless of tracking, use the local source tracking; when there are no changes, this should not be recalculated
+    // this'll require local tracking updates from all retrieves/deletes/deploys
+    /** Get ComponentSet from all project package directories. No filtering - includes everything in the package */
+    const getComponentSetFromProjectDirectories = Effect.fn(
+      'ComponentSetService.getComponentSetFromProjectDirectories'
+    )(function* () {
+      return yield* Effect.gen(function* () {
+        const [registryAccess, project, configAggregator] = yield* Effect.all(
+          [
+            metadataRegistryService.getRegistryAccess(),
+            projectService.getSfProject(),
+            configService.getConfigAggregator()
+          ],
+          { concurrency: 'unbounded' }
+        );
+        const sourcePaths = project.getPackageDirectories().map(pkgDir => pkgDir.fullPath);
+        yield* Effect.annotateCurrentSpan({ sourcePaths });
+
+        const componentSet = yield* Effect.try({
+          try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, registry: registryAccess }),
+          catch: e => {
+            const { cause } = unknownToErrorCause(e);
+            return new FailedToBuildComponentSetError({
+              message: `Failed to build ComponentSet from project directories: ${cause.message}`,
+              cause
+            });
+          }
+        });
+
+        yield* setComponentSetProperties({ componentSet, project, configAggregator });
+
+        yield* Effect.annotateCurrentSpan({ size: componentSet.size });
+        return componentSet;
+      }).pipe(Effect.withSpan('getComponentSetFromProjectDirectories'));
+    });
+
     return {
       isSDRSuccess,
       isSDRFailure,
       ensureNonEmptyComponentSet,
       getComponentSetFromUris,
-      getComponentSetFromManifest
+      getComponentSetFromManifest,
+      getComponentSetFromProjectDirectories
     };
   })
 }) {}

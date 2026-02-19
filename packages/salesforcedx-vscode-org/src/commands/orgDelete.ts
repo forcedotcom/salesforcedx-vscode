@@ -21,7 +21,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
 import { SelectUsername } from '../parameterGatherers/selectUsername';
-import { updateConfigAndStateAggregators } from '../util';
+import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;

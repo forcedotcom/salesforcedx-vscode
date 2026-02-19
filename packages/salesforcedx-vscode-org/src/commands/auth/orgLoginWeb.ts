@@ -17,7 +17,7 @@ import {
 import * as vscode from 'vscode';
 import { ORG_LOGIN_WEB } from '../../constants';
 import { nls } from '../../messages';
-import { updateConfigAndStateAggregators } from '../../util';
+import { updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 
 class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {

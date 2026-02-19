@@ -74,18 +74,13 @@ const writeFile = Effect.fn('fsService.writeFile')(function* (filePath: string |
       const uint8Array = new TextEncoder().encode(content);
       await vscode.workspace.fs.writeFile(uri, uint8Array);
     },
-    catch: e => e
-  }).pipe(
-    Effect.catchAll(e =>
-      Effect.fail(
-        new FsServiceError({
-          ...unknownToErrorCause(e),
-          function: 'writeFile',
-          filePath: typeof filePath === 'string' ? filePath : filePath.toString()
-        })
-      )
-    )
-  );
+    catch: e =>
+      new FsServiceError({
+        ...unknownToErrorCause(e),
+        function: 'writeFile',
+        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+      })
+  });
 });
 
 const fileOrFolderExists = Effect.fn('fsService.fileOrFolderExists')(function* (filePath: string | URI) {
@@ -96,7 +91,12 @@ const fileOrFolderExists = Effect.fn('fsService.fileOrFolderExists')(function* (
       await vscode.workspace.fs.stat(uri);
       return true;
     },
-    catch: e => new Error(String(e))
+    catch: e =>
+      new FsServiceError({
+        ...unknownToErrorCause(e),
+        function: 'fileOrFolderExists',
+        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+      })
   }).pipe(Effect.catchAll(() => Effect.succeed(false)));
 });
 export class FsService extends Effect.Service<FsService>()('FsService', {
@@ -157,7 +157,12 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           try: async () => {
             await vscode.workspace.fs.delete(toUri(filePath), options);
           },
-          catch: error => error
+          catch: e =>
+            new FsServiceError({
+              ...unknownToErrorCause(e),
+              function: 'safeDelete',
+              filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+            })
         }).pipe(Effect.catchAll(() => Effect.succeed(undefined))),
       rename: (oldPath: string, newPath: string) =>
         Effect.tryPromise({

@@ -5,17 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export {
-  getDevHubUsername,
-  getTargetOrgOrAlias,
-  getTargetDevHubOrAlias,
-  getUsername,
-  isAScratchOrg,
-  isASandboxOrg,
-  getDevHubIdFromScratchOrg,
-  getConnection,
-  getAuthFields
-} from '@salesforce/salesforcedx-utils-vscode';
-export { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias, unsetTargetOrg, updateConfigAndStateAggregators } from './orgUtil';
-export { OrgDisplay } from './orgDisplay';
-export { getConnectionStatusFromError, shouldRemoveOrg } from './orgUtil';
+export { getUsername } from '@salesforce/salesforcedx-utils-vscode';
+export { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias, updateConfigAndStateAggregators } from './orgUtil';
+export { getConnectionStatusFromError, shouldRemoveOrg, displayRemainingOrgs, removeExpiredAndDeletedOrgs, determineConnectedStatusForNonScratchOrg } from './orgUtil';

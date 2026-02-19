@@ -8,9 +8,11 @@
 import * as Schema from 'effect/Schema';
 
 export const DefaultOrgInfoSchema = Schema.Struct({
+  aliases: Schema.optional(Schema.Array(Schema.String)),
   orgId: Schema.optional(Schema.String),
   devHubOrgId: Schema.optional(Schema.String),
   username: Schema.optional(Schema.String),
+  alias: Schema.optional(Schema.String),
   devHubUsername: Schema.optional(Schema.String),
   tracksSource: Schema.optional(Schema.Boolean),
   isScratch: Schema.optional(Schema.Boolean),

@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import * as Queue from 'effect/Queue';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
-import { backgroundFilePresenceCheckQueue } from './filePresence';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
 
@@ -26,10 +26,9 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   }
 
   /**
-   * Refreshes only the given type node in the tree.  Fires the onDidChangeTreeData so you don't have to
+   * Refreshes only the given type node in the tree. Firing causes VS Code to call getChildren once.
    */
   public async refreshType(node?: OrgBrowserTreeItem): Promise<void> {
-    await this.getChildren(node, true);
     this._onDidChangeTreeData.fire(node);
   }
 
@@ -38,32 +37,27 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return element;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public async getChildren(element?: OrgBrowserTreeItem, refresh = false): Promise<OrgBrowserTreeItem[]> {
-    return await Effect.runPromise(getChildrenOfTreeItem(element, refresh, this));
+    return await Effect.runPromise(getChildrenOfTreeItem(element, refresh));
   }
 }
 
-const getChildrenOfTreeItem = (
-  element: OrgBrowserTreeItem | undefined,
-  refresh: boolean,
-  treeProvider: MetadataTypeTreeProvider
-) =>
+const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, refresh: boolean) =>
   Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
     const api = yield* svcProvider.getServicesApi;
-
     // this could be the initial load, before the org is set.  Prevents duplication loads of root
     if (!(yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId) {
       return yield* Effect.succeed([]);
     }
     if (!element) {
       const types = yield* api.services.MetadataDescribeService.describe(refresh);
-      return types
-        .toSorted((a: MetadataDescribeResultItem, b: MetadataDescribeResultItem) => (a.xmlName < b.xmlName ? -1 : 1))
-        .map(mdapiDescribeToOrgBrowserNode);
+      return types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
+      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       return yield* api.services.MetadataDescribeService.describeCustomObject(
         element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
       ).pipe(
@@ -73,7 +67,7 @@ const getChildrenOfTreeItem = (
               // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
               .filter(f => f.custom)
               .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-              .map(createCustomFieldNode(treeProvider)(element)),
+              .map(createCustomFieldNode(projectComponentSet)(element)),
             { concurrency: 'unbounded' }
           )
         )
@@ -85,22 +79,28 @@ const getChildrenOfTreeItem = (
       );
     }
     if (element.kind === 'type') {
+      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       return yield* api.services.MetadataDescribeService.listMetadata(element.xmlName).pipe(
         Effect.flatMap(components =>
-          Effect.all(components.filter(globalMetadataFilter).map(listMetadataToComponent(treeProvider)(element)), {
-            concurrency: 'unbounded'
-          })
+          Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
+            Stream.map(c => listMetadataToComponent(projectComponentSet)(element)(c)),
+            Stream.runCollect,
+            Effect.map(chunk => Array.from(chunk))
+          )
         )
       );
     }
     if (element.kind === 'folder') {
       const { xmlName, folderName } = element;
       if (!xmlName || !folderName) return yield* Effect.succeed([]);
+      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       return yield* api.services.MetadataDescribeService.listMetadata(xmlName, folderName).pipe(
         Effect.flatMap(components =>
-          Effect.all(components.filter(globalMetadataFilter).map(listMetadataToFolderItem(treeProvider)(element)), {
-            concurrency: 'unbounded'
-          })
+          Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
+            Stream.map(c => listMetadataToFolderItem(projectComponentSet)(element)(c)),
+            Stream.runCollect,
+            Effect.map(chunk => Array.from(chunk))
+          )
         )
       );
     }
@@ -112,28 +112,22 @@ const getChildrenOfTreeItem = (
   );
 
 const listMetadataToComponent =
-  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) => (c: MetadataListResultItem) =>
-    Effect.gen(function* () {
-      const treeItem = new OrgBrowserTreeItem({
-        kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
-        namespace: c.namespacePrefix,
-        xmlName: element.xmlName,
-        componentName: c.fullName,
-        label: c.fullName
-      });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-        treeItem,
-        c,
-        treeProvider,
-        parent: element,
-        originalSpan: yield* Effect.currentSpan
-      });
-      return treeItem;
-    }).pipe(
-      Effect.withSpan('listMetadataToComponent', {
-        attributes: { xmlName: element.xmlName, componentName: c.fullName }
-      })
-    );
+  (projectComponentSet: ComponentSet) =>
+  (element: OrgBrowserTreeItem) =>
+  (c: MetadataListResultItem): OrgBrowserTreeItem => {
+    const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
+      fullName: c.fullName,
+      type: c.type
+    });
+    return new OrgBrowserTreeItem({
+      kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
+      namespace: c.namespacePrefix,
+      xmlName: element.xmlName,
+      componentName: c.fullName,
+      label: c.fullName,
+      filePresent: filePaths.length > 0
+    });
+  };
 
 const listMetadataToFolder =
   (element: OrgBrowserTreeItem) =>
@@ -147,29 +141,23 @@ const listMetadataToFolder =
     });
 
 const listMetadataToFolderItem =
-  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) => (c: MetadataListResultItem) =>
-    Effect.gen(function* () {
-      const treeItem = new OrgBrowserTreeItem({
-        kind: 'component',
-        namespace: c.namespacePrefix,
-        xmlName: element.xmlName,
-        folderName: element.folderName,
-        componentName: c.fullName,
-        label: c.fullName
-      });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-        treeItem,
-        c,
-        treeProvider,
-        parent: element,
-        originalSpan: yield* Effect.currentSpan
-      });
-      return treeItem;
-    }).pipe(
-      Effect.withSpan('listMetadataToFolderItem', {
-        attributes: { xmlName: element.xmlName, componentName: c.fullName }
-      })
-    );
+  (projectComponentSet: ComponentSet) =>
+  (element: OrgBrowserTreeItem) =>
+  (c: MetadataListResultItem): OrgBrowserTreeItem => {
+    const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
+      fullName: c.fullName,
+      type: c.type
+    });
+    return new OrgBrowserTreeItem({
+      kind: 'component',
+      namespace: c.namespacePrefix,
+      xmlName: element.xmlName,
+      folderName: element.folderName,
+      componentName: c.fullName,
+      label: c.fullName,
+      filePresent: filePaths.length > 0
+    });
+  };
 
 const mdapiDescribeToOrgBrowserNode = (t: MetadataDescribeResultItem): OrgBrowserTreeItem =>
   new OrgBrowserTreeItem({

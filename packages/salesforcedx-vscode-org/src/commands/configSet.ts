@@ -5,18 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { OrgConfigProperties } from '@salesforce/core';
+import { createTable, Row } from '@salesforce/effect-ext-utils';
 import {
   ContinueResponse,
-  createTable,
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
-  Row,
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { setTargetOrgOrAlias } from '../util';
+import { setTargetOrgOrAlias } from '../util/orgUtil';
 
 const CONFIG_SET_ORG_TEXT = 'config_set_org_text';
 const CONFIG_SET_NAME = 'config_set_name';

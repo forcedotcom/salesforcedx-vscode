@@ -31,7 +31,7 @@ import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreat
 import { CompositePreconditionChecker } from '../preconditionCheckers/compositePreconditionChecker';
 import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
-import { setTargetOrgOrAlias } from '../util';
+import { setTargetOrgOrAlias } from '../util/orgUtil';
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';

@@ -12,6 +12,7 @@ import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 import { join, normalize, sep } from 'node:path';
 import { FileWatcherService } from '../vscode/fileWatcherService';
+import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { clearDefaultOrgRef } from './defaultOrgRef';
 
@@ -35,11 +36,13 @@ export const watchConfigFiles = () =>
 
       const fileWatcherService = yield* FileWatcherService;
       const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
+      const configService = yield* ConfigService;
 
       // Subscribe to file changes and clear defaultOrgRef when config files change
       yield* Stream.fromQueue(dequeue).pipe(
         Stream.filter(event => isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)),
         Stream.debounce(Duration.millis(5)),
+        Stream.tap(() => configService.invalidateConfigAggregator()),
         // get connection will cause defaultOrgRef to update, clear the ref if there's any error where we won't have an org connection.
         Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => clearDefaultOrgRef())))
       );

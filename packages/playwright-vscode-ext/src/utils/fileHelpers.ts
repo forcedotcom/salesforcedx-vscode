@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
-import { executeCommandWithCommandPalette, waitForCommandToBeAvailable } from '../pages/commands';
+import { executeCommandWithCommandPalette, verifyCommandExists } from '../pages/commands';
 import {
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -73,7 +73,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await closeWelcomeTabs(page);
 
   // Wait for the extension to load and register the command
-  await waitForCommandToBeAvailable(page, 'SFDX: Create Apex Class', 30_000);
+  await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
 
   await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
 

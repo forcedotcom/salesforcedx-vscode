@@ -190,18 +190,23 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
 
       const componentSet = yield* buildComponentSet(members);
 
+      const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
+
       const tracking = yield* sourceTrackingService.getSourceTracking(options);
+
       if (tracking) {
-        yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
-          Effect.withSpan('STL.ReReadLocalTrackingCache')
-        );
+        yield* Effect.promise(() =>
+          vscode.window.withProgress(
+            { location: vscode.ProgressLocation.Notification, title, cancellable: false },
+            () => tracking.reReadLocalTrackingCache()
+          )
+        ).pipe(Effect.withSpan('STL.ReReadLocalTrackingCache'));
 
         if (!options?.ignoreConflicts) {
           yield* sourceTrackingService.checkConflicts(tracking);
         }
       }
 
-      const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
       return yield* performRetrieveOperation({ componentSet, connection, registryAccess, title, merge: true, project });
     });
 

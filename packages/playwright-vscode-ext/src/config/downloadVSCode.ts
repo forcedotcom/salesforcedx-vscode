@@ -16,5 +16,6 @@ import { resolveRepoRoot } from '../utils/repoRoot';
 export default async (): Promise<void> => {
   const repoRoot = resolveRepoRoot(__dirname);
   const cachePath = path.join(repoRoot, '.vscode-test');
-  await downloadAndUnzipVSCode({ cachePath });
+  const version = process.env.PLAYWRIGHT_DESKTOP_VSCODE_VERSION ?? undefined;
+  await downloadAndUnzipVSCode({ version, cachePath });
 };

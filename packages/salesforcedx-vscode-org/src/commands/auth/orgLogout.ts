@@ -6,6 +6,7 @@
  */
 
 import { AuthRemover } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   ContinueResponse,
@@ -20,11 +21,14 @@ import {
   TimingUtils,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
+import { AllServicesLayer } from '../../extensionProvider';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { getTargetOrgOrAlias, getUsername, isAScratchOrg, unsetTargetOrg, updateConfigAndStateAggregators } from '../../util';
+import { updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 // SimpleGatherer - need to inline this small utility
 class SimpleGatherer<T> implements ParametersGatherer<T> {
@@ -89,7 +93,7 @@ class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
-      await removeUsername(response.data);
+      await (await AuthRemover.create()).removeAuth(response.data);
     } catch (e) {
       telemetryService.sendException('org_logout_default', `Error: name = ${e.name} message = ${e.message}`);
       return false;
@@ -99,11 +103,11 @@ class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 }
 
 export const orgLogoutDefault = async () => {
-  const { username, isScratch, alias, error } = await resolveTargetOrg();
-  if (error) {
-    telemetryService.sendException('org_logout_default', error.message);
-    void notificationService.showErrorMessage('Logout failed to run');
-  } else if (username) {
+  const { username, isScratch, alias } = await resolveTargetOrg().pipe(
+    Effect.provide(AllServicesLayer),
+    Effect.runPromise
+  );
+  if (username) {
     // confirm logout for scratch orgs due to special considerations:
     // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
     const logoutCommandlet = new SfCommandlet(
@@ -117,30 +121,13 @@ export const orgLogoutDefault = async () => {
   }
 };
 
-const removeUsername = async (username: string) => {
-  await unsetTargetOrg();
-  const authRemover = await AuthRemover.create();
-  await authRemover.removeAuth(username);
-};
+const resolveTargetOrg = Effect.fn(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 
-const resolveTargetOrg = async (): Promise<{
-  username?: string;
-  isScratch: boolean;
-  alias?: string;
-  error?: Error;
-}> => {
-  const usernameOrAlias = await getTargetOrgOrAlias(false);
-  if (usernameOrAlias) {
-    const username = await getUsername(usernameOrAlias);
-    const alias = username !== usernameOrAlias ? usernameOrAlias : undefined;
-    let isScratch = false;
-
-    try {
-      isScratch = await isAScratchOrg(username);
-    } catch (err) {
-      return { error: err, isScratch: false };
-    }
-    return { username, isScratch, alias };
-  }
-  return { isScratch: false };
-};
+  return {
+    username: orgInfo.username,
+    isScratch: orgInfo.isScratch ?? false,
+    alias: orgInfo.aliases?.[0]
+  };
+});

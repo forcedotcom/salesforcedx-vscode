@@ -5,17 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator, OrgConfigProperties } from '@salesforce/core';
+import { AuthInfo, Connection, OrgConfigProperties } from '@salesforce/core';
+
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
+import { AliasService } from './alias';
 import { ConfigService } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
@@ -184,11 +187,11 @@ const getIdentity = (orgId: string, conn: Connection) => {
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   accessors: true,
-  dependencies: [ConfigService.Default, SettingsService.Default],
+  dependencies: [ConfigService.Default, SettingsService.Default, AliasService.Default],
   effect: Effect.gen(function* () {
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
-
+    const aliasService = yield* AliasService;
     /** Get a Connection to the target org */
     const getConnection = Effect.fn('ConnectionService.getConnection')(function* () {
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
@@ -197,6 +200,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             const instanceUrl = yield* settingsService.getInstanceUrl();
             const accessToken = yield* settingsService.getAccessToken();
             const apiVersion = yield* settingsService.getApiVersion();
+
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
@@ -207,21 +211,14 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
                 () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
               )
             );
-            const username = yield* Effect.tryPromise({
-              try: async () => (await StateAggregator.getInstance()).aliases.resolveUsername(usernameOrAlias),
-              catch: error => {
-                const { cause } = unknownToErrorCause(error);
-                return new FailedToResolveUsernameError({
-                  message: `Failed to resolve username "${usernameOrAlias}": ${cause.message}`,
-                  cause
-                });
-              }
-            });
+            const username = yield* aliasService.getUsernameFromAlias(usernameOrAlias).pipe(
+              Effect.map(Option.getOrElse(() => usernameOrAlias))
+            );
             return yield* connectionCache.get(username);
           });
 
       // update the org ref in the background
-      yield* maybeUpdateDefaultOrgRef(conn).pipe(Effect.forkDaemon);
+      yield* maybeUpdateDefaultOrgRef(conn, aliasService).pipe(Effect.forkDaemon);
       return conn;
     });
 
@@ -247,80 +244,88 @@ const getTracksSourceFromOrg = (conn: Connection) =>
   );
 
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
-const maybeUpdateDefaultOrgRef = (conn: Connection) =>
-  Effect.gen(function* () {
-    const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
-    const defaultOrgRef = yield* getDefaultOrgRef();
-    const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
-    const orgIdChanged = existingOrgInfo.orgId !== orgId;
-    const [{ username, userId }, devHubOrgId, cliId] = yield* Effect.all(
-      [
-        orgIdChanged || existingOrgInfo.username === undefined || existingOrgInfo.userId === undefined
-          ? orgId
-            ? (getIdentity(orgId, conn).pipe(
-                Effect.map(identity => identity ?? { username: undefined, userId: undefined })
-              ) ?? { username: undefined, userId: undefined })
-            : Effect.succeed({ username: undefined, userId: undefined })
-          : Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }),
-        existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),
-        existingOrgInfo.cliId ? Effect.succeed(existingOrgInfo.cliId) : getCliId()
-      ],
-      { concurrency: 'unbounded' }
-    );
+const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection, aliasService: AliasService) {
+  const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
+  const defaultOrgRef = yield* getDefaultOrgRef();
+  const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
+  const orgIdChanged = existingOrgInfo.orgId !== orgId;
+  const [{ username, userId }, devHubOrgId, cliId] = yield* Effect.all(
+    [
+      orgIdChanged || existingOrgInfo.username === undefined || existingOrgInfo.userId === undefined
+        ? orgId
+          ? (getIdentity(orgId, conn).pipe(
+              Effect.map(identity => identity ?? { username: undefined, userId: undefined })
+            ) ?? { username: undefined, userId: undefined })
+          : Effect.succeed({ username: undefined, userId: undefined })
+        : Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }),
+      existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),
+      existingOrgInfo.cliId ? Effect.succeed(existingOrgInfo.cliId) : getCliId()
+    ],
+    { concurrency: 'unbounded' }
+  );
 
-    yield* Effect.annotateCurrentSpan({
+  const aliases =
+    username && (orgIdChanged || existingOrgInfo.username !== username)
+      ? yield* aliasService.getAliasesFromUsername(username)
+      : existingOrgInfo.aliases;
+
+  yield* Effect.annotateCurrentSpan({
+    orgId,
+    devHubUsername,
+    isScratch,
+    isSandbox,
+    tracksSource,
+    username,
+    userId,
+    devHubOrgId,
+    aliases
+  });
+
+  const webUserId =
+    existingOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
+      ? // ooh, now we know who they are, so we set that.
+
+        // Pipe the extension context in for ServicesExtension so we don't get context from another ext
+        yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
+      : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
+
+  const updates = Object.fromEntries(
+    Object.entries({
       orgId,
       devHubUsername,
+      tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn)),
       isScratch,
       isSandbox,
-      tracksSource,
-      username,
+      devHubOrgId,
       userId,
-      devHubOrgId
-    });
+      webUserId,
+      aliases,
+      username,
+      ...(typeof cliId === 'string' ? { cliId } : {})
+    } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => v !== undefined)
+  );
 
-    const webUserId =
-      existingOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
-        ? // ooh, now we know who they are, so we set that.
-          // Pipe the extension context in for ServicesExtension so we don't get context from another ext
-          yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
-        : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
+  const updated = Object.fromEntries(
+    Object.entries({
+      ...existingOrgInfo,
+      ...updates
+    })
+  );
 
-    const updates = Object.fromEntries(
-      Object.entries({
-        orgId,
-        devHubUsername,
-        tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn)),
-        isScratch,
-        isSandbox,
-        devHubOrgId,
-        userId,
-        webUserId,
-        ...(typeof cliId === 'string' ? { cliId } : {})
-      } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => v !== undefined)
-    );
-
-    const updated = Object.fromEntries(
-      Object.entries({
-        ...existingOrgInfo,
-        ...updates
-      })
-    );
-
-    // Check if objects have the same content (deep equality using schema)
-    // otherwise, calling set on the ref counts as a change but it's really not one.
-    if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
-      yield* Effect.annotateCurrentSpan({ changed: false });
-      return updated;
-    }
-    yield* Effect.all(
-      [Effect.annotateCurrentSpan({ updated, changed: true }), SubscriptionRef.set(defaultOrgRef, updated)],
-      {
-        concurrency: 'unbounded'
-      }
-    );
+  // Check if objects have the same content (deep equality using schema)
+  // otherwise, calling set on the ref counts as a change but it's really not one.
+  if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
+    yield* Effect.annotateCurrentSpan({ changed: false });
     return updated;
-  }).pipe(Effect.withSpan('maybeUpdateDefaultOrgRef'));
+  }
+  yield* Effect.all(
+    [Effect.annotateCurrentSpan({ updated, changed: true }), SubscriptionRef.set(defaultOrgRef, updated)],
+    {
+      concurrency: 'unbounded'
+    }
+  );
+  return updated;
+});
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
 const getDevHubId = (devHubUsername?: string) =>

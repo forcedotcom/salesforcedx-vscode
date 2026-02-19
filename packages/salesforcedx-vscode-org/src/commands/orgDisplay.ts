@@ -5,24 +5,73 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgInfo } from '@salesforce/salesforcedx-utils';
+import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
 import {
   FlagParameter,
-  Column,
   ContinueResponse,
-  createTable,
   EmptyParametersGatherer,
-  getRootWorkspacePath,
   LibraryCommandletExecutor,
-  Row,
   SfWorkspaceChecker,
-  SfCommandlet
+  SfCommandlet,
+  getUsername
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';
 import { SelectUsername } from '../parameterGatherers/selectUsername';
-import { getTargetOrgOrAlias, getUsername } from '../util';
-import { OrgDisplay } from '../util/orgDisplay';
+import { OrgInfo } from '../types/orgInfo';
+import { getOrgInfo } from '../util/orgDisplay';
+
+class NoTargetOrgError extends Schema.TaggedError<NoTargetOrgError>()('NoTargetOrgError', {
+  message: Schema.String
+}) {}
+
+const getTargetUsernameEffect = Effect.fn('getTargetUsernameEffect')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const targetOrgRef = yield* api.services.TargetOrgRef();
+  const currentOrgInfo = yield* SubscriptionRef.get(targetOrgRef);
+  if (!currentOrgInfo.username) {
+    yield* Effect.fail(new NoTargetOrgError({ message: nls.localize('error_no_target_org') }));
+  }
+  return currentOrgInfo.username;
+});
+
+const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {
+  const columns: Column[] = [
+    { key: 'property', label: 'Key' },
+    { key: 'value', label: 'Value' }
+  ];
+  const isScratchOrg = !!orgInfo.devHubId;
+
+  const rows: Row[] = [
+    { property: 'Access Token', value: orgInfo.accessToken },
+    { property: 'Alias', value: orgInfo.alias },
+    { property: 'API Version', value: orgInfo.apiVersion },
+    { property: 'Client Id', value: orgInfo.clientId },
+    { property: 'Connected Status', value: orgInfo.connectionStatus },
+    { property: 'Instance Url', value: orgInfo.instanceUrl },
+    { property: 'Org Id', value: orgInfo.id },
+    { property: 'Username', value: orgInfo.username },
+    ...(orgInfo.namespace ? [{ property: 'Namespace', value: orgInfo.namespace }] : []),
+    ...(isScratchOrg
+      ? [
+          { property: 'Dev Hub Id', value: orgInfo.devHubId },
+          { property: 'Created By', value: orgInfo.createdBy },
+          { property: 'Created Date', value: orgInfo.createdDate },
+          { property: 'Expiration Date', value: orgInfo.expirationDate },
+          { property: 'Status', value: orgInfo.status },
+          { property: 'Password', value: orgInfo.password ?? '' },
+          { property: 'Org Name', value: orgInfo.orgName }
+        ]
+      : []),
+    ...(orgInfo.edition && !isScratchOrg ? [{ property: 'Edition', value: orgInfo.edition }] : [])
+  ].toSorted((a, b) => String(a.property).localeCompare(String(b.property)));
+
+  return createTable(rows, columns, 'Org Description');
+};
 
 class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }> {
   private flag: string | undefined;
@@ -39,22 +88,13 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
   public async run(response: ContinueResponse<{ username?: string }>): Promise<boolean> {
     try {
       const { username } = response.data;
-      let targetUsername: string;
+      const targetUsername =
+        this.flag === '--target-org' && username
+          ? await getUsername(username)
+          : await getTargetUsernameEffect().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
 
-      if (this.flag === '--target-org' && username) {
-        targetUsername = await getUsername(username);
-      } else {
-        const targetOrgOrAlias = await getTargetOrgOrAlias(true);
-        if (!targetOrgOrAlias) {
-          throw new Error(nls.localize('error_no_target_org'));
-        }
-        targetUsername = await getUsername(targetOrgOrAlias);
-      }
-
-      // Use the shared OrgDisplay class from utils
-      const orgDisplayUtil = new OrgDisplay(targetUsername);
-      const projectPath = getRootWorkspacePath();
-      const orgInfo = await orgDisplayUtil.getOrgInfo(projectPath);
+      // Use the shared getOrgInfo function from utils
+      const orgInfo = await getOrgInfo(targetUsername);
 
       // Display warning about sensitive information
       const warning =
@@ -65,7 +105,7 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       channelService.appendLine('');
 
       // Display the org information
-      const output = this.formatOrgInfoAsTable(orgInfo);
+      const output = formatOrgInfoAsTable(orgInfo);
       channelService.appendLine(output);
 
       return true;
@@ -75,40 +115,6 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       }
       throw error;
     }
-  }
-
-  private formatOrgInfoAsTable(orgInfo: OrgInfo): string {
-    const columns: Column[] = [
-      { key: 'property', label: 'Key' },
-      { key: 'value', label: 'Value' }
-    ];
-    const isScratchOrg = !!orgInfo.devHubId;
-
-    const rows: Row[] = [
-      { property: 'Access Token', value: orgInfo.accessToken },
-      { property: 'Alias', value: orgInfo.alias },
-      { property: 'API Version', value: orgInfo.apiVersion },
-      { property: 'Client Id', value: orgInfo.clientId },
-      { property: 'Connected Status', value: orgInfo.connectionStatus },
-      { property: 'Instance Url', value: orgInfo.instanceUrl },
-      { property: 'Org Id', value: orgInfo.id },
-      { property: 'Username', value: orgInfo.username },
-      ...(orgInfo.namespace ? [{ property: 'Namespace', value: orgInfo.namespace }] : []),
-      ...(isScratchOrg
-        ? [
-            { property: 'Dev Hub Id', value: orgInfo.devHubId },
-            { property: 'Created By', value: orgInfo.createdBy },
-            { property: 'Created Date', value: orgInfo.createdDate },
-            { property: 'Expiration Date', value: orgInfo.expirationDate },
-            { property: 'Status', value: orgInfo.status },
-            { property: 'Password', value: orgInfo.password ?? '' },
-            { property: 'Org Name', value: orgInfo.orgName }
-          ]
-        : []),
-      ...(orgInfo.edition && !isScratchOrg ? [{ property: 'Edition', value: orgInfo.edition }] : [])
-    ].toSorted((a, b) => String(a.property).localeCompare(String(b.property)));
-
-    return createTable(rows, columns, 'Org Description');
   }
 }
 
