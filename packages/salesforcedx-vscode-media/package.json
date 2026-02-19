@@ -105,14 +105,14 @@
       "sf-org-leaf": {
         "description": "Leaf icon for default scratch org",
         "default": {
-          "fontPath": "media/icons-font/myext-icons.woff",
+          "fontPath": "media/icons-font/sf-media-icons.woff",
           "fontCharacter": "\\E001"
         }
       },
       "sf-org-tree": {
         "description": "Tree icon for default dev hub",
         "default": {
-          "fontPath": "media/icons-font/myext-icons.woff",
+          "fontPath": "media/icons-font/sf-media-icons.woff",
           "fontCharacter": "\\E002"
         }
       }

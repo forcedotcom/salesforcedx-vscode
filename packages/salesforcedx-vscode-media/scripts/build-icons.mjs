@@ -7,13 +7,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PKG_DIR = path.resolve(__dirname, '..');
 const ICONS_SRC = path.join(PKG_DIR, 'media/icons-src');
 const ICONS_FONT = path.join(PKG_DIR, 'media/icons-font');
-const FONT_PATH = 'media/icons-font/myext-icons.woff';
+const FONT_NAME = 'sf-media-icons';
+const FONT_PATH = `media/icons-font/${FONT_NAME}.woff`;
 
 async function build() {
   const infoData = await svgtofont({
     src: ICONS_SRC,
     dist: ICONS_FONT,
-    fontName: 'myext-icons',
+    fontName: FONT_NAME,
     css: false,
     startUnicode: 0xe001,
     svgicons2svgfont: {
