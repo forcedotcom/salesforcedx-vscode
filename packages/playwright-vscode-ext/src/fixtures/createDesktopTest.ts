@@ -9,14 +9,37 @@
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron } from '@playwright/test';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+import { execSync } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-/** Close timeout before force-kill (leaves buffer for 60s worker teardown). Electron on Mac CI can hang on graceful close. */
-const CLOSE_TIMEOUT_MS = 50_000;
 import { filterErrors } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
 import { createTestWorkspace } from './desktopWorkspace';
+
+/** Close timeout before force-kill. Electron on Mac CI can hang on graceful close. */
+const CLOSE_TIMEOUT_MS = 50_000;
+
+/** Kill a process and all its descendants. Electron spawns GPU/utility/crashpad children that outlive the main process. */
+const killProcessTree = (pid: number): void => {
+  try {
+    if (process.platform === 'win32') {
+      execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore' });
+    } else {
+      // SIGKILL children first (pgrep -P finds direct children), then the parent
+      const children = execSync(`pgrep -P ${pid}`, { encoding: 'utf8' }).trim();
+      children
+        .split('\n')
+        .filter(Boolean)
+        .map(Number)
+        .filter(n => !isNaN(n))
+        .forEach(childPid => killProcessTree(childPid));
+      process.kill(pid, 'SIGKILL');
+    }
+  } catch {
+    // process already exited
+  }
+};
 
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
@@ -105,7 +128,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       try {
         await use(electronApp);
       } finally {
-        // Ensure cleanup happens even if test fails. Electron on Mac CI can hang on close—force-kill if timeout.
+        // Ensure cleanup happens even if test fails. Electron on Mac CI can hang on close—force-kill tree if timeout.
         try {
           const closed = await Promise.race([
             electronApp.close(),
@@ -114,7 +137,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           if (closed === false) {
             const pid = electronApp.process?.()?.pid;
             if (typeof pid === 'number') {
-              try { process.kill(pid, 'SIGKILL'); } catch {}
+              killProcessTree(pid);
             }
           }
         } catch {}
