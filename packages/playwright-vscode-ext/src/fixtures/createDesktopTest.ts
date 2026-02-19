@@ -17,8 +17,12 @@ import { filterErrors } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
 import { createTestWorkspace } from './desktopWorkspace';
 
-/** Close timeout before force-kill. Electron on Mac CI can hang on graceful close. */
-const CLOSE_TIMEOUT_MS = 50_000;
+/**
+ * Close timeout before force-kill. Electron on Mac CI hangs on graceful close;
+ * keep short so SIGKILL happens early and Playwright detects the exit event
+ * well within its 60s worker teardown window.
+ */
+const CLOSE_TIMEOUT_MS = 5000;
 
 /** Collect all descendant PIDs (recursive). Must be called while the root process is still alive. */
 const getDescendantPids = (pid: number): number[] => {
@@ -146,6 +150,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         }
         // Kill any survivors (GPU, crashpad, utility) that outlived close()
         killPids(descendants);
+        // Let Playwright's internal process watcher detect exit events before fixture teardown returns
+        await new Promise(resolve => setTimeout(resolve, 2000));
         console.log('[teardown] killPids done');
       }
     },
