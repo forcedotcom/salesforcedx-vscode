@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core';
-import { OrgDisplay } from '../../../src/util/orgDisplay';
+import { AuthInfo, Connection, Org, StateAggregator } from '@salesforce/core';
+import { getOrgInfo } from '../../../src/util/orgDisplay';
 
 // Mock the Salesforce Core classes
 jest.mock('@salesforce/core', () => ({
@@ -22,16 +22,40 @@ jest.mock('@salesforce/core', () => ({
   StateAggregator: {
     getInstance: jest.fn()
   },
-  ConfigAggregator: {
-    create: jest.fn()
-  },
   OrgConfigProperties: {
     TARGET_ORG: 'target-org'
   }
 }));
 
+// Mock configAggregatorEffect module
+const mockConfigAggregatorStore: { value: any } = {
+  value: {
+    getPropertyValue: jest.fn().mockReturnValue(undefined)
+  }
+};
+
+jest.mock('../../../src/util/configAggregatorEffect', () => {
+  const Effect = require('effect/Effect');
+  // Reference mockConfigAggregatorStore from closure
+  return {
+    get getConfigAggregatorEffect() {
+      return Effect.succeed(mockConfigAggregatorStore.value);
+    }
+  };
+});
+
+// Mock extensionProvider to provide AllServicesLayer
+jest.mock('../../../src/extensionProvider', () => {
+  const Layer = require('effect/Layer');
+  const Context = require('effect/Context');
+  // Create a minimal Layer - since getConfigAggregatorEffect is mocked, no services are needed
+  const DummyService = Context.GenericTag('DummyService');
+  return {
+    AllServicesLayer: Layer.succeed(DummyService, {})
+  };
+});
+
 describe('OrgDisplay unit tests.', () => {
-  let orgDisplay: OrgDisplay;
   let mockAuthInfo: any;
   let mockConnection: any;
   let mockOrg: any;
@@ -39,7 +63,6 @@ describe('OrgDisplay unit tests.', () => {
   let mockConfigAggregator: any;
 
   beforeEach(() => {
-    orgDisplay = new OrgDisplay();
 
     // Reset all mocks
     jest.clearAllMocks();
@@ -88,21 +111,17 @@ describe('OrgDisplay unit tests.', () => {
       getPropertyValue: jest.fn().mockReturnValue(undefined)
     };
 
+    // Set the mock value that getConfigAggregatorEffect will return
+    mockConfigAggregatorStore.value = mockConfigAggregator;
+
     jest.mocked(AuthInfo).create.mockResolvedValue(mockAuthInfo);
     jest.mocked(Connection).create.mockResolvedValue(mockConnection);
     jest.mocked(Org).create.mockResolvedValue(mockOrg);
     jest.mocked(StateAggregator).getInstance.mockResolvedValue(mockStateAggregator);
-    jest.mocked(ConfigAggregator).create.mockResolvedValue(mockConfigAggregator);
-  });
-
-  it('Should create instance.', () => {
-    expect(orgDisplay).toBeInstanceOf(OrgDisplay);
   });
 
   it('Should be able to successfully get org info with username provided.', async () => {
-    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
-
-    const result = await orgDisplayWithUsername.getOrgInfo();
+    const result = await getOrgInfo('test@example.com');
 
     expect(result).toEqual({
       username: 'test@example.com',
@@ -128,7 +147,7 @@ describe('OrgDisplay unit tests.', () => {
   it('Should get username from config when not provided.', async () => {
     // Mock ConfigAggregator to return username from target-org property
     mockConfigAggregator.getPropertyValue.mockReturnValue('test@example.com');
-    const result = await orgDisplay.getOrgInfo();
+    const result = await getOrgInfo();
     expect(result.username).toBe('test@example.com');
   });
 
@@ -138,19 +157,17 @@ describe('OrgDisplay unit tests.', () => {
     // Mock StateAggregator to resolve alias to username
     mockStateAggregator.aliases.getUsername.mockReturnValue('test@example.com');
 
-    const result = await orgDisplay.getOrgInfo();
+    const result = await getOrgInfo();
     expect(result.username).toBe('test@example.com');
   });
 
   it('Should throw error when no username can be found.', async () => {
-    await expect(orgDisplay.getOrgInfo()).rejects.toThrow(
+    await expect(getOrgInfo()).rejects.toThrow(
       'No username provided and no default username found in project config or state'
     );
   });
 
   it('Should handle scratch org detection.', async () => {
-    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
-
     // Mock auth fields to indicate scratch org
     mockAuthInfo.getFields.mockReturnValue({
       username: 'test@example.com',
@@ -176,7 +193,7 @@ describe('OrgDisplay unit tests.', () => {
     };
     mockOrg.getDevHubOrg.mockResolvedValue(mockHubOrg);
 
-    const result = await orgDisplayWithUsername.getOrgInfo();
+    const result = await getOrgInfo('test@example.com');
 
     expect(result.devHubId).toBe('devhub@example.com');
     expect(result.edition).toBe('Developer');
@@ -185,8 +202,6 @@ describe('OrgDisplay unit tests.', () => {
   });
 
   it('Should handle sandbox org detection.', async () => {
-    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
-
     // Mock org query for sandbox
     mockConnection.singleRecordQuery.mockResolvedValue({
       Id: '00D1234567890123',
@@ -198,41 +213,35 @@ describe('OrgDisplay unit tests.', () => {
       IsSandbox: true
     });
 
-    const result = await orgDisplayWithUsername.getOrgInfo();
+    const result = await getOrgInfo('test@example.com');
 
     expect(result.edition).toBe('Sandbox');
   });
 
   it('Should retrieve alias when available.', async () => {
-    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
-
     // Mock state aggregator to return aliases
     mockStateAggregator.aliases.getAll.mockReturnValue(['test-alias']);
 
-    const result = await orgDisplayWithUsername.getOrgInfo();
+    const result = await getOrgInfo('test@example.com');
 
     expect(result.alias).toBe('test-alias');
   });
 
   it('Should return empty string when no alias is available.', async () => {
-    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
-
     // Mock state aggregator to return empty array
     mockStateAggregator.aliases.getAll.mockReturnValue([]);
 
-    const result = await orgDisplayWithUsername.getOrgInfo();
+    const result = await getOrgInfo('test@example.com');
 
     expect(result.alias).toBe('');
   });
 
   it('Should handle authentication errors gracefully and show error in status field.', async () => {
-    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
-
     // Mock AuthInfo.create to throw an authentication error
     const authError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
     jest.mocked(AuthInfo).create.mockRejectedValue(authError);
 
-    const result = await orgDisplayWithUsername.getOrgInfo();
+    const result = await getOrgInfo('test@example.com');
 
     expect(result.username).toBe('test@example.com');
     expect(result.status).toBe('Unable to refresh session: expired access/refresh token');
@@ -244,15 +253,13 @@ describe('OrgDisplay unit tests.', () => {
   });
 
   it('Should handle connection errors gracefully and show error in status field.', async () => {
-    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
-
     // Mock connection.identity to throw an authentication error
     const connectionError = new Error(
       'Error authenticating with the refresh token due to: expired access/refresh token'
     );
     mockConnection.identity.mockRejectedValue(connectionError);
 
-    const result = await orgDisplayWithUsername.getOrgInfo();
+    const result = await getOrgInfo('test@example.com');
 
     expect(result.username).toBe('test@example.com');
     expect(result.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
@@ -262,13 +269,11 @@ describe('OrgDisplay unit tests.', () => {
   });
 
   it('Should handle SOQL query errors gracefully and return error status.', async () => {
-    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
-
     // Mock singleRecordQuery to throw an authentication error
     const queryError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
     mockConnection.singleRecordQuery.mockRejectedValue(queryError);
 
-    const result = await orgDisplayWithUsername.getOrgInfo();
+    const result = await getOrgInfo('test@example.com');
 
     expect(result.username).toBe('test@example.com');
     expect(result.status).toBe('Unable to refresh session: expired access/refresh token');

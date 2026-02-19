@@ -30,7 +30,8 @@ const createMockComponentSetService = (): Layer.Layer<ComponentSetService, never
         fileResponse.state === ComponentStatus.Failed,
       ensureNonEmptyComponentSet: () => Effect.succeed({} as NonEmptyComponentSet),
       getComponentSetFromUris: () => Effect.succeed({} as never),
-      getComponentSetFromManifest: (_manifestUri: URI) => Effect.succeed({} as never)
+      getComponentSetFromManifest: (_manifestUri: URI) => Effect.succeed({} as never),
+      getComponentSetFromProjectDirectories: () => Effect.succeed({} as never)
     })
   );
 
