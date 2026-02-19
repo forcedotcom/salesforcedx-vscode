@@ -96,54 +96,5 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     await saveScreenshot(page, 'manifest-retrieve.complete.png');
   });
 
-  await test.step('generate manifest file (non mac)', async step => {
-    step.skip(isMacDesktop(), 'Explorer context menu not available on Mac Desktop');
-    // Command is only available via explorer context menu, not command palette
-    await executeExplorerContextMenuCommand(page, /classes/i, 'SFDX: Generate Manifest File');
-
-    // Wait for filename prompt and accept default
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await saveScreenshot(page, 'manifest.prompt-visible.png');
-    await page.keyboard.press('Enter');
-
-    // Wait for manifest file to open in editor
-    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
-    await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
-    await saveScreenshot(page, 'manifest.file-opened.png');
-  });
-
-  await test.step('create manifest file via fs (Mac only)', async step => {
-    step.skip(!isMacDesktop(), 'Only run on Mac Desktop');
-    await fs.mkdir(path.join(workspaceDir, 'manifest'), { recursive: true });
-    await fs.writeFile(path.join(workspaceDir, 'manifest', 'package.xml'), MANIFEST_XML);
-    await openFileByName(page, 'package.xml');
-  });
-
-  await test.step('deploy source in manifest', async () => {
-    // Ensure manifest file is the active editor
-    await openFileByName(page, 'package.xml');
-    await clearOutputChannel(page);
-
-    await executeCommandWithCommandPalette(page, 'SFDX: Deploy Source in Manifest to Org');
-    await waitForOutputChannelText(page, {
-      expectedText: 'Deployed Source',
-      timeout: COMMAND_TIMEOUT
-    });
-    await saveScreenshot(page, 'manifest-deploy.complete.png');
-  });
-
-  await test.step('retrieve source in manifest', async () => {
-    await openFileByName(page, 'package.xml');
-    await clearOutputChannel(page);
-
-    await executeCommandWithCommandPalette(page, 'SFDX: Retrieve Source in Manifest from Org');
-    await waitForOutputChannelText(page, {
-      expectedText: 'Retrieved Source',
-      timeout: COMMAND_TIMEOUT
-    });
-    await saveScreenshot(page, 'manifest-retrieve.complete.png');
-  });
-
   await validateNoCriticalErrors(test, consoleErrors);
 });
