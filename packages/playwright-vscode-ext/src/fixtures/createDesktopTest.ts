@@ -128,19 +128,18 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       try {
         await use(electronApp);
       } finally {
-        // Ensure cleanup happens even if test fails. Electron on Mac CI can hang on close—force-kill tree if timeout.
+        const pid = electronApp.process?.()?.pid;
+        // Electron on Mac CI: close() may return but leave orphan GPU/utility/crashpad children
+        // that cause Playwright's worker teardown to exceed 60s. Always kill the full tree.
         try {
-          const closed = await Promise.race([
+          await Promise.race([
             electronApp.close(),
             new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
           ]);
-          if (closed === false) {
-            const pid = electronApp.process?.()?.pid;
-            if (typeof pid === 'number') {
-              killProcessTree(pid);
-            }
-          }
         } catch {}
+        if (typeof pid === 'number') {
+          killProcessTree(pid);
+        }
       }
     },
 
