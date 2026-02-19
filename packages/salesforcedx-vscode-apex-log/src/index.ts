@@ -28,6 +28,7 @@ import {
   createLogLevelCommand,
   createTraceFlagForCurrentUserCommand,
   createTraceFlagForUserCommand,
+  deleteDebugLevelForIdCommand,
   deleteTraceFlagForCurrentUserCommand,
   deleteTraceFlagForIdCommand,
   openTraceFlagsCommand
@@ -81,6 +82,9 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       ),
       registerCommand('sf.apex.traceFlags.deleteForId', (traceFlagId: string) =>
         deleteTraceFlagForIdCommand(traceFlagId).pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+      ),
+      registerCommand('sf.apex.traceFlags.deleteDebugLevelForId', (debugLevelId: string) =>
+        deleteDebugLevelForIdCommand(debugLevelId).pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
       ),
       registerCommand('sf.create.anonymous.apex.script', createAnonymousApexScriptCommand),
       registerCommand('sf.anon.apex.execute.document', executeAnonymousDocumentCommand),

@@ -21,8 +21,9 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
 
   // TODO: be smarter about which logs we get, based on what's in the log records
   const logs = yield* logService.listLogs(5);
-  const body = logs.length > 0 ? yield* logService.getLogBody(logs[0].id) : '';
-  yield* saveExecResultAndOpenLog(code, result, body);
+  const logId = logs[0]?.id;
+  const body = logId ? yield* logService.getLogBody(logId) : '';
+  yield* saveExecResultAndOpenLog(code, result, body, logId ?? undefined);
 
   created && traceFlagId ? yield* traceFlagService.deleteTraceFlag(traceFlagId) : yield* Effect.void;
   return result;

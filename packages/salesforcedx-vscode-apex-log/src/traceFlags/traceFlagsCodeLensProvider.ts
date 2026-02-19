@@ -82,7 +82,34 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
             })
           ];
         })();
-  return [...deleteLenses, ...createLenses, ...userDebugLenses];
+  const deleteDebugLevelLenses = (parsed?.debugLevels ?? []).flatMap(item => {
+    const idx = text.indexOf(`"id": "${item.id}"`);
+    if (idx < 0) return [];
+    const pos = document.positionAt(idx);
+    return [
+      new CodeLens(new Range(pos.line, 0, pos.line, 0), {
+        command: 'sf.apex.traceFlags.deleteDebugLevelForId',
+        title: nls.localize('trace_flag_tooltip_stop') ?? 'Remove',
+        tooltip: nls.localize('trace_flag_tooltip_stop') ?? 'Remove',
+        arguments: [item.id]
+      })
+    ];
+  });
+  const debugLevelsIdx = text.indexOf('"debugLevels"');
+  const createDebugLevelLenses =
+    debugLevelsIdx < 0
+      ? []
+      : (() => {
+          const pos = document.positionAt(debugLevelsIdx);
+          return [
+            new CodeLens(new Range(pos.line, 0, pos.line, 0), {
+              command: 'sf.apex.traceFlags.createLogLevel',
+              title: nls.localize('trace_flag_codelens_create_log_level') ?? 'Create Debug level',
+              tooltip: nls.localize('trace_flag_codelens_create_log_level') ?? 'Create Debug level'
+            })
+          ];
+        })();
+  return [...deleteLenses, ...createLenses, ...userDebugLenses, ...deleteDebugLevelLenses, ...createDebugLevelLenses];
 });
 
 export const registerTraceFlagsCodeLensProvider = (context: ExtensionContext): void => {

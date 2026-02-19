@@ -330,6 +330,10 @@
         {
           "command": "sf.apex.traceFlags.deleteForId",
           "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.deleteDebugLevelForId",
+          "when": "sf:project_opened && sf:has_target_org"
         }
       ],
       "editor/context": [
@@ -387,6 +391,11 @@
       {
         "command": "sf.apex.traceFlags.deleteForId",
         "title": "%apexLog.command.traceFlagsDeleteForId%",
+        "category": "Salesforce"
+      },
+      {
+        "command": "sf.apex.traceFlags.deleteDebugLevelForId",
+        "title": "%apexLog.command.traceFlagsDeleteDebugLevelForId%",
         "category": "Salesforce"
       },
       {

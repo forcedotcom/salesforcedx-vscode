@@ -281,8 +281,8 @@ const pickLogLevel = async (
     picker.title = category.label;
     picker.onDidAccept(() => {
       const selected = picker.activeItems[0];
-      picker.dispose();
       resolve(selected?.level);
+      picker.dispose();
     });
     picker.onDidHide(() => {
       picker.dispose();
@@ -390,5 +390,24 @@ export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTrac
   }
   const traceFlagService = yield* api.services.TraceFlagService;
   yield* traceFlagService.deleteTraceFlag(traceFlagId);
+  yield* refreshTraceFlagsView(orgId);
+});
+
+/** Delete debug level by Id via Tooling API, refresh virtual doc. */
+export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDebugLevelForId')(function* (
+  debugLevelId: string
+) {
+  if (!debugLevelId) return;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const ref = yield* api.services.TargetOrgRef();
+  const { orgId } = yield* SubscriptionRef.get(ref);
+  if (!orgId) {
+    return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
+  }
+  const conn = yield* api.services.ConnectionService.getConnection();
+  yield* Effect.tryPromise({
+    try: () => conn.tooling.delete('DebugLevel', debugLevelId),
+    catch: e => new Error(`Failed to delete debug level: ${String(e)}`)
+  });
   yield* refreshTraceFlagsView(orgId);
 });
