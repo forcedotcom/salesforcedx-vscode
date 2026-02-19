@@ -24,6 +24,7 @@ import {
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import { isNotUndefined, isString } from 'effect/Predicate';
+import { ICONS } from 'salesforcedx-vscode-media';
 import { channelService } from '../channels';
 import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';
@@ -311,15 +312,14 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
   const isDefaultOrg = matchesOrgProperty ?? matchesOrgUsername;
 
   if (isDefaultDevHub && isDefaultOrg) {
-    return '🌳,🍁';
+    return `${ICONS.SF_DEFAULT_HUB} ${ICONS.SF_DEFAULT_ORG}`;
   } else if (isDefaultDevHub) {
-    return '🌳';
+    return ICONS.SF_DEFAULT_HUB;
   } else if (isDefaultOrg) {
-    return '🍁';
+    return ICONS.SF_DEFAULT_ORG;
   }
   return '';
 };
-
 /** Process a single org authorization into display data */
 const processOrgForDisplay = async (
   orgAuth: OrgAuthorization,

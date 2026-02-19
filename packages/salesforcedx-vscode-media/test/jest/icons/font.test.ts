@@ -12,7 +12,7 @@ import * as path from 'node:path';
 describe('icon font quality', () => {
   const PKG_DIR = path.resolve(__dirname, '../../..');
   const ICONS_SRC = path.join(PKG_DIR, 'media/icons-src');
-  const FONT_PATH = path.join(PKG_DIR, 'media/icons-font/myext-icons.woff');
+  const FONT_PATH = path.join(PKG_DIR, 'out/icons-font/sf-media-icons.woff');
 
   beforeAll(() => {
     expect(fs.existsSync(FONT_PATH)).toBe(true);

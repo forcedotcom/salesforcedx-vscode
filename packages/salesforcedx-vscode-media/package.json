@@ -33,7 +33,7 @@
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "clean": "shx rm -rf node_modules media/icons-font .wireit .eslintcache *.vsix",
+    "clean": "shx rm -rf node_modules out .wireit .eslintcache *.vsix",
     "test": "wireit",
     "lint": "wireit"
   },
@@ -46,27 +46,39 @@
         "media/icons-src/icons.json"
       ],
       "output": [
-        "media/icons-font/**"
+        "out/icons-font/**"
       ]
     },
     "compile": {
-      "command": "echo",
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
       "dependencies": [
-        "build:icons"
+        "build:icons",
+        "../salesforcedx-vscode-i18n:compile"
       ],
-      "output": []
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
     },
     "vscode:package": {
       "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
-        "build:icons"
+        "compile"
       ],
       "files": [
         "package.json",
         "README.md",
         "CHANGELOG.md",
         "LICENSE.txt",
-        "media/**"
+        "media/**",
+        "out/**"
       ],
       "output": [
         "*.vsix"
@@ -75,7 +87,7 @@
     "test": {
       "command": "jest --coverage",
       "dependencies": [
-        "build:icons"
+        "compile"
       ],
       "files": [
         "test/**/*.ts",
@@ -105,17 +117,28 @@
       "sf-org-leaf": {
         "description": "Leaf icon for default scratch org",
         "default": {
-          "fontPath": "media/icons-font/myext-icons.woff",
+          "fontPath": "out/icons-font/sf-media-icons.woff",
           "fontCharacter": "\\E001"
         }
       },
       "sf-org-tree": {
         "description": "Tree icon for default dev hub",
         "default": {
-          "fontPath": "media/icons-font/myext-icons.woff",
+          "fontPath": "out/icons-font/sf-media-icons.woff",
           "fontCharacter": "\\E002"
         }
       }
     }
+  },
+  "main": "out/src/icons.js",
+  "types": "out/src/icons.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/src/icons.d.ts",
+      "default": "./out/src/icons.js"
+    }
+  },
+  "dependencies": {
+    "@salesforce/vscode-i18n": "*"
   }
 }

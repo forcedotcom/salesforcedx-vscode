@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { ICONS } from 'salesforcedx-vscode-media';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../constants';
@@ -51,13 +52,13 @@ const orgTypeToLabel = (type: OrgType): string => {
 const getIconForOrgType = (type: OrgType): string => {
   switch (type) {
     case 'DevHub':
-      return '$(server)';
+      return ICONS.ORG_TYPE_DEVHUB;
     case 'Sandbox':
-      return '$(beaker)';
+      return ICONS.ORG_TYPE_SANDBOX;
     case 'Scratch':
-      return '$(zap)';
+      return ICONS.ORG_TYPE_SCRATCH;
     default:
-      return '$(cloud)';
+      return ICONS.ORG_TYPE_ORG;
   }
 };
 /** QuickPickItem for org selection with metadata for handling */
@@ -101,12 +102,12 @@ const orgAuthToQuickPickItem =
     const aliasDisplay = orgAuth.aliases?.length ? orgAuth.aliases.join(', ') : undefined;
     const label = aliasDisplay ? `${typeIcon} ${aliasDisplay}` : `${typeIcon} ${orgAuth.username}`;
     const defaultSuffix =
-      defaultMarkers === '🌳,🍁'
-        ? 'Default Org · Default Dev Hub 🌳🍁'
-        : defaultMarkers === '🍁'
-          ? 'Default Org 🍁'
-          : defaultMarkers === '🌳'
-            ? 'Default Dev Hub 🌳'
+      defaultMarkers === `${ICONS.SF_DEFAULT_HUB} ${ICONS.SF_DEFAULT_ORG}`
+        ? 'Default Org · Default Dev Hub'
+        : defaultMarkers === ICONS.SF_DEFAULT_ORG
+          ? 'Default Org'
+          : defaultMarkers === ICONS.SF_DEFAULT_HUB
+            ? 'Default Dev Hub'
             : undefined;
     const descriptionParts = [aliasDisplay ? orgAuth.username : undefined, defaultSuffix].filter(Boolean);
     return {
@@ -121,23 +122,23 @@ const orgAuthToQuickPickItem =
 /** Action items for SFDX commands */
 const ACTION_ITEMS: OrgQuickPickItem[] = [
   {
-    label: `$(plus) ${nls.localize('org_login_web_authorize_org_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_login_web_authorize_org_text')}`,
     commandId: 'sf.org.login.web'
   },
   {
-    label: `$(plus) ${nls.localize('org_login_web_authorize_dev_hub_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_login_web_authorize_dev_hub_text')}`,
     commandId: 'sf.org.login.web.dev.hub'
   },
   {
-    label: `$(plus) ${nls.localize('org_create_default_scratch_org_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_create_default_scratch_org_text')}`,
     commandId: 'sf.org.create'
   },
   {
-    label: `$(plus) ${nls.localize('org_login_access_token_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_login_access_token_text')}`,
     commandId: 'sf.org.login.access.token'
   },
   {
-    label: `$(plus) ${nls.localize('org_list_clean_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_list_clean_text')}`,
     commandId: 'sf.org.list.clean'
   }
 ];
@@ -213,7 +214,7 @@ export const createOrgPicker = Effect.fn(function* () {
   // these don't change, we just show/hide based on there being an org or
   orgOpenStatusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
   orgOpenStatusBarItem.command = ORG_OPEN_COMMAND;
-  orgOpenStatusBarItem.text = '$(browser)';
+  orgOpenStatusBarItem.text = ICONS.BROWSER;
 
   // watch for org changes
   const targetOrgRef = yield* api.services.TargetOrgRef();
@@ -255,7 +256,7 @@ const getStatusBarContent = Effect.fn('updateTargetOrgDisplay')(function* (orgIn
   const orgType = getOrgTypeFromInfo(orgInfo);
   const typeIcon = getIconForOrgType(orgType);
   const displayName = aliases?.[0] ?? username;
-  const text = `${typeIcon} ${displayName}${isExpired ? ' $(warning)' : ''}`;
+  const text = `${typeIcon} ${displayName}${isExpired ? ` ${ICONS.WARNING}` : ''}`;
 
   const tooltip = new vscode.MarkdownString();
   tooltip.appendMarkdown(`**Type: ${orgType}**${isExpired ? ' — Expired' : ''}\n\n`);
