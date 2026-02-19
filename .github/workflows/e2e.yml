@@ -15,11 +15,6 @@ on:
         required: false
         default: true
         type: boolean
-      coreE2ETests:
-        description: 'Core E2E Tests'
-        required: false
-        default: true
-        type: boolean
       deployAndRetrieveE2ETests:
         description: 'Deploy and Retrieve E2E Tests'
         required: false
@@ -53,11 +48,6 @@ on:
     inputs:
       apexE2ETests:
         description: 'Apex E2E Tests'
-        required: false
-        default: true
-        type: boolean
-      coreE2ETests:
-        description: 'Core E2E Tests'
         required: false
         default: true
         type: boolean
@@ -127,14 +117,6 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
-  Core:
-    if: ${{ inputs.coreE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/coreE2E.yml
-    secrets: inherit
-    with:
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId || github.event.workflow_run.id }}
-
   DeployAndRetrieve:
     if: ${{ inputs.deployAndRetrieveE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/deployRetrieveE2E.yml
@@ -171,15 +153,6 @@ jobs:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     needs: calculate-min-vscode-version
     uses: ./.github/workflows/apexE2E.yml
-    secrets: inherit
-    with:
-      vscodeVersion: ${{ needs.calculate-min-vscode-version.outputs.min-vscode-version }}
-      runId: ${{ github.event.workflow_run.id }}
-
-  Core_min_vscode_version:
-    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-    needs: calculate-min-vscode-version
-    uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
       vscodeVersion: ${{ needs.calculate-min-vscode-version.outputs.min-vscode-version }}
