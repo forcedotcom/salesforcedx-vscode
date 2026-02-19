@@ -11,6 +11,9 @@ import { test as base, _electron as electron } from '@playwright/test';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+
+/** Close timeout before force-kill (leaves buffer for 60s worker teardown). Electron on Mac CI can hang on graceful close. */
+const CLOSE_TIMEOUT_MS = 50_000;
 import { filterErrors } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
 import { createTestWorkspace } from './desktopWorkspace';
@@ -101,9 +104,18 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       try {
         await use(electronApp);
       } finally {
-        // Ensure cleanup happens even if test fails
+        // Ensure cleanup happens even if test fails. Electron on Mac CI can hang on close—force-kill if timeout.
         try {
-          await electronApp.close();
+          const closed = await Promise.race([
+            electronApp.close(),
+            new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
+          ]);
+          if (closed === false) {
+            const pid = electronApp.process?.()?.pid;
+            if (typeof pid === 'number') {
+              try { process.kill(pid, 'SIGKILL'); } catch {}
+            }
+          }
         } catch {}
       }
     },
