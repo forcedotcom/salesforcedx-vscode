@@ -10,6 +10,7 @@ import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
+import { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
 import {
   isSerializedDirectoryWithPath,
@@ -19,7 +20,19 @@ import {
 } from './fsTypes';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
-const DB_NAME = 'fsProviderDB';
+const SALESFORCE_DOMAIN_SUFFIXES = [
+  '.my.salesforce.com',
+  '.my.salesforce.mil',
+  '.my-salesforce.com',
+  '.my.sfcrmproducts.cn'
+] as const;
+
+export const parseMyDomain = (instanceUrl: string): string => {
+  const { hostname } = new URL(instanceUrl);
+  const suffix = SALESFORCE_DOMAIN_SUFFIXES.find(s => hostname.endsWith(s));
+  return suffix ? hostname.slice(0, -suffix.length) : hostname;
+};
+
 const STORE_NAME = 'files';
 const DB_VERSION = 1;
 
@@ -36,8 +49,11 @@ const ensureOpenRequestEvent = (event: Event): Event & { target: IDBOpenDBReques
 
 export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageService>()('IndexedDBStorageService', {
   scoped: Effect.gen(function* () {
+    const dbName =
+      vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim() ?? 'default';
+
     const db = yield* Effect.async<IDBDatabase, Error>(resume => {
-      const openRequest = indexedDB.open(DB_NAME, DB_VERSION);
+      const openRequest = indexedDB.open(dbName, DB_VERSION);
 
       openRequest.onupgradeneeded = (event): void => {
         const dbToUpgrade = ensureOpenRequestEvent(event).target.result;
@@ -51,7 +67,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
       };
 
       openRequest.onerror = (event: unknown): void => {
-        resume(Effect.fail(new Error(`Failed to open IndexedDB database "${DB_NAME}" with error: ${String(event)}`)));
+        resume(Effect.fail(new Error(`Failed to open IndexedDB database "${dbName}" with error: ${String(event)}`)));
       };
     });
 
