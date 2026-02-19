@@ -40,7 +40,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       async ({}, use): Promise<void> => {
         const repoRoot = resolveRepoRoot(fixturesDir);
         const cachePath = path.join(repoRoot, '.vscode-test');
-        const executablePath = await downloadAndUnzipVSCode({ cachePath });
+        const version = process.env.PLAYWRIGHT_DESKTOP_VSCODE_VERSION ?? undefined;
+        const executablePath = await downloadAndUnzipVSCode({ version, cachePath });
         await use(executablePath);
       },
       { scope: 'worker' }

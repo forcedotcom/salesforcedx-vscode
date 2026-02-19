@@ -21,20 +21,10 @@ import { openCommandPalette } from './commands';
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
 const outputPanelCodeArea = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-lines`);
-const filterInput = (page: Page) => page.getByPlaceholder(/Filter \(e\.g\./i).first();
+const filterInput = (page: Page) => page.getByPlaceholder(/^Filter/i).first();
 
-const ensureOutputFilterReady = async (page: Page, timeout: number) => {
-  const panel = outputPanel(page);
-  const outputTab = panel.getByRole('tab', { name: /Output/i }).first();
-  const tabVisible = await outputTab.isVisible().catch(() => false);
-  if (tabVisible) await outputTab.hover({ force: true });
-  const input = filterInput(page);
-  await expect(input, 'Output filter should be visible and usable').toBeVisible({ timeout });
-  return input;
-};
-
-/** Get all text content from output panel (including scrolled content), normalized */
-const getAllOutputText = async (page: Page): Promise<string> => {
+/** Get visible text from output panel (virtualized DOM), normalized */
+const getVisibleOutputText = async (page: Page): Promise<string> => {
   const codeArea = outputPanelCodeArea(page);
   const text = await codeArea.textContent();
   // Normalize non-breaking spaces (char 160) to regular spaces (char 32)
@@ -57,23 +47,50 @@ const waitForOutputContent = async (page: Page, timeout: number): Promise<boolea
 
 /** wait for output channel to contain text. Throws if not found. Assumes output has content. */
 const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, timeout: number): Promise<void> => {
-  const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
+  const input = filterInput(page);
+  await expect(input, 'Output filter should be visible').toBeVisible({ timeout: Math.min(timeout, 15_000) });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isDesktop = await page.evaluate(() => !!(window as any).vscode?.webFrame);
+
+  /**
+   * Desktop: use webFrame.insertText (native Electron input pipeline).
+   * Click the input (sets Chromium-level focus), select all, then insertText to replace.
+   * Web: use fill() (no webFrame available).
+   */
+  const setFilterText = async (text: string) => {
+    // Dismiss notification toasts that might overlay the filter
+    const toasts = page.locator('.notifications-toasts .codicon-notifications-clear-all');
+    if (await toasts.isVisible().catch(() => false)) {
+      await toasts.click({ force: true });
+      await page.waitForTimeout(200);
+    }
+    // Click WITHOUT force to get proper Chromium-level focus
+    await input.click({ timeout: 3000 }).catch(async () => {
+      // If click fails (overlay), try with force
+      await input.click({ force: true });
+    });
+    await page.waitForTimeout(100);
+    if (isDesktop) {
+      // Select all text in the input and replace with new text via native path
+      await input.evaluate((el: HTMLInputElement) => { el.select(); });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await page.evaluate((t: string) => { (window as any).vscode.webFrame.insertText(t); }, text || '\u0008');
+    } else {
+      await input.fill(text);
+    }
+  };
+
   try {
     await expect(async () => {
-      await input.click({ force: true });
-      await input.fill('', { force: true });
-      await expect(input).toHaveValue('', { timeout: 5000 });
-      await page.keyboard.press('Enter');
-      await input.fill(expectedText, { force: true });
-      await expect(input).toHaveValue(expectedText, { timeout: 5000 });
-      await page.keyboard.press('Enter');
-      const combinedText = await getAllOutputText(page);
+      await setFilterText(expectedText);
+      await page.waitForTimeout(500);
+      const combinedText = await getVisibleOutputText(page);
       expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
     }).toPass({ timeout });
   } finally {
     await input.click({ force: true }).catch(() => {});
-    await input.fill('', { force: true }).catch(() => {});
-    await page.keyboard.press('Enter').catch(() => {});
+    await input.fill('').catch(() => {});
   }
 };
 

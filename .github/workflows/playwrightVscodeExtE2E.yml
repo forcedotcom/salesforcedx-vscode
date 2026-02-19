@@ -79,6 +79,8 @@ jobs:
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    env:
+      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
