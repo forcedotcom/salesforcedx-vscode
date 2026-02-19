@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { WorkspaceReadFileResult, WorkspaceStatResult } from '../lspCustomRequests';
+import type {
+  WorkspaceReadFileResult,
+  WorkspaceStatResult,
+  WorkspaceFindFilesParams,
+  WorkspaceFindFilesResult
+} from '../lspCustomRequests';
 import * as path from 'node:path';
 import {
   Connection,
@@ -19,7 +24,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { Logger } from '../logger';
-import { FileStat, DirectoryEntry, WorkspaceConfig } from '../types/fileSystemTypes';
+import { FileStat, DirectoryEntry } from '../types/fileSystemTypes';
 import { NormalizedPath, normalizePath } from '../utils';
 
 /**
@@ -43,8 +48,11 @@ export interface IFileSystemProvider {
   updateFileContent(uri: string, content: string, connection?: Connection): Promise<void>;
   updateDirectoryListing(uri: string, entries: DirectoryEntry[]): void;
   updateFileStat(uri: string, stat: FileStat): void;
-  updateWorkspaceConfig(config: WorkspaceConfig): void;
-  getAllFileUris(): NormalizedPath[];
+  /**
+   * When implemented and configured (e.g. setFindFilesFromConnection), returns file paths matching the glob
+   * via workspace/findFiles from the client. Otherwise returns undefined.
+   */
+  findFilesWithGlobAsync(pattern: string, basePath: NormalizedPath): Promise<NormalizedPath[] | undefined>;
   /**
    * Convert a URI to a normalized file path
    * Handles both file:// and memfs:// (or other) schemes based on workspace folder URIs
@@ -65,12 +73,21 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   private fileContents: Map<NormalizedPath, string> = new Map();
   private directoryListings: Map<NormalizedPath, DirectoryEntry[]> = new Map();
   private fileStats: Map<NormalizedPath, FileStat> = new Map();
-  private workspaceConfig: WorkspaceConfig | null = null;
   private workspaceFolderUris: string[] = [];
   private connectionForRead?: Connection;
   private readFileRequestMethod?: string;
   private connectionForStat?: Connection;
   private statRequestMethod?: string;
+  private connectionForFindFiles?: Connection;
+  private findFilesRequestMethod?: string;
+
+  /**
+   * When set, findFilesWithGlobAsync uses workspace/findFiles on the client so the server can discover files by glob.
+   */
+  public setFindFilesFromConnection(connection: Connection, requestMethod: string): void {
+    this.connectionForFindFiles = connection;
+    this.findFilesRequestMethod = requestMethod;
+  }
 
   /**
    * When set, getFileContent uses workspace/readFile on cache miss so the client (e.g. FsService) can read the file.
@@ -283,35 +300,28 @@ export class FileSystemDataProvider implements IFileSystemProvider {
 
   /**
    * Get file content: from cache first, then via workspace/readFile from client on cache miss when setReadFileFromConnection was called.
+   * When no connection is set (e.g. unit tests with pre-populated cache), returns from cache only.
    */
   public async getFileContent(uri: string): Promise<string | undefined> {
     const key = normalizePath(uri);
-    const cached = this.fileContents.get(key);
-    if (cached !== undefined) {
-      return cached;
-    }
-    if (this.connectionForRead && this.readFileRequestMethod) {
-      try {
-        const fileUri = this.getFileUriForPath(key);
-        const result = await this.connectionForRead.sendRequest<WorkspaceReadFileResult>(this.readFileRequestMethod, {
-          uri: fileUri
-        });
 
-        if (result.error) {
-          Logger.error(`[FileSystemDataProvider] workspace/readFile failed for ${key}: ${result.error}`);
-          return undefined;
-        }
-        if (result.content !== undefined) {
-          this.fileContents.set(key, result.content);
-        }
-        return result.content;
-      } catch (e) {
-        Logger.error(
-          `[FileSystemDataProvider] workspace/readFile failed for ${key}: ${e instanceof Error ? e.message : String(e)}`
-        );
+    if (this.connectionForRead && this.readFileRequestMethod) {
+      const fileUri = this.getFileUriForPath(key);
+      const result = await this.connectionForRead.sendRequest<WorkspaceReadFileResult>(this.readFileRequestMethod, {
+        uri: fileUri
+      });
+
+      if (result.error) {
+        Logger.error(`[FileSystemDataProvider] workspace/readFile failed for ${key}: ${result.error}`);
+        return undefined;
       }
+      if (result.content !== undefined) {
+        this.fileContents.set(key, result.content);
+      }
+      return result.content;
     }
-    return undefined;
+    // No connection: use pre-populated cache only (e.g. unit tests)
+    return this.fileContents.get(key);
   }
 
   /**
@@ -403,26 +413,16 @@ export class FileSystemDataProvider implements IFileSystemProvider {
     const key = normalizePath(uri);
 
     if (this.connectionForStat && this.statRequestMethod) {
-      try {
-        const fileUri = this.getFileUriForPath(key);
-        const result = await this.connectionForStat.sendRequest<WorkspaceStatResult>(this.statRequestMethod, {
-          uri: fileUri
-        });
-        if (result.error) {
-          return undefined;
-        }
-        if (result.stat !== undefined) {
-          this.fileStats.set(key, result.stat);
-          return result.stat;
-        }
-      } catch (e) {
-        const cached = this.fileStats.get(key);
-        if (cached !== undefined) {
-          return cached;
-        }
-        Logger.warn(
-          `[FileSystemDataProvider] workspace/stat failed for ${key}: ${e instanceof Error ? e.message : String(e)}`
-        );
+      const fileUri = this.getFileUriForPath(key);
+      const result = await this.connectionForStat.sendRequest<WorkspaceStatResult>(this.statRequestMethod, {
+        uri: fileUri
+      });
+      if (result.error) {
+        return undefined;
+      }
+      if (result.stat !== undefined) {
+        this.fileStats.set(key, result.stat);
+        return result.stat;
       }
     }
     // When no connection or request didn't return a stat, use local cache (e.g. tests with pre-populated provider)
@@ -468,56 +468,29 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   }
 
   /**
-   * Update workspace configuration
+   * When setFindFilesFromConnection was called, asks the client for file URIs matching the glob via workspace/findFiles.
+   * Returns undefined when not configured or on error so callers can fall back to getAllFileUris().
    */
-  public updateWorkspaceConfig(config: WorkspaceConfig): void {
-    this.workspaceConfig = config;
-  }
-
-  /**
-   * Clear all data (useful for workspace changes)
-   * visible for testing
-   */
-  public clear(): void {
-    this.fileContents.clear();
-    this.directoryListings.clear();
-    this.fileStats.clear();
-    this.workspaceConfig = null;
-  }
-
-  /**
-   * Get all directory URIs that have listings
-   */
-  public getAllDirectoryUris(): NormalizedPath[] {
-    // Keys are already normalized since we normalize on set
-    return Array.from(this.directoryListings.keys());
-  }
-
-  /**
-   * Get all file URIs (from cache only; does not trigger client requests).
-   */
-  public getAllFileUris(): NormalizedPath[] {
-    const allKeys = Array.from(this.fileStats.keys());
-    return allKeys.filter(uri => {
-      const stat = this.fileStats.get(uri);
-      return stat?.exists ?? false;
-    });
-  }
-
-  /**
-   * Serialize the provider data for transmission to the language server
-   */
-  public serialize(): {
-    fileContents: Record<string, string>;
-    directoryListings: Record<string, DirectoryEntry[]>;
-    fileStats: Record<string, FileStat>;
-    workspaceConfig: WorkspaceConfig | null;
-  } {
-    return {
-      fileContents: Object.fromEntries(this.fileContents),
-      directoryListings: Object.fromEntries(this.directoryListings),
-      fileStats: Object.fromEntries(this.fileStats),
-      workspaceConfig: this.workspaceConfig
-    };
+  public async findFilesWithGlobAsync(
+    pattern: string,
+    basePath: NormalizedPath
+  ): Promise<NormalizedPath[] | undefined> {
+    if (!this.connectionForFindFiles || !this.findFilesRequestMethod) {
+      return undefined;
+    }
+    try {
+      const baseFolderUri = this.getFileUriForPath(basePath);
+      const params: WorkspaceFindFilesParams = { baseFolderUri, pattern };
+      const result = await this.connectionForFindFiles.sendRequest<WorkspaceFindFilesResult>(
+        this.findFilesRequestMethod,
+        params
+      );
+      if (result?.error || !result?.uris) {
+        return undefined;
+      }
+      return result.uris.map(uri => this.uriToNormalizedPath(uri));
+    } catch {
+      return undefined;
+    }
   }
 }

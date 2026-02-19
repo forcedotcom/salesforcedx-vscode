@@ -45,16 +45,16 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
           const utilsLwcPath = normalizePath(path.join(utilsPath, 'lwc'));
           const registeredLwcPath = normalizePath(path.join(registeredEmptyPath, 'lwc'));
 
-          if (await this.fileSystemProvider.directoryExists(lwcPath)) {
+          if ((await this.fileSystemProvider.findFilesWithGlobAsync('**', lwcPath))?.length) {
             roots.lwc.push(lwcPath);
           }
-          if (await this.fileSystemProvider.directoryExists(utilsLwcPath)) {
+          if ((await this.fileSystemProvider.findFilesWithGlobAsync('**', utilsLwcPath))?.length) {
             roots.lwc.push(utilsLwcPath);
           }
-          if (await this.fileSystemProvider.directoryExists(registeredLwcPath)) {
+          if ((await this.fileSystemProvider.findFilesWithGlobAsync('**', registeredLwcPath))?.length) {
             roots.lwc.push(registeredLwcPath);
           }
-          if (await this.fileSystemProvider.directoryExists(auraPath)) {
+          if ((await this.fileSystemProvider.findFilesWithGlobAsync('**', auraPath))?.length) {
             roots.aura.push(auraPath);
           }
         }
@@ -64,12 +64,12 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         const projects = this.fileSystemProvider.getDirectoryListing(this.workspaceRoots[0]);
         for (const project of projects) {
           const modulesDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'modules'));
-          if (await this.fileSystemProvider.directoryExists(modulesDir)) {
+          if ((await this.fileSystemProvider.findFilesWithGlobAsync('**', modulesDir))?.length) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
           }
           const auraDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'components'));
-          if (await this.fileSystemProvider.directoryExists(auraDir)) {
+          if ((await this.fileSystemProvider.findFilesWithGlobAsync('**', auraDir))?.length) {
             // The components directory itself is the Aura namespace root
             // (findNamespaceRoots only detects LWC, not Aura)
             roots.aura.push(auraDir);
@@ -80,12 +80,12 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         // optimization: search only inside modules/
         for (const ws of this.workspaceRoots) {
           const modulesDir = normalizePath(path.join(ws, 'modules'));
-          if (await this.fileSystemProvider.directoryExists(modulesDir)) {
+          if ((await this.fileSystemProvider.findFilesWithGlobAsync('**', modulesDir))?.length) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
           }
           const auraDir = normalizePath(path.join(ws, 'components'));
-          if (await this.fileSystemProvider.directoryExists(auraDir)) {
+          if ((await this.fileSystemProvider.findFilesWithGlobAsync('**', auraDir))?.length) {
             // The components directory itself is the Aura namespace root
             // (findNamespaceRoots only detects LWC, not Aura)
             roots.aura.push(auraDir);
@@ -129,10 +129,7 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
   }
 }
 
-const findAuraMarkupIn = async (
-  namespaceRoot: string,
-  context: AuraWorkspaceContext
-): Promise<NormalizedPath[]> => {
+const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceContext): Promise<NormalizedPath[]> => {
   const files: NormalizedPath[] = [];
 
   try {
@@ -140,7 +137,7 @@ const findAuraMarkupIn = async (
 
     for (const dir of dirs) {
       const componentDir = normalizePath(path.join(namespaceRoot, dir.name));
-      const isDir = await context.fileSystemProvider.directoryExists(componentDir);
+      const isDir = (await context.fileSystemProvider.findFilesWithGlobAsync('**', componentDir))?.length;
 
       if (isDir) {
         for (const ext of AURA_EXTENSIONS) {

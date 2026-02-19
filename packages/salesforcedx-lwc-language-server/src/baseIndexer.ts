@@ -55,27 +55,27 @@ const getSfdxConfig = async (
 
   if (fileSystemProvider) {
     // Also check with URI format in case that's needed
-    const allFileUris = fileSystemProvider.getAllFileUris();
+    // const allFileUris = fileSystemProvider.getAllFileUris();
 
     // Try to find the exact match
-    const exactMatch = allFileUris.find(uri => normalizePath(uri) === filename);
+    // const exactMatch = allFileUris.find(uri => normalizePath(uri) === filename);
 
     const content = await fileSystemProvider.getFileContent(filename);
 
-    // If content not found with direct path, try with exact match URI if found
-    if (!content && exactMatch) {
-      const contentFromUri = await fileSystemProvider.getFileContent(exactMatch);
-      if (contentFromUri) {
-        try {
-          return JSON.parse(contentFromUri);
-        } catch (error) {
-          Logger.error(
-            `[getSfdxConfig] Error parsing JSON from URI: ${error instanceof Error ? error.message : String(error)}`,
-            error
-          );
-        }
-      }
-    }
+    // // If content not found with direct path, try with exact match URI if found
+    // if (!content && exactMatch) {
+    //   const contentFromUri = await fileSystemProvider.getFileContent(exactMatch);
+    //   if (contentFromUri) {
+    //     try {
+    //       return JSON.parse(contentFromUri);
+    //     } catch (error) {
+    //       Logger.error(
+    //         `[getSfdxConfig] Error parsing JSON from URI: ${error instanceof Error ? error.message : String(error)}`,
+    //         error
+    //       );
+    //     }
+    //   }
+    // }
 
     if (content) {
       try {

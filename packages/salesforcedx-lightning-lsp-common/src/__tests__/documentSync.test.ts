@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { syncDocumentToTextDocumentsProvider } from '../documentSync';
 import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
@@ -15,10 +16,6 @@ describe('syncDocumentToTextDocumentsProvider', () => {
 
   beforeEach(() => {
     provider = new FileSystemDataProvider();
-  });
-
-  afterEach(() => {
-    provider.clear();
   });
 
   it('should normalize file:// URI to fsPath and sync document', async () => {
@@ -189,13 +186,13 @@ describe('syncDocumentToTextDocumentsProvider', () => {
 
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, normalizedWorkspaceRoots);
 
-    // URI.parse converts Windows paths - check that content was stored
-    // The exact path format depends on the platform, but content should be accessible
-    const allFiles = provider.getAllFileUris();
+    // Use the same parent dir path shape as sync (dirname of normalizedPath) so listing lookup matches
+    const parentDir = normalizePath(path.dirname(normalizedPath));
+    const allFiles = provider.getDirectoryListing(parentDir);
     let fileWithContent: string | undefined;
     for (const file of allFiles) {
-      if ((await provider.getFileContent(file)) === content) {
-        fileWithContent = file;
+      if ((await provider.getFileContent(file.uri)) === content) {
+        fileWithContent = file.uri;
         break;
       }
     }

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   readAsTextDocument,
   FORCE_APP_ROOT,
@@ -14,7 +15,18 @@ import {
   sfdxFileSystemProvider
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { join, resolve } from 'node:path';
+import { URI } from 'vscode-uri';
 import { LWCWorkspaceContext } from '../context/lwcContext';
+import { createMockWorkspaceFindFilesConnection } from './mockWorkspaceFindFiles';
+
+// Discovery via workspace/findFiles so context can find LWC/aura roots (no server-side cache)
+sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+sfdxFileSystemProvider.setFindFilesFromConnection(
+  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT) as Parameters<
+    typeof sfdxFileSystemProvider.setFindFilesFromConnection
+  >[0],
+  WORKSPACE_FIND_FILES_REQUEST
+);
 
 describe('LWCWorkspaceContext', () => {
   it('isLWCJavascript()', async () => {

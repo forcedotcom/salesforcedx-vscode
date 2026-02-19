@@ -26,7 +26,7 @@ import {
   Definition
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import URI from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
@@ -86,33 +86,18 @@ const defaultConfig = {
 const auraInstanceLastSort = (a: string, b: string): number =>
   a.endsWith('AuraInstance.js') === b.endsWith('AuraInstance.js') ? 0 : a.endsWith('AuraInstance.js') ? 1 : -1;
 
-/** Recursively get all .js files from a directory using FileSystemDataProvider */
+/**
+ * Collects all .js file paths under dirPath via workspace/findFiles (findFilesWithGlobAsync).
+ * Returns an empty array when async find is not available.
+ */
 const getJsFilesRecursively = async (
   dirPath: string,
   fileSystemProvider: FileSystemDataProvider
 ): Promise<string[]> => {
-  const files: string[] = [];
-
-  const processDirectory = async (currentPath: string): Promise<void> => {
-    try {
-      const entries = fileSystemProvider.getDirectoryListing(currentPath);
-
-      for (const entry of entries) {
-        if (entry.type === 'directory') {
-          // entry.uri is already the full URI for the subdirectory
-          await processDirectory(entry.uri);
-        } else if (entry.type === 'file' && entry.name.endsWith('.js')) {
-          // entry.uri is already the full URI for the file
-          files.push(entry.uri);
-        }
-      }
-    } catch {
-      // Error reading directory, continue
-    }
-  };
-
-  await processDirectory(dirPath);
-  return files;
+  if (!fileSystemProvider.findFilesWithGlobAsync) {
+    return [];
+  }
+  return (await fileSystemProvider.findFilesWithGlobAsync('**/*.js', dirPath)) ?? [];
 };
 
 const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: true }> => {
@@ -151,48 +136,23 @@ const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: 
   };
 };
 
-/** recursively search upward from the starting directory. Handling the is it a monorepo vs. packaged vs. bundled code */
+/**
+ * Recursively search upward from the starting directory for resources/aura.
+ * Uses fileSystemProvider.getFileStat (workspace/stat) for web compatibility.
+ * Handles monorepo, packaged, and bundled layouts.
+ */
 const searchAuraResourcesPath = async (dir: string, fileSystemProvider: FileSystemDataProvider): Promise<string> => {
-  try {
-    const resourcesPath = path.join(dir, 'resources', 'aura');
-    const fileStat = await fileSystemProvider.getFileStat(resourcesPath);
+  const resourcesPath = path.join(dir, 'resources', 'aura');
+  const fileStat = await fileSystemProvider.getFileStat(resourcesPath);
 
-    if (fileStat) {
-      return resourcesPath;
-    }
-
-    // Note: We can't use node:fs in VSCode extensions for web compatibility
-    // The FileSystemDataProvider should already have the resources populated
-
-    // Also search the FileSystemDataProvider for any directory that ends with resources/aura
-    // This handles the case where resources are in a different package (e.g., salesforcedx-vscode-lightning)
-    const allDirectoryUris = fileSystemProvider.getAllDirectoryUris();
-    for (const directoryUri of allDirectoryUris) {
-      if (directoryUri.endsWith('resources/aura')) {
-        const stat = await fileSystemProvider.getFileStat(directoryUri);
-        if (stat?.type === 'directory') {
-          return directoryUri;
-        }
-      }
-    }
-
-    throw new Error('No resources/aura directory found');
-  } catch {
-    // Directory doesn't exist, continue searching
+  if (fileStat?.type === 'directory') {
+    return resourcesPath;
   }
+
   if (path.dirname(dir) === dir) {
-    // Final attempt: search the FileSystemDataProvider for any resources/aura directory
-    const allDirectoryUris = fileSystemProvider.getAllDirectoryUris();
-    for (const directoryUri of allDirectoryUris) {
-      if (directoryUri.endsWith('resources/aura')) {
-        const stat = await fileSystemProvider.getFileStat(directoryUri);
-        if (stat?.type === 'directory') {
-          return directoryUri;
-        }
-      }
-    }
     throw new Error('No resources/aura directory found');
   }
+
   return searchAuraResourcesPath(path.dirname(dir), fileSystemProvider);
 };
 

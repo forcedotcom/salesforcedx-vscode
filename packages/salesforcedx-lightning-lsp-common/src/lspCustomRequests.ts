@@ -57,3 +57,22 @@ export interface WorkspaceReadDirectoryResult {
   entries?: DirectoryEntry[];
   error?: string;
 }
+
+/**
+ * Custom LSP request: client returns file URIs matching a glob via vscode.workspace.findFiles.
+ * Server sends this when the file system provider is configured with setFindFilesFromConnection,
+ * so the server can discover files without relying on the stat cache (e.g. for LWC component indexing).
+ */
+export const WORKSPACE_FIND_FILES_REQUEST = 'workspace/findFiles' as const;
+
+export interface WorkspaceFindFilesParams {
+  /** Base folder URI (file:// or memfs://) to search under. */
+  baseFolderUri: string;
+  /** Glob pattern relative to base folder. */
+  pattern: string;
+}
+
+export interface WorkspaceFindFilesResult {
+  uris?: string[];
+  error?: string;
+}

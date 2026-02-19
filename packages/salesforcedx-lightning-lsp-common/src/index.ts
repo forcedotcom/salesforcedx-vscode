@@ -37,7 +37,7 @@ export {
 } from './baseContext';
 
 // Re-export from shared
-export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper, detectWorkspaceType } from './shared';
+export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper } from './shared';
 
 // Re-export from indexer
 export { TagInfo, getHover } from './indexer/tagInfo';
@@ -64,7 +64,8 @@ export {
 export {
   WORKSPACE_READ_FILE_REQUEST,
   WORKSPACE_STAT_REQUEST,
-  WORKSPACE_READ_DIRECTORY_REQUEST
+  WORKSPACE_READ_DIRECTORY_REQUEST,
+  WORKSPACE_FIND_FILES_REQUEST
 } from './lspCustomRequests';
 
 // Re-export from file system providers
@@ -73,9 +74,6 @@ export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTyp
 
 // Re-export from document sync
 export { syncDocumentToTextDocumentsProvider } from './documentSync';
-
-// Re-export from reinitialization scheduler
-export { scheduleReinitialization } from './reinitializationScheduler';
 
 // Re-export TypeScript configuration templates
 export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';

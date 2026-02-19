@@ -20,11 +20,6 @@ const ensureDirectoryTracked = async (
   provider: FileSystemDataProvider,
   workspaceRoots: string[]
 ): Promise<void> => {
-  // Check if directory is already tracked
-  if (await provider.directoryExists(dirPath)) {
-    return;
-  }
-
   // Create directory stat
   provider.updateFileStat(dirPath, {
     type: 'directory',

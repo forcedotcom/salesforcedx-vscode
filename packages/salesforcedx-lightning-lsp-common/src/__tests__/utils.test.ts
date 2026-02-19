@@ -65,10 +65,6 @@ describe('utils', () => {
       fileSystemProvider = new FileSystemDataProvider();
     });
 
-    afterEach(async () => {
-      fileSystemProvider.clear();
-    });
-
     it('should read json files', async () => {
       const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
       void fileSystemProvider.updateFileContent(

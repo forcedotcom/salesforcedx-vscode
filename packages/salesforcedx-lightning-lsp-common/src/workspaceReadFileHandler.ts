@@ -13,12 +13,15 @@ import {
   WORKSPACE_READ_FILE_REQUEST,
   WORKSPACE_STAT_REQUEST,
   WORKSPACE_READ_DIRECTORY_REQUEST,
+  WORKSPACE_FIND_FILES_REQUEST,
   type WorkspaceReadFileParams,
   type WorkspaceReadFileResult,
   type WorkspaceStatParams,
   type WorkspaceStatResult,
   type WorkspaceReadDirectoryParams,
-  type WorkspaceReadDirectoryResult
+  type WorkspaceReadDirectoryResult,
+  type WorkspaceFindFilesParams,
+  type WorkspaceFindFilesResult
 } from './lspCustomRequests';
 
 /** Client that can handle LSP requests (Node or Browser LanguageClient). */
@@ -49,6 +52,7 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
   client.onRequest<WorkspaceReadFileParams, WorkspaceReadFileResult>(
     WORKSPACE_READ_FILE_REQUEST,
     async (params): Promise<WorkspaceReadFileResult> => {
+      console.log(`[LWC Init ${new Date().toISOString()}] workspace/readFile handler invoked uri=${params?.uri ?? '?'}`);
       const { uri } = params;
       const apiResult = Effect.runSync(Effect.either(getServicesApi));
       if (apiResult._tag === 'Left') {
@@ -73,6 +77,7 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
   client.onRequest<WorkspaceStatParams, WorkspaceStatResult>(
     WORKSPACE_STAT_REQUEST,
     async (params): Promise<WorkspaceStatResult> => {
+      console.log(`[LWC Init ${new Date().toISOString()}] workspace/stat handler invoked uri=${params?.uri ?? '?'}`);
       const { uri } = params;
       const apiResult = Effect.runSync(Effect.either(getServicesApi));
       if (apiResult._tag === 'Left') {
@@ -110,6 +115,23 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
           };
         });
         return { entries: result };
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        return { error: message };
+      }
+    }
+  );
+
+  client.onRequest<WorkspaceFindFilesParams, WorkspaceFindFilesResult>(
+    WORKSPACE_FIND_FILES_REQUEST,
+    async (params): Promise<WorkspaceFindFilesResult> => {
+      try {
+        const { baseFolderUri, pattern } = params;
+        const baseUri = vscode.Uri.parse(baseFolderUri);
+        const uris = await vscode.workspace.findFiles(
+          new vscode.RelativePattern(baseUri, pattern)
+        );
+        return { uris: uris.map(u => u.toString()) };
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         return { error: message };

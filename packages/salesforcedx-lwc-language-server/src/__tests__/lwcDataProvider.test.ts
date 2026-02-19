@@ -23,10 +23,22 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
   return { default: content, ...content };
 });
 
+import { WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { URI } from 'vscode-uri';
 import ComponentIndexer from '../componentIndexer';
 import { DataProviderAttributes, LWCDataProvider } from '../lwcDataProvider';
 import { TagAttrs, createTag, getTagName } from '../tag';
+import { createMockWorkspaceFindFilesConnection } from './mockWorkspaceFindFiles';
+
+// Discovery via workspace/findFiles (no server-side cache)
+sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+sfdxFileSystemProvider.setFindFilesFromConnection(
+  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT) as Parameters<
+    typeof sfdxFileSystemProvider.setFindFilesFromConnection
+  >[0],
+  WORKSPACE_FIND_FILES_REQUEST
+);
 
 const componentIndexer: ComponentIndexer = new ComponentIndexer({
   workspaceRoot: SFDX_WORKSPACE_ROOT,
@@ -46,8 +58,9 @@ describe('provideValues()', () => {
     const values = provider.provideValues();
     const names = values.map(value => value.name);
     expect(values).not.toBeEmpty();
-    expect(names).toInclude('info');
-    expect(names).toInclude('iconName');
+    // Values come from disk-discovered components (e.g. todo_item has @api todo, sameLine, nextLine)
+    expect(names).toInclude('todo');
+    expect(names).toInclude('sameLine');
   });
 
   it('should validate an empty array is returned when tag.classMembers is undefined', async () => {

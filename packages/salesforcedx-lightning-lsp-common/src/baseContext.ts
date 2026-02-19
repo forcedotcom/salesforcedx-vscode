@@ -41,6 +41,12 @@ const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirec
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
+/** Default config when sfdx-project.json is missing or unreadable (e.g. workspace/readFile not yet handled by client). */
+const DEFAULT_SFDX_PROJECT_CONFIG: SfdxProjectConfig = {
+  packageDirectories: [],
+  sfdxPackageDirsPattern: '{}'
+};
+
 const readSfdxProjectConfig = async (
   root: string,
   fileSystemProvider: IFileSystemProvider
@@ -49,7 +55,7 @@ const readSfdxProjectConfig = async (
   const configText = await fileSystemProvider.getFileContent(configPath);
 
   if (!configText) {
-    throw new Error(nls.localize('config_file_not_found_message'));
+    return DEFAULT_SFDX_PROJECT_CONFIG;
   }
 
   try {
@@ -270,11 +276,16 @@ export abstract class BaseWorkspaceContext {
 
   /**
    * Initialize the workspace context asynchronously
+   * If loading SFDX config fails (e.g. client workspace/readFile not yet handled), the error is caught
+   * so the server does not crash; callers can retry initSfdxProjectConfigCache() later.
    */
   public initialize(workspaceType: WorkspaceType): void {
     this.type = workspaceType;
     if (this.type === 'SFDX') {
-      void this.initSfdxProjectConfigCache();
+      void this.initSfdxProjectConfigCache().catch(() => {
+        // Config load failed (e.g. workspace/readFile unhandled or file missing); continue without config
+        console.error('Failed to load SFDX project config, continuing without it');
+      });
     }
   }
 

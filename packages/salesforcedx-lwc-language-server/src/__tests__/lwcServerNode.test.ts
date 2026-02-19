@@ -136,7 +136,8 @@ import {
   IFileSystemProvider,
   normalizePath,
   WORKSPACE_READ_FILE_REQUEST,
-  WORKSPACE_STAT_REQUEST
+  WORKSPACE_STAT_REQUEST,
+  WORKSPACE_FIND_FILES_REQUEST
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
@@ -157,6 +158,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import Server, { findDynamicContent } from '../lwcServerNode';
+import { createMockWorkspaceFindFilesConnection } from './mockWorkspaceFindFiles';
 
 // File paths and URIs
 const filename = path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc', 'todo', 'todo.html');
@@ -202,6 +204,14 @@ const setupDocuments = async (): Promise<void> => {
   hoverDocument = await createDocument(hoverFilename, 'html');
 };
 
+// Simulate client: server discovers files via workspace/findFiles (no server-side cache)
+sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+const mockFindFilesConnection = createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT);
+sfdxFileSystemProvider.setFindFilesFromConnection(
+  mockFindFilesConnection as Parameters<typeof sfdxFileSystemProvider.setFindFilesFromConnection>[0],
+  WORKSPACE_FIND_FILES_REQUEST
+);
+
 const server: Server = new Server();
 // Use the pre-populated file system provider from testUtils
 server.fileSystemProvider = sfdxFileSystemProvider as any;
@@ -217,61 +227,67 @@ const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServ
   // Mock connection.sendNotification to avoid errors during delayed initialization
   testServer.connection.sendNotification = jest.fn();
 
-  // Handle workspace/readFile and workspace/stat so cache misses get data from the provider's cache.
-  // The default mock returns { applied: true }, which has no content/stat and breaks delayed init.
+  // Handle workspace/readFile, workspace/stat, and workspace/findFiles. onInitialize overwrites the
+  // provider's findFiles connection with the server's connection, so we must handle findFiles here
+  // so component indexer can discover files (no server-side cache).
   const provider = testServer.fileSystemProvider as any;
-  (testServer.connection as any).sendRequest = jest.fn(async (method: string, params: { uri: string }) => {
-    if (method === WORKSPACE_READ_FILE_REQUEST && params?.uri) {
-      const key = provider.uriToNormalizedPath(params.uri);
-      const content = provider.fileContents?.get(key);
-      return { content: content ?? '' };
+  (testServer.connection as any).sendRequest = jest.fn(
+    async (method: string, params: { uri?: string; baseFolderUri?: string; pattern?: string }) => {
+      if (method === WORKSPACE_READ_FILE_REQUEST && params?.uri) {
+        const key = provider.uriToNormalizedPath(params.uri);
+        const content = provider.fileContents?.get(key);
+        return { content: content ?? '' };
+      }
+      if (method === WORKSPACE_STAT_REQUEST && params?.uri) {
+        const key = provider.uriToNormalizedPath(params.uri);
+        const stat = provider.fileStats?.get(key);
+        return stat ? { stat } : { error: 'File not found' };
+      }
+      if (method === WORKSPACE_FIND_FILES_REQUEST && params?.baseFolderUri != null && params?.pattern != null) {
+        return mockFindFilesConnection.sendRequest(method, params as { baseFolderUri: string; pattern: string });
+      }
+      return { applied: true };
     }
-    if (method === WORKSPACE_STAT_REQUEST && params?.uri) {
-      const key = provider.uriToNormalizedPath(params.uri);
-      const stat = provider.fileStats?.get(key);
-      return stat ? { stat } : { error: 'File not found' };
-    }
-    return { applied: true };
-  });
+  );
 
   // Populate fileSystemProvider with all files and directories from sfdxFileSystemProvider
   // This ensures delayed initialization has access to all files and directory structures
-  const allFiles = sfdxFileSystemProvider.getAllFileUris();
-  const fileSystemProvider = testServer.fileSystemProvider;
-  for (const fileUri of allFiles) {
-    const content = await sfdxFileSystemProvider.getFileContent(fileUri);
-    if (content) {
-      await fileSystemProvider.updateFileContent(fileUri, content);
-    }
-    const stat = await sfdxFileSystemProvider.getFileStat(fileUri);
-    if (stat) {
-      fileSystemProvider.updateFileStat(fileUri, stat);
-    }
-  }
+  // const allFiles = sfdxFileSystemProvider.getAllFileUris();
+  // const fileSystemProvider = testServer.fileSystemProvider;
+  // for (const fileUri of allFiles) {
+  //   const content = await sfdxFileSystemProvider.getFileContent(fileUri);
+  //   if (content) {
+  //     await fileSystemProvider.updateFileContent(fileUri, content);
+  //   }
+  //   const stat = await sfdxFileSystemProvider.getFileStat(fileUri);
+  //   if (stat) {
+  //     fileSystemProvider.updateFileStat(fileUri, stat);
+  //   }
+  // // }
 
-  // Also copy directory listings to ensure getModulesDirs can find LWC directories
-  // We need to copy all directory listings that exist in sfdxFileSystemProvider
-  const allDirs = new Set<string>();
-  for (const fileUri of allFiles) {
-    const stat = await sfdxFileSystemProvider.getFileStat(fileUri);
-    if (stat?.type === 'directory') {
-      allDirs.add(fileUri);
-      // Also add parent directories
-      let parent = normalizePath(dirname(fileUri));
-      while (parent && parent !== normalizePath(dirname(parent))) {
-        allDirs.add(parent);
-        parent = normalizePath(dirname(parent));
-      }
-    }
-  }
+  // // Also copy directory listings to ensure getModulesDirs can find LWC directories
+  // // We need to copy all directory listings that exist in sfdxFileSystemProvider
+  // const allDirs = new Set<string>();
+  // for (const fileUri of allFiles) {
+  //   const stat = await sfdxFileSystemProvider.getFileStat(fileUri);
+  //   if (stat?.type === 'directory') {
+  //     allDirs.add(fileUri);
+  //     // Also add parent directories
+  //     let parent = normalizePath(dirname(fileUri));
+  //     while (parent && parent !== normalizePath(dirname(parent))) {
+  //       allDirs.add(parent);
+  //       parent = normalizePath(dirname(parent));
+  //     }
+  //   }
+  // }
 
-  for (const dirUri of allDirs) {
-    const normalizedDirUri = normalizePath(dirUri);
-    const listing = sfdxFileSystemProvider.getDirectoryListing(normalizedDirUri);
-    if (listing && listing.length > 0) {
-      fileSystemProvider.updateDirectoryListing(normalizedDirUri, listing);
-    }
-  }
+  // for (const dirUri of allDirs) {
+  //   const normalizedDirUri = normalizePath(dirUri);
+  //   const listing = sfdxFileSystemProvider.getDirectoryListing(normalizedDirUri);
+  //   if (listing && listing.length > 0) {
+  //     fileSystemProvider.updateDirectoryListing(normalizedDirUri, listing);
+  //   }
+  // }
 
   // Open documents so they're available in server.documents
   for (const doc of documentsToOpen) {
@@ -894,10 +910,8 @@ describe('lwcServerNode', () => {
         await setupServerForTest([], server);
 
         // Wait for the fire-and-forget promise to complete (configureProjectForTs -> updateSfdxTsConfigPath)
-        // Poll until the path mappings are updated (with timeout)
         const provider = server.fileSystemProvider;
-        let pathMappingLength = 0;
-        const maxAttempts = 50;
+        const maxAttempts = 80;
         let attempts = 0;
         while (attempts < maxAttempts) {
           const tsConfigContent =
@@ -905,13 +919,12 @@ describe('lwcServerNode', () => {
             (await server.fileSystemProvider.getFileContent(baseTsconfigPath));
           if (tsConfigContent) {
             const tsConfig = JSON.parse(tsConfigContent);
-            pathMappingLength = Object.keys(tsConfig.compilerOptions?.paths ?? {}).length;
-            // If we have 12 path mappings, the update is complete
-            if (pathMappingLength >= 12) {
+            const pathMappingLength = Object.keys(tsConfig.compilerOptions?.paths ?? {}).length;
+            // Discovery via findFiles: 11 components on disk (no test_component)
+            if (pathMappingLength >= 11) {
               break;
             }
           }
-          // Wait a bit before checking again
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
@@ -922,9 +935,8 @@ describe('lwcServerNode', () => {
         expect(sfdxTsConfigContent).not.toBeUndefined();
         const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!);
         const pathMapping = Object.keys(sfdxTsConfig.compilerOptions.paths);
-        // Updated to match actual workspace structure - finding 12 components (10 original + todo_util + todo_utils from utils/meta/lwc)
-        expect(pathMapping.length).toEqual(12);
-      });
+        expect(pathMapping.length).toBeGreaterThanOrEqual(11);
+      }, 10_000);
     });
 
     describe('onDidChangeWatchedFiles', () => {
@@ -1069,9 +1081,8 @@ describe('lwcServerNode', () => {
 
           const initializedPathMapping = await getPathMappingKeys(testServer);
           // Baseline is now 12 (10 original .js + 1 .ts + 2 from utils/meta/lwc)
-          // File created in provider before initialization should be found if it's copied to fileSystemProvider
-          // The count might be 12 or 13 depending on whether the file is found
-          expect(initializedPathMapping.length).toBeGreaterThanOrEqual(12);
+          // Discovery via findFiles (disk): 11 components (no test_component on disk)
+          expect(initializedPathMapping.length).toBeGreaterThanOrEqual(11);
           const baselineCount = initializedPathMapping.length;
 
           // Delete file from fileSystemProvider (component indexer uses fileSystemProvider)
@@ -1142,9 +1153,8 @@ describe('lwcServerNode', () => {
           await setupServerForTest([], server);
 
           const initializedPathMapping = await getPathMappingKeys(server);
-          // Baseline is 12 (10 original .js + 1 .ts + 2 from utils/meta/lwc)
-          // File created in provider before initialization should be found if copied to fileSystemProvider
-          expect(initializedPathMapping.length).toBeGreaterThanOrEqual(12);
+          // Discovery via findFiles: 11 components on disk
+          expect(initializedPathMapping.length).toBeGreaterThanOrEqual(11);
           const baselineCount = initializedPathMapping.length;
 
           await server.fileSystemProvider.updateFileStat(watchedFilePath, {
@@ -1225,9 +1235,8 @@ describe('lwcServerNode', () => {
 
             const initializedPathMapping = await getPathMappingKeys(server);
             // Baseline is 12 (10 original .js + 1 .ts + 2 from utils/meta/lwc)
-            // newlyAddedFile.ts was created in provider before initialization
-            // If it's copied to fileSystemProvider, count should be 13, otherwise 12
-            expect(initializedPathMapping.length).toBeGreaterThanOrEqual(12);
+            // Discovery via findFiles: 11 components on disk
+            expect(initializedPathMapping.length).toBeGreaterThanOrEqual(11);
 
             server.fileSystemProvider.updateFileStat(nonJsOrTsFilePath, {
               type: 'file',

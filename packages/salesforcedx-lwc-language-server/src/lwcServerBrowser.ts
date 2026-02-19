@@ -6,7 +6,7 @@
  */
 // Browser-specific version that extends BaseServer
 // Overrides connection creation and adds browser-specific logic for web mode
-import { BaseWorkspaceContextOptions, scheduleReinitialization } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { BaseWorkspaceContextOptions } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   createConnection,
   BrowserMessageReader,
@@ -28,23 +28,14 @@ export default class Server extends BaseServer {
    * In web mode only the opened document is synced, so when a new .js/.ts is opened (e.g. sibling of .html)
    * we must re-run the indexer so the component is available for go-to-definition.
    */
-  protected async onDidOpen(changeEvent: { document: TextDocument }): Promise<{ isLwcPath: boolean }> {
-    const { isLwcPath } = await super.onDidOpen(changeEvent);
+  protected onDidOpen(changeEvent: { document: TextDocument }): void {
+    super.onDidOpen(changeEvent);
 
-    if (this.isDelayedInitializationComplete && isLwcPath && this.componentIndexer) {
-      const uri = changeEvent.document.uri.toLowerCase();
-      const isComponentImpl = uri.endsWith('.js') || uri.endsWith('.ts');
-      if (isComponentImpl) {
-        void scheduleReinitialization(this.fileSystemProvider, () => this.reindexComponents());
-      }
-    } else if (!this.isDelayedInitializationComplete && isLwcPath && this.componentIndexer) {
-      const componentCount = this.componentIndexer.getCustomData().length;
-      if (componentCount === 0) {
-        void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
-      }
+    const uri = changeEvent.document.uri.toLowerCase();
+    const isComponentImpl = uri.endsWith('.js') || uri.endsWith('.ts');
+    if (isComponentImpl) {
+      void this.reindexComponents();
     }
-
-    return { isLwcPath };
   }
 
   protected override getContextOptions(): BaseWorkspaceContextOptions | undefined {

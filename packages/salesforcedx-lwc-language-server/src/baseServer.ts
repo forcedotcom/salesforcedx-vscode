@@ -14,12 +14,12 @@ import {
   BaseWorkspaceContext,
   type BaseWorkspaceContextOptions,
   syncDocumentToTextDocumentsProvider,
-  scheduleReinitialization,
   NormalizedPath,
   WorkspaceType,
   normalizePath,
   WORKSPACE_READ_FILE_REQUEST,
-  WORKSPACE_STAT_REQUEST
+  WORKSPACE_STAT_REQUEST,
+  WORKSPACE_FIND_FILES_REQUEST
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { basename, dirname, parse } from 'node:path';
@@ -133,15 +133,14 @@ export abstract class BaseServer {
   protected context!: LWCWorkspaceContext;
   protected workspaceFolders!: WorkspaceFolder[];
   protected workspaceRoots!: NormalizedPath[];
+  /** Set to true when performDelayedInitialization completes successfully (for tests and client). */
+  public isDelayedInitializationComplete = false;
   public componentIndexer!: ComponentIndexer;
   public languageService!: LanguageService;
   public auraDataProvider!: AuraDataProvider;
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemProvider: FileSystemDataProvider;
   private workspaceType: WorkspaceType;
-  protected isDelayedInitializationComplete = false;
-  /** Ensures we only schedule delayed reinitialization once, preventing multiple typing writes and flicker */
-  private reinitializationScheduled = false;
 
   constructor() {
     this.connection = this.createConnection();
@@ -171,10 +170,9 @@ export abstract class BaseServer {
     this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
 
     // Set workspace folder URIs in file system provider first so it can convert URIs correctly
-    const workspaceFolderUris = this.workspaceFolders.map(folder => folder.uri);
-    this.fileSystemProvider.setWorkspaceFolderUris(workspaceFolderUris);
     this.fileSystemProvider.setReadFileFromConnection(this.connection, WORKSPACE_READ_FILE_REQUEST);
     this.fileSystemProvider.setReadStatFromConnection(this.connection, WORKSPACE_STAT_REQUEST);
+    this.fileSystemProvider.setFindFilesFromConnection(this.connection, WORKSPACE_FIND_FILES_REQUEST);
 
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // Use uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
@@ -203,6 +201,18 @@ export abstract class BaseServer {
     // Create data providers (will be re-initialized after delayed init)
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
     this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
+
+    // Return capabilities immediately so the client sends the Initialize response and attaches
+    // workspace/readFile and workspace/stat handlers. Defer performDelayedInitialization to the next tick
+    // so the client has time to attach handlers before we send any workspace/readFile or workspace/stat.
+    setTimeout(() => {
+      void this.performDelayedInitialization().catch((err: unknown) => {
+        Logger.error(
+          `Delayed initialization failed: ${err instanceof Error ? err.message : String(err)}`,
+          err instanceof Error ? err : undefined
+        );
+      });
+    }, 0);
 
     return this.capabilities;
   }
@@ -353,18 +363,15 @@ export abstract class BaseServer {
       return null;
     }
 
+    if (!this.languageService) {
+      return { contents: nls.localize('server_initializing_message') };
+    }
+
     try {
       const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
       try {
         if (await this.context.isLWCTemplate(doc)) {
-          // Allow hover to work if component indexer is initialized, even if delayed initialization isn't complete
-          // This is safe because namespace roots are already detected (isLWCTemplate returned true)
-          if (!this.isDelayedInitializationComplete && !this.componentIndexer) {
-            return {
-              contents: nls.localize('server_initializing_message')
-            };
-          }
           this.auraDataProvider.activated = false;
           this.lwcDataProvider.activated = true;
           const hoverResult = this.languageService.doHover(doc, position, htmlDoc);
@@ -381,9 +388,6 @@ export abstract class BaseServer {
         const isAuraMarkup = await this.context.isAuraMarkup(doc);
 
         if (isAuraMarkup) {
-          if (!this.isDelayedInitializationComplete) {
-            return null;
-          }
           this.auraDataProvider.activated = true;
           this.lwcDataProvider.activated = false;
           const hoverResult = this.languageService.doHover(doc, position, htmlDoc);
@@ -404,56 +408,23 @@ export abstract class BaseServer {
   }
 
   /**
-   * Syncs FileSystemDataProvider from TextDocuments and returns path info for document-open handling.
-   * This is used by both base and browser server implementations to avoid code duplication.
-   * isLwcPath is returned to the caller for further processing.
-   * Shared by base and browser so sync + path check are not duplicated.
-   * clearNamespaceCache is performed if the document is an LWC file and delayed initialization hasn't completed yet.
-   */
-  protected async syncDocumentOnOpen(changeEvent: { document: TextDocument }): Promise<{ isLwcPath: boolean }> {
-    const { document } = changeEvent;
-    const uri = document.uri;
-    const content = document.getText();
-
-    // Normalize URI to fsPath before syncing (entry point for path normalization)
-    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
-    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
-    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
-
-    const isLwcPath =
-      normalizedPath.includes('/lwc/') &&
-      (normalizedPath.endsWith('.html') ?? normalizedPath.endsWith('.js') ?? normalizedPath.endsWith('.ts'));
-
-    // If this is an LWC file and delayed initialization hasn't completed yet,
-    // clear namespace cache to ensure namespace roots are recalculated as files are discovered.
-    // Once delayed initialization is complete, namespace roots are stable and don't need recalculation
-    // on every file open - they only change when directory structure changes.
-    if (isLwcPath && !this.isDelayedInitializationComplete) {
-      if (this.context) {
-        this.context.clearNamespaceCache();
-      }
-    }
-
-    return { isLwcPath };
-  }
-
-  /**
    * Syncs FileSystemDataProvider from TextDocuments when a document is opened.
    * This avoids duplicate reads - TextDocuments is the source of truth for open files.
    * Returns path info so subclasses can add logic without re-syncing.
    */
-  protected async onDidOpen(changeEvent: { document: TextDocument }): Promise<{ isLwcPath: boolean }> {
-    const { isLwcPath } = await this.syncDocumentOnOpen(changeEvent);
+  protected onDidOpen(changeEvent: { document: TextDocument }): void {
+    const { document } = changeEvent;
+    const uri = document.uri;
 
-    // Perform delayed initialization once file loading has stabilized (typing files written once per server start)
-    if (this.isDelayedInitializationComplete || this.reinitializationScheduled) {
-      return { isLwcPath };
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
+
+    if (
+      normalizedPath.includes('/lwc/') &&
+      (normalizedPath.endsWith('.html') ?? normalizedPath.endsWith('.js') ?? normalizedPath.endsWith('.ts'))
+    ) {
+      this.context.clearNamespaceCache();
     }
-    this.reinitializationScheduled = true;
-
-    void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
-
-    return { isLwcPath };
   }
 
   public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
@@ -556,28 +527,18 @@ export abstract class BaseServer {
     }
   }
 
-  public async onShutdown(): Promise<void> {
+  public onShutdown(): void {
     // Persist custom components for faster startup on next session
     if (this.componentIndexer) {
       this.componentIndexer.persistCustomComponents();
     }
-
-    await this.connection.sendNotification(ShowMessageNotification.type, {
-      type: MessageType.Info,
-      message: 'LWC Language Server shutting down'
-    });
   }
 
-  public async onExit(): Promise<void> {
+  public onExit(): void {
     // Persist custom components for faster startup on next session
     if (this.componentIndexer) {
       this.componentIndexer.persistCustomComponents();
     }
-
-    await this.connection.sendNotification(ShowMessageNotification.type, {
-      type: MessageType.Info,
-      message: 'LWC Language Server exiting'
-    });
   }
 
   public async onDefinition(params: TextDocumentPositionParams): Promise<Location[]> {
@@ -776,10 +737,6 @@ export abstract class BaseServer {
    * Files are loaded into fileSystemProvider via onDidOpen events
    */
   protected async performDelayedInitialization(): Promise<void> {
-    if (this.isDelayedInitializationComplete) {
-      return;
-    }
-
     // Prevent concurrent initialization attempts
     if (this.isInitializing) {
       return;
@@ -795,10 +752,16 @@ export abstract class BaseServer {
       // Clear namespace cache to force re-detection now that files are synced
       // This ensures directoryExists can infer directory existence from file paths
       // But wait for LWC files to be loaded first - check if any LWC files exist
-      const allFiles = this.fileSystemProvider.getAllFileUris();
-      const hasLwcFiles = allFiles.some(
-        uri => uri.includes('/lwc/') && (uri.endsWith('.html') || uri.endsWith('.js') || uri.endsWith('.ts'))
-      );
+      let hasLwcFiles = false;
+      if (this.fileSystemProvider.findFilesWithGlobAsync && this.workspaceRoots[0]) {
+        const basePath = this.workspaceRoots[0];
+        const [html, js, ts] = await Promise.all([
+          this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
+          this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
+          this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
+        ]);
+        hasLwcFiles = (html?.length ?? 0) > 0 || (js?.length ?? 0) > 0 || (ts?.length ?? 0) > 0;
+      }
 
       if (hasLwcFiles) {
         this.context.clearNamespaceCache();
@@ -833,12 +796,6 @@ export abstract class BaseServer {
 
       const componentCount = this.componentIndexer.getCustomData().length;
 
-      // Only mark as complete if we actually indexed components
-      // If 0 components, keep the flag false so scheduleReinitialization can trigger again when more files arrive
-      if (componentCount > 0) {
-        this.isDelayedInitializationComplete = true;
-      }
-
       // Configure TypeScript support now that files are loaded and context is initialized
       await this.configureTypeScriptSupport();
 
@@ -849,12 +806,13 @@ export abstract class BaseServer {
           message: 'LWC Language Server is ready'
         });
       }
+      this.isDelayedInitializationComplete = true;
     } catch (error: unknown) {
       Logger.error(
         `Error during delayed initialization: ${error instanceof Error ? error.message : String(error)}`,
         error instanceof Error ? error : undefined
       );
-      throw error;
+      // Do not rethrow: avoid uncaught rejection and process exit; server continues without full init
     } finally {
       this.isInitializing = false;
     }

@@ -11,12 +11,12 @@ import {
   FileSystemDataProvider,
   FileStat,
   syncDocumentToTextDocumentsProvider,
-  scheduleReinitialization,
   normalizePath,
   NormalizedPath,
   WorkspaceType,
   WORKSPACE_READ_FILE_REQUEST,
-  WORKSPACE_STAT_REQUEST
+  WORKSPACE_STAT_REQUEST,
+  WORKSPACE_FIND_FILES_REQUEST
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
@@ -122,6 +122,7 @@ export default class Server {
       this.fileSystemProvider.setWorkspaceFolderUris((workspaceFolders ?? []).map(f => f.uri));
       this.fileSystemProvider.setReadFileFromConnection(this.connection, WORKSPACE_READ_FILE_REQUEST);
       this.fileSystemProvider.setReadStatFromConnection(this.connection, WORKSPACE_STAT_REQUEST);
+      this.fileSystemProvider.setFindFilesFromConnection(this.connection, WORKSPACE_FIND_FILES_REQUEST);
 
       // Set up document event handlers
       this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
@@ -132,8 +133,16 @@ export default class Server {
       // These are static framework files needed for Tern server initialization
       this.populateFileSystemProvider(params);
 
-      // Note: Workspace context initialization is delayed until performDelayedInitialization()
-      // to ensure all essential files (like sfdx-project.json) are loaded via onDidOpen events
+      // Defer performDelayedInitialization to next tick (like LWC) so the client has time to attach
+      // workspace/readFile and workspace/stat handlers before we send any requests.
+      setTimeout(() => {
+        void this.performDelayedInitialization().catch((err: unknown) => {
+          Logger.error(
+            `Aura delayed initialization failed: ${err instanceof Error ? err.message : String(err)}`,
+            err instanceof Error ? err : undefined
+          );
+        });
+      }, 0);
 
       this.htmlLS = getLanguageService();
       this.htmlLS.setDataProviders(true, [getAuraTagProvider()]);
@@ -216,13 +225,10 @@ export default class Server {
           }
         }
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.workspaceConfig && typeof serializedProvider.workspaceConfig === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        this.fileSystemProvider.updateWorkspaceConfig(serializedProvider.workspaceConfig);
-      }
     } else {
-      throw new Error(nls.localize('no_filesystem_provider_message'));
+      // fileSystemProvider is optional (e.g. when extension does not pass serialized data).
+      // Server will use workspace/readFile and workspace/stat for file access.
+      Logger.warn(nls.localize('no_filesystem_provider_message'));
     }
   }
 
@@ -485,19 +491,9 @@ export default class Server {
     void this.connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
   }
 
-  private async onDidOpen(changeEvent: { document: TextDocument }): Promise<void> {
+  private onDidOpen(changeEvent: { document: TextDocument }): void {
     const { document } = changeEvent;
     const uri = document.uri;
-    const content = document.getText();
-
-    // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
-
-    // Perform delayed initialization once we have documents
-    if (!this.isDelayedInitializationComplete) {
-      void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
-    }
 
     // Check if this is an Aura component file and initialize indexer if needed
     // Parse URI to get filename in a cross-platform way (URIs use forward slashes, but path.basename handles both)

@@ -17,7 +17,6 @@ import {
   NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
-import { minimatch as minimatchFn } from 'minimatch';
 import * as path from 'node:path';
 import { Connection, DocumentUri } from 'vscode-languageserver';
 
@@ -85,76 +84,64 @@ const expandBraces = (pattern: string): string[] => {
 };
 
 /**
- * Traverses directories using FileSystemDataProvider and matches files against a glob pattern
- * This replaces fast-glob for web compatibility
+ * Traverses directories using FileSystemDataProvider and matches files against a glob pattern.
+ * Uses workspace/findFiles via findFilesWithGlobAsync when the provider has a connection;
+ * no server-side file cache – discovery is done via the client.
  */
 const findFilesWithGlob = async (
   pattern: string,
   fileSystemProvider: IFileSystemProvider,
   basePath: string
 ): Promise<Entry[]> => {
-  const results: Entry[] = [];
-  // Normalize basePath the same way FileSystemDataProvider normalizes paths
   const normalizedBasePath = normalizePath(basePath);
-
-  // Expand brace patterns like {force-app,utils} into multiple patterns
   const patterns = expandBraces(pattern);
 
-  // Use getAllFileUris as a reliable source of all files in the provider
-  // This ensures we don't miss files even if directory listings are incomplete
-  const allFileUris = fileSystemProvider.getAllFileUris();
+  if (!fileSystemProvider.findFilesWithGlobAsync) {
+    return [];
+  }
 
-  for (const fileUri of allFileUris) {
-    // fileUri is already normalized by FileSystemDataProvider (normalized when stored via updateFileContent/updateFileStat)
-    // Skip files outside the workspace by checking if the file path starts with the base path
-    // This is more reliable than path.posix.relative on Windows where drive letter case mismatches
-    // can cause path.posix.relative to return paths starting with ../ even for files in the workspace
-    // Use case-insensitive comparison on Windows for drive letters
-    const basePathLower = normalizedBasePath.toLowerCase();
+  const merged = new Set<NormalizedPath>();
+  for (const p of patterns) {
+    const uris = await fileSystemProvider.findFilesWithGlobAsync(p, normalizedBasePath);
+    if (uris) {
+      uris.forEach(uri => merged.add(uri));
+    }
+  }
+  const candidateUris = Array.from(merged);
+
+  const basePathLower = normalizedBasePath.toLowerCase();
+  const basePathWithSlash = `${basePathLower}/`;
+  const results: Entry[] = [];
+
+  for (const fileUri of candidateUris) {
     const fileUriLower = fileUri.toLowerCase();
-    const basePathWithSlash = `${basePathLower}/`;
-    const startsWithCheck = fileUriLower.startsWith(basePathWithSlash) || fileUriLower === basePathLower;
-
+    const startsWithCheck =
+      fileUriLower.startsWith(basePathWithSlash) || fileUriLower === basePathLower;
     if (!startsWithCheck) {
       continue;
     }
 
-    // Calculate relative path - if path.posix.relative fails (returns absolute path),
-    // manually compute it by removing the base path prefix
     let relativePath = path.posix.relative(normalizedBasePath, fileUri);
     const isAbsoluteRelative = path.posix.isAbsolute(relativePath);
-
     if (isAbsoluteRelative) {
-      // path.posix.relative failed (e.g., drive letter mismatch on Windows)
-      // Since we've already verified the file is in the workspace via startsWith,
-      // manually compute the relative path by removing the base path prefix
       if (fileUriLower.startsWith(basePathWithSlash)) {
         relativePath = fileUri.substring(normalizedBasePath.length + 1);
       } else if (fileUriLower === basePathLower) {
-        // File is the workspace root itself
         relativePath = '.';
       } else {
-        // Should not happen given the startsWith check above, but skip to be safe
         continue;
       }
     }
 
-    // Check if file matches any of the patterns using minimatc
-    const matches = patterns.some(
-      p => minimatchFn(relativePath, p, { dot: true }) || minimatchFn(fileUri, p, { dot: true })
-    );
-
-    if (matches) {
-      const fileStat = await fileSystemProvider.getFileStat(fileUri);
-      results.push({
-        path: fileUri,
-        stats: fileStat
-          ? {
-              mtime: new Date(fileStat.mtime)
-            }
-          : undefined
-      });
-    }
+    const fileStat = await fileSystemProvider.getFileStat(fileUri);
+    results.push({
+      path: fileUri,
+      stats: fileStat
+        ? {
+            mtime: new Date(fileStat.mtime)
+          }
+        : undefined
+    });
   }
 
   return results;

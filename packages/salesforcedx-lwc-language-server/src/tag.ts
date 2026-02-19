@@ -178,35 +178,21 @@ export const getTagRange = (tag: Tag): Range =>
 export const getTagLocation = (tag: Tag, fileSystemProvider?: IFileSystemProvider): Location =>
   Location.create(getTagUri(tag, fileSystemProvider), getTagRange(tag));
 
+/** Escape glob special characters in a string so it matches literally */
+const escapeGlob = (s: string): string => s.replaceAll(/[*?[\]\\{}]/g, '\\$&');
+
 /**
- * Finds files matching a pattern in a directory using FileSystemDataProvider
- * This replaces fast-glob for web compatibility
+ * Finds files matching baseName.html or baseName.css in a directory using findFilesWithGlobAsync (workspace/findFiles).
  */
 const findFilesInDirectory = async (
   dirPath: string,
-  pattern: RegExp,
+  baseName: string,
   fileSystemProvider: IFileSystemProvider
 ): Promise<string[]> => {
-  const results: string[] = [];
-  // Normalize path the same way FileSystemDataProvider normalizes paths
   const normalizedDirPath = normalizePath(dirPath);
 
-  if (!(await fileSystemProvider.directoryExists(normalizedDirPath))) {
-    return results;
-  }
-
-  const entries = fileSystemProvider.getDirectoryListing(normalizedDirPath);
-  for (const entry of entries) {
-    if (entry.type === 'file') {
-      // Use entry.name directly instead of parsing entry.uri to avoid path parsing issues on Windows
-      const matches = pattern.test(entry.name);
-      if (matches) {
-        results.push(entry.uri);
-      }
-    }
-  }
-
-  return results;
+  const globPattern = `${escapeGlob(baseName)}.{html,css}`;
+  return (await fileSystemProvider.findFilesWithGlobAsync(globPattern, normalizedDirPath)) ?? [];
 };
 
 // Utility function to get all locations
@@ -234,8 +220,7 @@ export const getAllLocations = async (tag: Tag, fileSystemProvider: IFileSystemP
   };
 
   // Match files like name.html or name.css
-  const pattern = new RegExp(`^${name.replaceAll(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
-  const filteredFiles = await findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
+  const filteredFiles = await findFilesInDirectory(normalizedDir, name, fileSystemProvider);
 
   const locations = filteredFiles.map(convertFileToLocation);
 

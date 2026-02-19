@@ -9,8 +9,6 @@
 // Mock JSON imports from indexer.ts
 const mockJsonFromAuraServer = (relativePath: string) => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const pathModule = require('node:path');
   let current = __dirname;
   while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
@@ -34,12 +32,63 @@ jest.mock('../../resources/transformed-aura-system.json', () =>
   mockJsonFromAuraServer('resources/transformed-aura-system.json')
 );
 
-import { FileSystemDataProvider, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  FileSystemDataProvider,
+  normalizePath,
+  WORKSPACE_FIND_FILES_REQUEST
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { AuraWorkspaceContext } from '../../context/auraContext';
 import AuraIndexer from '../indexer';
+
+// Discovery via workspace/findFiles (no server-side cache). Mock findFiles by scanning test workspace on disk.
+const findFilesOnDisk = (dirPath: string, basePath: string, pattern: string): string[] => {
+  const results: string[] = [];
+  try {
+    if (!fs.existsSync(dirPath)) return results;
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      if (entry.isDirectory()) {
+        results.push(...findFilesOnDisk(fullPath, basePath, pattern));
+      } else if (entry.isFile()) {
+        const relativePath = path.relative(basePath, fullPath).replaceAll('\\', '/');
+        // ** matches any path; * matches within segment
+        const matches =
+          pattern === '**' ||
+          (pattern.includes('*') &&
+            new RegExp(`^${pattern.replaceAll('**', '.*').replaceAll('*', '[^/]*')}$`).test(relativePath));
+        if (matches) results.push(fullPath);
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return results;
+};
+const mockFindFilesConnection = {
+  sendRequest: async (
+    method: string,
+    params: { baseFolderUri: string; pattern: string }
+  ): Promise<{ uris?: string[]; error?: string }> => {
+    if (method !== WORKSPACE_FIND_FILES_REQUEST) return { error: `Unknown: ${method}` };
+    try {
+      const basePath = URI.parse(params.baseFolderUri).fsPath;
+      const files = findFilesOnDisk(basePath, basePath, params.pattern);
+      return { uris: files.map(f => URI.file(f).toString()) };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : String(e) };
+    }
+  }
+};
+sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+sfdxFileSystemProvider.setFindFilesFromConnection(
+  mockFindFilesConnection as Parameters<typeof sfdxFileSystemProvider.setFindFilesFromConnection>[0],
+  WORKSPACE_FIND_FILES_REQUEST
+);
 
 // Normalize paths for cross-platform test consistency
 // Converts absolute paths to relative paths from the workspace root

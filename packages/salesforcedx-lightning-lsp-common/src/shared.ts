@@ -33,16 +33,6 @@ export const detectWorkspaceHelper = async (
   root: string,
   fileSystemProvider: IFileSystemProvider
 ): Promise<WorkspaceType> => {
-  // Early return if no files are available
-  try {
-    const allFiles = fileSystemProvider.getAllFileUris();
-    if (allFiles.length === 0) {
-      return 'UNKNOWN';
-    }
-  } catch {
-    // Error listing files, continue
-  }
-
   try {
     const sfdxProjectFile = getSfdxProjectFile(root);
     const fileStat = await fileSystemProvider.getFileStat(sfdxProjectFile);
@@ -125,24 +115,4 @@ export const detectWorkspaceHelper = async (
   }
 
   return 'UNKNOWN';
-};
-
-/**
- * @param workspaceRoots
- * @returns WorkspaceType, actively not supporting workspaces of mixed type
- */
-export const detectWorkspaceType = async (
-  workspaceRoots: string[],
-  fileSystemProvider: IFileSystemProvider
-): Promise<WorkspaceType> => {
-  if (workspaceRoots.length === 1) {
-    return await detectWorkspaceHelper(workspaceRoots[0], fileSystemProvider);
-  }
-  for (const root of workspaceRoots) {
-    const type = await detectWorkspaceHelper(root, fileSystemProvider);
-    if (type !== 'CORE_PARTIAL') {
-      return 'UNKNOWN';
-    }
-  }
-  return 'CORE_PARTIAL';
 };
