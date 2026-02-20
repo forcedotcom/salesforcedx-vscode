@@ -29,11 +29,11 @@ export const logGetCommand = Effect.fn('ApexLog.Command.logGet')(function* () {
 const selectLog = (logs: ApexLogListItem[]) =>
   Effect.async<{ id: string } | undefined, never>(resume => {
     const items = logs.map(log => ({
-      label: `$(file-text) ${log.LogUser?.Name ?? 'Unknown'} - ${log.Operation}`,
-      detail: log.StartTime?.toLocaleString(),
-      id: log.id
+      label: `$(file-text) ${log.LogUser?.Name ?? 'Unknown'} - ${log.Operation ?? 'Api'}`,
+      detail: log.StartTime ? new Date(log.StartTime).toLocaleString() : undefined,
+      id: log.Id
     }));
-    void vscode.window.showQuickPick(items, { placeHolder: nls.localize('log_get_pick_log') }).then(picked =>
-      resume(Effect.succeed(picked ? { id: picked.id } : undefined))
-    );
+    void vscode.window
+      .showQuickPick(items, { placeHolder: nls.localize('log_get_pick_log') })
+      .then(picked => resume(Effect.succeed(picked ? { id: picked.id } : undefined)));
   });

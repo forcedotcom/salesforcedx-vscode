@@ -11,7 +11,6 @@ import * as Array from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
-import * as PubSub from 'effect/PubSub';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -19,6 +18,7 @@ import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { LogCollectorStateRef, TraceFlagRefreshPubSub } from '../services/apexLogState';
 
 const STATUS_BAR_ID = 'apex-trace-flag-status';
 const STATUS_BAR_PRIORITY = 48;
@@ -92,57 +92,42 @@ const buildTooltip = (activeRecords: TraceFlagItem[], collectorState: LogCollect
 };
 
 const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true })(function* (
-  statusBarItem: vscode.StatusBarItem,
-  collectorRef: SubscriptionRef.SubscriptionRef<LogCollectorState>
+  statusBarItem: vscode.StatusBarItem
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const ref = yield* api.services.TargetOrgRef();
   const { orgId } = yield* SubscriptionRef.get(ref);
   if (!orgId) {
-    statusBarItem.hide();
-    return;
+    return statusBarItem.hide();
   }
-  const traceFlagService = yield* api.services.TraceFlagService;
-  yield* traceFlagService.cleanupExpired().pipe(
-    Effect.tapError(e => Effect.logWarning(String(e))),
-    Effect.catchAll(() => Effect.void)
-  );
-  const items = yield* traceFlagService.getTraceFlags().pipe(
+  const activeRecords = (yield* api.services.TraceFlagService.getTraceFlags().pipe(
     Effect.tapError(e => Effect.logError(String(e))),
     Effect.catchAll(() => Effect.succeed([]))
-  );
-  const activeRecords = items.filter(rec => rec.isActive);
-  const firstActive = Array.sort(activeRecords, byExpirationDesc)[0];
+  ))
+    .filter(rec => rec.isActive)
+    .toSorted(byExpirationDesc);
+
+  const collectorRef = yield* LogCollectorStateRef;
   const collectorState = yield* SubscriptionRef.get(collectorRef);
   statusBarItem.tooltip = buildTooltip(activeRecords, collectorState);
-  statusBarItem.command = 'sf.apex.traceFlags.open';
-  if (firstActive) {
-    const until = firstActive.expirationDate.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    const collectIcon = collectorState.isCollecting && collectorState.collectedCount > 0 ? ' $(cloud-download)' : '';
-    statusBarItem.text = `$(debug-alt) ${nls.localize('trace_flag_active', until)}${collectIcon}`;
-    statusBarItem.backgroundColor = undefined;
-  } else {
-    statusBarItem.text = `$(debug-disconnect) ${nls.localize('trace_flag_inactive')}`;
-    statusBarItem.backgroundColor = undefined;
-  }
+  statusBarItem.text = getText(collectorState, activeRecords[0]);
   statusBarItem.show();
 });
 
-export const createTraceFlagStatusBar = (
-  traceFlagRefreshPubSub: PubSub.PubSub<void>,
-  collectorRef: SubscriptionRef.SubscriptionRef<LogCollectorState>
-) =>
+export const createTraceFlagStatusBar = () =>
   Effect.gen(function* () {
+    const traceFlagRefreshPubSub = yield* TraceFlagRefreshPubSub;
+    const collectorRef = yield* LogCollectorStateRef;
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const statusBarItem = vscode.window.createStatusBarItem(
       STATUS_BAR_ID,
       vscode.StatusBarAlignment.Left,
       STATUS_BAR_PRIORITY
     );
+    // these never change
     statusBarItem.name = 'Salesforce: Trace Flag';
+    statusBarItem.command = 'sf.apex.traceFlags.open';
+
     const targetOrgRef = yield* api.services.TargetOrgRef();
     const orgChangeStream = Stream.concat(
       Stream.fromEffect(SubscriptionRef.get(targetOrgRef)),
@@ -162,10 +147,22 @@ export const createTraceFlagStatusBar = (
         concurrency: 'unbounded'
       }).pipe(
         Stream.debounce(Duration.millis(300)),
-        Stream.runForEach(() => refresh(statusBarItem, collectorRef))
+        Stream.runForEach(() => refresh(statusBarItem))
       )
     );
     yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.succeed(undefined)));
     yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
     yield* Effect.sleep(Duration.infinity);
   });
+
+const getText = (collectorState: LogCollectorState, traceFlag?: TraceFlagItem | undefined) => {
+  if (!traceFlag) {
+    return `$(debug-disconnect) ${nls.localize('trace_flag_inactive')}`;
+  }
+  const until = traceFlag.expirationDate.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  const collectIcon = collectorState.isCollecting && collectorState.collectedCount > 0 ? ' $(cloud-download)' : '';
+  return `$(debug-alt) ${nls.localize('trace_flag_active', until)}${collectIcon}`;
+};

@@ -59,6 +59,7 @@ export const messages = {
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_unexpected_error: 'Unexpected error',
+  apex_execute_debug_failed: 'Execute anonymous failed: %s',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
   launch_apex_replay_debugger_unsupported_file:

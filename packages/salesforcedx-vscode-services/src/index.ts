@@ -303,7 +303,11 @@ export {
   MetadataDeleteService,
   type MetadataDeleteService as MetadataDeleteServiceType
 } from './core/metadataDeleteService';
-export { type ApexLogListItem, type ApexLogService } from './core/apexLogService';
+export {
+  type ApexLogListItem,
+  type ApexLogService,
+  type ListLogsOptions
+} from './core/apexLogService';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
 export {
   MetadataDeployService,

@@ -21,9 +21,11 @@ import { createAnonymousApexScriptCommand } from './commands/createAnonymousApex
 import { executeAnonymousDocumentCommand, executeAnonymousSelectionCommand } from './commands/executeAnonymous';
 import { logGetCommand } from './commands/logGet';
 import { openLogsFolderCommand } from './commands/openLogsFolder';
-import { createLogAutoCollect, createLogCollectorStateRef } from './logs/logAutoCollect';
+import { createLogAutoCollect } from './logs/logAutoCollect';
+import { TraceFlagRefreshPubSub } from './services/apexLogState';
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
+import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import {
   createLogLevelCommand,
   createTraceFlagForCurrentUserCommand,
@@ -57,34 +59,27 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   );
 
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
-  const traceFlagRefreshPubSub = yield* PubSub.sliding<void>(1);
-
-  const logCollectorStateRef = yield* createLogCollectorStateRef();
 
   yield* Effect.all(
     [
       registerCommand('sf.apex.log.get', logGetCommand),
       registerCommand('sf.apex.log.openFolder', openLogsFolderCommand),
-      registerCommand('sf.apex.traceFlags.open', () =>
-        openTraceFlagsCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
-      ),
+      registerCommand('sf.apex.traceFlags.open', () => andThenNotifyUIOfChanges(openTraceFlagsCommand())),
       registerCommand('sf.apex.traceFlags.createForCurrentUser', () =>
-        createTraceFlagForCurrentUserCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+        andThenNotifyUIOfChanges(createTraceFlagForCurrentUserCommand())
       ),
       registerCommand('sf.apex.traceFlags.deleteForCurrentUser', () =>
-        deleteTraceFlagForCurrentUserCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+        andThenNotifyUIOfChanges(deleteTraceFlagForCurrentUserCommand())
       ),
       registerCommand('sf.apex.traceFlags.createForUser', () =>
-        createTraceFlagForUserCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+        andThenNotifyUIOfChanges(createTraceFlagForUserCommand())
       ),
-      registerCommand('sf.apex.traceFlags.createLogLevel', () =>
-        createLogLevelCommand().pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
-      ),
+      registerCommand('sf.apex.traceFlags.createLogLevel', () => andThenNotifyUIOfChanges(createLogLevelCommand())),
       registerCommand('sf.apex.traceFlags.deleteForId', (traceFlagId: string) =>
-        deleteTraceFlagForIdCommand(traceFlagId).pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+        andThenNotifyUIOfChanges(deleteTraceFlagForIdCommand(traceFlagId))
       ),
       registerCommand('sf.apex.traceFlags.deleteDebugLevelForId', (debugLevelId: string) =>
-        deleteDebugLevelForIdCommand(debugLevelId).pipe(Effect.tap(PubSub.publish(traceFlagRefreshPubSub, undefined)))
+        andThenNotifyUIOfChanges(deleteDebugLevelForIdCommand(debugLevelId))
       ),
       registerCommand('sf.create.anonymous.apex.script', createAnonymousApexScriptCommand),
       registerCommand('sf.anon.apex.execute.document', executeAnonymousDocumentCommand),
@@ -94,20 +89,18 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   );
 
   const { provider } = yield* TraceFlagsContentProviderService;
-  context.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider(TRACE_FLAGS_SCHEME, provider)
-  );
+  context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(TRACE_FLAGS_SCHEME, provider));
   registerTraceFlagsCodeLensProvider(context);
 
   const scope = yield* getExtensionScope();
-  yield* Effect.forkIn(
-    createTraceFlagStatusBar(traceFlagRefreshPubSub, logCollectorStateRef),
-    scope
-  ).pipe(Effect.asVoid);
-  yield* Effect.forkIn(
-    createLogAutoCollect(traceFlagRefreshPubSub, logCollectorStateRef),
-    scope
-  ).pipe(Effect.asVoid);
+  yield* Effect.all(
+    [
+      Effect.forkIn(createTraceFlagStatusBar(), scope).pipe(Effect.asVoid),
+      Effect.forkIn(createLogAutoCollect(), scope).pipe(Effect.asVoid),
+      Effect.forkIn(traceFlagCleanupScheduler(), scope).pipe(Effect.asVoid)
+    ],
+    { concurrency: 'unbounded' }
+  );
 
   yield* api.services.ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} activation complete.`))
@@ -125,3 +118,10 @@ const deactivation = Effect.fn('deactivation')(function* () {
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} extension deactivated!`))
   );
 });
+
+/** wrap commands that need to notify the UI (statusBar, traceFlagsJson) of changes */
+const andThenNotifyUIOfChanges = <A, E, R>(eff: Effect.Effect<A, E, R>) =>
+  Effect.gen(function* () {
+    const pubsub = yield* TraceFlagRefreshPubSub;
+    yield* eff.pipe(Effect.tap(() => PubSub.publish(pubsub, undefined)));
+  });

@@ -6,18 +6,55 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as ParseResult from 'effect/ParseResult';
-import * as Schema from 'effect/Schema';
 import { ApexLogBodyFetchError, ApexLogQueryError } from '../errors/apexLogErrors';
 import { ConnectionService } from './connectionService';
-import { ApexLogListItemSchema } from './schemas/apexLogSchemas';
 import { unknownToErrorCause } from './shared';
 
-export type ApexLogListItem = Schema.Schema.Type<typeof ApexLogListItemSchema>;
+/** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference) */
+export type ApexLogListItem = {
+  Id: string;
+  Application?: string;
+  DurationMilliseconds?: number;
+  LogLength: number;
+  LogUserId?: string;
+  LogUser?: { Name?: string };
+  Operation?: string;
+  StartTime: string;
+  Status: string;
+};
 
-const APEX_LOG_QUERY = `SELECT Id, Application, DurationMilliseconds, LogLength, LogUser.Name, Operation, StartTime, Status
-  FROM ApexLog
-  ORDER BY StartTime DESC`;
+export type ListLogsOptions = {
+  /** Filter to logs for this user (LogUserId) */
+  userId?: string;
+  /** Filter to logs for these users (LogUserId IN). When set, userId is ignored. */
+  userIds?: string[];
+  /** Filter to logs whose Operation contains this string (e.g. 'executeAnonymous') */
+  operationContains?: string;
+  /** Filter to logs with StartTime >= this ISO string (trace-flag-aware polling) */
+  startTimeAfter?: string;
+};
+
+const BASE_SELECT =
+  'SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog';
+
+const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string => {
+  const userIds = options?.userIds ?? [];
+  const userIdCondition =
+    userIds.length > 0
+      ? `LogUserId IN (${userIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',')})`
+      : options?.userId
+        ? `LogUserId = '${options.userId.replaceAll("'", "''")}'`
+        : undefined;
+  const operationCondition = options?.operationContains
+    ? `Operation LIKE '%${options.operationContains.replaceAll("'", "''")}%'`
+    : undefined;
+  const startTimeCondition = options?.startTimeAfter
+    ? `StartTime >= '${options.startTimeAfter.replaceAll("'", "''")}'`
+    : undefined;
+  const conditions = [userIdCondition, operationCondition, startTimeCondition].filter((c): c is string => Boolean(c));
+  const where = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
+  return `${BASE_SELECT}${where} ORDER BY StartTime DESC LIMIT ${limit}`;
+};
 
 export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogService', {
   accessors: true,
@@ -25,11 +62,11 @@ export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogSer
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
 
-    const listLogs = Effect.fn('ApexLogService.listLogs')(function* (limit: number = 25) {
+    const listLogs = Effect.fn('ApexLogService.listLogs')(function* (limit: number = 25, options?: ListLogsOptions) {
       const conn = yield* connectionService.getConnection();
-      const query = `${APEX_LOG_QUERY} LIMIT ${limit}`;
+      const query = buildListLogsQuery(limit, options);
       const result = yield* Effect.tryPromise({
-        try: () => conn.tooling.query(query),
+        try: () => conn.tooling.query<ApexLogListItem>(query),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
           return new ApexLogQueryError({
@@ -38,18 +75,7 @@ export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogSer
           });
         }
       });
-      return yield* Effect.all(
-        result.records.map(r => Schema.decodeUnknown(ApexLogListItemSchema)(r)),
-        { concurrency: 'unbounded' }
-      ).pipe(
-        Effect.mapError((parseError: ParseResult.ParseError) => {
-          const msg: string = ParseResult.TreeFormatter.formatErrorSync(parseError);
-          return new ApexLogQueryError({
-            message: `Failed to decode ApexLog records: ${msg}`,
-            cause: parseError
-          });
-        })
-      );
+      return result.records;
     });
 
     const getLogBody = Effect.fn('ApexLogService.getLogBody')(function* (logId: string) {

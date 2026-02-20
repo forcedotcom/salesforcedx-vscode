@@ -26,7 +26,6 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL, channelService } from '../channels';
 import { nls } from '../messages';
-import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { getZeroBasedRange } from './range';
 
@@ -41,6 +40,78 @@ type ApexExecuteParameters = {
   apexCode?: string;
   fileName?: string;
   selection?: vscode.Range;
+};
+
+const getLogFilePath = (): string => {
+  const outputDir = projectPaths.debugLogsFolder();
+  const now = new Date();
+  const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
+  return path.join(outputDir, `${localDateFormatted}.log`);
+};
+
+const saveLogFile = async (logFilePath: string, logs?: string): Promise<boolean> => {
+  if (!logFilePath || !logs) return false;
+  await createDirectory(path.dirname(logFilePath));
+  await writeFile(logFilePath, logs);
+  return true;
+};
+
+const outputResult = (response: ExecResultAdapted): void => {
+  const outputText = response.success
+    ? `${nls.localize('apex_execute_compile_success')}\n${nls.localize('apex_execute_runtime_success')}\n\n${response.logs}`
+    : (() => {
+        const diagnostic = response.diagnostic![0];
+        return !response.compiled
+          ? `Error: Line: ${diagnostic.lineNumber}, Column: ${diagnostic.columnNumber}\nError: ${diagnostic.compileProblem}\n`
+          : `${nls.localize('apex_execute_compile_success')}\nError: ${diagnostic.exceptionMessage}\nError: ${diagnostic.exceptionStackTrace}\n\n${response.logs}`;
+      })();
+  channelService.appendLine(outputText);
+};
+
+const handleDiagnostics = (
+  response: ExecResultAdapted,
+  filePath: string,
+  selection: vscode.Range | undefined,
+  diagnostics: vscode.DiagnosticCollection
+): void => {
+  diagnostics.clear();
+  if (response.diagnostic) {
+    const { compileProblem, exceptionMessage, lineNumber, columnNumber } = response.diagnostic[0];
+    const message =
+      compileProblem && compileProblem !== ''
+        ? compileProblem
+        : exceptionMessage && exceptionMessage !== ''
+          ? exceptionMessage
+          : nls.localize('apex_execute_unexpected_error');
+    diagnostics.set(URI.file(filePath), [
+      {
+        message,
+        severity: vscode.DiagnosticSeverity.Error,
+        source: filePath,
+        range: getZeroBasedRange(lineNumber ? lineNumber + (selection?.start.line ?? 0) : 1, columnNumber ?? 1)
+      }
+    ]);
+  }
+};
+
+const processResult = (
+  result: ExecResultAdapted,
+  apexFilePath: string | undefined,
+  selection: vscode.Range | undefined,
+  diagnostics: vscode.DiagnosticCollection
+): void => {
+  outputResult(result);
+  const editor = vscode.window.activeTextEditor;
+  const document = editor!.document;
+  const filePath = apexFilePath ?? document.uri.fsPath;
+  handleDiagnostics(result, filePath, selection, diagnostics);
+};
+
+const launchReplayDebugger = async (logs?: string): Promise<boolean> => {
+  const logFilePath = getLogFilePath();
+  if (!logFilePath || !logs || !(await saveLogFile(logFilePath, logs))) return false;
+  await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath);
+  return true;
 };
 
 class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameters> {
@@ -81,38 +152,31 @@ class AnonApexLibraryDebugExecutor extends LibraryCommandletExecutor<ApexExecute
   }
 
   public async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
-    if (!(await ensureTraceFlagsForCurrentUser())) {
-      return false;
-    }
-
     const { apexCode, fileName: apexFilePath, selection } = response.data;
     const code = apexCode ?? (apexFilePath ? await readFile(apexFilePath) : undefined);
     if (!code) {
       return false;
     }
 
-    const { result, logBody } = await Effect.runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const execService = yield* api.services.ExecuteAnonymousService;
-        const logService = yield* api.services.ApexLogService;
-        const execResult = yield* execService.executeAnonymous(code).pipe(
-          Effect.catchAll(() => Effect.succeed(undefined))
-        );
-        if (!execResult) {
-          return { result: undefined, logBody: undefined };
-        }
-        const logs = yield* logService.listLogs(5).pipe(Effect.catchAll(() => Effect.succeed([])));
-        const logId = logs[0]?.id;
-        const body = logId ? yield* logService.getLogBody(logId).pipe(Effect.catchAll(() => Effect.succeed(''))) : '';
-        return { result: execResult, logBody: body };
-      }).pipe(Effect.provide(AllServicesLayer))
-    );
-
-    if (!result) {
+    let execResult;
+    try {
+      execResult = await Effect.runPromise(
+        Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          const execService = yield* api.services.ExecuteAnonymousService;
+          return yield* execService.executeAndRetrieveLog(code);
+        }).pipe(Effect.provide(AllServicesLayer))
+      );
+    } catch (error) {
+      void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
       return false;
     }
 
+    if (!execResult?.result) {
+      return false;
+    }
+
+    const { result, logBody } = execResult;
     const adapted: ExecResultAdapted = {
       compiled: result.compiled,
       success: result.success,
@@ -130,80 +194,8 @@ class AnonApexLibraryDebugExecutor extends LibraryCommandletExecutor<ApexExecute
         : undefined
     };
 
-    this.processResult(adapted, apexFilePath, selection);
-    return await this.launchReplayDebugger(adapted.logs);
-  }
-
-  private processResult(
-    result: ExecResultAdapted,
-    apexFilePath: string | undefined,
-    selection: vscode.Range | undefined
-  ) {
-    this.outputResult(result);
-
-    const editor = vscode.window.activeTextEditor;
-    const document = editor!.document;
-    const filePath = apexFilePath ?? document.uri.fsPath;
-    this.handleDiagnostics(result, filePath, selection);
-  }
-
-  private async launchReplayDebugger(logs?: string | undefined): Promise<boolean> {
-    const logFilePath = this.getLogFilePath();
-    if (!logFilePath || !logs || !(await this.saveLogFile(logFilePath, logs))) {
-      return false;
-    }
-    await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath);
-    return true;
-  }
-
-  private getLogFilePath(): string {
-    const outputDir = projectPaths.debugLogsFolder();
-    const now = new Date();
-    const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
-    return path.join(outputDir, `${localDateFormatted}.log`);
-  }
-
-  private async saveLogFile(logFilePath: string, logs?: string): Promise<boolean> {
-    if (!logFilePath || !logs) return false;
-    await createDirectory(path.dirname(logFilePath));
-    await writeFile(logFilePath, logs);
-    return true;
-  }
-
-  private outputResult(response: ExecResultAdapted): void {
-    let outputText = '';
-    if (response.success) {
-      outputText += `${nls.localize('apex_execute_compile_success')}\n`;
-      outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
-      outputText += `\n${response.logs}`;
-    } else {
-      const diagnostic = response.diagnostic![0];
-      outputText += !response.compiled
-        ? `Error: Line: ${diagnostic.lineNumber}, Column: ${diagnostic.columnNumber}\nError: ${diagnostic.compileProblem}\n`
-        : `${nls.localize('apex_execute_compile_success')}\nError: ${diagnostic.exceptionMessage}\nError: ${diagnostic.exceptionStackTrace}\n\n${response.logs}`;
-    }
-    channelService.appendLine(outputText);
-  }
-
-  private handleDiagnostics(response: ExecResultAdapted, filePath: string, selection?: vscode.Range) {
-    AnonApexLibraryDebugExecutor.diagnostics.clear();
-    if (response.diagnostic) {
-      const { compileProblem, exceptionMessage, lineNumber, columnNumber } = response.diagnostic[0];
-      const message =
-        compileProblem && compileProblem !== ''
-          ? compileProblem
-          : exceptionMessage && exceptionMessage !== ''
-            ? exceptionMessage
-            : nls.localize('apex_execute_unexpected_error');
-      AnonApexLibraryDebugExecutor.diagnostics.set(URI.file(filePath), [
-        {
-          message,
-          severity: vscode.DiagnosticSeverity.Error,
-          source: filePath,
-          range: getZeroBasedRange(lineNumber ? lineNumber + (selection?.start.line ?? 0) : 1, columnNumber ?? 1)
-        }
-      ]);
-    }
+    processResult(adapted, apexFilePath, selection, AnonApexLibraryDebugExecutor.diagnostics);
+    return await launchReplayDebugger(adapted.logs);
   }
 }
 

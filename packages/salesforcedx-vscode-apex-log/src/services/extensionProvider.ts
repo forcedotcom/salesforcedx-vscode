@@ -16,6 +16,12 @@ import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
 import { TraceFlagsContentProviderService } from '../traceFlags/traceFlagsContentProvider';
+import {
+  getOrCreateLogCollectorStateRef,
+  getOrCreateTraceFlagRefreshPubSub,
+  LogCollectorStateRef,
+  TraceFlagRefreshPubSub
+} from './apexLogState';
 
 const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
@@ -25,6 +31,8 @@ const ExtensionProviderServiceLive = Layer.effect(
 export const buildAllServicesLayer = (context: ExtensionContext) =>
   Layer.unwrapEffect(
     Effect.gen(function* () {
+      const traceFlagRefreshPubSub = yield* Effect.sync(getOrCreateTraceFlagRefreshPubSub);
+      const logCollectorStateRef = yield* Effect.sync(getOrCreateLogCollectorStateRef);
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
       const emptyPjson: ExtensionPackageJson = {};
@@ -38,6 +46,8 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
         TraceFlagsContentProviderService.Default,
+        Layer.succeed(TraceFlagRefreshPubSub, traceFlagRefreshPubSub),
+        Layer.succeed(LogCollectorStateRef, logCollectorStateRef),
         api.services.ApexLogService.Default,
         api.services.ConnectionService.Default,
         api.services.FsService.Default,

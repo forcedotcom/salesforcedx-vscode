@@ -11,21 +11,8 @@ import { saveExecResultAndOpenLog } from '../logs/logStorage';
 
 const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(function* (code: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const traceFlagService = yield* api.services.TraceFlagService;
-  const logService = yield* api.services.ApexLogService;
-  const execService = yield* api.services.ExecuteAnonymousService;
-
-  const userId = yield* traceFlagService.getUserId();
-  const { created, traceFlagId } = yield* traceFlagService.ensureTraceFlag(userId);
-  const result = yield* execService.executeAnonymous(code);
-
-  // TODO: be smarter about which logs we get, based on what's in the log records
-  const logs = yield* logService.listLogs(5);
-  const logId = logs[0]?.id;
-  const body = logId ? yield* logService.getLogBody(logId) : '';
-  yield* saveExecResultAndOpenLog(code, result, body, logId ?? undefined);
-
-  created && traceFlagId ? yield* traceFlagService.deleteTraceFlag(traceFlagId) : yield* Effect.void;
+  const { result, logBody, logId } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(code);
+  yield* saveExecResultAndOpenLog(code, result, logBody, logId);
   return result;
 });
 

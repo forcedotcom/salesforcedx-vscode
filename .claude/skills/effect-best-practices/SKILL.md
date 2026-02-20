@@ -1,7 +1,7 @@
 ---
 name: effect-best-practices
 description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Effect-TS Best Practices
@@ -19,6 +19,7 @@ This skill enforces opinionated, consistent patterns for Effect-TS codebases. Th
 | Error Handling | `catchTag`/`catchTags`; catch only when needed | `catchAll`; swallowing; catching "just in case" |
 | IDs | `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string` for entity IDs |
 | Functions | `Effect.fn("Service.method")` | Anonymous generators |
+| Params vs deps | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params |
 | Naming | `FooCommand` for commands, domain names for helpers | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging | `Effect.log` with structured data | `console.log` |
 | Config | `Config.*` with validation | `process.env` directly (except build-time vars like `ESBUILD_*`) |
@@ -76,6 +77,28 @@ const MainLive = Layer.mergeAll(UserService.Default, OtherService.Default)
 **When `Context.Tag` is acceptable:**
 - Infrastructure with runtime injection (Cloudflare KV, worker bindings)
 - Factory patterns where resources are provided externally
+
+### Params vs Dependencies
+
+- **Params** = runtime data per call (IDs, user input, per-invocation config)
+- **Dependencies** = shared infrastructure (Ref, PubSub, SubscriptionRef, services) — provide via layer, **yield inside** the effect
+- Build Ref/PubSub/etc in the layer (e.g. `buildAllServicesLayer`); consumers yield them, don't receive as params
+
+```typescript
+// WRONG - passing shared infra as params
+const createStatusBar = (pubsub: PubSub.PubSub<void>, stateRef: SubscriptionRef.SubscriptionRef<State>) =>
+  Effect.gen(...)
+// Caller must create and pass; wiring scattered at call sites
+
+// CORRECT - yield inside, build in layer
+const PubSubTag = Context.GenericTag<PubSub.PubSub<void>>("PubSub")
+const createStatusBar = Effect.gen(function* () {
+  const pubsub = yield* PubSubTag
+  const stateRef = yield* StateRefTag
+  // ...
+})
+// Layer: Layer.effect(PubSubTag, PubSub.sliding<void>(1))
+```
 
 See `references/service-patterns.md` for detailed patterns.
 
