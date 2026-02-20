@@ -18,9 +18,9 @@ import type { ExtensionContext } from 'vscode';
 import { TraceFlagsContentProviderService } from '../traceFlags/traceFlagsContentProvider';
 import {
   getOrCreateLogCollectorStateRef,
-  getOrCreateTraceFlagRefreshPubSub,
+  getOrCreateTraceFlagRefreshSubscriptionRef,
   LogCollectorStateRef,
-  TraceFlagRefreshPubSub
+  CurrentTraceFlags
 } from './apexLogState';
 
 const ExtensionProviderServiceLive = Layer.effect(
@@ -31,7 +31,7 @@ const ExtensionProviderServiceLive = Layer.effect(
 export const buildAllServicesLayer = (context: ExtensionContext) =>
   Layer.unwrapEffect(
     Effect.gen(function* () {
-      const traceFlagRefreshPubSub = yield* Effect.sync(getOrCreateTraceFlagRefreshPubSub);
+      const traceFlagRefreshSubscriptionRef = yield* Effect.sync(getOrCreateTraceFlagRefreshSubscriptionRef);
       const logCollectorStateRef = yield* Effect.sync(getOrCreateLogCollectorStateRef);
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
@@ -46,7 +46,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
         TraceFlagsContentProviderService.Default,
-        Layer.succeed(TraceFlagRefreshPubSub, traceFlagRefreshPubSub),
+        Layer.succeed(CurrentTraceFlags, traceFlagRefreshSubscriptionRef),
         Layer.succeed(LogCollectorStateRef, logCollectorStateRef),
         api.services.ApexLogService.Default,
         api.services.ConnectionService.Default,
@@ -60,6 +60,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
           extensionVersion,
           o11yEndpoint
         }),
+        api.services.SettingsWatcherService.Default,
         api.services.TraceFlagService.Default,
         api.services.WorkspaceService.Default,
         channelLayer,

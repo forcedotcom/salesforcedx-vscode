@@ -7,31 +7,35 @@
 
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as PubSub from 'effect/PubSub';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 
 export type LogCollectorState = {
   readonly isCollecting: boolean;
   readonly collectedCount: number;
 };
 
-export const initialState: LogCollectorState = { isCollecting: false, collectedCount: 0 };
+const initialState: LogCollectorState = { isCollecting: false, collectedCount: 0 };
 
-export const TraceFlagRefreshPubSub = Context.GenericTag<PubSub.PubSub<void>>('TraceFlagRefreshPubSub');
-export const LogCollectorStateRef = Context.GenericTag<SubscriptionRef.SubscriptionRef<LogCollectorState>>(
-  'LogCollectorStateRef'
+// updates when the trace flags change, usually as a result of commands being run
+export const CurrentTraceFlags = Context.GenericTag<SubscriptionRef.SubscriptionRef<TraceFlagItem[]>>(
+  'TraceFlagRefreshSubscriptionRef'
 );
+export const LogCollectorStateRef =
+  Context.GenericTag<SubscriptionRef.SubscriptionRef<LogCollectorState>>('LogCollectorStateRef');
 
 /** Module-level singletons. Commands run in separate Effect.runFork; layer memoization is per-run, so we'd get distinct PubSub/Ref per run. These ensure status bar (activation run) and commands (command run) share the same instances. */
 // eslint-disable-next-line functional/no-let -- singleton for cross-run sharing
-let traceFlagRefreshPubSubInstance: PubSub.PubSub<void> | undefined;
+let traceFlagRefreshSubscriptionRefInstance: SubscriptionRef.SubscriptionRef<TraceFlagItem[]> | undefined;
 // eslint-disable-next-line functional/no-let -- singleton for cross-run sharing
 let logCollectorStateRefInstance: SubscriptionRef.SubscriptionRef<LogCollectorState> | undefined;
 
-export const createLogCollectorStateRef = () => SubscriptionRef.make(initialState);
+const createLogCollectorStateRef = () => SubscriptionRef.make(initialState);
 
-export const getOrCreateTraceFlagRefreshPubSub = (): PubSub.PubSub<void> =>
-  (traceFlagRefreshPubSubInstance ??= Effect.runSync(PubSub.sliding<void>(1)));
+const initialTraceFlags: TraceFlagItem[] = [];
+
+export const getOrCreateTraceFlagRefreshSubscriptionRef = (): SubscriptionRef.SubscriptionRef<TraceFlagItem[]> =>
+  (traceFlagRefreshSubscriptionRefInstance ??= Effect.runSync(SubscriptionRef.make(initialTraceFlags)));
 
 export const getOrCreateLogCollectorStateRef = (): SubscriptionRef.SubscriptionRef<LogCollectorState> =>
   (logCollectorStateRefInstance ??= Effect.runSync(createLogCollectorStateRef()));

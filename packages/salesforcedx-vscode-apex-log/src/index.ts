@@ -13,16 +13,16 @@ import {
   getExtensionScope
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as PubSub from 'effect/PubSub';
 import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { createAnonymousApexScriptCommand } from './commands/createAnonymousApexScript';
 import { executeAnonymousDocumentCommand, executeAnonymousSelectionCommand } from './commands/executeAnonymous';
 import { logGetCommand } from './commands/logGet';
 import { openLogsFolderCommand } from './commands/openLogsFolder';
 import { createLogAutoCollect } from './logs/logAutoCollect';
-import { TraceFlagRefreshPubSub } from './services/apexLogState';
+import { CurrentTraceFlags } from './services/apexLogState';
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
@@ -61,8 +61,19 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   const scope = yield* getExtensionScope();
 
+  const currentTraceFlagsRef = yield* CurrentTraceFlags;
   yield* Effect.all(
     [
+      // init the traceFlagRef
+      Effect.forkIn(
+        andThenNotifyUIOfChanges(
+          api.services.TraceFlagService.getTraceFlags().pipe(
+            Effect.catchAll(() => Effect.succeed([])),
+            Effect.flatMap(flags => SubscriptionRef.set(currentTraceFlagsRef, flags))
+          )
+        ),
+        scope
+      ).pipe(Effect.asVoid),
       registerCommand('sf.apex.log.get', logGetCommand),
       registerCommand('sf.apex.log.openFolder', openLogsFolderCommand),
       registerCommand('sf.apex.traceFlags.open', () => andThenNotifyUIOfChanges(openTraceFlagsCommand())),
@@ -120,6 +131,14 @@ const deactivation = Effect.fn('deactivation')(function* () {
 /** wrap commands that need to notify the UI (statusBar, traceFlagsJson) of changes */
 const andThenNotifyUIOfChanges = <A, E, R>(eff: Effect.Effect<A, E, R>) =>
   Effect.gen(function* () {
-    const pubsub = yield* TraceFlagRefreshPubSub;
-    yield* eff.pipe(Effect.tap(() => PubSub.publish(pubsub, undefined)));
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const ref = yield* CurrentTraceFlags;
+    yield* eff.pipe(
+      Effect.tap(() =>
+        api.services.TraceFlagService.getTraceFlags().pipe(
+          Effect.catchAll(() => Effect.succeed([])),
+          Effect.flatMap(flags => SubscriptionRef.set(ref, flags))
+        )
+      )
+    );
   });

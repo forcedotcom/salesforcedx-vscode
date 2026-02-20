@@ -73,6 +73,7 @@ export type SalesforceVSCodeServicesApi = {
     ProjectService: typeof ProjectService;
     SdkLayerFor: typeof SdkLayerFor;
     SettingsService: typeof SettingsService;
+    SettingsWatcherService: typeof SettingsWatcherService;
     SourceTrackingService: typeof SourceTrackingService;
     TargetOrgRef: typeof getDefaultOrgRef;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
@@ -262,6 +263,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ProjectService,
       SdkLayerFor,
       SettingsService,
+      SettingsWatcherService,
       SourceTrackingService,
       TargetOrgRef: getDefaultOrgRef,
       TraceFlagItemStruct,
@@ -318,5 +320,6 @@ export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
+export { type SettingsWatcherService } from './vscode/settingsWatcherService';
 export { type DebugLevelItem, type TraceFlagItem, type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
