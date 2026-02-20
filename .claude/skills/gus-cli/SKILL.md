@@ -145,6 +145,9 @@ When unsure which epic: ask the user.
 
 ## Status\_\_c values
 
+When creating/updating, only use New,In Progress,Ready for Review,QA In Progress,Fixed,Waiting,Closed
+When completing a work item, use `Closed`.
+
 **Flow:** New → Acknowledged → Triaged → In Progress → Ready for Review → Fixed → QA In Progress → Completed/Closed
 
 **Blocked:** Investigating | More Info Reqd from Support | Waiting On Customer | Waiting On 3rd Party | Waiting | Deferred | Integrate | Pending Release
