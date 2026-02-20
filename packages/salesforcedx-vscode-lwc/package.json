@@ -464,7 +464,13 @@
     "configuration": {
       "type": "object",
       "title": "%lightning_lwc_preferences%",
-      "properties": {}
+      "properties": {
+        "salesforcedx-vscode-lwc.preview.typeScriptSupport": {
+          "type": "boolean",
+          "default": false,
+          "description": "%lightning_lwc_preview_typescript_support_desc%"
+        }
+      }
     }
   }
 }

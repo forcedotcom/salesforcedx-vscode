@@ -3,6 +3,7 @@
   "lightning_lwc_debugger_desc": "Debug configuration for running LWC jest tests in VSCode.",
   "lightning_lwc_preferences": "Salesforce Lightning Web Components",
   "lightning_lwc_preview_typescript_support": "Enable experimental support for TypeScript",
+  "lightning_lwc_preview_typescript_support_desc": "Enables experimental TypeScript support for Lightning Web Components, including tsconfig initialization and TypeScript file generation.",
   "lightning_lwc_test_case_debug_text": "SFDX: Debug Lightning Web Component Test Case",
   "lightning_lwc_test_collapse_all_text": "SFDX: Lightning Web Component Collapse All Tests",
   "lightning_lwc_test_case_run_text": "SFDX: Run Lightning Web Component Test Case",
