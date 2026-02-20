@@ -340,7 +340,7 @@ describe('OrgList tests', () => {
           { ...defaultConfig, defaultOrgProperty: 'MyOrg', defaultOrgUsername: 'user@example.com' }
         );
         expect(items[0].label).toContain('MyOrg');
-        expect(items[0].description).toBe('user@example.com — Default Org');
+        expect(items[0].description).toBe(`user@example.com — Default Org ${ICONS.SF_DEFAULT_ORG}`);
       });
 
       it('default devhub with alias: description has username then default suffix', () => {
@@ -349,7 +349,7 @@ describe('OrgList tests', () => {
           { ...defaultConfig, defaultDevHubProperty: 'Hub', defaultDevHubUsername: 'hub@example.com' }
         );
         expect(items[0].label).toContain('Hub');
-        expect(items[0].description).toBe('hub@example.com — Default Dev Hub');
+        expect(items[0].description).toBe(`hub@example.com — Default Dev Hub ${ICONS.SF_DEFAULT_HUB}`);
       });
 
       it('default org without alias: description is just default suffix', () => {
@@ -358,7 +358,7 @@ describe('OrgList tests', () => {
           { ...defaultConfig, defaultOrgProperty: 'user@example.com', defaultOrgUsername: 'user@example.com' }
         );
         expect(items[0].label).toContain('user@example.com');
-        expect(items[0].description).toBe('Default Org');
+        expect(items[0].description).toBe(`Default Org ${ICONS.SF_DEFAULT_ORG}`);
       });
 
       it('org that is both default org and default devhub gets combined description', () => {
@@ -372,7 +372,9 @@ describe('OrgList tests', () => {
           }
         );
         expect(items[0].label).toContain('Both');
-        expect(items[0].description).toBe('both@example.com — Default Org · Default Dev Hub');
+        expect(items[0].description).toBe(
+          `both@example.com — Default Org ${ICONS.SF_DEFAULT_ORG} · Default Dev Hub ${ICONS.SF_DEFAULT_HUB}`
+        );
       });
 
       it('comma-separated aliases: label, orgAlias first, sf.config.set receives orgAlias', () => {

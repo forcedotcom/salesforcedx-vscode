@@ -42,8 +42,7 @@
       "command": "node scripts/build-icons.mjs",
       "files": [
         "scripts/build-icons.mjs",
-        "media/icons-src/*.svg",
-        "media/icons-src/icons.json"
+        "media/icons-src/*.svg"
       ],
       "output": [
         "out/icons-font/**"
@@ -63,7 +62,8 @@
         "package.json"
       ],
       "output": [
-        "out/**",
+        "out/src/**",
+        "out/test/**",
         "tsconfig.tsbuildinfo"
       ]
     },

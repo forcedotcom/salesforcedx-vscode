@@ -99,16 +99,15 @@ const orgAuthToQuickPickItem =
     const defaultMarkers = determineOrgMarkers(orgAuth, defaultConfig);
     const orgType = getOrgTypeFromAuth(orgAuth);
     const typeIcon = getIconForOrgType(orgType);
-    const labelIcon = defaultMarkers || typeIcon;
     const aliasDisplay = orgAuth.aliases?.length ? orgAuth.aliases.join(', ') : undefined;
-    const label = aliasDisplay ? `${labelIcon} ${aliasDisplay}` : `${labelIcon} ${orgAuth.username}`;
+    const label = aliasDisplay ? `${typeIcon} ${aliasDisplay}` : `${typeIcon} ${orgAuth.username}`;
     const defaultSuffix =
       defaultMarkers === `${ICONS.SF_DEFAULT_HUB} ${ICONS.SF_DEFAULT_ORG}`
-        ? 'Default Org · Default Dev Hub'
+        ? `Default Org ${ICONS.SF_DEFAULT_ORG} · Default Dev Hub ${ICONS.SF_DEFAULT_HUB}`
         : defaultMarkers === ICONS.SF_DEFAULT_ORG
-          ? 'Default Org'
+          ? `Default Org ${ICONS.SF_DEFAULT_ORG}`
           : defaultMarkers === ICONS.SF_DEFAULT_HUB
-            ? 'Default Dev Hub'
+            ? `Default Dev Hub ${ICONS.SF_DEFAULT_HUB}`
             : undefined;
     const descriptionParts = [aliasDisplay ? orgAuth.username : undefined, defaultSuffix].filter(Boolean);
     return {
