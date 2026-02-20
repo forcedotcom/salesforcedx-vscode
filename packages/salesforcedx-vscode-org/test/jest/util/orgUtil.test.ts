@@ -19,7 +19,7 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';

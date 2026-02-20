@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, OrgAuthorization } from '@salesforce/core';
-import { ICONS } from 'salesforcedx-vscode-services';
+import { ICONS } from '@salesforce/vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import * as orgListModule from '../../../src/orgPicker/orgList';
