@@ -78,6 +78,10 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       return reloadedAgg;
     });
 
-    return { getConfigAggregator };
+    const invalidateConfigAggregator = Effect.fn('ConfigService.invalidateConfigAggregator')(function* () {
+      yield* globalConfigCache.invalidateAll;
+    });
+
+    return { getConfigAggregator, invalidateConfigAggregator };
   })
 }) {}

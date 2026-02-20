@@ -5,18 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, AuthInfo, ConfigAggregator, Org } from '@salesforce/core';
-import { ConfigUtil, createTable, notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+import { AuthRemover, AuthInfo, Org } from '@salesforce/core';
+import { createTable } from '@salesforce/effect-ext-utils';
+import { ConfigUtil, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../../src/channels';
+import { nls } from '../../../src/messages';
 import {
   determineConnectedStatusForNonScratchOrg,
   removeExpiredAndDeletedOrgs,
-  displayRemainingOrgs
-} from '../../../src/commands/orgList';
-import { nls } from '../../../src/messages';
-import { getAuthFieldsFor, shouldRemoveOrg, getConnectionStatusFromError } from '../../../src/util/orgUtil';
-
+  displayRemainingOrgs,
+  shouldRemoveOrg,
+  getConnectionStatusFromError
+} from '../../../src/util/orgUtil';
+import * as orgUtil from '../../../src/util/orgUtil';
 // Mock the dependencies
 jest.mock('@salesforce/core', () => ({
   AuthRemover: {
@@ -41,6 +42,9 @@ jest.mock('@salesforce/core', () => ({
     TARGET_ORG: 'target-org'
   }
 }));
+jest.mock('@salesforce/effect-ext-utils', () => ({
+  createTable: jest.fn()
+}));
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   notificationService: {
     showSuccessfulExecution: jest.fn()
@@ -48,7 +52,6 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   SfWorkspaceChecker: jest.fn(),
   ContinueResponse: jest.fn(),
   LibraryCommandletExecutor: jest.fn(),
-  createTable: jest.fn(),
   // Add these to align with command imports
   PromptConfirmGatherer: jest.fn(),
   SfCommandlet: jest.fn(),
@@ -69,11 +72,35 @@ jest.mock('../../../src/telemetry', () => ({
     sendException: jest.fn()
   }
 }));
-jest.mock('../../../src/util/orgUtil', () => {
-  const actual = jest.requireActual('../../../src/util/orgUtil');
+// Mock configAggregatorEffect module
+const mockConfigAggregatorStore: {
+  value: {
+    getPropertyValue: jest.Mock;
+  };
+} = {
+  value: {
+    getPropertyValue: jest.fn().mockReturnValue(undefined)
+  }
+};
+
+jest.mock('../../../src/util/configAggregatorEffect', () => {
+  const Effect = require('effect/Effect');
+  // Reference mockConfigAggregatorStore from closure
   return {
-    ...actual,
-    getAuthFieldsFor: jest.fn()
+    get getConfigAggregatorEffect() {
+      return Effect.succeed(mockConfigAggregatorStore.value);
+    }
+  };
+});
+
+// Mock extensionProvider to provide AllServicesLayer
+jest.mock('../../../src/extensionProvider', () => {
+  const Layer = require('effect/Layer');
+  const Context = require('effect/Context');
+  // Create a minimal Layer - since getConfigAggregatorEffect is mocked, no services are needed
+  const DummyService = Context.GenericTag('DummyService');
+  return {
+    AllServicesLayer: Layer.succeed(DummyService, {})
   };
 });
 jest.mock('../../../src/messages', () => ({
@@ -84,19 +111,9 @@ jest.mock('../../../src/messages', () => ({
 // No local util module to mock; command imports come from utils-vscode above
 
 describe('orgList command', () => {
+  let mockGetAuthFieldsFor: jest.SpyInstance;
+
   beforeEach(() => {
-    // Provide a fake core API so OrgList constructor usage doesn't crash in tests
-    jest.spyOn(vscode.extensions as any, 'getExtension').mockReturnValue({
-      exports: {
-        WorkspaceContext: {
-          getInstance: () => ({
-            username: undefined,
-            alias: undefined,
-            onOrgChange: jest.fn()
-          })
-        }
-      }
-    } as any);
     // Mock nls.localize
     (nls.localize as jest.Mock).mockImplementation((key: string, ...args: string[]) => `${key}_${args.join('_')}`);
 
@@ -105,11 +122,23 @@ describe('orgList command', () => {
 
     // Mock createTable function
     (createTable as jest.Mock).mockReturnValue('mocked table output');
+
+    // Reset mockConfigAggregatorStore
+    mockConfigAggregatorStore.value = {
+      getPropertyValue: jest.fn().mockReturnValue(undefined)
+    };
+
+    // Spy on getAuthFieldsFor
+    mockGetAuthFieldsFor = jest.spyOn(orgUtil, 'getAuthFieldsFor');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('should be a simple smoke test to verify basic functionality', () => {
     // Basic test to ensure the command structure is correct
-    expect(typeof getAuthFieldsFor).toBe('function');
+    expect(typeof orgUtil.getAuthFieldsFor).toBe('function');
     expect(channelService.appendLine).toBeDefined();
     expect(notificationService.showSuccessfulExecution).toBeDefined();
     expect(AuthInfo.listAllAuthorizations).toBeDefined();
@@ -258,16 +287,16 @@ describe('orgList command', () => {
     });
 
     it('should skip dev hubs', async () => {
-      (getAuthFieldsFor as jest.Mock).mockResolvedValue({});
+      mockGetAuthFieldsFor.mockResolvedValue({});
 
       await removeExpiredAndDeletedOrgs();
 
-      expect(getAuthFieldsFor).not.toHaveBeenCalledWith('devhub@example.com');
+      expect(mockGetAuthFieldsFor).not.toHaveBeenCalledWith('devhub@example.com');
     });
 
     it('should remove expired orgs', async () => {
       const pastDate = new Date('2020-01-01').toISOString();
-      (getAuthFieldsFor as jest.Mock)
+      mockGetAuthFieldsFor
         .mockResolvedValueOnce({}) // valid@example.com - no expiration
         .mockResolvedValueOnce({ expirationDate: pastDate }); // expired@example.com
 
@@ -278,7 +307,7 @@ describe('orgList command', () => {
     });
 
     it('should handle getAuthFieldsFor errors', async () => {
-      (getAuthFieldsFor as jest.Mock).mockRejectedValue(new Error('Auth fields error'));
+      mockGetAuthFieldsFor.mockRejectedValue(new Error('Auth fields error'));
 
       const result = await removeExpiredAndDeletedOrgs();
 
@@ -302,17 +331,16 @@ describe('orgList command', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue(mockOrgAuths);
-      (getAuthFieldsFor as jest.Mock).mockResolvedValue({});
+      mockGetAuthFieldsFor.mockResolvedValue({});
 
-      // Mock ConfigAggregator
-      const mockConfigAggregator = {
+      // Set the mock value that getConfigAggregatorEffect will return
+      mockConfigAggregatorStore.value = {
         getPropertyValue: jest.fn().mockImplementation((key: string) => {
           if (key === 'target-dev-hub') return 'devhub@example.com';
           if (key === 'target-org') return 'prod@example.com';
           return undefined;
         })
       };
-      (ConfigAggregator.create as jest.Mock).mockResolvedValue(mockConfigAggregator);
 
       // Mock ConfigUtil methods
       (ConfigUtil as any).getConfigValue.mockImplementation((key: string) => {

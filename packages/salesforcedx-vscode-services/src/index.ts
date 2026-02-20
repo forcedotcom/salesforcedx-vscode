@@ -178,6 +178,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ConnectionService.Default,
     EditorService.Default,
     FileWatcherService.Default,
+    FsService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,
     MetadataRegistryService.Default,
@@ -257,6 +258,7 @@ const deactivateEffect = Effect.gen(function* () {
   Effect.provide(Layer.mergeAll(ChannelService.Default, ServicesSdkLayer()))
 );
 
+export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
