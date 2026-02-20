@@ -1,0 +1,4 @@
+{
+  "leaf": { "id": "sf-org-leaf", "description": "Leaf icon for default scratch org" },
+  "tree": { "id": "sf-org-tree", "description": "Tree icon for default dev hub" }
+}

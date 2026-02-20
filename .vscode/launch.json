@@ -31,7 +31,6 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lightning",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-media",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
@@ -81,7 +80,6 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lightning",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-media",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
@@ -386,7 +384,6 @@
       "args": [
         "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-media",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata"
       ],
@@ -407,7 +404,6 @@
       "args": [
         "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-media",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",

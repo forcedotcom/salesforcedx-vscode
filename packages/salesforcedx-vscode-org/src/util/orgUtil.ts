@@ -24,7 +24,7 @@ import {
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import { isNotUndefined, isString } from 'effect/Predicate';
-import { ICONS } from 'salesforcedx-vscode-media';
+import { ICONS } from 'salesforcedx-vscode-services';
 import { channelService } from '../channels';
 import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';

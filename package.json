@@ -184,7 +184,6 @@
         "./packages/salesforcedx-vscode-services:compile",
         "./packages/salesforcedx-vscode-metadata:compile",
         "./packages/salesforcedx-vscode-services-types:compile",
-        "./packages/salesforcedx-vscode-media:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
         "./packages/salesforcedx-vscode-automation-tests:compile"
@@ -215,7 +214,6 @@
         "./packages/salesforcedx-vscode-visualforce:lint",
         "./packages/salesforcedx-vscode-services:lint",
         "./packages/salesforcedx-vscode-metadata:lint",
-        "./packages/salesforcedx-vscode-media:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
         "./packages/salesforcedx-vscode-automation-tests:lint",
@@ -252,7 +250,6 @@
         "./packages/salesforcedx-vscode-soql:test",
         "./packages/salesforcedx-vscode-visualforce:test",
         "./packages/salesforcedx-vscode-services:test",
-        "./packages/salesforcedx-vscode-media:test",
         "./packages/salesforcedx-vscode-org:test",
         "./packages/salesforcedx-vscode-org-browser:test",
         "./packages/effect-ext-utils:test"
@@ -294,7 +291,6 @@
         "./packages/salesforcedx-vscode-apex-testing:vscode:package",
         "./packages/salesforcedx-vscode-visualforce:vscode:package",
         "./packages/salesforcedx-vscode-soql:vscode:package",
-        "./packages/salesforcedx-vscode-media:vscode:package",
         "./packages/salesforcedx-vscode-org:vscode:package",
         "./packages/salesforcedx-vscode-services:vscode:package",
         "./packages/salesforcedx-vscode-org-browser:vscode:package",

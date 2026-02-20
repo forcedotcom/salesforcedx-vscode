@@ -40,7 +40,6 @@
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-media",
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {

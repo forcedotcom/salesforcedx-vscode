@@ -31,7 +31,7 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "salesforcedx-vscode-media": "*",
+    "salesforcedx-vscode-services": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.19.14",
     "vscode-uri": "^3.0.8"
@@ -44,8 +44,7 @@
     "ts-jest": "^29.4.1"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-services",
-    "salesforce.salesforcedx-vscode-media"
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -67,7 +66,7 @@
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
-        "../salesforcedx-vscode-media:compile"
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",

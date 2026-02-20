@@ -60,9 +60,11 @@
     "nyc": "^15",
     "querystring-es3": "^0.2.1",
     "stream-http": "^3.2.0",
-    "timers-browserify": "^2.0.12"
+    "timers-browserify": "^2.0.12",
+    "svgtofont": "^6.5.0"
   },
   "scripts": {
+    "build:icons": "wireit",
     "vscode:bundle": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -70,7 +72,7 @@
     "compile": "wireit",
     "generate-types": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json resources",
     "test": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
@@ -80,10 +82,22 @@
     "o11y:debug": "wireit"
   },
   "wireit": {
+    "build:icons": {
+      "command": "node scripts/build-icons.mjs",
+      "files": [
+        "scripts/build-icons.mjs",
+        "media/icons-src/*.svg",
+        "media/icons-src/icons.json"
+      ],
+      "output": [
+        "resources/icons-font/**"
+      ]
+    },
     "compile": {
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "build:icons",
         "generate-types",
         "../salesforcedx-vscode-i18n:compile"
       ],
@@ -199,7 +213,8 @@
         "README.md",
         "CHANGELOG.md",
         "LICENSE.txt",
-        "images/**"
+        "images/**",
+        "resources/icons-font/**"
       ],
       "output": [
         "*.vsix"
@@ -280,7 +295,23 @@
         }
       }
     },
-    "commands": []
+    "commands": [],
+    "icons": {
+      "sf-org-leaf": {
+        "description": "Leaf icon for default scratch org",
+        "default": {
+          "fontPath": "resources/icons-font/sf-media-icons.woff",
+          "fontCharacter": "\\E001"
+        }
+      },
+      "sf-org-tree": {
+        "description": "Tree icon for default dev hub",
+        "default": {
+          "fontPath": "resources/icons-font/sf-media-icons.woff",
+          "fontCharacter": "\\E002"
+        }
+      }
+    }
   },
   "sideEffects": true
 }

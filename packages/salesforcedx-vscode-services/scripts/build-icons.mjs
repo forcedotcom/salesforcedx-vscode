@@ -6,9 +6,9 @@ import svgtofont from 'svgtofont';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PKG_DIR = path.resolve(__dirname, '..');
 const ICONS_SRC = path.join(PKG_DIR, 'media/icons-src');
-const ICONS_FONT = path.join(PKG_DIR, 'out/icons-font');
+const ICONS_FONT = path.join(PKG_DIR, 'resources/icons-font');
 const FONT_NAME = 'sf-media-icons';
-const FONT_PATH = `out/icons-font/${FONT_NAME}.woff`;
+const FONT_PATH = `resources/icons-font/${FONT_NAME}.woff`;
 
 async function build() {
   const infoData = await svgtofont({
@@ -51,6 +51,7 @@ async function build() {
 
   const pkgPath = path.join(PKG_DIR, 'package.json');
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  pkg.contributes = pkg.contributes ?? {};
   pkg.contributes.icons = icons;
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 
