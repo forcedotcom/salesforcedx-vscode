@@ -59,6 +59,7 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   );
 
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const scope = yield* getExtensionScope();
 
   yield* Effect.all(
     [
@@ -83,24 +84,21 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       ),
       registerCommand('sf.create.anonymous.apex.script', createAnonymousApexScriptCommand),
       registerCommand('sf.anon.apex.execute.document', executeAnonymousDocumentCommand),
-      registerCommand('sf.anon.apex.execute.selection', executeAnonymousSelectionCommand)
+      registerCommand('sf.anon.apex.execute.selection', executeAnonymousSelectionCommand),
+
+      Effect.forkIn(createTraceFlagStatusBar(), scope).pipe(Effect.asVoid),
+      Effect.forkIn(createLogAutoCollect(), scope).pipe(Effect.asVoid),
+      Effect.forkIn(traceFlagCleanupScheduler(), scope).pipe(Effect.asVoid),
+      registerTraceFlagsCodeLensProvider(context)
     ],
+
     { concurrency: 'unbounded' }
   );
 
   const { provider } = yield* TraceFlagsContentProviderService;
   context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(TRACE_FLAGS_SCHEME, provider));
-  registerTraceFlagsCodeLensProvider(context);
 
-  const scope = yield* getExtensionScope();
-  yield* Effect.all(
-    [
-      Effect.forkIn(createTraceFlagStatusBar(), scope).pipe(Effect.asVoid),
-      Effect.forkIn(createLogAutoCollect(), scope).pipe(Effect.asVoid),
-      Effect.forkIn(traceFlagCleanupScheduler(), scope).pipe(Effect.asVoid)
-    ],
-    { concurrency: 'unbounded' }
-  );
+  yield* Effect.all([], { concurrency: 'unbounded' });
 
   yield* api.services.ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} activation complete.`))

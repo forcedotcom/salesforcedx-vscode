@@ -112,7 +112,9 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
   return [...deleteLenses, ...createLenses, ...userDebugLenses, ...deleteDebugLevelLenses, ...createDebugLevelLenses];
 });
 
-export const registerTraceFlagsCodeLensProvider = (context: ExtensionContext): void => {
+export const registerTraceFlagsCodeLensProvider = Effect.fn(
+  'ApexLog.CodeLensProvider.registerTraceFlagsCodeLensProvider'
+)(function* (context: ExtensionContext) {
   const provider = {
     provideCodeLenses: (document: TextDocument, token: CancellationToken) =>
       provideTraceFlagsCodeLens(document, token).pipe(
@@ -123,4 +125,4 @@ export const registerTraceFlagsCodeLensProvider = (context: ExtensionContext): v
       )
   };
   context.subscriptions.push(languages.registerCodeLensProvider(TRACE_FLAGS_DOCUMENT_SELECTOR, provider));
-};
+});
