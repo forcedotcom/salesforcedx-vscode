@@ -28,7 +28,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.24.0",
-    "@salesforce/o11y-reporter": "1.8.0",
+    "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -74,7 +74,7 @@
       "main": "dist/src/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/o11y-reporter": "1.8.0"
+        "@salesforce/o11y-reporter": "^1.8.1"
       },
       "devDependencies": {}
     }

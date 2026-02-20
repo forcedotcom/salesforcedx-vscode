@@ -12,7 +12,7 @@
   "dependencies": {
     "@salesforce/core": "^8.23.3",
     "@salesforce/effect-ext-utils": "*",
-    "@salesforce/o11y-reporter": "1.8.0",
+    "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/source-tracking": "^7.8.0",
     "@salesforce/vscode-i18n": "*",
