@@ -21,10 +21,10 @@ import {
   ConfigAggregatorProvider,
   ConfigUtil
 } from '@salesforce/salesforcedx-utils-vscode';
+import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import { isNotUndefined, isString } from 'effect/Predicate';
-import { ICONS } from '@salesforce/vscode-services';
 import { channelService } from '../channels';
 import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';

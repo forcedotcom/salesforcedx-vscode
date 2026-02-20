@@ -17,7 +17,7 @@ const svgNames = fs
   .readdirSync(ICONS_SRC)
   .filter(f => f.endsWith('.svg'))
   .map(f => path.basename(f, '.svg'))
-  .sort();
+  .toSorted();
 
 const manifest: Record<string, { id: string; description: string }> = JSON.parse(
   fs.readFileSync(ICONS_JSON_PATH, 'utf8')

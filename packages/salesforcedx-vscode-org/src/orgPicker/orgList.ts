@@ -7,12 +7,12 @@
 import { AuthInfo, OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ICONS, type DefaultOrgInfoSchema } from '@salesforce/vscode-services';
 import { Duration } from 'effect';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { ICONS, type DefaultOrgInfoSchema } from '@salesforce/vscode-services';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';
