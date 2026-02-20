@@ -12,17 +12,20 @@ import {
   UTILS_ROOT,
   REGISTERED_EMPTY_FOLDER_ROOT,
   SFDX_WORKSPACE_ROOT,
-  sfdxFileSystemProvider
+  sfdxFileSystemProvider,
+  createMockWorkspaceFindFilesConnection,
+  getSfdxWorkspaceRelativePaths
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { join, resolve } from 'node:path';
 import { URI } from 'vscode-uri';
 import { LWCWorkspaceContext } from '../context/lwcContext';
-import { createMockWorkspaceFindFilesConnection } from './mockWorkspaceFindFiles';
 
 // Discovery via workspace/findFiles so context can find LWC/aura roots (no server-side cache)
 sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
 sfdxFileSystemProvider.setFindFilesFromConnection(
-  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT) as Parameters<
+  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+  relativePaths: getSfdxWorkspaceRelativePaths()
+}) as Parameters<
     typeof sfdxFileSystemProvider.setFindFilesFromConnection
   >[0],
   WORKSPACE_FIND_FILES_REQUEST

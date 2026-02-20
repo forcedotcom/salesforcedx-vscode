@@ -341,7 +341,7 @@ export default [
       'import/no-empty-named-blocks': 'error',
       'import/newline-after-import': 'error',
       'import/no-cycle': 'error',
-      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/scripts/**'] }],
+      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }],
       'import/order': [
         'error',
         {
@@ -583,7 +583,7 @@ export default [
       'import/no-extraneous-dependencies': [
         'error',
         {
-          devDependencies: ['**/test/**', '**/scripts/**'],
+          devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'],
           // Allow Effect and core Salesforce dependencies
           optionalDependencies: false
         }

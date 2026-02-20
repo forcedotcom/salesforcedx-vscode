@@ -5,17 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { normalizePath, WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import {
+  SFDX_WORKSPACE_ROOT,
+  sfdxFileSystemProvider,
+  createMockWorkspaceFindFilesConnection,
+  getSfdxWorkspaceRelativePaths
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import ComponentIndexer, { Entry, unIndexedFiles } from '../componentIndexer';
 import { Tag, createTag, getTagName } from '../tag';
-import { createMockWorkspaceFindFilesConnection } from './mockWorkspaceFindFiles';
 
 // Simulate client: server discovers files via workspace/findFiles (no server-side cache)
 sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
 sfdxFileSystemProvider.setFindFilesFromConnection(
-  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT) as Parameters<
+  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+    relativePaths: getSfdxWorkspaceRelativePaths()
+  }) as Parameters<
     typeof sfdxFileSystemProvider.setFindFilesFromConnection
   >[0],
   WORKSPACE_FIND_FILES_REQUEST
@@ -77,8 +83,24 @@ describe('ComponentIndexer', () => {
         for (const expectedPath of expectedPaths) {
           expect(paths).toContain(expectedPath);
         }
-        expect(paths).not.toContain(normalizePath(path.join(componentIndexer.workspaceRoot, 'force-app', 'main', 'default', 'lwc', 'import_relative', 'messages.js')));
-        expect(paths).not.toContain(normalizePath(path.join(componentIndexer.workspaceRoot, 'force-app', 'main', 'default', 'lwc', 'todo', 'store.js')));
+        expect(paths).not.toContain(
+          normalizePath(
+            path.join(
+              componentIndexer.workspaceRoot,
+              'force-app',
+              'main',
+              'default',
+              'lwc',
+              'import_relative',
+              'messages.js'
+            )
+          )
+        );
+        expect(paths).not.toContain(
+          normalizePath(
+            path.join(componentIndexer.workspaceRoot, 'force-app', 'main', 'default', 'lwc', 'todo', 'store.js')
+          )
+        );
       });
     });
 

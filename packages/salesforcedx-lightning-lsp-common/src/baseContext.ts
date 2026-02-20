@@ -81,12 +81,12 @@ const readSfdxProjectConfig = async (
 
 const updateConfigFile =
   (fileSystemProvider: IFileSystemProvider) =>
-  (filePath: string, content: string): void => {
+  async (filePath: string, content: string): Promise<void> => {
     const dir = path.dirname(filePath);
     fileSystemProvider.updateDirectoryListing(dir, []);
     // updateFileContent is now async, but this function is synchronous
     // Since this is used in contexts without connection, the promise resolves immediately
-    void fileSystemProvider.updateFileContent(filePath, content);
+    await fileSystemProvider.updateFileContent(filePath, content);
   };
 
 const getCoreSettings = (workspaceRoots: string[]): Record<string, unknown> =>
@@ -331,22 +331,22 @@ export abstract class BaseWorkspaceContext {
    * Configures the project
    */
   public async configureProject(): Promise<void> {
-    this.writeSettingsJson();
-    this.writeCodeWorkspace();
+    await this.writeSettingsJson();
+    await this.writeCodeWorkspace();
     await this.writeJsconfigJson();
     await this.writeTypings();
   }
 
-  private writeSettingsJson(): void {
+  private async writeSettingsJson(): Promise<void> {
     const settingsPath = path.join(this.workspaceRoots[0], '.vscode', 'settings.json');
     const settings = getCoreSettings(this.workspaceRoots);
-    updateConfigFile(this.fileSystemProvider)(settingsPath, JSON.stringify(settings, null, 2));
+    await updateConfigFile(this.fileSystemProvider)(settingsPath, JSON.stringify(settings, null, 2));
   }
 
-  private writeCodeWorkspace(): void {
+  private async writeCodeWorkspace(): Promise<void> {
     const workspacePath = path.join(this.workspaceRoots[0], 'core.code-workspace');
     const workspace = getCodeWorkspace(this.workspaceRoots);
-    updateConfigFile(this.fileSystemProvider)(workspacePath, JSON.stringify(workspace, null, 2));
+    await updateConfigFile(this.fileSystemProvider)(workspacePath, JSON.stringify(workspace, null, 2));
   }
 
   private async writeJsconfigJson(): Promise<void> {
@@ -466,7 +466,7 @@ export abstract class BaseWorkspaceContext {
           jsconfigContent = JSON.stringify(config, null, 2);
         }
 
-        updateConfigFile(this.fileSystemProvider)(jsconfigPath, jsconfigContent);
+        await updateConfigFile(this.fileSystemProvider)(jsconfigPath, jsconfigContent);
       } catch (error) {
         console.error(
           `writeSfdxJsconfig: Error reading/writing jsconfig: ${error instanceof Error ? error.message : String(error)}`
@@ -510,7 +510,7 @@ export abstract class BaseWorkspaceContext {
           include: [...jsconfigCore.include, typingsInclude]
         };
         const jsconfigContent = JSON.stringify(config, null, 2);
-        updateConfigFile(this.fileSystemProvider)(jsconfigPath, jsconfigContent);
+        await updateConfigFile(this.fileSystemProvider)(jsconfigPath, jsconfigContent);
       } catch (error) {
         console.error('writeCoreJsconfig: Error reading/writing jsconfig:', error);
         throw error;

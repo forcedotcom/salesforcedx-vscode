@@ -115,8 +115,7 @@ const findFilesWithGlob = async (
 
   for (const fileUri of candidateUris) {
     const fileUriLower = fileUri.toLowerCase();
-    const startsWithCheck =
-      fileUriLower.startsWith(basePathWithSlash) || fileUriLower === basePathLower;
+    const startsWithCheck = fileUriLower.startsWith(basePathWithSlash) || fileUriLower === basePathLower;
     if (!startsWithCheck) {
       continue;
     }

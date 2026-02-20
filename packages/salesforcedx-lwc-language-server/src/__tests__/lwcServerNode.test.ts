@@ -107,9 +107,8 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 jest.mock('../resources/transformed-lwc-standard.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+
   const pathModule = require('node:path');
   // Find package root (lwc-language-server)
   let current = __dirname;
@@ -139,7 +138,12 @@ import {
   WORKSPACE_STAT_REQUEST,
   WORKSPACE_FIND_FILES_REQUEST
 } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import {
+  SFDX_WORKSPACE_ROOT,
+  sfdxFileSystemProvider,
+  createMockWorkspaceFindFilesConnection,
+  getSfdxWorkspaceRelativePaths
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { dirname, basename } from 'node:path';
 import { getLanguageService } from 'vscode-html-languageservice';
@@ -158,7 +162,6 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import Server, { findDynamicContent } from '../lwcServerNode';
-import { createMockWorkspaceFindFilesConnection } from './mockWorkspaceFindFiles';
 
 // File paths and URIs
 const filename = path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc', 'todo', 'todo.html');
@@ -206,7 +209,9 @@ const setupDocuments = async (): Promise<void> => {
 
 // Simulate client: server discovers files via workspace/findFiles (no server-side cache)
 sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-const mockFindFilesConnection = createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT);
+const mockFindFilesConnection = createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+  relativePaths: getSfdxWorkspaceRelativePaths()
+});
 sfdxFileSystemProvider.setFindFilesFromConnection(
   mockFindFilesConnection as Parameters<typeof sfdxFileSystemProvider.setFindFilesFromConnection>[0],
   WORKSPACE_FIND_FILES_REQUEST

@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import {
+  sfdxFileSystemProvider,
+  SFDX_WORKSPACE_ROOT,
+  createMockWorkspaceFindFilesConnection,
+  getSfdxWorkspaceRelativePaths
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { join } from 'node:path';
 import { URI } from 'vscode-uri';
 
@@ -29,12 +34,13 @@ import {
   findClassMember,
   getClassMemberLocation
 } from '../tag';
-import { createMockWorkspaceFindFilesConnection } from './mockWorkspaceFindFiles';
 
 // Discovery via workspace/findFiles (no server-side cache)
 sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
 sfdxFileSystemProvider.setFindFilesFromConnection(
-  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT) as Parameters<
+  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+  relativePaths: getSfdxWorkspaceRelativePaths()
+}) as Parameters<
     typeof sfdxFileSystemProvider.setFindFilesFromConnection
   >[0],
   WORKSPACE_FIND_FILES_REQUEST

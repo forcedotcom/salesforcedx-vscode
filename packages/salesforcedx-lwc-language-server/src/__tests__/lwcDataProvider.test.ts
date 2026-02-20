@@ -6,9 +6,8 @@
  */
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 jest.mock('../resources/transformed-lwc-standard.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+
   const pathModule = require('node:path');
   // Find package root (lwc-language-server)
   let current = __dirname;
@@ -24,17 +23,23 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
 });
 
 import { WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import {
+  sfdxFileSystemProvider,
+  SFDX_WORKSPACE_ROOT,
+  createMockWorkspaceFindFilesConnection,
+  getSfdxWorkspaceRelativePaths
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { URI } from 'vscode-uri';
 import ComponentIndexer from '../componentIndexer';
 import { DataProviderAttributes, LWCDataProvider } from '../lwcDataProvider';
 import { TagAttrs, createTag, getTagName } from '../tag';
-import { createMockWorkspaceFindFilesConnection } from './mockWorkspaceFindFiles';
 
 // Discovery via workspace/findFiles (no server-side cache)
 sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
 sfdxFileSystemProvider.setFindFilesFromConnection(
-  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT) as Parameters<
+  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+  relativePaths: getSfdxWorkspaceRelativePaths()
+}) as Parameters<
     typeof sfdxFileSystemProvider.setFindFilesFromConnection
   >[0],
   WORKSPACE_FIND_FILES_REQUEST

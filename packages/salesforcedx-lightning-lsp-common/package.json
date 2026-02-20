@@ -113,6 +113,7 @@
     "@types/vscode": "1.90.0",
     "find-node-modules": "^2.1.3",
     "jest-extended": "^0.11.5",
-    "lwc": "2.37.3"
+    "lwc": "2.37.3",
+    "minimatch": "^5.1.6"
   }
 }
