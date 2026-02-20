@@ -7,15 +7,15 @@
 
 export const messages = {
   // Custom icons (sf-org-leaf, sf-org-tree)
-  icon_sf_default_org: 'Leaf icon for default scratch org',
-  icon_sf_default_hub: 'Tree icon for default dev hub',
+  icon_sf_default_org: 'Default Scratch Org',
+  icon_sf_default_hub: 'Default Dev Hub',
   // Built-in codicons - org types
-  icon_org_type_devhub: 'Dev Hub org type',
-  icon_org_type_sandbox: 'Sandbox org type',
-  icon_org_type_scratch: 'Scratch org type',
-  icon_org_type_org: 'Production org type',
+  icon_org_type_devhub: 'Dev Hub',
+  icon_org_type_sandbox: 'Sandbox',
+  icon_org_type_scratch: 'Scratch',
+  icon_org_type_org: 'Production',
   // Built-in codicons - actions
-  icon_add: 'Add',
-  icon_browser: 'Open in browser',
-  icon_warning: 'Warning'
+  icon_add: 'Run Command',
+  icon_browser: 'Open Org in Browser',
+  icon_warning: 'Expired'
 } as const;

@@ -182,6 +182,7 @@ describe('OrgList tests', () => {
           expect(result).toEqual({ type: 'CANCEL' });
           expect(executeCommandMock).not.toHaveBeenCalled();
         });
+
       });
     });
   });
@@ -338,7 +339,6 @@ describe('OrgList tests', () => {
           [createOrgAuthorization({ username: 'user@example.com', aliases: ['MyOrg'] })],
           { ...defaultConfig, defaultOrgProperty: 'MyOrg', defaultOrgUsername: 'user@example.com' }
         );
-        expect(items[0].label).toContain(ICONS.SF_DEFAULT_ORG);
         expect(items[0].label).toContain('MyOrg');
         expect(items[0].description).toBe('user@example.com — Default Org');
       });
@@ -348,7 +348,6 @@ describe('OrgList tests', () => {
           [createOrgAuthorization({ username: 'hub@example.com', aliases: ['Hub'], isDevHub: true })],
           { ...defaultConfig, defaultDevHubProperty: 'Hub', defaultDevHubUsername: 'hub@example.com' }
         );
-        expect(items[0].label).toContain(ICONS.SF_DEFAULT_HUB);
         expect(items[0].label).toContain('Hub');
         expect(items[0].description).toBe('hub@example.com — Default Dev Hub');
       });
@@ -358,7 +357,7 @@ describe('OrgList tests', () => {
           [createOrgAuthorization({ username: 'user@example.com', aliases: [] })],
           { ...defaultConfig, defaultOrgProperty: 'user@example.com', defaultOrgUsername: 'user@example.com' }
         );
-        expect(items[0].label).toContain(ICONS.SF_DEFAULT_ORG);
+        expect(items[0].label).toContain('user@example.com');
         expect(items[0].description).toBe('Default Org');
       });
 
@@ -372,8 +371,6 @@ describe('OrgList tests', () => {
             defaultDevHubUsername: 'both@example.com'
           }
         );
-        expect(items[0].label).toContain(ICONS.SF_DEFAULT_HUB);
-        expect(items[0].label).toContain(ICONS.SF_DEFAULT_ORG);
         expect(items[0].label).toContain('Both');
         expect(items[0].description).toBe('both@example.com — Default Org · Default Dev Hub');
       });

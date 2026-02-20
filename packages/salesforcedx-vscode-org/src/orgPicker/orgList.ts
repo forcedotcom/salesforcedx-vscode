@@ -99,8 +99,9 @@ const orgAuthToQuickPickItem =
     const defaultMarkers = determineOrgMarkers(orgAuth, defaultConfig);
     const orgType = getOrgTypeFromAuth(orgAuth);
     const typeIcon = getIconForOrgType(orgType);
+    const labelIcon = defaultMarkers || typeIcon;
     const aliasDisplay = orgAuth.aliases?.length ? orgAuth.aliases.join(', ') : undefined;
-    const label = aliasDisplay ? `${typeIcon} ${aliasDisplay}` : `${typeIcon} ${orgAuth.username}`;
+    const label = aliasDisplay ? `${labelIcon} ${aliasDisplay}` : `${labelIcon} ${orgAuth.username}`;
     const defaultSuffix =
       defaultMarkers === `${ICONS.SF_DEFAULT_HUB} ${ICONS.SF_DEFAULT_ORG}`
         ? 'Default Org · Default Dev Hub'
@@ -167,11 +168,10 @@ export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse
 
   const quickPickList = [
     ...ACTION_ITEMS,
-    { kind: vscode.QuickPickItemKind?.Separator ?? -1, label: '' },
     ...authorizationsToQuickPickItems(authorizations, defaultConfig).flatMap((item, index, array) => {
       // add a separator if the previous item is not the same type as the current item
       if (item.orgType && (index === 0 || item.orgType !== array[index - 1].orgType)) {
-        return [{ kind: vscode.QuickPickItemKind?.Separator ?? -1, label: orgTypeToLabel(item.orgType) }, item];
+        return [{ kind: vscode.QuickPickItemKind?.Separator ?? 1, label: orgTypeToLabel(item.orgType) }, item];
       }
       return [item];
     })
