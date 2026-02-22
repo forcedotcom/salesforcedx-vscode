@@ -1289,12 +1289,12 @@
         "Field Type": "ExternalDataSrcDescriptors[]"
       },
       {
-        "Description": "Allows the Lightning Platform and users in this org create, update, and delete records for external objects associated with the external data source. The external object data is stored outside the org. By default, external objects are read-only. Corresponds to Writable External Objects in the user interface. Available in API version 35.0 and later. However, with the cross-org adapter for Salesforce Connect, you can set this field to true only in API version 39.0 and later.",
+        "Description": "Allows the Lightning Platform and users in this org to create, update, and delete records for external objects associated with the external data source. The external object data is stored outside the org. By default, external objects are read-only. Corresponds to Writable External Objects in the user interface. Available in API version 35.0 and later. However, with the cross-org adapter for Salesforce Connect, you can set this field to true only in API version 39.0 and later.",
         "Field Name": "isWritable",
         "Field Type": "boolean"
       },
       {
-        "Description": "A name for the external data source. The label is displayed in the Salesforce user interface, such as in list views.Examples include Acme Team Marketing Site, or Acme SharePoint.",
+        "Description": "A name for the external data source. The label is displayed in the Salesforce user interface, such as in list views.Examples include Acme Team Marketing Site or Acme SharePoint.",
         "Field Name": "label",
         "Field Type": "string"
       },
@@ -1339,9 +1339,9 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. For Salesforce Connect, specifies the adapter that connects to the external system. The valid values are: AmazonAthena—Amazon Athena AmazonDynamoDB—Amazon DynamoDB OData—OData 2.0 adapter OData4—OData 4.0 adapter SfdcOrg—cross-org adapter ApexClassId—DataSource.Provider class that defines the custom adapter created via the Apex Connector Framework For Files Connect, specifies the data source type. The valid values are: ContentHubSharepoint—SharePoint 2010 or 2013 ContentHubSharepointOffice365—SharePoint Online ContentHubSharepointOneDrive—OneDrive for Business ContentHubGDrive—Google Drive ContenHubIsotope—Isotope If Chatter is enabled, you can also specify SimpleURL to access data hosted on a web server that doesn’t require authentication. outgoingemail—A data source used for sending an email through a quick action. The Identity and Wrapper types are reserved for future use. For Digital Lending Configurator, the valid value is AFPPAttribute. The data source name for the Application Form Product Proposal Attribute virtual object. For the federated search external data source type, the valid value is OpenSearch. For Transaction Management in Revenue Cloud, the valid values are: ASPAttribute—The data source name for the Asset State Period Attribute virtual object. Available in API version 63.0 and later. OIAttribute— The data source name for the Order Item Attribute virtual object. Available in API version 63.0 and later. QLIAttribute— The data source name for the Quote Line Item Attribute virtual object. Available in API version 63.0 and later. For SalesAgreement in Manufacturing Cloud, the valid values are: SAPAttribute—The data source name for the SalesAgreement Product Attribute virtual object. Available in API version 60.0 and later. These values are reserved for internal use: ClaimAttributeDS ClaimItemAttributeDS CtrtGrpPlnAttr CtrtGrpPlnGrpClsAttr",
+        "Description": "Required. For Salesforce Connect, specifies the adapter that connects to the external system. The valid values are: AmazonAthena—Amazon Athena AmazonDynamoDB—Amazon DynamoDB OData—OData 2.0 adapter OData4—OData 4.0 adapter SfdcOrg—cross-org adapter ApexClassId—DataSource.Provider class that defines the custom adapter created via the Apex Connector Framework For Files Connect, specifies the data source type. The valid values are: ContentHubSharepoint—SharePoint 2010 or 2013 ContentHubSharepointOffice365—SharePoint Online ContentHubSharepointOneDrive—OneDrive for Business ContentHubGDrive—Google Drive ContenHubIsotope—Isotope If Chatter is enabled, you can also specify SimpleURL to access data hosted on a web server that doesn’t require authentication. outgoingemail—A data source used for sending an email through a quick action. For Digital Lending Configurator, the valid value is: AFPPAttribute—The data source name for the Application Form Product Proposal Attribute virtual object. For the federated search external data source type, the valid value is: OpenSearch For Transaction Management in Revenue Cloud, the valid values are: ASPAttribute—The data source name for the Asset State Period Attribute virtual object. Available in API version 63.0 and later. OIAttribute—The data source name for the Order Item Attribute virtual object. Available in API version 63.0 and later. QLIAttribute—The data source name for the Quote Line Item Attribute virtual object. Available in API version 63.0 and later. For SalesAgreement in Manufacturing Cloud, the valid values are: SAPAttribute—The data source name for the SalesAgreement Product Attribute virtual object. Available in API version 60.0 and later. These values are reserved for internal use: AssetAttribute ClaimAttributeDS ClaimItemAttributeDS CryptoTrEnvChgLogSnp CtrtGrpPlnAttr CtrtGrpPlnGrpClsAttr FAAttribute FLAttribute IAItemProdtAttr Identity InsPolicyAttribute IPAAttribute IPCAttribute IPCvrBnftAttribute IPPAttribute SdbOvenPODataSource Wrapper",
         "Field Name": "type",
-        "Field Type": "ExternalData​SourceType​ (enumeration of type string)"
+        "Field Type": "ExternalDataSourceType (enumeration of type string)"
       },
       {
         "Description": "The user name that your org uses to access the external system. Make sure that the credentials you use have adequate privileges to access the external system, perform searches, return data, and return information about the external system’s metadata.",
@@ -3671,6 +3671,11 @@
         "Field Type": "AnalyticsFilterWidgetDef[]"
       },
       {
+        "Description": "The definition for a image widget type. A dashboard has 0 or more image widgets. Required for image widget.",
+        "Field Name": "imageWidgetDefs",
+        "Field Type": "AnalyticsImageWidgetDef[]"
+      },
+      {
         "Description": "The label for the widget.",
         "Field Name": "label",
         "Field Type": "string"
@@ -3691,7 +3696,7 @@
         "Field Type": "AnalyticsTextWidgetDef[]"
       },
       {
-        "Description": "Required. The widget type.Values are: button container filter metric parameter text visualization",
+        "Description": "Required. The widget type.Values are: button component container filter image metric parameter text visualization",
         "Field Name": "type",
         "Field Type": "AnalyticsWidgetType (enumeration of type string)"
       },
@@ -3827,6 +3832,23 @@
       }
     ],
     "short_description": "Represents a filter widget definition for a Tableau Next dashboard.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsdashboard.htm",
+    "parent": "Metadata"
+  },
+  "AnalyticsImageWidgetDef": {
+    "fields": [
+      {
+        "Description": "The parameters for the image widget. This is a JSON String.",
+        "Field Name": "parameters",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The data source the image is associated with.",
+        "Field Name": "source",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a image widget definition for a Tableau Next dashboard.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsdashboard.htm",
     "parent": "Metadata"
   },
@@ -4100,6 +4122,11 @@
         "Description": "The function type of the visualization field. Values are: Avg Count CountD DatePartDay DatePartMonth DatePartQuarter DatePartWeek DatePartWeekDay DatePartYear DateTruncDay DateTruncMonth DateTruncQuarter DateTruncWeek DateTruncYear FiscalDatePartMonth FiscalDatePartQuarter FiscalDatePartWeek FiscalDatePartYear FiscalDateTruncMonth FiscalDateTruncQuarter FiscalDateTruncWeek FiscalDateTruncYear Max Mdy Median Min My Stdev Stdevp Sum UserAgg Var Varp",
         "Field Name": "function",
         "Field Type": "VisualizationFieldFunctionType (enumeration of type string)"
+      },
+      {
+        "Description": "The hierarchy name for the field.",
+        "Field Name": "hierarchyName",
+        "Field Type": "string"
       },
       {
         "Description": "The label for the field.",
@@ -15389,7 +15416,7 @@
       {
         "Description": "A list of dashboard component contents.This field is available in API version 58.0 and later.",
         "Field Name": "dashboardComponentContents",
-        "Field Type": "DashboardComponentContent"
+        "Field Type": "DashboardComponentContent[]"
       },
       {
         "Description": "A list of dashboard dynamic values. This field is available in API version 36.0 and later.",
@@ -15614,7 +15641,12 @@
         "Field Type": "HorizontalAlignment (enumeration of type string)"
       },
       {
-        "Description": "The rich text content for the component..",
+        "Description": "The parameters for the component.",
+        "Field Name": "componentParameters",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The rich text content for the component.",
         "Field Name": "richTextContent",
         "Field Type": "string"
       },
@@ -20576,7 +20608,7 @@
   "ExternalAuthIdentityProvider": {
     "fields": [
       {
-        "Description": "Required. Authentication flow to get tokens to call protected APIs. Values are: AuthorizationCode SalesforceDefined",
+        "Description": "Required. Authentication flow to get tokens to call protected APIs. Values are: AuthorizationCode ClientCredentials SalesforceDefined",
         "Field Name": "authenticationFlow",
         "Field Type": "IdentityProviderAuthFlow (enumeration of type string)"
       },
@@ -20623,7 +20655,7 @@
         "Field Type": "ExtlIdentityProviderParmType (enumeration of type string)"
       },
       {
-        "Description": "If the parameterType field describes a literal value then the literal value is stored in this field.",
+        "Description": "If the parameterType field describes a literal value, then this field stores the literal value.",
         "Field Name": "parameterValue",
         "Field Type": "string"
       },
@@ -22560,7 +22592,7 @@
         "Field Type": "FlowMetadataValue[]"
       },
       {
-        "Description": "The type of the flow, as determined by the active version, or the latest version, if there’s no active version. Valid values are: ActionableEventManagementFlow—A flow that triggers an actionable event orchestration process in the background and automatically executes different types of actions based on the event type. This value is available in API version 62.0 and later. ActionCadenceAutolaunchedFlow—A flow that’s executed when a user completes a cadence step. This value is available in API version 56.0 and later. ActionCadenceStepFlow—A screen flow used as a cadence step. This value is available in API version 56.0 and later. ActivityObjectMatchingFlow—A flow that launches when Einstein Activity Capture detects and captures a new activity, such as an email. This type of flow runs in the background without user interaction. This value is available with Sync Email as Salesforce Activity in API version 64.0 and later. Appointments—A flow for Lightning Scheduler. This value is available in API version 44.0 and later. ApprovalWorkflow—An orchestration that’s used for an approval process. This value is available in API version 63.0 and later. AutoLaunchedFlow—A flow that doesn’t require user interaction. CheckoutFlow—A flow used in Lightning B2B Commerce to create a checkout in a store. This value is available in API version 48.0 and later. ContactRequestFlow—A flow that lets customers request to be contacted by customer support. This flow is used to create contact request records. This value is available in API version 45.0 and later. CustomerLifecycle—A Salesforce Surveys flow that lets you associate survey questions with different stages in customer lifecycles. This value is available in API version 49.0 and later and only when the Customer Lifecycle Designer license is enabled. CustomEvent—A process that is invoked when it receives a platform event message. In the UI, it’s an event process. This value is available in API version 41.0 and later. DataCaptureFlow— In the UI, Data Capture flows configure the Form tab in the Field Service mobile app. When the Data Capture flow is launched, its Flow metadata is publicly available in JavaScript format. This value is available in API version 62.0 and later. DcvrFrameworkDataCaptureFlow—A screen flow that presents assessment questions from Discovery Framework. Launches when invoked by a user on a mobile device. This type of flow collects or displays information, requires user interaction, and works offline or online. This value is available in API version 62.0 and later. EvaluationFlow—A flow for evaluating custom entry and exit conditions in an orchestration. Uses the isOrchestrationConditionMet output variable and discards values from any other output variables. This value is available in API version 54.0 and later. FieldServiceMobile—A flow for the Field Service mobile app. This value is available in API version 39.0 and later. FieldServiceWeb—A flow for embedded Appointment Booking. Its UI label is Field Service Embedded Flow. This value is available in API version 41.0 and later. Flow—A flow that requires user interaction because it contains one or more screens or local actions, choices, or dynamic choices. In the UI and Salesforce Help, it’s a screen flow. Screen flows can be launched from the UI, such as with a flow action, Lightning page, or web tab. FSCLending—A flow for Financial Services Cloud Mortgage. This value is available in API version 46.0 and later. IdentityUserRegistrationFlow—A flow to handle user registration and updates for single sign-on with the authentication provider framework. Available in API version 64.0 and later. IndicatorResultFlow—A flow for Outcome Management that calculates and creates indicator results for a selected indicator performance period. This value is available with the Outcome Management license in API version 60.0 and later. IndividualObjectLinkingFlow—A flow that associates individuals with interactions such as voice calls, messaging sessions, or case-related emails. This value is available in API version 58.0 and later. InvocableProcess—A process that another process or the Invocable Actions resource in REST API invokes. This value is available in API version 38.0 and later. Journey—An audience-driven flow for Marketing Cloud. This value is available in API version 57.0 and later. LoginFlow—A flow for login. This value is available in API version 51.0 and later. LoyaltyManagementFlow—A flow for the Loyalty Management app that’s invokable by loyalty program processes. This value is available in API version 54.0 and later. Orchestrator—An orchestration that organizes flows into groups of steps contained in a series of stages. This value is available in API version 53.0 and later. PromptFlow—A flow for Prompt Builder. Pass data between Prompt Builder and the flow. This value is available in API version 60.0 and later. RecommendationStrategy—Build recommendations for your users. A recommendation launches its assigned flow. This value is available in API version 54.0 and later. See Flow Builder Strategies. RoutingFlow—A flow for Salesforce Omni-Channel routing and other business logic. This value is available in API version 52.0 and later. Survey—A flow for Salesforce Surveys. From the UI, this type of flow is created in Survey Builder. This value is available in API version 42.0 and later. SurveyEnrich—A Salesforce Surveys flow that uses the Survey Data Mapper. From the UI, this type of flow is created in the Survey Builder and requires an associated survey flow type. This value is available in API version 49.0 or later and only when the Customer Lifecycle Designer license is enabled. Workflow—A process that is invoked when a record is created or edited. In the UI and Salesforce Help, it’s a record change process. Across flow versions, you can change the type only from Flow to AutoLaunchedFlow or vice versa. Before you change the flow type, make sure that the flow contains only the elements, resources, and functionality that the new flow type supports. These values are reserved for future or Salesforce internal use. ActionCadenceFlow ActionPlan AppProcess ApprovalWorkflow CartAsyncFlow DigitalForm JourneyBuilderIntegration LoginFlow ManagedContentFlow OrchestrationFlow SalesEntryExperienceFlow TransactionSecurityFlow UserProvisioningFlow This field is available in API version 31.0 and later.",
+        "Description": "The type of the flow, as determined by the active version, or the latest version, if there’s no active version. Valid values are: ActionableEventManagementFlow—A flow that triggers an actionable event orchestration process in the background and automatically executes different types of actions based on the event type. This value is available in API version 62.0 and later. ActionCadenceAutolaunchedFlow—A flow that’s executed when a user completes a cadence step. This value is available in API version 56.0 and later. ActionCadenceStepFlow—A screen flow used as a cadence step. This value is available in API version 56.0 and later. ActivityObjectMatchingFlow—A flow that launches when Einstein Activity Capture detects and captures a new activity, such as an email. This type of flow runs in the background without user interaction. This value is available with Sync Email as Salesforce Activity in API version 64.0 and later. Appointments—A flow for Lightning Scheduler. This value is available in API version 44.0 and later. ApprovalWorkflow—An orchestration that’s used for an approval process. This value is available in API version 63.0 and later. AutoLaunchedFlow—A flow that doesn’t require user interaction. CheckoutFlow—A flow used in Lightning B2B Commerce to create a checkout in a store. This value is available in API version 48.0 and later. ContactRequestFlow—A flow that lets customers request to be contacted by customer support. This flow is used to create contact request records. This value is available in API version 45.0 and later. CustomerLifecycle—A Salesforce Surveys flow that lets you associate survey questions with different stages in customer lifecycles. This value is available in API version 49.0 and later and only when the Customer Lifecycle Designer license is enabled. CustomEvent—A process that is invoked when it receives a platform event message. In the UI, it’s an event process. This value is available in API version 41.0 and later. DataCaptureFlow— In the UI, Data Capture flows configure the Form tab in the Field Service mobile app. When the Data Capture flow is launched, its Flow metadata is publicly available in JavaScript format. This value is available in API version 62.0 and later. DcvrFrameworkDataCaptureFlow—A screen flow that presents assessment questions from Discovery Framework. Launches when invoked by a user on a mobile device. This type of flow collects or displays information, requires user interaction, and works offline or online. This value is available in API version 62.0 and later. EvaluationFlow—A flow for evaluating custom entry and exit conditions in an orchestration. Uses the isOrchestrationConditionMet output variable and discards values from any other output variables. This value is available in API version 54.0 and later. FieldServiceMobile—A flow for the Field Service mobile app. This value is available in API version 39.0 and later. FieldServiceWeb—A flow for embedded Appointment Booking. Its UI label is Field Service Embedded Flow. This value is available in API version 41.0 and later. Flow—A flow that requires user interaction because it contains one or more screens or local actions, choices, or dynamic choices. In the UI and Salesforce Help, it’s a screen flow. Screen flows can be launched from the UI, such as with a flow action, Lightning page, or web tab. FSCLending—A flow for Financial Services Cloud Mortgage. This value is available in API version 46.0 and later. IdentityUserRegistrationFlow—A flow to handle user registration and updates for single sign-on with the authentication provider framework. Available in API version 64.0 and later. IndicatorResultFlow—A flow for Outcome Management that calculates and creates indicator results for a selected indicator performance period. This value is available with the Outcome Management license in API version 60.0 and later. IndividualObjectLinkingFlow—A flow that associates individuals with interactions such as voice calls, messaging sessions, or case-related emails. This value is available in API version 58.0 and later. InvocableProcess—A process that another process or the Invocable Actions resource in REST API invokes. This value is available in API version 38.0 and later. Journey—An audience-driven flow for Marketing Cloud. This value is available in API version 57.0 and later. LoginFlow—A flow for login. This value is available in API version 51.0 and later. LoyaltyManagementFlow—A flow for the Loyalty Management app that’s invokable by loyalty program processes. This value is available in API version 54.0 and later. Orchestrator—An orchestration that organizes flows into groups of steps contained in a series of stages. This value is available in API version 53.0 and later. PromptFlow—A flow for Prompt Builder. Pass data between Prompt Builder and the flow. This value is available in API version 60.0 and later. RecommendationStrategy—Build recommendations for your users. A recommendation launches its assigned flow. This value is available in API version 54.0 and later. See Flow Builder Strategies. RoutingFlow—A flow for Salesforce Omni-Channel routing and other business logic. This value is available in API version 52.0 and later. Survey—A flow for Salesforce Surveys. From the UI, this type of flow is created in Survey Builder. This value is available in API version 42.0 and later. SurveyEnrich—A Salesforce Surveys flow that uses the Survey Data Mapper. From the UI, this type of flow is created in the Survey Builder and requires an associated survey flow type. This value is available in API version 49.0 or later and only when the Customer Lifecycle Designer license is enabled. Workflow—A process that is invoked when a record is created or edited. In the UI and Salesforce Help, it’s a record change process. Across flow versions, you can change the type only from Flow to AutoLaunchedFlow or vice versa. Before you change the flow type, make sure that the flow contains only the elements, resources, and functionality that the new flow type supports. These values are reserved for future or Salesforce internal use. ActionPlan AppProcess ApprovalWorkflow CartAsyncFlow DigitalForm JourneyBuilderIntegration LoginFlow ManagedContentFlow OrchestrationFlow SalesEntryExperienceFlow TransactionSecurityFlow UserProvisioningFlow This field is available in API version 31.0 and later.",
         "Field Name": "processType",
         "Field Type": "FlowProcessType (enumeration of type string)"
       },
@@ -22750,6 +22782,11 @@
         "Description": "Specifies which node to execute if an async action execution is timed out. This field is available in API version 62.0 and later.",
         "Field Name": "timeoutConnector",
         "Field Type": "FlowConnector"
+      },
+      {
+        "Description": "Include or exclude a timeout path for an asynchronous action in a flow. Valid values are: DisableTimeoutPath EnableTimeoutPath This field is available in API version 66.0 and later.",
+        "Field Name": "timeoutPathUsage",
+        "Field Type": "FlowActionCallTimeoutPath (enumeration of type string)"
       },
       {
         "Description": "Specifies the version of the versioned action. By default, the value is 1. Supported only when versionSegment is specified. This field is available in API version 58.0 to 61.0. This field is deprecated in API version 62.0 and later.",
@@ -27331,6 +27368,28 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiprompttemplateactv.htm",
     "parent": "Metadata"
   },
+  "GiftEntryGridTemplate": {
+    "fields": [
+      {
+        "Description": "The description of the gift entry grid template.",
+        "Field Name": "Description",
+        "Field Type": "textarea"
+      },
+      {
+        "Description": "Indicates whether the template is the default template for single gift entry (true) or not (false, the default).",
+        "Field Name": "IsSingleGiftDefault",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "The template configuration that includes the data for fields, columns, and components.",
+        "Field Name": "TemplateConfiguration",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents templates that customize the gift entry grid in Fundraising.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_giftentrygridtemplate.htm",
+    "parent": "Metadata"
+  },
   "GlobalPicklist": {
     "fields": [
       {
@@ -29481,7 +29540,7 @@
         "Field Type": "LightningTypeBundleResource[]"
       }
     ],
-    "short_description": "Represents a custom Lightning type. Use this type to override the default user interface to create a customized appearance of responses on the custom agent’s action input and output. Deploy this bundle to your organization to implement the overrides.",
+    "short_description": "Represents a custom Lightning type. Use this type to override the default user interface to create a customized appearance based on your business requirements. Deploy this bundle to your organization to implement the overrides.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningtypebundle.htm",
     "parent": "Metadata"
   },
@@ -31333,7 +31392,7 @@
   "MLDataDefinition": {
     "fields": [
       {
-        "Description": "Required. Represents the name of the data definition. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.",
+        "Description": "Required. Represents the name of the data definition. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.",
         "Field Name": "developerName",
         "Field Type": "string"
       },
@@ -40428,6 +40487,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the incremental upsert operation is enabled for CRM Analytics recipe output nodes (true) or not (false). Available in API version 66.0 and later.",
+        "Field Name": "enable​Incremental​Upsert",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether CRM Analytics is enabled in Salesforce (true) or not (false).",
         "Field Name": "enable​Insights",
         "Field Type": "boolean"
@@ -40503,6 +40567,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the CRM Analytics Hyperforce headless browser service is enabled (true) or not (false). Available in API version 66.0 and above.",
+        "Field Name": "enable​Pupparazzi​For​Notifications",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether querying live connectors is available in Salesforce (true) or not (false). Available in API version 48.0 and later.",
         "Field Name": "enable​Query​Live​Connectors",
         "Field Type": "boolean"
@@ -40528,6 +40597,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the export of custom text in Lightning Experience Reports is available in Salesforce (true) or not (false). Available in API version 66.0 and later.",
+        "Field Name": "enable​Report​Custom​Text​Export​Pref",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the sanitization of malicious characters in CSV exports to prevent formula injection feature in Lightning Experience Reports is available in Salesforce (true) or not (false). Available in API version 65.0 and later.",
         "Field Name": "enable​Report​Escape​Chars​Pref",
         "Field Type": "boolean"
@@ -40550,6 +40624,11 @@
       {
         "Description": "Indicates whether the inline editing feature for Lightning Experience Reports is available in Salesforce (true) or not (false). Available in API version 53.0 and later.",
         "Field Name": "enable​Report​Inline​Edit​Pref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether interfaces on Data 360 reports during packaging are enabled (true) or not (false). Available in API version 66.0 and later.",
+        "Field Name": "enable​Report​Interface​Pref",
         "Field Type": "boolean"
       },
       {
@@ -40633,11 +40712,6 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether this org allows users to import report table settings for Lightning Experience dashboards FlexTable components (true) or not (false). Available in API version 65.0 and later.",
-        "Field Name": "enable​Use​Report​Table​Setting​Perf",
-        "Field Type": "boolean"
-      },
-      {
         "Description": "Indicates whether the new date version for timezone support in Analytics assets is enabled in Salesforce (true) or not (false). Available in API version 51.0 and later.",
         "Field Name": "enable​Wave​Assets​New​Date​Version",
         "Field Type": "boolean"
@@ -40710,6 +40784,11 @@
       {
         "Description": "Indicates whether Data Prep recipe orchestration is enabled (true) or not (false). Available in API version 54.0 and later. (Beta)",
         "Field Name": "etl​Orchestration​Pref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the incremental upsert operation is enabled for CRM Analytics recipe output nodes (true) or not (false). Available in API version 66.0 and later.",
+        "Field Name": "incremental​Upsert​Enabled",
         "Field Type": "boolean"
       },
       {
@@ -42389,13 +42468,13 @@
   "DevHubSettings": {
     "fields": [
       {
-        "Description": "Indicates whether DevOps Center is enabled: true or false. When enabled, you can install and use the generally available (GA) DevOps Center package in the org. Available in API version 56.0 and later.",
-        "Field Name": "enableDevOpsCenterGA",
+        "Description": "Indicates whether the next-generation DevOps Center (Beta) is enabled: true or false. When enabled, you can access the AI-powered, next-generation DevOps Center for change and release management in the org.Available in API version 65.0 and later. enableALMDevopsCorePref is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
+        "Field Name": "enableALMDevopsCorePref",
         "Field Type": "boolean"
       },
       {
-        "Description": "(Deprecated) Indicates whether DevOps Center beta is enabled: true or false. When enabled, you can install and use the DevOps Center beta package in the org.",
-        "Field Name": "enableDevOpsCenter",
+        "Description": "Indicates whether DevOps Center managed package is enabled: true or false. When enabled, you can install and use the generally available (GA) DevOps Center package in the org. This is an older version of DevOps Center.Available in API version 56.0 and later.",
+        "Field Name": "enableDevOpsCenterGA",
         "Field Type": "boolean"
       },
       {
@@ -43127,7 +43206,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Enables (true) or disables (false) the Apex Limit Events (Pilot) feature. Default value is false.The Apex Limit Events (Pilot) feature has been discontinued so don’t use this field.",
+        "Description": "The Apex Limit Events (Pilot) feature is discontinued. Don’t use this field.",
         "Field Name": "enableApexLimitEvents",
         "Field Type": "boolean"
       },
