@@ -144,6 +144,9 @@ const activationEffect = (context: vscode.ExtensionContext) =>
         concurrency: 'unbounded'
       }
     );
+    // init the connection for all the consumers who might need it
+    // no Connection is a possible state
+    yield* Effect.fork(ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)));
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**

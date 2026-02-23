@@ -206,13 +206,14 @@ export const createOrgPicker = Effect.fn(function* () {
   yield* Effect.addFinalizer(() => Effect.sync(() => orgOpenStatusBarItem.dispose()));
 
   orgPickerStatuBarItem.command = 'sf.set.default.org';
-  // we always show this one, even if there is no org
-  orgPickerStatuBarItem.show();
 
-  // these don't change, we just show/hide based on there being an org or
+  // these don't change, we just show/hide based on there being an org
   orgOpenStatusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
   orgOpenStatusBarItem.command = ORG_OPEN_COMMAND;
   orgOpenStatusBarItem.text = ICONS.BROWSER;
+
+  // we always show this one, even if there is no org
+  orgPickerStatuBarItem.show();
 
   // watch for org changes
   const targetOrgRef = yield* api.services.TargetOrgRef();

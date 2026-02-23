@@ -38,9 +38,6 @@ export const watchConfigFiles = () =>
       const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
       const configService = yield* ConfigService;
 
-      // Initial load: prime the default org ref so status bar shows org immediately
-      yield* ConnectionService.getConnection().pipe(Effect.catchAll(() => clearDefaultOrgRef()));
-
       // Subscribe to file changes and clear defaultOrgRef when config files change
       yield* Stream.fromQueue(dequeue).pipe(
         Stream.filter(event => isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)),
