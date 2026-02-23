@@ -18,5 +18,6 @@ export const createProjectTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  // use vscode's dialog box instead of the native OS, so it works for mac on playwright
   userSettings: { 'files.simpleDialog.enable': true }
 });
