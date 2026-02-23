@@ -58,10 +58,8 @@
     "@types/papaparse": "^5.2.3",
     "esbuild": "0.25.12",
     "immutable": "3.8.2",
-    "lwc-services": "^3.0.2",
     "rxjs": "^6.6.2",
     "salesforcedx-vscode-core": "*",
-    "terser-webpack-plugin": "^5.1.1",
     "util": "^0.12.3"
   },
   "extensionDependencies": [
@@ -113,13 +111,12 @@
       ]
     },
     "build:soql-builder-ui": {
-      "command": "cd src/soql-builder-ui && npm install && export NODE_OPTIONS=--openssl-legacy-provider && npx lwc-services build -w webpack.config.js -m production",
+      "command": "cd src/soql-builder-ui && npm install && npm run build",
       "files": [
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
-        "src/soql-builder-ui/webpack.config.js",
+        "src/soql-builder-ui/rollup.config.mjs",
         "src/soql-builder-ui/lwc.config.json",
-        "src/soql-builder-ui/lwc-services.config.js",
         "src/soql-builder-ui/package.json"
       ],
       "output": [
