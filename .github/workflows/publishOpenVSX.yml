@@ -60,7 +60,7 @@ jobs:
           gh release download v${{ env.PUBLISH_VERSION }} -D ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
-      - run: npm ci
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - run: |
           cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish --skip-duplicate "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
 
