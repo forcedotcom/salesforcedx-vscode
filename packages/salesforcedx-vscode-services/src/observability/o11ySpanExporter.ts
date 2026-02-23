@@ -12,9 +12,13 @@ import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 // @ts-ignore o11y has no types
 import { pdpEventSchema } from 'o11y_schema/sf_pdp';
+import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
+
+const getConnection = () =>
+  Effect.runPromise(ConnectionService.getConnection().pipe(Effect.provide(ConnectionService.Default)));
 
 /**
  * OpenTelemetry span exporter that sends spans to O11y using @salesforce/o11y-reporter.
@@ -41,7 +45,7 @@ export class O11ySpanExporter implements SpanExporter {
       return this.initPromise;
     }
     this.initPromise = (async () => {
-      await this.o11yService.initialize(this.extensionName, this.endpoint);
+      await this.o11yService.initialize(this.extensionName, this.endpoint, getConnection);
       this.o11yService.enableAutoBatching({ flushInterval: 30_000, enableShutdownHook: true });
       this.initialized = true;
     })();

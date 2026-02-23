@@ -59,6 +59,43 @@ describe('O11yReporter', () => {
     jest.clearAllMocks();
   });
 
+  describe('initialize', () => {
+    it('should call o11yService.initialize with extensionName, endpoint, and getConnection', async () => {
+      const getConnectionMock = jest.fn().mockResolvedValue({ instanceUrl: 'https://test.salesforce.com' });
+      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
+        orgId: dummyOrgId,
+        orgShape: 'ScratchOrg',
+        devHubId: '00Dxx0000001gPHFAU',
+        getConnection: getConnectionMock
+      } as any);
+
+      const initializeMock = jest.fn().mockResolvedValue(undefined);
+      jest.spyOn(O11yService, 'getInstance').mockReturnValue({
+        logEvent: sendMock,
+        upload: uploadMock,
+        forceFlush: forceFlushMock,
+        enableAutoBatching: enableAutoBatchingMock,
+        initialize: initializeMock
+      } as any);
+
+      const reporter = new O11yReporter(
+        fakeExtensionId,
+        fakeExtensionVersion,
+        fakeEndpoint,
+        fakeUserId,
+        'test-webUser'
+      );
+
+      await reporter.initialize('test-extension');
+
+      expect(initializeMock).toHaveBeenCalledTimes(1);
+      expect(initializeMock).toHaveBeenCalledWith('test-extension', fakeEndpoint, expect.any(Function));
+      expect(enableAutoBatchingMock).toHaveBeenCalledWith(
+        expect.objectContaining({ flushInterval: 30_000, enableShutdownHook: true })
+      );
+    });
+  });
+
   describe('sendTelemetryEvent', () => {
     it('should send telemetry event with properties and measurements', () => {
       const eventName = 'testEvent';
@@ -67,7 +104,6 @@ describe('O11yReporter', () => {
 
       o11yReporter.sendTelemetryEvent(eventName, properties, measurements);
 
-      expect(sendMock).toHaveBeenCalledTimes(1);
       expect(sendMock).toHaveBeenCalledTimes(1);
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
