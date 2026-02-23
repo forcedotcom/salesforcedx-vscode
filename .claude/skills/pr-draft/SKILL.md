@@ -23,6 +23,12 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
    - **Random (Gus Spinner):** pick one at random from team members, excluding current `Assignee__c`
      Set `Status__c='Ready for Review'`, `QA_Engineer__c='<selected userId>'`. **Before updating:** show user Status**c, QA_Engineer**c. Ask user to confirm. Do not run `sf data update record` until user says yes.
 
+## Target branch
+
+- Default `develop`
+- From other branch (≠ develop, ≠ main)? Use it. Detect: `git reflog show <branch> | tail -1` → "moving from X" / "Created from X"
+- Never `main`; inferred main → develop
+
 ## Title format
 
 `type(scope): description W-XXXXX`
