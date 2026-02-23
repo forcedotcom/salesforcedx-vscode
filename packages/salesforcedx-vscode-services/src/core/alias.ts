@@ -38,7 +38,7 @@ export class AliasService extends Effect.Service<AliasService>()('AliasService',
       return yield* readAliasFile().pipe(Effect.map(a => a.orgs));
     });
 
-    /** Get all alias es for a given username */
+    /** Get all aliases for a given username */
     const getAliasesFromUsername = Effect.fn('AliasService.getAliasesFromUsername')(function* (username: string) {
       return yield* readAliasFile().pipe(
         Effect.map(aliasContents => aliasContents.orgs),
