@@ -80,14 +80,22 @@ type ProjectName = {
   projectName: string;
 };
 
-type ProjectTemplate = 'standard' | 'empty' | 'analytics';
+type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'react-b2e' | 'react-b2x';
 
 class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{ projectTemplate: ProjectTemplate }>> {
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem('project_generate_standard_template_display_text', 'project_generate_standard_template'),
       new ProjectTemplateItem('project_generate_empty_template_display_text', 'project_generate_empty_template'),
-      new ProjectTemplateItem('project_generate_analytics_template_display_text', 'project_generate_analytics_template')
+      new ProjectTemplateItem(
+        'project_generate_analytics_template_display_text',
+        'project_generate_analytics_template'
+      ),
+      new ProjectTemplateItem(
+        'project_generate_react_b2e_template_display_text',
+        'project_generate_react_b2e_template'
+      ),
+      new ProjectTemplateItem('project_generate_react_b2x_template_display_text', 'project_generate_react_b2x_template')
     ];
 
     const selection = await vscode.window.showQuickPick(items);
@@ -101,6 +109,12 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         break;
       case nls.localize('project_generate_analytics_template_display_text'):
         projectTemplate = 'analytics';
+        break;
+      case nls.localize('project_generate_react_b2e_template_display_text'):
+        projectTemplate = 'react-b2e';
+        break;
+      case nls.localize('project_generate_react_b2x_template_display_text'):
+        projectTemplate = 'react-b2x';
         break;
       default:
         break;

@@ -107,7 +107,8 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   project_generate_empty_template: '空のプロジェクトテンプレート',
   project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
-
+  project_generate_react_b2e_template: 'React B2E のプロジェクトテンプレート',
+  project_generate_react_b2x_template: 'React B2X のプロジェクトテンプレート',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging: 'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
   stop_apex_debug_logging: 'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
