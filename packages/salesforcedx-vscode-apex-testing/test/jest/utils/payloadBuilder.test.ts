@@ -248,10 +248,15 @@ describe('payloadBuilder', () => {
       );
     });
 
-    it('should build payload manually for namespaced methods', async () => {
+    it('should build payload for namespaced methods', async () => {
       // Namespaced method: Namespace.Class.Method (3 parts)
       const method1 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod1', 'testMethod1');
       const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod2', 'testMethod2');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: TestLevel.RunSpecifiedTests
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(
         mockTestService,
@@ -262,24 +267,26 @@ describe('payloadBuilder', () => {
 
       expect(result.hasSuite).toBe(false);
       expect(result.hasClass).toBe(false);
-      // Should construct payload manually, NOT call buildAsyncPayload
-      expect(mockTestService.buildAsyncPayload).not.toHaveBeenCalled();
-      // Payload should have the full class name (Namespace.Class) in className field
-      expect(result.payload).toEqual({
-        tests: [
-          {
-            className: 'CodeBuilder.ApplicationTest',
-            testMethods: ['testMethod1', 'testMethod2']
-          }
-        ],
-        testLevel: TestLevel.RunSpecifiedTests,
-        skipCodeCoverage: true
-      });
+      expect(result.payload).toBe(mockPayload);
+      // Now delegates to buildAsyncPayload which correctly handles namespaces
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        TestLevel.RunSpecifiedTests,
+        'CodeBuilder.ApplicationTest.testMethod1,CodeBuilder.ApplicationTest.testMethod2',
+        undefined,
+        undefined,
+        undefined,
+        true
+      );
     });
 
-    it('should build payload manually for mixed namespaced and non-namespaced methods', async () => {
+    it('should build payload for mixed namespaced and non-namespaced methods', async () => {
       const method1 = createMockTestItem('method:FooTest.testFoo', 'testFoo');
       const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testApp', 'testApp');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: TestLevel.RunSpecifiedTests
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(
         mockTestService,
@@ -290,17 +297,46 @@ describe('payloadBuilder', () => {
 
       expect(result.hasSuite).toBe(false);
       expect(result.hasClass).toBe(false);
-      // Should construct payload manually because there are namespaced methods
-      expect(mockTestService.buildAsyncPayload).not.toHaveBeenCalled();
-      // Payload should have entries for both classes
-      expect(result.payload).toEqual({
-        tests: [
-          { className: 'FooTest', testMethods: ['testFoo'] },
-          { className: 'CodeBuilder.ApplicationTest', testMethods: ['testApp'] }
-        ],
-        testLevel: TestLevel.RunSpecifiedTests,
-        skipCodeCoverage: false // code coverage enabled
-      });
+      expect(result.payload).toBe(mockPayload);
+      // Now delegates to buildAsyncPayload which correctly handles namespaces
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        TestLevel.RunSpecifiedTests,
+        'FooTest.testFoo,CodeBuilder.ApplicationTest.testApp',
+        undefined,
+        undefined,
+        undefined,
+        false // code coverage enabled
+      );
+    });
+
+    it('should build payload for multiple classes', async () => {
+      const class1 = createMockTestItem('class:Class1', 'Class1');
+      const class2 = createMockTestItem('class:Class2', 'Class2');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: TestLevel.RunSpecifiedTests
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(
+        mockTestService,
+        [class1, class2],
+        ['Class1', 'Class2'],
+        false
+      );
+
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      // Now delegates to buildAsyncPayload with comma-separated class names
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        'Class1,Class2',
+        undefined,
+        undefined,
+        true
+      );
     });
   });
 });

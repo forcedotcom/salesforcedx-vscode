@@ -73,6 +73,19 @@ export class ApexTestController {
     return this.controller;
   }
 
+  /**
+   * Returns the Apex test class name for the given file URI, if it is a known test class in the controller.
+   */
+  public getTestClassName(uri: vscode.Uri): string | undefined {
+    const uriStr = uri.toString();
+    for (const [className, item] of this.classItems) {
+      if (item.uri?.toString() === uriStr) {
+        return className;
+      }
+    }
+    return undefined;
+  }
+
   public async refresh(): Promise<void> {
     this.clearTestItems();
     await this.discoverTests();

@@ -10,7 +10,6 @@ import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { channelService, initializeOutputChannel } from './channels';
 import {
   apexDebugClassRunCodeActionDelegate,
@@ -28,18 +27,11 @@ import { AllServicesLayer } from './services/extensionProvider';
 import { telemetryService } from './telemetry/telemetry';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
-import { getTestOutlineProvider } from './views/testOutlineProvider';
 
 /** File change event from FileWatcherService */
 type FileChangeEvent = {
   readonly type: 'create' | 'change' | 'delete';
   readonly uri: vscode.Uri;
-};
-
-/** Refresh the test view */
-const refreshTestView = async (): Promise<void> => {
-  const testOutlineProvider = getTestOutlineProvider();
-  await testOutlineProvider.refresh();
 };
 
 /** Check if an org is connected by looking at TargetOrgRef */
@@ -124,10 +116,7 @@ const isTestResultJsonFile = (event: FileChangeEvent): boolean => {
 };
 
 /** Set up file watcher for test result JSON files using FileWatcherService */
-const setupTestResultsFileWatcher = (
-  testOutlineProvider: ReturnType<typeof getTestOutlineProvider>,
-  testController: ReturnType<typeof getTestController>
-) =>
+const setupTestResultsFileWatcher = (testController: ReturnType<typeof getTestController>) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const fileWatcherService = yield* api.services.FileWatcherService;
@@ -141,7 +130,6 @@ const setupTestResultsFileWatcher = (
           // Extract the apex test results directory from the file path (handle both / and \ separators)
           const lastSepIndex = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
           const apexDirPath = filePath.substring(0, lastSepIndex);
-          void testOutlineProvider.onResultFileCreate(apexDirPath, filePath);
           void testController.onResultFileCreate(apexDirPath, filePath);
           return Effect.void;
         })
@@ -165,13 +153,12 @@ const activateEffect = (context: vscode.ExtensionContext) =>
       .pipe(Effect.catchAll(() => Effect.succeed(false)));
 
     // Only set up project-specific features if we're in a Salesforce project
-    if (isSalesforceProject && vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-      const testOutlineProvider = getTestOutlineProvider();
+    if (isSalesforceProject) {
       const testController = getTestController();
       yield* Effect.log('[Apex Testing] Test controller created');
 
       // Set up file watcher for test result JSON files using FileWatcherService
-      yield* setupTestResultsFileWatcher(testOutlineProvider, testController);
+      yield* setupTestResultsFileWatcher(testController);
 
       // Initialize test discovery when an org is available, and re-discover on org changes (runs in background)
       yield* Effect.forkDaemon(initializeTestDiscovery(testController));
@@ -183,14 +170,6 @@ const activateEffect = (context: vscode.ExtensionContext) =>
         orgApexClassProvider
       );
       context.subscriptions.push(providerRegistration);
-
-      // Initial refresh of test view to populate tests when extension activates (runs in background)
-      yield* Effect.forkDaemon(
-        Effect.tryPromise(() => refreshTestView()).pipe(
-          Effect.tapError(error => Effect.logDebug('Failed to refresh test outline on activation:', error)),
-          Effect.catchAll(() => Effect.void)
-        )
-      );
     }
 
     // Always register commands (they'll be no-ops if not in a project)
@@ -201,12 +180,10 @@ const activateEffect = (context: vscode.ExtensionContext) =>
 
     // Export API for other extensions to consume
     return {
-      getTestOutlineProvider,
       getTestClassName: async (uri: vscode.Uri): Promise<string | undefined> => {
         try {
-          const provider = getTestOutlineProvider();
-          await provider.refresh();
-          return provider.getTestClassName(URI.parse(uri.toString()));
+          const controller = getTestController();
+          return controller.getTestClassName(uri);
         } catch (error) {
           console.debug('Failed to get test class name:', error);
           return undefined;
@@ -221,7 +198,6 @@ export const activate = (context: vscode.ExtensionContext) =>
       Effect.catchAll(error => {
         console.error('[Apex Testing] Activation failed:', error);
         return Effect.succeed({
-          getTestOutlineProvider,
           getTestClassName: async (_uri: vscode.Uri) => undefined
         });
       })
@@ -290,6 +266,5 @@ export const deactivate = () => {
 };
 
 export type ApexTestingVSCodeApi = {
-  getTestOutlineProvider: () => ReturnType<typeof getTestOutlineProvider>;
   getTestClassName: (uri: vscode.Uri) => Promise<string | undefined>;
 };
