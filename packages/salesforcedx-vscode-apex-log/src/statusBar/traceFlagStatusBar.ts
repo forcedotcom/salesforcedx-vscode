@@ -66,6 +66,8 @@ export const createTraceFlagStatusBar = () =>
     statusBarItem.command = 'sf.apex.traceFlags.open';
 
     const targetOrgRef = yield* api.services.TargetOrgRef();
+
+    // reasons to update the status bar:
     yield* Effect.fork(
       Stream.mergeAll(
         [
@@ -77,7 +79,7 @@ export const createTraceFlagStatusBar = () =>
           ),
           // because the trace flags changed
           currentTraceFlagsRef.changes.pipe(Stream.as(undefined)),
-          // because new logs
+          // because new logs were retrieved
           collectorRef.changes.pipe(Stream.as(undefined))
         ],
         {
