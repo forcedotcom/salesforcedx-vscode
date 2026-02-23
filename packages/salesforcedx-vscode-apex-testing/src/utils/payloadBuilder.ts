@@ -15,6 +15,20 @@ interface PayloadBuildResult {
   hasClass: boolean;
 }
 
+const buildPayload = (
+  testService: TestService,
+  options: { methods?: string; className?: string; suiteName?: string },
+  skipCodeCoverage: boolean
+) =>
+  testService.buildAsyncPayload(
+    TestLevel.RunSpecifiedTests,
+    options.methods,
+    options.className,
+    options.suiteName,
+    undefined,
+    skipCodeCoverage
+  );
+
 /**
  * Builds a test execution payload based on the tests to run.
  * Delegates to TestService.buildAsyncPayload which correctly handles namespaces.
@@ -28,101 +42,40 @@ export const buildTestPayload = async (
   let payload: AsyncTestConfiguration | AsyncTestArrayConfiguration | undefined;
   let hasSuite = false;
   let hasClass = false;
+  const skipCodeCoverage = !codeCoverage;
 
-  // Handle suite cases
   const suiteItems = testsToRun.filter(item => isSuite(item.id));
-  if (suiteItems.length > 0 && suiteItems.length === testsToRun.length) {
-    // All items are suites
-    if (suiteItems.length === 1) {
-      // Single suite - use suite parameter
-      hasSuite = true;
-      const suiteName = extractSuiteName(suiteItems[0].id);
-      if (!suiteName) {
-        throw new Error(nls.localize('apex_test_suite_name_not_determined_message'));
-      }
-      payload = await testService.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        undefined,
-        suiteName,
-        undefined,
-        !codeCoverage
-      );
-      return { payload, hasSuite, hasClass };
-    } else {
-      // Multiple suites - extract suite names and build array payload
-      // The API doesn't support multiple suites directly, so we use suiteNames parameter
-      // which buildAsyncPayload will handle by running each suite
-      hasSuite = true;
-      const suiteNames = suiteItems.map(item => extractSuiteName(item.id)).filter((name): name is string => !!name);
+  const allSuites = suiteItems.length > 0 && suiteItems.length === testsToRun.length;
 
-      if (suiteNames.length === 0) {
-        throw new Error(nls.localize('apex_test_suite_name_not_determined_message'));
-      }
-
-      // For multiple suites, pass comma-separated suite names
-      payload = await testService.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        undefined,
-        suiteNames.join(','),
-        undefined,
-        !codeCoverage
-      );
-      return { payload, hasSuite, hasClass };
+  if (allSuites) {
+    hasSuite = true;
+    const suiteNames = suiteItems.map(item => extractSuiteName(item.id)).filter((name): name is string => !!name);
+    if (suiteNames.length === 0) {
+      throw new Error(nls.localize('apex_test_suite_name_not_determined_message'));
     }
+    const suiteParam = suiteNames.length === 1 ? suiteNames[0] : suiteNames.join(',');
+    payload = await buildPayload(testService, { suiteName: suiteParam }, skipCodeCoverage);
+    return { payload, hasSuite, hasClass };
   }
 
-  // Get method names by checking the test item IDs (not just by dot in name)
-  const methodItems = testsToRun.filter(item => isMethod(item.id));
-  const methodNames = methodItems.map(item => getTestName(item));
+  const methodNames = testsToRun.filter(item => isMethod(item.id)).map(item => getTestName(item));
 
   if (methodNames.length > 0) {
-    // Use buildAsyncPayload for methods - now correctly handles namespaces
-    payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
-      methodNames.join(','),
-      undefined,
-      undefined,
-      undefined,
-      !codeCoverage
-    );
+    payload = await buildPayload(testService, { methods: methodNames.join(',') }, skipCodeCoverage);
   } else if (testNames.length > 0) {
-    // No method items - use class names
-    // Filter out any suite names that might be in testNames
     const classNames = testNames.filter(name => {
       const matchingItem = testsToRun.find(item => getTestName(item) === name);
       return !matchingItem || !isSuite(matchingItem.id);
     });
-
-    if (classNames.length === 1) {
-      // Single class - use class parameter
-      hasClass = true;
-      payload = await testService.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        classNames[0],
-        undefined,
-        undefined,
-        !codeCoverage
-      );
-    } else if (classNames.length > 1) {
-      // Multiple classes - use buildAsyncPayload with comma-separated class names
-      // Now correctly handles namespaces
-      payload = await testService.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        classNames.join(','),
-        undefined,
-        undefined,
-        !codeCoverage
-      );
+    if (classNames.length > 0) {
+      hasClass = classNames.length === 1;
+      const classParam = classNames.length === 1 ? classNames[0] : classNames.join(',');
+      payload = await buildPayload(testService, { className: classParam }, skipCodeCoverage);
     }
   }
 
   if (!payload) {
     throw new Error(nls.localize('apex_test_payload_build_failed_message'));
   }
-
   return { payload, hasSuite, hasClass };
 };
