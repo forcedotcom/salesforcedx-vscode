@@ -23,6 +23,6 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - uses: google/wireit@setup-github-actions-caching/v2
-      - run: npm ci
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - run: npm run compile
       - run: npm run test

@@ -28,7 +28,7 @@ jobs:
       - uses: google/wireit@setup-github-actions-caching/v2
 
       - name: Install dependencies
-        run: npm ci
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
       # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
@@ -101,7 +101,7 @@ jobs:
       - uses: google/wireit@setup-github-actions-caching/v2
 
       - name: Install dependencies
-        run: npm ci
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
       # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config

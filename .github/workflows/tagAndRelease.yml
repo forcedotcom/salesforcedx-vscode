@@ -31,7 +31,7 @@ jobs:
           path: ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
-      - run: npm ci
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - run: npm run vscode:sha256
       - run: scripts/concatenate-sha256.js
       - run: rm ./SHA256

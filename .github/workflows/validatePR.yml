@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm
-      - run: npm ci
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - run: npm run compile -w @salesforce/eslint-plugin-vscode-extensions
         name: Compile ESLint rules
       - name: Lint
