@@ -44,7 +44,7 @@ jobs:
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
-      - run: npm ci
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - name: Create and Push the Release Branch
         id: create_step
         run: |

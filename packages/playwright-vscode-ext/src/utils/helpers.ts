@@ -47,7 +47,7 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   "'allow-scripts' permissions is not set", //
   'Blocked script execution', // Webview sandboxing initialization errors (non-critical)
   'vscode-webview://', // Webview internal URLs (paired with blocked script errors)
-
+  'Connection failed, falling back to static endpoint', // o11y unauthnticated connection
   // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
   'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
   'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),

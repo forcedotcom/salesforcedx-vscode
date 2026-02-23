@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.18.0",
+  "version": "65.19.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,7 +27,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.9-dev.4",
+    "@salesforce/apex-node": "^8.4.10",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.19.13",
