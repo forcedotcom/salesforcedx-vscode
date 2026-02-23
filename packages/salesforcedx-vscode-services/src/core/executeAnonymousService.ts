@@ -7,7 +7,11 @@
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
+import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { ExecuteAnonymousError } from '../errors/executeAnonymousErrors';
+import { ChannelService } from '../vscode/channelService';
 import { ApexLogService } from './apexLogService';
 import { ConnectionService } from './connectionService';
 import { unknownToErrorCause } from './shared';
@@ -16,14 +20,18 @@ import { TraceFlagService } from './traceFlagService';
 export type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
 
 const SHORT_LIVED_TRACE_FLAG_DURATION = Duration.minutes(5);
+const ANON_APEX_ERRORS_COLLECTION = 'apex-anon-errors';
+const UNEXPECTED_ERROR = 'Unexpected error during anonymous Apex execution';
 
 export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousService>()('ExecuteAnonymousService', {
   accessors: true,
-  dependencies: [ConnectionService.Default, TraceFlagService.Default, ApexLogService.Default],
+  dependencies: [ConnectionService.Default, TraceFlagService.Default, ApexLogService.Default, ChannelService.Default],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
     const traceFlagService = yield* TraceFlagService;
     const logService = yield* ApexLogService;
+    const channelService = yield* ChannelService;
+    const diagnostics = vscode.languages.createDiagnosticCollection(ANON_APEX_ERRORS_COLLECTION);
 
     /** initiates an execute anonymous.  Returns only the json result */
     const executeAnonymous = Effect.fn('ExecuteAnonymousService.executeAnonymous')(function* (code: string) {
@@ -57,6 +65,56 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
       return { result, logBody, logId };
     });
 
-    return { executeAnonymous, executeAndRetrieveLog };
+    const outputToChannel = (result: ExecuteAnonymousResult) =>
+      Effect.gen(function* () {
+        const text = result.success
+          ? 'Compile: success / Execute: success'
+          : !result.compiled
+            ? `Error: Line ${result.line}, Column ${result.column} -- ${result.compileProblem ?? UNEXPECTED_ERROR}`
+            : `Compile: success / Error: ${result.exceptionMessage ?? UNEXPECTED_ERROR}\n${result.exceptionStackTrace ?? ''}`;
+        yield* channelService.appendToChannel(text);
+      });
+
+    const setDiagnostics = (
+      result: ExecuteAnonymousResult,
+      uri: URI,
+      selectionStartLine: number | undefined
+    ): void => {
+      diagnostics.clear();
+      if (!result.success) {
+        const message =
+          (result.compileProblem && result.compileProblem !== ''
+            ? result.compileProblem
+            : result.exceptionMessage && result.exceptionMessage !== ''
+              ? result.exceptionMessage
+              : UNEXPECTED_ERROR) ?? UNEXPECTED_ERROR;
+        const line = result.line ? result.line + (selectionStartLine ?? 0) : 1;
+        const column = result.column ?? 1;
+        const pos = new vscode.Position(line > 0 ? line - 1 : 0, column > 0 ? column - 1 : 0);
+        diagnostics.set(vscode.Uri.parse(uri.toString()), [
+          {
+            message,
+            severity: vscode.DiagnosticSeverity.Error,
+            source: uri.fsPath ?? uri.path ?? uri.toString(),
+            range: new vscode.Range(pos, pos)
+          }
+        ]);
+      }
+    };
+
+    /** Report execute anonymous result via output channel and editor diagnostics. */
+    const reportExecResult = Effect.fn('ExecuteAnonymousService.reportExecResult')(
+      (
+        result: ExecuteAnonymousResult,
+        uri: URI,
+        selectionStartLine?: number
+      ) =>
+        Effect.gen(function* () {
+          yield* outputToChannel(result);
+          yield* Effect.sync(() => setDiagnostics(result, uri, selectionStartLine));
+        })
+    );
+
+    return { executeAnonymous, executeAndRetrieveLog, reportExecResult };
   })
 }) {}

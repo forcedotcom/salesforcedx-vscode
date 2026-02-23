@@ -7,23 +7,35 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { type EditorService } from 'salesforcedx-vscode-services';
 import { saveExecResultAndOpenLog } from '../logs/logStorage';
 
-const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(function* (code: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { result, logBody, logId } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(code);
-  yield* saveExecResultAndOpenLog(code, result, logBody, logId);
-  return result;
-});
+type EditorContext = Effect.Effect.Success<ReturnType<EditorService['getActiveEditorContext']>>;
+
+const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
+  function* (context: EditorContext) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const { result, logBody, logId } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(
+      context.text
+    );
+    yield* api.services.ExecuteAnonymousService.reportExecResult(
+      result,
+      context.uri,
+      context.selectionRange?.startLine
+    );
+    yield* saveExecResultAndOpenLog(context.text, result, logBody, logId);
+    return result;
+  }
+);
 
 export const executeAnonymousDocumentCommand = Effect.fn('ApexLog.Command.executeAnonymousDocument')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const code = yield* api.services.EditorService.getActiveEditorText(false);
-  return yield* executeAnonymous(code);
+  const context = yield* api.services.EditorService.getActiveEditorContext(false);
+  return yield* executeAnonymous(context);
 });
 
 export const executeAnonymousSelectionCommand = Effect.fn('ApexLog.Command.executeAnonymousSelection')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const code = yield* api.services.EditorService.getActiveEditorText(true);
-  return yield* executeAnonymous(code);
+  const context = yield* api.services.EditorService.getActiveEditorContext(true);
+  return yield* executeAnonymous(context);
 });

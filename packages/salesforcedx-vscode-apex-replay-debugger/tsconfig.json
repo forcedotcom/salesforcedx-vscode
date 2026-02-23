@@ -16,9 +16,15 @@
     "dist"
   ],
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "test/playwright/**/*.ts",
+    "playwright.config.desktop.ts",
+    "package.nls.json"
   ],
   "references": [
+    {
+      "path": "../salesforcedx-vscode-apex-log"
+    },
     {
       "path": "../effect-ext-utils"
     },
@@ -42,6 +48,9 @@
     },
     {
       "path": "../salesforcedx-vscode-services"
+    },
+    {
+      "path": "../playwright-vscode-ext"
     }
   ]
 }

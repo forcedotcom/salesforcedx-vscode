@@ -44,6 +44,22 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
         : editor.document.getText();
     });
 
-    return { pubsub: editorPubSub, getActiveEditorUri, getActiveEditorText };
+    /** Get text, URI, and optional selection range from active editor. Use selection=true to get selection + offset. */
+    const getActiveEditorContext = Effect.fn('EditorService.getActiveEditorContext')(function* (selection: boolean) {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        return yield* Effect.fail(new NoActiveEditorError({ message: 'No active text editor is currently open' }));
+      }
+      const useSelection = selection && !editor.selection.isEmpty;
+      return {
+        text: useSelection ? editor.document.getText(editor.selection) : editor.document.getText(),
+        uri: URI.parse(editor.document.uri.toString()),
+        selectionRange: useSelection
+          ? { startLine: editor.selection.start.line, startCharacter: editor.selection.start.character }
+          : undefined
+      };
+    });
+
+    return { pubsub: editorPubSub, getActiveEditorUri, getActiveEditorText, getActiveEditorContext };
   })
 }) {}

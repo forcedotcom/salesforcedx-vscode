@@ -28,6 +28,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.4.7",
+    "salesforcedx-vscode-apex-log": "*",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
@@ -37,14 +38,17 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "*",
     "@salesforce/core": "^8.23.2",
     "esbuild": "0.25.12",
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-core": "*",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "*",
+    "@salesforce/playwright-vscode-ext": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
+    "salesforce.salesforcedx-vscode-apex-log",
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-services"
   ],
@@ -66,6 +70,7 @@
         "../salesforcedx-apex-replay-debugger:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
+        "../salesforcedx-vscode-apex-log:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
         "../salesforcedx-vscode-core:compile",

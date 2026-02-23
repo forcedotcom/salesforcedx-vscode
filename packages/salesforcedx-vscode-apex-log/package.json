@@ -19,6 +19,7 @@
     "onFileSystem:memfs"
   ],
   "main": "./dist/index.js",
+  "types": "./out/src/index.d.ts",
   "browser": "./dist/web/index.js",
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
