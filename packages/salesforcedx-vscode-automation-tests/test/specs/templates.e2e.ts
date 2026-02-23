@@ -399,7 +399,7 @@ describe('Templates', () => {
     await verifyNotificationWithRetry(/SFDX: Create Sample Analytics Template successfully ran/, Duration.TEN_MINUTES);
 
     const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI',
+      'Salesforce CLI Integration',
       'Finished SFDX: Create Sample Analytics Template',
       10
     );

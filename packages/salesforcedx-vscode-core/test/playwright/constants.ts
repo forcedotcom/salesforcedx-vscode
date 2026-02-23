@@ -9,4 +9,4 @@
 export const COMMAND_TIMEOUT = 10 * 60 * 1000;
 
 /** Output channel name used by the core extension */
-export const OUTPUT_CHANNEL = 'Salesforce CLI';
+export const OUTPUT_CHANNEL = 'Salesforce CLI Integration';

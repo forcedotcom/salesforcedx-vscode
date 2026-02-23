@@ -108,7 +108,7 @@ describe('Apex Replay Debugger', () => {
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI',
+      'Salesforce CLI Integration',
       'Starting SFDX: Turn On Apex Debug Log for Replay Debugger',
       10
     );
@@ -291,7 +291,7 @@ describe('Apex Replay Debugger', () => {
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI',
+      'Salesforce CLI Integration',
       'Starting SFDX: Turn Off Apex Debug Log for Replay Debugger',
       10
     );

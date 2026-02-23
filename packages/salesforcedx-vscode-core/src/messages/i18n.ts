@@ -16,7 +16,7 @@ import { MISSING_LABEL_MSG } from '@salesforce/vscode-i18n';
  * If omitted, we will assume _message.
  */
 export const messages = {
-  channel_name: 'Salesforce CLI',
+  channel_name: 'Salesforce CLI Integration',
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:
