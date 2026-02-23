@@ -1,3 +1,7 @@
+## [8.4.10](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.9...8.4.10) (2026-02-23)
+
+
+
 ## [8.4.9](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.8...8.4.9) (2026-02-22)
 
 
