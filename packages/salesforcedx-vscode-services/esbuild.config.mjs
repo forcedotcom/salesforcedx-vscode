@@ -13,6 +13,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import pkg from './package.json' with { type: 'json' };
 
 const execAsync = promisify(exec);
 
@@ -21,10 +22,7 @@ const __dirname = dirname(__filename);
 const packageDir = __dirname;
 const repoRoot = join(packageDir, '../..');
 
-const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
-const INSTANCE_URL_KEY = 'instanceUrl';
-const ACCESS_TOKEN_KEY = 'accessToken';
-const API_VERSION_KEY = 'apiVersion';
+// Derive section and keys from package.json contributes.configuration.properties
 
 const buildWebConfig = async () => {
   const configMap = {};
@@ -36,10 +34,15 @@ const buildWebConfig = async () => {
       });
       const orgDisplayResponse = JSON.parse(stdout);
       const orgData = orgDisplayResponse.result;
-      if (orgData.instanceUrl && orgData.accessToken && orgData.apiVersion) {
-        configMap[`${CODE_BUILDER_WEB_SECTION}.${INSTANCE_URL_KEY}`] = orgData.instanceUrl;
-        configMap[`${CODE_BUILDER_WEB_SECTION}.${ACCESS_TOKEN_KEY}`] = orgData.accessToken;
-        configMap[`${CODE_BUILDER_WEB_SECTION}.${API_VERSION_KEY}`] = orgData.apiVersion;
+      const ORG_DISPLAY_KEYS = ['instanceUrl', 'accessToken', 'apiVersion'];
+
+      if (ORG_DISPLAY_KEYS.every(k => orgData[k])) {
+        ORG_DISPLAY_KEYS.forEach(key => {
+          const fullKey = Object.keys(pkg.contributes?.configuration?.properties ?? {})
+            .filter(k => ORG_DISPLAY_KEYS.includes(k.split('.')[1]))
+            .find(k => k.endsWith(`.${key}`));
+          if (fullKey) configMap[fullKey] = orgData[key];
+        });
         console.log('[esbuild] Added org credentials to configMap');
       }
     } catch (error) {
