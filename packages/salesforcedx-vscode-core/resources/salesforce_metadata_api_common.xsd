@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-02-15T13:26:20.876Z
-Total metadata types: 1533
+Generated on: 2026-02-22T13:26:12.046Z
+Total metadata types: 1535
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -4455,6 +4455,12 @@ Total metadata types: 1533
        <xsd:appinfo>Type: AnalyticsFilterWidgetDef[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="imageWidgetDefs" minOccurs="0" maxOccurs="unbounded" type="AnalyticsImageWidgetDef">
+      <xsd:annotation>
+       <xsd:documentation>The definition for a image widget type. A dashboard has 0 or more image widgets. Required for image widget.</xsd:documentation>
+       <xsd:appinfo>Type: AnalyticsImageWidgetDef[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The label for the widget.</xsd:documentation>
@@ -4481,7 +4487,7 @@ Total metadata types: 1533
      </xsd:element>
      <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The widget type.Values are: button container filter metric parameter text visualization</xsd:documentation>
+       <xsd:documentation>Required. The widget type.Values are: button component container filter image metric parameter text visualization</xsd:documentation>
        <xsd:appinfo>Type: AnalyticsWidgetType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -4531,6 +4537,31 @@ Total metadata types: 1533
      <xsd:element name="source" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The data source to apply the filter to.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="AnalyticsImageWidgetDef">
+  <xsd:annotation>
+   <xsd:documentation>Represents a image widget definition for a Tableau Next dashboard.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsdashboard.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="parameters" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The parameters for the image widget. This is a JSON String.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="source" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The data source the image is associated with.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -4855,6 +4886,12 @@ Total metadata types: 1533
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableIncrementalUpsert" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the incremental upsert operation is enabled for CRM Analytics recipe output nodes (true) or not (false). Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableInsights" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether CRM Analytics is enabled in Salesforce (true) or not (false).</xsd:documentation>
@@ -4945,6 +4982,12 @@ Total metadata types: 1533
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enablePupparazziForNotifications" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the CRM Analytics Hyperforce headless browser service is enabled (true) or not (false). Available in API version 66.0 and above.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableQueryLiveConnectors" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether querying live connectors is available in Salesforce (true) or not (false). Available in API version 48.0 and later.</xsd:documentation>
@@ -4975,6 +5018,12 @@ Total metadata types: 1533
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableReportCustomTextExportPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the export of custom text in Lightning Experience Reports is available in Salesforce (true) or not (false). Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableReportEscapeCharsPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the sanitization of malicious characters in CSV exports to prevent formula injection feature in Lightning Experience Reports is available in Salesforce (true) or not (false). Available in API version 65.0 and later.</xsd:documentation>
@@ -5002,6 +5051,12 @@ Total metadata types: 1533
      <xsd:element name="enableReportInlineEditPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the inline editing feature for Lightning Experience Reports is available in Salesforce (true) or not (false). Available in API version 53.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableReportInterfacePref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether interfaces on Data 360 reports during packaging are enabled (true) or not (false). Available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5101,12 +5156,6 @@ Total metadata types: 1533
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="enableUseReportTableSettingPerf" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
-      <xsd:annotation>
-       <xsd:documentation>Indicates whether this org allows users to import report table settings for Lightning Experience dashboards FlexTable components (true) or not (false). Available in API version 65.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
      <xsd:element name="enableWaveAssetsNewDateVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the new date version for timezone support in Analytics assets is enabled in Salesforce (true) or not (false). Available in API version 51.0 and later.</xsd:documentation>
@@ -5194,6 +5243,12 @@ Total metadata types: 1533
      <xsd:element name="etlOrchestrationPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Data Prep recipe orchestration is enabled (true) or not (false). Available in API version 54.0 and later. (Beta)</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="incrementalUpsertEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the incremental upsert operation is enabled for CRM Analytics recipe output nodes (true) or not (false). Available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5450,6 +5505,12 @@ Total metadata types: 1533
       <xsd:annotation>
        <xsd:documentation>The function type of the visualization field. Values are: Avg Count CountD DatePartDay DatePartMonth DatePartQuarter DatePartWeek DatePartWeekDay DatePartYear DateTruncDay DateTruncMonth DateTruncQuarter DateTruncWeek DateTruncYear FiscalDatePartMonth FiscalDatePartQuarter FiscalDatePartWeek FiscalDatePartYear FiscalDateTruncMonth FiscalDateTruncQuarter FiscalDateTruncWeek FiscalDateTruncYear Max Mdy Median Min My Stdev Stdevp Sum UserAgg Var Varp</xsd:documentation>
        <xsd:appinfo>Type: VisualizationFieldFunctionType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="hierarchyName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The hierarchy name for the field.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -21031,7 +21092,7 @@ Total metadata types: 1533
      <xsd:element name="dashboardComponentContents" minOccurs="0" maxOccurs="unbounded" type="DashboardComponentContent">
       <xsd:annotation>
        <xsd:documentation>A list of dashboard component contents.This field is available in API version 58.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: DashboardComponentContent</xsd:appinfo>
+       <xsd:appinfo>Type: DashboardComponentContent[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="dashboardDynamicValues" minOccurs="0" maxOccurs="unbounded" type="DashboardDynamicValue">
@@ -21372,9 +21433,15 @@ Total metadata types: 1533
        <xsd:appinfo>Type: HorizontalAlignment (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="componentParameters" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The parameters for the component.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="richTextContent" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The rich text content for the component..</xsd:documentation>
+       <xsd:documentation>The rich text content for the component.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -24145,15 +24212,15 @@ Total metadata types: 1533
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="enableDevOpsCenterGA" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="enableALMDevopsCorePref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether DevOps Center is enabled: true or false. When enabled, you can install and use the generally available (GA) DevOps Center package in the org. Available in API version 56.0 and later.</xsd:documentation>
+       <xsd:documentation>Indicates whether the next-generation DevOps Center (Beta) is enabled: true or false. When enabled, you can access the AI-powered, next-generation DevOps Center for change and release management in the org.Available in API version 65.0 and later. enableALMDevopsCorePref is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="enableDevOpsCenter" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="enableDevOpsCenterGA" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>(Deprecated) Indicates whether DevOps Center beta is enabled: true or false. When enabled, you can install and use the DevOps Center beta package in the org.</xsd:documentation>
+       <xsd:documentation>Indicates whether DevOps Center managed package is enabled: true or false. When enabled, you can install and use the generally available (GA) DevOps Center package in the org. This is an older version of DevOps Center.Available in API version 56.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -29553,7 +29620,7 @@ Total metadata types: 1533
      </xsd:element>
      <xsd:element name="enableApexLimitEvents" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Enables (true) or disables (false) the Apex Limit Events (Pilot) feature. Default value is false.The Apex Limit Events (Pilot) feature has been discontinued so don’t use this field.</xsd:documentation>
+       <xsd:documentation>The Apex Limit Events (Pilot) feature is discontinued. Don’t use this field.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30818,7 +30885,7 @@ Total metadata types: 1533
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="authenticationFlow" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Authentication flow to get tokens to call protected APIs. Values are: AuthorizationCode SalesforceDefined</xsd:documentation>
+       <xsd:documentation>Required. Authentication flow to get tokens to call protected APIs. Values are: AuthorizationCode ClientCredentials SalesforceDefined</xsd:documentation>
        <xsd:appinfo>Type: IdentityProviderAuthFlow (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30879,7 +30946,7 @@ Total metadata types: 1533
      </xsd:element>
      <xsd:element name="parameterValue" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>If the parameterType field describes a literal value then the literal value is stored in this field.</xsd:documentation>
+       <xsd:documentation>If the parameterType field describes a literal value, then this field stores the literal value.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -31209,13 +31276,13 @@ Total metadata types: 1533
      </xsd:element>
      <xsd:element name="isWritable" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Allows the Lightning Platform and users in this org create, update, and delete records for external objects associated with the external data source. The external object data is stored outside the org. By default, external objects are read-only. Corresponds to Writable External Objects in the user interface. Available in API version 35.0 and later. However, with the cross-org adapter for Salesforce Connect, you can set this field to true only in API version 39.0 and later.</xsd:documentation>
+       <xsd:documentation>Allows the Lightning Platform and users in this org to create, update, and delete records for external objects associated with the external data source. The external object data is stored outside the org. By default, external objects are read-only. Corresponds to Writable External Objects in the user interface. Available in API version 35.0 and later. However, with the cross-org adapter for Salesforce Connect, you can set this field to true only in API version 39.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>A name for the external data source. The label is displayed in the Salesforce user interface, such as in list views.Examples include Acme Team Marketing Site, or Acme SharePoint.</xsd:documentation>
+       <xsd:documentation>A name for the external data source. The label is displayed in the Salesforce user interface, such as in list views.Examples include Acme Team Marketing Site or Acme SharePoint.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -31269,7 +31336,7 @@ Total metadata types: 1533
      </xsd:element>
      <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. For Salesforce Connect, specifies the adapter that connects to the external system. The valid values are: AmazonAthena—Amazon Athena AmazonDynamoDB—Amazon DynamoDB OData—OData 2.0 adapter OData4—OData 4.0 adapter SfdcOrg—cross-org adapter ApexClassId—DataSource.Provider class that defines the custom adapter created via the Apex Connector Framework For Files Connect, specifies the data source type. The valid values are: ContentHubSharepoint—SharePoint 2010 or 2013 ContentHubSharepointOffice365—SharePoint Online ContentHubSharepointOneDrive—OneDrive for Business ContentHubGDrive—Google Drive ContenHubIsotope—Isotope If Chatter is enabled, you can also specify SimpleURL to access data hosted on a web server that doesn’t require authentication. outgoingemail—A data source used for sending an email through a quick action. The Identity and Wrapper types are reserved for future use. For Digital Lending Configurator, the valid value is AFPPAttribute. The data source name for the Application Form Product Proposal Attribute virtual object. For the federated search external data source type, the valid value is OpenSearch. For Transaction Management in Revenue Cloud, the valid values are: ASPAttribute—The data source name for the Asset State Period Attribute virtual object. Available in API version 63.0 and later. OIAttribute— The data source name for the Order Item Attribute virtual object. Available in API version 63.0 and later. QLIAttribute— The data source name for the Quote Line Item Attribute virtual object. Available in API version 63.0 and later. For SalesAgreement in Manufacturing Cloud, the valid values are: SAPAttribute—The data source name for the SalesAgreement Product Attribute virtual object. Available in API version 60.0 and later. These values are reserved for internal use: ClaimAttributeDS ClaimItemAttributeDS CtrtGrpPlnAttr CtrtGrpPlnGrpClsAttr</xsd:documentation>
+       <xsd:documentation>Required. For Salesforce Connect, specifies the adapter that connects to the external system. The valid values are: AmazonAthena—Amazon Athena AmazonDynamoDB—Amazon DynamoDB OData—OData 2.0 adapter OData4—OData 4.0 adapter SfdcOrg—cross-org adapter ApexClassId—DataSource.Provider class that defines the custom adapter created via the Apex Connector Framework For Files Connect, specifies the data source type. The valid values are: ContentHubSharepoint—SharePoint 2010 or 2013 ContentHubSharepointOffice365—SharePoint Online ContentHubSharepointOneDrive—OneDrive for Business ContentHubGDrive—Google Drive ContenHubIsotope—Isotope If Chatter is enabled, you can also specify SimpleURL to access data hosted on a web server that doesn’t require authentication. outgoingemail—A data source used for sending an email through a quick action. For Digital Lending Configurator, the valid value is: AFPPAttribute—The data source name for the Application Form Product Proposal Attribute virtual object. For the federated search external data source type, the valid value is: OpenSearch For Transaction Management in Revenue Cloud, the valid values are: ASPAttribute—The data source name for the Asset State Period Attribute virtual object. Available in API version 63.0 and later. OIAttribute—The data source name for the Order Item Attribute virtual object. Available in API version 63.0 and later. QLIAttribute—The data source name for the Quote Line Item Attribute virtual object. Available in API version 63.0 and later. For SalesAgreement in Manufacturing Cloud, the valid values are: SAPAttribute—The data source name for the SalesAgreement Product Attribute virtual object. Available in API version 60.0 and later. These values are reserved for internal use: AssetAttribute ClaimAttributeDS ClaimItemAttributeDS CryptoTrEnvChgLogSnp CtrtGrpPlnAttr CtrtGrpPlnGrpClsAttr FAAttribute FLAttribute IAItemProdtAttr Identity InsPolicyAttribute IPAAttribute IPCAttribute IPCvrBnftAttribute IPPAttribute SdbOvenPODataSource Wrapper</xsd:documentation>
        <xsd:appinfo>Type: ExternalDataSourceType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -35684,7 +35751,7 @@ Total metadata types: 1533
      </xsd:element>
      <xsd:element name="processType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The type of the flow, as determined by the active version, or the latest version, if there’s no active version. Valid values are: ActionableEventManagementFlow—A flow that triggers an actionable event orchestration process in the background and automatically executes different types of actions based on the event type. This value is available in API version 62.0 and later. ActionCadenceAutolaunchedFlow—A flow that’s executed when a user completes a cadence step. This value is available in API version 56.0 and later. ActionCadenceStepFlow—A screen flow used as a cadence step. This value is available in API version 56.0 and later. ActivityObjectMatchingFlow—A flow that launches when Einstein Activity Capture detects and captures a new activity, such as an email. This type of flow runs in the background without user interaction. This value is available with Sync Email as Salesforce Activity in API version 64.0 and later. Appointments—A flow for Lightning Scheduler. This value is available in API version 44.0 and later. ApprovalWorkflow—An orchestration that’s used for an approval process. This value is available in API version 63.0 and later. AutoLaunchedFlow—A flow that doesn’t require user interaction. CheckoutFlow—A flow used in Lightning B2B Commerce to create a checkout in a store. This value is available in API version 48.0 and later. ContactRequestFlow—A flow that lets customers request to be contacted by customer support. This flow is used to create contact request records. This value is available in API version 45.0 and later. CustomerLifecycle—A Salesforce Surveys flow that lets you associate survey questions with different stages in customer lifecycles. This value is available in API version 49.0 and later and only when the Customer Lifecycle Designer license is enabled. CustomEvent—A process that is invoked when it receives a platform event message. In the UI, it’s an event process. This value is available in API version 41.0 and later. DataCaptureFlow— In the UI, Data Capture flows configure the Form tab in the Field Service mobile app. When the Data Capture flow is launched, its Flow metadata is publicly available in JavaScript format. This value is available in API version 62.0 and later. DcvrFrameworkDataCaptureFlow—A screen flow that presents assessment questions from Discovery Framework. Launches when invoked by a user on a mobile device. This type of flow collects or displays information, requires user interaction, and works offline or online. This value is available in API version 62.0 and later. EvaluationFlow—A flow for evaluating custom entry and exit conditions in an orchestration. Uses the isOrchestrationConditionMet output variable and discards values from any other output variables. This value is available in API version 54.0 and later. FieldServiceMobile—A flow for the Field Service mobile app. This value is available in API version 39.0 and later. FieldServiceWeb—A flow for embedded Appointment Booking. Its UI label is Field Service Embedded Flow. This value is available in API version 41.0 and later. Flow—A flow that requires user interaction because it contains one or more screens or local actions, choices, or dynamic choices. In the UI and Salesforce Help, it’s a screen flow. Screen flows can be launched from the UI, such as with a flow action, Lightning page, or web tab. FSCLending—A flow for Financial Services Cloud Mortgage. This value is available in API version 46.0 and later. IdentityUserRegistrationFlow—A flow to handle user registration and updates for single sign-on with the authentication provider framework. Available in API version 64.0 and later. IndicatorResultFlow—A flow for Outcome Management that calculates and creates indicator results for a selected indicator performance period. This value is available with the Outcome Management license in API version 60.0 and later. IndividualObjectLinkingFlow—A flow that associates individuals with interactions such as voice calls, messaging sessions, or case-related emails. This value is available in API version 58.0 and later. InvocableProcess—A process that another process or the Invocable Actions resource in REST API invokes. This value is available in API version 38.0 and later. Journey—An audience-driven flow for Marketing Cloud. This value is available in API version 57.0 and later. LoginFlow—A flow for login. This value is available in API version 51.0 and later. LoyaltyManagementFlow—A flow for the Loyalty Management app that’s invokable by loyalty program processes. This value is available in API version 54.0 and later. Orchestrator—An orchestration that organizes flows into groups of steps contained in a series of stages. This value is available in API version 53.0 and later. PromptFlow—A flow for Prompt Builder. Pass data between Prompt Builder and the flow. This value is available in API version 60.0 and later. RecommendationStrategy—Build recommendations for your users. A recommendation launches its assigned flow. This value is available in API version 54.0 and later. See Flow Builder Strategies. RoutingFlow—A flow for Salesforce Omni-Channel routing and other business logic. This value is available in API version 52.0 and later. Survey—A flow for Salesforce Surveys. From the UI, this type of flow is created in Survey Builder. This value is available in API version 42.0 and later. SurveyEnrich—A Salesforce Surveys flow that uses the Survey Data Mapper. From the UI, this type of flow is created in the Survey Builder and requires an associated survey flow type. This value is available in API version 49.0 or later and only when the Customer Lifecycle Designer license is enabled. Workflow—A process that is invoked when a record is created or edited. In the UI and Salesforce Help, it’s a record change process. Across flow versions, you can change the type only from Flow to AutoLaunchedFlow or vice versa. Before you change the flow type, make sure that the flow contains only the elements, resources, and functionality that the new flow type supports. These values are reserved for future or Salesforce internal use. ActionCadenceFlow ActionPlan AppProcess ApprovalWorkflow CartAsyncFlow DigitalForm JourneyBuilderIntegration LoginFlow ManagedContentFlow OrchestrationFlow SalesEntryExperienceFlow TransactionSecurityFlow UserProvisioningFlow This field is available in API version 31.0 and later.</xsd:documentation>
+       <xsd:documentation>The type of the flow, as determined by the active version, or the latest version, if there’s no active version. Valid values are: ActionableEventManagementFlow—A flow that triggers an actionable event orchestration process in the background and automatically executes different types of actions based on the event type. This value is available in API version 62.0 and later. ActionCadenceAutolaunchedFlow—A flow that’s executed when a user completes a cadence step. This value is available in API version 56.0 and later. ActionCadenceStepFlow—A screen flow used as a cadence step. This value is available in API version 56.0 and later. ActivityObjectMatchingFlow—A flow that launches when Einstein Activity Capture detects and captures a new activity, such as an email. This type of flow runs in the background without user interaction. This value is available with Sync Email as Salesforce Activity in API version 64.0 and later. Appointments—A flow for Lightning Scheduler. This value is available in API version 44.0 and later. ApprovalWorkflow—An orchestration that’s used for an approval process. This value is available in API version 63.0 and later. AutoLaunchedFlow—A flow that doesn’t require user interaction. CheckoutFlow—A flow used in Lightning B2B Commerce to create a checkout in a store. This value is available in API version 48.0 and later. ContactRequestFlow—A flow that lets customers request to be contacted by customer support. This flow is used to create contact request records. This value is available in API version 45.0 and later. CustomerLifecycle—A Salesforce Surveys flow that lets you associate survey questions with different stages in customer lifecycles. This value is available in API version 49.0 and later and only when the Customer Lifecycle Designer license is enabled. CustomEvent—A process that is invoked when it receives a platform event message. In the UI, it’s an event process. This value is available in API version 41.0 and later. DataCaptureFlow— In the UI, Data Capture flows configure the Form tab in the Field Service mobile app. When the Data Capture flow is launched, its Flow metadata is publicly available in JavaScript format. This value is available in API version 62.0 and later. DcvrFrameworkDataCaptureFlow—A screen flow that presents assessment questions from Discovery Framework. Launches when invoked by a user on a mobile device. This type of flow collects or displays information, requires user interaction, and works offline or online. This value is available in API version 62.0 and later. EvaluationFlow—A flow for evaluating custom entry and exit conditions in an orchestration. Uses the isOrchestrationConditionMet output variable and discards values from any other output variables. This value is available in API version 54.0 and later. FieldServiceMobile—A flow for the Field Service mobile app. This value is available in API version 39.0 and later. FieldServiceWeb—A flow for embedded Appointment Booking. Its UI label is Field Service Embedded Flow. This value is available in API version 41.0 and later. Flow—A flow that requires user interaction because it contains one or more screens or local actions, choices, or dynamic choices. In the UI and Salesforce Help, it’s a screen flow. Screen flows can be launched from the UI, such as with a flow action, Lightning page, or web tab. FSCLending—A flow for Financial Services Cloud Mortgage. This value is available in API version 46.0 and later. IdentityUserRegistrationFlow—A flow to handle user registration and updates for single sign-on with the authentication provider framework. Available in API version 64.0 and later. IndicatorResultFlow—A flow for Outcome Management that calculates and creates indicator results for a selected indicator performance period. This value is available with the Outcome Management license in API version 60.0 and later. IndividualObjectLinkingFlow—A flow that associates individuals with interactions such as voice calls, messaging sessions, or case-related emails. This value is available in API version 58.0 and later. InvocableProcess—A process that another process or the Invocable Actions resource in REST API invokes. This value is available in API version 38.0 and later. Journey—An audience-driven flow for Marketing Cloud. This value is available in API version 57.0 and later. LoginFlow—A flow for login. This value is available in API version 51.0 and later. LoyaltyManagementFlow—A flow for the Loyalty Management app that’s invokable by loyalty program processes. This value is available in API version 54.0 and later. Orchestrator—An orchestration that organizes flows into groups of steps contained in a series of stages. This value is available in API version 53.0 and later. PromptFlow—A flow for Prompt Builder. Pass data between Prompt Builder and the flow. This value is available in API version 60.0 and later. RecommendationStrategy—Build recommendations for your users. A recommendation launches its assigned flow. This value is available in API version 54.0 and later. See Flow Builder Strategies. RoutingFlow—A flow for Salesforce Omni-Channel routing and other business logic. This value is available in API version 52.0 and later. Survey—A flow for Salesforce Surveys. From the UI, this type of flow is created in Survey Builder. This value is available in API version 42.0 and later. SurveyEnrich—A Salesforce Surveys flow that uses the Survey Data Mapper. From the UI, this type of flow is created in the Survey Builder and requires an associated survey flow type. This value is available in API version 49.0 or later and only when the Customer Lifecycle Designer license is enabled. Workflow—A process that is invoked when a record is created or edited. In the UI and Salesforce Help, it’s a record change process. Across flow versions, you can change the type only from Flow to AutoLaunchedFlow or vice versa. Before you change the flow type, make sure that the flow contains only the elements, resources, and functionality that the new flow type supports. These values are reserved for future or Salesforce internal use. ActionPlan AppProcess ApprovalWorkflow CartAsyncFlow DigitalForm JourneyBuilderIntegration LoginFlow ManagedContentFlow OrchestrationFlow SalesEntryExperienceFlow TransactionSecurityFlow UserProvisioningFlow This field is available in API version 31.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: FlowProcessType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -35915,6 +35982,12 @@ Total metadata types: 1533
       <xsd:annotation>
        <xsd:documentation>Specifies which node to execute if an async action execution is timed out. This field is available in API version 62.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: FlowConnector</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="timeoutPathUsage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Include or exclude a timeout path for an asynchronous action in a flow. Valid values are: DisableTimeoutPath EnableTimeoutPath This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: FlowActionCallTimeoutPath (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="versionSegment" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
@@ -42620,6 +42693,37 @@ Total metadata types: 1533
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="GiftEntryGridTemplate">
+  <xsd:annotation>
+   <xsd:documentation>Represents templates that customize the gift entry grid in Fundraising.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_giftentrygridtemplate.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="Description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The description of the gift entry grid template.</xsd:documentation>
+       <xsd:appinfo>Type: textarea</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="IsSingleGiftDefault" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the template is the default template for single gift entry (true) or not (false, the default).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="TemplateConfiguration" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The template configuration that includes the data for fields, columns, and components.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="GlobalPicklist">
   <xsd:annotation>
    <xsd:documentation>Represents a global picklist, or the set of shared picklist values that custom picklist fields can use. In contrast, the custom picklist fields that are based on a global picklist are of type CustomValue. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
@@ -46810,7 +46914,7 @@ Total metadata types: 1533
  </xsd:complexType>
  <xsd:complexType name="LightningTypeBundle">
   <xsd:annotation>
-   <xsd:documentation>Represents a custom Lightning type. Use this type to override the default user interface to create a customized appearance of responses on the custom agent’s action input and output. Deploy this bundle to your organization to implement the overrides.</xsd:documentation>
+   <xsd:documentation>Represents a custom Lightning type. Use this type to override the default user interface to create a customized appearance based on your business requirements. Deploy this bundle to your organization to implement the overrides.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningtypebundle.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -48360,7 +48464,7 @@ Total metadata types: 1533
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="developerName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Represents the name of the data definition. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.</xsd:documentation>
+       <xsd:documentation>Required. Represents the name of the data definition. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -73416,6 +73520,7 @@ Total metadata types: 1533
  <xsd:element name="AnalyticsDashboardPage" type="AnalyticsDashboardPage"/>
  <xsd:element name="AnalyticsDashboardWidget" type="AnalyticsDashboardWidget"/>
  <xsd:element name="AnalyticsFilterWidgetDef" type="AnalyticsFilterWidgetDef"/>
+ <xsd:element name="AnalyticsImageWidgetDef" type="AnalyticsImageWidgetDef"/>
  <xsd:element name="AnalyticsMetricWidgetDef" type="AnalyticsMetricWidgetDef"/>
  <xsd:element name="AnalyticsParamWidgetDef" type="AnalyticsParamWidgetDef"/>
  <xsd:element name="AnalyticsSettings" type="AnalyticsSettings"/>
@@ -74177,6 +74282,7 @@ Total metadata types: 1533
  <xsd:element name="GenAiPromptTemplateGenerationConfig" type="GenAiPromptTemplateGenerationConfig"/>
  <xsd:element name="GenAiPromptTemplateInput" type="GenAiPromptTemplateInput"/>
  <xsd:element name="GenAiPromptTemplateVersion" type="GenAiPromptTemplateVersion"/>
+ <xsd:element name="GiftEntryGridTemplate" type="GiftEntryGridTemplate"/>
  <xsd:element name="GlobalPicklist" type="GlobalPicklist"/>
  <xsd:element name="GlobalPicklistTranslation" type="GlobalPicklistTranslation"/>
  <xsd:element name="GlobalQuickActionTranslation" type="GlobalQuickActionTranslation"/>
