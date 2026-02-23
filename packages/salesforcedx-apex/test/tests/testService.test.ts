@@ -273,14 +273,13 @@ describe('Apex Test Suites', async () => {
             testMethods: ['method1']
           },
           {
-            className: 'TestClass2',
-            testMethods: ['method1', 'method2'],
-            namespace: 'namespace'
+            className: 'namespace.TestClass2',
+            testMethods: ['method1', 'method2']
           }
         ]
       };
       const tests =
-        'TestClass1.method1,namespace.TestClass2.method1,TestClass2.method2';
+        'TestClass1.method1,namespace.TestClass2.method1,namespace.TestClass2.method2';
 
       const testService = new TestService(mockConnection);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
