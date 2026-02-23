@@ -74,9 +74,13 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 
 **Create:** Always set `Story_Points__c=2`, `Product_Tag__c=a1aB000000005G3IAI`, `RecordTypeId`. Include `Subject__c`, `Assignee__c`, `Scrum_Team__c=a00B0000000w9xPIAQ`, `Epic__c` (optional), `QA_Engineer__c` (optional), `Details__c` (optional). Leave `Sprint__c` blank; never modify it. **Details\_\_c:** write concisely—fragments/bullets, minimal words, no repetition (see .claude/skills/concise/SKILL.md).
 
-```
-sf data create record -s ADM_Work__c -o gus -v "Subject__c='...' Assignee__c='<userId>' Scrum_Team__c='a00B0000000w9xPIAQ' Product_Tag__c='a1aB000000005G3IAI' Story_Points__c=2 RecordTypeId='0129000000006gDAAQ' Epic__c='<epicId>'"
-```
+**Details\_\_c formatting (readable WI body):** Details__c is a Rich Text Area (extraTypeInfo: richtextarea)—use HTML, not markdown. The `-v` flag parses space-separated key=value; use `--flags-dir` with a `values` file ([ref](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_flag_values_in_files.htm)):
+
+1. `mkdir -p /tmp/gus-flags`
+2. Create `values` with one line: `Details__c='<p><strong>Section</strong></p><p>Content. <code>inline code</code></p><ul><li>item</li></ul><p><strong>Ref:</strong> <a href="https://...">url</a></p>'`
+3. `sf data update record -s ADM_Work__c -i <id> -o gus --flags-dir /tmp/gus-flags`
+
+Constraints: File must be single-line (flags-dir treats each line as a separate flag invocation). Value in single quotes. Use HTML: `<p>`, `<strong>`, `<code>`, `<ul><li>`, `<a href="...">`. Avoid unescaped `"` inside value—use `&quot;` or rephrase.
 
 **After create:** Always provide the work item link. Format: `https://gus.lightning.force.com/lightning/r/ADM_Work__c/<recordId>/view` (replace `<recordId>` with the Id from the create output, e.g. `a07EE00002V3a8YYAR`). Example: [a07EE00002V3a8YYAR](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002V3a8YYAR/view).
 
