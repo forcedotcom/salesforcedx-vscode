@@ -11,6 +11,8 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 
 **Confirmation required:** Never create or update work items without explicit user confirmation. Present proposed fields (Subject, Epic, Details, etc.) and wait for user to approve before any `sf data create record` or `sf data update record`.
 
+**Safety** never use `--no-verify`
+
 1. If branch name contains `W-XXXXX`, confirm it exists in GUS, resembles the work done on the branch, and use that
 2. Else ask: "Do you have a Gus work item (W-XXXXX) for this PR?"
 3. If yes → try to find it using [gus-cli/SKILL.md](../gus-cli/SKILL.md). Confirm with the user that you got it right, or ask them to choose if several could be right.
