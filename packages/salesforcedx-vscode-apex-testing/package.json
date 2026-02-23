@@ -27,7 +27,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.9-dev.4",
+    "@salesforce/apex-node": "^8.4.10",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.19.13",
