@@ -13,3 +13,10 @@ export const desktopTest = createDesktopTest({
   // some of the necessary configs are over there
   additionalExtensionDirs: ['salesforcedx-vscode-metadata']
 });
+
+export const createProjectTest = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: MINIMAL_ORG_ALIAS,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  userSettings: { 'files.simpleDialog.enable': true }
+});
