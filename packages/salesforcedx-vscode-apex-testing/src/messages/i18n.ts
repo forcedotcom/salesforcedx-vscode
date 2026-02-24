@@ -93,7 +93,10 @@ export const messages = {
     "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
   apex_test_discovery_progress_title: 'Discovering Apex Tests',
   apex_test_discovery_progress_fetching: 'Fetching tests from org...',
-  apex_test_discovery_progress_loading: 'Loading tests... (%s classes, %s methods)'
+  apex_test_discovery_progress_loading: 'Loading tests... (%s classes, %s methods)',
+  test_explorer_local_namespace_label: 'Local Namespace',
+  test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
+  test_explorer_1gp_package_label: '%s (1GP)'
 } as const;
 
 export type MessageKey = keyof typeof messages;

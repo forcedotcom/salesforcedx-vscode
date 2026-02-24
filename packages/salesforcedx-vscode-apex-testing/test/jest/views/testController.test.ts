@@ -37,6 +37,10 @@ jest.mock('../../../src/settings', () => ({
   retrieveTestCodeCoverage: jest.fn().mockReturnValue(false)
 }));
 
+jest.mock('../../../src/testDiscovery/packageResolution', () => ({
+  resolvePackage2Members: jest.fn().mockResolvedValue(new Map())
+}));
+
 // Mock TestService before imports
 const mockTestServiceMethods = {
   retrieveAllSuites: jest.fn().mockResolvedValue([]),

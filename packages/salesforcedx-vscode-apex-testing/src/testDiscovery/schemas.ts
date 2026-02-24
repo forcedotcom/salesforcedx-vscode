@@ -45,3 +45,36 @@ export type ToolingTestsPage = {
 export type DiscoverTestsOptions = {
   namespacePrefix?: string;
 };
+
+// Package resolution: Tooling API query result shapes
+export type Package2MemberRecord = {
+  Id: string;
+  MetadataComponentId?: string;
+  SubjectId?: string;
+  SubjectKeyPrefix?: string;
+  Package2Id?: string;
+};
+
+export type Package2Record = {
+  Id: string;
+  Name: string;
+  NamespacePrefix: string | null;
+  ContainerOptions?: string;
+};
+
+export type InstalledSubscriberPackageRecord = {
+  Id: string;
+  SubscriberPackageId: string;
+  SubscriberPackage: {
+    NamespacePrefix: string | null;
+    Name: string;
+  };
+};
+
+export type ResolvedPackageInfo = {
+  package2Id: string;
+  packageName: string;
+  namespacePrefix: string | null;
+  /** When present, e.g. 'Unlocked' or 'Managed' (from Package2.ContainerOptions) */
+  containerOptions?: string;
+};

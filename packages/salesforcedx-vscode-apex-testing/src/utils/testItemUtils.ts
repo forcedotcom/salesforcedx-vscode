@@ -7,7 +7,7 @@
 import * as vscode from 'vscode';
 import { SUITE_PARENT_ID, TEST_ID_PREFIXES } from '../constants';
 
-type TestItemType = 'suite' | 'class' | 'method' | 'suite-class' | 'unknown';
+type TestItemType = 'suite' | 'class' | 'method' | 'suite-class' | 'namespace' | 'package' | 'unknown';
 
 interface TestIdInfo {
   type: TestItemType;
@@ -57,6 +57,20 @@ export const parseTestId = (id: string): TestIdInfo => {
     }
   }
 
+  if (id.startsWith(TEST_ID_PREFIXES.NAMESPACE)) {
+    return {
+      type: 'namespace',
+      name: id.replace(TEST_ID_PREFIXES.NAMESPACE, '')
+    };
+  }
+
+  if (id.startsWith(TEST_ID_PREFIXES.PACKAGE)) {
+    return {
+      type: 'package',
+      name: id.replace(TEST_ID_PREFIXES.PACKAGE, '')
+    };
+  }
+
   return {
     type: 'unknown',
     name: id
@@ -82,6 +96,28 @@ export const isMethod = (id: string): boolean => id.startsWith(TEST_ID_PREFIXES.
  * Checks if a test item ID represents a suite-class placeholder
  */
 export const isSuiteClass = (id: string): boolean => id.startsWith(TEST_ID_PREFIXES.SUITE_CLASS);
+
+/**
+ * Checks if a test item ID represents a namespace container
+ */
+export const isNamespace = (id: string): boolean => id.startsWith(TEST_ID_PREFIXES.NAMESPACE);
+
+/**
+ * Checks if a test item ID represents a package container
+ */
+export const isPackage = (id: string): boolean => id.startsWith(TEST_ID_PREFIXES.PACKAGE);
+
+/**
+ * Creates a namespace container ID. namespaceKey is LOCAL_NAMESPACE_KEY for no namespace, or the namespace prefix.
+ */
+export const createNamespaceId = (namespaceKey: string): string =>
+  `${TEST_ID_PREFIXES.NAMESPACE}${namespaceKey}`;
+
+/**
+ * Creates a package container ID. packageKey is UNPACKAGED_PACKAGE_KEY, '1gp', or a Package2Id.
+ */
+export const createPackageId = (namespaceKey: string, packageKey: string): string =>
+  `${TEST_ID_PREFIXES.PACKAGE}${namespaceKey}:${packageKey}`;
 
 /**
  * Extracts the test name from a test item
@@ -149,6 +185,11 @@ export const gatherTests = (
     // Skip the suite parent node - it's just a container
     if (test.id === SUITE_PARENT_ID) {
       // Expand parent to get its children (suites)
+      test.children.forEach(child => include(child));
+      return;
+    }
+    // Namespace and package nodes are container-only; recurse into children
+    if (isNamespace(test.id) || isPackage(test.id)) {
       test.children.forEach(child => include(child));
       return;
     }
