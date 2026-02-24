@@ -49,8 +49,16 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.0.0",
     "@lwc/eslint-plugin-lwc": "^0.12.2",
-    "@lwc/jest-preset": "^7.0.0",
+    "@lwc/jest-preset": "^19.0.0",
+    "@lwc/rollup-plugin": "^9.0.0",
+    "@rollup/plugin-alias": "^5.0.0",
+    "@rollup/plugin-babel": "^6.0.0",
+    "@rollup/plugin-commonjs": "^28.0.0",
+    "@rollup/plugin-inject": "^5.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-terser": "^0.4.0",
     "@salesforce/eslint-config-lwc": "^0.11.0",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
@@ -58,6 +66,10 @@
     "@types/papaparse": "^5.2.3",
     "esbuild": "0.25.12",
     "immutable": "3.8.2",
+    "jest-environment-jsdom": "^29.0.0",
+    "os-browserify": "0.3.0",
+    "process": "0.11.10",
+    "rollup": "^4.0.0",
     "rxjs": "^6.6.2",
     "salesforcedx-vscode-core": "*",
     "util": "^0.12.3"
@@ -69,10 +81,11 @@
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/node_modules",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
+    "test:soql-builder-ui": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
@@ -111,17 +124,25 @@
       ]
     },
     "build:soql-builder-ui": {
-      "command": "cd src/soql-builder-ui && npm install && npm run build",
+      "command": "cd src/soql-builder-ui && rollup -c rollup.config.mjs",
       "files": [
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
-        "src/soql-builder-ui/rollup.config.mjs",
-        "src/soql-builder-ui/lwc.config.json",
-        "src/soql-builder-ui/package.json"
+        "src/soql-builder-ui/rollup.config.mjs"
       ],
       "output": [
         "src/soql-builder-ui/dist/**"
       ]
+    },
+    "test:soql-builder-ui": {
+      "command": "jest --config src/soql-builder-ui/jest.config.js",
+      "files": [
+        "src/soql-builder-ui/modules/**",
+        "src/soql-builder-ui/jest.config.js",
+        "src/soql-builder-ui/jestSetup/**",
+        "test/jest/soql-builder-ui/**"
+      ],
+      "output": []
     },
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",

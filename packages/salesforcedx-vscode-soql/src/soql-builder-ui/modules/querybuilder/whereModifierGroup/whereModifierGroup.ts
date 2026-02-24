@@ -12,7 +12,7 @@
  *
  */
 import { api, LightningElement, track } from 'lwc';
-import { debounce } from 'debounce';
+import debounce from 'debounce';
 import { LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
 import { ValidatorFactory } from '@salesforce/soql-model/validators/validatorFactory';
 import { splitMultiInputValues } from '@salesforce/soql-model/validators/inputUtils';
