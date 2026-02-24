@@ -6,10 +6,7 @@
  */
 import { Command, GlobalCliEnvironment, CancellationToken, CommandExecution } from '@salesforce/salesforcedx-utils';
 import { ChildProcess, SpawnOptions } from 'node:child_process';
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/observable/interval';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import { fromEvent, interval, Observable, Subscription } from 'rxjs';
 
 // Below two dependencies are not structured correctly for import unless require is used.
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -83,13 +80,13 @@ export class CliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
 
     // Process
-    this.processExitSubject = Observable.fromEvent(childProcess, 'exit');
+    this.processExitSubject = fromEvent<number | undefined>(childProcess, 'exit');
     this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
     });
-    this.processErrorSubject = Observable.fromEvent(childProcess, 'error');
+    this.processErrorSubject = fromEvent<Error | undefined>(childProcess, 'error');
     this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -97,12 +94,12 @@ export class CliCommandExecution implements CommandExecution {
     });
 
     // Output
-    this.stdoutSubject = Observable.fromEvent(childProcess.stdout!, 'data');
-    this.stderrSubject = Observable.fromEvent(childProcess.stderr!, 'data');
+    this.stdoutSubject = fromEvent<Buffer | string>(childProcess.stdout!, 'data');
+    this.stderrSubject = fromEvent<Buffer | string>(childProcess.stderr!, 'data');
 
     // Cancellation watcher
     if (cancellationToken) {
-      const timer = Observable.interval(1000);
+      const timer = interval(1000);
       timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {
