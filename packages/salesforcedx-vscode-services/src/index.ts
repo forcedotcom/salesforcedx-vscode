@@ -9,6 +9,7 @@ import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
+import { AliasService } from './core/alias';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
@@ -46,6 +47,7 @@ import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
   services: {
+    AliasService: typeof AliasService;
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
     ComponentSetService: typeof ComponentSetService;
@@ -73,6 +75,7 @@ export type SalesforceVSCodeServicesApi = {
     WorkspaceService: typeof WorkspaceService;
   };
 };
+export type { AliasService } from './core/alias';
 export type {
   NonEmptyComponentSet,
   ComponentSetService,
@@ -222,6 +225,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   // Return API for other extensions to consume
   return {
     services: {
+      AliasService,
       ChannelService,
       ChannelServiceLayer,
       ComponentSetService,
