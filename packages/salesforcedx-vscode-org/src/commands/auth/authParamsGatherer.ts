@@ -95,7 +95,9 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
     const skipAlias = this.instanceUrl !== undefined;
     // allow passing in the instance url programmatically instead of via quick pick
     if (!this.instanceUrl) {
-      const orgTypes = buildOrgTypes(await getProjectLoginUrl());
+      const orgTypes = buildOrgTypes(
+        await getProjectLoginUrl.pipe(Effect.provide(AllServicesLayer), Effect.runPromise)
+      );
       const selection = await vscode.window.showQuickPick(Object.values(orgTypes));
       if (!selection) {
         return { type: 'CANCEL' };
@@ -113,7 +115,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
           return { type: 'CANCEL' };
         }
       } else if (orgType === orgTypes.project?.label) {
-        this.instanceUrl = await getProjectLoginUrl();
+        this.instanceUrl = await getProjectLoginUrl.pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
       } else {
         this.instanceUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
       }
@@ -184,12 +186,9 @@ export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string
   }
 }
 
-const getProjectLoginUrl = async (): Promise<string | undefined> => {
-  const getProjectLoginUrlEffect = Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const configService = yield* api.services.ConfigService;
-    const configAggregator = yield* configService.getConfigAggregator();
-    return configAggregator.getPropertyValue<string>('sfdcLoginUrl') ?? undefined;
-  });
-  return Effect.runPromise(getProjectLoginUrlEffect.pipe(Effect.provide(AllServicesLayer)));
-};
+const getProjectLoginUrl = Effect.gen(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const project = yield* api.services.ProjectService.getSfProject();
+  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
+  return projectJson.get('sfdcLoginUrl');
+});
