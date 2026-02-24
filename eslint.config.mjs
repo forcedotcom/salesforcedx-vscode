@@ -47,6 +47,7 @@ export default [
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
+      'packages/salesforcedx-vscode-soql/src/soql-data-view/**',
       'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
       'packages/soql-common/src/soql-parser.lib/**',
