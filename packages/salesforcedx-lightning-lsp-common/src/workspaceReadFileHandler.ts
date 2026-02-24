@@ -140,7 +140,8 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
         const cwd = baseUri.fsPath;
         findFilesLog.appendLine(`[findFiles] using fs.promises.glob (Node or web polyfill) pattern=${p} cwd=${cwd}`);
         const matches: string[] = [];
-        for await (const m of glob(p, { cwd })) {
+
+        for await (const m of await glob(p, { cwd })) {
           matches.push(m);
         }
         const uris = matches.map((rel: string) =>
