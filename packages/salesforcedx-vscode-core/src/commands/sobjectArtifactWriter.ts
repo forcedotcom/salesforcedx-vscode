@@ -109,7 +109,6 @@ const runStreamWriteEffect = (
         ],
         { concurrency: 'unbounded' }
       );
-
       const sobjectNames = allSObjects.filter(sobjectTypeFilter(category, source));
 
       // Phase 2: typeNames.json — sobjectNames known, dirs ready

@@ -30,6 +30,7 @@ type SObjectBatchResponse = { hasErrors: boolean; results: SObjectBatchSubRespon
 
 const SOBJECT_CLIENT_ID = 'sfdx-vscode';
 const MAX_SOBJECT_BATCH_SIZE = 25;
+const BATCH_CONCURRENCY = 15;
 
 const runSObjectBatch = (conn: Connection, names: string[]): Promise<SObjectBatchResponse> => {
   const version = `v${conn.getApiVersion()}`;
@@ -203,7 +204,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
                     res?.results?.flatMap(sr => (Array.isArray(sr.result) ? [] : [sr.result])) ?? []
                   )
                 ),
-              { concurrency: 'unbounded' }
+              { concurrency: BATCH_CONCURRENCY }
             ),
             Stream.flatMap(batchResults => Stream.fromIterable(batchResults))
           )
