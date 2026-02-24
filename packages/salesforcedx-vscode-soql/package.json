@@ -2,9 +2,9 @@
   "name": "salesforcedx-vscode-soql",
   "displayName": "SOQL",
   "description": "Provides code-editing features for SOQL",
-  "qna": "https://github.com/forcedotcom/soql-tooling/issues",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
-    "url": "https://github.com/forcedotcom/soql-tooling/issues"
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
