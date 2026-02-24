@@ -7,7 +7,6 @@
 
 import type { Connection } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
-import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -167,39 +166,50 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       }).pipe(Effect.withSpan('describeCustomObject (API call)', { attributes: { objectName } }));
     });
 
-    const describeCustomObjects = Effect.fn('MetadataDescribeService.describeCustomObjects')(function* (
-      objectNames: string[]
-    ) {
-      if (objectNames.length === 0) return [] as DescribeSObjectResult[];
-      const conn = yield* connectionService.getConnection();
+    const describeCustomObjects = (objectNames: string[]): Stream.Stream<DescribeSObjectResult, MetadataDescribeError> => {
+      if (objectNames.length === 0) return Stream.empty;
       const batches = Array.from(
         { length: Math.ceil(objectNames.length / MAX_SOBJECT_BATCH_SIZE) },
         (_, i) => objectNames.slice(i * MAX_SOBJECT_BATCH_SIZE, (i + 1) * MAX_SOBJECT_BATCH_SIZE)
       );
-      const collected = yield* Stream.fromIterable(batches).pipe(
-        Stream.mapEffect(
-          batch =>
-            Effect.tryPromise({
-              try: () => runSObjectBatch(conn, batch),
-              catch: e => {
-                const { cause } = unknownToErrorCause(e);
-                return new MetadataDescribeError({
-                  cause,
-                  function: 'describeCustomObjects',
-                  message: `Failed to batch describe sobjects: ${cause.message ?? String(cause)}`
-                });
-              }
-            }).pipe(
-              Effect.map((res): DescribeSObjectResult[] =>
-                res?.results?.flatMap(sr => (Array.isArray(sr.result) ? [] : [sr.result])) ?? []
-              )
+      return Stream.fromEffect(
+        connectionService.getConnection().pipe(
+          Effect.mapError(e => {
+            const { cause } = unknownToErrorCause(e);
+            return new MetadataDescribeError({
+              cause,
+              function: 'describeCustomObjects',
+              message: `Failed to get connection: ${cause.message ?? String(cause)}`
+            });
+          })
+        )
+      ).pipe(
+        Stream.flatMap(conn =>
+          Stream.fromIterable(batches).pipe(
+            Stream.mapEffect(
+              batch =>
+                Effect.tryPromise({
+                  try: () => runSObjectBatch(conn, batch),
+                  catch: e => {
+                    const { cause } = unknownToErrorCause(e);
+                    return new MetadataDescribeError({
+                      cause,
+                      function: 'describeCustomObjects',
+                      message: `Failed to batch describe sobjects: ${cause.message ?? String(cause)}`
+                    });
+                  }
+                }).pipe(
+                  Effect.map((res): DescribeSObjectResult[] =>
+                    res?.results?.flatMap(sr => (Array.isArray(sr.result) ? [] : [sr.result])) ?? []
+                  )
+                ),
+              { concurrency: 'unbounded' }
             ),
-          { concurrency: 'unbounded' }
-        ),
-        Stream.runCollect
+            Stream.flatMap(batchResults => Stream.fromIterable(batchResults))
+          )
+        )
       );
-      return Chunk.toArray(collected).flat();
-    });
+    };
 
     const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (type: string, folder?: string) {
       const conn = yield* connectionService.getConnection();

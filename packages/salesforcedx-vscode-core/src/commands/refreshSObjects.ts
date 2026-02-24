@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getServicesApi } from '@salesforce/effect-ext-utils';
 import {
   type SObjectCategory,
   type SObjectRefreshResult,
@@ -13,11 +12,9 @@ import {
   SOBJECTS_DIR,
   STANDARDOBJECTS_DIR,
   getMinNames,
-  getMinObjects,
-  sobjectTypeFilter,
-  toMinimalSObject
+  getMinObjects
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { type Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   ContinueResponse,
@@ -32,13 +29,12 @@ import {
   SfWorkspaceChecker,
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { writeSobjectArtifacts } from './sobjectArtifactWriter';
+import { streamAndWriteSobjectArtifacts, writeSobjectArtifacts } from './sobjectArtifactWriter';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
 type RefreshSelection = {
@@ -136,12 +132,13 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
           sobjectNames: getMinNames()
         });
       } else {
-        const { sobjects, sobjectNames } = await fetchSObjectData(response.data.category, response.data.source);
-        result = await writeSobjectArtifacts({
+        result = await streamAndWriteSobjectArtifacts({
           emitter: execution.cmdEmitter,
           cancellationToken,
-          sobjects,
-          sobjectNames
+          category: response.data.category,
+          // TypeScript narrows source to Exclude<SObjectRefreshSource, 'startupmin'>
+          // via the `=== 'startupmin'` guard in the if-branch above
+          source: response.data.source
         });
       }
 
@@ -186,32 +183,6 @@ const extractErrorMessage = (error: unknown): string => {
     if ('message' in error && typeof error.message === 'string') return error.message;
   }
   return String(error);
-};
-
-const fetchSObjectData = (
-  category: SObjectCategory,
-  source: Exclude<SObjectRefreshSource, 'startupmin'>
-) =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      const api = yield* getServicesApi;
-      const layer = api.services.MetadataDescribeService.Default;
-      const allSObjects = yield* api.services.MetadataDescribeService.listSObjects().pipe(Effect.provide(layer));
-      const sobjectNames = allSObjects.filter(sobjectTypeFilter(category, source));
-      const rawObjects = yield* api.services.MetadataDescribeService
-        .describeCustomObjects(sobjectNames.map(s => s.name))
-        .pipe(Effect.provide(layer));
-      const sobjects = groupByCustom(rawObjects.map(toMinimalSObject));
-      return { sobjects, sobjectNames };
-    })
-  );
-
-const groupByCustom = (objects: ReturnType<typeof toMinimalSObject>[]) => {
-  const grouped = Object.groupBy(objects, o => (o.custom ? 'custom' : 'standard'));
-  return {
-    standard: grouped.standard ?? [],
-    custom: grouped.custom ?? []
-  };
 };
 
 const workspaceChecker = new SfWorkspaceChecker();

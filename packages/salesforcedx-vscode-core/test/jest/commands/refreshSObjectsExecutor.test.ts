@@ -9,6 +9,7 @@ import * as fauxGen from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { RefreshSObjectsExecutor } from '../../../src/commands/refreshSObjects';
@@ -21,11 +22,13 @@ const mockServicesExtension = {
       MetadataDescribeService: {
         Default: Layer.empty,
         listSObjects: () => Effect.succeed([]),
-        describeCustomObjects: () => Effect.succeed([])
+        describeCustomObjects: () => Stream.empty
       }
     }
   }
 };
+
+const mockArtifactResult = { data: { cancelled: false, standardObjects: 0, customObjects: 0 } };
 
 describe('RefreshSObjectsExecutor', () => {
   let channelServiceSpy: jest.SpyInstance;
@@ -39,13 +42,8 @@ describe('RefreshSObjectsExecutor', () => {
     jest.spyOn(vscode.extensions, 'getExtension').mockReturnValue(
       mockServicesExtension as unknown as vscode.Extension<unknown>
     );
-    jest.spyOn(artifactWriter, 'writeSobjectArtifacts').mockResolvedValue({
-      data: {
-        cancelled: false,
-        standardObjects: 0,
-        customObjects: 0
-      }
-    });
+    jest.spyOn(artifactWriter, 'writeSobjectArtifacts').mockResolvedValue(mockArtifactResult);
+    jest.spyOn(artifactWriter, 'streamAndWriteSobjectArtifacts').mockResolvedValue(mockArtifactResult);
   });
 
   it('should open the Output Channel', async () => {
