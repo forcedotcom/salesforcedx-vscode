@@ -141,7 +141,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI Integration',
+      'Salesforce CLI',
       'Starting SFDX: Turn On Apex Debug Log for Replay Debugger',
       10
     );

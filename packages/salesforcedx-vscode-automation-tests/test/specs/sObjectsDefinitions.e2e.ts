@@ -106,7 +106,7 @@ describe('SObjects Definitions', () => {
     await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI Integration',
+      'Salesforce CLI',
       'Starting SFDX: Push Source to Default Org',
       5
     );
@@ -164,7 +164,7 @@ describe('SObjects Definitions', () => {
 
 const verifyOutputPanelTxt = async (type: string, qty?: number) => {
   log(`calling verifyOutputPanelText(${type})`);
-  const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI Integration', 'sObjects', 10);
+  const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', 'sObjects', 10);
   if (!outputPanelText) {
     throw new Error('Expected output panel text but got undefined');
   }

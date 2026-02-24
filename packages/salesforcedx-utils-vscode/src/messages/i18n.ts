@@ -37,7 +37,7 @@ export const messages = {
     'Please reauthenticate using the login button or the `SFDX Authorize an Org` command.  See the output channel for more details on the auth error',
   error_access_token_expired_login_button: 'Login',
 
-  channel_name: 'Salesforce CLI Integration',
+  channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:

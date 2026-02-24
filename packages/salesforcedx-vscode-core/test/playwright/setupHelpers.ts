@@ -51,7 +51,7 @@ export const setupWorkbenchSettingsAndOutputChannel = async (
     }
   }
 
-  // Open output panel and select Salesforce CLI Integration channel
+  // Open output panel and select Salesforce CLI channel
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, OUTPUT_CHANNEL, 120_000);
   await saveScreenshot(page, 'setup.complete.png');
