@@ -248,6 +248,11 @@
     "configuration": {
       "title": "%configuration.title%",
       "properties": {
+        "salesforce-web-console.protected-org": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.protectedOrg.description%"
+        },
         "salesforcedx-vscode-code-builder-web.instanceUrl": {
           "type": "string",
           "default": "",

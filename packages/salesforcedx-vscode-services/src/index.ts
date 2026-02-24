@@ -25,6 +25,7 @@ import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
+import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
@@ -114,9 +115,7 @@ const activationEffect = (context: vscode.ExtensionContext) =>
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
       // auth settings go before other things so retrieveOnLoad can use them
-      if (process.env.ESBUILD_WEB_CONFIG) {
-        yield* runWebAuthEffect();
-      }
+
       yield* Effect.all(
         [
           Effect.forkIn(subscribeLifecycleWarnings(), scope),
@@ -151,11 +150,16 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   const extensionScope = Effect.runSync(getExtensionScope());
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
+    if (process.env.ESBUILD_WEB_CONFIG) {
+      await Effect.runPromise(runWebAuthEffect());
+    }
     // first, before all other things, get the FS running.
     await Effect.runPromise(
       fileSystemSetup(context).pipe(
+        Effect.provide(SettingsService.Default),
         Effect.provide(ChannelService.Default),
         Effect.provide(IndexedDBStorageServiceShared),
+        Effect.provide(isItReadOnlyLayer),
         Scope.extend(extensionScope)
       )
     );

@@ -2,6 +2,7 @@
   "displayName": "Salesforce VSCode Services",
   "description": "Core services and APIs for Salesforce VS Code extensions.",
   "configuration.title": "Salesforce Services Configuration",
+  "configuration.protectedOrg.description": "Org is a production org. Applies only to web console. Changing this value has no effect",
   "configuration.instanceUrl.description": "Salesforce instance URL for web extensions. Only valid in browser",
   "configuration.accessToken.description": "Salesforce access token for web extensions. Only valid in browser",
   "configuration.apiVersion.description": "Salesforce api version (example: 65.0). Only valid in browser",
