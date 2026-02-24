@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/observable/interval';
+import * as rxjs from 'rxjs';
 import * as kill from 'tree-kill';
 import {
   CANCELLATION_INTERVAL,
@@ -48,10 +46,10 @@ describe('CliCommandExecution Unit Tests.', () => {
     subscribeSpy = jest.fn().mockReturnValue({
       unsubscribe: unsubscribeSpy
     });
-    fromEventSpy = jest.spyOn(Observable, 'fromEvent').mockReturnValue({
+    fromEventSpy = jest.spyOn(rxjs, 'fromEvent').mockReturnValue({
       subscribe: subscribeSpy
     } as any);
-    intervalSpy = jest.spyOn(Observable, 'interval').mockReturnValue({
+    intervalSpy = jest.spyOn(rxjs, 'interval').mockReturnValue({
       subscribe: subscribeSpy
     } as any);
   });

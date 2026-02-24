@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { CommandExecution } from '@salesforce/salesforcedx-utils';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import * as vscode from 'vscode';
 import { nls } from '../messages/messages';
 

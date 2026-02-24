@@ -62,8 +62,6 @@
     "@salesforce/core": "^8.23.3"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
-    "rxjs": "^5.4.1",
-    "ts-jest": "^29.4.1"
+    "rxjs": "^7.8.2"
   }
 }

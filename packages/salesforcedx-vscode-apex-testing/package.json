@@ -35,8 +35,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "@salesforce/playwright-vscode-ext": "*",
-    "esbuild": "0.25.12"
+    "@salesforce/playwright-vscode-ext": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
