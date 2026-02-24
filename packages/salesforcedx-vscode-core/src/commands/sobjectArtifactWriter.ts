@@ -39,7 +39,10 @@ import { nls } from '../messages';
 const APEX_CLASS_EXTENSION = '.cls';
 const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPINGS_PATH = ['typings', 'lwc', 'sobjects'] as const;
-const WRITE_CONCURRENCY = 50;
+// vscode.workspace.fs.writeFile adds ~90ms latency per call vs node:fs.
+// Each SObject slot awaits 3 parallel writes; slots are I/O-bound not CPU-bound.
+// Higher concurrency reduces the number of rounds and directly cuts Phase 3 time.
+const WRITE_CONCURRENCY = 100;
 
 /**
  * TypeScript's overload resolution for Stream.mapEffect fails to infer the element type
@@ -117,6 +120,7 @@ const runStreamWriteEffect = (
       // Phase 3: describe stream + file writes overlapped.
       // listSObjects and describeCustomObjects share the same MetadataDescribeService
       // instance (one connection) because both run inside the same Effect.provide below.
+      // Dirs are pre-created in Phase 1, so writeFile has no createDirectory overhead.
       const standardRef = yield* Ref.make(0);
       const customRef = yield* Ref.make(0);
 
@@ -150,8 +154,7 @@ const runStreamWriteEffect = (
 
       return [yield* Ref.get(standardRef), yield* Ref.get(customRef)] as const;
     }).pipe(
-      // Single merged layer: both services are built once and shared across
-      // listSObjects, dir resets, describeCustomObjects, and all file writes.
+      // Single merged layer: both services built once and shared across all phases.
       Effect.provide(Layer.merge(fsLayer, mdLayer))
     );
   });

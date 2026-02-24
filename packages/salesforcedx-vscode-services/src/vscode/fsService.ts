@@ -24,6 +24,8 @@ export class FsServiceError extends Data.TaggedError('FsServiceError')<{
  * @param filePath - Either a URI object, URI string (e.g., "memfs:/MyProject/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
  * @returns A properly parsed VS Code URI
  */
+const encoder = new TextEncoder();
+
 export const toUri = (filePath: string | URI): URI => {
   // If it's already a URI object, return it
   if (typeof filePath !== 'string') {
@@ -66,12 +68,36 @@ const readFile = Effect.fn('fsService.readFile')(function* (filePath: string | U
   });
 });
 
-const writeFile = Effect.fn('fsService.writeFile')(function* (filePath: string | URI, content: string) {
+/**
+ * Writes content to a file, creating the parent directory if it does not exist.
+ * Use `writeFile` instead when the directory is guaranteed to exist (e.g. bulk writes
+ * where directories are pre-created once) to avoid per-call `createDirectory` overhead.
+ */
+const safeWriteFile = Effect.fn('fsService.safeWriteFile')(function* (filePath: string | URI, content: string) {
   return yield* Effect.tryPromise({
     try: async () => {
       const uri = toUri(filePath);
       await vscode.workspace.fs.createDirectory(Utils.dirname(uri));
-      const uint8Array = new TextEncoder().encode(content);
+      await vscode.workspace.fs.writeFile(uri, encoder.encode(content));
+    },
+    catch: e =>
+      new FsServiceError({
+        ...unknownToErrorCause(e),
+        function: 'safeWriteFile',
+        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+      })
+  });
+});
+
+/**
+ * Writes content to a file. The parent directory must already exist.
+ * Call `createDirectory` or `safeWriteFile` first if the directory may not exist.
+ */
+const writeFile = Effect.fn('fsService.writeFile')(function* (filePath: string | URI, content: string) {
+  return yield* Effect.tryPromise({
+    try: async () => {
+      const uri = toUri(filePath);
+      const uint8Array = encoder.encode(content);
       await vscode.workspace.fs.writeFile(uri, uint8Array);
     },
     catch: e =>
@@ -108,7 +134,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
       toUri: (filePath: string | URI) => Effect.succeed(toUri(filePath)),
       HashableUri,
       uriToPath: (uri: URI) => Effect.succeed(uriToPath(uri)),
-      /** Write file to filesystem, creating directories if they don't exist */
+      safeWriteFile,
       writeFile,
       fileOrFolderExists,
       isDirectory: (path: string | URI) =>

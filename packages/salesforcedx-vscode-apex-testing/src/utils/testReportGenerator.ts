@@ -93,17 +93,14 @@ export const writeAndOpenTestReport = async (
   const testRunId = result.summary?.testRunId;
   const reportPath = generateReportFilename(outputDir, testRunId, extension);
 
-  // Convert stream to UTF-8 string for FsService.writeFile
   const uint8Array = await streamToNormalizedUtf8Bytes(transformer);
   const content = new TextDecoder('utf-8').decode(uint8Array);
 
-  // Write the file using FsService.writeFile from the services extension
-  // Pass string path - FsService.writeFile handles URI conversion internally
   try {
     await Effect.runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        yield* api.services.FsService.writeFile(reportPath, content);
+        yield* api.services.FsService.safeWriteFile(reportPath, content);
       }).pipe(Effect.provide(AllServicesLayer))
     );
   } catch (error) {
