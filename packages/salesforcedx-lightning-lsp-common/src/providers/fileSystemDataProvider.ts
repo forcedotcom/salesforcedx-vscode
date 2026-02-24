@@ -467,9 +467,14 @@ export class FileSystemDataProvider implements IFileSystemProvider {
     );
   }
 
+  private static readonly FIND_FILES_TIMEOUT_MS = 8000;
+
+  private findFilesLogCount = 0;
+  private static readonly FIND_FILES_LOG_FIRST_N = 8;
+
   /**
    * When setFindFilesFromConnection was called, asks the client for file URIs matching the glob via workspace/findFiles.
-   * Returns undefined when not configured or on error so callers can fall back to getAllFileUris().
+   * Returns undefined when not configured, on error, or on timeout (e.g. in web when client has no search provider for memfs).
    */
   public async findFilesWithGlobAsync(
     pattern: string,
@@ -478,18 +483,50 @@ export class FileSystemDataProvider implements IFileSystemProvider {
     if (!this.connectionForFindFiles || !this.findFilesRequestMethod) {
       return undefined;
     }
+    const logThis = ++this.findFilesLogCount <= FileSystemDataProvider.FIND_FILES_LOG_FIRST_N;
     try {
       const baseFolderUri = this.getFileUriForPath(basePath);
       const params: WorkspaceFindFilesParams = { baseFolderUri, pattern };
-      const result = await this.connectionForFindFiles.sendRequest<WorkspaceFindFilesResult>(
-        this.findFilesRequestMethod,
-        params
-      );
+      if (logThis) {
+        Logger.info(
+          `[findFilesWithGlobAsync] server sending basePath=${basePath} baseFolderUri=${baseFolderUri} pattern=${pattern} workspaceFolderUris=${JSON.stringify(this.workspaceFolderUris)}`
+        );
+      }
+      const result = await Promise.race([
+        this.connectionForFindFiles.sendRequest<WorkspaceFindFilesResult>(
+          this.findFilesRequestMethod,
+          params
+        ),
+        new Promise<WorkspaceFindFilesResult>((_, reject) =>
+          setTimeout(
+            () => reject(new Error('workspace/findFiles timeout')),
+            FileSystemDataProvider.FIND_FILES_TIMEOUT_MS
+          )
+        )
+      ]);
       if (result?.error || !result?.uris) {
+        if (logThis) {
+          Logger.info(
+            `[findFilesWithGlobAsync] client returned error or empty: error=${result?.error ?? 'none'} urisCount=${result?.uris?.length ?? 0}`
+          );
+        }
         return undefined;
       }
+      if (logThis) {
+        Logger.info(
+          `[findFilesWithGlobAsync] client returned ${result.uris.length} uris for pattern=${pattern}`
+        );
+      }
+      if (this.findFilesLogCount === FileSystemDataProvider.FIND_FILES_LOG_FIRST_N + 1) {
+        Logger.info('[findFilesWithGlobAsync] further findFiles requests not logged (see LWC workspace/findFiles (client) output for client side)');
+      }
       return result.uris.map(uri => this.uriToNormalizedPath(uri));
-    } catch {
+    } catch (err) {
+      if (logThis) {
+        Logger.info(
+          `[findFilesWithGlobAsync] request failed: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
       return undefined;
     }
   }

@@ -25,15 +25,15 @@ export default class Server extends BaseServer {
 
   /**
    * Override to add browser-specific re-indexing logic when LWC files are added after delayed initialization.
-   * In web mode only the opened document is synced, so when a new .js/.ts is opened (e.g. sibling of .html)
-   * we must re-run the indexer so the component is available for go-to-definition.
+   * In web mode only the opened document is synced, so when any LWC file is opened (.html, .js, .ts under /lwc/)
+   * we re-run the indexer so findFiles runs again and picks up downloaded components (memfs walk returns current files).
    */
   protected onDidOpen(changeEvent: { document: TextDocument }): void {
     super.onDidOpen(changeEvent);
 
     const uri = changeEvent.document.uri.toLowerCase();
-    const isComponentImpl = uri.endsWith('.js') || uri.endsWith('.ts');
-    if (isComponentImpl) {
+    const isLwcFile = /\/lwc\/[^/]+\/[^/]+\.(html|js|ts)$/.test(uri);
+    if (isLwcFile) {
       void this.reindexComponents();
     }
   }

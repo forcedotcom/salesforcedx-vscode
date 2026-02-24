@@ -169,7 +169,9 @@ export abstract class BaseServer {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
 
-    // Set workspace folder URIs in file system provider first so it can convert URIs correctly
+    // Set workspace folder URIs first so the provider can convert paths to the client's scheme (e.g. memfs:// in browser).
+    // Without this, fileExists/getFileStat send file:// URIs and the client cannot find files in memfs.
+    this.fileSystemProvider.setWorkspaceFolderUris(this.workspaceFolders.map(f => f.uri));
     this.fileSystemProvider.setReadFileFromConnection(this.connection, WORKSPACE_READ_FILE_REQUEST);
     this.fileSystemProvider.setReadStatFromConnection(this.connection, WORKSPACE_STAT_REQUEST);
     this.fileSystemProvider.setFindFilesFromConnection(this.connection, WORKSPACE_FIND_FILES_REQUEST);
@@ -621,6 +623,9 @@ export abstract class BaseServer {
     { textDocument: { uri }, position }: TextDocumentPositionParams,
     document?: TextDocument
   ): CursorInfo | null {
+    if (!this.languageService) {
+      return null;
+    }
     const doc = document ?? this.documents.get(uri);
     const offset = doc?.offsetAt(position);
     const scanner = doc ? this.languageService.createScanner(doc.getText()) : null;
@@ -739,10 +744,12 @@ export abstract class BaseServer {
   protected async performDelayedInitialization(): Promise<void> {
     // Prevent concurrent initialization attempts
     if (this.isInitializing) {
+      Logger.info('[LWC] performDelayedInitialization: skipped (already initializing)');
       return;
     }
 
     this.isInitializing = true;
+    Logger.info('[LWC] performDelayedInitialization: started');
 
     try {
       // Initialize workspace context now that essential files are loaded via onDidOpen
@@ -753,14 +760,40 @@ export abstract class BaseServer {
       // This ensures directoryExists can infer directory existence from file paths
       // But wait for LWC files to be loaded first - check if any LWC files exist
       let hasLwcFiles = false;
+      let htmlCount = 0;
+      let jsCount = 0;
+      let tsCount = 0;
       if (this.fileSystemProvider.findFilesWithGlobAsync && this.workspaceRoots[0]) {
         const basePath = this.workspaceRoots[0];
-        const [html, js, ts] = await Promise.all([
-          this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
-          this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
-          this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
-        ]);
-        hasLwcFiles = (html?.length ?? 0) > 0 || (js?.length ?? 0) > 0 || (ts?.length ?? 0) > 0;
+        Logger.info(`[LWC] performDelayedInitialization: findFiles basePath=${basePath}`);
+        const findFilesTimeoutMs = 8000;
+        const findFilesWithTimeout = Promise.race([
+          Promise.all([
+            this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
+            this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
+            this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
+          ]),
+          new Promise<[undefined, undefined, undefined]>((_, reject) =>
+            setTimeout(() => reject(new Error('findFiles timeout')), findFilesTimeoutMs)
+          )
+        ]).catch(err => {
+          Logger.info(
+            `[LWC] performDelayedInitialization: findFiles timed out or failed (${err instanceof Error ? err.message : String(err)}), continuing with hasLwcFiles=false`
+          );
+          return [undefined, undefined, undefined];
+        });
+        const [html, js, ts] = await findFilesWithTimeout;
+        htmlCount = html?.length ?? 0;
+        jsCount = js?.length ?? 0;
+        tsCount = ts?.length ?? 0;
+        hasLwcFiles = htmlCount > 0 || jsCount > 0 || tsCount > 0;
+        Logger.info(
+          `[LWC] performDelayedInitialization: findFiles result html=${htmlCount} js=${jsCount} ts=${tsCount} hasLwcFiles=${hasLwcFiles}`
+        );
+      } else {
+        Logger.info(
+          '[LWC] performDelayedInitialization: no findFilesWithGlobAsync or workspaceRoot, hasLwcFiles=false'
+        );
       }
 
       if (hasLwcFiles) {
@@ -770,7 +803,11 @@ export abstract class BaseServer {
       // For SFDX workspaces, wait for sfdx-project.json to be loaded before initializing component indexer
       if (this.workspaceType === 'SFDX') {
         const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
-        if (!(await this.fileSystemProvider.fileExists(sfdxProjectPath))) {
+        const sfdxExists = await this.fileSystemProvider.fileExists(sfdxProjectPath);
+        if (!sfdxExists) {
+          Logger.info(
+            `[LWC] performDelayedInitialization: SFDX workspace but sfdx-project.json not found at ${sfdxProjectPath}, exiting early`
+          );
           this.isInitializing = false;
           return;
         }
@@ -795,18 +832,17 @@ export abstract class BaseServer {
       });
 
       const componentCount = this.componentIndexer.getCustomData().length;
+      Logger.info(`[LWC] performDelayedInitialization: componentIndexer.init done, componentCount=${componentCount}`);
 
       // Configure TypeScript support now that files are loaded and context is initialized
       await this.configureTypeScriptSupport();
 
-      // send notification that delayed initialization is complete (only if we have components)
-      if (componentCount > 0) {
-        void this.connection.sendNotification(ShowMessageNotification.type, {
-          type: MessageType.Info,
-          message: 'LWC Language Server is ready'
-        });
-      }
+      void this.connection.sendNotification(ShowMessageNotification.type, {
+        type: MessageType.Info,
+        message: 'LWC Language Server is ready'
+      });
       this.isDelayedInitializationComplete = true;
+      Logger.info('[LWC] performDelayedInitialization: completed successfully');
     } catch (error: unknown) {
       Logger.error(
         `Error during delayed initialization: ${error instanceof Error ? error.message : String(error)}`,

@@ -8,6 +8,8 @@
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import { Effect } from 'effect';
+// eslint-disable-next-line no-restricted-imports
+import { glob } from 'node:fs/promises';
 import * as vscode from 'vscode';
 import {
   WORKSPACE_READ_FILE_REQUEST,
@@ -52,7 +54,6 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
   client.onRequest<WorkspaceReadFileParams, WorkspaceReadFileResult>(
     WORKSPACE_READ_FILE_REQUEST,
     async (params): Promise<WorkspaceReadFileResult> => {
-      console.log(`[LWC Init ${new Date().toISOString()}] workspace/readFile handler invoked uri=${params?.uri ?? '?'}`);
       const { uri } = params;
       const apiResult = Effect.runSync(Effect.either(getServicesApi));
       if (apiResult._tag === 'Left') {
@@ -122,19 +123,40 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
     }
   );
 
+  const findFilesLog = vscode.window.createOutputChannel('LWC workspace/findFiles (client)');
+
   client.onRequest<WorkspaceFindFilesParams, WorkspaceFindFilesResult>(
     WORKSPACE_FIND_FILES_REQUEST,
     async (params): Promise<WorkspaceFindFilesResult> => {
+      const { baseFolderUri, pattern } = params ?? {};
+      const baseUri = vscode.Uri.parse(baseFolderUri);
+      const p = pattern ?? '**/*';
+
+      findFilesLog.appendLine(
+        `[findFiles] request baseFolderUri=${baseFolderUri ?? '?'} pattern=${p} scheme=${baseUri.scheme}`
+      );
+
       try {
-        const { baseFolderUri, pattern } = params;
-        const baseUri = vscode.Uri.parse(baseFolderUri);
-        const uris = await vscode.workspace.findFiles(
-          new vscode.RelativePattern(baseUri, pattern)
+        const cwd = baseUri.fsPath;
+        findFilesLog.appendLine(`[findFiles] using fs.promises.glob (Node or web polyfill) pattern=${p} cwd=${cwd}`);
+        const matches: string[] = [];
+        for await (const m of glob(p, { cwd })) {
+          matches.push(m);
+        }
+        const uris = matches.map((rel: string) =>
+          vscode.Uri.joinPath(baseUri, ...rel.replaceAll('\\', '/').split('/').filter(Boolean)).toString()
         );
-        return { uris: uris.map(u => u.toString()) };
+        findFilesLog.appendLine(`[findFiles] returned ${uris.length} uris`);
+        return { uris };
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
-        return { error: message };
+        const stack = e instanceof Error ? e.stack : undefined;
+        findFilesLog.appendLine(`[findFiles] glob failed with error: ${message}`);
+        if (stack) {
+          findFilesLog.appendLine(`[findFiles] stack: ${stack}`);
+        }
+        findFilesLog.appendLine('[findFiles] returning undefined');
+        return { uris: undefined };
       }
     }
   );
