@@ -286,7 +286,7 @@
         },
         {
           "command": "sf.metadata.delete.source.current.file",
-          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "!editorReadonly && isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.source.path",
@@ -294,7 +294,7 @@
         },
         {
           "command": "sf.metadata.deploy.active.editor",
-          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "!editorReadonly && isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
@@ -324,11 +324,11 @@
       "editor/context": [
         {
           "command": "sf.metadata.delete.source",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "!editorReadonly && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.source.path",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "!editorReadonly && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
@@ -354,11 +354,11 @@
       "explorer/context": [
         {
           "command": "sf.metadata.delete.source",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.source.path",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
