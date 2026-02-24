@@ -11,11 +11,12 @@ const FONT_NAME = 'sf-media-icons';
 const FONT_PATH = `resources/icons-font/${FONT_NAME}.woff`;
 
 async function build() {
-  const infoData = await svgtofont({
+  await svgtofont({
     src: ICONS_SRC,
     dist: ICONS_FONT,
     fontName: FONT_NAME,
     css: false,
+    generateInfoData: true,
     startUnicode: 0xe001,
     svgicons2svgfont: {
       fontHeight: 1000,
@@ -24,13 +25,18 @@ async function build() {
     website: null
   });
 
+  const infoPath = path.join(ICONS_FONT, 'info.json');
+  const infoData = fs.existsSync(infoPath)
+    ? JSON.parse(fs.readFileSync(infoPath, 'utf8'))
+    : {};
+
   const manifestPath = path.join(ICONS_SRC, 'icons.json');
   const manifest = fs.existsSync(manifestPath)
     ? JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
     : {};
 
   const icons = {};
-  const entries = Object.entries(infoData ?? {}).sort(([a], [b]) =>
+  const entries = Object.entries(infoData).sort(([a], [b]) =>
     a.localeCompare(b)
   );
   for (const [svgName, meta] of entries) {

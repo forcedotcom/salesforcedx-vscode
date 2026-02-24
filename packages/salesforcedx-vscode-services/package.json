@@ -289,7 +289,22 @@
       }
     },
     "commands": [],
-    "icons": {}
+    "icons": {
+      "sf-org-leaf": {
+        "description": "Leaf icon for default scratch org",
+        "default": {
+          "fontPath": "resources/icons-font/sf-media-icons.woff",
+          "fontCharacter": "\\E001"
+        }
+      },
+      "sf-org-tree": {
+        "description": "Tree icon for default dev hub",
+        "default": {
+          "fontPath": "resources/icons-font/sf-media-icons.woff",
+          "fontCharacter": "\\E002"
+        }
+      }
+    }
   },
   "sideEffects": true
 }
