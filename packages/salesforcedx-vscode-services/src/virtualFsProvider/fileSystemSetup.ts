@@ -63,9 +63,9 @@ export const fileSystemSetup = (context: vscode.ExtensionContext) =>
 
     const settingsService = yield* SettingsService;
 
-    if (yield* settingsService.getValue('salesforce-web-console', 'protected-org', false)) {
+    if (yield* settingsService.getValue('salesforce-web-console', 'protectedOrg', false)) {
       console.log('protected org');
-      vscode.commands.executeCommand('setContext', 'sf:protected-org', true);
+      vscode.commands.executeCommand('setContext', 'sf:protectedOrg', true);
       const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
       // protected org: make apex read only
       fsProvider.readOnly = [registryAccess.getTypeByName('ApexClass'), registryAccess.getTypeByName('ApexTrigger')];

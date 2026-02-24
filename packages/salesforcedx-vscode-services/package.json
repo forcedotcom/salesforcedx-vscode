@@ -248,7 +248,7 @@
     "configuration": {
       "title": "%configuration.title%",
       "properties": {
-        "salesforce-web-console.protected-org": {
+        "salesforce-web-console.protectedOrg": {
           "type": "boolean",
           "default": false,
           "description": "%configuration.protectedOrg.description%"
