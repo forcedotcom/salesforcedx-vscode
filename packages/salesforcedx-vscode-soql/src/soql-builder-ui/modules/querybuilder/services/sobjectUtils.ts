@@ -10,7 +10,7 @@ import { SObjectFieldType } from '@salesforce/soql-model/model/model';
 
 type SObjectField = {
   name: string;
-  type: string;
+  type: SObjectFieldType;
   picklistValues: string[];
   nillable: boolean;
 }

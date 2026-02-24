@@ -32,7 +32,7 @@ const packageJson = readJsonFile(packageJsonPath) as {
 describe(`package.json dependencies for ${packageJson.name}`, () => {
   const { dependencies, devDependencies } = packageJson;
 
-  Object.keys(dependencies).forEach(name => {
+  Object.keys(dependencies ?? {}).forEach(name => {
     const versionRange = dependencies[name];
     checkedPackagePatterns.forEach(pattern => {
       if (pattern.test(name)) {
@@ -46,7 +46,7 @@ describe(`package.json dependencies for ${packageJson.name}`, () => {
     });
   });
 
-  Object.keys(devDependencies).forEach(name => {
+  Object.keys(devDependencies ?? {}).forEach(name => {
     const versionRange = devDependencies[name];
     checkedPackagePatterns.forEach(pattern => {
       if (pattern.test(name)) {

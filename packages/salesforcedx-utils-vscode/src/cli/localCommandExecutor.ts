@@ -6,8 +6,7 @@
  */
 import { Command, CancellationToken, CommandExecution } from '@salesforce/salesforcedx-utils';
 import { EventEmitter } from 'node:events';
-import 'rxjs/add/observable/fromEvent';
-import { Observable } from 'rxjs/Observable';
+import { fromEvent, Observable } from 'rxjs';
 
 export class LocalCommandExecution implements CommandExecution {
   public static readonly EXIT_EVENT = 'exitEvent';
@@ -30,9 +29,9 @@ export class LocalCommandExecution implements CommandExecution {
 
   constructor(command: Command) {
     this.command = command;
-    this.processExitSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.EXIT_EVENT);
-    this.processErrorSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.ERROR_EVENT);
-    this.stdoutSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.STDOUT_EVENT);
-    this.stderrSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.STDERR_EVENT);
+    this.processExitSubject = fromEvent<number | undefined>(this.cmdEmitter, LocalCommandExecution.EXIT_EVENT);
+    this.processErrorSubject = fromEvent<Error | undefined>(this.cmdEmitter, LocalCommandExecution.ERROR_EVENT);
+    this.stdoutSubject = fromEvent<Buffer | string>(this.cmdEmitter, LocalCommandExecution.STDOUT_EVENT);
+    this.stderrSubject = fromEvent<Buffer | string>(this.cmdEmitter, LocalCommandExecution.STDERR_EVENT);
   }
 }

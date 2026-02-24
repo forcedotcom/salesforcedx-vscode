@@ -260,4 +260,4 @@ export class ToolingModelService {
   }
 }
 
-export { ToolingModelJson };
+export type { ToolingModelJson };
