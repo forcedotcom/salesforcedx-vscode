@@ -99,7 +99,7 @@ export type {
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
-export type { MetadataDescribeError, ListMetadataError } from './core/metadataDescribeService';
+export type { MetadataDescribeError, ListMetadataError, SObjectGlobalDescribeItem } from './core/metadataDescribeService';
 export type { GetRegistryAccessError } from './core/metadataRegistryService';
 export type { FsServiceError } from './vscode/fsService';
 export type { SettingsError } from './vscode/settingsService';

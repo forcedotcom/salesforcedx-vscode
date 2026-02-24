@@ -4,53 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { fileOrFolderExists, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import * as sfdxUtils from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'node:path';
-import * as vscode from 'vscode';
 import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
-import { generateType, generateAllTypes } from '../../../src/generator/typingGenerator';
-import { minimalCustomSObject } from './sObjectMockData';
-
-jest.mock('vscode');
-const vscodeMocked = jest.mocked(vscode);
+import { generateTypeText } from '../../../src/generator/typingGenerator';
 
 describe('SObject Javascript type declaration generator', () => {
-  let typePath = '';
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    vscodeMocked.workspace.fs.writeFile.mockResolvedValue();
-    vscodeMocked.workspace.fs.stat.mockResolvedValue({ type: 1, ctime: 0, mtime: 0, size: 0, permissions: 1 });
-    vscodeMocked.workspace.fs.createDirectory.mockResolvedValue();
-    vscodeMocked.workspace.fs.delete.mockResolvedValue();
-  });
-
-  afterEach(() => {
-    if (typePath) {
-      try {
-        vscodeMocked.workspace.fs.delete(vscode.Uri.file(typePath));
-      } catch (e) {
-        console.log(e);
-      }
-      typePath = '';
-    }
-  });
-
-  it('Should generate a declaration file', async () => {
-    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
-    const closeHeader = ' ], "childRelationships": [] }';
-
-    const sobject1 = `${fieldsHeader}${closeHeader}`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    const sobjectFolder = process.cwd();
-    typePath = await generateType(sobjectFolder, objDef);
-
-    expect(await fileOrFolderExists(typePath)).toBeTruthy();
-  });
-
-  it('Should generate a declaration file with all types of fields that can be in custom SObjects', async () => {
+  it('Should generate a declaration file with all types of fields that can be in custom SObjects', () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -75,12 +33,7 @@ describe('SObject Javascript type declaration generator', () => {
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    const sobjectFolder = process.cwd();
-    typePath = await generateType(sobjectFolder, objDef);
-
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
+    const typeText = generateTypeText(objDef);
 
     expect(typeText).toContain('@salesforce/schema/Custom__c.StringField');
     expect(typeText).toContain('const StringField:string;');
@@ -143,7 +96,7 @@ describe('SObject Javascript type declaration generator', () => {
     expect(typeText).toContain('export default IdField;');
   });
 
-  it('Should generate a declaration file with all types of fields that show only in standard SObjects', async () => {
+  it('Should generate a declaration file with all types of fields that show only in standard SObjects', () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -158,12 +111,7 @@ describe('SObject Javascript type declaration generator', () => {
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    const sobjectFolder = process.cwd();
-    typePath = await generateType(sobjectFolder, objDef);
-
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
+    const typeText = generateTypeText(objDef);
 
     expect(typeText).toContain('const BaseField:any;');
     expect(typeText).toContain('const AddressField:any;');
@@ -172,17 +120,12 @@ describe('SObject Javascript type declaration generator', () => {
     expect(typeText).toContain('const ComboboxField:string;');
   });
 
-  it('Should create a declaration file with a field and relationship', async () => {
+  it('Should create a declaration file with a field and relationship', () => {
     const field1 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const relation1 = '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
     const sobject1: string = `{ "name": "Custom__c", "fields": [ ${field1},${relation1} ], "childRelationships": [] }`;
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    const sobjectFolder = process.cwd();
-    typePath = await generateType(sobjectFolder, objDef);
-
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
+    const typeText = generateTypeText(objDef);
 
     expect(typeText).toContain('@salesforce/schema/Custom__c.StringField');
     expect(typeText).toContain('const StringField:string;');
@@ -197,63 +140,48 @@ describe('SObject Javascript type declaration generator', () => {
     expect(typeText).toContain('export default Account__c;');
   });
 
-  it('Should create a String field type for an external lookup relationship', async () => {
+  it('Should create a String field type for an external lookup relationship', () => {
     const field1 =
       '{"name": "ExtRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const header = '{ "name": "Custom__c",  "childRelationships": []';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header},${fieldHeader}${field1}]}`;
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    const sobjectFolder = process.cwd();
-    typePath = await generateType(sobjectFolder, objDef);
-
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
+    const typeText = generateTypeText(objDef);
 
     expect(typeText).toContain('@salesforce/schema/Custom__c.ExtRef__c');
     expect(typeText).toContain('const ExtRef__c:string;');
     expect(typeText).toContain('export default ExtRef__c;');
   });
 
-  it('Should create a valid declaration file for a metadata object with EntityDefinition relationship target', async () => {
+  it('Should create a valid declaration file for a metadata object with EntityDefinition relationship target', () => {
     const header = '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
       '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    const sobjectFolder = process.cwd();
-    typePath = await generateType(sobjectFolder, objDef);
-
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
+    const typeText = generateTypeText(objDef);
 
     expect(typeText).toContain('@salesforce/schema/Custom__mdt.MDRef__c');
     expect(typeText).toContain('const MDRef__c:string;');
     expect(typeText).toContain('export default MDRef__c;');
   });
 
-  it('Should create a valid declaration file for a metadata object with a __mdt target', async () => {
+  it('Should create a valid declaration file for a metadata object with a __mdt target', () => {
     const header = '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 = '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
     const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    const sobjectFolder = process.cwd();
-    typePath = await generateType(sobjectFolder, objDef);
-
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
+    const typeText = generateTypeText(objDef);
 
     expect(typeText).toContain('@salesforce/schema/Custom__mdt.MDRef__r');
     expect(typeText).toContain('const MDRef__r:any;');
     expect(typeText).toContain('export default MDRef__r;');
   });
 
-  it('Should create a valid declaration file for a platform event object', async () => {
+  it('Should create a valid declaration file for a platform event object', () => {
     const fieldsHeader = '{ "name": "PE1__e", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -265,12 +193,7 @@ describe('SObject Javascript type declaration generator', () => {
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    const sobjectFolder = process.cwd();
-    typePath = await generateType(sobjectFolder, objDef);
-
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
+    const typeText = generateTypeText(objDef);
 
     expect(typeText).toContain('declare module "@salesforce/schema/PE1__e.StringField"');
     expect(typeText).toContain('const StringField:string;');
@@ -279,27 +202,5 @@ describe('SObject Javascript type declaration generator', () => {
     expect(typeText).toContain('declare module "@salesforce/schema/PE1__e.DoubleField"');
     expect(typeText).toContain('const DoubleField:number;');
     expect(typeText).toContain('export default DoubleField;');
-  });
-
-  it('Should generate all types for standard and custom sobjects', async () => {
-    const standard = { ...minimalCustomSObject, name: 'StandardObj', custom: false };
-    const custom = { ...minimalCustomSObject, name: 'CustomObj__c', custom: true };
-    const sobjects = { standard: [standard], custom: [custom] };
-
-    // Mock projectPaths.stateFolder to a temp dir
-    const tempDir = path.join('tmp', 'typings-test');
-    jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(tempDir);
-    const createDirectoryMock = jest.spyOn(sfdxUtils, 'createDirectory').mockResolvedValue(undefined);
-    const writeFileMock = jest.spyOn(sfdxUtils, 'writeFile').mockResolvedValue(undefined);
-    const safeDeleteMock = jest.spyOn(sfdxUtils, 'safeDelete').mockResolvedValue(undefined);
-
-    await generateAllTypes(sobjects);
-
-    const typingsFolder = path.join(tempDir, 'typings', 'lwc', 'sobjects');
-    expect(createDirectoryMock).toHaveBeenCalledWith(typingsFolder);
-    expect(writeFileMock).toHaveBeenCalledWith(path.join(typingsFolder, 'StandardObj.d.ts'), expect.any(String));
-    expect(writeFileMock).toHaveBeenCalledWith(path.join(typingsFolder, 'CustomObj__c.d.ts'), expect.any(String));
-    expect(safeDeleteMock).toHaveBeenCalledWith(path.join(typingsFolder, 'StandardObj.d.ts'));
-    expect(safeDeleteMock).toHaveBeenCalledWith(path.join(typingsFolder, 'CustomObj__c.d.ts'));
   });
 });

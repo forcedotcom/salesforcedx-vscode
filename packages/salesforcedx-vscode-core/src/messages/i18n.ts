@@ -632,6 +632,7 @@ export const messages = {
   sobject_refresh_standard: 'Standard SObjects',
   sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
+  processed_sobjects_length_text: 'Processed %d %s sObjects\n',
   rename_lightning_component: 'SFDX: Rename Component',
   component_input_dup_error: 'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:

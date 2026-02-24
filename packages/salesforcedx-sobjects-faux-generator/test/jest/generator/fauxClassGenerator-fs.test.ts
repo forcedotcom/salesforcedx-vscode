@@ -5,297 +5,146 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as utils from '@salesforce/salesforcedx-utils-vscode';
-import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
-import { join } from 'node:path';
-import * as vscode from 'vscode';
-import { CUSTOMOBJECTS_DIR, SOBJECTS_DIR } from '../../../src/constants';
 import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
-import { generateFauxClass, generateFauxClassText } from '../../../src/generator/fauxClassGenerator';
+import { generateFauxClassText } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
 import { minimalCustomSObject } from './sObjectMockData';
 
-jest.mock('vscode');
-const vscodeMocked = jest.mocked(vscode);
+jest.mock('../../../src/messages');
+const nlsMocked = jest.mocked(nls);
 
-describe('FauxClassGenerator Filesystem Tests', () => {
-  let classPath = '';
-  const sfdxPath = process.cwd();
-  const baseFolder = join(sfdxPath, utils.TOOLS, SOBJECTS_DIR);
-  const customOutputPath = join(baseFolder, CUSTOMOBJECTS_DIR);
-
+describe('FauxClassGenerator Text Content Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    vscodeMocked.workspace.fs.writeFile.mockImplementation((uri, content) => {
-      if (!(content instanceof Buffer)) {
-        content = Buffer.from(content);
-      }
-      return Promise.resolve();
-    });
-    vscodeMocked.workspace.fs.stat.mockResolvedValue({ type: 1, ctime: 0, mtime: 0, size: 0 });
-    vscodeMocked.workspace.fs.createDirectory.mockResolvedValue();
-    vscodeMocked.workspace.fs.delete.mockResolvedValue();
+    nlsMocked.localize.mockReturnValue('');
   });
 
-  afterEach(() => {
-    if (classPath) {
-      try {
-        vscodeMocked.workspace.fs.delete(vscode.Uri.file(classPath));
-      } catch (e) {
-        console.log(e);
-      }
-      classPath = '';
-    }
-    vscodeMocked.workspace.fs.delete(vscode.Uri.file(baseFolder), { recursive: true, useTrash: false });
+  it('Should generate a faux class with a proper header comment', () => {
+    const sobject = JSON.parse('{ "name": "Custom__c", "fields": [], "childRelationships": [] }');
+    const text = generateFauxClassText(generateSObjectDefinition(sobject));
+    expect(text).toContain(nls.localize('class_header_generated_comment'));
   });
 
-  it('Should generate a faux class with a proper header comment', async () => {
-    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
-    const closeHeader = ' ], "childRelationships": [] }';
-
-    const sobject1 = `${fieldsHeader}${closeHeader}`;
-
-    classPath = await generateFauxClass(customOutputPath, JSON.parse(sobject1));
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain(nls.localize('class_header_generated_comment'));
-  });
-
-  it('Should generate a faux class as read-only', async () => {
-    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
-    const closeHeader = ' ], "childRelationships": [] }';
-
-    const sobject1 = `${fieldsHeader}${closeHeader}`;
-
-    classPath = await generateFauxClass(customOutputPath, JSON.parse(sobject1));
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-  });
-
-  it('Should create a valid class with child relationship', async () => {
+  it('Should create a valid class with child relationship', () => {
     const field1 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const childRelation1 = '{"childSObject": "Case", "relationshipName": "Case__r"}';
     const sobject1 = `{ "name": "Custom__c", "fields": [ ${field1} ], "childRelationships": [${childRelation1}] }`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('List<Case> Case__r');
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
+    expect(text).toContain('List<Case> Case__r');
   });
 
-  it('Should create a valid class for a platform event object', async () => {
-    const fieldsHeader = '{ "name": "PE1__e", "fields": [ ';
-    const closeHeader = ' ], "childRelationships": [] }';
-
-    const fields: string[] = [
-      '{"name": "StringField", "type": "string", "referenceTo": []}',
-      '{"name": "DoubleField", "type" : "double", "referenceTo": []}'
-    ];
-
-    const fieldsString = fields.join(',');
-    const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('String StringField;');
-    expect(classText).toContain('Double DoubleField;');
+  it('Should create a valid class for a platform event object', () => {
+    const sobject = JSON.parse('{ "name": "PE1__e", "fields": [{"name":"StringField","type":"string","referenceTo":[]},{"name":"DoubleField","type":"double","referenceTo":[]}], "childRelationships": [] }');
+    const text = generateFauxClassText(generateSObjectDefinition(sobject));
+    expect(text).toContain('String StringField;');
+    expect(text).toContain('Double DoubleField;');
   });
 
-  it('Should create a valid field name for a child relationship that is missing the relationshipName', async () => {
+  it('Should create a valid field name for a child relationship that is missing the relationshipName', () => {
     const childRelation1 = '{"childSObject": "Case", "field": "RelatedCaseId", "relationshipName": null}';
     const sobject1 = `{ "name": "Custom__c", "childRelationships": [${childRelation1}] }`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('List<Case> RelatedCase;');
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
+    expect(text).toContain('List<Case> RelatedCase;');
   });
 
-  it('Should create a valid class for a metadata object with EntityDefinition relationship target', async () => {
+  it('Should create a valid class for a metadata object with EntityDefinition relationship target', () => {
     const header = '{ "name": "Custom__mdt", "childRelationships": [], "fields": [';
-    const field1 =
-      '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
+    const field1 = '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('String MDRef__c');
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
+    expect(text).toContain('String MDRef__c');
   });
 
-  it('Should create a valid class with a field and relationship', async () => {
+  it('Should create a valid class with a field and relationship', () => {
     const field1 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const relation1 = '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
     const sobject1 = `{ "name": "Custom__c", "fields": [ ${field1},${relation1} ], "childRelationships": [] }`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('String StringField;');
-    expect(classText).toContain('Account Account__r');
-    expect(classText).toContain('Id Account__c');
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
+    expect(text).toContain('String StringField;');
+    expect(text).toContain('Account Account__r');
+    expect(text).toContain('Id Account__c');
   });
 
-  it('Should generate a faux class with all types of fields that show only in standard SObjects', async () => {
-    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
-    const closeHeader = ' ], "childRelationships": [] }';
-
-    const fields: string[] = [
-      '{"name": "BaseField", "type": "base64", "referenceTo": []}',
-      '{"name": "AddressField", "type" : "address", "referenceTo": []}',
-      '{"name": "IntField", "type" : "int", "referenceTo": []}',
-      '{"name": "AnytypeField", "type" : "anyType", "referenceTo": []}',
-      '{"name": "ComboboxField", "type" : "combobox", "referenceTo": []}'
-    ];
-
-    const fieldsString = fields.join(',');
-    const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('Blob BaseField;');
-    expect(classText).toContain('Address AddressField;');
-    expect(classText).toContain('Integer IntField;');
-    expect(classText).toContain('Object AnytypeField;');
-    expect(classText).toContain('String ComboboxField;');
-  });
-
-  it('Should generate a faux class with field inline comments', async () => {
-    vscodeMocked.workspace.fs.stat.mockRejectedValue(new Error('Not found'));
-    const customDef = generateSObjectDefinition(minimalCustomSObject);
-    const classContent = generateFauxClassText(customDef);
+  it('Should generate a faux class with field inline comments', () => {
+    const text = generateFauxClassText(generateSObjectDefinition(minimalCustomSObject));
 
     let standardFieldComment = `    /* Please add a unique name${EOL}`;
     standardFieldComment += `    */${EOL}`;
     standardFieldComment += `    global String Name;${EOL}`;
-    expect(classContent).toContain(standardFieldComment);
+    expect(text).toContain(standardFieldComment);
 
     let customFieldComment = `    /* User field API name${EOL}`;
     customFieldComment += `    */${EOL}`;
     customFieldComment += `    global String Field_API_Name__c;${EOL}`;
-    expect(classContent).toContain(customFieldComment);
+    expect(text).toContain(customFieldComment);
   });
 
-  it('Should generate a faux class with all types of fields that can be in custom SObjects', async () => {
-    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
-    const closeHeader = ' ], "childRelationships": [] }';
-
-    const fields: string[] = [
-      '{"name": "StringField", "type": "string", "referenceTo": []}',
-      '{"name": "DoubleField", "type" : "double", "referenceTo": []}',
-      '{"name": "BooleanField", "type" : "boolean", "referenceTo": []}',
-      '{"name": "CurrencyField", "type" : "currency", "referenceTo": []}',
-      '{"name": "DateField", "type" : "date", "referenceTo": []}',
-      '{"name": "DatetimeField", "type" : "datetime", "referenceTo": []}',
-      '{"name": "EmailField", "type" : "email", "referenceTo": []}',
-      '{"name": "LocationField", "type" : "location", "referenceTo": []}',
-      '{"name": "PercentField", "type" : "percent", "referenceTo": []}',
-      '{"name": "PicklistField", "type" : "picklist", "referenceTo": []}',
-      '{"name": "MultipicklistField", "type" : "multipicklist", "referenceTo": []}',
-      '{"name": "TextareaField", "type" : "textarea", "referenceTo": []}',
-      '{"name": "EncryptedField", "type" : "encryptedstring", "referenceTo": []}',
-      '{"name": "UrlField", "type" : "url", "referenceTo": []}',
-      '{"name": "IdField", "type" : "id", "referenceTo": []}'
-    ];
-
-    const fieldsString = fields.join(',');
-    const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('String StringField;');
-    expect(classText).toContain('Double DoubleField;');
-    expect(classText).toContain('Boolean BooleanField;');
-    expect(classText).toContain('Decimal CurrencyField;');
-    expect(classText).toContain('Date DateField;');
-    expect(classText).toContain('Datetime DatetimeField;');
-    expect(classText).toContain('String EmailField;');
-    expect(classText).toContain('Location LocationField;');
-    expect(classText).toContain('Double PercentField;');
-    expect(classText).toContain('String PicklistField;');
-    expect(classText).toContain('String MultipicklistField;');
-    expect(classText).toContain('String TextareaField;');
-    expect(classText).toContain('String EncryptedField;');
-    expect(classText).toContain('String UrlField;');
-    expect(classText).toContain('Id IdField;');
+  it('Should generate a faux class with all types of fields that can be in custom SObjects', () => {
+    const fields = '{"name":"StringField","type":"string","referenceTo":[]},{"name":"DoubleField","type":"double","referenceTo":[]},{"name":"BooleanField","type":"boolean","referenceTo":[]},{"name":"CurrencyField","type":"currency","referenceTo":[]},{"name":"DateField","type":"date","referenceTo":[]},{"name":"DatetimeField","type":"datetime","referenceTo":[]},{"name":"EmailField","type":"email","referenceTo":[]},{"name":"LocationField","type":"location","referenceTo":[]},{"name":"PercentField","type":"percent","referenceTo":[]},{"name":"PicklistField","type":"picklist","referenceTo":[]},{"name":"MultipicklistField","type":"multipicklist","referenceTo":[]},{"name":"TextareaField","type":"textarea","referenceTo":[]},{"name":"EncryptedField","type":"encryptedstring","referenceTo":[]},{"name":"UrlField","type":"url","referenceTo":[]},{"name":"IdField","type":"id","referenceTo":[]}';
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(`{"name":"Custom__c","fields":[${fields}],"childRelationships":[]}`)));
+    expect(text).toContain('String StringField;');
+    expect(text).toContain('Double DoubleField;');
+    expect(text).toContain('Boolean BooleanField;');
+    expect(text).toContain('Decimal CurrencyField;');
+    expect(text).toContain('Date DateField;');
+    expect(text).toContain('Datetime DatetimeField;');
+    expect(text).toContain('String EmailField;');
+    expect(text).toContain('Location LocationField;');
+    expect(text).toContain('Double PercentField;');
+    expect(text).toContain('String PicklistField;');
+    expect(text).toContain('String MultipicklistField;');
+    expect(text).toContain('String TextareaField;');
+    expect(text).toContain('String EncryptedField;');
+    expect(text).toContain('String UrlField;');
+    expect(text).toContain('Id IdField;');
   });
 
-  it('Should create a class that has no duplicate field names', async () => {
+  it('Should generate a faux class with all types of fields that show only in standard SObjects', () => {
+    const fields = '{"name":"BaseField","type":"base64","referenceTo":[]},{"name":"AddressField","type":"address","referenceTo":[]},{"name":"IntField","type":"int","referenceTo":[]},{"name":"AnytypeField","type":"anyType","referenceTo":[]},{"name":"ComboboxField","type":"combobox","referenceTo":[]}';
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(`{"name":"Custom__c","fields":[${fields}],"childRelationships":[]}`)));
+    expect(text).toContain('Blob BaseField;');
+    expect(text).toContain('Address AddressField;');
+    expect(text).toContain('Integer IntField;');
+    expect(text).toContain('Object AnytypeField;');
+    expect(text).toContain('String ComboboxField;');
+  });
+
+  it('Should create a class that has no duplicate field names', () => {
     const childRelation1 = '{"childSObject": "Case", "relationshipName": "Reference"}';
     const childRelation2 = '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
-
     const sobject1 = `{ "name": "Custom__c", "childRelationships": [${childRelation2},${childRelation1}] }`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('List<Case> Reference;');
-    expect(classText).not.toContain('Account Reference');
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
+    expect(text).toContain('List<Case> Reference;');
+    expect(text).not.toContain('Account Reference');
   });
 
-  it('Should create a valid field reference to another SObject when missing the relationshipName', async () => {
+  it('Should create a valid field reference to another SObject when missing the relationshipName', () => {
     const childRelation1 = '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
     const field1 = '{"name": "AccountFieldId", "type": "string", "referenceTo": ["Account"], "relationshipName": null}';
     const header = '{ "name": "Custom__c", "childRelationships": [';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header}${childRelation1}],${fieldHeader}${field1}]}`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).not.toContain('null');
-    expect(classText).toContain('Account AccountField');
-    expect(classText).toContain('List<Account> Reference');
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
+    expect(text).not.toContain('null');
+    expect(text).toContain('Account AccountField');
+    expect(text).toContain('List<Account> Reference');
   });
 
-  it('Should create a String field type for an external lookup relationship', async () => {
-    const field1 =
-      '{"name": "ExtRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
-    const header = '{ "name": "Custom__c", "childRelationships": []';
-    const fieldHeader = '"fields": [';
-    const sobject1 = `${header},${fieldHeader}${field1}]}`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('String ExtRef__c');
+  it('Should create a String field type for an external lookup relationship', () => {
+    const field1 = '{"name": "ExtRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
+    const sobject1 = `{ "name": "Custom__c", "childRelationships": [], "fields": [${field1}]}`;
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
+    expect(text).toContain('String ExtRef__c');
   });
 
-  it('Should create a valid class for a metadata object with a __mdt target', async () => {
+  it('Should create a valid class for a metadata object with a __mdt target', () => {
     const header = '{ "name": "Custom__mdt", "childRelationships": [], "fields": [';
     const field1 = '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
     const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
-
-    classPath = await generateFauxClass(customOutputPath, objDef);
-    expect(await fileOrFolderExists(classPath)).toBeTruthy();
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(classText).toContain('XX_mdt MDRef__r');
+    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
+    expect(text).toContain('XX_mdt MDRef__r');
   });
 });

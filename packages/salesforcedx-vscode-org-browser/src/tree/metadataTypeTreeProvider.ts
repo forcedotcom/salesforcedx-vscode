@@ -58,19 +58,17 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, refresh:
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      return yield* api.services.MetadataDescribeService.describeCustomObject(
-        element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
-      ).pipe(
-        Effect.flatMap(result =>
-          Effect.all(
-            result.fields
-              // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
-              .filter(f => f.custom)
-              .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-              .map(createCustomFieldNode(projectComponentSet)(element)),
-            { concurrency: 'unbounded' }
-          )
-        )
+      const objectName = element.namespace
+        ? `${element.namespace}__${element.componentName!}`
+        : element.componentName!;
+      const result = yield* api.services.MetadataDescribeService.describeCustomObject(objectName);
+      return yield* Effect.all(
+        result.fields
+          // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
+          .filter(f => f.custom)
+          .toSorted((a, b) => (a.name < b.name ? -1 : 1))
+          .map(createCustomFieldNode(projectComponentSet)(element)),
+        { concurrency: 'unbounded' }
       );
     }
     if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {

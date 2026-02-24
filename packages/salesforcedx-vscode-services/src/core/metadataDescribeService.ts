@@ -5,11 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Connection } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
+import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as S from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import { ChannelService } from '../vscode/channelService';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
@@ -18,6 +21,32 @@ import { FilePropertiesSchema } from './schemas/fileProperties';
 import { unknownToErrorCause } from './shared';
 
 const NON_SUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
+
+type DescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
+type SObjectBatchError = { errorCode: string; message: string };
+type SObjectBatchSubRequest = { method: string; url: string };
+type SObjectBatchRequest = { batchRequests: SObjectBatchSubRequest[] };
+type SObjectBatchSubResponse = { statusCode: number; result: DescribeSObjectResult | SObjectBatchError[] };
+type SObjectBatchResponse = { hasErrors: boolean; results: SObjectBatchSubResponse[] };
+
+const SOBJECT_CLIENT_ID = 'sfdx-vscode';
+const MAX_SOBJECT_BATCH_SIZE = 25;
+
+const runSObjectBatch = (conn: Connection, names: string[]): Promise<SObjectBatchResponse> => {
+  const version = `v${conn.getApiVersion()}`;
+  const body: SObjectBatchRequest = {
+    batchRequests: names.map(name => ({ method: 'GET', url: `${version}/sobjects/${name}/describe` }))
+  };
+  return conn.request<SObjectBatchResponse>({
+    method: 'POST',
+    url: `${conn.instanceUrl}/services/data/${version}/composite/batch`,
+    body: JSON.stringify(body),
+    headers: { 'User-Agent': 'salesforcedx-extension', 'Sforce-Call-Options': `client=${SOBJECT_CLIENT_ID}` }
+  });
+};
+
+/** Subset of the full SObject global describe result */
+export type SObjectGlobalDescribeItem = { name: string; custom: boolean };
 
 export class MetadataDescribeError extends S.TaggedError<MetadataDescribeError>()('MetadataDescribeError', {
   cause: S.Unknown,
@@ -102,26 +131,74 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       return yield* describeCache.get(orgId);
     });
 
-    // TODO: write the result in a common place that other services can use.  Probably do the same with mdapi describe and list
+    const listSObjects = Effect.fn('MetadataDescribeService.listSObjects')(function* () {
+      const conn = yield* connectionService.getConnection();
+      return yield* Effect.tryPromise({
+        try: () => conn.describeGlobal(),
+        catch: e => {
+          const { cause } = unknownToErrorCause(e);
+          return new MetadataDescribeError({
+            cause,
+            function: 'listSObjects',
+            message: `Failed to list sobjects: ${cause.message ?? String(cause)}`
+          });
+        }
+      }).pipe(
+        Effect.map(result => result.sobjects.map(s => ({ name: s.name, custom: s.custom }) satisfies SObjectGlobalDescribeItem)),
+        Effect.withSpan('listSObjects (API call)')
+      );
+    });
+
     const describeCustomObject = Effect.fn('MetadataDescribeService.describeCustomObject')(function* (
       objectName: string
     ) {
       const conn = yield* connectionService.getConnection();
-      const result = yield* Effect.tryPromise({
-        try: () => conn.sobject(objectName).describe(),
+      return yield* Effect.tryPromise({
+        try: () => conn.describe(objectName),
         catch: e => {
           const { cause } = unknownToErrorCause(e);
           return new MetadataDescribeError({
             cause,
             function: 'describeCustomObject',
             objectName,
-            message: `Failed to describe custom object ${objectName}: ${cause.message ?? String(cause)}`
+            message: `Failed to describe sobject ${objectName}: ${cause.message ?? String(cause)}`
           });
         }
-      });
+      }).pipe(Effect.withSpan('describeCustomObject (API call)', { attributes: { objectName } }));
+    });
 
-      Effect.log(result.fields.map(f => f.name).join(', '));
-      return result;
+    const describeCustomObjects = Effect.fn('MetadataDescribeService.describeCustomObjects')(function* (
+      objectNames: string[]
+    ) {
+      if (objectNames.length === 0) return [] as DescribeSObjectResult[];
+      const conn = yield* connectionService.getConnection();
+      const batches = Array.from(
+        { length: Math.ceil(objectNames.length / MAX_SOBJECT_BATCH_SIZE) },
+        (_, i) => objectNames.slice(i * MAX_SOBJECT_BATCH_SIZE, (i + 1) * MAX_SOBJECT_BATCH_SIZE)
+      );
+      const collected = yield* Stream.fromIterable(batches).pipe(
+        Stream.mapEffect(
+          batch =>
+            Effect.tryPromise({
+              try: () => runSObjectBatch(conn, batch),
+              catch: e => {
+                const { cause } = unknownToErrorCause(e);
+                return new MetadataDescribeError({
+                  cause,
+                  function: 'describeCustomObjects',
+                  message: `Failed to batch describe sobjects: ${cause.message ?? String(cause)}`
+                });
+              }
+            }).pipe(
+              Effect.map((res): DescribeSObjectResult[] =>
+                res?.results?.flatMap(sr => (Array.isArray(sr.result) ? [] : [sr.result])) ?? []
+              )
+            ),
+          { concurrency: 'unbounded' }
+        ),
+        Stream.runCollect
+      );
+      return Chunk.toArray(collected).flat();
     });
 
     const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (type: string, folder?: string) {
@@ -168,7 +245,21 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
        * Returns the list of metadata components for that type.
        */
       listMetadata,
-      describeCustomObject
+      /**
+       * Returns the list of all SObjects in the org with name and custom flag.
+       * Uses GET /services/data/v{version}/sobjects/
+       */
+      listSObjects,
+      /**
+       * Describes a single SObject by name.
+       * Uses GET /services/data/v{version}/sobjects/{objectName}/describe
+       */
+      describeCustomObject,
+      /**
+       * Describes multiple SObjects using the composite/batch API (25 per batch, all batches in parallel).
+       * Uses POST /services/data/v{version}/composite/batch
+       */
+      describeCustomObjects
     };
   })
 }) {}

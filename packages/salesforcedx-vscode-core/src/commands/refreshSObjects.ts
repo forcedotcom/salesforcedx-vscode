@@ -5,18 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import {
   type SObjectCategory,
+  type SObjectRefreshResult,
   type SObjectRefreshSource,
   SOBJECTS_DIR,
   STANDARDOBJECTS_DIR,
-  writeSobjectFiles
+  getMinNames,
+  getMinObjects,
+  sobjectTypeFilter,
+  toMinimalSObject
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
-  ConfigUtil,
   ContinueResponse,
   fileOrFolderExists,
   isSFContainerMode,
@@ -27,15 +30,15 @@ import {
   projectPaths,
   SfCommandlet,
   SfWorkspaceChecker,
-  TimingUtils,
-  WorkspaceContextUtil
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { SalesforceProjectConfig } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
+import { writeSobjectArtifacts } from './sobjectArtifactWriter';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
 type RefreshSelection = {
@@ -124,20 +127,23 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     ProgressNotification.show(execution, cancellationTokenSource, progressLocation);
 
     try {
-      const result = await writeSobjectFiles({
-        emitter: execution.cmdEmitter,
-        cancellationToken,
-        ...(response.data.source === 'startupmin'
-          ? {
-              category: 'STANDARD',
-              source: 'startupmin'
-            }
-          : {
-              category: response.data.category,
-              source: response.data.source,
-              conn: await getVersionedConnection()
-            })
-      });
+      let result: SObjectRefreshResult;
+      if (response.data.source === 'startupmin') {
+        result = await writeSobjectArtifacts({
+          emitter: execution.cmdEmitter,
+          cancellationToken,
+          sobjects: getMinObjects(),
+          sobjectNames: getMinNames()
+        });
+      } else {
+        const { sobjects, sobjectNames } = await fetchSObjectData(response.data.category, response.data.source);
+        result = await writeSobjectArtifacts({
+          emitter: execution.cmdEmitter,
+          cancellationToken,
+          sobjects,
+          sobjectNames
+        });
+      }
 
       console.log(`Generate success ${JSON.stringify(result.data)}`);
       this.logMetric(
@@ -157,13 +163,14 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
         exitCode: LocalCommandExecution.SUCCESS_CODE
       });
     } catch (error) {
-      console.log(`Generate error ${error.error}`);
+      const errorMessage = extractErrorMessage(error);
+      console.log(`Generate error ${errorMessage}`);
       telemetryService.sendException(
         'generate_faux_classes_create',
-        `Error: name = ${error.name} message = ${error.error}`
+        `Error: ${errorMessage}`
       );
       RefreshSObjectsExecutor.isActive = false;
-      await vscode.window.showErrorMessage(error.error);
+      await vscode.window.showErrorMessage(errorMessage);
 
       throw error;
     }
@@ -171,6 +178,41 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     RefreshSObjectsExecutor.isActive = false;
   }
 }
+
+const extractErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null) {
+    if ('error' in error && error.error instanceof Error) return error.error.message;
+    if ('message' in error && typeof error.message === 'string') return error.message;
+  }
+  return String(error);
+};
+
+const fetchSObjectData = (
+  category: SObjectCategory,
+  source: Exclude<SObjectRefreshSource, 'startupmin'>
+) =>
+  Effect.runPromise(
+    Effect.gen(function* () {
+      const api = yield* getServicesApi;
+      const layer = api.services.MetadataDescribeService.Default;
+      const allSObjects = yield* api.services.MetadataDescribeService.listSObjects().pipe(Effect.provide(layer));
+      const sobjectNames = allSObjects.filter(sobjectTypeFilter(category, source));
+      const rawObjects = yield* api.services.MetadataDescribeService
+        .describeCustomObjects(sobjectNames.map(s => s.name))
+        .pipe(Effect.provide(layer));
+      const sobjects = groupByCustom(rawObjects.map(toMinimalSObject));
+      return { sobjects, sobjectNames };
+    })
+  );
+
+const groupByCustom = (objects: ReturnType<typeof toMinimalSObject>[]) => {
+  const grouped = Object.groupBy(objects, o => (o.custom ? 'custom' : 'standard'));
+  return {
+    standard: grouped.standard ?? [],
+    custom: grouped.custom ?? []
+  };
+};
 
 const workspaceChecker = new SfWorkspaceChecker();
 
@@ -192,30 +234,11 @@ export const initSObjectDefinitions = async (projectPath: string, isSettingEnabl
       } catch (e) {
         telemetryService.sendException(
           'initSObjectDefinitionsError',
-          `Error: name = ${e.name} message = ${e.message} with sobjectRefreshStartup = ${isSettingEnabled}`
+          `Error: ${extractErrorMessage(e)} with sobjectRefreshStartup = ${isSettingEnabled}`
         );
         throw e;
       }
     }
-  }
-};
-
-const getVersionedConnection = async () => {
-  // precedence user override > project config > connection default
-  const apiVersionOverride =
-    (await ConfigUtil.getUserConfiguredApiVersion()) ?? (await SalesforceProjectConfig.getValue('sourceApiVersion'));
-
-  try {
-    return apiVersionOverride
-      ? await Connection.create({
-          authInfo: await AuthInfo.create({
-            username: (await WorkspaceContextUtil.getInstance().getConnection()).getUsername()
-          }),
-          connectionOptions: { version: apiVersionOverride }
-        })
-      : await WorkspaceContextUtil.getInstance().getConnection();
-  } catch {
-    return undefined;
   }
 };
 

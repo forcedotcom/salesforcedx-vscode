@@ -4,47 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TOOLS, createDirectory, projectPaths, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
-import * as path from 'node:path';
-import { CUSTOMOBJECTS_DIR, SOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
-import { SObjectsStandardAndCustom } from '../describe/types';
 import { nls } from '../messages';
 import { FieldDeclaration, SObjectDefinition } from '../types';
-import { generateSObjectDefinition, MODIFIER } from './declarationGenerator';
+import { MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
-const APEX_CLASS_EXTENSION = '.cls';
-const REL_BASE_FOLDER = [TOOLS, SOBJECTS_DIR];
-
-export const generateFauxClasses = async (sobjects: SObjectsStandardAndCustom): Promise<string[]> =>
-  (
-    await Promise.all(
-      Object.entries(sobjects)
-        .filter(([_, objects]) => objects.length > 0)
-        .map(async ([category, objects]) => {
-          const filePath = path.join(
-            projectPaths.stateFolder(),
-            ...REL_BASE_FOLDER,
-            category === 'standard' ? STANDARDOBJECTS_DIR : CUSTOMOBJECTS_DIR
-          );
-          await resetOutputFolder(filePath);
-          return Promise.all(objects.map(o => generateFauxClass(filePath, generateSObjectDefinition(o))));
-        })
-    )
-  ).flat();
-
-const resetOutputFolder = async (pathToClean: string): Promise<string> => {
-  try {
-    await safeDelete(pathToClean, { recursive: true, useTrash: false });
-    await createDirectory(pathToClean);
-    return pathToClean;
-  } catch (error) {
-    throw new Error(
-      `Failed to reset output folder ${pathToClean}: ${error instanceof Error ? error.message : String(error)}`
-    );
-  }
-};
 
 const fieldDeclToString = (decl: FieldDeclaration): string =>
   `${commentToString(decl.comment)}${INDENT}${decl.modifier} ${decl.type} ${decl.name};`;
@@ -67,17 +32,5 @@ export const generateFauxClassText = (definition: SObjectDefinition): string => 
   const declarationLines = declarations.map(fieldDeclToString).join(`${EOL}`);
   const classConstructor = `${INDENT}${MODIFIER} ${className} () ${EOL}    {${EOL}    }${EOL}`;
 
-  const generatedClass = `${nls.localize(
-    'class_header_generated_comment'
-  )}${classDeclaration}${declarationLines}${EOL}${EOL}${classConstructor}}`;
-
-  return generatedClass;
-};
-
-// VisibleForTesting
-export const generateFauxClass = async (folderPath: string, definition: SObjectDefinition): Promise<string> => {
-  await createDirectory(folderPath);
-  const fauxClassPath = path.join(folderPath, `${definition.name}${APEX_CLASS_EXTENSION}`);
-  await writeFile(fauxClassPath, generateFauxClassText(definition));
-  return fauxClassPath;
+  return `${nls.localize('class_header_generated_comment')}${classDeclaration}${declarationLines}${EOL}${EOL}${classConstructor}}`;
 };

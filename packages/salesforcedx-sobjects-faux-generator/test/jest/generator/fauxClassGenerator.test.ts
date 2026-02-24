@@ -5,34 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as utils from '@salesforce/salesforcedx-utils-vscode';
-import { strict as assert } from 'node:assert';
 import { EOL } from 'node:os';
-import * as vscode from 'vscode';
-import * as declarationGenerator from '../../../src/generator/declarationGenerator';
+import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
 import {
   commentToString,
-  generateFauxClass,
-  generateFauxClasses,
+  generateFauxClassText,
   INDENT
 } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
 
 jest.mock('../../../src/messages');
 
-const vscodeMocked = jest.mocked(vscode);
 const nlsMocked = jest.mocked(nls);
 
 describe('FauxClassGenerator Unit Tests.', () => {
-  let typePath = '';
-
   beforeEach(() => {
     jest.clearAllMocks();
-    vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
-    vscodeMocked.workspace.fs.createDirectory.mockResolvedValue(undefined);
-    vscodeMocked.workspace.fs.delete.mockResolvedValue(undefined);
-
-    // Mock nls.localize to return the expected error message
     nlsMocked.localize.mockImplementation((key, ...args) => {
       if (key === 'no_sobject_output_folder_text') {
         return `No output folder available ${args[0]}.  Please create this folder and refresh again`;
@@ -42,34 +30,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
       }
       return key;
     });
-  });
-
-  afterEach(() => {
-    if (typePath) {
-      try {
-        vscodeMocked.workspace.fs.delete(vscode.Uri.file(typePath));
-      } catch (e) {
-        console.log(e);
-      }
-      typePath = '';
-    }
-  });
-
-  it('Should generate a faux class with a proper header comment', async () => {
-    const createDirSpy = jest.spyOn(utils, 'createDirectory');
-    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
-    const closeHeader = ' ], "childRelationships": [] }';
-
-    const sobject1 = `${fieldsHeader}${closeHeader}`;
-
-    const sobjectFolder = process.cwd();
-    await generateFauxClass(sobjectFolder, JSON.parse(sobject1));
-    expect(createDirSpy).toHaveBeenCalledWith(sobjectFolder);
-    expect(vscodeMocked.workspace.fs.writeFile).toHaveBeenCalled();
-
-    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
-    const fileContent = Buffer.from(writeFileCall[1]).toString('utf8');
-    expect(fileContent).toContain(nls.localize('class_header_generated_comment'));
   });
 
   describe('commentToString()', () => {
@@ -107,9 +67,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     });
   });
 
-  describe('generate()', () => {
-    let declarationGeneratorSpy: jest.SpyInstance;
-
+  describe('generateFauxClassText()', () => {
     const standardMock = {
       name: 'Account',
       label: 'Account',
@@ -117,45 +75,29 @@ describe('FauxClassGenerator Unit Tests.', () => {
     };
     const customMock = { name: 'Foo__c', label: 'Foo', fields: [{ name: 'Id', label: 'Foo ID', type: 'string' }] };
 
-    beforeEach(() => {
-      jest.restoreAllMocks();
-      declarationGeneratorSpy = jest.spyOn(declarationGenerator, 'generateSObjectDefinition');
+    it('Should include the class header generated comment', () => {
+      const definition = generateSObjectDefinition(standardMock as never);
+      const text = generateFauxClassText(definition);
+      expect(text).toContain(nls.localize('class_header_generated_comment'));
     });
 
-    it('Should throw if output folder can not be reset.', async () => {
-      const originalErrorMsg = 'Failed to delete folder';
-      jest.spyOn(utils, 'safeDelete').mockRejectedValue(new Error(originalErrorMsg));
-
-      try {
-        // @ts-expect-error - partial mock
-        await generateFauxClasses({ standard: [standardMock], custom: [] });
-      } catch (error) {
-        assert(error instanceof Error);
-        expect(error.message).toContain(utils.projectPaths.toolsFolder());
-        expect(error.message).toContain(originalErrorMsg);
-      }
+    it('Should generate a class declaration for a standard SObject', () => {
+      const definition = generateSObjectDefinition(standardMock as never);
+      const text = generateFauxClassText(definition);
+      expect(text).toContain('class Account');
     });
 
-    it('Should process standard sobjects.', async () => {
-      // @ts-expect-error - partial mock
-      await generateFauxClasses({ standard: [standardMock], custom: [] });
-      // the actual declarationGenerated is tested separately, so we just check that it is being called
-      expect(declarationGeneratorSpy).toHaveBeenCalledWith(standardMock);
+    it('Should generate a class declaration for a custom SObject', () => {
+      const definition = generateSObjectDefinition(customMock as never);
+      const text = generateFauxClassText(definition);
+      expect(text).toContain('class Foo__c');
     });
 
-    it('Should process custom sobjects.', async () => {
-      // @ts-expect-error - partial mock
-      await generateFauxClasses({ standard: [], custom: [customMock] });
-      // the actual declarationGenerated is tested separately, so we just check that it is being called
-      expect(declarationGeneratorSpy).toHaveBeenCalledWith(customMock);
-    });
-
-    it('Should process both standard and custom sobjects.', async () => {
-      // @ts-expect-error - partial mock
-      await generateFauxClasses({ standard: [standardMock], custom: [customMock] });
-      // the actual declarationGenerated is tested separately, so we just check that it is being called
-      expect(declarationGeneratorSpy).toHaveBeenCalledWith(standardMock);
-      expect(declarationGeneratorSpy).toHaveBeenCalledWith(customMock);
+    it('Should include field declarations', () => {
+      const sobject = JSON.parse('{ "name": "Custom__c", "fields": [{"name":"Name","type":"string","referenceTo":[]}], "childRelationships": [] }');
+      const definition = generateSObjectDefinition(sobject);
+      const text = generateFauxClassText(definition);
+      expect(text).toContain('String Name;');
     });
   });
 });

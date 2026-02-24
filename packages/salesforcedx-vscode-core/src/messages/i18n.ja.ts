@@ -228,6 +228,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   sobject_refresh_standard: '標準 SObject',
   sobjects_no_refresh_if_already_active_error_text:
     'sObject 定義の更新が既に進行中です。プロセスを再開する必要がある場合は、実行中のタスクをキャンセルしてください。',
+  processed_sobjects_length_text: 'デフォルトの組織から %d %s sObject を取得しました。\n',
   component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています',
   rename_component_input_dup_file_name_error:
     'このファイル名は現在のコンポーネントディレクトリで既に使用されています。別の名前を選択して再試行してください。',

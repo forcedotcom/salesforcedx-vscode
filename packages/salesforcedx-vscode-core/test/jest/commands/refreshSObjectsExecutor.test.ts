@@ -6,11 +6,26 @@
  */
 
 import * as fauxGen from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { ConfigUtil, LocalCommandExecution, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { RefreshSObjectsExecutor } from '../../../src/commands/refreshSObjects';
-import { SalesforceProjectConfig } from '../../../src/salesforceProject';
+import * as artifactWriter from '../../../src/commands/sobjectArtifactWriter';
+
+const mockServicesExtension = {
+  isActive: true,
+  exports: {
+    services: {
+      MetadataDescribeService: {
+        Default: Layer.empty,
+        listSObjects: () => Effect.succeed([]),
+        describeCustomObjects: () => Effect.succeed([])
+      }
+    }
+  }
+};
 
 describe('RefreshSObjectsExecutor', () => {
   let channelServiceSpy: jest.SpyInstance;
@@ -21,14 +36,10 @@ describe('RefreshSObjectsExecutor', () => {
     jest.spyOn(channelService, 'clear').mockImplementation(jest.fn());
     jest.spyOn(channelService, 'streamCommandOutput').mockImplementation(jest.fn());
     jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ type: vscode.FileType.File } as vscode.FileStat);
-    jest.spyOn(ConfigUtil, 'getUserConfiguredApiVersion').mockResolvedValue(undefined);
-    jest.spyOn(SalesforceProjectConfig, 'getValue').mockResolvedValue(undefined);
-    jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
-      getConnection: jest.fn().mockResolvedValue({
-        getUsername: jest.fn().mockResolvedValue('test@example.com')
-      })
-    } as unknown as WorkspaceContextUtil);
-    jest.spyOn(fauxGen, 'writeSobjectFiles').mockResolvedValue({
+    jest.spyOn(vscode.extensions, 'getExtension').mockReturnValue(
+      mockServicesExtension as unknown as vscode.Extension<unknown>
+    );
+    jest.spyOn(artifactWriter, 'writeSobjectArtifacts').mockResolvedValue({
       data: {
         cancelled: false,
         standardObjects: 0,
