@@ -53,13 +53,7 @@
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
     "@types/node": "^20.0.0",
-    "browserify-zlib": "^0.2.0",
-    "https-browserify": "^1.0.0",
-    "jsforce": "^3.9.4",
-    "nyc": "^15",
-    "querystring-es3": "^0.2.1",
-    "stream-http": "^3.2.0",
-    "timers-browserify": "^2.0.12"
+    "jsforce": "^3.9.4"
   },
   "scripts": {
     "vscode:bundle": "wireit",
