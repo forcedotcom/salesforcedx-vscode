@@ -31,6 +31,7 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
+    "@salesforce/vscode-services": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.19.14",
     "vscode-uri": "^3.0.8"
@@ -60,7 +61,8 @@
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../effect-ext-utils:compile"
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-services-types:compile"
       ],
       "files": [
         "src/**/*.ts",
