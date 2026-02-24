@@ -39,6 +39,7 @@ export const createTable = (rows: Row[], cols: Column[], title?: string): string
     ...rows.map(row => createTableRow(row, cols, maxColWidths))
   ]
     .filter(isNonEmpty)
+    .concat(['']) // empty row for spacing
     .join('\n');
 };
 

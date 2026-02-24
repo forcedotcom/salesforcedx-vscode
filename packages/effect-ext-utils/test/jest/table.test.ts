@@ -332,11 +332,14 @@ describe('createTable', () => {
     expect(separatorLine.substring(2, 4)).toBe('  '); // Separator: 2 spaces
     expect(separatorLine.substring(4, 11)).toBe('───────'); // Second column: 7 dashes
 
-    // Verify data rows align with header
-    lines.slice(2).forEach(line => {
-      const scratchPos = line.indexOf('Scratch');
-      expect(scratchPos).toBe(4); // Should align with "Type" at position 4
-    });
+    // Verify data rows align with header (skip trailing empty line)
+    lines
+      .slice(2)
+      .filter(line => line.length > 0)
+      .forEach(line => {
+        const scratchPos = line.indexOf('Scratch');
+        expect(scratchPos).toBe(4); // Should align with "Type" at position 4
+      });
   });
 
   it('should have headers left-aligned within their columns (not drifting right)', () => {

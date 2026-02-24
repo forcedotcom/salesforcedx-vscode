@@ -1,4 +1,4 @@
-# Salesforce CLI Integration for Visual Studio Code
+# Salesforce CLI for Visual Studio Code
 
 This extension enables Visual Studio Code to use Salesforce CLI to interact with your orgs.
 

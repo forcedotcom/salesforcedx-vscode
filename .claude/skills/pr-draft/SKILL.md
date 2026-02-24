@@ -11,6 +11,8 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 
 **Confirmation required:** Never create or update work items without explicit user confirmation. Present proposed fields (Subject, Epic, Details, etc.) and wait for user to approve before any `sf data create record` or `sf data update record`.
 
+**Safety** never use `--no-verify`
+
 1. If branch name contains `W-XXXXX`, confirm it exists in GUS, resembles the work done on the branch, and use that
 2. Else ask: "Do you have a Gus work item (W-XXXXX) for this PR?"
 3. If yes → try to find it using [gus-cli/SKILL.md](../gus-cli/SKILL.md). Confirm with the user that you got it right, or ask them to choose if several could be right.
@@ -21,6 +23,12 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
    - **Named:** user picks one (e.g. "Shane", "Daphne") → match first or full name to [gus-cli Team members](../gus-cli/SKILL.md#team-members-assignee__c-qa_engineer__c), use Id
    - **Random (Gus Spinner):** pick one at random from team members, excluding current `Assignee__c`
      Set `Status__c='Ready for Review'`, `QA_Engineer__c='<selected userId>'`. **Before updating:** show user Status**c, QA_Engineer**c. Ask user to confirm. Do not run `sf data update record` until user says yes.
+
+## Target branch
+
+- Default `develop`
+- From other branch (≠ develop, ≠ main)? Use it. Detect: `git reflog show <branch> | tail -1` → "moving from X" / "Created from X"
+- Never `main`; inferred main → develop
 
 ## Title format
 

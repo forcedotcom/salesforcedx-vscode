@@ -79,7 +79,7 @@ export const allSalesforceExtensions: ExtensionConfig[] = [
   },
   {
     extensionId: 'salesforcedx-vscode-core',
-    name: 'Salesforce CLI Integration',
+    name: 'Salesforce CLI',
     shouldInstall: 'always',
     shouldVerifyActivation: true
   },
