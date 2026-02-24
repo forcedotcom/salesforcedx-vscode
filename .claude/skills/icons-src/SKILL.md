@@ -16,6 +16,8 @@ description: Add custom SVG icons to salesforcedx-vscode-services for font gener
 - **fill**: `currentColor` on inner `<g>` so VS Code themes control color
 - **structure**: wrap paths in `<g fill="currentColor" transform="scale(X)">` — adjust scale so glyph fits 24×24
 
+External sources (Wikipedia, Illustrator, etc.) may be too complex for font generation. Simplify in vector editor or substitute alternative.
+
 ### Reference (leaf.svg)
 
 ```svg
@@ -61,15 +63,15 @@ description: Add custom SVG icons to salesforcedx-vscode-services for font gener
 
 ## Artifacts that change (add/remove)
 
-| Artifact | Add | Remove |
-|----------|-----|--------|
-| `media/icons-src/<name>.svg` | create | delete |
-| `media/icons-src/icons.json` | add entry | remove entry |
-| `package.json` → `contributes.icons` | auto (build:icons) | auto |
-| `resources/icons-font/*` | auto (build:icons) | auto |
-| `src/vscode/mediaService.ts` → `ICONS`, `ICON_DESCRIPTION_KEYS` | manual | manual |
-| `src/messages/*` (i18n) | manual if needed | manual |
-| `salesforcedx-vscode-services-types` (icons.ts) | manual (generate script) | manual |
+| Artifact                                                        | Add                      | Remove       |
+| --------------------------------------------------------------- | ------------------------ | ------------ |
+| `media/icons-src/<name>.svg`                                    | create                   | delete       |
+| `media/icons-src/icons.json`                                    | add entry                | remove entry |
+| `package.json` → `contributes.icons`                            | auto (build:icons)       | auto         |
+| `resources/icons-font/*`                                        | auto (build:icons)       | auto         |
+| `src/vscode/mediaService.ts` → `ICONS`, `ICON_DESCRIPTION_KEYS` | manual                   | manual       |
+| `src/messages/*` (i18n)                                         | manual if needed         | manual       |
+| `salesforcedx-vscode-services-types` (icons.ts)                 | manual (generate script) | manual       |
 
 ## Verification
 

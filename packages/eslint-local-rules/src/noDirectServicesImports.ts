@@ -31,8 +31,7 @@ const hasDisallowedNonTypeSpecifier = (specifiers: TSESTree.ImportSpecifier[]): 
   specifiers.some(
     spec =>
       spec.importKind !== 'type' &&
-      (spec.imported.type !== AST_NODE_TYPES.Identifier ||
-        !ALLOWED_VALUE_IMPORTS.has(spec.imported.name))
+      (spec.imported.type !== AST_NODE_TYPES.Identifier || !ALLOWED_VALUE_IMPORTS.has(spec.imported.name))
   );
 
 export const noDirectServicesImports = RuleCreator.withoutDocs({

@@ -182,7 +182,6 @@ describe('OrgList tests', () => {
           expect(result).toEqual({ type: 'CANCEL' });
           expect(executeCommandMock).not.toHaveBeenCalled();
         });
-
       });
     });
   });
