@@ -4,7 +4,7 @@
     "outDir": "out",
     "rootDir": "src",
     "declaration": true,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts"],

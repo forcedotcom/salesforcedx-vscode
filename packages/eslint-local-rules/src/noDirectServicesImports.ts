@@ -10,6 +10,9 @@ import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
 const SERVICES_PACKAGE_PATTERN = /^salesforcedx-vscode-services/;
 
+/** Value exports allowed for direct import (constants, not Effect services) */
+const ALLOWED_VALUE_IMPORTS = new Set(['ICONS']);
+
 const isServicesImport = (source: TSESTree.StringLiteral | TSESTree.TemplateLiteral): boolean => {
   if (source.type === AST_NODE_TYPES.Literal && typeof source.value === 'string') {
     return SERVICES_PACKAGE_PATTERN.test(source.value);
@@ -24,8 +27,12 @@ const isServicesImport = (source: TSESTree.StringLiteral | TSESTree.TemplateLite
   return false;
 };
 
-const hasNonTypeSpecifier = (specifiers: TSESTree.ImportSpecifier[]): boolean =>
-  specifiers.some(spec => spec.importKind !== 'type');
+const hasDisallowedNonTypeSpecifier = (specifiers: TSESTree.ImportSpecifier[]): boolean =>
+  specifiers.some(
+    spec =>
+      spec.importKind !== 'type' &&
+      (spec.imported.type !== AST_NODE_TYPES.Identifier || !ALLOWED_VALUE_IMPORTS.has(spec.imported.name))
+  );
 
 export const noDirectServicesImports = RuleCreator.withoutDocs({
   meta: {
@@ -65,8 +72,8 @@ export const noDirectServicesImports = RuleCreator.withoutDocs({
         return;
       }
 
-      // Check if any specifier is not type-only
-      if (hasNonTypeSpecifier(namedSpecifiers)) {
+      // Check if any specifier is not type-only and not in the allowlist
+      if (hasDisallowedNonTypeSpecifier(namedSpecifiers)) {
         context.report({
           node,
           messageId: 'noDirectImport'

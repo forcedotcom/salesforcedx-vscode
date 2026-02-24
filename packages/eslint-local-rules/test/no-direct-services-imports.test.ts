@@ -31,6 +31,14 @@ ruleTester.run('no-direct-services-imports', noDirectServicesImports, {
     {
       code: `import { EditorService } from 'some-other-package';`,
       filename: 'packages/salesforcedx-vscode-metadata/src/test.ts'
+    },
+    {
+      code: `import { ICONS } from 'salesforcedx-vscode-services';`,
+      filename: 'packages/salesforcedx-vscode-org/src/test.ts'
+    },
+    {
+      code: `import { ICONS, type DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';`,
+      filename: 'packages/salesforcedx-vscode-org/src/test.ts'
     }
   ],
   invalid: [
