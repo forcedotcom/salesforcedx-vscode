@@ -17,7 +17,17 @@
  */
 export const messages = {
   view_suggestions: 'View Suggestions',
-  retrieve_on_load_failed: 'Retrieve on load failed: %s'
+  retrieve_on_load_failed: 'Retrieve on load failed: %s',
+  // Media/icon descriptions (accessibility)
+  icon_sf_default_org: 'Default Scratch Org',
+  icon_sf_default_hub: 'Default Dev Hub',
+  icon_org_type_devhub: 'Dev Hub',
+  icon_org_type_sandbox: 'Sandbox',
+  icon_org_type_scratch: 'Scratch',
+  icon_org_type_org: 'Production',
+  icon_add: 'Run Command',
+  icon_browser: 'Open Org in Browser',
+  icon_warning: 'Expired'
 } as const;
 
 export type MessageKey = keyof typeof messages;

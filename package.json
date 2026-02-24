@@ -5,6 +5,11 @@
   "workspaces": [
     "packages/*"
   ],
+  "overrides": {
+    "wireit": {
+      "brace-expansion": "4.0.1"
+    }
+  },
   "engines": {
     "node": ">=22.15.1"
   },
