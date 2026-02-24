@@ -137,6 +137,7 @@ export default [
       ],
       'local/no-duplicate-i18n-values': 'error',
       'local/no-vscode-message-literals': 'error',
+      'local/no-vscode-progress-title-literals': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',

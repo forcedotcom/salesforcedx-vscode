@@ -13,6 +13,7 @@ import * as Fiber from 'effect/Fiber';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConnectionService } from './connectionService';
@@ -94,7 +95,10 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
             const deployResult = await vscode.window.withProgress(
               {
                 location: vscode.ProgressLocation.Notification,
-                title: `Deploying ${components.size} component${components.size === 1 ? '' : 's'}`,
+                title:
+                  components.size === 1
+                    ? nls.localize('deploying_one_component')
+                    : nls.localize('deploying_n_components', String(components.size)),
                 cancellable: true
               },
               async (_, token) => {

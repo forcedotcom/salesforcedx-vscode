@@ -16,8 +16,11 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  view_suggestions: 'View Suggestions',
+  checking_for_conflicts: 'Checking for conflicts',
+  deploying_one_component: 'Deploying 1 component',
+  deploying_n_components: 'Deploying %s components',
   retrieve_on_load_failed: 'Retrieve on load failed: %s',
+  view_suggestions: 'View Suggestions',
   // Media/icon descriptions (accessibility)
   icon_sf_default_org: 'Default Scratch Org',
   icon_sf_default_hub: 'Default Dev Hub',

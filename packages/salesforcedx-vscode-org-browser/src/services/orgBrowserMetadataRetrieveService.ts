@@ -18,7 +18,7 @@ const retrieve = (members: MetadataMember[], openInEditor = false) =>
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channel = yield* api.services.ChannelService;
 
-    const result = yield* api.services.MetadataRetrieveService.retrieve(members);
+    const result = yield* api.services.MetadataRetrieveService.retrieve(members, { ignoreConflicts: true });
     if (typeof result === 'string') {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
     }

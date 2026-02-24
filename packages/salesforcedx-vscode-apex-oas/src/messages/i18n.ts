@@ -65,6 +65,7 @@ export const messages = {
   overwrite: 'Overwrite',
   processing_generated_oas: 'Verifying generated OpenAPI doc.',
   registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
+  running_validations_on_oas_document: 'SFDX: Running validations on OAS Document',
   schema_element_not_found: 'The <schema> element was not found in the provided XML.',
   select_folder_for_oas: 'Select folder to store OpenAPI Document',
   select_named_credential: 'Select a Named Credential',
