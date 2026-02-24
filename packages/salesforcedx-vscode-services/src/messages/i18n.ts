@@ -16,8 +16,11 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  view_suggestions: 'View Suggestions',
-  retrieve_on_load_failed: 'Retrieve on load failed: %s'
+  checking_for_conflicts: 'Checking for conflicts',
+  deploying_one_component: 'Deploying 1 component',
+  deploying_n_components: 'Deploying %s components',
+  retrieve_on_load_failed: 'Retrieve on load failed: %s',
+  view_suggestions: 'View Suggestions'
 } as const;
 
 export type MessageKey = keyof typeof messages;
