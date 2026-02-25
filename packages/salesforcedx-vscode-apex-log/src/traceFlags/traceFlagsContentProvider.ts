@@ -35,42 +35,41 @@ const groupByLogType = (items: TraceFlagItem[]): TraceFlagsByLogType => {
   };
 };
 
-const fetchTraceFlagsContent = () =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const { encodeTraceFlagsConfigToJson } = buildTraceFlagsSchemas(api.services.TraceFlagItemStruct);
-    const traceFlagService = yield* api.services.TraceFlagService;
-    const channelService = yield* api.services.ChannelService;
+const fetchTraceFlagsContent = Effect.fn('ApexLog.fetchTraceFlagsContent')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const { encodeTraceFlagsConfigToJson } = buildTraceFlagsSchemas(api.services.TraceFlagItemStruct);
+  const traceFlagService = yield* api.services.TraceFlagService;
+  const channelService = yield* api.services.ChannelService;
 
-    const [traceFlags, debugLevels] = yield* Effect.all(
-      [
-        traceFlagService
-          .getTraceFlags()
-          .pipe(
-            Effect.catchAll(e =>
-              channelService
-                .appendToChannel(`Trace flags fetch failed: ${String(e)}`)
-                .pipe(Effect.andThen(Effect.succeed<TraceFlagItem[]>([])))
-            )
-          ),
-        traceFlagService
-          .getDebugLevels()
-          .pipe(
-            Effect.catchAll(e =>
-              channelService
-                .appendToChannel(`Debug levels fetch failed: ${String(e)}`)
-                .pipe(Effect.andThen(Effect.succeed<DebugLevelItem[]>([])))
-            )
+  const [traceFlags, debugLevels] = yield* Effect.all(
+    [
+      traceFlagService
+        .getTraceFlags()
+        .pipe(
+          Effect.catchAll(e =>
+            channelService
+              .appendToChannel(`Trace flags fetch failed: ${String(e)}`)
+              .pipe(Effect.andThen(Effect.succeed<TraceFlagItem[]>([])))
           )
-      ],
-      { concurrency: 'unbounded' }
-    );
+        ),
+      traceFlagService
+        .getDebugLevels()
+        .pipe(
+          Effect.catchAll(e =>
+            channelService
+              .appendToChannel(`Debug levels fetch failed: ${String(e)}`)
+              .pipe(Effect.andThen(Effect.succeed<DebugLevelItem[]>([])))
+          )
+        )
+    ],
+    { concurrency: 'unbounded' }
+  );
 
-    return encodeTraceFlagsConfigToJson({
-      traceFlags: groupByLogType(traceFlags),
-      debugLevels
-    });
-  }).pipe(Effect.provide(AllServicesLayer));
+  return encodeTraceFlagsConfigToJson({
+    traceFlags: groupByLogType(traceFlags),
+    debugLevels
+  });
+});
 
 /**
  * Virtual document provider for trace flags. Fetches from org on demand; no file on disk.
@@ -88,6 +87,7 @@ class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvid
 
     return Effect.runPromise(
       fetchTraceFlagsContent().pipe(
+        Effect.provide(AllServicesLayer),
         Effect.catchAll((e: unknown) =>
           Effect.succeed(JSON.stringify({ error: `Failed to fetch trace flags: ${String(e)}` }, undefined, 2))
         )

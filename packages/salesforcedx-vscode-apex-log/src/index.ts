@@ -21,11 +21,6 @@ import { createAnonymousApexScriptCommand } from './commands/createAnonymousApex
 import { executeAnonymousDocumentCommand, executeAnonymousSelectionCommand } from './commands/executeAnonymous';
 import { logGetCommand } from './commands/logGet';
 import { openLogsFolderCommand } from './commands/openLogsFolder';
-import { createLogAutoCollect } from './logs/logAutoCollect';
-import { CurrentTraceFlags } from './services/apexLogState';
-import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
-import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
-import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import {
   createLogLevelCommand,
   createTraceFlagForCurrentUserCommand,
@@ -34,7 +29,12 @@ import {
   deleteTraceFlagForCurrentUserCommand,
   deleteTraceFlagForIdCommand,
   openTraceFlagsCommand
-} from './traceFlags/traceFlagJsonSync';
+} from './commands/traceflags/traceflagsCommands';
+import { createLogAutoCollect } from './logs/logAutoCollect';
+import { CurrentTraceFlags } from './services/apexLogState';
+import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
+import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';
 import { SCHEME as TRACE_FLAGS_SCHEME, TraceFlagsContentProviderService } from './traceFlags/traceFlagsContentProvider';
 
