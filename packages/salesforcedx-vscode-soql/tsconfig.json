@@ -25,25 +25,25 @@
   ],
   "references": [
     {
-      "path": "../soql-common"
+      "path": "../effect-ext-utils"
+    },
+    {
+      "path": "../salesforcedx-utils"
     },
     {
       "path": "../salesforcedx-utils-vscode"
     },
     {
-      "path": "../soql-common"
-    },
-    {
       "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../salesforcedx-utils"
     },
     {
       "path": "../salesforcedx-vscode-core"
     },
     {
       "path": "../salesforcedx-vscode-services"
+    },
+    {
+      "path": "../soql-common"
     }
   ]
 }
