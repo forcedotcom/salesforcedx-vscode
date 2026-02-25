@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { RefreshSObjectsExecutor } from '../refreshSObjects';
+
+const refreshSObjectsCommandCompletionEventEmitter = new vscode.EventEmitter<unknown>();
 
 export class CommandEventDispatcher implements vscode.Disposable {
   protected static instance: CommandEventDispatcher;
@@ -18,10 +19,19 @@ export class CommandEventDispatcher implements vscode.Disposable {
   }
 
   public onRefreshSObjectsCommandCompletion(listener: (event: unknown) => unknown): vscode.Disposable {
-    return RefreshSObjectsExecutor.onRefreshSObjectsCommandCompletion(listener);
+    return refreshSObjectsCommandCompletionEventEmitter.event(listener);
   }
 
   public dispose() {
-    RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.dispose();
+    refreshSObjectsCommandCompletionEventEmitter.dispose();
   }
 }
+
+/**
+ * Command registered in core that metadata's refresh command calls on completion.
+ * Fires the refreshSObjectsCommandCompletion event for any registered listeners.
+ */
+export const registerSObjectRefreshCompleteCommand = (): vscode.Disposable =>
+  vscode.commands.registerCommand('sf.internal.sobjectrefresh.complete', (event: unknown) => {
+    refreshSObjectsCommandCompletionEventEmitter.fire(event);
+  });

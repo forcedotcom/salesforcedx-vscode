@@ -8,9 +8,6 @@
   "include": ["src/**/*.ts", "test/playwright/**/*.ts", "playwright.config.desktop.ts", "package.nls.json"],
   "references": [
     {
-      "path": "../salesforcedx-sobjects-faux-generator"
-    },
-    {
       "path": "../salesforcedx-utils"
     },
     {

@@ -33,4 +33,3 @@ export type SObjectField = Pick<
 export type SObject = Pick<DescribeSObjectResult, 'childRelationships' | 'label' | 'custom' | 'name' | 'queryable'> & {
   fields: SObjectField[];
 };
-

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { EOL } from 'node:os';
-import { FieldDeclaration, SObjectDefinition } from '../types';
+import { FieldDeclaration, SObjectDefinition } from './types/general';
 
 const isCollectionType = (fieldType: string): boolean =>
   fieldType.startsWith('List<') || fieldType.startsWith('Set<') || fieldType.startsWith('Map<');

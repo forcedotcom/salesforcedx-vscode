@@ -13,6 +13,7 @@
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "include": [
     "src/**/*.ts",
+    "src/sobjects/data/*.json",
     "test/**/*.ts",
     "playwright.config.web.ts",
     "playwright.config.desktop.ts",

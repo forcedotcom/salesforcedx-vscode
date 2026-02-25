@@ -111,3 +111,13 @@ export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';
 export { nls } from './messages/messages';
 export { detectWorkspaceType } from './workspaceTypeFiles';
+export {
+  SOBJECTS_DIR,
+  STANDARDOBJECTS_DIR,
+  CUSTOMOBJECTS_DIR,
+  SOQLMETADATA_DIR,
+  toMinimalSObject,
+  type SObject,
+  type SObjectField,
+  type ChildRelationship
+} from './sobjects';

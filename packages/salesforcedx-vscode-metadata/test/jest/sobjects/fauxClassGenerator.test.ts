@@ -6,32 +6,14 @@
  */
 
 import { EOL } from 'node:os';
-import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
+import { generateSObjectDefinition } from '../../../src/sobjects/declarationGenerator';
 import {
   commentToString,
   generateFauxClassText,
   INDENT
-} from '../../../src/generator/fauxClassGenerator';
-import { nls } from '../../../src/messages';
-
-jest.mock('../../../src/messages');
-
-const nlsMocked = jest.mocked(nls);
+} from '../../../src/sobjects/fauxClassGenerator';
 
 describe('FauxClassGenerator Unit Tests.', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    nlsMocked.localize.mockImplementation((key, ...args) => {
-      if (key === 'no_sobject_output_folder_text') {
-        return `No output folder available ${args[0]}.  Please create this folder and refresh again`;
-      }
-      if (key === 'unsupported_sobject_category') {
-        return `SObject category cannot be used to generate metadata ${args[0]}`;
-      }
-      return key;
-    });
-  });
-
   describe('commentToString()', () => {
     it('Should return empty string for empty input', () => {
       const empty = '';
@@ -78,7 +60,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     it('Should include the class header generated comment', () => {
       const definition = generateSObjectDefinition(standardMock as never);
       const text = generateFauxClassText(definition);
-      expect(text).toContain(nls.localize('class_header_generated_comment'));
+      expect(text).toContain('This file is generated as an Apex representation of the');
     });
 
     it('Should generate a class declaration for a standard SObject', () => {

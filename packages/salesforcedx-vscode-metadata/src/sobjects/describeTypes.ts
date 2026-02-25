@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SObject } from '../types';
+import { SObject } from './types/describe';
 
 export type SObjectShortDescription = Pick<SObject, 'name' | 'custom'>;
 

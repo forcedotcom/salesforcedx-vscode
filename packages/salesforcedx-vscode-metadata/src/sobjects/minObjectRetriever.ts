@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { ChildRelationship, SObject, SObjectField } from './describe';
-export {
-  FieldDeclaration,
-  SObjectCategory,
-  SObjectDefinition,
-  SObjectRefreshResult,
-  SObjectRefreshSource
-} from './general';
+import * as minSObjectsFromFile from './data/minSObjects.json';
+
+export const getMinNames = () => minSObjectsFromFile.typeNames;
+export const getMinObjects = () => ({
+  standard: minSObjectsFromFile.standard,
+  custom: []
+});

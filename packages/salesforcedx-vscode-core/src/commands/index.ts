@@ -9,7 +9,7 @@ export { configList } from './configList';
 export { deleteSource } from './deleteSource';
 export { projectGenerateManifest } from './projectGenerateManifest';
 export { packageInstall } from './packageInstall';
-export { refreshSObjects, initSObjectDefinitions } from './refreshSObjects';
+export { initSObjectDefinitions } from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';
 export { deployManifest } from './deployManifest';
 export { deploySourcePaths } from './deploySourcePath';

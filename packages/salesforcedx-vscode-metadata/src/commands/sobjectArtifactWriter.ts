@@ -4,37 +4,25 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { SObjectShortDescription, SObjectsStandardAndCustom } from '../sobjects/describeTypes';
+import type { SObject } from '../sobjects/types/describe';
+import type { SObjectCategory, SObjectRefreshResult, SObjectRefreshSource } from '../sobjects/types/general';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
-import {
-  ERROR_EVENT,
-  EXIT_EVENT,
-  FAILURE_CODE,
-  SOBJECTS_DIR,
-  SOQLMETADATA_DIR,
-  STDERR_EVENT,
-  STDOUT_EVENT,
-  SUCCESS_CODE,
-  generateFauxClassText,
-  generateSObjectDefinition,
-  generateTypeText,
-  sobjectTypeFilter,
-  toMinimalSObject,
-  type SObject,
-  type SObjectCategory,
-  type SObjectRefreshResult,
-  type SObjectRefreshSource,
-  type SObjectShortDescription,
-  type SObjectsStandardAndCustom
-} from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { type CancellationToken } from '@salesforce/salesforcedx-utils';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
-import { EventEmitter } from 'node:events';
 import * as path from 'node:path';
-import { nls } from '../messages';
+import * as vscode from 'vscode';
+import {
+  SOBJECTS_DIR,
+  SOQLMETADATA_DIR
+} from '../sobjects/constants';
+import { generateSObjectDefinition } from '../sobjects/declarationGenerator';
+import { generateFauxClassText } from '../sobjects/fauxClassGenerator';
+import { toMinimalSObject } from '../sobjects/sObjectDescribe';
+import { sobjectTypeFilter } from '../sobjects/sobjectFilter';
+import { generateTypeText } from '../sobjects/typingGenerator';
 
 const APEX_CLASS_EXTENSION = '.cls';
 const TYPESCRIPT_TYPE_EXT = '.d.ts';
@@ -43,6 +31,8 @@ const TYPINGS_PATH = ['typings', 'lwc', 'sobjects'] as const;
 // Each SObject slot awaits 3 parallel writes; slots are I/O-bound not CPU-bound.
 // Higher concurrency reduces the number of rounds and directly cuts Phase 3 time.
 const WRITE_CONCURRENCY = 100;
+// State folder is .sfdx relative to project root (Global.SFDX_STATE_FOLDER)
+const STATE_FOLDER = '.sfdx';
 
 /**
  * TypeScript's overload resolution for Stream.mapEffect fails to infer the element type
@@ -64,14 +54,18 @@ type Dirs = {
   soqlCustom: string;
 };
 
-const buildDirs = (): Dirs => ({
-  fauxStandard: path.join(projectPaths.toolsFolder(), SOBJECTS_DIR, 'standardObjects'),
-  fauxCustom: path.join(projectPaths.toolsFolder(), SOBJECTS_DIR, 'customObjects'),
-  typings: path.join(projectPaths.stateFolder(), ...TYPINGS_PATH),
-  soqlMeta: path.join(projectPaths.toolsFolder(), SOQLMETADATA_DIR),
-  soqlStandard: path.join(projectPaths.toolsFolder(), SOQLMETADATA_DIR, 'standardObjects'),
-  soqlCustom: path.join(projectPaths.toolsFolder(), SOQLMETADATA_DIR, 'customObjects')
-});
+const buildDirs = (projectRoot: string): Dirs => {
+  const stateFolder = path.join(projectRoot, STATE_FOLDER);
+  const toolsFolder = path.join(stateFolder, 'tools');
+  return {
+    fauxStandard: path.join(toolsFolder, SOBJECTS_DIR, 'standardObjects'),
+    fauxCustom: path.join(toolsFolder, SOBJECTS_DIR, 'customObjects'),
+    typings: path.join(stateFolder, ...TYPINGS_PATH),
+    soqlMeta: path.join(toolsFolder, SOQLMETADATA_DIR),
+    soqlStandard: path.join(toolsFolder, SOQLMETADATA_DIR, 'standardObjects'),
+    soqlCustom: path.join(toolsFolder, SOQLMETADATA_DIR, 'customObjects')
+  };
+};
 
 /**
  * Streaming write effect for the normal refresh path.
@@ -91,10 +85,12 @@ const runStreamWriteEffect = (
     const api = yield* getServicesApi;
     const fsLayer = api.services.FsService.Default;
     const mdLayer = api.services.MetadataDescribeService.Default;
+    const projectLayer = api.services.ProjectService.Default;
     const fs = api.services.FsService;
-    const dirs = buildDirs();
 
     return yield* Effect.gen(function* () {
+      const sfProject = yield* api.services.ProjectService.getSfProject();
+      const dirs = buildDirs(sfProject.getPath());
       // Phase 1: listSObjects and dir resets run in parallel — saves ~0.5s
       const [allSObjects] = yield* Effect.all(
         [
@@ -155,7 +151,7 @@ const runStreamWriteEffect = (
       return [yield* Ref.get(standardRef), yield* Ref.get(customRef)] as const;
     }).pipe(
       // Single merged layer: both services built once and shared across all phases.
-      Effect.provide(Layer.merge(fsLayer, mdLayer))
+      Effect.provide(Layer.merge(fsLayer, Layer.merge(mdLayer, projectLayer)))
     );
   });
 
@@ -167,10 +163,12 @@ const runWriteEffect = (sobjectStream: Stream.Stream<SObject>, sobjectNames: SOb
   Effect.gen(function* () {
     const api = yield* getServicesApi;
     const fsLayer = api.services.FsService.Default;
+    const projectLayer = api.services.ProjectService.Default;
     const fs = api.services.FsService;
-    const dirs = buildDirs();
 
     return yield* Effect.gen(function* () {
+      const sfProject = yield* api.services.ProjectService.getSfProject();
+      const dirs = buildDirs(sfProject.getPath());
       yield* Effect.all(
         [
           fs.safeDelete(dirs.fauxStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.fauxStandard))),
@@ -210,41 +208,11 @@ const runWriteEffect = (sobjectStream: Stream.Stream<SObject>, sobjectNames: SOb
       );
 
       return [yield* Ref.get(standardRef), yield* Ref.get(customRef)] as const;
-    }).pipe(Effect.provide(fsLayer));
+    }).pipe(Effect.provide(Layer.merge(fsLayer, projectLayer)));
   });
 
-const emitResults = (
-  emitter: EventEmitter,
-  cancellationToken: CancellationToken,
-  standardCount: number,
-  customCount: number
-): SObjectRefreshResult => {
-  if (standardCount > 0) {
-    emitter.emit(STDOUT_EVENT, nls.localize('processed_sobjects_length_text', standardCount, 'Standard'));
-  }
-  if (customCount > 0) {
-    emitter.emit(STDOUT_EVENT, nls.localize('processed_sobjects_length_text', customCount, 'Custom'));
-  }
-  emitter.emit(EXIT_EVENT, cancellationToken.isCancellationRequested ? FAILURE_CODE : SUCCESS_CODE);
-  return {
-    data: {
-      cancelled: cancellationToken.isCancellationRequested,
-      standardObjects: standardCount,
-      customObjects: customCount
-    }
-  };
-};
-
-const handleError = (emitter: EventEmitter, error: unknown): never => {
-  emitter.emit(STDERR_EVENT, `${error instanceof Error ? error.message : String(error)}\n`);
-  emitter.emit(ERROR_EVENT, error);
-  emitter.emit(EXIT_EVENT, FAILURE_CODE);
-  throw error instanceof Error ? error : new Error(String(error));
-};
-
 type StreamWriterArgs = {
-  emitter: EventEmitter;
-  cancellationToken: CancellationToken;
+  cancellationToken: vscode.CancellationToken;
   category: SObjectCategory;
   source: Exclude<SObjectRefreshSource, 'startupmin'>;
 };
@@ -254,21 +222,22 @@ type StreamWriterArgs = {
  * One connection, one layer build, maximum I/O overlap.
  */
 export const streamAndWriteSobjectArtifacts = async (args: StreamWriterArgs): Promise<SObjectRefreshResult> => {
-  const { emitter, cancellationToken, category, source } = args;
-  try {
-    if (cancellationToken.isCancellationRequested) {
-      return emitResults(emitter, cancellationToken, 0, 0);
-    }
-    const [standardCount, customCount] = await Effect.runPromise(runStreamWriteEffect(category, source));
-    return emitResults(emitter, cancellationToken, standardCount, customCount);
-  } catch (error) {
-    return handleError(emitter, error);
+  const { cancellationToken, category, source } = args;
+  if (cancellationToken.isCancellationRequested) {
+    return { data: { cancelled: true, standardObjects: 0, customObjects: 0 } };
   }
+  const [standardCount, customCount] = await Effect.runPromise(runStreamWriteEffect(category, source));
+  return {
+    data: {
+      cancelled: cancellationToken.isCancellationRequested,
+      standardObjects: standardCount,
+      customObjects: customCount
+    }
+  };
 };
 
 type StaticWriterArgs = {
-  emitter: EventEmitter;
-  cancellationToken: CancellationToken;
+  cancellationToken: vscode.CancellationToken;
   sobjects: SObjectsStandardAndCustom;
   sobjectNames: SObjectShortDescription[];
 };
@@ -277,15 +246,17 @@ type StaticWriterArgs = {
  * Static path: used by startupmin which supplies pre-fetched bundled SObjects.
  */
 export const writeSobjectArtifacts = async (args: StaticWriterArgs): Promise<SObjectRefreshResult> => {
-  const { emitter, cancellationToken, sobjects, sobjectNames } = args;
-  try {
-    if (cancellationToken.isCancellationRequested) {
-      return emitResults(emitter, cancellationToken, 0, 0);
-    }
-    const sobjectStream = Stream.fromIterable<SObject>([...sobjects.standard, ...sobjects.custom]);
-    const [standardCount, customCount] = await Effect.runPromise(runWriteEffect(sobjectStream, sobjectNames));
-    return emitResults(emitter, cancellationToken, standardCount, customCount);
-  } catch (error) {
-    return handleError(emitter, error);
+  const { cancellationToken, sobjects, sobjectNames } = args;
+  if (cancellationToken.isCancellationRequested) {
+    return { data: { cancelled: true, standardObjects: 0, customObjects: 0 } };
   }
+  const sobjectStream = Stream.fromIterable<SObject>([...sobjects.standard, ...sobjects.custom]);
+  const [standardCount, customCount] = await Effect.runPromise(runWriteEffect(sobjectStream, sobjectNames));
+  return {
+    data: {
+      cancelled: cancellationToken.isCancellationRequested,
+      standardObjects: standardCount,
+      customObjects: customCount
+    }
+  };
 };

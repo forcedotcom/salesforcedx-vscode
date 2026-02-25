@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SObjectShortDescription } from '../describe/types';
-import { SObjectCategory, SObjectRefreshSource } from '../types';
+import { SObjectShortDescription } from './describeTypes';
+import { SObjectCategory, SObjectRefreshSource } from './types/general';
 
 /** filter out standard or custom if necessary and handle the "required" sobject types */
 export const sobjectTypeFilter =

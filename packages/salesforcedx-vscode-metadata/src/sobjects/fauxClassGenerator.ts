@@ -5,11 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { EOL } from 'node:os';
-import { nls } from '../messages';
-import { FieldDeclaration, SObjectDefinition } from '../types';
 import { MODIFIER } from './declarationGenerator';
+import { FieldDeclaration, SObjectDefinition } from './types/general';
 
 export const INDENT = '    ';
+
+const CLASS_HEADER_COMMENT = `// This file is generated as an Apex representation of the
+//     corresponding sObject and its fields.
+// This read-only file is used by the Apex Language Server to
+//     provide code smartness, and is deleted each time you
+//     refresh your sObject definitions.
+// To edit your sObjects and their fields, edit the corresponding
+//     .object-meta.xml and .field-meta.xml files.
+
+`;
 
 const fieldDeclToString = (decl: FieldDeclaration): string =>
   `${commentToString(decl.comment)}${INDENT}${decl.modifier} ${decl.type} ${decl.name};`;
@@ -32,5 +41,5 @@ export const generateFauxClassText = (definition: SObjectDefinition): string => 
   const declarationLines = declarations.map(fieldDeclToString).join(`${EOL}`);
   const classConstructor = `${INDENT}${MODIFIER} ${className} () ${EOL}    {${EOL}    }${EOL}`;
 
-  return `${nls.localize('class_header_generated_comment')}${classDeclaration}${declarationLines}${EOL}${EOL}${classConstructor}}`;
+  return `${CLASS_HEADER_COMMENT}${classDeclaration}${declarationLines}${EOL}${EOL}${classConstructor}}`;
 };

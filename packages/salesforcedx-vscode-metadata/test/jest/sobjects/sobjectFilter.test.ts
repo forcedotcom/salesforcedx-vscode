@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { sobjectTypeFilter } from '../../../src/transformer/sobjectFilter';
+import { sobjectTypeFilter } from '../../../src/sobjects/sobjectFilter';
 
 const SOBJECTS_DESCRIBE_SAMPLE = {
   sobjects: [

@@ -6,24 +6,15 @@
  */
 
 import { EOL } from 'node:os';
-import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
-import { generateFauxClassText } from '../../../src/generator/fauxClassGenerator';
-import { nls } from '../../../src/messages';
+import { generateSObjectDefinition } from '../../../src/sobjects/declarationGenerator';
+import { generateFauxClassText } from '../../../src/sobjects/fauxClassGenerator';
 import { minimalCustomSObject } from './sObjectMockData';
 
-jest.mock('../../../src/messages');
-const nlsMocked = jest.mocked(nls);
-
 describe('FauxClassGenerator Text Content Tests', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    nlsMocked.localize.mockReturnValue('');
-  });
-
   it('Should generate a faux class with a proper header comment', () => {
     const sobject = JSON.parse('{ "name": "Custom__c", "fields": [], "childRelationships": [] }');
     const text = generateFauxClassText(generateSObjectDefinition(sobject));
-    expect(text).toContain(nls.localize('class_header_generated_comment'));
+    expect(text).toContain('This file is generated as an Apex representation of the');
   });
 
   it('Should create a valid class with child relationship', () => {

@@ -53,7 +53,6 @@ import {
   projectGenerateManifest,
   projectGenerateWithManifest,
   projectRetrieveStart,
-  refreshSObjects,
   renameLightningComponent,
   retrieveComponent,
   retrieveManifest,
@@ -72,7 +71,7 @@ import {
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
-import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
+import { CommandEventDispatcher, registerSObjectRefreshCompleteCommand } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
@@ -121,7 +120,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff),
     vscode.commands.registerCommand('sf.diff', sourceDiff),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
-    vscode.commands.registerCommand('sf.internal.refreshsobjects', refreshSObjects),
     vscode.commands.registerCommand('sf.apex.generate.unit.test.class', apexGenerateUnitTestClass),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
     vscode.commands.registerCommand('sf.visualforce.generate.component', visualforceGenerateComponent),
@@ -282,7 +280,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       }
     }),
     registerConflictView(),
-    CommandEventDispatcher.getInstance()
+    CommandEventDispatcher.getInstance(),
+    registerSObjectRefreshCompleteCommand()
   );
 
   if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {

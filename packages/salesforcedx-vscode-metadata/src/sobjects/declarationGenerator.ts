@@ -4,9 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ChildRelationship, FieldDeclaration, SObject, SObjectDefinition } from '../types';
-import { SObjectField } from '../types/describe';
-import { capitalize } from '../utils';
+import { ChildRelationship, SObject, SObjectField } from './types/describe';
+import { FieldDeclaration, SObjectDefinition } from './types/general';
 
 export const MODIFIER = 'global';
 const TYPE_MAPPING: Map<string, string> = new Map([
@@ -39,6 +38,8 @@ const TYPE_MAPPING: Map<string, string> = new Map([
   // ['masterrecord', 'xxx'],
   ['complexvalue', 'Object']
 ]);
+
+const capitalize = (str: string) => (str.length > 0 ? `${str[0].toUpperCase()}${str.slice(1)}` : str);
 
 export const generateSObjectDefinition = (sobject: SObject): SObjectDefinition => {
   const declarations = [

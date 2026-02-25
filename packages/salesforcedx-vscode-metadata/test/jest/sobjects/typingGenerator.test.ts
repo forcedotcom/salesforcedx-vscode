@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
-import { generateTypeText } from '../../../src/generator/typingGenerator';
+import { generateSObjectDefinition } from '../../../src/sobjects/declarationGenerator';
+import { generateTypeText } from '../../../src/sobjects/typingGenerator';
 
 describe('SObject Javascript type declaration generator', () => {
   it('Should generate a declaration file with all types of fields that can be in custom SObjects', () => {
