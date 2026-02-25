@@ -6,7 +6,9 @@
     "strict": false,
     "noImplicitAny": false,
     "paths": {
-      "@salesforce/soql-model/*": ["./src/soql-model/*"]
+      "@salesforce/soql-model/*": [
+        "./src/soql-model/*"
+      ]
     }
   },
   "exclude": [
@@ -18,13 +20,18 @@
     "src/soql-builder-ui",
     "test/jest/soql-builder-ui"
   ],
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts"
+  ],
   "references": [
     {
       "path": "../soql-common"
     },
     {
       "path": "../salesforcedx-utils-vscode"
+    },
+    {
+      "path": "../soql-common"
     },
     {
       "path": "../salesforcedx-vscode-i18n"

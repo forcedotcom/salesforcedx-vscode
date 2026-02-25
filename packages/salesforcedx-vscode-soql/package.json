@@ -2,9 +2,9 @@
   "name": "salesforcedx-vscode-soql",
   "displayName": "SOQL",
   "description": "Provides code-editing features for SOQL",
-  "qna": "https://github.com/forcedotcom/soql-tooling/issues",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
-    "url": "https://github.com/forcedotcom/soql-tooling/issues"
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
@@ -40,7 +40,6 @@
     "effect": "^3.19.14",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
-    "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/vscode-i18n": "*",
     "antlr4ts": "^0.5.0-alpha.3",
@@ -50,21 +49,30 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@lwc/eslint-plugin-lwc": "^0.12.2",
-    "@lwc/jest-preset": "^7.0.0",
-    "@salesforce/eslint-config-lwc": "^0.11.0",
+    "@babel/preset-typescript": "^7.0.0",
+    "@lwc/engine-dom": "^9.0.0",
+    "@lwc/eslint-plugin-lwc": "^3.3.0",
+    "@lwc/jest-preset": "^19.0.0",
+    "@lwc/rollup-plugin": "^9.0.0",
+    "@lwc/synthetic-shadow": "^9.0.0",
+    "@rollup/plugin-alias": "^6.0.0",
+    "@rollup/plugin-babel": "^6.0.0",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-inject": "^5.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-terser": "^0.4.0",
+    "@salesforce/eslint-config-lwc": "^4.1.2",
+    "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "esbuild": "0.25.12",
-    "immutable": "3.8.2",
-    "lwc-services": "^3.0.2",
-    "rxjs": "^6.6.2",
+    "immutable": "^5.1.4",
+    "jest-environment-jsdom": "^29.0.0",
+    "rollup": "^4.0.0",
+    "rxjs": "^7.8.2",
     "salesforcedx-vscode-core": "*",
-    "salesforcedx-vscode-services": "*",
-    "terser-webpack-plugin": "^5.1.1",
-    "util": "^0.12.3"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",
@@ -74,10 +82,11 @@
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/node_modules",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
+    "test:soql-builder-ui": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
@@ -116,18 +125,25 @@
       ]
     },
     "build:soql-builder-ui": {
-      "command": "cd src/soql-builder-ui && npm install && export NODE_OPTIONS=--openssl-legacy-provider && npx lwc-services build -w webpack.config.js -m production",
+      "command": "cd src/soql-builder-ui && rollup -c rollup.config.mjs",
       "files": [
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
-        "src/soql-builder-ui/webpack.config.js",
-        "src/soql-builder-ui/lwc.config.json",
-        "src/soql-builder-ui/lwc-services.config.js",
-        "src/soql-builder-ui/package.json"
+        "src/soql-builder-ui/rollup.config.mjs"
       ],
       "output": [
         "src/soql-builder-ui/dist/**"
       ]
+    },
+    "test:soql-builder-ui": {
+      "command": "jest --config src/soql-builder-ui/jest.config.js",
+      "files": [
+        "src/soql-builder-ui/modules/**",
+        "src/soql-builder-ui/jest.config.js",
+        "src/soql-builder-ui/jestSetup/**",
+        "test/jest/soql-builder-ui/**"
+      ],
+      "output": []
     },
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
@@ -140,7 +156,8 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "out/**",
-        "src/soql-builder-ui/dist/**"
+        "src/soql-builder-ui/dist/**",
+        "src/soql-data-view/**"
       ],
       "output": [
         "dist"

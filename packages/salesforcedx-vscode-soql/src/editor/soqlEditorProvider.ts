@@ -24,7 +24,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private instances: SOQLEditorInstance[] = [];
 
-  constructor(private readonly extensionContext: vscode.ExtensionContext) {}
+  constructor(private readonly extensionContext: vscode.ExtensionContext) { }
 
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,
@@ -33,9 +33,6 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   ): Promise<void> {
     const soqlBuilderWebAssetsModule = getSoqlBuilderLocation(this.extensionContext);
 
-    channelService.appendLine(
-      `SOQLEditorProvider: resolveCustomTextEditor will try to load ${soqlBuilderWebAssetsModule}`
-    );
     webviewPanel.webview.options = {
       enableScripts: true,
       localResourceRoots: [URI.file(soqlBuilderWebAssetsModule)]
@@ -57,7 +54,6 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     const soqlBuilderWebAssetsModule = getSoqlBuilderLocation(this.extensionContext);
 
     const pathToHtml = path.join(soqlBuilderWebAssetsModule, HTML_FILE);
-    channelService.appendLine(`SOQLEditorProvider: getWebViewContent will try to read ${pathToHtml}`);
     const htmlContent = await readFile(pathToHtml);
     return HtmlUtils.transformHtml(htmlContent, soqlBuilderWebAssetsModule, webview);
   }

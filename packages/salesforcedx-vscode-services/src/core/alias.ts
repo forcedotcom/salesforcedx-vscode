@@ -29,10 +29,13 @@ export class AliasService extends Effect.Service<AliasService>()('AliasService',
     const fsService = yield* FsService;
 
     const readAliasFile = Effect.fn('AliasService.readAliasFile')(function* () {
-      console.log('readAliasFile');
-      console.log('Global', Global.SFDX_DIR);
       const aliasPath = join(Global.SFDX_DIR, 'alias.json');
       return yield* fsService.readJSON(aliasPath, AliasFileSchema);
+    });
+
+    /** Get all aliases as Record<alias, username> */
+    const getAllAliases = Effect.fn('AliasService.getAllAliases')(function* () {
+      return yield* readAliasFile().pipe(Effect.map(a => a.orgs));
     });
 
     /** Get all aliases for a given username */
@@ -56,6 +59,6 @@ export class AliasService extends Effect.Service<AliasService>()('AliasService',
       );
     });
 
-    return { getAliasesFromUsername, getUsernameFromAlias };
+    return { getAllAliases, getAliasesFromUsername, getUsernameFromAlias };
   })
 }) {}
