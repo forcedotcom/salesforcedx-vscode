@@ -8,7 +8,8 @@
   "overrides": {
     "wireit": {
       "brace-expansion": "4.0.1"
-    }
+    },
+    "strip-ansi": "^5.2.0"
   },
   "engines": {
     "node": ">=22.15.1"
@@ -57,6 +58,7 @@
     "@vscode/vsce": "3.5.0",
     "acorn": "8.15.0",
     "assert": "2.1.0",
+    "strip-ansi": "^5.2.0",
     "browserify-zlib": "0.2.0",
     "check-peer-dependencies": "4.3.0",
     "crypto-browserify": "3.12.1",
