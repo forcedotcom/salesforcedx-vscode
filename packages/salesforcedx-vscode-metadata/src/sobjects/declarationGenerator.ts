@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ChildRelationship, SObject, SObjectField } from './types/describe';
+import type { ChildRelationship, SObject, SObjectField } from 'salesforcedx-vscode-services';
 import { FieldDeclaration, SObjectDefinition } from './types/general';
 
 export const MODIFIER = 'global';

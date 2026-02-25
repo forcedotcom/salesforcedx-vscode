@@ -14,7 +14,7 @@ import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCom
 import type { Middleware } from 'vscode-languageclient/node';
 
 import { telemetryService } from '../telemetry';
-import { FileSystemOrgDataSource, JsforceOrgDataSource, OrgDataSource, SObject, SObjectField } from './orgMetadata';
+import { FileSystemOrgDataSource, ServicesOrgDataSource, OrgDataSource, SObject, SObjectField } from './orgMetadata';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -28,7 +28,7 @@ export const middleware: Middleware = {
 
     const dataSource: OrgDataSource = document.uri.scheme.includes('embedded')
       ? new FileSystemOrgDataSource()
-      : new JsforceOrgDataSource();
+      : new ServicesOrgDataSource();
 
     return expandPlaceholders(await filterByContext(items, dataSource), dataSource);
   }

@@ -5,30 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SObject } from '../../../src/sobjects/types/describe';
+import type { SObject } from 'salesforcedx-vscode-services';
 
 // This is our internal minimal fields version (type SObject) of the same set of sobjects:
 export const minimalCustomSObject: SObject = {
   childRelationships: [
     {
-      cascadeDelete: true,
       childSObject: 'ActivityHistory',
-      deprecatedAndHidden: false,
       field: 'WhatId',
-      junctionIdListNames: [],
-      junctionReferenceTo: [],
-      relationshipName: 'ActivityHistories',
-      restrictedDelete: false
+      relationshipName: 'ActivityHistories'
     },
     {
-      cascadeDelete: true,
       childSObject: 'Test_Object__History',
-      deprecatedAndHidden: false,
       field: 'ParentId',
-      junctionIdListNames: [],
-      junctionReferenceTo: [],
-      relationshipName: 'Histories',
-      restrictedDelete: false
+      relationshipName: 'Histories'
     }
   ],
   custom: true,

@@ -36,6 +36,8 @@
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/core": "^8.23.2",
+    "@salesforce/effect-ext-utils": "*",
+    "effect": "^3.19.14",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
     "@salesforce/soql-data-view": "0.1.0",
@@ -60,11 +62,13 @@
     "lwc-services": "^3.0.2",
     "rxjs": "^6.6.2",
     "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-services": "*",
     "terser-webpack-plugin": "^5.1.1",
     "util": "^0.12.3"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -87,7 +91,8 @@
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-core:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",

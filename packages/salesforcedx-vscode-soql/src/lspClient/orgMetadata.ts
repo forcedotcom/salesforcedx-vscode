@@ -5,19 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CUSTOMOBJECTS_DIR,
-  type SObject,
-  SOQLMETADATA_DIR,
-  STANDARDOBJECTS_DIR,
-  toMinimalSObject,
-  projectPaths,
-  readDirectory,
-  readFile
-} from '@salesforce/salesforcedx-utils-vscode';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
+import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR, projectPaths, readDirectory, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
+import type { SObject } from 'salesforcedx-vscode-services';
 import { nls } from '../messages';
-import { channelService, retrieveSObject, retrieveSObjects } from '../sf';
+import { channelService } from '../sf';
 
 export type OrgDataSource = {
   retrieveSObjectsList(): Promise<string[]>;
@@ -73,43 +67,69 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       return undefined;
     }
 
-    const filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, `${sobjectName}.json`);
+    const standardPath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, `${sobjectName}.json`);
+    const customPath = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR, `${sobjectName}.json`);
+
+    let fileContent: string | undefined;
     try {
-      const fileContent = await readFile(filePath);
-      // TODO: validate content against a schema
-      return JSON.parse(fileContent);
+      fileContent = await readFile(standardPath);
     } catch {
-      const message = nls.localize(
-        'error_sobject_metadata_fs_request',
-        sobjectName,
-        path.join(soqlMetadataPath, '*', `${sobjectName}.json`)
-      );
-      channelService.appendLine(message);
-      return undefined;
+      try {
+        fileContent = await readFile(customPath);
+      } catch {
+        const message = nls.localize(
+          'error_sobject_metadata_fs_request',
+          sobjectName,
+          path.join(soqlMetadataPath, '*', `${sobjectName}.json`)
+        );
+        channelService.appendLine(message);
+        return undefined;
+      }
     }
+
+    const raw: unknown = JSON.parse(fileContent);
+    return await Effect.runPromise(
+      getServicesApi.pipe(
+        Effect.flatMap(api =>
+          api.services.TransmogrifierService.decodeSObject(raw).pipe(
+            Effect.provide(api.services.TransmogrifierService.Default)
+          )
+        )
+      )
+    ).catch(() => undefined);
   }
 }
 
-export class JsforceOrgDataSource implements OrgDataSource {
+export class ServicesOrgDataSource implements OrgDataSource {
   public async retrieveSObjectsList(): Promise<string[]> {
-    try {
-      return await retrieveSObjects();
-    } catch {
-      const message = nls.localize('error_sobjects_request');
-      channelService.appendLine(message);
-      return [];
-    }
+    return Effect.runPromise(
+      getServicesApi.pipe(
+        Effect.flatMap(api =>
+          api.services.MetadataDescribeService.listSObjects().pipe(
+            Effect.provide(api.services.MetadataDescribeService.Default)
+          )
+        ),
+        Effect.map(sobjects => sobjects.filter(s => s.queryable).map(s => s.name))
+      )
+    ).catch(() => []);
   }
 
   public async retrieveSObject(sobjectName: string): Promise<SObject | undefined> {
-    try {
-      return toMinimalSObject(await retrieveSObject(sobjectName));
-    } catch {
-      const message = nls.localize('error_sobject_metadata_request', sobjectName);
-      channelService.appendLine(message);
-      return undefined;
-    }
+    return Effect.runPromise(
+      getServicesApi.pipe(
+        Effect.flatMap(api => {
+          const mdLayer = api.services.MetadataDescribeService.Default;
+          const txLayer = api.services.TransmogrifierService.Default;
+          return api.services.MetadataDescribeService.describeCustomObject(sobjectName).pipe(
+            Effect.provide(mdLayer),
+            Effect.flatMap(raw =>
+              api.services.TransmogrifierService.toMinimalSObject(raw).pipe(Effect.provide(txLayer))
+            )
+          );
+        })
+      )
+    ).catch(() => undefined);
   }
 }
 
-export type { SObjectField, SObject } from '@salesforce/salesforcedx-utils-vscode';
+export type { SObjectField, SObject } from 'salesforcedx-vscode-services';

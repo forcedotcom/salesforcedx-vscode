@@ -23,6 +23,7 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
+import { TransmogrifierService } from './core/transmogrifierService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -68,6 +69,7 @@ export type SalesforceVSCodeServicesApi = {
     SettingsService: typeof SettingsService;
     SourceTrackingService: typeof SourceTrackingService;
     TargetOrgRef: typeof getDefaultOrgRef;
+    TransmogrifierService: typeof TransmogrifierService;
     WorkspaceService: typeof WorkspaceService;
   };
 };
@@ -100,6 +102,19 @@ export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
 export type { MetadataDescribeError, ListMetadataError, SObjectGlobalDescribeItem } from './core/metadataDescribeService';
+export type {
+  DescribeSObjectResult,
+  SObject,
+  SObjectField,
+  ChildRelationship,
+  TransmogrifierService
+} from './core/transmogrifierService';
+export {
+  SObjectSchema,
+  SObjectFieldSchema,
+  ChildRelationshipSchema,
+  PicklistValueSchema
+} from './core/transmogrifierService';
 export type { GetRegistryAccessError } from './core/metadataRegistryService';
 export type { FsServiceError } from './vscode/fsService';
 export type { SettingsError } from './vscode/settingsService';
@@ -237,6 +252,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       SettingsService,
       SourceTrackingService,
       TargetOrgRef: getDefaultOrgRef,
+      TransmogrifierService,
       WorkspaceService
     }
   };

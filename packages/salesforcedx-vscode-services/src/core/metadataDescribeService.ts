@@ -46,7 +46,7 @@ const runSObjectBatch = (conn: Connection, names: string[]): Promise<SObjectBatc
 };
 
 /** Subset of the full SObject global describe result */
-export type SObjectGlobalDescribeItem = { name: string; custom: boolean };
+export type SObjectGlobalDescribeItem = { name: string; custom: boolean; queryable: boolean };
 
 export class MetadataDescribeError extends S.TaggedError<MetadataDescribeError>()('MetadataDescribeError', {
   cause: S.Unknown,
@@ -131,40 +131,71 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       return yield* describeCache.get(orgId);
     });
 
+    const performListSObjects = (orgId: string) =>
+      Effect.gen(function* () {
+        const conn = yield* connectionService.getConnection();
+        return yield* Effect.tryPromise({
+          try: () => conn.describeGlobal(),
+          catch: e => {
+            const { cause } = unknownToErrorCause(e);
+            return new MetadataDescribeError({
+              cause,
+              function: 'listSObjects',
+              message: `Failed to list sobjects: ${cause.message ?? String(cause)}`
+            });
+          }
+        }).pipe(
+          Effect.map(result => result.sobjects.map(s => ({ name: s.name, custom: s.custom, queryable: s.queryable }) satisfies SObjectGlobalDescribeItem)),
+          Effect.withSpan('listSObjects (API call)')
+        );
+      }).pipe(Effect.withSpan('performListSObjects', { attributes: { orgId } }));
+
+    const listSObjectsCache = yield* Cache.makeWith({
+      capacity: 20,
+      timeToLive: Exit.match({
+        onSuccess: () => Duration.minutes(30),
+        onFailure: () => Duration.zero
+      }),
+      lookup: (orgId: string) => performListSObjects(orgId)
+    });
+
     const listSObjects = Effect.fn('MetadataDescribeService.listSObjects')(function* () {
-      const conn = yield* connectionService.getConnection();
-      return yield* Effect.tryPromise({
-        try: () => conn.describeGlobal(),
-        catch: e => {
-          const { cause } = unknownToErrorCause(e);
-          return new MetadataDescribeError({
-            cause,
-            function: 'listSObjects',
-            message: `Failed to list sobjects: ${cause.message ?? String(cause)}`
-          });
-        }
-      }).pipe(
-        Effect.map(result => result.sobjects.map(s => ({ name: s.name, custom: s.custom }) satisfies SObjectGlobalDescribeItem)),
-        Effect.withSpan('listSObjects (API call)')
-      );
+      const orgId = (yield* connectionService.getConnection()).getAuthInfoFields().orgId ?? 'default';
+      return yield* listSObjectsCache.get(orgId);
+    });
+
+    const performDescribeCustomObject = (cacheKey: string) =>
+      Effect.gen(function* () {
+        const objectName = cacheKey.slice(cacheKey.indexOf(':') + 1);
+        const conn = yield* connectionService.getConnection();
+        return yield* Effect.tryPromise({
+          try: () => conn.describe(objectName),
+          catch: e => {
+            const { cause } = unknownToErrorCause(e);
+            return new MetadataDescribeError({
+              cause,
+              function: 'describeCustomObject',
+              objectName,
+              message: `Failed to describe sobject ${objectName}: ${cause.message ?? String(cause)}`
+            });
+          }
+        }).pipe(Effect.withSpan('describeCustomObject (API call)', { attributes: { objectName } }));
+      }).pipe(Effect.withSpan('performDescribeCustomObject', { attributes: { cacheKey } }));
+
+    const sobjectDescribeCache = yield* Cache.makeWith({
+      capacity: 500,
+      timeToLive: Exit.match({
+        onSuccess: () => Duration.minutes(30),
+        onFailure: () => Duration.zero
+      }),
+      lookup: (cacheKey: string) => performDescribeCustomObject(cacheKey)
     });
 
     const describeCustomObject = Effect.fn('MetadataDescribeService.describeCustomObject')(function* (
       objectName: string
     ) {
-      const conn = yield* connectionService.getConnection();
-      return yield* Effect.tryPromise({
-        try: () => conn.describe(objectName),
-        catch: e => {
-          const { cause } = unknownToErrorCause(e);
-          return new MetadataDescribeError({
-            cause,
-            function: 'describeCustomObject',
-            objectName,
-            message: `Failed to describe sobject ${objectName}: ${cause.message ?? String(cause)}`
-          });
-        }
-      }).pipe(Effect.withSpan('describeCustomObject (API call)', { attributes: { objectName } }));
+      const orgId = (yield* connectionService.getConnection()).getAuthInfoFields().orgId ?? 'default';
+      return yield* sobjectDescribeCache.get(`${orgId}:${objectName}`);
     });
 
     const describeCustomObjects = (objectNames: string[]): Stream.Stream<DescribeSObjectResult, MetadataDescribeError> => {

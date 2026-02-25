@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { SObjectShortDescription, SObjectsStandardAndCustom } from '../sobjects/describeTypes';
-import type { SObject } from '../sobjects/types/describe';
 import type { SObjectCategory, SObjectRefreshResult, SObjectRefreshSource } from '../sobjects/types/general';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
@@ -13,6 +12,7 @@ import * as Layer from 'effect/Layer';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as path from 'node:path';
+import type { SObject } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import {
   SOBJECTS_DIR,
@@ -20,7 +20,6 @@ import {
 } from '../sobjects/constants';
 import { generateSObjectDefinition } from '../sobjects/declarationGenerator';
 import { generateFauxClassText } from '../sobjects/fauxClassGenerator';
-import { toMinimalSObject } from '../sobjects/sObjectDescribe';
 import { sobjectTypeFilter } from '../sobjects/sobjectFilter';
 import { generateTypeText } from '../sobjects/typingGenerator';
 
@@ -86,6 +85,7 @@ const runStreamWriteEffect = (
     const fsLayer = api.services.FsService.Default;
     const mdLayer = api.services.MetadataDescribeService.Default;
     const projectLayer = api.services.ProjectService.Default;
+    const txLayer = api.services.TransmogrifierService.Default;
     const fs = api.services.FsService;
 
     return yield* Effect.gen(function* () {
@@ -127,14 +127,14 @@ const runStreamWriteEffect = (
       yield* Stream.runDrain(
         typedMapEffect(
           describeStream,
-          raw => {
-            const sobject = toMinimalSObject(raw);
+          raw => Effect.gen(function* () {
+            const sobject = yield* api.services.TransmogrifierService.toMinimalSObject(raw);
             const isCustom = sobject.custom;
             const fauxDir = isCustom ? dirs.fauxCustom : dirs.fauxStandard;
             const soqlDir = isCustom ? dirs.soqlCustom : dirs.soqlStandard;
             const definition = generateSObjectDefinition(sobject);
             const countRef = isCustom ? customRef : standardRef;
-            return Effect.all(
+            return yield* Effect.all(
               [
                 fs.writeFile(path.join(fauxDir, `${sobject.name}${APEX_CLASS_EXTENSION}`), generateFauxClassText(definition)),
                 fs.writeFile(path.join(dirs.typings, `${sobject.name}${TYPESCRIPT_TYPE_EXT}`), generateTypeText(definition)),
@@ -143,15 +143,15 @@ const runStreamWriteEffect = (
               ],
               { concurrency: 'unbounded' }
             );
-          },
+          }),
           { concurrency: WRITE_CONCURRENCY }
         )
       );
 
       return [yield* Ref.get(standardRef), yield* Ref.get(customRef)] as const;
     }).pipe(
-      // Single merged layer: both services built once and shared across all phases.
-      Effect.provide(Layer.merge(fsLayer, Layer.merge(mdLayer, projectLayer)))
+      // Single merged layer: all services built once and shared across all phases.
+      Effect.provide(Layer.mergeAll(fsLayer, mdLayer, projectLayer, txLayer))
     );
   });
 
