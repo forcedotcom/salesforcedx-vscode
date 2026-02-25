@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core/global';
+import { Global } from '@salesforce/core';
 import { SfProject } from '@salesforce/core/project';
 import * as Cache from 'effect/Cache';
 import * as Data from 'effect/Data';
