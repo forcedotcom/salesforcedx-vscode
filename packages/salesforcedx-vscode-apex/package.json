@@ -74,7 +74,8 @@
         "package.json"
       ],
       "output": [
-        "out/**",
+        "out/src/**",
+        "out/test/**",
         "tsconfig.tsbuildinfo"
       ]
     },
