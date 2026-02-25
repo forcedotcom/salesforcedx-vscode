@@ -16,7 +16,7 @@ import { AllServicesLayer } from '../services/extensionProvider';
 
 const TRACE_FLAGS_DOCUMENT_SELECTOR = { language: 'json', scheme: 'sf-traceflags' };
 
-const hasActiveTraceFlagEffect = Effect.fn(function* () {
+const hasActiveTraceFlagEffect = Effect.fn('ApexLog.hasActiveTraceFlag')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const { userId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
   if (!userId) return false;
