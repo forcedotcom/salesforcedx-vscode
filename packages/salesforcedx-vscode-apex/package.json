@@ -167,7 +167,7 @@
     "workspaceContains:sfdx-project.json"
   ],
   "main": "./dist/index.js",
-  "types": "./apex-public.d.ts",
+  "types": "./out/src/index.d.ts",
   "languageServerDir": "dist",
   "contributes": {
     "menus": {
