@@ -144,3 +144,6 @@ packages/salesforcedx-vscode-lightning/tern/
 # ESBuild web settings
 .org-display-output.json
 .esbuild-web-extra-settings.json
+
+# Generated resources (build:icons in salesforcedx-vscode-services)
+packages/salesforcedx-vscode-services/resources/

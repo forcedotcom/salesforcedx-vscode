@@ -12,12 +12,6 @@
       }
     ]
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "out",
-    "../salesforcedx-vscode-services"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "out", "../salesforcedx-vscode-services"]
 }

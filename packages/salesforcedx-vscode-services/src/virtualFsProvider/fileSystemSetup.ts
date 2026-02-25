@@ -11,6 +11,8 @@ import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
+import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { FsProvider } from './fileSystemProvider';
 import { IndexedDBStorageService } from './indexedDbStorage';
@@ -58,4 +60,14 @@ export const fileSystemSetup = (context: vscode.ExtensionContext) =>
     yield* startWatch();
     yield* projectFiles(fsProvider);
     yield* waitForWorkspaceFolders();
+
+    const settingsService = yield* SettingsService;
+
+    if (yield* settingsService.getValue('salesforce-web-console', 'protectedOrg', false)) {
+      console.log('protected org');
+      vscode.commands.executeCommand('setContext', 'sf:protectedOrg', true);
+      const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
+      // protected org: make apex read only
+      fsProvider.readOnly = [registryAccess.getTypeByName('ApexClass'), registryAccess.getTypeByName('ApexTrigger')];
+    }
   }).pipe(Effect.withSpan('fileSystemSetup'));

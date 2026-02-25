@@ -15,7 +15,7 @@ This extension provides OpenAPI Specification (OAS) generation capabilities for 
 
 ## Requirements
 
-- Salesforce CLI Integration extension
+- Salesforce CLI extension
 - Apex extension
 - Agentforce Vibes extension (for AI-powered generation)
 - A Salesforce DX project with an authenticated org

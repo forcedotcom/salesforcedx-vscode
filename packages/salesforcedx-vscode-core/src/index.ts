@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   ActivationTracker,
   ChannelService,
@@ -19,13 +20,14 @@ import {
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { SharedAuthState } from './auth/sharedAuthState';
 import { channelService } from './channels';
 import {
-  aliasList,
+  aliasListCommand,
   analyticsGenerateTemplate,
   apexGenerateClass,
   apexGenerateTrigger,
@@ -76,6 +78,7 @@ import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
+import { buildAllServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
@@ -110,6 +113,13 @@ const registerSharedCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest)
   );
 
+const registerEffectCommands = () =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+    yield* registerCommand('sf.alias.list', () => aliasListCommand());
+  });
+
 /** Customer-facing commands */
 const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
@@ -128,7 +138,6 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.lightning.generate.interface', lightningGenerateInterface),
     vscode.commands.registerCommand('sf.lightning.generate.lwc', lightningGenerateLwc),
     vscode.commands.registerCommand('sf.config.list', configList),
-    vscode.commands.registerCommand('sf.alias.list', aliasList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
@@ -261,6 +270,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);
   }
+
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await Effect.runPromise(registerEffectCommands().pipe(Effect.provide(AllServicesLayer)));
 
   extensionContext.subscriptions.push(
     registerCommands(extensionContext),

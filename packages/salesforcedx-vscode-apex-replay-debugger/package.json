@@ -27,7 +27,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.7",
+    "@salesforce/apex-node": "^8.4.10",
     "salesforcedx-vscode-apex-log": "*",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
@@ -40,7 +40,6 @@
   "devDependencies": {
     "@playwright/test": "*",
     "@salesforce/core": "^8.23.2",
-    "esbuild": "0.25.12",
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-core": "*",
     "salesforcedx-vscode-services": "*",
