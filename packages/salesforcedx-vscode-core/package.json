@@ -287,10 +287,6 @@
         {
           "command": "sf.diff",
           "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org  && sf:show_shared_commands"
-        },
-        {
-          "command": "sf.launch.apex.replay.debugger.with.current.file",
-          "when": "sf:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         }
       ],
       "explorer/context": [
@@ -577,10 +573,6 @@
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sf.launch.apex.replay.debugger.with.current.file",
-          "when": "sf:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
-        },
-        {
           "command": "sf.metadata.view.type.refresh",
           "when": "sf:project_opened && sf:has_target_org"
         },
@@ -794,10 +786,6 @@
       {
         "command": "sf.internal.refreshsobjects",
         "title": "%sobjects_refresh%"
-      },
-      {
-        "command": "sf.launch.apex.replay.debugger.with.current.file",
-        "title": "%launch_apex_replay_debugger_with_current_file%"
       },
       {
         "command": "sf.rename.lightning.component",

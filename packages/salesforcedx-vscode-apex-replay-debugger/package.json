@@ -219,6 +219,18 @@
           "when": "view == sf.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
+      ],
+      "editor/context": [
+        {
+          "command": "sf.launch.apex.replay.debugger.with.current.file",
+          "when": "sf:project_opened && resource =~ /\\.(cls|apex|log)$/"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.launch.apex.replay.debugger.with.current.file",
+          "when": "sf:project_opened && resource =~ /\\.(cls|apex|log)$/"
+        }
       ]
     },
     "commands": [
