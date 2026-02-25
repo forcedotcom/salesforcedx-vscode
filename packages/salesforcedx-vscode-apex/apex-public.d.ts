@@ -80,6 +80,8 @@ export type ApexClassOASGatherContextResponse = {
   methods: ApexOASMethodDetail[];
   /** Optional; used by apex-oas tests and may be returned by the language server */
   properties?: ApexOASPropertyDetail[];
+  /** Optional; used by apex-oas test mocks */
+  relationships?: Map<string, unknown>;
 };
 
 export type ApexAnnotationDetail = {
