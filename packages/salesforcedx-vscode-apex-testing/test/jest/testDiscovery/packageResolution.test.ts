@@ -29,34 +29,32 @@ describe('packageResolution', () => {
 
   describe('getPackageResolutionCacheKey', () => {
     it('should return orgId when available', () => {
-      const key = getPackageResolutionCacheKey(mockConnection as Connection);
+      const key = getPackageResolutionCacheKey({ orgId: 'org123', username: 'user@example.com' });
       expect(key).toBe('org123');
     });
 
     it('should return username when orgId is missing', () => {
-      (mockConnection.getAuthInfoFields as jest.Mock).mockReturnValue({ username: 'fallback@example.com' });
-      const key = getPackageResolutionCacheKey(mockConnection as Connection);
+      const key = getPackageResolutionCacheKey({ username: 'fallback@example.com' });
       expect(key).toBe('fallback@example.com');
     });
 
-    it('should return "unknown" when getAuthInfoFields throws', () => {
-      (mockConnection.getAuthInfoFields as jest.Mock).mockImplementation(() => {
-        throw new Error('auth failed');
-      });
-      const key = getPackageResolutionCacheKey(mockConnection as Connection);
+    it('should return "unknown" when orgInfo has no orgId or username', () => {
+      const key = getPackageResolutionCacheKey({});
       expect(key).toBe('unknown');
     });
   });
 
   describe('isPackageResolutionUnavailable', () => {
     it('should return false when org has not been marked unavailable', () => {
-      expect(isPackageResolutionUnavailable(mockConnection as Connection)).toBe(false);
+      expect(isPackageResolutionUnavailable({ orgId: 'org123' })).toBe(false);
     });
 
     it('should return true after resolvePackage2Members fails with Package2Member unavailable error', async () => {
       mockToolingQuery.mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."));
-      await resolvePackage2Members(mockConnection as Connection, ['01p000000000001AAA']);
-      expect(isPackageResolutionUnavailable(mockConnection as Connection)).toBe(true);
+      await resolvePackage2Members(mockConnection as Connection, ['01p000000000001AAA'], undefined, {
+        orgId: 'org123'
+      });
+      expect(isPackageResolutionUnavailable({ orgId: 'org123' })).toBe(true);
     });
   });
 

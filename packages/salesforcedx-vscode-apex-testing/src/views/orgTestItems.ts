@@ -6,6 +6,7 @@
  */
 
 import type { ResolvedPackageInfo, ToolingTestClass } from '../testDiscovery/schemas';
+import * as Array from 'effect/Array';
 import * as vscode from 'vscode';
 import { LOCAL_NAMESPACE_KEY, UNPACKAGED_PACKAGE_ID, UNPACKAGED_PACKAGE_KEY } from '../constants';
 import { nls } from '../messages';
@@ -13,10 +14,16 @@ import { createOrgApexClassUri } from '../utils/orgApexClassProvider';
 import { createClassId, createMethodId, createPackageId } from '../utils/testItemUtils';
 import { getFullClassName } from '../utils/testUtils';
 
+export type { NonEmptyArray } from 'effect/Array';
+
 /**
  * A test class grouped by full name, with one or more Tooling API entries (e.g. from multiple discovery runs).
+ * entries is non-empty so entries[0] is safe.
  */
-export type ClassEntry = { fullClassName: string; entries: ToolingTestClass[] };
+export type ClassEntry = {
+  fullClassName: string;
+  entries: Array.NonEmptyArray<ToolingTestClass>;
+};
 
 /**
  * Tree of test classes: namespace key → package key → list of class entries.
@@ -60,7 +67,12 @@ export const buildNamespacePackageStructure = (
     return pkMap;
   };
 
-  const addToPackage = (nsKey: string, pkgKey: string, fullClassName: string, entries: ToolingTestClass[]): void => {
+  const addToPackage = (
+    nsKey: string,
+    pkgKey: string,
+    fullClassName: string,
+    entries: Array.NonEmptyArray<ToolingTestClass>
+  ): void => {
     const pkMap = ensureNamespace(nsKey);
     let list = pkMap.get(pkgKey);
     if (!list) {
@@ -76,7 +88,7 @@ export const buildNamespacePackageStructure = (
     const namespaceKey = namespaceLabel === '' ? LOCAL_NAMESPACE_KEY : namespaceLabel;
     const pkgInfo = cls.id ? classIdToPackage.get(cls.id) : undefined;
     const pkgKey = pkgInfo?.package2Id ?? (namespaceLabel !== '' ? '1gp' : UNPACKAGED_PACKAGE_KEY);
-    addToPackage(namespaceKey, pkgKey, fullClassName, [cls]);
+    addToPackage(namespaceKey, pkgKey, fullClassName, Array.make(cls));
   }
 
   // Merge duplicate fullClassName within same package (e.g. from multiple discovery entries)
@@ -90,7 +102,9 @@ export const buildNamespacePackageStructure = (
       }
       pkMap.set(
         pkgKey,
-        [...byFullName.entries()].map(([fullClassName, entries]) => ({ fullClassName, entries }))
+        [...byFullName.entries()].flatMap(([fullClassName, entries]) =>
+          Array.isNonEmptyArray(entries) ? [{ fullClassName, entries }] : []
+        )
       );
     }
   }
@@ -115,13 +129,21 @@ export const getPackageKeysOrdered = (nsKey: string, packageKeys: string[]): str
     : packageKeys;
 
 /**
+ * Type guard: ensures list is non-empty and first entry has non-empty entries,
+ * so getPackageLabelAndId's classEntriesList[0].entries[0] is safe.
+ */
+export const isNonEmptyClassEntriesList = (list: ClassEntry[] | undefined): list is Array.NonEmptyArray<ClassEntry> =>
+  list !== undefined && Array.isNonEmptyArray(list) && Array.isNonEmptyArray(list[0].entries);
+
+/**
  * Returns the display label and stable ID for a package node in the Test Explorer.
  * Handles unpackaged, 1GP (namespaced), and 2GP (including Unlocked suffix when applicable).
+ * Requires classEntriesList to be non-empty with non-empty entries.
  */
 export const getPackageLabelAndId = (
   nsKey: string,
   pkgKey: string,
-  classEntriesList: ClassEntry[],
+  classEntriesList: Array.NonEmptyArray<ClassEntry>,
   classIdToPackage: Map<string, ResolvedPackageInfo>
 ): { packageLabel: string; packageId: string } => {
   if (pkgKey === UNPACKAGED_PACKAGE_KEY) {
@@ -158,13 +180,14 @@ export interface CreateClassAndMethodsContext {
 /**
  * Returns a function that creates a class TestItem and its method TestItems, and registers them in the given maps.
  * Used when building the Test Explorer tree so run/debug can resolve class/method items by id.
+ * classEntries must be non-empty so classEntries[0] is safe.
  */
 export const createClassAndMethodsFactory = (
   ctx: CreateClassAndMethodsContext
-): ((fullClassName: string, classEntries: ToolingTestClass[]) => vscode.TestItem) => {
+): ((fullClassName: string, classEntries: Array.NonEmptyArray<ToolingTestClass>) => vscode.TestItem) => {
   const { controller, classItems, methodItems, classNameToUri, orgOnlyTag, inWorkspaceTag } = ctx;
 
-  return (fullClassName: string, classEntries: ToolingTestClass[]): vscode.TestItem => {
+  return (fullClassName: string, classEntries: Array.NonEmptyArray<ToolingTestClass>): vscode.TestItem => {
     const baseClassName = classEntries[0].name;
     const localUri = classNameToUri.get(baseClassName);
     const uri = localUri ?? createOrgApexClassUri(baseClassName);
@@ -178,12 +201,7 @@ export const createClassAndMethodsFactory = (
     }
     classItems.set(fullClassName, classItem);
 
-    const methodNames = new Set<string>();
-    for (const entry of classEntries) {
-      for (const testMethod of entry.testMethods ?? []) {
-        methodNames.add(testMethod.name);
-      }
-    }
+    const methodNames = new Set(classEntries.flatMap(entry => (entry.testMethods ?? []).map(m => m.name)));
     for (const methodName of methodNames) {
       const methodId = `${fullClassName}.${methodName}`;
       const line = classEntries[0].testMethods?.find(m => m.name === methodName)?.line ?? 0;

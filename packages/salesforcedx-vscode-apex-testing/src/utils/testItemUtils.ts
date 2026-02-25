@@ -20,21 +20,21 @@ interface TestIdInfo {
  * Parses a test item ID and returns information about its type and name
  */
 export const parseTestId = (id: string): TestIdInfo => {
-  if (id.startsWith(TEST_ID_PREFIXES.SUITE)) {
+  if (isSuite(id)) {
     return {
       type: 'suite',
       name: id.replace(TEST_ID_PREFIXES.SUITE, '')
     };
   }
 
-  if (id.startsWith(TEST_ID_PREFIXES.CLASS)) {
+  if (isClass(id)) {
     return {
       type: 'class',
       name: id.replace(TEST_ID_PREFIXES.CLASS, '')
     };
   }
 
-  if (id.startsWith(TEST_ID_PREFIXES.METHOD)) {
+  if (isMethod(id)) {
     const fullName = id.replace(TEST_ID_PREFIXES.METHOD, '');
     const parts = fullName.split('.');
     return {
@@ -44,7 +44,7 @@ export const parseTestId = (id: string): TestIdInfo => {
     };
   }
 
-  if (id.startsWith(TEST_ID_PREFIXES.SUITE_CLASS)) {
+  if (isSuiteClass(id)) {
     // Format: suite-class:SuiteName:ClassName
     const parts = id.split(':');
     if (parts.length >= 3) {
@@ -57,14 +57,14 @@ export const parseTestId = (id: string): TestIdInfo => {
     }
   }
 
-  if (id.startsWith(TEST_ID_PREFIXES.NAMESPACE)) {
+  if (isNamespace(id)) {
     return {
       type: 'namespace',
       name: id.replace(TEST_ID_PREFIXES.NAMESPACE, '')
     };
   }
 
-  if (id.startsWith(TEST_ID_PREFIXES.PACKAGE)) {
+  if (isPackage(id)) {
     return {
       type: 'package',
       name: id.replace(TEST_ID_PREFIXES.PACKAGE, '')

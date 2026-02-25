@@ -14,7 +14,8 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
 });
 
 jest.mock('../../../src/coreExtensionUtils', () => ({
-  getConnection: jest.fn()
+  getConnection: jest.fn(),
+  getDefaultOrgInfo: jest.fn().mockResolvedValue({ orgId: 'org123', username: 'user@example.com' })
 }));
 
 jest.mock('../../../src/utils/testUtils', () => {
@@ -147,6 +148,9 @@ describe('ApexTestController', () => {
     };
 
     (coreExtensionUtils.getConnection as jest.Mock) = jest.fn().mockResolvedValue(mockConnection);
+    (coreExtensionUtils.getDefaultOrgInfo as jest.Mock) = jest
+      .fn()
+      .mockResolvedValue({ orgId: 'org123', username: 'user@example.com' });
 
     (testUtils.getApexTests as jest.Mock) = jest.fn().mockResolvedValue([]);
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());

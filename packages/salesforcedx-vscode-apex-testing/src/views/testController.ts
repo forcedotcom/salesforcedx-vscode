@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { getConnection } from '../coreExtensionUtils';
+import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
@@ -44,6 +44,7 @@ import {
   getNamespaceDisplayLabel,
   getPackageKeysOrdered,
   getPackageLabelAndId,
+  isNonEmptyClassEntriesList,
   sortNamespaceKeys
 } from './orgTestItems';
 
@@ -228,10 +229,12 @@ export class ApexTestController {
     const classIds = apexClasses
       .map(cls => cls.id)
       .filter((id): id is string => typeof id === 'string' && id.length > 0);
+    const [connection, orgInfo] = await Promise.all([this.getConnection(), getDefaultOrgInfo()]);
     const classIdToPackage = await resolvePackage2Members(
-      this.getConnection(),
+      connection,
       classIds,
-      buildClassIdToNamespace(apexClasses)
+      buildClassIdToNamespace(apexClasses),
+      orgInfo
     );
 
     const structure = buildNamespacePackageStructure(apexClasses, classIdToPackage);
@@ -261,7 +264,7 @@ export class ApexTestController {
 
       for (const pkgKey of getPackageKeysOrdered(nsKey, [...pkMap.keys()])) {
         const classEntriesList = pkMap.get(pkgKey);
-        if (!classEntriesList?.length) {
+        if (!isNonEmptyClassEntriesList(classEntriesList)) {
           continue;
         }
 

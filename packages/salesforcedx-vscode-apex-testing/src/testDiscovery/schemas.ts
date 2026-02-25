@@ -46,29 +46,13 @@ export type DiscoverTestsOptions = {
   namespacePrefix?: string;
 };
 
-// Package resolution: Tooling API query result shapes
-export type Package2MemberRecord = {
-  Id: string;
+// Package resolution: use WSDL-generated types from @salesforce/types (forcedotcom/wsdl)
+import type { Package2Member } from '@salesforce/types/tooling';
+
+/** Package2Member query result; wsdl type omits MetadataComponentId and Package2Id for some API versions. */
+export type Package2MemberRecord = Package2Member & {
   MetadataComponentId?: string;
-  SubjectId?: string;
-  SubjectKeyPrefix?: string;
   Package2Id?: string;
-};
-
-export type Package2Record = {
-  Id: string;
-  Name: string;
-  NamespacePrefix: string | null;
-  ContainerOptions?: string;
-};
-
-export type InstalledSubscriberPackageRecord = {
-  Id: string;
-  SubscriberPackageId: string;
-  SubscriberPackage: {
-    NamespacePrefix: string | null;
-    Name: string;
-  };
 };
 
 export type ResolvedPackageInfo = {

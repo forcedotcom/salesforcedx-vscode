@@ -5,13 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type {
-  InstalledSubscriberPackageRecord,
-  Package2MemberRecord,
-  Package2Record,
-  ResolvedPackageInfo
-} from './schemas';
+import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
+import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
 
 export type { ResolvedPackageInfo } from './schemas';
 
@@ -22,25 +18,22 @@ const packageResolutionCache: Map<string, Map<string, ResolvedPackageInfo>> = ne
 /** Org keys where Package2/Package2Member are not available (e.g. subscriber orgs). Skip resolution. */
 const packageResolutionUnavailableOrgs = new Set<string>();
 
+/** Optional org info from defaultOrgRef (Services); when provided, avoids file read to get orgId. */
+export type PackageResolutionOrgInfo = { orgId?: string; username?: string };
+
 /**
- * Returns a cache key for the current org (caller must pass after connection is available).
+ * Returns a cache key for the current org from defaultOrgRef (Services) org info.
  */
-export const getPackageResolutionCacheKey = (connection: Connection): string => {
-  try {
-    const authFields = connection.getAuthInfoFields();
-    return authFields.orgId ?? authFields.username ?? 'unknown';
-  } catch {
-    return 'unknown';
-  }
-};
+export const getPackageResolutionCacheKey = (orgInfo: PackageResolutionOrgInfo): string =>
+  orgInfo.orgId ?? orgInfo.username ?? 'unknown';
 
 /**
  * Returns true if package resolution (Package2/Package2Member) is not available for this org
  * (e.g. subscriber org where those objects or columns are not queryable).
  * Call after resolvePackage2Members so the org may have been marked unavailable on failure.
  */
-export const isPackageResolutionUnavailable = (connection: Connection): boolean =>
-  packageResolutionUnavailableOrgs.has(getPackageResolutionCacheKey(connection));
+export const isPackageResolutionUnavailable = (orgInfo: PackageResolutionOrgInfo): boolean =>
+  packageResolutionUnavailableOrgs.has(getPackageResolutionCacheKey(orgInfo));
 
 /** Resets cache and unavailable-org set. For testing only. */
 export const resetPackageResolutionState = (): void => {
@@ -78,7 +71,7 @@ class TrySubjectIdError extends Error {
   }
 }
 
-const getComponentId = (m: Package2MemberRecord): string => m.MetadataComponentId ?? m.SubjectId ?? '';
+const getComponentId = (m: Package2MemberRecord): string | undefined => m.MetadataComponentId ?? m.SubjectId;
 
 /**
  * Resolves package info from InstalledSubscriberPackage (subscriber orgs).
@@ -100,11 +93,11 @@ const resolveFromInstalledSubscriberPackages = async (
   const packageQuery =
     'SELECT Id, SubscriberPackageId, SubscriberPackage.NamespacePrefix, SubscriberPackage.Name FROM InstalledSubscriberPackage ORDER BY SubscriberPackage.NamespacePrefix';
   try {
-    const packageResult = await connection.tooling.query<InstalledSubscriberPackageRecord>(packageQuery);
+    const packageResult = await connection.tooling.query<InstalledSubscriberPackage>(packageQuery);
     const records = packageResult.records ?? [];
 
-    const byNamespace = new Map<string, InstalledSubscriberPackageRecord>();
-    const noNamespacePackages: InstalledSubscriberPackageRecord[] = [];
+    const byNamespace = new Map<string, InstalledSubscriberPackage>();
+    const noNamespacePackages: InstalledSubscriberPackage[] = [];
     for (const rec of records) {
       const ns = (rec.SubscriberPackage?.NamespacePrefix ?? '').trim();
       if (ns !== '') {
@@ -118,7 +111,7 @@ const resolveFromInstalledSubscriberPackages = async (
       const ns = (namespacePrefix ?? '').trim();
       if (ns !== '') {
         const pkg = byNamespace.get(ns);
-        if (pkg?.SubscriberPackage) {
+        if (pkg?.SubscriberPackage?.Name != null && pkg.SubscriberPackageId) {
           result.set(classId, {
             package2Id: pkg.SubscriberPackageId,
             packageName: pkg.SubscriberPackage.Name,
@@ -133,15 +126,16 @@ const resolveFromInstalledSubscriberPackages = async (
       }
 
       const singleNoNsPkg = noNamespacePackages[0];
-      if (!singleNoNsPkg?.SubscriberPackage) {
+      const subPkg = singleNoNsPkg?.SubscriberPackage;
+      if (!subPkg?.Name || !singleNoNsPkg.SubscriberPackageId) {
         continue;
       }
 
       noNsClassIdsAssigned.push(classId);
       result.set(classId, {
         package2Id: singleNoNsPkg.SubscriberPackageId,
-        packageName: singleNoNsPkg.SubscriberPackage.Name,
-        namespacePrefix: singleNoNsPkg.SubscriberPackage.NamespacePrefix ?? null,
+        packageName: subPkg.Name,
+        namespacePrefix: subPkg.NamespacePrefix ?? null,
         containerOptions: 'Unlocked'
       });
     }
@@ -217,14 +211,15 @@ const getUnpackagedApexClassIds = async (connection: Connection, classIds: strin
 export const resolvePackage2Members = async (
   connection: Connection,
   apexClassIds: string[],
-  classIdToNamespace?: Map<string, string>
+  classIdToNamespace?: Map<string, string>,
+  orgInfo?: PackageResolutionOrgInfo
 ): Promise<Map<string, ResolvedPackageInfo>> => {
   const validIds = apexClassIds.filter(id => typeof id === 'string' && id.length > 0);
   if (validIds.length === 0) {
     return new Map();
   }
 
-  const cacheKey = getPackageResolutionCacheKey(connection);
+  const cacheKey = orgInfo ? getPackageResolutionCacheKey(orgInfo) : 'unknown';
 
   if (packageResolutionUnavailableOrgs.has(cacheKey)) {
     const cachedForUnavailable = packageResolutionCache.get(cacheKey);
@@ -332,7 +327,7 @@ export const resolvePackage2Members = async (
         allMembers.map(m => m.Package2Id).filter((id): id is string => typeof id === 'string' && id.length > 0)
       )
     ];
-    const package2ById = new Map<string, Package2Record>();
+    const package2ById = new Map<string, Package2>();
 
     for (let i = 0; i < package2Ids.length; i += PACKAGE2_MEMBER_BATCH_SIZE) {
       const batch = package2Ids.slice(i, i + PACKAGE2_MEMBER_BATCH_SIZE);
@@ -341,11 +336,13 @@ export const resolvePackage2Members = async (
       const packageQuery = `SELECT Id, Name, NamespacePrefix, ContainerOptions FROM Package2 WHERE Id IN (${inClause})`;
 
       try {
-        const packageResult = await connection.tooling.query<Package2Record>(packageQuery);
+        const packageResult = await connection.tooling.query<Package2>(packageQuery);
         const count = packageResult.records?.length ?? 0;
         if (count > 0) {
           for (const rec of packageResult.records!) {
-            package2ById.set(rec.Id, rec);
+            if (rec.Id) {
+              package2ById.set(rec.Id, rec);
+            }
           }
         }
       } catch {
@@ -358,7 +355,7 @@ export const resolvePackage2Members = async (
       const pkgId = member.Package2Id;
       const pkg = pkgId ? package2ById.get(pkgId) : undefined;
       const componentId = getComponentId(member);
-      if (!pkg || !componentId) {
+      if (!pkg || !componentId || pkg.Id == null || pkg.Name == null) {
         continue;
       }
       const info: ResolvedPackageInfo = {
@@ -381,7 +378,8 @@ export const resolvePackage2Members = async (
       connection,
       unresolvedIds,
       existingCache,
-      subjectIdOnly
+      subjectIdOnly,
+      cacheKey
     );
     if (fallbackResult && fallbackResult.size > 0) {
       for (const [id, info] of fallbackResult) {
@@ -407,19 +405,20 @@ const resolvePackage2MembersByPackage = async (
   connection: Connection,
   apexClassIds: string[],
   existingCache: Map<string, ResolvedPackageInfo>,
-  subjectIdOnly = false
+  subjectIdOnly: boolean,
+  cacheKey: string
 ): Promise<Map<string, ResolvedPackageInfo> | null> => {
-  let package2List: Package2Record[] = [];
+  let package2List: Package2[] = [];
   try {
     const packageQuery = 'SELECT Id, Name, NamespacePrefix, ContainerOptions FROM Package2';
-    const packageResult = await connection.tooling.query<Package2Record>(packageQuery);
+    const packageResult = await connection.tooling.query<Package2>(packageQuery);
     const count = packageResult.records?.length ?? 0;
     if (count > 0) {
       package2List = packageResult.records!;
     }
   } catch (error) {
     if (isPackage2UnavailableError(error)) {
-      packageResolutionUnavailableOrgs.add(getPackageResolutionCacheKey(connection));
+      packageResolutionUnavailableOrgs.add(cacheKey);
     }
     return null;
   }
@@ -435,6 +434,9 @@ const resolvePackage2MembersByPackage = async (
     ? 'SubjectId, SubjectKeyPrefix, Package2Id'
     : 'MetadataComponentId, SubjectId, Package2Id';
   for (const pkg of package2List) {
+    if (pkg.Id == null || pkg.Name == null) {
+      continue;
+    }
     try {
       const memberQuery = `SELECT ${memberSelect} FROM Package2Member WHERE Package2Id = '${pkg.Id.replaceAll("'", "''")}'`;
       const memberResult = await connection.tooling.query<Package2MemberRecord>(memberQuery);
