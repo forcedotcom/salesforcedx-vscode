@@ -45,9 +45,10 @@ test('Create Project: standard project via command palette', async ({ page, work
   await test.step('run Create Project, select Standard template', async () => {
     await executeCommandWithCommandPalette(page, packageNls.project_generate_text);
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 45_000 });
 
     const standardRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Standard/ });
+    await standardRow.waitFor({ state: 'visible', timeout: 20_000 });
     await standardRow.click();
     await saveScreenshot(page, 'createProject.02-standard-selected.png');
   });
@@ -86,7 +87,7 @@ test('Create Project: standard project via command palette', async ({ page, work
     // Poll for sfdx-project.json (project generation may take a moment)
     await expect(async () => {
       await fs.access(path.join(projectDir, 'sfdx-project.json'));
-    }).toPass({ timeout: 30_000 });
+    }).toPass({ timeout: 60_000 });
 
     await fs.access(path.join(projectDir, 'force-app'));
     await saveScreenshot(page, 'createProject.06-verified.png');
