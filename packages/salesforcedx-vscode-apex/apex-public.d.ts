@@ -78,6 +78,8 @@ export type ApexOASEligiblePayload = {
 export type ApexClassOASGatherContextResponse = {
   classDetail: ApexOASClassDetail;
   methods: ApexOASMethodDetail[];
+  /** Optional; used by apex-oas tests and may be returned by the language server */
+  properties?: ApexOASPropertyDetail[];
 };
 
 export type ApexAnnotationDetail = {
