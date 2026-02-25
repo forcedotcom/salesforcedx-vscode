@@ -99,6 +99,7 @@ const verifyLspStatus = async (expectedStatus: string): Promise<WebElement> => {
 const verifyLspRestart = async (cleanDb: boolean): Promise<void> => {
   const option = LSP_RESTART_OPTIONS.find(opt => opt.cleanDb === cleanDb)?.option;
   if (!option) throw new Error(`Invalid cleanDb option: ${cleanDb}`);
+  await pause(Duration.seconds(25));
   // Wait for LSP to enter restarting state
   await verifyLspStatus(LSP_STATUS.restarting);
   // Allow time for LSP to fully restart and reindex
@@ -184,8 +185,7 @@ const testLspRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<v
     expect(getFolderName(standardApexLibraryPath)).to.equal(null);
   }
 
-  // GHA/CI can be slow; allow extra time for quick pick to appear
-  const restartCommand = await executeQuickPick('Restart Apex Language Server', Duration.seconds(15));
+  const restartCommand = await executeQuickPick('Restart Apex Language Server');
   const quickPicks = await restartCommand.getQuickPicks();
   for (const quickPick of quickPicks) {
     const label = await quickPick.getLabel();
@@ -210,13 +210,13 @@ const testStatusBarRestart = async (testSetup: TestSetup, cleanDb: boolean): Pro
   const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
   await statusBar.click();
 
-  // Allow time for status bar menu to appear and be clickable (GHA/CI can be slow)
-  await pause(Duration.seconds(5));
+  // Allow time for status bar menu to appear and be clickable
+  await pause(Duration.seconds(3));
   const restartButton = getWorkbench().findElement(By.linkText('Restart Apex Language Server'));
   await restartButton.click();
 
-  // Allow time for restart-options quick pick to appear (GHA/CI can be slow)
-  const dropdown = await new InputBox().wait(15_000);
+  // Allow time for restart process to begin
+  const dropdown = await new InputBox().wait();
   await selectQuickPickItem(dropdown, cleanDb ? 'Clean Apex DB and Restart' : 'Restart Only');
   await verifyLspRestart(cleanDb);
 
