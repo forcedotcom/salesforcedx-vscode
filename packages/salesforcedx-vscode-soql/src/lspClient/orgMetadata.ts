@@ -23,30 +23,36 @@ export class FileSystemOrgDataSource implements OrgDataSource {
     return Effect.runPromise(
       getServicesApi.pipe(
         Effect.flatMap(api =>
-          api.services.ProjectService.getSObjectPaths().pipe(
-            Effect.provide(api.services.ProjectService.Default),
-            Effect.flatMap(paths =>
-              Effect.gen(function* () {
-                const files: string[] = [];
+          Effect.gen(function* () {
+            const projectLayer = api.services.ProjectService.Default;
+            const standardsDir = yield* api.services.ProjectService.getSoqlStandardObjectsPath().pipe(
+              Effect.provide(projectLayer)
+            );
+            const customsDir = yield* api.services.ProjectService.getSoqlCustomObjectsPath().pipe(
+              Effect.provide(projectLayer)
+            );
+            const soqlMetadata = yield* api.services.ProjectService.getSoqlMetadataPath().pipe(
+              Effect.provide(projectLayer)
+            );
 
-                const standardEntries = yield* Effect.tryPromise(() => readDirectory(paths.soqlStandardObjects)).pipe(
-                  Effect.catchAll(() => Effect.succeed<string[]>([]))
-                );
-                files.push(...standardEntries);
+            const files: string[] = [];
 
-                const customEntries = yield* Effect.tryPromise(() => readDirectory(paths.soqlCustomObjects)).pipe(
-                  Effect.catchAll(() => Effect.succeed<string[]>([]))
-                );
-                files.push(...customEntries);
+            const standardEntries = yield* Effect.tryPromise(() => readDirectory(standardsDir)).pipe(
+              Effect.catchAll(() => Effect.succeed<string[]>([]))
+            );
+            files.push(...standardEntries);
 
-                if (files.length === 0) {
-                  channelService.appendLine(nls.localize('error_sobjects_fs_request', paths.soqlMetadata));
-                }
+            const customEntries = yield* Effect.tryPromise(() => readDirectory(customsDir)).pipe(
+              Effect.catchAll(() => Effect.succeed<string[]>([]))
+            );
+            files.push(...customEntries);
 
-                return files.filter(f => f.endsWith('.json')).map(f => f.replace(/.json$/, ''));
-              })
-            )
-          )
+            if (files.length === 0) {
+              channelService.appendLine(nls.localize('error_sobjects_fs_request', soqlMetadata));
+            }
+
+            return files.filter(f => f.endsWith('.json')).map(f => f.replace(/.json$/, ''));
+          })
         )
       )
     ).catch(() => []);
@@ -56,42 +62,48 @@ export class FileSystemOrgDataSource implements OrgDataSource {
     return Effect.runPromise(
       getServicesApi.pipe(
         Effect.flatMap(api =>
-          api.services.ProjectService.getSObjectPaths().pipe(
-            Effect.provide(api.services.ProjectService.Default),
-            Effect.flatMap(paths =>
-              Effect.gen(function* () {
-                const standardPath = path.join(paths.soqlStandardObjects, `${sobjectName}.json`);
-                const customPath = path.join(paths.soqlCustomObjects, `${sobjectName}.json`);
+          Effect.gen(function* () {
+            const projectLayer = api.services.ProjectService.Default;
+            const standardsDir = yield* api.services.ProjectService.getSoqlStandardObjectsPath().pipe(
+              Effect.provide(projectLayer)
+            );
+            const customsDir = yield* api.services.ProjectService.getSoqlCustomObjectsPath().pipe(
+              Effect.provide(projectLayer)
+            );
+            const soqlMetadata = yield* api.services.ProjectService.getSoqlMetadataPath().pipe(
+              Effect.provide(projectLayer)
+            );
 
-                const standardContent = yield* Effect.tryPromise(() => readFile(standardPath)).pipe(
-                  Effect.catchAll(() => Effect.succeed<string | undefined>(undefined))
-                );
+            const standardPath = path.join(standardsDir, `${sobjectName}.json`);
+            const customPath = path.join(customsDir, `${sobjectName}.json`);
 
-                const fileContent =
-                  standardContent ??
-                  (yield* Effect.tryPromise(() => readFile(customPath)).pipe(
-                    Effect.catchAll(() => Effect.succeed<string | undefined>(undefined))
-                  ));
+            const standardContent = yield* Effect.tryPromise(() => readFile(standardPath)).pipe(
+              Effect.catchAll(() => Effect.succeed<string | undefined>(undefined))
+            );
 
-                if (fileContent === undefined) {
-                  channelService.appendLine(
-                    nls.localize(
-                      'error_sobject_metadata_fs_request',
-                      sobjectName,
-                      path.join(paths.soqlMetadata, '*', `${sobjectName}.json`)
-                    )
-                  );
-                  return undefined;
-                }
+            const fileContent =
+              standardContent ??
+              (yield* Effect.tryPromise(() => readFile(customPath)).pipe(
+                Effect.catchAll(() => Effect.succeed<string | undefined>(undefined))
+              ));
 
-                const raw: unknown = JSON.parse(fileContent);
-                return yield* api.services.TransmogrifierService.decodeSObject(raw).pipe(
-                  Effect.provide(api.services.TransmogrifierService.Default),
-                  Effect.catchAll(() => Effect.succeed<SObject | undefined>(undefined))
-                );
-              })
-            )
-          )
+            if (fileContent === undefined) {
+              channelService.appendLine(
+                nls.localize(
+                  'error_sobject_metadata_fs_request',
+                  sobjectName,
+                  path.join(soqlMetadata, '*', `${sobjectName}.json`)
+                )
+              );
+              return undefined;
+            }
+
+            const raw: unknown = JSON.parse(fileContent);
+            return yield* api.services.TransmogrifierService.decodeSObject(raw).pipe(
+              Effect.provide(api.services.TransmogrifierService.Default),
+              Effect.catchAll(() => Effect.succeed<SObject | undefined>(undefined))
+            );
+          })
         )
       )
     ).catch(() => undefined);

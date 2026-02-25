@@ -109,21 +109,46 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
           )
       );
     });
-    /** Returns fully-formed paths for SObject artifact directories under .sfdx/tools */
-    const getSObjectPaths = Effect.fn('ProjectService.getSObjectPaths')(function* () {
+    const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
       const { fsPath } = yield* workspaceService.getWorkspaceInfoOrThrow();
-      const toolsFolder = path.join(fsPath, Global.SFDX_STATE_FOLDER, TOOLS_DIR);
-      return {
-        soqlMetadata: path.join(toolsFolder, SOQLMETADATA_DIR),
-        soqlStandardObjects: path.join(toolsFolder, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR),
-        soqlCustomObjects: path.join(toolsFolder, SOQLMETADATA_DIR, CUSTOMOBJECTS_DIR),
-        fauxClasses: path.join(toolsFolder, SOBJECTS_DIR),
-        fauxStandardObjects: path.join(toolsFolder, SOBJECTS_DIR, STANDARDOBJECTS_DIR),
-        fauxCustomObjects: path.join(toolsFolder, SOBJECTS_DIR, CUSTOMOBJECTS_DIR),
-      };
+      return path.join(fsPath, Global.SFDX_STATE_FOLDER, TOOLS_DIR);
     });
 
-    return { isSalesforceProject, getSfProject, isInPackageDirectories, getSObjectPaths };
+    const getSoqlMetadataPath = Effect.fn('ProjectService.getSoqlMetadataPath')(function* () {
+      return path.join(yield* getToolsFolder(), SOQLMETADATA_DIR);
+    });
+
+    const getSoqlStandardObjectsPath = Effect.fn('ProjectService.getSoqlStandardObjectsPath')(function* () {
+      return path.join(yield* getToolsFolder(), SOQLMETADATA_DIR, STANDARDOBJECTS_DIR);
+    });
+
+    const getSoqlCustomObjectsPath = Effect.fn('ProjectService.getSoqlCustomObjectsPath')(function* () {
+      return path.join(yield* getToolsFolder(), SOQLMETADATA_DIR, CUSTOMOBJECTS_DIR);
+    });
+
+    const getFauxClassesPath = Effect.fn('ProjectService.getFauxClassesPath')(function* () {
+      return path.join(yield* getToolsFolder(), SOBJECTS_DIR);
+    });
+
+    const getFauxStandardObjectsPath = Effect.fn('ProjectService.getFauxStandardObjectsPath')(function* () {
+      return path.join(yield* getToolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);
+    });
+
+    const getFauxCustomObjectsPath = Effect.fn('ProjectService.getFauxCustomObjectsPath')(function* () {
+      return path.join(yield* getToolsFolder(), SOBJECTS_DIR, CUSTOMOBJECTS_DIR);
+    });
+
+    return {
+      isSalesforceProject,
+      getSfProject,
+      isInPackageDirectories,
+      getSoqlMetadataPath,
+      getSoqlStandardObjectsPath,
+      getSoqlCustomObjectsPath,
+      getFauxClassesPath,
+      getFauxStandardObjectsPath,
+      getFauxCustomObjectsPath,
+    };
   })
 }) {}
 
