@@ -136,6 +136,7 @@ export default [
         }
       ],
       'local/no-effect-fn-wrapper': 'error',
+      'local/require-effect-fn-span-name': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-vscode-message-literals': 'error',
       'local/no-vscode-progress-title-literals': 'error',

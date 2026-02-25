@@ -18,6 +18,7 @@ import { packageJsonCommandRefs } from './packageJsonCommandRefs';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
+import { requireEffectFnSpanName } from './requireEffectFnSpanName';
 
 const plugin = {
   rules: {
@@ -26,6 +27,7 @@ const plugin = {
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,
     'no-effect-fn-wrapper': noEffectFnWrapper,
+    'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-vscode-message-literals': noVscodeMessageLiterals,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,

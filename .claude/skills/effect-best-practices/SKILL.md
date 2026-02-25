@@ -251,7 +251,7 @@ See `references/schema-patterns.md` for transforms and advanced patterns.
 
 ## Function Pattern with Effect.fn
 
-**Always use `Effect.fn`** for service methods. This provides automatic tracing with proper span names:
+**Always use `Effect.fn`** for service methods. This provides automatic tracing with proper span names. Span name is required; enforced by `local/require-effect-fn-span-name`.
 
 ```typescript
 // CORRECT - Effect.fn with descriptive name
