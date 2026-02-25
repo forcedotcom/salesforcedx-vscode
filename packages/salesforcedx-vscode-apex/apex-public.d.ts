@@ -11,6 +11,7 @@
  * without relying on build output (out/), fixing GHA compile when wireit runs in parallel.
  */
 
+import type { Uri } from 'vscode';
 import type { DocumentSymbol, Position } from 'vscode-languageserver-protocol';
 import type { URI } from 'vscode-uri';
 
@@ -22,8 +23,14 @@ export interface LanguageClientStatusLike {
   getStatusMessage(): string;
 }
 
+/** Language client surface used by apex-oas for isOpenAPIEligible / gatherOpenAPIContext */
+export interface ApexLanguageClientForOAS {
+  isOpenAPIEligible(requests: ApexOASEligiblePayload): Promise<ApexClassOASEligibleResponses | undefined>;
+  gatherOpenAPIContext(sourceUri: Uri | Uri[]): Promise<ApexClassOASGatherContextResponse>;
+}
+
 export interface LanguageClientManagerLike {
-  getClientInstance(): unknown;
+  getClientInstance(): ApexLanguageClientForOAS | undefined;
   getStatus(): LanguageClientStatusLike;
   getLineBreakpointInfo(): Promise<unknown[]>;
   getApexTests(): Promise<unknown[]>;
@@ -67,8 +74,10 @@ export type ApexOASEligiblePayload = {
   payload: ApexClassOASEligibleRequest[];
 };
 
+/** Gather-context response shape so apex-oas can type context.classDetail and context.methods */
 export type ApexClassOASGatherContextResponse = {
-  [key: string]: unknown;
+  classDetail: ApexOASClassDetail;
+  methods: ApexOASMethodDetail[];
 };
 
 export type ApexAnnotationDetail = {
