@@ -6,7 +6,7 @@
  */
 
 import { getServicesApi } from '@salesforce/effect-ext-utils';
-import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR, projectPaths, readDirectory, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { readDirectory, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { SObject } from 'salesforcedx-vscode-services';
@@ -19,80 +19,78 @@ export type OrgDataSource = {
 };
 
 export class FileSystemOrgDataSource implements OrgDataSource {
-  private getLocalDatapath(): string | undefined {
-    const stateFolder = projectPaths.stateFolder();
-    if (!stateFolder) {
-      const message = nls.localize('error_no_workspace_folder');
-      channelService.appendLine(message);
-      return undefined;
-    }
-    return path.join(projectPaths.toolsFolder(), SOQLMETADATA_DIR);
-  }
-
   public async retrieveSObjectsList(): Promise<string[]> {
-    const soqlMetadataPath = this.getLocalDatapath();
-    if (!soqlMetadataPath) {
-      return [];
-    }
+    return Effect.runPromise(
+      getServicesApi.pipe(
+        Effect.flatMap(api =>
+          api.services.ProjectService.getSObjectPaths().pipe(
+            Effect.provide(api.services.ProjectService.Default),
+            Effect.flatMap(paths =>
+              Effect.gen(function* () {
+                const files: string[] = [];
 
-    const customsFolder = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR);
-    const standardsFolder = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR);
+                const standardEntries = yield* Effect.tryPromise(() => readDirectory(paths.soqlStandardObjects)).pipe(
+                  Effect.catchAll(() => Effect.succeed<string[]>([]))
+                );
+                files.push(...standardEntries);
 
-    const files: string[] = [];
-    try {
-      const standardsDir = await readDirectory(standardsFolder);
-      files.push(...standardsDir.map(entry => entry[0]));
-    } catch {
-      // Standards folder doesn't exist or can't be read
-    }
+                const customEntries = yield* Effect.tryPromise(() => readDirectory(paths.soqlCustomObjects)).pipe(
+                  Effect.catchAll(() => Effect.succeed<string[]>([]))
+                );
+                files.push(...customEntries);
 
-    try {
-      const customsDir = await readDirectory(customsFolder);
-      files.push(...customsDir.map(entry => entry[0]));
-    } catch {
-      // Customs folder doesn't exist or can't be read
-    }
+                if (files.length === 0) {
+                  channelService.appendLine(nls.localize('error_sobjects_fs_request', paths.soqlMetadata));
+                }
 
-    if (files.length === 0) {
-      const message = nls.localize('error_sobjects_fs_request', soqlMetadataPath);
-      channelService.appendLine(message);
-    }
-
-    return files.filter(fileName => fileName.endsWith('.json')).map(fileName => fileName.replace(/.json$/, ''));
+                return files.filter(f => f.endsWith('.json')).map(f => f.replace(/.json$/, ''));
+              })
+            )
+          )
+        )
+      )
+    ).catch(() => []);
   }
 
   public async retrieveSObject(sobjectName: string): Promise<SObject | undefined> {
-    const soqlMetadataPath = this.getLocalDatapath();
-    if (!soqlMetadataPath) {
-      return undefined;
-    }
-
-    const standardPath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, `${sobjectName}.json`);
-    const customPath = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR, `${sobjectName}.json`);
-
-    let fileContent: string | undefined;
-    try {
-      fileContent = await readFile(standardPath);
-    } catch {
-      try {
-        fileContent = await readFile(customPath);
-      } catch {
-        const message = nls.localize(
-          'error_sobject_metadata_fs_request',
-          sobjectName,
-          path.join(soqlMetadataPath, '*', `${sobjectName}.json`)
-        );
-        channelService.appendLine(message);
-        return undefined;
-      }
-    }
-
-    const raw: unknown = JSON.parse(fileContent);
-    return await Effect.runPromise(
+    return Effect.runPromise(
       getServicesApi.pipe(
         Effect.flatMap(api =>
-          api.services.TransmogrifierService.decodeSObject(raw).pipe(
-            Effect.provide(api.services.TransmogrifierService.Default)
+          api.services.ProjectService.getSObjectPaths().pipe(
+            Effect.provide(api.services.ProjectService.Default),
+            Effect.flatMap(paths =>
+              Effect.gen(function* () {
+                const standardPath = path.join(paths.soqlStandardObjects, `${sobjectName}.json`);
+                const customPath = path.join(paths.soqlCustomObjects, `${sobjectName}.json`);
+
+                const standardContent = yield* Effect.tryPromise(() => readFile(standardPath)).pipe(
+                  Effect.catchAll(() => Effect.succeed<string | undefined>(undefined))
+                );
+
+                const fileContent =
+                  standardContent ??
+                  (yield* Effect.tryPromise(() => readFile(customPath)).pipe(
+                    Effect.catchAll(() => Effect.succeed<string | undefined>(undefined))
+                  ));
+
+                if (fileContent === undefined) {
+                  channelService.appendLine(
+                    nls.localize(
+                      'error_sobject_metadata_fs_request',
+                      sobjectName,
+                      path.join(paths.soqlMetadata, '*', `${sobjectName}.json`)
+                    )
+                  );
+                  return undefined;
+                }
+
+                const raw: unknown = JSON.parse(fileContent);
+                return yield* api.services.TransmogrifierService.decodeSObject(raw).pipe(
+                  Effect.provide(api.services.TransmogrifierService.Default),
+                  Effect.catchAll(() => Effect.succeed<SObject | undefined>(undefined))
+                );
+              })
+            )
           )
         )
       )
@@ -131,5 +129,3 @@ export class ServicesOrgDataSource implements OrgDataSource {
     ).catch(() => undefined);
   }
 }
-
-export type { SObjectField, SObject } from 'salesforcedx-vscode-services';

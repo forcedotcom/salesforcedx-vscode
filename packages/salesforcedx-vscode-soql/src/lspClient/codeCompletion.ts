@@ -9,12 +9,13 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import type { SoqlItemContext } from '@salesforce/soql-language-server';
+import type { SObject, SObjectField } from 'salesforcedx-vscode-services';
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import type { Middleware } from 'vscode-languageclient/node';
 
 import { telemetryService } from '../telemetry';
-import { FileSystemOrgDataSource, ServicesOrgDataSource, OrgDataSource, SObject, SObjectField } from './orgMetadata';
+import { FileSystemOrgDataSource, ServicesOrgDataSource, OrgDataSource } from './orgMetadata';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 

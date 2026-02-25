@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core/global';
 import { SfProject } from '@salesforce/core/project';
 import * as Cache from 'effect/Cache';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { toUri } from '../vscode/fsService';
@@ -50,6 +52,12 @@ const globalSfProjectCache = Effect.runSync(
     lookup: resolveSfProject // Lookup function that resolves SfProject for given fsPath
   }).pipe(Effect.withSpan('sfProjectCache'))
 );
+
+const TOOLS_DIR = 'tools';
+const SOBJECTS_DIR = 'sobjects';
+const STANDARDOBJECTS_DIR = 'standardObjects';
+const CUSTOMOBJECTS_DIR = 'customObjects';
+const SOQLMETADATA_DIR = 'soqlMetadata';
 
 export class ProjectService extends Effect.Service<ProjectService>()('ProjectService', {
   accessors: true,
@@ -101,7 +109,21 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
           )
       );
     });
-    return { isSalesforceProject, getSfProject, isInPackageDirectories };
+    /** Returns fully-formed paths for SObject artifact directories under .sfdx/tools */
+    const getSObjectPaths = Effect.fn('ProjectService.getSObjectPaths')(function* () {
+      const { fsPath } = yield* workspaceService.getWorkspaceInfoOrThrow();
+      const toolsFolder = path.join(fsPath, Global.SFDX_STATE_FOLDER, TOOLS_DIR);
+      return {
+        soqlMetadata: path.join(toolsFolder, SOQLMETADATA_DIR),
+        soqlStandardObjects: path.join(toolsFolder, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR),
+        soqlCustomObjects: path.join(toolsFolder, SOQLMETADATA_DIR, CUSTOMOBJECTS_DIR),
+        fauxClasses: path.join(toolsFolder, SOBJECTS_DIR),
+        fauxStandardObjects: path.join(toolsFolder, SOBJECTS_DIR, STANDARDOBJECTS_DIR),
+        fauxCustomObjects: path.join(toolsFolder, SOBJECTS_DIR, CUSTOMOBJECTS_DIR),
+      };
+    });
+
+    return { isSalesforceProject, getSfProject, isInPackageDirectories, getSObjectPaths };
   })
 }) {}
 
