@@ -87,6 +87,8 @@ const findReleaseDir = (): string => {
 };
 
 const verifyLspStatus = async (expectedStatus: string): Promise<WebElement> => {
+  const outputViewText = await getOutputViewText('Apex Language Server');
+  log(`Output view text: ${outputViewText}`);
   const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
   await statusBar.click();
   const ariaLabel = await statusBar.getAttribute('aria-label');
