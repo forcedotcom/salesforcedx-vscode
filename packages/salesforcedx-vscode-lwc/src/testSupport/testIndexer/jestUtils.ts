@@ -6,7 +6,8 @@
  */
 import { IParseResults, ItBlock, ParsedNode, ParsedNodeTypes } from 'jest-editor-support';
 import { escapeStrForRegex } from 'jest-regex-util';
-import stripAnsi from 'strip-ansi';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const stripAnsi: (str: string) => string = require('strip-ansi');
 import * as vscode from 'vscode';
 
 type ParsedNodeWithAncestorTitles = Pick<ParsedNode, Exclude<keyof ParsedNode, 'children'>> & {
