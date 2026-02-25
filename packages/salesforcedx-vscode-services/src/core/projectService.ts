@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core';
-import { SfProject } from '@salesforce/core/project';
+import { Global, SfProject } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
@@ -147,7 +146,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       getSoqlCustomObjectsPath,
       getFauxClassesPath,
       getFauxStandardObjectsPath,
-      getFauxCustomObjectsPath,
+      getFauxCustomObjectsPath
     };
   })
 }) {}
