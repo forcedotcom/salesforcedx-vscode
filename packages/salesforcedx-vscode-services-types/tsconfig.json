@@ -4,7 +4,6 @@
     "outDir": "out",
     "rootDir": "src",
     "declaration": true,
-    "emitDeclarationOnly": true,
     "skipLibCheck": true,
     "plugins": [
       {
