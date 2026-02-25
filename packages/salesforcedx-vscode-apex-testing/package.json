@@ -27,7 +27,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.7",
+    "@salesforce/apex-node": "^8.4.10",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.19.13",
@@ -35,8 +35,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "@salesforce/playwright-vscode-ext": "*",
-    "esbuild": "0.25.12"
+    "@salesforce/playwright-vscode-ext": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"

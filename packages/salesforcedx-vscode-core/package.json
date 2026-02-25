@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-core",
-  "displayName": "Salesforce CLI Integration",
+  "displayName": "Salesforce CLI",
   "description": "Provides integration with the Salesforce CLI",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
@@ -28,6 +28,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.24.0",
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils": "*",
@@ -39,20 +40,14 @@
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
+    "effect": "^3.19.14",
     "fast-xml-parser": "^5.3.4",
     "glob": "^11.1.0",
-    "rxjs": "^5.4.1",
+    "rxjs": "^7.8.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0",
-    "@salesforce/playwright-vscode-ext": "*",
-    "@types/jest": "^29.5.5",
-    "esbuild": "0.25.12",
-    "jest": "^29.7.0",
-    "jest-junit": "14.0.1",
-    "nyc": "^15",
-    "ts-jest": "^29.4.1"
+    "@salesforce/playwright-vscode-ext": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -97,10 +92,12 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../effect-ext-utils:compile",
         "../salesforcedx-sobjects-faux-generator:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
-        "../salesforcedx-vscode-i18n:compile"
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",

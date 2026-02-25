@@ -9,6 +9,7 @@ import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
+import { AliasService } from './core/alias';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
@@ -25,6 +26,7 @@ import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
+import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
@@ -37,6 +39,7 @@ import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
+import { MediaService } from './vscode/mediaService';
 import { registerCommandWithLayer } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsService } from './vscode/settingsService';
@@ -45,6 +48,7 @@ import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
   services: {
+    AliasService: typeof AliasService;
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
     ComponentSetService: typeof ComponentSetService;
@@ -58,6 +62,7 @@ export type SalesforceVSCodeServicesApi = {
     FileWatcherService: typeof FileWatcherService;
     FsService: typeof FsService;
     getErrorMessage: typeof getErrorMessage;
+    MediaService: typeof MediaService;
     MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
@@ -71,6 +76,7 @@ export type SalesforceVSCodeServicesApi = {
     WorkspaceService: typeof WorkspaceService;
   };
 };
+export type { AliasService } from './core/alias';
 export type {
   NonEmptyComponentSet,
   ComponentSetService,
@@ -102,6 +108,8 @@ export type { MetadataDeleteError } from './core/metadataDeleteService';
 export type { MetadataDescribeError, ListMetadataError } from './core/metadataDescribeService';
 export type { GetRegistryAccessError } from './core/metadataRegistryService';
 export type { FsServiceError } from './vscode/fsService';
+export { ICONS } from './vscode/mediaService';
+export type { IconId, MediaService } from './vscode/mediaService';
 export type { SettingsError } from './vscode/settingsService';
 
 /** Effect that runs when the extension is activated after FS setup */
@@ -114,9 +122,7 @@ const activationEffect = (context: vscode.ExtensionContext) =>
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
       // auth settings go before other things so retrieveOnLoad can use them
-      if (process.env.ESBUILD_WEB_CONFIG) {
-        yield* runWebAuthEffect();
-      }
+
       yield* Effect.all(
         [
           Effect.forkIn(subscribeLifecycleWarnings(), scope),
@@ -140,6 +146,9 @@ const activationEffect = (context: vscode.ExtensionContext) =>
         concurrency: 'unbounded'
       }
     );
+    // init the connection for all the consumers who might need it
+    // no Connection is a possible state
+    yield* Effect.fork(ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)));
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -151,11 +160,16 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   const extensionScope = Effect.runSync(getExtensionScope());
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
+    if (process.env.ESBUILD_WEB_CONFIG) {
+      await Effect.runPromise(runWebAuthEffect());
+    }
     // first, before all other things, get the FS running.
     await Effect.runPromise(
       fileSystemSetup(context).pipe(
+        Effect.provide(SettingsService.Default),
         Effect.provide(ChannelService.Default),
         Effect.provide(IndexedDBStorageServiceShared),
+        Effect.provide(isItReadOnlyLayer),
         Scope.extend(extensionScope)
       )
     );
@@ -179,6 +193,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     EditorService.Default,
     FileWatcherService.Default,
     FsService.Default,
+    MediaService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,
     MetadataRegistryService.Default,
@@ -214,6 +229,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   // Return API for other extensions to consume
   return {
     services: {
+      AliasService,
       ChannelService,
       ChannelServiceLayer,
       ComponentSetService,
@@ -227,6 +243,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       FileWatcherService,
       FsService,
       getErrorMessage,
+      MediaService,
       MetadataDeleteService,
       MetadataDescribeService,
       MetadataDeployService,

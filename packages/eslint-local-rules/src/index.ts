@@ -12,6 +12,7 @@ import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
+import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
@@ -25,6 +26,7 @@ const plugin = {
     'no-direct-services-imports': noDirectServicesImports,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-vscode-message-literals': noVscodeMessageLiterals,
+    'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,
     'package-json-icon-paths': packageJsonIconPaths,
     'package-json-command-refs': packageJsonCommandRefs,

@@ -27,7 +27,7 @@ await build({
     }),
     copy({
       assets: {
-        from: ['../../node_modules/@salesforce/soql-data-view/web/**'],
+        from: ['./src/soql-data-view/**'],
         to: ['./soql-data-view']
       }
     })
