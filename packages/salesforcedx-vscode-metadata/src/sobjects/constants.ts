@@ -6,10 +6,6 @@
  */
 
 export const CLIENT_ID = 'sfdx-vscode';
-export const SOBJECTS_DIR = 'sobjects';
-export const STANDARDOBJECTS_DIR = 'standardObjects';
-export const CUSTOMOBJECTS_DIR = 'customObjects';
-export const SOQLMETADATA_DIR = 'soqlMetadata';
 export const EXIT_EVENT = 'exitEvent';
 export const ERROR_EVENT = 'errorEvent';
 export const STDOUT_EVENT = 'stdoutEvent';

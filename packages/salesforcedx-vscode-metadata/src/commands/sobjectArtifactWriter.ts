@@ -14,10 +14,6 @@ import * as Stream from 'effect/Stream';
 import * as path from 'node:path';
 import type { SObject } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import {
-  SOBJECTS_DIR,
-  SOQLMETADATA_DIR
-} from '../sobjects/constants';
 import { generateSObjectDefinition } from '../sobjects/declarationGenerator';
 import { generateFauxClassText } from '../sobjects/fauxClassGenerator';
 import { sobjectTypeFilter } from '../sobjects/sobjectFilter';
@@ -25,13 +21,10 @@ import { generateTypeText } from '../sobjects/typingGenerator';
 
 const APEX_CLASS_EXTENSION = '.cls';
 const TYPESCRIPT_TYPE_EXT = '.d.ts';
-const TYPINGS_PATH = ['typings', 'lwc', 'sobjects'] as const;
 // vscode.workspace.fs.writeFile adds ~90ms latency per call vs node:fs.
 // Each SObject slot awaits 3 parallel writes; slots are I/O-bound not CPU-bound.
 // Higher concurrency reduces the number of rounds and directly cuts Phase 3 time.
 const WRITE_CONCURRENCY = 100;
-// State folder is .sfdx relative to project root (Global.SFDX_STATE_FOLDER)
-const STATE_FOLDER = '.sfdx';
 
 /**
  * TypeScript's overload resolution for Stream.mapEffect fails to infer the element type
@@ -44,27 +37,6 @@ const typedMapEffect = <A, E, R, A2, E2, R2>(
   options?: { readonly concurrency?: number | 'unbounded' }
 ): Stream.Stream<A2, E | E2, R | R2> => Stream.mapEffect(stream, f, options);
 
-type Dirs = {
-  fauxStandard: string;
-  fauxCustom: string;
-  typings: string;
-  soqlMeta: string;
-  soqlStandard: string;
-  soqlCustom: string;
-};
-
-const buildDirs = (projectRoot: string): Dirs => {
-  const stateFolder = path.join(projectRoot, STATE_FOLDER);
-  const toolsFolder = path.join(stateFolder, 'tools');
-  return {
-    fauxStandard: path.join(toolsFolder, SOBJECTS_DIR, 'standardObjects'),
-    fauxCustom: path.join(toolsFolder, SOBJECTS_DIR, 'customObjects'),
-    typings: path.join(stateFolder, ...TYPINGS_PATH),
-    soqlMeta: path.join(toolsFolder, SOQLMETADATA_DIR),
-    soqlStandard: path.join(toolsFolder, SOQLMETADATA_DIR, 'standardObjects'),
-    soqlCustom: path.join(toolsFolder, SOQLMETADATA_DIR, 'customObjects')
-  };
-};
 
 /**
  * Streaming write effect for the normal refresh path.
@@ -89,19 +61,29 @@ const runStreamWriteEffect = (
     const fs = api.services.FsService;
 
     return yield* Effect.gen(function* () {
-      const sfProject = yield* api.services.ProjectService.getSfProject();
-      const dirs = buildDirs(sfProject.getPath());
+      const [fauxStandard, fauxCustom, typings, soqlMeta, soqlStandard, soqlCustom] = yield* Effect.all(
+        [
+          api.services.ProjectService.getFauxStandardObjectsPath(),
+          api.services.ProjectService.getFauxCustomObjectsPath(),
+          api.services.ProjectService.getTypingsPath(),
+          api.services.ProjectService.getSoqlMetadataPath(),
+          api.services.ProjectService.getSoqlStandardObjectsPath(),
+          api.services.ProjectService.getSoqlCustomObjectsPath()
+        ],
+        { concurrency: 'unbounded' }
+      );
+
       // Phase 1: listSObjects and dir resets run in parallel — saves ~0.5s
       const [allSObjects] = yield* Effect.all(
         [
           api.services.MetadataDescribeService.listSObjects(),
           Effect.all(
             [
-              fs.safeDelete(dirs.fauxStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.fauxStandard))),
-              fs.safeDelete(dirs.fauxCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.fauxCustom))),
-              fs.safeDelete(dirs.typings, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.typings))),
-              fs.safeDelete(dirs.soqlStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.soqlStandard))),
-              fs.safeDelete(dirs.soqlCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.soqlCustom)))
+              fs.safeDelete(fauxStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxStandard))),
+              fs.safeDelete(fauxCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxCustom))),
+              fs.safeDelete(typings, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(typings))),
+              fs.safeDelete(soqlStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(soqlStandard))),
+              fs.safeDelete(soqlCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(soqlCustom)))
             ],
             { concurrency: 'unbounded' }
           )
@@ -111,7 +93,7 @@ const runStreamWriteEffect = (
       const sobjectNames = allSObjects.filter(sobjectTypeFilter(category, source));
 
       // Phase 2: typeNames.json — sobjectNames known, dirs ready
-      yield* fs.writeFile(path.join(dirs.soqlMeta, 'typeNames.json'), JSON.stringify(sobjectNames, null, 2));
+      yield* fs.writeFile(path.join(soqlMeta, 'typeNames.json'), JSON.stringify(sobjectNames, null, 2));
 
       // Phase 3: describe stream + file writes overlapped.
       // listSObjects and describeCustomObjects share the same MetadataDescribeService
@@ -130,14 +112,14 @@ const runStreamWriteEffect = (
           raw => Effect.gen(function* () {
             const sobject = yield* api.services.TransmogrifierService.toMinimalSObject(raw);
             const isCustom = sobject.custom;
-            const fauxDir = isCustom ? dirs.fauxCustom : dirs.fauxStandard;
-            const soqlDir = isCustom ? dirs.soqlCustom : dirs.soqlStandard;
+            const fauxDir = isCustom ? fauxCustom : fauxStandard;
+            const soqlDir = isCustom ? soqlCustom : soqlStandard;
             const definition = generateSObjectDefinition(sobject);
             const countRef = isCustom ? customRef : standardRef;
             return yield* Effect.all(
               [
                 fs.writeFile(path.join(fauxDir, `${sobject.name}${APEX_CLASS_EXTENSION}`), generateFauxClassText(definition)),
-                fs.writeFile(path.join(dirs.typings, `${sobject.name}${TYPESCRIPT_TYPE_EXT}`), generateTypeText(definition)),
+                fs.writeFile(path.join(typings, `${sobject.name}${TYPESCRIPT_TYPE_EXT}`), generateTypeText(definition)),
                 fs.writeFile(path.join(soqlDir, `${sobject.name}.json`), JSON.stringify(sobject, null, 2)),
                 Ref.update(countRef, n => n + 1)
               ],
@@ -167,16 +149,25 @@ const runWriteEffect = (sobjectStream: Stream.Stream<SObject>, sobjectNames: SOb
     const fs = api.services.FsService;
 
     return yield* Effect.gen(function* () {
-      const sfProject = yield* api.services.ProjectService.getSfProject();
-      const dirs = buildDirs(sfProject.getPath());
+      const [fauxStandard, fauxCustom, typings, soqlMeta, soqlStandard, soqlCustom] = yield* Effect.all(
+        [
+          api.services.ProjectService.getFauxStandardObjectsPath(),
+          api.services.ProjectService.getFauxCustomObjectsPath(),
+          api.services.ProjectService.getTypingsPath(),
+          api.services.ProjectService.getSoqlMetadataPath(),
+          api.services.ProjectService.getSoqlStandardObjectsPath(),
+          api.services.ProjectService.getSoqlCustomObjectsPath()
+        ],
+        { concurrency: 'unbounded' }
+      );
       yield* Effect.all(
         [
-          fs.safeDelete(dirs.fauxStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.fauxStandard))),
-          fs.safeDelete(dirs.fauxCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.fauxCustom))),
-          fs.safeDelete(dirs.typings, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.typings))),
-          fs.safeDelete(dirs.soqlStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.soqlStandard))),
-          fs.safeDelete(dirs.soqlCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(dirs.soqlCustom))),
-          fs.writeFile(path.join(dirs.soqlMeta, 'typeNames.json'), JSON.stringify(sobjectNames, null, 2))
+          fs.safeDelete(fauxStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxStandard))),
+          fs.safeDelete(fauxCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxCustom))),
+          fs.safeDelete(typings, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(typings))),
+          fs.safeDelete(soqlStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(soqlStandard))),
+          fs.safeDelete(soqlCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(soqlCustom))),
+          fs.writeFile(path.join(soqlMeta, 'typeNames.json'), JSON.stringify(sobjectNames, null, 2))
         ],
         { concurrency: 'unbounded' }
       );
@@ -188,14 +179,14 @@ const runWriteEffect = (sobjectStream: Stream.Stream<SObject>, sobjectNames: SOb
         Stream.mapEffect(
           sobject => {
             const isCustom = sobject.custom;
-            const fauxDir = isCustom ? dirs.fauxCustom : dirs.fauxStandard;
-            const soqlDir = isCustom ? dirs.soqlCustom : dirs.soqlStandard;
+            const fauxDir = isCustom ? fauxCustom : fauxStandard;
+            const soqlDir = isCustom ? soqlCustom : soqlStandard;
             const definition = generateSObjectDefinition(sobject);
             const countRef = isCustom ? customRef : standardRef;
             return Effect.all(
               [
                 fs.writeFile(path.join(fauxDir, `${sobject.name}${APEX_CLASS_EXTENSION}`), generateFauxClassText(definition)),
-                fs.writeFile(path.join(dirs.typings, `${sobject.name}${TYPESCRIPT_TYPE_EXT}`), generateTypeText(definition)),
+                fs.writeFile(path.join(typings, `${sobject.name}${TYPESCRIPT_TYPE_EXT}`), generateTypeText(definition)),
                 fs.writeFile(path.join(soqlDir, `${sobject.name}.json`), JSON.stringify(sobject, null, 2)),
                 Ref.update(countRef, n => n + 1)
               ],

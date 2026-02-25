@@ -6,7 +6,6 @@
  */
 
 import { getServicesApi } from '@salesforce/effect-ext-utils';
-import { readDirectory, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { SObject } from 'salesforcedx-vscode-services';
@@ -25,6 +24,8 @@ export class FileSystemOrgDataSource implements OrgDataSource {
         Effect.flatMap(api =>
           Effect.gen(function* () {
             const projectLayer = api.services.ProjectService.Default;
+            const fsLayer = api.services.FsService.Default;
+            const fs = api.services.FsService;
             const standardsDir = yield* api.services.ProjectService.getSoqlStandardObjectsPath().pipe(
               Effect.provide(projectLayer)
             );
@@ -37,12 +38,16 @@ export class FileSystemOrgDataSource implements OrgDataSource {
 
             const files: string[] = [];
 
-            const standardEntries = yield* Effect.tryPromise(() => readDirectory(standardsDir)).pipe(
+            const standardEntries = yield* fs.readDirectory(standardsDir).pipe(
+              Effect.provide(fsLayer),
+              Effect.map(entries => entries.map(entry => entry[0])),
               Effect.catchAll(() => Effect.succeed<string[]>([]))
             );
             files.push(...standardEntries);
 
-            const customEntries = yield* Effect.tryPromise(() => readDirectory(customsDir)).pipe(
+            const customEntries = yield* fs.readDirectory(customsDir).pipe(
+              Effect.provide(fsLayer),
+              Effect.map(entries => entries.map(entry => entry[0])),
               Effect.catchAll(() => Effect.succeed<string[]>([]))
             );
             files.push(...customEntries);
@@ -64,6 +69,8 @@ export class FileSystemOrgDataSource implements OrgDataSource {
         Effect.flatMap(api =>
           Effect.gen(function* () {
             const projectLayer = api.services.ProjectService.Default;
+            const fsLayer = api.services.FsService.Default;
+            const fs = api.services.FsService;
             const standardsDir = yield* api.services.ProjectService.getSoqlStandardObjectsPath().pipe(
               Effect.provide(projectLayer)
             );
@@ -77,13 +84,15 @@ export class FileSystemOrgDataSource implements OrgDataSource {
             const standardPath = path.join(standardsDir, `${sobjectName}.json`);
             const customPath = path.join(customsDir, `${sobjectName}.json`);
 
-            const standardContent = yield* Effect.tryPromise(() => readFile(standardPath)).pipe(
+            const standardContent = yield* fs.readFile(standardPath).pipe(
+              Effect.provide(fsLayer),
               Effect.catchAll(() => Effect.succeed<string | undefined>(undefined))
             );
 
             const fileContent =
               standardContent ??
-              (yield* Effect.tryPromise(() => readFile(customPath)).pipe(
+              (yield* fs.readFile(customPath).pipe(
+                Effect.provide(fsLayer),
                 Effect.catchAll(() => Effect.succeed<string | undefined>(undefined))
               ));
 

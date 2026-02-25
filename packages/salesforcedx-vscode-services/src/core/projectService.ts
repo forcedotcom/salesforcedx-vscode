@@ -57,6 +57,7 @@ const SOBJECTS_DIR = 'sobjects';
 const STANDARDOBJECTS_DIR = 'standardObjects';
 const CUSTOMOBJECTS_DIR = 'customObjects';
 const SOQLMETADATA_DIR = 'soqlMetadata';
+const TYPINGS_DIR = path.join('typings', 'lwc', 'sobjects');
 
 export class ProjectService extends Effect.Service<ProjectService>()('ProjectService', {
   accessors: true,
@@ -137,6 +138,11 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       return path.join(yield* getToolsFolder(), SOBJECTS_DIR, CUSTOMOBJECTS_DIR);
     });
 
+    const getTypingsPath = Effect.fn('ProjectService.getTypingsPath')(function* () {
+      const { fsPath } = yield* workspaceService.getWorkspaceInfoOrThrow();
+      return path.join(fsPath, Global.SFDX_STATE_FOLDER, TYPINGS_DIR);
+    });
+
     return {
       isSalesforceProject,
       getSfProject,
@@ -146,7 +152,8 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       getSoqlCustomObjectsPath,
       getFauxClassesPath,
       getFauxStandardObjectsPath,
-      getFauxCustomObjectsPath
+      getFauxCustomObjectsPath,
+      getTypingsPath
     };
   })
 }) {}
