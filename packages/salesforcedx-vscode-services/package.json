@@ -72,7 +72,8 @@
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
     "test:e2e": "wireit",
-    "o11y:debug": "wireit"
+    "o11y:debug": "wireit",
+    "spans:server": "wireit"
   },
   "wireit": {
     "build:icons": {
@@ -217,7 +218,8 @@
       "command": "playwright test --config=playwright.config.web.ts",
       "dependencies": [
         "vscode:bundle",
-        "../playwright-vscode-ext:compile"
+        "../playwright-vscode-ext:compile",
+        "spans:server"
       ],
       "files": [
         "playwright.config.web.ts"
@@ -243,6 +245,13 @@
       "service": true,
       "files": [
         "scripts/o11yDebugServer.ts"
+      ]
+    },
+    "spans:server": {
+      "command": "ts-node scripts/spanFileServer.ts",
+      "service": true,
+      "files": [
+        "scripts/spanFileServer.ts"
       ]
     }
   },
@@ -290,6 +299,11 @@
           "type": "boolean",
           "default": false,
           "description": "%configuration.otelConsole.description%"
+        },
+        "salesforcedx-vscode-salesforcedx.enableFileTraces": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.otelFile.description%"
         }
       }
     },

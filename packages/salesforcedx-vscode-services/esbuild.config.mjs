@@ -48,6 +48,11 @@ const buildWebConfig = async () => {
     }
   }
 
+  // Enable file traces for local runs (not CI) — span files in ~/.sf/vscode-spans/
+  if (!process.env.CI) {
+    configMap['salesforcedx-vscode-salesforcedx.enableFileTraces'] = true;
+  }
+
   // Read extra settings if ESBUILD_WEB_LOCAL is set
   if (process.env.ESBUILD_WEB_LOCAL) {
     const extraSettingsPath = join(repoRoot, '.esbuild-web-extra-settings.json');
