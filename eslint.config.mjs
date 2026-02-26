@@ -136,6 +136,7 @@ export default [
         }
       ],
       'local/no-duplicate-i18n-values': 'error',
+      'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
       'local/no-vscode-progress-title-literals': 'error',
       'workspaces/no-relative-imports': 'error',

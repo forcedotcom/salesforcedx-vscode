@@ -11,20 +11,6 @@ import { nls } from '../../messages';
 import { AURA, isLwcComponent, LWC, TEST_FOLDER } from '../../util/componentUtils';
 import { isLwcComponentPath } from '../../util/types';
 
-export const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'rename_lightning_component';
-export const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
-export const RENAME_INPUT_PROMPT = 'rename_component_input_prompt';
-export const INPUT_DUP_ERROR = 'component_input_dup_error';
-const RENAME_INPUT_DUP_FILE_NAME_ERROR = 'rename_component_input_dup_file_name_error';
-export const RENAME_ERROR = 'rename_component_error';
-export const RENAME_WARNING = 'rename_component_warning';
-
-export const RENAME_NOT_SUPPORTED_MESSAGE = 'rename_not_supported';
-export const INPUT_NO_COMPONENT_NAME_MESSAGE = 'input_no_component_name';
-export const COMPONENT_CANNOT_BE_EMPTY_MESSAGE = 'component_empty';
-export const CREATE_NOT_SUPPORTED_MESSAGE = 'create_not_supported';
-export const INPUT_INCORRECT_COMPONENT_PROPERTIES_MESSAGE = 'input_incorrect_properties';
-
 /**
  * check duplicate name under current component directory and __tests__ directory to avoid file loss
  */
@@ -36,7 +22,7 @@ export const checkForDuplicateInComponent = async (componentPath: string, newNam
   }
   const allFileNames = getOnlyFileNames(allFiles);
   if (allFileNames.includes(newName)) {
-    throw new Error(nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR));
+    throw new Error(nls.localize('rename_component_input_dup_file_name_error'));
   }
 };
 
@@ -65,7 +51,7 @@ export const checkForExistingComponentInAltLocation = async (componentPath: stri
 export const checkForDuplicateName = async (componentPath: string, newName: string) => {
   const isNameDuplicate = await isDuplicate(componentPath, newName);
   if (isNameDuplicate) {
-    throw new Error(nls.localize(INPUT_DUP_ERROR));
+    throw new Error(nls.localize('component_input_dup_error'));
   }
 };
 

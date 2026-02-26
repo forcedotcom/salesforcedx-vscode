@@ -23,16 +23,13 @@ import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { FilePathGatherer } from './util';
 
-const GENERATE_MANIFEST_EXECUTOR = 'project_generate_manifest';
 const DEFAULT_MANIFEST = 'package.xml';
-const MANIFEST_SAVE_PLACEHOLDER = 'manifest_input_save_placeholder';
-const MANIFEST_SAVE_PROMPT = 'manifest_input_save_prompt';
 
 class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
   private sourcePaths: string[];
   private responseText: string;
   constructor(sourcePaths: string[], responseText: string) {
-    super(nls.localize(GENERATE_MANIFEST_EXECUTOR), GENERATE_MANIFEST_EXECUTOR, OUTPUT_CHANNEL);
+    super(nls.localize('project_generate_manifest'), 'project_generate_manifest', OUTPUT_CHANNEL);
     this.sourcePaths = sourcePaths;
     this.responseText = responseText;
   }
@@ -54,8 +51,8 @@ export const projectGenerateManifest = async (sourceUri: URI, uris: URI[] | unde
   const resolvedUris = uris?.length ? uris : [sourceUri];
   const sourcePaths = resolvedUris.map(uri => uri.fsPath);
   const inputOptions: vscode.InputBoxOptions = {
-    placeHolder: nls.localize(MANIFEST_SAVE_PLACEHOLDER),
-    prompt: nls.localize(MANIFEST_SAVE_PROMPT)
+    placeHolder: nls.localize('manifest_input_save_placeholder'),
+    prompt: nls.localize('manifest_input_save_prompt')
   };
   const responseText = await vscode.window.showInputBox(inputOptions);
 
