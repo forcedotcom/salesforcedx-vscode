@@ -80,7 +80,7 @@ type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'react-b2e' | 'react-b2x';
+export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x';
 
 class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
   private readonly initialTemplate?: ProjectTemplate;
@@ -120,10 +120,10 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         projectTemplate = 'analytics';
         break;
       case nls.localize('project_generate_react_b2e_template_display_text'):
-        projectTemplate = 'react-b2e';
+        projectTemplate = 'reactb2e';
         break;
       case nls.localize('project_generate_react_b2x_template_display_text'):
-        projectTemplate = 'react-b2x';
+        projectTemplate = 'reactb2x';
         break;
       default:
         break;
