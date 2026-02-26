@@ -70,7 +70,9 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs')(function* (
     25,
     userIds.length > 0 && minStart ? { userIds, startTimeAfter: minStart.toISOString() } : undefined
   ).pipe(
-    Effect.catchAll(e => channelService.appendToChannel(`[LogAutoCollect] listLogs failed: ${e}`).pipe(Effect.as([])))
+    Effect.catchAll(e =>
+      channelService.appendToChannel(`[LogAutoCollect] listLogs failed: ${e.message}`).pipe(Effect.as([]))
+    )
   ))
     .filter(isAfterTraceFlagStart(startDateByUser))
     .filter(l => !knownIds.has(l.Id) && !execAnonIds.has(l.Id));

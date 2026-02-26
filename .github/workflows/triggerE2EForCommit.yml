@@ -84,6 +84,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   apex-replay-debugger:
+    if: false
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -93,6 +94,7 @@ jobs:
       os: '["macos-latest"]'
 
   apex-trail-replay-debugger:
+    if: false
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:

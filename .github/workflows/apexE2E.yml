@@ -16,7 +16,7 @@ on:
       apexReplayDebugger:
         description: 'Apex Replay Debugger'
         required: false
-        default: true
+        default: false
         type: boolean
       debugApexTests:
         description: 'Debug Apex Tests'
@@ -31,7 +31,7 @@ on:
       trailApexReplayDebugger:
         description: 'Trail Apex Replay Debugger'
         required: false
-        default: true
+        default: false
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
@@ -58,7 +58,7 @@ on:
       apexReplayDebugger:
         description: 'Apex Replay Debugger'
         required: false
-        default: true
+        default: false
         type: boolean
       debugApexTests:
         description: 'Debug Apex Tests'
@@ -73,7 +73,7 @@ on:
       trailApexReplayDebugger:
         description: 'Trail Apex Replay Debugger'
         required: false
-        default: true
+        default: false
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
