@@ -61,7 +61,8 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'workbench.web.main.nls.js',
   'marketplace.visualstudio.com',
   'vscode-unpkg.net', // VS Code extension marketplace CDN
-  'scratchOrgInfo' // asking the org if it's a devhub during auth ?
+  'scratchOrgInfo', // asking the org if it's a devhub during auth ?
+  'Package2Member' // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {

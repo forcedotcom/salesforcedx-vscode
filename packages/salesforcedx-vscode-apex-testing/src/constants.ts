@@ -27,7 +27,18 @@ export const TEST_ID_PREFIXES = {
   SUITE: 'suite:',
   CLASS: 'class:',
   METHOD: 'method:',
-  SUITE_CLASS: 'suite-class:'
+  SUITE_CLASS: 'suite-class:',
+  NAMESPACE: 'namespace:',
+  PACKAGE: 'package:'
 } as const;
 
 export const SUITE_PARENT_ID = 'apex-test-suites-parent';
+
+/** Namespace key for classes with no namespace (Local Namespace) */
+export const LOCAL_NAMESPACE_KEY = 'local';
+
+/** Package key for unpackaged metadata under Local Namespace */
+export const UNPACKAGED_PACKAGE_KEY = 'unpackaged';
+
+/** Test item ID for the (Unpackaged Metadata) container */
+export const UNPACKAGED_PACKAGE_ID = 'package:local:unpackaged';

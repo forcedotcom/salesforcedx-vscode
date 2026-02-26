@@ -14,7 +14,8 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
 });
 
 jest.mock('../../../src/coreExtensionUtils', () => ({
-  getConnection: jest.fn()
+  getConnection: jest.fn(),
+  getDefaultOrgInfo: jest.fn().mockResolvedValue({ orgId: 'org123', username: 'user@example.com' })
 }));
 
 jest.mock('../../../src/utils/testUtils', () => {
@@ -35,6 +36,10 @@ jest.mock('../../../src/telemetry/telemetry', () => ({
 
 jest.mock('../../../src/settings', () => ({
   retrieveTestCodeCoverage: jest.fn().mockReturnValue(false)
+}));
+
+jest.mock('../../../src/testDiscovery/packageResolution', () => ({
+  resolvePackage2Members: jest.fn().mockResolvedValue(new Map())
 }));
 
 // Mock TestService before imports
@@ -143,6 +148,9 @@ describe('ApexTestController', () => {
     };
 
     (coreExtensionUtils.getConnection as jest.Mock) = jest.fn().mockResolvedValue(mockConnection);
+    (coreExtensionUtils.getDefaultOrgInfo as jest.Mock) = jest
+      .fn()
+      .mockResolvedValue({ orgId: 'org123', username: 'user@example.com' });
 
     (testUtils.getApexTests as jest.Mock) = jest.fn().mockResolvedValue([]);
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
@@ -222,7 +230,7 @@ describe('ApexTestController', () => {
   describe('constructor', () => {
     it('should create a test controller', () => {
       expect(vscode.tests.createTestController).toHaveBeenCalled();
-      expect(mockTestController.createRunProfile).toHaveBeenCalledTimes(2);
+      expect(mockTestController.createRunProfile).toHaveBeenCalledTimes(3);
     });
 
     it('should set up refresh handler', () => {

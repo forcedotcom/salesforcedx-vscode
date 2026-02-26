@@ -45,3 +45,20 @@ export type ToolingTestsPage = {
 export type DiscoverTestsOptions = {
   namespacePrefix?: string;
 };
+
+// Package resolution: use WSDL-generated types from @salesforce/types (forcedotcom/wsdl)
+import type { Package2Member } from '@salesforce/types/tooling';
+
+/** Package2Member query result; wsdl type omits MetadataComponentId and Package2Id for some API versions. */
+export type Package2MemberRecord = Package2Member & {
+  MetadataComponentId?: string;
+  Package2Id?: string;
+};
+
+export type ResolvedPackageInfo = {
+  package2Id: string;
+  packageName: string;
+  namespacePrefix: string | null;
+  /** When present, e.g. 'Unlocked' or 'Managed' (from Package2.ContainerOptions) */
+  containerOptions?: string;
+};
