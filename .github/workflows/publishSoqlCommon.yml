@@ -43,22 +43,13 @@ jobs:
 
   publish:
     name: Build and publish to npm
-    runs-on: ubuntu-latest
+    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
     needs: bump-and-tag
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.bump-and-tag.outputs.tag }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-          registry-url: 'https://registry.npmjs.org'
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-      - name: Compile package
-        working-directory: packages/soql-common
-        run: npm run compile
-      - name: Publish to npm
-        working-directory: packages/soql-common
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    with:
+      githubTag: ${{ needs.bump-and-tag.outputs.tag }}
+      packageManager: npm
+      nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
+      packagePath: ./packages/soql-common
+      prerelease: false
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
