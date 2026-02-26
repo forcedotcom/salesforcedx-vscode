@@ -230,7 +230,7 @@ describe('ApexTestController', () => {
   describe('constructor', () => {
     it('should create a test controller', () => {
       expect(vscode.tests.createTestController).toHaveBeenCalled();
-      expect(mockTestController.createRunProfile).toHaveBeenCalledTimes(2);
+      expect(mockTestController.createRunProfile).toHaveBeenCalledTimes(3);
     });
 
     it('should set up refresh handler', () => {

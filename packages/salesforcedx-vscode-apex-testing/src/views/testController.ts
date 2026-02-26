@@ -331,9 +331,22 @@ export class ApexTestController {
   }
 
   private setupRunProfiles(): void {
-    // Run profile
-    this.controller.createRunProfile(nls.localize('run_tests_title'), vscode.TestRunProfileKind.Run, (request, token) =>
-      this.runTests(request, token, false)
+    const runHandler = (request: vscode.TestRunRequest, token: vscode.CancellationToken) =>
+      this.runTests(request, token, false);
+    // Run all tests (default profile)
+    this.controller.createRunProfile(
+      nls.localize('run_tests_title'),
+      vscode.TestRunProfileKind.Run,
+      runHandler,
+      true
+    );
+    // Run only in-workspace tests (profile with tag; editor restricts request.include to eligible tests)
+    this.controller.createRunProfile(
+      nls.localize('run_tests_in_workspace_title'),
+      vscode.TestRunProfileKind.Run,
+      runHandler,
+      false,
+      this.inWorkspaceTag
     );
 
     // Debug profile
@@ -449,6 +462,12 @@ export class ApexTestController {
     const run = this.controller.createTestRun(request);
     let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
 
+    // When the run profile has a tag, the editor does not set request.include—filter to only eligible tests
+    if (request.profile?.tag) {
+      const profileTag = request.profile.tag;
+      testsToRun = testsToRun.filter(test => test.tags?.includes(profileTag));
+    }
+
     // Resolve any suite in testsToRun so we have class data (for empty-suite check and expansion)
     for (const test of testsToRun) {
       if (isSuite(test.id)) {
@@ -533,7 +552,11 @@ export class ApexTestController {
         const testNames = testsToRun.map(test => getTestName(test));
         const tmpFolder = await this.getTempFolder();
         const codeCoverage = settings.retrieveTestCodeCoverage();
-        const runAllTestsInOrg = !request.include || request.include.length === 0;
+        // Use RunAllTestsInOrg when running the full tree (no include/exclude/profile tag) to avoid huge payload
+        const runAllTestsInOrg =
+          (!request.include || request.include.length === 0) &&
+          (!request.exclude || request.exclude.length === 0) &&
+          !request.profile?.tag;
         await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun, runAllTestsInOrg);
       }
 

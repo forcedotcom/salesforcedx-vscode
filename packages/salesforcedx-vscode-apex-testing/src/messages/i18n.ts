@@ -41,6 +41,7 @@ export const messages = {
   configuration_title: 'Salesforce Apex Testing Configuration',
   error_no_connection_found_message: 'No connection found',
   run_tests_title: 'Run Tests',
+  run_tests_in_workspace_title: 'Run In-Workspace Tests',
   debug_tests_title: 'Debug Tests',
   test_view_loading_message: 'Loading Apex tests ...',
   test_view_name: 'Apex Tests',
