@@ -73,7 +73,7 @@ import {
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
-import { CommandEventDispatcher, registerSObjectRefreshCompleteCommand } from './commands/util/commandEventDispatcher';
+import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
@@ -292,8 +292,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       }
     }),
     registerConflictView(),
-    CommandEventDispatcher.getInstance(),
-    registerSObjectRefreshCompleteCommand()
+    CommandEventDispatcher.getInstance()
   );
 
   if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
