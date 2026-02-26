@@ -39,9 +39,7 @@ const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void>
       .click({ timeout: 5000 })
       .then(() => true)
       .catch(() => false);
-    if (!clicked) {
-      await page.keyboard.press('F5');
-    }
+    if (!clicked) break;
     const sessionEnded = await expect(toolbar)
       .not.toBeVisible({ timeout: 5000 })
       .then(() => true)
@@ -150,23 +148,16 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
   });
 
   await test.step('launch replay debugger with current file (log)', async () => {
-    // Open debug.log as active editor. Use F1 directly (no workbench.click()) to preserve
-    // activeTextEditor — launchApexReplayDebuggerWithCurrentFile reads it and only calls
+    // Click the debug.log tab directly to make it the active editor.
+    // launchApexReplayDebuggerWithCurrentFile reads activeTextEditor and only calls
     // updateLastOpened (setting LAST_OPENED_LOG_KEY) when the active file is a .log file.
-    await openFileByName(page, 'debug.log');
-    await page.keyboard.press('F1');
-    const launchWidget = page.locator(QUICK_INPUT_WIDGET);
-    await launchWidget.waitFor({ state: 'visible', timeout: 10000 });
-    await page.keyboard.type(packageNls.launch_apex_replay_debugger_with_selected_file as string);
-    await expect(launchWidget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10000 });
-    await launchWidget
-      .locator(QUICK_INPUT_LIST_ROW)
-      .filter({ hasText: new RegExp(`^${(packageNls.launch_apex_replay_debugger_with_selected_file as string).replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}`) })
-      .first()
-      .evaluate(el => {
-        el.scrollIntoView({ block: 'center', behavior: 'instant' });
-        (el as HTMLElement).click();
-      });
+    // Without LAST_OPENED_LOG_KEY, "launch from last log file" opens the native file picker.
+    const logTab = page.locator('.tab').filter({ hasText: /debug\.log/ });
+    await logTab.click({ force: true });
+    await executeCommandWithCommandPalette(
+      page,
+      packageNls.launch_apex_replay_debugger_with_selected_file as string
+    );
     await continueDebugSession(page);
   });
 

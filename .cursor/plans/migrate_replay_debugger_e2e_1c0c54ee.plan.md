@@ -1,6 +1,6 @@
 ---
 name: Migrate replay debugger e2e
-overview: Migrate `apexReplayDebugger.e2e.ts` from the RedHat/vscode-extension-tester framework to Playwright, desktop-only, with CI workflow.
+overview: Migrate Apex Replay Debugger E2E from RedHat/vscode-extension-tester to Playwright, desktop-only, with CI workflow.
 todos:
   - id: config-fixtures
     content: Create playwright.config.desktop.ts, fixtures/desktopFixtures.ts, fixtures/index.ts
@@ -24,7 +24,7 @@ isProject: false
 
 ## Scope
 
-Rewrite the old [apexReplayDebugger.e2e.ts](packages/salesforcedx-vscode-automation-tests/test/specs/apexReplayDebugger.e2e.ts) as a Playwright desktop-only spec in `salesforcedx-vscode-apex-replay-debugger`.
+Create a Playwright desktop-only spec in `salesforcedx-vscode-apex-replay-debugger` (replacing the old RedHat-based spec).
 
 **Dropped steps** (per instructions):
 
