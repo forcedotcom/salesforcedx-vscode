@@ -1,0 +1,53 @@
+name: Create soql-common GitHub Release
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'packages/soql-common/**'
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get Github user info
+        id: github-user-info
+        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
+        with:
+          SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          fetch-depth: 0
+
+      - name: Conventional Changelog Action
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@3a392e9aa44a72686b0fc13259a90d287dd0877c
+        with:
+          git-user-name: ${{ steps.github-user-info.outputs.username }}
+          git-user-email: ${{ steps.github-user-info.outputs.email }}
+          github-token: ${{ secrets.IDEE_GH_TOKEN }}
+          tag-prefix: 'soql-common-v'
+          version-file: './packages/soql-common/package.json'
+          git-path: 'packages/soql-common'
+          release-count: '0'
+          output-file: 'packages/soql-common/CHANGELOG.md'
+          skip-on-empty: ${{ github.event_name == 'push' }}
+          skip-tag: true
+
+      - name: Create Github Release
+        if: steps.changelog.outputs.skipped == 'false'
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
+        with:
+          name: ${{ steps.changelog.outputs.tag }}
+          tag: ${{ steps.changelog.outputs.tag }}
+          commit: develop
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          skipIfReleaseExists: true

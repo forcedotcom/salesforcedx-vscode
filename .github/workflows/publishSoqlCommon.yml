@@ -1,62 +1,22 @@
 name: Publish soql-common Package to npm
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
-      releaseType:
-        description: 'Select the release type'
+      tag:
+        description: 'Release tag to publish (e.g., soql-common-v1.0.4). Required for manual runs.'
         required: true
-        default: patch
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+        type: string
 
 jobs:
-  bump-and-tag:
-    name: Bump version and create tag
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.tag.outputs.tag }}
-      version: ${{ steps.bump.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.IDEE_GH_TOKEN }}
-          ref: develop
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-      - uses: ./.github/actions/gitConfig
-        with:
-          email: ${{ secrets.IDEE_GH_EMAIL }}
-      - name: Bump version
-        id: bump
-        working-directory: packages/soql-common
-        run: |
-          npm version ${{ github.event.inputs.releaseType || 'patch' }} --no-git-tag-version
-          VERSION=$(node -pe "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-      - name: Commit and push version bump
-        run: |
-          git add packages/soql-common/package.json
-          git commit -m "chore: bump @salesforce/soql-common to v${{ steps.bump.outputs.version }}"
-          git push
-      - name: Create and push tag
-        id: tag
-        run: |
-          TAG="soql-common-v${{ steps.bump.outputs.version }}"
-          git tag "$TAG"
-          git push origin "$TAG"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
   publish:
     name: Build and publish to npm
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'soql-common-v')
     uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
-    needs: bump-and-tag
     with:
-      githubTag: ${{ needs.bump-and-tag.outputs.tag }}
+      githubTag: ${{ github.event.release.tag_name || github.event.inputs.tag }}
       packageManager: npm
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/soql-common
