@@ -10,7 +10,7 @@ import {
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { BottomBarPanel, By, InputBox, Key, QuickOpenBox, WebElement } from 'vscode-extension-tester';
+import { BottomBarPanel, By, InputBox, QuickOpenBox, WebElement } from 'vscode-extension-tester';
 
 /** Finds a checkbox element using multiple selectors for VS Code version compatibility */
 export const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
@@ -38,21 +38,32 @@ export const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
 const LOCAL_NAMESPACE_LABEL = 'Local Namespace';
 const UNPACKAGED_METADATA_LABEL = '(Unpackaged Metadata)';
 
-/** Expands the Local Namespace and (Unpackaged Metadata) nodes via keyboard (Right Arrow) so test classes are visible */
+/** Clicks the twistie (expand icon) on a tree row to expand it. Skips if already expanded. */
+const expandTreeRowByTwistie = async (
+  workbench: Awaited<ReturnType<typeof getWorkbench>>,
+  rowLabel: string
+): Promise<void> => {
+  const row = await workbench.findElement(
+    By.css(`.monaco-list-row[role="treeitem"][aria-label*="${rowLabel}"]`)
+  );
+  const twistie = await row.findElement(By.css('.monaco-tl-twistie'));
+  const twistieClass = await twistie.getAttribute('class');
+  if (twistieClass?.includes('collapsed')) {
+    await twistie.click();
+    await pause(Duration.seconds(0.5));
+  }
+};
+
+/** Expands the Local Namespace and (Unpackaged Metadata) nodes so test classes are visible. Uses twistie click. */
 export const expandTestExplorerNamespaceAndPackage = async (): Promise<void> => {
   const workbench = getWorkbench();
-  const namespaceRow = await workbench.findElement(
-    By.css(`.monaco-list-row[role="treeitem"][aria-label*="${LOCAL_NAMESPACE_LABEL}"]`)
-  );
-  await namespaceRow.click();
-  await namespaceRow.sendKeys(Key.ARROW_RIGHT);
-  await pause(Duration.seconds(1));
+  await expandTreeRowByTwistie(workbench, LOCAL_NAMESPACE_LABEL);
+  await pause(Duration.seconds(0.5));
   const packageRow = await workbench.findElement(
     By.css(`.monaco-list-row[role="treeitem"][aria-label*="${UNPACKAGED_METADATA_LABEL}"]`)
   );
   await packageRow.click();
-  await packageRow.sendKeys(Key.ARROW_RIGHT);
-  await pause(Duration.seconds(1));
+  await expandTreeRowByTwistie(workbench, UNPACKAGED_METADATA_LABEL);
 };
 
 /** Verifies expected test items appear in the Test Explorer tree */
