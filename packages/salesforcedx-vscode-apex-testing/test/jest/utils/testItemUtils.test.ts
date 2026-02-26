@@ -10,6 +10,8 @@ import { SUITE_PARENT_ID } from '../../../src/constants';
 import {
   createClassId,
   createMethodId,
+  createNamespaceId,
+  createPackageId,
   createSuiteClassId,
   createSuiteId,
   extractClassName,
@@ -18,6 +20,8 @@ import {
   getTestName,
   isClass,
   isMethod,
+  isNamespace,
+  isPackage,
   isSuite,
   isSuiteClass,
   parseTestId
@@ -56,6 +60,18 @@ describe('testItemUtils', () => {
       const result = parseTestId('invalid:id');
       expect(result.type).toBe('unknown');
       expect(result.name).toBe('invalid:id');
+    });
+
+    it('should parse namespace ID', () => {
+      const result = parseTestId('namespace:local');
+      expect(result.type).toBe('namespace');
+      expect(result.name).toBe('local');
+    });
+
+    it('should parse package ID', () => {
+      const result = parseTestId('package:local:unpackaged');
+      expect(result.type).toBe('package');
+      expect(result.name).toBe('local:unpackaged');
     });
   });
 
@@ -100,6 +116,30 @@ describe('testItemUtils', () => {
     it('should return false for non-suite-class ID', () => {
       expect(isSuiteClass('suite:MySuite')).toBe(false);
       expect(isSuiteClass('class:MyClass')).toBe(false);
+    });
+  });
+
+  describe('isNamespace', () => {
+    it('should return true for namespace ID', () => {
+      expect(isNamespace('namespace:local')).toBe(true);
+      expect(isNamespace('namespace:NCINO')).toBe(true);
+    });
+
+    it('should return false for non-namespace ID', () => {
+      expect(isNamespace('package:local:unpackaged')).toBe(false);
+      expect(isNamespace('class:MyClass')).toBe(false);
+    });
+  });
+
+  describe('isPackage', () => {
+    it('should return true for package ID', () => {
+      expect(isPackage('package:local:unpackaged')).toBe(true);
+      expect(isPackage('package:NCINO:0Ho1234567890')).toBe(true);
+    });
+
+    it('should return false for non-package ID', () => {
+      expect(isPackage('namespace:local')).toBe(false);
+      expect(isPackage('class:MyClass')).toBe(false);
     });
   });
 
@@ -150,6 +190,20 @@ describe('testItemUtils', () => {
   describe('createSuiteClassId', () => {
     it('should create suite-class ID', () => {
       expect(createSuiteClassId('MySuite', 'MyClass')).toBe('suite-class:MySuite:MyClass');
+    });
+  });
+
+  describe('createNamespaceId', () => {
+    it('should create namespace ID', () => {
+      expect(createNamespaceId('local')).toBe('namespace:local');
+      expect(createNamespaceId('NCINO')).toBe('namespace:NCINO');
+    });
+  });
+
+  describe('createPackageId', () => {
+    it('should create package ID', () => {
+      expect(createPackageId('local', 'unpackaged')).toBe('package:local:unpackaged');
+      expect(createPackageId('NCINO', '1gp')).toBe('package:NCINO:1gp');
     });
   });
 
@@ -388,6 +442,38 @@ describe('testItemUtils', () => {
       expect(result.map(r => r.id)).toContain('method:Class1.method1');
       expect(result.map(r => r.id)).toContain('method:Class1.method2');
       expect(result.map(r => r.id)).toContain('method:Class2.method3');
+    });
+
+    it('should recurse through namespace and package nodes without adding them', () => {
+      const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
+      const classItem = createMockTestItem('class:MyClass', 'MyClass', [methodItem]);
+      const packageItem = createMockTestItem('package:local:unpackaged', '(Unpackaged Metadata)', [classItem]);
+      const namespaceItem = createMockTestItem('namespace:local', 'Local Namespace', [packageItem]);
+      const request = {
+        include: [namespaceItem]
+      } as unknown as vscode.TestRunRequest;
+      const controllerItems = createMockTestItemCollection([]);
+
+      const result = gatherTests(request, controllerItems, new Map());
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('method:MyClass.testMethod');
+    });
+
+    it('should recurse through package node and collect class methods', () => {
+      const method1 = createMockTestItem('method:A.method1', 'method1');
+      const method2 = createMockTestItem('method:A.method2', 'method2');
+      const classItem = createMockTestItem('class:A', 'A', [method1, method2]);
+      const packageItem = createMockTestItem('package:ns:0HoXXX', 'PackageName', [classItem]);
+      const namespaceItem = createMockTestItem('namespace:ns', 'NS', [packageItem]);
+      const request = {
+        include: [namespaceItem]
+      } as unknown as vscode.TestRunRequest;
+      const controllerItems = createMockTestItemCollection([]);
+
+      const result = gatherTests(request, controllerItems, new Map());
+      expect(result).toHaveLength(2);
+      expect(result.map(r => r.id)).toContain('method:A.method1');
+      expect(result.map(r => r.id)).toContain('method:A.method2');
     });
   });
 });

@@ -38,22 +38,13 @@ export const messages = {
   apex_test_method_run_text: 'SFDX: Run Apex Test Method',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex Testing',
-  collapse_tests_title: 'SFDX: Collapse All Apex Tests',
   configuration_title: 'Salesforce Apex Testing Configuration',
   error_no_connection_found_message: 'No connection found',
-  go_to_definition_title: 'Go to Definition',
-  refresh_test_title: 'Refresh Tests',
-  run_single_test_title: 'Run Single Test',
   run_tests_title: 'Run Tests',
+  run_tests_in_workspace_title: 'Run In-Workspace Tests',
   debug_tests_title: 'Debug Tests',
-  show_error_title: 'Display Error',
-  test_view_container_title: 'Test Viewer',
   test_view_loading_message: 'Loading Apex tests ...',
   test_view_name: 'Apex Tests',
-  test_view_no_tests_description:
-    "Your project doesn't contain any Apex test methods. To run Apex tests, open a project that contains methods with @istest annotations or the testMethod keyword",
-  test_view_no_tests_message: 'No Apex Tests Found',
-  test_view_show_error_title: 'Show Error',
   apex_test_run_concise: 'Display only failed test results.',
   apex_testing_discovery_source_description: 'Select the source for Apex test discovery.',
   apex_testing_discovery_source_ls_description: 'Use the Language Server (LS) for discovery.',
@@ -93,7 +84,10 @@ export const messages = {
     "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
   apex_test_discovery_progress_title: 'Discovering Apex Tests',
   apex_test_discovery_progress_fetching: 'Fetching tests from org...',
-  apex_test_discovery_progress_loading: 'Loading tests... (%s classes, %s methods)'
+  apex_test_discovery_progress_loading: 'Loading tests... (%s classes, %s methods)',
+  test_explorer_local_namespace_label: 'Local Namespace',
+  test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
+  test_explorer_1gp_package_label: '%s (1GP)'
 } as const;
 
 export type MessageKey = keyof typeof messages;
