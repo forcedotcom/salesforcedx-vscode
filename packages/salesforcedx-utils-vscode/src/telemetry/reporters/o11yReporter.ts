@@ -14,20 +14,17 @@ import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
 // o11y_schema is ESM-only; load via dynamic import() so it works when this package is required as CJS
-let pdpEventSchemaPromise: Promise<Record<string, unknown>> | null = null;
-async function getPdpEventSchema(): Promise<Record<string, unknown>> {
-  if (!pdpEventSchemaPromise) {
-    // @ts-ignore o11y_schema has no types
-    pdpEventSchemaPromise = import('o11y_schema/sf_pdp').then(
-      (m) => m.pdpEventSchema as Record<string, unknown>
-    );
-  }
-  return pdpEventSchemaPromise;
-}
-
-async function getConnection() {
-  return WorkspaceContextUtil.getInstance().getConnection();
-}
+const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } = {
+  promise: null
+};
+const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
+  pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(
+    (m: { pdpEventSchema: Record<string, unknown> }) => m.pdpEventSchema
+  );
+  return pdpEventSchemaCache.promise;
+};
+const getConnection = async () =>
+  WorkspaceContextUtil.getInstance().getConnection();
 
 export class O11yReporter
   extends Disposable
