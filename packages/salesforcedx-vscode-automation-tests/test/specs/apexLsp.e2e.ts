@@ -87,8 +87,6 @@ const findReleaseDir = (): string => {
 };
 
 const verifyLspStatus = async (expectedStatus: string): Promise<WebElement> => {
-  const outputViewText = await getOutputViewText('Apex Language Server');
-  log(`Output view text: ${outputViewText}`);
   const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
   await statusBar.click();
   const ariaLabel = await statusBar.getAttribute('aria-label');
@@ -99,7 +97,6 @@ const verifyLspStatus = async (expectedStatus: string): Promise<WebElement> => {
 const verifyLspRestart = async (cleanDb: boolean): Promise<void> => {
   const option = LSP_RESTART_OPTIONS.find(opt => opt.cleanDb === cleanDb)?.option;
   if (!option) throw new Error(`Invalid cleanDb option: ${cleanDb}`);
-  await pause(Duration.seconds(25));
   // Wait for LSP to enter restarting state
   await verifyLspStatus(LSP_STATUS.restarting);
   // Allow time for LSP to fully restart and reindex
