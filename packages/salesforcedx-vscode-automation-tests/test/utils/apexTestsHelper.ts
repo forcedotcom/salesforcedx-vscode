@@ -4,8 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { pause, Duration } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { dismissAllNotifications, getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { Duration, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  dismissAllNotifications,
+  getWorkbench
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { BottomBarPanel, By, InputBox, QuickOpenBox, WebElement } from 'vscode-extension-tester';
 
@@ -29,6 +32,38 @@ export const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
   }
 
   throw new Error(`Could not find checkbox element with any of the selectors: ${selectors.join(', ')}`);
+};
+
+/** Labels for Test Explorer namespace/package grouping (must match apex-testing nls) */
+const LOCAL_NAMESPACE_LABEL = 'Local Namespace';
+const UNPACKAGED_METADATA_LABEL = '(Unpackaged Metadata)';
+
+/** Clicks the twistie (expand icon) on a tree row to expand it. Skips if already expanded. */
+const expandTreeRowByTwistie = async (
+  workbench: Awaited<ReturnType<typeof getWorkbench>>,
+  rowLabel: string
+): Promise<void> => {
+  const row = await workbench.findElement(
+    By.css(`.monaco-list-row[role="treeitem"][aria-label*="${rowLabel}"]`)
+  );
+  const twistie = await row.findElement(By.css('.monaco-tl-twistie'));
+  const twistieClass = await twistie.getAttribute('class');
+  if (twistieClass?.includes('collapsed')) {
+    await twistie.click();
+    await pause(Duration.seconds(0.5));
+  }
+};
+
+/** Expands the Local Namespace and (Unpackaged Metadata) nodes so test classes are visible. Uses twistie click. */
+export const expandTestExplorerNamespaceAndPackage = async (): Promise<void> => {
+  const workbench = getWorkbench();
+  await expandTreeRowByTwistie(workbench, LOCAL_NAMESPACE_LABEL);
+  await pause(Duration.seconds(0.5));
+  const packageRow = await workbench.findElement(
+    By.css(`.monaco-list-row[role="treeitem"][aria-label*="${UNPACKAGED_METADATA_LABEL}"]`)
+  );
+  await packageRow.click();
+  await expandTreeRowByTwistie(workbench, UNPACKAGED_METADATA_LABEL);
 };
 
 /** Verifies expected test items appear in the Test Explorer tree */
@@ -69,9 +104,7 @@ export type TestTreeItem = {
 
 /** Finds a test item in the Test Explorer by name using aria-label selector */
 export const findTestItemByName = async (testName: string): Promise<TestTreeItem> => {
-  const row = await getWorkbench().findElement(
-    By.css(`.monaco-list-row[role="treeitem"][aria-label*="${testName}"]`)
-  );
+  const row = await getWorkbench().findElement(By.css(`.monaco-list-row[role="treeitem"][aria-label*="${testName}"]`));
 
   if (!row) {
     throw new Error(`Could not find test item: ${testName}`);
@@ -92,7 +125,7 @@ export const findTestItemByName = async (testName: string): Promise<TestTreeItem
 /** Opens the Test Results tab, maximizes panel, and returns the xterm output text */
 export const getTestResultsTabText = async (): Promise<string> => {
   // Dismiss notifications to prevent click interception on maximize button
-  try{
+  try {
     await dismissAllNotifications();
   } catch {
     console.log('getTestResultsTabText - Error dismissing notifications');
