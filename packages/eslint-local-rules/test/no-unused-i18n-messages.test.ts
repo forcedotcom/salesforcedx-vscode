@@ -71,6 +71,24 @@ ruleTester.run('no-unused-i18n-messages', noUnusedI18nMessages, {
         { messageId: 'unused', data: { key: 'unused_one' } },
         { messageId: 'unused', data: { key: 'unused_two' } }
       ]
+    },
+    {
+      name: 'declaration is not counted as reference - quoted key only in messages object',
+      code: `export const messages = {
+        used_in_code: 'a',
+        'quoted_unused_key': 'value'
+      } as const;`,
+      filename: i18nPath,
+      errors: [{ messageId: 'unused', data: { key: 'quoted_unused_key' } }]
+    },
+    {
+      name: 'allowList entry that does not exist in messages is reported',
+      code: `export const messages = {
+        used_in_code: 'a'
+      } as const;`,
+      filename: i18nPath,
+      options: [{ allowList: ['nonexistent_key'] }],
+      errors: [{ messageId: 'invalidAllowListEntry', data: { key: 'nonexistent_key' } }]
     }
   ]
 });
