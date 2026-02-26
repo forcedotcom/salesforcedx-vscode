@@ -49,7 +49,7 @@ jobs:
           release-count: '0'
           output-file: 'packages/soql-common/CHANGELOG.md'
           skip-on-empty: ${{ github.event_name == 'push' }}
-          skip-tag: true
+          skip-tag: false
 
       - name: Create Github Release
         if: steps.changelog.outputs.skipped == 'false'
