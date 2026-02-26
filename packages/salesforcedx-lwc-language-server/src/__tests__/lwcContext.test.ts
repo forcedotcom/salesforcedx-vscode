@@ -14,6 +14,7 @@ import {
   sfdxFileSystemProvider
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { join, resolve } from 'node:path';
+import { Connection } from 'vscode-languageserver';
 import { LWCWorkspaceContext } from '../context/lwcContext';
 
 describe('LWCWorkspaceContext', () => {
@@ -114,8 +115,9 @@ describe('LWCWorkspaceContext', () => {
   it('configureProjectForTs()', async () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
     context.initialize('SFDX');
-    // Mock connection for file operations (required for configureProjectForTs)
-    context.connection!.sendRequest = jest.fn().mockResolvedValue({ applied: true });
+    context.connection = {
+      sendRequest: jest.fn().mockResolvedValue({ applied: true })
+    } as unknown as Connection;
     const baseTsconfigPathForceApp = resolve(join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json'));
     const tsconfigPathForceApp = resolve(join(FORCE_APP_ROOT, 'lwc', 'tsconfig.json'));
     const tsconfigPathUtils = resolve(join(UTILS_ROOT, 'lwc', 'tsconfig.json'));
