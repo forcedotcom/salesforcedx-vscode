@@ -4,7 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as vscode from 'vscode';
 import { CommandEventDispatcher } from '../../../../src/commands/util/commandEventDispatcher';
+
+const mockDisposable = { dispose: jest.fn() };
+
+beforeEach(() => {
+  jest.spyOn(vscode.commands, 'registerCommand').mockReturnValue(mockDisposable as unknown as vscode.Disposable);
+  // Reset singleton so each test gets a fresh instance
+  (CommandEventDispatcher as unknown as { instance: undefined }).instance = undefined;
+});
 
 describe('CommandEventDispatcher', () => {
   describe('getInstance', () => {
