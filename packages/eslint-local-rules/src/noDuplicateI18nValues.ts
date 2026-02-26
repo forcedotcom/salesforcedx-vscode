@@ -80,24 +80,28 @@ export const noDuplicateI18nValues = RuleCreator.withoutDocs({
     }
 
     const enMessages: MessagesObject = extractMessagesObject(enAst);
+
+    const unwrapAsExpression = (node: TSESTree.Expression): TSESTree.Expression =>
+      node.type === AST_NODE_TYPES.TSAsExpression ? unwrapAsExpression(node.expression) : node;
+
+    let messagesObject: TSESTree.ObjectExpression | null = null;
+
     return {
-      Property: (node: TSESTree.Property): void => {
-        // Check if this property is part of a messages object
-        // Structure can be: messages = { prop } OR messages = { prop } as const
-        if (node.parent?.type !== AST_NODE_TYPES.ObjectExpression) {
-          return;
-        }
-
-        // Handle both direct and "as const" cases
-        const initialDeclarator = node.parent.parent;
-        const declarator =
-          initialDeclarator?.type === AST_NODE_TYPES.TSAsExpression ? initialDeclarator.parent : initialDeclarator;
-
+      VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
         if (
-          declarator?.type !== AST_NODE_TYPES.VariableDeclarator ||
-          declarator.id.type !== AST_NODE_TYPES.Identifier ||
-          declarator.id.name !== 'messages'
+          node.id.type === AST_NODE_TYPES.Identifier &&
+          node.id.name === 'messages' &&
+          node.init
         ) {
+          const init = unwrapAsExpression(node.init);
+          if (init.type === AST_NODE_TYPES.ObjectExpression) {
+            messagesObject = init;
+          }
+        }
+      },
+
+      Property: (node: TSESTree.Property): void => {
+        if (!messagesObject || node.parent !== messagesObject) {
           return;
         }
 
