@@ -6,42 +6,25 @@
  */
 import * as vscode from 'vscode';
 
-const SERVICES_EXTENSION_ID = 'salesforce.salesforcedx-vscode-services';
-
-type SubscribeFn = (listener: (event: unknown) => unknown) => vscode.Disposable;
-
-const getServicesSubscribeFn = (): SubscribeFn | undefined => {
-  type ServicesApi = { services: { subscribeToSObjectRefresh: SubscribeFn } };
-  return vscode.extensions.getExtension<ServicesApi>(SERVICES_EXTENSION_ID)?.exports?.services
-    ?.subscribeToSObjectRefresh;
-};
+const SF_SOBJECT_REFRESH_COMPLETE_COMMAND = 'sf.internal.sobjectrefresh.complete';
 
 /**
- * @deprecated SObject refresh events are now owned by SObjectRefreshEventService in salesforcedx-vscode-services.
- * This class is retained for backward compatibility with external consumers (e.g. Einstein GPT).
+ * Registers the sf.internal.sobjectrefresh.complete command and emits events to subscribers.
+ * External consumers (e.g. Einstein GPT) subscribe via onRefreshSObjectsCommandCompletion.
  */
 export class CommandEventDispatcher implements vscode.Disposable {
   protected static instance: CommandEventDispatcher;
 
   private readonly emitter = new vscode.EventEmitter<unknown>();
-  private serviceSubscription: vscode.Disposable | undefined;
+  private readonly commandDisposable: vscode.Disposable;
 
   private constructor() {
-    // Subscribe to SObjectRefreshEventService at construction time (during getInstance(), when
-    // services is guaranteed to be active). Forward events to our local emitter so that
-    // onRefreshSObjectsCommandCompletion subscribers don't need a dynamic extension lookup.
-    const subscribe = getServicesSubscribeFn();
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/8b4e520b-414d-4d2f-a2b9-65dc4ee54e02',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'fc3c04'},body:JSON.stringify({sessionId:'fc3c04',location:'commandEventDispatcher.ts:constructor',message:'constructor - subscribeToSObjectRefresh lookup',data:{found:!!subscribe},timestamp:Date.now(),hypothesisId:'A',runId:'post-fix'})}).catch(()=>{});
-    // #endregion
-    if (subscribe) {
-      this.serviceSubscription = subscribe((event) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/8b4e520b-414d-4d2f-a2b9-65dc4ee54e02',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'fc3c04'},body:JSON.stringify({sessionId:'fc3c04',location:'commandEventDispatcher.ts:serviceSubscriptionCallback',message:'serviceSubscription callback fired - forwarding to local emitter',timestamp:Date.now(),hypothesisId:'B',runId:'post-fix'})}).catch(()=>{});
-        // #endregion
+    this.commandDisposable = vscode.commands.registerCommand(
+      SF_SOBJECT_REFRESH_COMPLETE_COMMAND,
+      (event: unknown) => {
         this.emitter.fire(event);
-      });
-    }
+      }
+    );
   }
 
   public static getInstance(): CommandEventDispatcher {
@@ -52,14 +35,11 @@ export class CommandEventDispatcher implements vscode.Disposable {
   }
 
   public onRefreshSObjectsCommandCompletion(listener: (event: unknown) => unknown): vscode.Disposable {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/8b4e520b-414d-4d2f-a2b9-65dc4ee54e02',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'fc3c04'},body:JSON.stringify({sessionId:'fc3c04',location:'commandEventDispatcher.ts:onRefreshSObjectsCommandCompletion',message:'listener registered on local emitter',timestamp:Date.now(),hypothesisId:'A',runId:'post-fix'})}).catch(()=>{});
-    // #endregion
     return this.emitter.event(listener);
   }
 
   public dispose(): void {
     this.emitter.dispose();
-    this.serviceSubscription?.dispose();
+    this.commandDisposable.dispose();
   }
 }

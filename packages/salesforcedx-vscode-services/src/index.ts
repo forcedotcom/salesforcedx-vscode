@@ -24,7 +24,6 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
-import { SObjectRefreshEventService } from './core/sObjectRefreshEventService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
@@ -47,9 +46,6 @@ import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
-
-/** Plain subscription function for non-Effect consumers (e.g. CommandEventDispatcher in core). */
-export type SubscribeToSObjectRefresh = (listener: (event: unknown) => unknown) => vscode.Disposable;
 
 export type SalesforceVSCodeServicesApi = {
   services: {
@@ -76,8 +72,6 @@ export type SalesforceVSCodeServicesApi = {
     ProjectService: typeof ProjectService;
     SdkLayerFor: typeof SdkLayerFor;
     SettingsService: typeof SettingsService;
-    SObjectRefreshEventService: typeof SObjectRefreshEventService;
-    subscribeToSObjectRefresh: SubscribeToSObjectRefresh;
     SourceTrackingService: typeof SourceTrackingService;
     TargetOrgRef: typeof getDefaultOrgRef;
     TransmogrifierService: typeof TransmogrifierService;
@@ -222,7 +216,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ProjectService.Default,
     ServicesSdkLayer(),
     SettingsService.Default,
-    SObjectRefreshEventService.Default,
     SettingsWatcherService.Default,
     SourceTrackingService.Default,
     WorkspaceService.Default
@@ -236,9 +229,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   );
 
   // Build the layer with extensionScope - scoped services live until extension deactivates
-  const builtContext = await Effect.runPromise(
-    Layer.buildWithScope(requirements, extensionScope).pipe(Scope.extend(extensionScope))
-  );
   await Effect.runPromise(
     Effect.provide(
       activationEffect(context).pipe(
@@ -246,18 +236,9 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
           attributes: { isWeb: process.env.ESBUILD_PLATFORM === 'web' }
         })
       ),
-      builtContext
+      await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope).pipe(Scope.extend(extensionScope)))
     ).pipe(Scope.extend(extensionScope))
   );
-
-  // Pre-bind onRefreshComplete from the live service instance for non-Effect consumers.
-  // This avoids module-level state while keeping the emitter fully inside the Effect runtime.
-  const subscribeToSObjectRefresh: SubscribeToSObjectRefresh = listener =>
-    Effect.runSync(
-      Effect.flatMap(SObjectRefreshEventService, svc => Effect.sync(() => svc.onRefreshComplete(listener))).pipe(
-        Effect.provide(builtContext)
-      )
-    );
 
   console.log('Salesforce Services extension is now active!');
   // Return API for other extensions to consume
@@ -286,8 +267,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ProjectService,
       SdkLayerFor,
       SettingsService,
-      SObjectRefreshEventService,
-      subscribeToSObjectRefresh,
       SourceTrackingService,
       TargetOrgRef: getDefaultOrgRef,
       TransmogrifierService,
@@ -336,7 +315,6 @@ export {
 export { type MetadataRegistryService } from './core/metadataRegistryService';
 export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
-export { type SObjectRefreshEventService } from './core/sObjectRefreshEventService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type WorkspaceService } from './vscode/workspaceService';
