@@ -10,15 +10,26 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-// @ts-ignore o11y has no types
-import { pdpEventSchema } from 'o11y_schema/sf_pdp';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
 
+// o11y_schema is ESM-only; load via dynamic import() so it works when this package is required as CJS
+const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } = {
+  promise: null
+};
+const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
+  // @ts-ignore - o11y_schema has no types
+  pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(
+    (m) => m.pdpEventSchema
+  );
+  return pdpEventSchemaCache.promise;
+};
 const getConnection = () =>
-  Effect.runPromise(ConnectionService.getConnection().pipe(Effect.provide(ConnectionService.Default)));
+  Effect.runPromise(
+    ConnectionService.getConnection().pipe(Effect.provide(ConnectionService.Default))
+  );
 
 /**
  * OpenTelemetry span exporter that sends spans to O11y using @salesforce/o11y-reporter.
@@ -57,6 +68,7 @@ export class O11ySpanExporter implements SpanExporter {
       Effect.tryPromise({
         try: async () => {
           await this.ensureInitialized();
+          const pdpEventSchema = await getPdpEventSchema();
           const { cliId, webUserId, orgId, devHubOrgId } = getDefaultOrgRef().pipe(
             Effect.flatMap(ref => SubscriptionRef.get(ref)),
             Effect.runSync
