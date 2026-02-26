@@ -10,11 +10,17 @@
  */
 
 import { BehaviorSubject } from 'rxjs';
-import { AndOr } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/model';
-import { ToolingModelService, ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
+import { AndOr } from '../../../../../../src/soql-model/model/model';
+import {
+  ToolingModelService,
+  ToolingModelJson
+} from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 import { VscodeMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/vscodeMessageService';
 import { IMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
-import { MessageType, SoqlEditorEvent } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
+import {
+  MessageType,
+  SoqlEditorEvent
+} from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 
 describe('Tooling Model Service', () => {
   let modelService: ToolingModelService;
@@ -33,7 +39,7 @@ describe('Tooling Model Service', () => {
         },
         index: 0
       },
-      andOr: 'AND'
+      andOr: AndOr.And
     };
   };
   let query: ToolingModelJson;
@@ -44,12 +50,12 @@ describe('Tooling Model Service', () => {
     payload: accountQuery
   } as SoqlEditorEvent;
 
-  function checkForDefaultQuery() {
+  const checkForDefaultQuery = () => {
     const toolingModel = modelService.getModel().toJS();
     expect(toolingModel.sObject).toEqual('');
     expect(toolingModel.fields.length).toBe(0);
     expect(toolingModel.originalSoqlStatement).toEqual('');
-  }
+  };
 
   beforeEach(() => {
     messageService = new VscodeMessageService();
@@ -64,7 +70,7 @@ describe('Tooling Model Service', () => {
     checkForDefaultQuery();
     query = undefined;
 
-    modelService.UIModel.subscribe((val) => {
+    modelService.UIModel.subscribe(val => {
       query = val;
     });
   });
@@ -120,9 +126,7 @@ describe('Tooling Model Service', () => {
       checkForDefaultQuery();
       const soqlEvent = { ...soqlEditorEvent };
       soqlEvent.payload = jimmyQuery;
-      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(
-        soqlEvent
-      );
+      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(soqlEvent);
       expect(query.fields.length).toBe(2);
     });
 
@@ -130,16 +134,12 @@ describe('Tooling Model Service', () => {
       checkForDefaultQuery();
       const soqlEvent = { ...soqlEditorEvent };
       soqlEvent.payload = jimmyQuery;
-      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(
-        soqlEvent
-      );
+      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(soqlEvent);
       expect(query.fields.length).toBe(2);
       expect(query.originalSoqlStatement).toEqual(jimmyQuery);
       soqlEvent.type = MessageType.SOBJECTS_RESPONSE;
       soqlEvent.payload = jimmyQuery.replace('Hey, Joe', 'What');
-      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(
-        soqlEvent
-      );
+      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(soqlEvent);
       // query should not have changed
       expect(query.fields.length).toBe(2);
       expect(query.originalSoqlStatement).toEqual(jimmyQuery);
@@ -169,9 +169,7 @@ describe('Tooling Model Service', () => {
       const soqlText = 'Select Name1, Id1 from Account1';
       const soqlEvent = { ...soqlEditorEvent };
       soqlEvent.payload = soqlText;
-      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(
-        soqlEvent
-      );
+      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(soqlEvent);
       expect(query.sObject).toEqual('Account1');
       expect(query.fields[0]).toEqual('Name1');
       expect(query.fields[1]).toEqual('Id1');
@@ -184,13 +182,9 @@ describe('Tooling Model Service', () => {
       modelService.UIModel.subscribe(spy);
       // Behavior subject new subscriber gets called immediately with current value.
       expect(spy).toHaveBeenCalledTimes(1);
-      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(
-        soqlEditorEvent
-      );
+      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(soqlEditorEvent);
       expect(spy).toHaveBeenCalledTimes(2);
-      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(
-        soqlEditorEvent
-      );
+      (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(soqlEditorEvent);
       expect(spy).toHaveBeenCalledTimes(2);
     });
   });
@@ -208,12 +202,8 @@ describe('Tooling Model Service', () => {
       modelService.upsertWhereFieldExpr(mockWhereObj);
 
       expect(query.where.conditions.length).toBe(1);
-      expect(query.where.conditions[0].condition).toEqual(
-        mockWhereObj.fieldCompareExpr.condition
-      );
-      expect(query.where.conditions[0].index).toEqual(
-        mockWhereObj.fieldCompareExpr.index
-      );
+      expect(query.where.conditions[0].condition).toEqual(mockWhereObj.fieldCompareExpr.condition);
+      expect(query.where.conditions[0].index).toEqual(mockWhereObj.fieldCompareExpr.index);
       // Does not duplicate
       modelService.upsertWhereFieldExpr(mockWhereObj);
       expect(query.where.conditions.length).toBe(1);
@@ -236,18 +226,14 @@ describe('Tooling Model Service', () => {
       modelService.upsertWhereFieldExpr(mockWhereObj);
 
       expect(query.where.conditions.length).toBe(1);
-      expect(query.where.conditions[0].condition).toEqual(
-        mockWhereObj.fieldCompareExpr.condition
-      );
+      expect(query.where.conditions[0].condition).toEqual(mockWhereObj.fieldCompareExpr.condition);
       // update field on condition with same index
       const newField = 'marcs_bank_account';
       const newMock = getMockWhereObj();
       newMock.fieldCompareExpr.condition.field.fieldName = newField;
       modelService.upsertWhereFieldExpr(newMock);
       expect(query.where.conditions.length).toBe(1);
-      expect(query.where.conditions[0].condition.field.fieldName).toContain(
-        newField
-      );
+      expect(query.where.conditions[0].condition.field.fieldName).toContain(newField);
     });
 
     it('should DELETE condition by index', () => {
@@ -260,9 +246,7 @@ describe('Tooling Model Service', () => {
 
       modelService.upsertWhereFieldExpr(getMockWhereObj());
       expect(query.where.conditions.length).toBe(1);
-      modelService.removeWhereFieldCondition(
-        getMockWhereObj().fieldCompareExpr
-      );
+      modelService.removeWhereFieldCondition(getMockWhereObj().fieldCompareExpr);
       expect(query.where.conditions.length).toBe(0);
     });
 
@@ -274,11 +258,11 @@ describe('Tooling Model Service', () => {
 
       expect(query.where.andOr).toBeUndefined();
 
-      modelService.setAndOr(AndOr.AND);
-      expect(query.where.andOr).toContain(AndOr.AND);
+      modelService.setAndOr(AndOr.And);
+      expect(query.where.andOr).toContain(AndOr.And);
 
-      modelService.setAndOr(AndOr.OR);
-      expect(query.where.andOr).toContain(AndOr.OR);
+      modelService.setAndOr(AndOr.Or);
+      expect(query.where.andOr).toContain(AndOr.Or);
     });
   });
 
@@ -350,21 +334,16 @@ describe('Tooling Model Service', () => {
   });
 
   it('Receive SOQL Text from editor (with comments)', () => {
-    const soqlText =
-      '// This is a comment\n\n\n// Another comment\n\nSELECT Id FROM Foo';
+    const soqlText = '// This is a comment\n\n\n// Another comment\n\nSELECT Id FROM Foo';
     const soqlEvent = { ...soqlEditorEvent };
     soqlEvent.payload = soqlText;
-    (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(
-      soqlEvent
-    );
+    (messageService.messagesToUI as BehaviorSubject<SoqlEditorEvent>).next(soqlEvent);
 
     expect(query.sObject).toEqual('Foo');
     expect(query.fields[0]).toEqual('Id');
     expect(query.errors.length).toEqual(0);
     expect(query.unsupported.length).toEqual(0);
-    expect(query.headerComments).toEqual(
-      '// This is a comment\n\n\n// Another comment\n\n'
-    );
+    expect(query.headerComments).toEqual('// This is a comment\n\n\n// Another comment\n\n');
 
     // Now modify the query. The resulting text must retain the comments
     modelService.setSObject('Bar');
@@ -373,13 +352,9 @@ describe('Tooling Model Service', () => {
     expect(query.sObject).toEqual('Bar');
     expect(query.fields[0]).toEqual('Name');
 
-    expect(query.originalSoqlStatement).toContain(
-      '// This is a comment\n\n\n// Another comment\n\n'
-    );
+    expect(query.originalSoqlStatement).toContain('// This is a comment\n\n\n// Another comment\n\n');
     expect(query.originalSoqlStatement).toContain('SELECT Name');
     expect(query.originalSoqlStatement).toContain('FROM Bar');
-    expect(query.headerComments).toEqual(
-      '// This is a comment\n\n\n// Another comment\n\n'
-    );
+    expect(query.headerComments).toEqual('// This is a comment\n\n\n// Another comment\n\n');
   });
 });

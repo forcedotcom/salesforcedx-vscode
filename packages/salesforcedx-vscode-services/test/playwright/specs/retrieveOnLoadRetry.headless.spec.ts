@@ -19,7 +19,8 @@ import {
   outputChannelContains,
   createMinimalOrg,
   validateNoCriticalErrors,
-  waitForVSCodeWorkbench
+  waitForVSCodeWorkbench,
+  ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
@@ -28,6 +29,7 @@ test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await assertWelcomeTabExists(page);
   await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
 });
 
 test('handles project resolution with retry logic', async ({ page }) => {
@@ -55,8 +57,7 @@ test('handles project resolution with retry logic', async ({ page }) => {
 
   await test.step('verify retrieval completes successfully', async () => {
     await waitForOutputChannelText(page, { expectedText: 'Retrieve on load completed', timeout: 300_000 });
-    const hasFileCount = await outputChannelContains(page, 'files retrieved successfully');
-    expect(hasFileCount, 'Should show file count in success message').toBe(true);
+    await waitForOutputChannelText(page, { expectedText: 'files retrieved successfully' });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

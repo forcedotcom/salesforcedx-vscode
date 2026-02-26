@@ -7,17 +7,10 @@
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../salesforcedx-vscode-core"
-    }
+    { "path": "../effect-ext-utils" },
+    { "path": "../salesforcedx-utils" },
+    { "path": "../salesforcedx-utils-vscode" },
+    { "path": "../salesforcedx-vscode-i18n" },
+    { "path": "../salesforcedx-vscode-services-types" }
   ]
 }

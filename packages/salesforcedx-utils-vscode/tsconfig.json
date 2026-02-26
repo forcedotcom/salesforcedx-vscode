@@ -15,6 +15,9 @@
   ],
   "references": [
     {
+      "path": "../effect-ext-utils"
+    },
+    {
       "path": "../salesforcedx-utils"
     },
     {

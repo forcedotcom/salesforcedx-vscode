@@ -5,17 +5,32 @@
 
 import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
-import * as appInsights from 'applicationinsights';
+import { TelemetryReporter as VSCodeTelemetryReporter } from '@vscode/extension-telemetry';
 import { Disposable, env, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
+/** Same connection string as telemetry (salesforcedx-vscode-services observability). */
+const DEFAULT_AI_CONNECTION_STRING: string =
+  'InstrumentationKey=f5cbbeba-e06b-4657-b99c-62024c9d36bf;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=1485438c-5495-43dc-8c0a-b51e860b6cba';
+
+// Conditionally import applicationinsights only in Node.js mode
+let appInsights: typeof import('applicationinsights') | undefined;
+if (process.env.ESBUILD_PLATFORM !== 'web') {
+  appInsights = require('applicationinsights');
+}
+
+const isWebMode = process.env.ESBUILD_PLATFORM === 'web';
+
 export class AppInsights
   extends Disposable
   implements TelemetryReporter, TelemetryReporterWithModifiableUserProperties
 {
-  private appInsightsClient: appInsights.TelemetryClient | undefined;
+  private appInsightsClient: typeof appInsights extends undefined
+    ? undefined
+    : import('applicationinsights').TelemetryClient | undefined;
+  private webReporter: VSCodeTelemetryReporter | undefined;
   private userOptIn: boolean = false;
   private toDispose: Disposable[] = [];
   private uniqueUserMetrics: boolean = false;
@@ -48,14 +63,26 @@ export class AppInsights
     if (this.userOptIn !== config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true)) {
       this.userOptIn = config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true);
       if (this.userOptIn) {
-        this.createAppInsightsClient(key);
+        if (isWebMode) {
+          this.createWebReporter();
+        } else {
+          this.createAppInsightsClient(key);
+        }
       } else {
         void this.dispose();
       }
     }
   }
 
+  private createWebReporter(): void {
+    // In web mode, use @vscode/extension-telemetry which works in browsers
+    this.webReporter = new VSCodeTelemetryReporter(DEFAULT_AI_CONNECTION_STRING);
+  }
+
   private createAppInsightsClient(key: string) {
+    if (!appInsights) {
+      throw new Error('applicationinsights is not available in web mode');
+    }
     // check if another instance is already initialized
     if (appInsights.defaultClient) {
       this.appInsightsClient = new appInsights.TelemetryClient(key);
@@ -84,7 +111,7 @@ export class AppInsights
     }
 
     // check if it's an Asimov key to change the endpoint
-    if (key && key.indexOf('AIF-') === 0) {
+    if (key?.indexOf('AIF-') === 0) {
       this.appInsightsClient.config.endpointUrl = 'https://vortex.data.microsoft.com/collect/v1';
     }
   }
@@ -101,15 +128,36 @@ export class AppInsights
     properties: { [key: string]: string } = {},
     measurements?: { [key: string]: number }
   ): void {
-    if (this.userOptIn && eventName && this.appInsightsClient) {
-      const baseProps = getBaseProps();
-      const finalProps = this.applyTelemetryTag({ ...baseProps, ...properties, webUserId: this.webUserId });
+    if (!this.userOptIn || !eventName) {
+      return;
+    }
 
-      this.appInsightsClient.trackEvent({
-        name: `${this.extensionId}/${eventName}`,
-        properties: finalProps,
-        measurements
-      });
+    const baseProps = getBaseProps();
+    const finalProps = this.applyTelemetryTag({ ...baseProps, ...properties, webUserId: this.webUserId });
+
+    if (isWebMode) {
+      if (this.webReporter) {
+        try {
+          // Add extension metadata to properties for web mode
+          const enrichedProperties = {
+            ...finalProps,
+            extensionId: this.extensionId,
+            extensionVersion: this.extensionVersion,
+            userId: this.userId
+          };
+          this.webReporter.sendTelemetryEvent(eventName, enrichedProperties, measurements);
+        } catch (error) {
+          console.error('Failed to send telemetry event:', error);
+        }
+      }
+    } else {
+      if (this.appInsightsClient) {
+        this.appInsightsClient.trackEvent({
+          name: `${this.extensionId}/${eventName}`,
+          properties: finalProps,
+          measurements
+        });
+      }
     }
   }
 
@@ -118,23 +166,53 @@ export class AppInsights
     exceptionMessage: string,
     measurements?: { [key: string]: number }
   ): void {
-    if (this.userOptIn && exceptionMessage && this.appInsightsClient) {
-      const error = new Error(exceptionMessage);
-      error.name = `${this.extensionId}/${exceptionName}`;
-      error.stack = 'DEPRECATED';
-      const baseProps = getBaseProps();
+    if (!this.userOptIn || !exceptionMessage) {
+      return;
+    }
 
-      const finalProps = this.applyTelemetryTag({ ...baseProps, webUserId: this.webUserId });
+    const baseProps = getBaseProps();
+    const finalProps = this.applyTelemetryTag({ ...baseProps, webUserId: this.webUserId });
 
-      this.appInsightsClient.trackException({
-        exception: error,
-        properties: finalProps,
-        measurements
-      });
+    if (isWebMode) {
+      if (this.webReporter) {
+        try {
+          const properties = {
+            ...finalProps,
+            exceptionName,
+            exceptionMessage,
+            extensionId: this.extensionId,
+            extensionVersion: this.extensionVersion,
+            userId: this.userId
+          };
+          this.webReporter.sendTelemetryErrorEvent(exceptionName, properties, measurements);
+        } catch (error) {
+          console.error('Failed to send exception event:', error);
+        }
+      }
+    } else {
+      if (this.appInsightsClient) {
+        const error = new Error(exceptionMessage);
+        error.name = `${this.extensionId}/${exceptionName}`;
+        error.stack = 'DEPRECATED';
+
+        this.appInsightsClient.trackException({
+          exception: error,
+          properties: finalProps,
+          measurements
+        });
+      }
     }
   }
 
   public dispose(): Promise<any> {
+    if (isWebMode) {
+      if (this.webReporter) {
+        this.webReporter = undefined;
+        return Promise.resolve(void 0);
+      }
+      return Promise.resolve(void 0);
+    }
+
     const flushEventsToAI = new Promise<any>(resolve => {
       if (this.appInsightsClient) {
         this.appInsightsClient.flush({

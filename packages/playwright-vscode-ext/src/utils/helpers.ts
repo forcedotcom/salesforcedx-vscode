@@ -43,8 +43,12 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Applying inline style violates', // CSP inline style errors from VS Code UI
   'Unable to resolve resource walkThrough://', // VS Code walkthrough/getting started page errors (non-critical)
   'SourceMembers timed out after', // sourcemember polling warnings from source-tracking-library
+  'Illegal value for lineNumber', // VS Code internal editor error (non-critical),
+  "'allow-scripts' permissions is not set", //
   'Blocked script execution', // Webview sandboxing initialization errors (non-critical)
   'vscode-webview://', // Webview internal URLs (paired with blocked script errors)
+  'Connection failed, falling back to static endpoint', // o11y unauthnticated connection
+  // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
   'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
   'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
   'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)

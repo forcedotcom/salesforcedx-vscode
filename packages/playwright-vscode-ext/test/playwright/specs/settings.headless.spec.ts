@@ -8,7 +8,12 @@
 import { expect } from '@playwright/test';
 import { openSettingsUI, upsertSettings } from '../../../src/pages/settings';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
-import { waitForVSCodeWorkbench, assertWelcomeTabExists, closeWelcomeTabs } from '../../../src/utils/helpers';
+import {
+  waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
+  ensureSecondarySideBarHidden
+} from '../../../src/utils/helpers';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
@@ -17,6 +22,7 @@ test.describe('Settings', () => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
   });
 
   test('should open settings UI', async ({ page }) => {
@@ -60,6 +66,18 @@ test.describe('Settings', () => {
     await test.step('Update textbox setting and verify', async () => {
       // upsertSettings already verifies the value is set correctly internally
       await upsertSettings(page, { [settingKey]: settingValue });
+    });
+  });
+
+  test('should upsert multiple settings simultaneously', async ({ page }) => {
+    const settings = {
+      'editor.fontSize': '18',
+      'editor.minimap.enabled': 'true'
+    };
+
+    await test.step('Update multiple settings and verify', async () => {
+      // upsertSettings already verifies the value is set correctly internally
+      await upsertSettings(page, settings);
     });
   });
 

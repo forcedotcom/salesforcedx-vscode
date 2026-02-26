@@ -4,7 +4,12 @@
     "rootDir": ".",
     "outDir": "out",
     "strict": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "paths": {
+      "@salesforce/soql-model/*": [
+        "./src/soql-model/*"
+      ]
+    }
   },
   "exclude": [
     "node_modules",
@@ -15,13 +20,18 @@
     "src/soql-builder-ui",
     "test/jest/soql-builder-ui"
   ],
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts"
+  ],
   "references": [
     {
       "path": "../salesforcedx-sobjects-faux-generator"
     },
     {
       "path": "../salesforcedx-utils-vscode"
+    },
+    {
+      "path": "../soql-common"
     },
     {
       "path": "../salesforcedx-vscode-i18n"

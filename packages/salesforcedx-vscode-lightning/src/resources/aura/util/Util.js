@@ -65,7 +65,7 @@ Aura.Utils.Util.prototype.isLocalStorageEnabled = function () {
                 window.localStorage.removeItem("__AURA_LOCAL_STORAGE_ENABLED_TEST");
                 this.localStorageEnabled = true;
             }
-        } catch (ignore) {
+        } catch {
             // do nothing
         }
     }
@@ -88,7 +88,7 @@ Aura.Utils.Util.prototype.isSessionStorageEnabled = function () {
                     window.sessionStorage.removeItem("__AURA_SESSION_STORAGE_ENABLED_TEST");
                     this.sessionStorageEnabled = true;
             }
-        } catch (ignore) {
+        } catch {
             // do nothing
         }
     }
@@ -230,7 +230,7 @@ Aura.Utils.Util.prototype.isPlainObject = function(o){
         if (p.hasOwnProperty('isPrototypeOf') === false) {
             return false;
         }
-    } catch (e) { /* Assume is  object when throws */}
+    } catch { /* Assume is  object when throws */}
 
     // Most likely a plain Object
     return true;
@@ -1045,7 +1045,7 @@ Aura.Utils.Util.prototype.removeElement = function(element) {
                     if (node.nodeType !== 3 && node.nodeType !== 8) {
                         try{
                             delete node["aura_deleted"];
-                        } catch(e) {
+                        } catch {
                             //IE7 having issue with delete
                             node.removeAttribute("aura_deleted");
                         }
@@ -1746,7 +1746,7 @@ Aura.Utils.Util.prototype.setFocus=function(target){
     if(target&&target.focus){
         try{
             target.focus();
-        }catch(e){
+        }catch{
             // Fail quietly
         }
     }
@@ -2484,7 +2484,7 @@ Aura.Utils.Util.prototype.toArray = function(collection) {
     try {
         // Done in a Try/Catch as calling this on a NodeList in IE6/7/8 throws an exception
         return Array.prototype.slice.call(collection);
-    } catch(e) {
+    } catch {
         // Try to just convert the collection to a normal array using a good ole for loop.
         var length = collection.length;
         var newCollection = new Array(length);

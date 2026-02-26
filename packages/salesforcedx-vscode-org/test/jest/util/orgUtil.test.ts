@@ -7,16 +7,23 @@
 
 import { AuthInfo, Config, Org, StateAggregator, OrgConfigProperties } from '@salesforce/core';
 import {
+  ExtensionProviderService,
+  type ExtensionProviderService as ExtensionProviderServiceType
+} from '@salesforce/effect-ext-utils';
+import {
   ConfigUtil,
   notificationService,
   workspaceUtils,
   ConfigAggregatorProvider
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
-import { OrgList } from '../../../src/orgPicker/orgList';
-import { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias, unsetTargetOrg } from '../../../src/util';
+import { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias } from '../../../src/util/orgUtil';
 
 describe('orgUtil tests', () => {
   let showWarningMessageSpy: jest.SpyInstance;
@@ -32,6 +39,13 @@ describe('orgUtil tests', () => {
   const now = new Date();
   const threeDaysFromNow = new Date(now.getTime() + 24 * 3 * 60 * 60_000);
   const yesterday = new Date(now.getTime() - 24 * 60 * 60_000);
+
+  // Create mock TargetOrgRef function
+  const createMockTargetOrgRef = (username?: string) => () =>
+    Effect.gen(function* () {
+      const ref = yield* SubscriptionRef.make<{ username?: string }>({ username });
+      return ref;
+    });
 
   beforeEach(() => {
     mockWatcher = {
@@ -72,9 +86,16 @@ describe('orgUtil tests', () => {
   });
 
   it('should not display a notification when no orgs are present', async () => {
-    listAllAuthorizationsSpy.mockResolvedValue(undefined);
-    const orgList = new OrgList();
-    await checkForSoonToBeExpiredOrgs(orgList);
+    listAllAuthorizationsSpy.mockResolvedValue([]);
+    const mockServicesApi = {
+      services: {
+        TargetOrgRef: createMockTargetOrgRef()
+      }
+    } as unknown as SalesforceVSCodeServicesApi;
+    const mockLayer = Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
+    });
+    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
 
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
     expect(appendLineSpy).not.toHaveBeenCalled();
@@ -94,8 +115,15 @@ describe('orgUtil tests', () => {
         aliases: [orgName2]
       }
     ]);
-    const orgList = new OrgList();
-    await checkForSoonToBeExpiredOrgs(orgList);
+    const mockServicesApi = {
+      services: {
+        TargetOrgRef: createMockTargetOrgRef()
+      }
+    } as unknown as SalesforceVSCodeServicesApi;
+    const mockLayer = Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
+    });
+    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
 
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
     expect(appendLineSpy).not.toHaveBeenCalled();
@@ -107,6 +135,7 @@ describe('orgUtil tests', () => {
     listAllAuthorizationsSpy.mockResolvedValue([
       {
         isDevHub: false,
+        isScratchOrg: true,
         username: 'foo',
         aliases: [orgName1]
       }
@@ -114,13 +143,21 @@ describe('orgUtil tests', () => {
 
     authInfoCreateSpy.mockResolvedValue({
       getFields: () => ({
+        username: 'foo',
+        alias: orgName1,
         expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
       })
     });
     getUsernameMock.mockResolvedValue('foo');
-
-    const orgList = new OrgList();
-    await checkForSoonToBeExpiredOrgs(orgList);
+    const mockServicesApi = {
+      services: {
+        TargetOrgRef: createMockTargetOrgRef('foo')
+      }
+    } as unknown as SalesforceVSCodeServicesApi;
+    const mockLayer = Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
+    });
+    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendLineSpy).not.toHaveBeenCalled();
@@ -132,6 +169,7 @@ describe('orgUtil tests', () => {
     listAllAuthorizationsSpy.mockResolvedValue([
       {
         isDevHub: false,
+        isScratchOrg: true,
         username: 'foo',
         aliases: [orgName1]
       }
@@ -139,14 +177,22 @@ describe('orgUtil tests', () => {
 
     authInfoCreateSpy.mockResolvedValue({
       getFields: () => ({
+        username: 'foo',
+        alias: orgName1,
         expirationDate: `${threeDaysFromNow.getFullYear()}-${
           threeDaysFromNow.getMonth() + 1
         }-${threeDaysFromNow.getDate()}`
       })
     });
-
-    const orgList = new OrgList();
-    await checkForSoonToBeExpiredOrgs(orgList);
+    const mockServicesApi = {
+      services: {
+        TargetOrgRef: createMockTargetOrgRef()
+      }
+    } as unknown as SalesforceVSCodeServicesApi;
+    const mockLayer = Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
+    });
+    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendLineSpy).toHaveBeenCalled();
@@ -158,26 +204,46 @@ describe('orgUtil tests', () => {
     listAllAuthorizationsSpy.mockResolvedValue([
       {
         isDevHub: false,
+        isScratchOrg: true,
         username: 'foo',
         aliases: [orgName1]
       },
       {
         isDevHub: false,
+        isScratchOrg: true,
         username: 'bar',
         aliases: [orgName2]
       }
     ]);
 
-    authInfoCreateSpy.mockResolvedValue({
-      getFields: () => ({
-        expirationDate: `${threeDaysFromNow.getFullYear()}-${
-          threeDaysFromNow.getMonth() + 1
-        }-${threeDaysFromNow.getDate()}`
+    authInfoCreateSpy
+      .mockResolvedValueOnce({
+        getFields: () => ({
+          username: 'foo',
+          alias: orgName1,
+          expirationDate: `${threeDaysFromNow.getFullYear()}-${
+            threeDaysFromNow.getMonth() + 1
+          }-${threeDaysFromNow.getDate()}`
+        })
       })
+      .mockResolvedValueOnce({
+        getFields: () => ({
+          username: 'bar',
+          alias: orgName2,
+          expirationDate: `${threeDaysFromNow.getFullYear()}-${
+            threeDaysFromNow.getMonth() + 1
+          }-${threeDaysFromNow.getDate()}`
+        })
+      });
+    const mockServicesApi = {
+      services: {
+        TargetOrgRef: createMockTargetOrgRef()
+      }
+    } as unknown as SalesforceVSCodeServicesApi;
+    const mockLayer = Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-
-    const orgList = new OrgList();
-    await checkForSoonToBeExpiredOrgs(orgList);
+    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendLineSpy).toHaveBeenCalled();
@@ -200,11 +266,13 @@ describe('orgUtil tests', () => {
     listAllAuthorizationsSpy.mockResolvedValue([
       {
         isDevHub: false,
+        isScratchOrg: true,
         username: 'about-to-expire-org@salesforce.com',
         aliases: [orgNameAboutToExpire]
       },
       {
         isDevHub: false,
+        isScratchOrg: true,
         username: 'expired-org@salesforce.com',
         aliases: [orgNameExpired]
       }
@@ -213,6 +281,8 @@ describe('orgUtil tests', () => {
     // Mock authInfoCreate to return different expiration dates based on org name
     authInfoCreateSpy.mockResolvedValueOnce({
       getFields: () => ({
+        username: 'about-to-expire-org@salesforce.com',
+        alias: orgNameAboutToExpire,
         expirationDate: `${aboutToExpireDate.getFullYear()}-${
           aboutToExpireDate.getMonth() + 1
         }-${aboutToExpireDate.getDate()}`
@@ -220,13 +290,21 @@ describe('orgUtil tests', () => {
     });
     authInfoCreateSpy.mockResolvedValueOnce({
       getFields: () => ({
+        username: 'expired-org@salesforce.com',
+        alias: orgNameExpired,
         expirationDate: `${expiredDate.getFullYear()}-${expiredDate.getMonth() + 1}-${expiredDate.getDate()}`
       })
     });
     getUsernameMock.mockResolvedValue('expired-org@salesforce.com');
-
-    const orgList = new OrgList();
-    await checkForSoonToBeExpiredOrgs(orgList);
+    const mockServicesApi = {
+      services: {
+        TargetOrgRef: createMockTargetOrgRef('expired-org@salesforce.com')
+      }
+    } as unknown as SalesforceVSCodeServicesApi;
+    const mockLayer = Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
+    });
+    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
 
     // Assert that the notifications for both orgs are displayed
     expect(showWarningMessageSpy).toHaveBeenCalledTimes(2);
@@ -239,53 +317,6 @@ describe('orgUtil tests', () => {
     expect(calls[1]).toContain(
       'Warning: One or more of your orgs expire in the next 5 days. For more details, review the Output panel.'
     );
-  });
-});
-
-describe('testing unsetTargetOrg', () => {
-  const fakeOriginalDirectory = 'test/directory';
-  const fakeWorkspace = 'test/workspace/';
-
-  let workspacePathStub: jest.SpyInstance;
-  let configStub: jest.SpyInstance;
-  let chdirStub: jest.SpyInstance;
-  let unsetMock: jest.SpyInstance;
-  let writeMock: jest.SpyInstance;
-  let mockConfigAggregatorProvider: jest.SpyInstance;
-  const mockConfigAggregatorProviderInstance = {
-    reloadConfigAggregators: jest.fn()
-  };
-  let stateAggregatorClearInstanceMock: jest.SpyInstance;
-
-  beforeEach(() => {
-    workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
-    jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
-    unsetMock = jest.fn();
-    writeMock = jest.fn();
-    configStub = jest.spyOn(Config, 'create');
-    configStub.mockResolvedValue({ unset: unsetMock, write: writeMock });
-    chdirStub = jest.spyOn(process, 'chdir').mockReturnValue();
-    mockConfigAggregatorProvider = jest
-      .spyOn(ConfigAggregatorProvider, 'getInstance')
-      .mockReturnValue(mockConfigAggregatorProviderInstance as any);
-    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstance');
-  });
-
-  it('should unset provided username or alias', async () => {
-    await unsetTargetOrg();
-    expect(unsetMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG);
-    expect(writeMock).toHaveBeenCalled();
-    expect(mockConfigAggregatorProvider).toHaveBeenCalled();
-    expect(mockConfigAggregatorProviderInstance.reloadConfigAggregators).toHaveBeenCalled();
-    expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
-  });
-
-  it('should change the current working directory to the original working directory', async () => {
-    await unsetTargetOrg();
-    expect(workspacePathStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
-    expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);
   });
 });
 

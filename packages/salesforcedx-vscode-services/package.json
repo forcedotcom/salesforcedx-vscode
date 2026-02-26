@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.17.3",
+  "version": "65.19.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -41,8 +41,8 @@
     "@opentelemetry/sdk-trace-web": "2.2.0",
     "@salesforce/core": "^8.23.4",
     "@salesforce/vscode-i18n": "*",
-    "@salesforce/o11y-reporter": "^1.7.4",
-    "@salesforce/source-deploy-retrieve": "^12.31.9",
+    "@salesforce/o11y-reporter": "^1.8.1",
+    "@salesforce/source-deploy-retrieve": "^12.31.12",
     "@salesforce/source-tracking": "^7.8.1",
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.19.14",
@@ -53,16 +53,11 @@
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
     "@types/node": "^20.0.0",
-    "browserify-zlib": "^0.2.0",
-    "esbuild": "0.25.12",
-    "https-browserify": "^1.0.0",
     "jsforce": "^3.9.4",
-    "nyc": "^15",
-    "querystring-es3": "^0.2.1",
-    "stream-http": "^3.2.0",
-    "timers-browserify": "^2.0.12"
+    "svgtofont": "^3.5.0"
   },
   "scripts": {
+    "build:icons": "wireit",
     "vscode:bundle": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -70,7 +65,7 @@
     "compile": "wireit",
     "generate-types": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json resources",
     "test": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
@@ -80,11 +75,24 @@
     "o11y:debug": "wireit"
   },
   "wireit": {
+    "build:icons": {
+      "command": "node scripts/build-icons.mjs",
+      "files": [
+        "scripts/build-icons.mjs",
+        "media/icons-src/*.svg",
+        "media/icons-src/icons.json"
+      ],
+      "output": [
+        "resources/icons-font/**"
+      ]
+    },
     "compile": {
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "generate-types"
+        "build:icons",
+        "generate-types",
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -198,7 +206,8 @@
         "README.md",
         "CHANGELOG.md",
         "LICENSE.txt",
-        "images/**"
+        "images/**",
+        "resources/icons-font/**"
       ],
       "output": [
         "*.vsix"
@@ -247,6 +256,11 @@
     "configuration": {
       "title": "%configuration.title%",
       "properties": {
+        "salesforce-web-console.protectedOrg": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.protectedOrg.description%"
+        },
         "salesforcedx-vscode-code-builder-web.instanceUrl": {
           "type": "string",
           "default": "",
@@ -279,7 +293,23 @@
         }
       }
     },
-    "commands": []
+    "commands": [],
+    "icons": {
+      "sf-org-leaf": {
+        "description": "Leaf icon for default scratch org",
+        "default": {
+          "fontPath": "resources/icons-font/sf-media-icons.woff",
+          "fontCharacter": "\\E001"
+        }
+      },
+      "sf-org-tree": {
+        "description": "Tree icon for default dev hub",
+        "default": {
+          "fontPath": "resources/icons-font/sf-media-icons.woff",
+          "fontCharacter": "\\E002"
+        }
+      }
+    }
   },
   "sideEffects": true
 }

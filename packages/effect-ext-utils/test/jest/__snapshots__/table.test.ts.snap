@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`createTable should align columns correctly with emoji in first column 1`] = `
+"    Type     Alias               Username                     
+──  ───────  ──────────────────  ─────────────────────────────
+    Scratch  nonTrackingTestOrg  test-ysyqxtqwtzfw@example.com
+🍁  Scratch  minimalTestOrg      test-kijlkuyegonk@example.com
+    Scratch                      test-2fsq5vcdyifl@example.com
+"
+`;
+
+exports[`createTable should create a simple table with 1 row and 3 columns 1`] = `
+"Name   Age  City
+─────  ───  ────
+Alice  30   NYC 
+"
+`;
+
+exports[`createTable should create a table with multiple rows 1`] = `
+"Name     Age  City   
+───────  ───  ───────
+Alice    30   NYC    
+Bob      25   LA     
+Charlie  35   Chicago
+"
+`;
+
+exports[`createTable should handle empty cells 1`] = `
+"Name   Age  City   
+─────  ───  ───────
+Alice  30   NYC    
+Bob    25          
+       35   Chicago
+"
+`;
+
+exports[`createTable should handle empty first column (for emoji markers) 1`] = `
+"    Type     Alias         
+──  ───────  ──────────────
+    Scratch  testOrg       
+🍁  Scratch  minimalTestOrg
+"
+`;
+
+exports[`createTable should handle multiline cells 1`] = `
+"Name   Age  City
+─────  ───  ────
+Alice  30   NYC 
+Smith           
+Bob    25   LA  
+"
+`;
+
+exports[`createTable should handle table with title 1`] = `
+"=== Test Table
+Name   Age
+─────  ───
+Alice  30 
+"
+`;
+
+exports[`createTable should match org list table format 1`] = `
+"    Type     Alias                        Username                       Org Id              Status  Expires   
+──  ───────  ───────────────────────────  ─────────────────────────────  ──────────────────  ──────  ──────────
+    Scratch  orgBrowserDreamhouseTestOrg  test-zsnw86qj2ggg@example.com  00DEc00000ZNoxdMAD  Active  2026-02-27
+🍁  Scratch  minimalTestOrg               test-kijlkuyegonk@example.com  00DcU000005DSMzUAO  Active  2026-02-10
+    Scratch  nonTrackingTestOrg           test-ysyqxtqwtzfw@example.com  00DEc00000YjpyJMAR  Active  2026-02-15
+    Scratch                               test-2fsq5vcdyifl@example.com  00DRt00000L6dnmMAB  Active  2026-02-13
+"
+`;

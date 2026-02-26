@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.17.3",
+  "version": "65.19.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,21 +28,19 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.19.1",
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
+    "@salesforce/vscode-services": "*",
     "@salesforce/vscode-i18n": "*",
-    "salesforcedx-vscode-core": "*",
+    "effect": "^3.19.14",
     "vscode-uri": "^3.0.8"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.5",
-    "esbuild": "0.25.12",
-    "jest": "^29.7.0",
-    "jest-junit": "14.0.1",
-    "ts-jest": "^29.4.1"
+    "jest-junit": "14.0.1"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -51,8 +49,9 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
-    "test": "wireit"
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
+    "test": "wireit",
+    "check:circular-deps": "wireit"
   },
   "wireit": {
     "compile": {
@@ -62,7 +61,8 @@
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-services-types:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -103,6 +103,21 @@
       ],
       "output": [
         "coverage"
+      ]
+    },
+    "check:circular-deps": {
+      "note": "does not pass yet due to old utils packages being used",
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
       ]
     },
     "lint": {

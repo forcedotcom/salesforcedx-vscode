@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { getVscodeCoreExtension } from '../../coreExtensionUtils';
+import { AllServicesLayer } from '../../extensionProvider';
 import { nls } from '../../messages';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
@@ -93,7 +95,9 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
     const skipAlias = this.instanceUrl !== undefined;
     // allow passing in the instance url programmatically instead of via quick pick
     if (!this.instanceUrl) {
-      const orgTypes = buildOrgTypes(await getProjectLoginUrl());
+      const orgTypes = buildOrgTypes(
+        await getProjectLoginUrl.pipe(Effect.provide(AllServicesLayer), Effect.runPromise)
+      );
       const selection = await vscode.window.showQuickPick(Object.values(orgTypes));
       if (!selection) {
         return { type: 'CANCEL' };
@@ -111,7 +115,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
           return { type: 'CANCEL' };
         }
       } else if (orgType === orgTypes.project?.label) {
-        this.instanceUrl = await getProjectLoginUrl();
+        this.instanceUrl = await getProjectLoginUrl.pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
       } else {
         this.instanceUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
       }
@@ -182,9 +186,9 @@ export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string
   }
 }
 
-const getProjectLoginUrl = async (): Promise<string | undefined> => {
-  // Get core API services
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const SalesforceProjectConfig = vscodeCoreExtension.exports.services.SalesforceProjectConfig;
-  return await SalesforceProjectConfig.getValue('sfdcLoginUrl');
-};
+const getProjectLoginUrl = Effect.gen(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const project = yield* api.services.ProjectService.getSfProject();
+  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
+  return projectJson.get('sfdcLoginUrl');
+});

@@ -9,18 +9,39 @@
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron } from '@playwright/test';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+import type { ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+
 import { filterErrors } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
 import { createTestWorkspace } from './desktopWorkspace';
+
+/** Close timeout before force-kill (non-macOS-CI path). */
+const CLOSE_TIMEOUT_MS = 5000;
+
+/**
+ * Force-kill an Electron process tree on macOS/Linux. Playwright spawns Electron
+ * with detached:true, giving it its own process group (PGID = PID). Sending
+ * SIGKILL to -pid kills the entire group (main + GPU + crashpad + utility).
+ * Then destroy stdio pipes so Node.js emits the ChildProcess 'exit' event —
+ * without this, Playwright's worker teardown waits for pipe EOF and times out.
+ */
+const forceKillProcessGroup = (proc: ChildProcess): void => {
+  const { pid } = proc;
+  if (typeof pid !== 'number') return;
+  try { process.kill(-pid, 'SIGKILL'); } catch {}
+  proc.stdin?.destroy();
+  proc.stdout?.destroy();
+  proc.stderr?.destroy();
+};
 
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
   orgAlias?: string;
-  /** Additional extension paths to load (e.g. metadata for apex-testing "SFDX: Create Apex Class") */
-  additionalExtensionPaths?: string[];
+  /** Additional extension directory names to load (ex: ['salesforcedx-vscode-metadata'] for apex-testing "SFDX: Create Apex Class") */
+  additionalExtensionDirs?: string[];
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
@@ -29,13 +50,7 @@ type CreateDesktopTestOptions = {
 
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
 export const createDesktopTest = (options: CreateDesktopTestOptions) => {
-  const {
-    fixturesDir,
-    orgAlias,
-    additionalExtensionPaths = [],
-    disableOtherExtensions = true,
-    userSettings
-  } = options;
+  const { fixturesDir, orgAlias, additionalExtensionDirs = [], disableOtherExtensions = true, userSettings } = options;
 
   const test = base.extend<TestFixtures, WorkerFixtures>({
     // Download VS Code once per worker (cached at repo root .vscode-test/)
@@ -43,41 +58,47 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       async ({}, use): Promise<void> => {
         const repoRoot = resolveRepoRoot(fixturesDir);
         const cachePath = path.join(repoRoot, '.vscode-test');
-        const executablePath = await downloadAndUnzipVSCode({ cachePath });
+        const version = process.env.PLAYWRIGHT_DESKTOP_VSCODE_VERSION ?? undefined;
+        const executablePath = await downloadAndUnzipVSCode({ version, cachePath });
         await use(executablePath);
       },
       { scope: 'worker' }
     ],
 
+    // Create workspace directory (shared with electronApp so tests can access path)
+    workspaceDir: async ({}, use): Promise<void> => {
+      const dir = await createTestWorkspace(orgAlias);
+      await use(dir);
+    },
+
     // Launch fresh Electron instance per test
-    electronApp: async ({ vscodeExecutable }, use): Promise<void> => {
-      const workspaceDir = await createTestWorkspace(orgAlias);
+    electronApp: async ({ vscodeExecutable, workspaceDir }, use): Promise<void> => {
       // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
       if (userSettings !== undefined && Object.keys(userSettings).length > 0) {
         const userSettingsDir = path.join(userDataDir, 'User');
         await fs.mkdir(userSettingsDir, { recursive: true });
-        await fs.writeFile(
-          path.join(userSettingsDir, 'settings.json'),
-          JSON.stringify(userSettings, null, 2)
-        );
+        await fs.writeFile(path.join(userSettingsDir, 'settings.json'), JSON.stringify(userSettings, null, 2));
       }
       const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
       await fs.mkdir(extensionsDir, { recursive: true });
 
       const packageRoot = path.resolve(fixturesDir, '..', '..', '..');
-      const extensionPath = packageRoot;
-      const servicesPath = path.resolve(packageRoot, '..', 'salesforcedx-vscode-services');
+
+      // Collect all extension paths: current extension + services + any additional
 
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
       await fs.mkdir(videosDir, { recursive: true });
 
       const extensionArgs = [
-        `--extensionDevelopmentPath=${extensionPath}`,
-        `--extensionDevelopmentPath=${servicesPath}`,
-        ...additionalExtensionPaths.map(p => `--extensionDevelopmentPath=${p}`)
-      ];
+        // Extension path is the package root (contains package.json and bundled dist/index.js)
+        packageRoot,
+        ...additionalExtensionDirs
+          .concat(['salesforcedx-vscode-services'])
+          .map(dir => path.resolve(packageRoot, '..', dir))
+      ].map(p => `--extensionDevelopmentPath=${p}`);
+
       const launchArgs = [
         `--user-data-dir=${userDataDir}`,
         `--extensions-dir=${extensionsDir}`,
@@ -102,10 +123,36 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       try {
         await use(electronApp);
       } finally {
-        // Ensure cleanup happens even if test fails
-        try {
-          await electronApp.close();
-        } catch {}
+        const proc = electronApp.process?.();
+        console.log(`[teardown] pid=${proc?.pid} platform=${process.platform} CI=${process.env.CI}`);
+
+        if (process.platform !== 'win32' && process.env.CI) {
+          // macOS/Linux CI: electronApp.close() hangs via CDP, leaving a dangling Promise
+          // that Playwright's worker teardown waits on (60s timeout). Kill the entire
+          // process group and destroy stdio pipes so the ChildProcess 'exit' event fires.
+          if (proc) {
+            forceKillProcessGroup(proc);
+            // Wait for Node.js to register the exit (pipes closed → 'close' event → 'exit' event)
+            await new Promise<void>(resolve => {
+              if (proc.exitCode !== null) { resolve(); return; }
+              proc.on('close', () => resolve());
+              setTimeout(resolve, 10_000);
+            });
+          }
+          console.log(`[teardown] exitCode=${proc?.exitCode} killed=${proc?.killed}`);
+        } else {
+          try {
+            await Promise.race([
+              electronApp.close(),
+              new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
+            ]);
+          } catch {}
+          // Force-kill if close didn't work (Windows timeout fallback)
+          if (proc?.exitCode === null && process.platform === 'win32') {
+            try { process.kill(proc.pid!, 'SIGKILL'); } catch {}
+          }
+        }
+        console.log('[teardown] done');
       }
     },
 
@@ -132,6 +179,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         }
       });
 
+      // Electron ignores config's use.viewport — set explicitly for consistent sizing across CI runners
+      await page.setViewportSize({ width: 1920, height: 1080 });
+
       const { WORKBENCH } = await import('../utils/locators.js');
       await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
       await use(page);
@@ -142,6 +192,15 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       console.log('\n🔍 DEBUG_MODE: Test failed - pausing to keep VS Code window open.');
       console.log('Press Resume in Playwright Inspector or close VS Code window to continue.');
       await page.pause();
+    }
+
+    // Rename video with test name for easy identification
+    const video = page.video();
+    if (video) {
+      const videoPath = await video.path();
+      const safeName = testInfo.titlePath.join('-').replaceAll(/[^a-zA-Z0-9-]/g, '_');
+      const newPath = path.join(path.dirname(videoPath), `${safeName}.webm`);
+      await fs.rename(videoPath, newPath).catch(() => {});
     }
   });
   return test;

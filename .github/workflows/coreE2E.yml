@@ -1,160 +1,128 @@
-name: Core End to End Tests
+name: Core E2E (Playwright)
 
 on:
   workflow_dispatch:
-    inputs:
-      anInitialSuite:
-        description: 'Verify Extensions'
-        required: false
-        default: true
-        type: boolean
-      authentication:
-        description: 'Authentication'
-        required: false
-        default: true
-        type: boolean
-      createProject:
-        description: 'Create Project'
-        required: false
-        default: true
-        type: boolean
-      snippets:
-        description: 'Apex and LWC Snippets'
-        required: false
-        default: true
-        type: boolean
-      sObjectsDefinitions:
-        description: 'sObjects Definitions'
-        required: false
-        default: true
-        type: boolean
-      templates:
-        description: 'Create Commands'
-        required: false
-        default: true
-        type: boolean
-      sfdxProjectJson:
-        description: 'sfdx-project.json'
-        required: false
-        default: true
-        type: boolean
-      vscodeVersion:
-        description: 'VSCode Version'
-        required: false
-        default: 'latest'
-        type: string
-      runId:
-        description: 'Run ID of the workflow run that created the vsixes'
-        required: true
-        type: string
+  push:
+    branches-ignore: [main, develop]
 
-  workflow_call:
-    inputs:
-      anInitialSuite:
-        description: 'Verify Extensions'
-        required: false
-        default: true
-        type: boolean
-      authentication:
-        description: 'Authentication'
-        required: false
-        default: true
-        type: boolean
-      createProject:
-        description: 'Create Project'
-        required: false
-        default: true
-        type: boolean
-      snippets:
-        description: 'Apex and LWC Snippets'
-        required: false
-        default: true
-        type: boolean
-      sObjectsDefinitions:
-        description: 'sObjects Definitions'
-        required: false
-        default: true
-        type: boolean
-      templates:
-        description: 'Create Commands'
-        required: false
-        default: true
-        type: boolean
-      sfdxProjectJson:
-        description: 'sfdx-project.json'
-        required: false
-        default: true
-        type: boolean
-      vscodeVersion:
-        description: 'VSCode Version'
-        required: false
-        default: 'latest'
-        type: string
-      runId:
-        description: 'Run ID of the workflow run that created the vsixes'
-        required: false
-        type: string
+concurrency:
+  group: ci-${{ github.ref }}-coreE2E
+  cancel-in-progress: true
 
 jobs:
-  anInitialSuite:
-    if: ${{ inputs.anInitialSuite }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'anInitialSuite.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+  e2e-desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+      fail-fast: false
 
-  authentication:
-    if: ${{ inputs.authentication }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'authentication.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+    env:
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      VSCODE_DESKTOP: 1
+      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-  createProject:
-    if: ${{ inputs.createProject }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'createProject.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
 
-  snippets:
-    if: ${{ inputs.snippets }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'snippets.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      - uses: google/wireit@setup-github-actions-caching/v2
 
-  sObjectsDefinitions:
-    if: ${{ inputs.sObjectsDefinitions }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'sObjectsDefinitions.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
-  templates:
-    if: ${{ inputs.templates }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'templates.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-core -- --reporter=html
 
-  sfdxProjectJson:
-    if: ${{ inputs.sfdxProjectJson }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'sfdxProjectJson.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        run: |
+          npm i -g @salesforce/cli
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        run: npx playwright install chromium --with-deps
+
+      - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: create scratch org
+        if: steps.try-run.outcome == 'failure'
+        # the tests expect a scratch org with a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
+
+      - name: Run Core E2E tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-core -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-core -- --last-failed --reporter=html
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-core/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-core/test-results
+          if-no-files-found: ignore
+
+      - name: Cleanup scratch orgs
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true

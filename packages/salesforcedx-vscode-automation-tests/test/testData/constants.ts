@@ -10,6 +10,11 @@ import { ExtensionConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/
 /** Default extension configurations for the consuming project's tests */
 export const defaultExtensionConfigs: ExtensionConfig[] = [
   {
+    extensionId: 'salesforcedx-vscode-services',
+    shouldVerifyActivation: true,
+    shouldInstall: 'always'
+  },
+  {
     extensionId: 'salesforcedx-vscode-core',
     shouldVerifyActivation: true,
     shouldInstall: 'always'
@@ -74,7 +79,7 @@ export const allSalesforceExtensions: ExtensionConfig[] = [
   },
   {
     extensionId: 'salesforcedx-vscode-core',
-    name: 'Salesforce CLI Integration',
+    name: 'Salesforce CLI',
     shouldInstall: 'always',
     shouldVerifyActivation: true
   },

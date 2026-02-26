@@ -5,12 +5,18 @@
   "workspaces": [
     "packages/*"
   ],
+  "overrides": {
+    "wireit": {
+      "brace-expansion": "4.0.1"
+    }
+  },
   "engines": {
     "node": ">=22.15.1"
   },
   "dependencies": {
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
+    "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/vscode-service-provider": "1.5.0",
     "jsforce": "^3.10.10",
     "memfs": "^4.17.2",
@@ -55,15 +61,14 @@
     "check-peer-dependencies": "4.3.0",
     "crypto-browserify": "3.12.1",
     "cz-conventional-changelog": "3.3.0",
-    "depcheck": "1.4.7",
     "dpdm": "^3.14.0",
     "effect": "^3.19.13",
-    "esbuild": "0.25.12",
+    "esbuild": "0.27.3",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-plugin-polyfill-node": "0.3.0",
     "esbuild-plugin-transform": "0.5.0",
-    "esbuild-plugins-node-modules-polyfill": "1.7.1",
-    "eslint": "^9.35.0",
+    "esbuild-plugins-node-modules-polyfill": "1.8.1",
+    "eslint": "^9.39.3",
     "eslint-config-prettier": "10.1.5",
     "eslint-plugin-barrel-files": "^3.0.1",
     "eslint-plugin-eslint-plugin": "7.2.0",
@@ -107,7 +112,7 @@
     "vscode-extension-tester": "^8.16.0",
     "wireit": "^0.14.12",
     "xml2js": "0.6.2",
-    "yaml": "2.6.0"
+    "yaml": "^2.8.2"
   },
   "scripts": {
     "build": "npm run compile",
@@ -158,6 +163,7 @@
         "./packages/salesforcedx-utils:compile",
         "./packages/salesforcedx-vscode-i18n:compile",
         "./packages/salesforcedx-utils-vscode:compile",
+        "./packages/soql-common:compile",
         "./packages/salesforcedx-sobjects-faux-generator:compile",
         "./packages/salesforcedx-apex-debugger:compile",
         "./packages/salesforcedx-apex-replay-debugger:compile",
@@ -190,6 +196,7 @@
         "./packages/salesforcedx-utils:lint",
         "./packages/salesforcedx-vscode-i18n:lint",
         "./packages/salesforcedx-utils-vscode:lint",
+        "./packages/soql-common:lint",
         "./packages/salesforcedx-sobjects-faux-generator:lint",
         "./packages/salesforcedx-apex-debugger:lint",
         "./packages/salesforcedx-apex-replay-debugger:lint",
@@ -223,6 +230,7 @@
         "./packages/salesforcedx-utils:test",
         "./packages/salesforcedx-vscode-i18n:test",
         "./packages/salesforcedx-utils-vscode:test",
+        "./packages/soql-common:test",
         "./packages/salesforcedx-sobjects-faux-generator:test",
         "./packages/salesforcedx-apex-debugger:test",
         "./packages/salesforcedx-apex-replay-debugger:test",
@@ -244,7 +252,8 @@
         "./packages/salesforcedx-vscode-visualforce:test",
         "./packages/salesforcedx-vscode-services:test",
         "./packages/salesforcedx-vscode-org:test",
-        "./packages/salesforcedx-vscode-org-browser:test"
+        "./packages/salesforcedx-vscode-org-browser:test",
+        "./packages/effect-ext-utils:test"
       ]
     },
     "vscode:bundle": {

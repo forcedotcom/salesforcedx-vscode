@@ -21,6 +21,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { nls } from '../messages';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { uriToPath } from '../vscode/paths';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -191,14 +192,19 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       const componentSet = yield* buildComponentSet(members);
 
       const tracking = yield* sourceTrackingService.getSourceTracking(options);
-      if (tracking) {
-        yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
-          Effect.withSpan('STL.ReReadLocalTrackingCache')
-        );
 
-        if (!options?.ignoreConflicts) {
-          yield* sourceTrackingService.checkConflicts(tracking);
-        }
+      if (tracking && !options?.ignoreConflicts) {
+        yield* Effect.promise(() =>
+          vscode.window.withProgress(
+            {
+              location: vscode.ProgressLocation.Notification,
+              title: nls.localize('checking_for_conflicts'),
+              cancellable: false
+            },
+            () => tracking.reReadLocalTrackingCache()
+          )
+        ).pipe(Effect.withSpan('STL.ReReadLocalTrackingCache'));
+        yield* sourceTrackingService.checkConflicts(tracking);
       }
 
       const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;

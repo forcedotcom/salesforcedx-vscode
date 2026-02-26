@@ -15,7 +15,7 @@ export enum MessageType {
   RUN_SOQL_QUERY_DONE = 'run_query_done'
 }
 
-export interface SoqlEditorEvent {
+export type SoqlEditorEvent = {
   type: MessageType;
   payload?: string | string[] | ToolingModelJson | TelemetryModelJson;
 }

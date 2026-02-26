@@ -16,9 +16,9 @@ type WebConfigOptions = {
 export const createWebConfig = (options: WebConfigOptions = {}) =>
   defineConfig({
     testDir: options.testDir ?? './test/playwright/specs',
-    fullyParallel: !process.env.CI,
+    fullyParallel: !process.env.E2E_SEQUENTIAL,
     forbidOnly: !!process.env.CI,
-    ...(process.env.CI ? { workers: 1 } : {}),
+    ...(process.env.E2E_SEQUENTIAL ? { workers: 1 } : {}), // Sequential when E2E_SEQUENTIAL=1 (used for retry step)
     reporter: process.env.CI
       ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit.xml' }]]
       : [['html', { open: 'never' }], ['list']],
@@ -46,7 +46,9 @@ export const createWebConfig = (options: WebConfigOptions = {}) =>
       {
         name: 'chromium',
         use: { ...devices['Desktop Chrome'] },
-        retries: 2,
+        // E2E_NO_RETRIES: workflow try-run sets this env var to fail fast on cache miss (missing org/chromium).
+        // Using env var instead of CLI arg preserves wireit cache key. See workflow comments for details.
+        retries: process.env.E2E_NO_RETRIES ? 0 : 2,
         snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/chromium/{arg}{ext}'
       }
     ],

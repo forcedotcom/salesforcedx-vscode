@@ -45,7 +45,14 @@
       "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/packages/*/out/src/**/*.js",
-        "${workspaceFolder}/packages/salesforcedx-vscode-apex-testing/dist/**/*.js"
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex-testing/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-org-browser/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-metadata/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-org/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-visualforce/dist/**/*.js"
       ],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
@@ -87,7 +94,14 @@
       "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/packages/*/out/src/**/*.js",
-        "${workspaceFolder}/packages/salesforcedx-vscode-apex-testing/dist/**/*.js"
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex-testing/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-org-browser/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-metadata/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-org/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-visualforce/dist/**/*.js"
       ],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
@@ -373,11 +387,15 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata"
       ],
+      "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-org-browser/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-metadata/dist/**/*.js"
-      ]
+      ],
+      "sourceMapPathOverrides": {
+        "webpack:///*": "*"
+      }
     },
     {
       "name": "Launch Only Org Browser, Services, Metadata & Core",
@@ -399,6 +417,21 @@
         "${workspaceFolder}/packages/salesforcedx-vscode-core/dist/**/*.js",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser"
+      ]
+    },
+    {
+      "name": "Launch Only Core & Services & Metadata",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/salesforcedx-vscode-core/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js"
       ]
     }
   ],

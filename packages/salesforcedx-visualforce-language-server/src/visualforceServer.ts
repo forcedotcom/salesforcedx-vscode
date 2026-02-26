@@ -43,9 +43,9 @@ import { getLanguageModes, LanguageModes, Settings } from './modes/languageModes
 
 import { pushAll } from './utils/arrays';
 
-namespace TagCloseRequest {
-  export const type: RequestType<TextDocumentPositionParams, string, any> = new RequestType('html/tag');
-}
+const TagCloseRequest = {
+  type: new RequestType<TextDocumentPositionParams, string, any>('html/tag')
+} as const;
 
 // Create a connection for the server
 const connection: Connection = createConnection();

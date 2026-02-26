@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   ActivationTracker,
   ChannelService,
@@ -21,13 +22,14 @@ import {
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { SharedAuthState } from './auth/sharedAuthState';
 import { channelService } from './channels';
 import {
-  aliasList,
+  aliasListCommand,
   analyticsGenerateTemplate,
   apexGenerateClass,
   apexGenerateTrigger,
@@ -76,11 +78,11 @@ import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
-import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
+import { buildAllServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
@@ -115,6 +117,13 @@ const registerSharedCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest)
   );
 
+const registerEffectCommands = () =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+    yield* registerCommand('sf.alias.list', () => aliasListCommand());
+  });
+
 /** Customer-facing commands */
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
@@ -133,7 +142,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.lightning.generate.interface', lightningGenerateInterface),
     vscode.commands.registerCommand('sf.lightning.generate.lwc', lightningGenerateLwc),
     vscode.commands.registerCommand('sf.config.list', configList),
-    vscode.commands.registerCommand('sf.alias.list', aliasList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
@@ -204,7 +212,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
   // Set shared commands visibility context (inverse of useMetadataExtensionCommands)
-  const useMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
+  // Only hide shared commands if metadata extension is installed AND config is enabled
+  const metadataExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-metadata');
+  const useMetadataCommands = metadataExtension && salesforceCoreSettings.getUseMetadataExtensionCommands();
   await vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !useMetadataCommands);
   // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();
@@ -263,25 +273,24 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
   void vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', codeBuilderEnabled);
 
-  // Set initial context
-  await checkPackageDirectoriesEditorView();
-
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);
   }
 
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await Effect.runPromise(registerEffectCommands().pipe(Effect.provide(AllServicesLayer)));
+
   extensionContext.subscriptions.push(
     registerCommands(extensionContext),
     registerSharedCommands(),
-    // Register editor change listener
-    vscode.window.onDidChangeActiveTextEditor(async () => {
-      await checkPackageDirectoriesEditorView();
-    }),
     // Register configuration change listener for shared commands visibility
     vscode.workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration(`${SFDX_CORE_CONFIGURATION_NAME}.${USE_METADATA_EXTENSION_COMMANDS}`)) {
-        const updatedUseMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
-        void vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !updatedUseMetadataCommands);
+        void vscode.commands.executeCommand(
+          'setContext',
+          'sf:show_shared_commands',
+          !metadataExtension || !salesforceCoreSettings.getUseMetadataExtensionCommands()
+        );
       }
     }),
     registerConflictView(),

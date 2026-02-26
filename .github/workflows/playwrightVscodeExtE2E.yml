@@ -2,10 +2,12 @@ name: Playwright VS Code Ext E2E Tests
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'packages/playwright-vscode-ext/**'
-      - '.github/workflows/playwrightVscodeExtE2E.yml'
+  push:
+    branches-ignore: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}-playwrightVscodeExtE2E
+  cancel-in-progress: true
 
 jobs:
   e2e-web:
@@ -23,20 +25,40 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - uses: google/wireit@setup-github-actions-caching/v2
+
       - name: Install dependencies
-        run: npm ci
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
-      - name: Compile
-        run: npm run compile -w @salesforce/playwright-vscode-ext
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
+      # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:web -w @salesforce/playwright-vscode-ext
 
-      - name: Install Playwright browsers and OS deps
-        run: npx playwright install chromium --with-deps
-
-      - name: Run Playwright web tests
+      - name: Run Playwright web tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
         env:
           CI: 1
         run: |
           npm run test:web -w @salesforce/playwright-vscode-ext
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:web -w @salesforce/playwright-vscode-ext -- --last-failed
 
       - name: Upload Playwright HTML report
         if: always()
@@ -57,6 +79,8 @@ jobs:
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    env:
+      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
@@ -74,21 +98,48 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - uses: google/wireit@setup-github-actions-caching/v2
+
       - name: Install dependencies
-        run: npm ci
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
-      - name: Compile
-        run: npm run compile -w @salesforce/playwright-vscode-ext
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
+      # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:desktop -w @salesforce/playwright-vscode-ext
 
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
-      - name: Run Playwright desktop tests
+      - name: Run Playwright desktop tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
         env:
           CI: 1
           VSCODE_DESKTOP: 1
         run: |
           npm run test:desktop -w @salesforce/playwright-vscode-ext
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          E2E_SEQUENTIAL: 1
+        run: |
+          npm run test:desktop -w @salesforce/playwright-vscode-ext -- --last-failed
 
       - name: Upload Playwright HTML report
         if: always()

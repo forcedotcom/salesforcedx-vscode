@@ -10,11 +10,15 @@ import {
   ensureOutputPanelOpen,
   selectOutputChannel,
   clearOutputChannel,
-  waitForOutputChannelText,
-  outputChannelContains
+  waitForOutputChannelText
 } from '../../../src/pages/outputChannel';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
-import { waitForVSCodeWorkbench, assertWelcomeTabExists, closeWelcomeTabs } from '../../../src/utils/helpers';
+import {
+  waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
+  ensureSecondarySideBarHidden
+} from '../../../src/utils/helpers';
 import { EDITOR } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
@@ -23,6 +27,7 @@ test.describe('Output Channel', () => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
   });
 
   test('should open output panel', async ({ page }) => {
@@ -77,8 +82,7 @@ test.describe('Output Channel', () => {
     });
 
     await test.step('Check if output contains text', async () => {
-      const contains = await outputChannelContains(page, 'Salesforce');
-      expect(contains).toBe(true);
+      await waitForOutputChannelText(page, { expectedText: 'Salesforce', timeout: 10_000 });
     });
   });
 

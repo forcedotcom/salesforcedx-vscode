@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.17.3",
+  "version": "65.19.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,8 +35,7 @@
   "devDependencies": {
     "@salesforce/core": "^8.23.3",
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.31.9",
-    "esbuild": "0.25.12",
+    "@salesforce/source-deploy-retrieve": "^12.31.12",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -182,8 +181,11 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.web.ts"
-      ]
+        "playwright.config.web.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
@@ -196,8 +198,11 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts"
-      ]
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:e2e": {
       "dependencies": [

@@ -1,6 +1,6 @@
 ---
 name: services-extension-consumption
-description: Guidelines for consuming salesforcedx-vscode-services extension API. Use when working with extensions that have extensionDependency on salesforcedx-vscode-services, registering commands, using Workspace/Connection/Project/Settings/FS/Channel services, or implementing file/config watchers.
+description: Guidelines for consuming salesforcedx-vscode-services extension API. Use when working with extensions that have extensionDependency on salesforcedx-vscode-services, registering commands, using Workspace/Connection/Project/Settings/FS/Channel/Media services, or implementing file/config watchers.
 ---
 
 # Consuming salesforcedx-vscode-services
@@ -89,11 +89,13 @@ Commands auto:
 Accessor pattern: call methods directly, don't assign to variable first.
 
 - [ChannelService](references/channel-service.md) - Output channel
+- [MediaService](references/media-service.md) - Icons (ICONS) and NLS descriptions
 - [WorkspaceService](references/workspace-service.md) - Workspace info
 - [ConnectionService](references/connection-service.md) - Org connections
-- [ProjectService](references/project-service.md) - Project resolution
+- [ProjectService](references/project-service.md) - Project resolution, packageDirectories
 - [SettingsService](references/settings-service.md) - Settings read/write
-- [FsService](references/fs-service.md) - File ops (web-compatible)
+- [FsService](references/fs-service.md) - File ops (web-compatible) and uri/path conversion
+- [EditorService](references/editor-service.md) - Active editor changes and current URI
 
 ## Watchers
 
@@ -181,9 +183,11 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
 
       return Layer.mergeAll(
-        // list whatever you need.  TS will tell you if there's somethig missing
+        // list whatever you need.  TS will tell you if there's something missing
         ExtensionProviderServiceLive,
         api.services.ConnectionService.Default,
+        api.services.EditorService.Default,
+        api.services.MediaService.Default,
         api.services.ExtensionContextServiceLayer(context),
         api.services.ProjectService.Default,
         api.services.WorkspaceService.Default,
@@ -201,6 +205,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
+  // useful if registering multiple commands...they all get the layer provided to them
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
 
   yield* registerCommand('sf.my.command', myCommandEffect);
@@ -212,6 +217,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 ## Common Patterns
 
 - Include `ExtensionContextServiceLayer(context)` when you have ExtensionContext
+- Use `MediaService.Default` when building UI strings in Effect; use direct `import { ICONS }` when outside Effect
 - Provide `ChannelServiceLayer` before `ErrorHandlerService`
 - Use `SdkLayerFor` with extension name/version for observability
 - Fork watchers with `Effect.forkIn(..., yield* getExtensionScope())` for cleanup on deactivation

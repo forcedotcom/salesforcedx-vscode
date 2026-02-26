@@ -10,23 +10,20 @@ Do each of these steps, in order. Do not move to a step unless all previous are 
 1. `npm run compile` - See [references/compile.md](references/compile.md) for commands and errors
 2. `npm run lint` - fix any new errors or warnings
 3. `npm run test` - See [references/unit-tests.md]
-4. `npm run vscode:bundle` to make sure the extensions still bundle
+4. `npm run vscode:bundle` to ensure the extensions still bundle
 
-if working in [vscode-services, org-browser or metadata] extension, run headless tests for those extensions
+5. If working in packages with `test:web`/`test:desktop` scripts:
+   - Package-level only (not in root): `salesforcedx-vscode-core`, `salesforcedx-vscode-services` (web), `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata`, `salesforcedx-vscode-apex-testing`, `playwright-vscode-ext`
+   - Run from root: `npm run test:web -w <package-name>` / `npm run test:desktop -w <package-name>`
+   - Skip if not in these packages
+   - Run with `--retries 0` for fast feedback and less flakes
 
-- Run with `--retries 0` to get quicker feedback
+6. `npx knip` - check for dead code related to your changes
 
-5. `npm test:web`
-6. `npm test:desktop`
-
-7. `npx knip` - check for dead code related to your changes
-
-- **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests.  Exception for [ts4023 reasons](../ts4023-effect-errors/SKILL.md)
+- **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests. Exception for [ts4023 reasons](../ts4023-effect-errors/SKILL.md)
 - Don't leave any exports that are only used within the same file
 
-8. check for dupes `npm run check:dupes` and then look in `jscpd-report` to make sure none of your changes are flagged.
-
-When you think you're done with changes 4.
+7. check for dupes `npm run check:dupes` and then look in `jscpd-report` to make sure none of your changes are flagged.
 
 ## Rules
 
