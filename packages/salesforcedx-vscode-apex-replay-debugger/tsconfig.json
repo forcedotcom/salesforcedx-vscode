@@ -47,6 +47,9 @@
       "path": "../salesforcedx-vscode-core"
     },
     {
+      "path": "../salesforcedx-vscode-metadata"
+    },
+    {
       "path": "../salesforcedx-vscode-services"
     },
     {

@@ -1,13 +1,38 @@
 {
   "extends": "../../tsconfig.common.json",
-  "compilerOptions": { "rootDir": ".", "outDir": "out", "plugins": [{ "name": "@effect/language-service" }] },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "out",
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "dist"
+  ],
   "references": [
-    { "path": "../effect-ext-utils" },
-    { "path": "../salesforcedx-utils" },
-    { "path": "../salesforcedx-utils-vscode" },
-    { "path": "../salesforcedx-vscode-i18n" },
-    { "path": "../salesforcedx-vscode-services-types" }
+    {
+      "path": "../effect-ext-utils"
+    },
+    {
+      "path": "../salesforcedx-utils"
+    },
+    {
+      "path": "../salesforcedx-utils-vscode"
+    },
+    {
+      "path": "../salesforcedx-vscode-services-types"
+    },
+    {
+      "path": "../salesforcedx-vscode-i18n"
+    }
   ]
 }

@@ -4,19 +4,19 @@ overview: Migrate `apexReplayDebugger.e2e.ts` from the RedHat/vscode-extension-t
 todos:
   - id: config-fixtures
     content: Create playwright.config.desktop.ts, fixtures/desktopFixtures.ts, fixtures/index.ts
-    status: pending
+    status: completed
   - id: spec-file
     content: Create apexReplayDebugger.desktop.spec.ts with all test steps
-    status: pending
+    status: completed
   - id: package-json
     content: Add test:desktop wireit script to package.json
-    status: pending
+    status: completed
   - id: ci-workflow
     content: Create .github/workflows/apexReplayDebuggerE2E.yml (desktop-only)
-    status: pending
+    status: completed
   - id: verify
     content: 'Run verification: compile, lint, bundle, knip, check:dupes'
-    status: pending
+    status: completed
 isProject: false
 ---
 

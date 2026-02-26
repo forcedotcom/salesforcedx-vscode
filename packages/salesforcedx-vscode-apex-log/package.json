@@ -354,63 +354,51 @@
     "commands": [
       {
         "command": "sf.create.anonymous.apex.script",
-        "title": "%apexLog.command.createAnonymousApexScript%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.createAnonymousApexScript%"
       },
       {
         "command": "sf.apex.log.get",
-        "title": "%apexLog.command.logGet%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.logGet%"
       },
       {
         "command": "sf.apex.log.openFolder",
-        "title": "%apexLog.command.openLogsFolder%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.openLogsFolder%"
       },
       {
         "command": "sf.apex.traceFlags.open",
-        "title": "%apexLog.command.traceFlagsOpen%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.traceFlagsOpen%"
       },
       {
         "command": "sf.apex.traceFlags.createForCurrentUser",
-        "title": "%apexLog.command.traceFlagsCreateForCurrentUser%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.traceFlagsCreateForCurrentUser%"
       },
       {
         "command": "sf.apex.traceFlags.deleteForCurrentUser",
-        "title": "%apexLog.command.traceFlagsDeleteForCurrentUser%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.traceFlagsDeleteForCurrentUser%"
       },
       {
         "command": "sf.apex.traceFlags.createForUser",
-        "title": "%apexLog.command.traceFlagsCreateForUser%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.traceFlagsCreateForUser%"
       },
       {
         "command": "sf.apex.traceFlags.createLogLevel",
-        "title": "%apexLog.command.traceFlagsCreateLogLevel%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.traceFlagsCreateLogLevel%"
       },
       {
         "command": "sf.apex.traceFlags.deleteForId",
-        "title": "%apexLog.command.traceFlagsDeleteForId%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.traceFlagsDeleteForId%"
       },
       {
         "command": "sf.apex.traceFlags.deleteDebugLevelForId",
-        "title": "%apexLog.command.traceFlagsDeleteDebugLevelForId%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.traceFlagsDeleteDebugLevelForId%"
       },
       {
         "command": "sf.anon.apex.execute.document",
-        "title": "%apexLog.command.executeDocument%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.executeDocument%"
       },
       {
         "command": "sf.anon.apex.execute.selection",
-        "title": "%apexLog.command.executeSelection%",
-        "category": "Salesforce"
+        "title": "%apexLog.command.executeSelection%"
       }
     ],
     "jsonValidation": [
