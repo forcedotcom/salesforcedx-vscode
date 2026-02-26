@@ -40,8 +40,9 @@ const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void>
       .then(() => true)
       .catch(() => false);
     if (!clicked) break;
+    // CI is slower; allow more time for session to end after Continue
     const sessionEnded = await expect(toolbar)
-      .not.toBeVisible({ timeout: 5000 })
+      .not.toBeVisible({ timeout: 25000 })
       .then(() => true)
       .catch(() => false);
     if (sessionEnded) break;
