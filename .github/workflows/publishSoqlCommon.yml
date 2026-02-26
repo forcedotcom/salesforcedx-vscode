@@ -2,10 +2,20 @@ name: Publish soql-common Package to npm
 
 on:
   workflow_dispatch:
+    inputs:
+      releaseType:
+        description: 'Select the release type'
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   bump-and-tag:
-    name: Bump patch version and create tag
+    name: Bump version and create tag
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
@@ -21,11 +31,11 @@ jobs:
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
-      - name: Bump patch version
+      - name: Bump version
         id: bump
         working-directory: packages/soql-common
         run: |
-          npm version patch --no-git-tag-version
+          npm version ${{ github.event.inputs.releaseType || 'patch' }} --no-git-tag-version
           VERSION=$(node -pe "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Commit and push version bump
