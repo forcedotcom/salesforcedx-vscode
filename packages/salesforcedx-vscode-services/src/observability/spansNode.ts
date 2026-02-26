@@ -12,7 +12,8 @@ import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
-import { getConsoleTracesEnabled, getLocalTracesEnabled } from './localTracing';
+import { FileSpanExporterNode } from './fileSpanExporterNode';
+import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
@@ -46,6 +47,7 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
       ...(o11yEndpoint && (o11yEndpoint.includes('localhost') || isTelemetryExtensionConfigurationEnabled())
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
-      ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : [])
+      ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
+      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new FileSpanExporterNode(extensionName))] : [])
     ]
   }));
