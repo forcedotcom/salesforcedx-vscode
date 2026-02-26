@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+
 // Mock the internal utils module (used by baseContext.ts via './utils')
 jest.mock(
   '../../../salesforcedx-lightning-lsp-common/out/src/utils',
@@ -41,7 +43,7 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
 // because baseContext.ts imports from './utils' directly (which resolves to out/src/utils.js)
 
 // Create the mock implementation function
-const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: string, fileSystemProvider: any) => {
+const createReadJsonSyncMockImplementation = (actualUtils: any) => (file: string, fileSystemProvider: any) => {
   try {
     const normalizedFile = actualUtils.normalizePath?.(file);
     const content = fileSystemProvider?.getFileContent?.(normalizedFile);
@@ -108,9 +110,7 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 jest.mock('../resources/transformed-lwc-standard.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const pathModule = require('node:path');
   // Find package root (lwc-language-server)
   let current = __dirname;
@@ -191,7 +191,7 @@ let auraDocument: TextDocument;
 let hoverDocument: TextDocument;
 
 // Setup function to load all documents once
-const setupDocuments = async (): Promise<void> => {
+const setupDocuments = (): void => {
   document = createDocument(filename, 'html');
   jsDocument = createDocument(jsFilename, 'javascript');
   auraDocument = createDocument(auraFilename, 'html');
@@ -741,7 +741,7 @@ describe('lwcServerNode', () => {
         return tsconfigPaths;
       };
 
-      beforeEach(async () => {
+      beforeEach(() => {
         // Clean up before each test run
         const provider = server.fileSystemProvider;
         try {
@@ -794,7 +794,7 @@ describe('lwcServerNode', () => {
         mockTypeScriptSupportConfig = false;
       });
 
-      afterEach(async () => {
+      afterEach(() => {
         // Clean up after each test run
         const provider = server.fileSystemProvider;
         if (provider.fileExists(baseTsconfigPath)) {
@@ -917,8 +917,7 @@ describe('lwcServerNode', () => {
           }
           const sfdxTsConfig = JSON.parse(sfdxTsConfigContent);
           return Object.keys(sfdxTsConfig.compilerOptions.paths ?? {});
-        } catch (error) {
-          console.error(`Failed to read tsconfig: ${error.message}`);
+        } catch {
           return [];
         }
       };
@@ -947,7 +946,7 @@ describe('lwcServerNode', () => {
         mockTypeScriptSupportConfig = true;
       });
 
-      afterEach(async () => {
+      afterEach(() => {
         // Clean up after each test run
         const provider = server.fileSystemProvider;
         if (provider.fileExists(baseTsconfigPath) || server.fileSystemProvider.fileExists(baseTsconfigPath)) {

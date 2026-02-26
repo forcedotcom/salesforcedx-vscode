@@ -37,7 +37,7 @@ export {
 } from './baseContext';
 
 // Re-export from shared
-export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper, detectWorkspaceType } from './shared';
+export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper } from './shared';
 
 // Re-export from indexer
 export { TagInfo, getHover } from './indexer/tagInfo';

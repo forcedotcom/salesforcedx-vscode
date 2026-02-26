@@ -14,7 +14,7 @@ import { NormalizedPath } from '../utils';
 import { WorkspaceContext } from './workspaceContext';
 
 describe('utils', () => {
-  it('isLWCRootDirectoryChange', async () => {
+  it('isLWCRootDirectoryChange', () => {
     const noLwcFolderCreated: FileEvent = {
       type: FileChangeType.Created,
       uri: 'file:///Users/user/test/dir'
@@ -65,7 +65,7 @@ describe('utils', () => {
       fileSystemProvider = new FileSystemDataProvider();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
       fileSystemProvider.clear();
     });
 

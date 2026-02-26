@@ -115,10 +115,7 @@ describe('LWCWorkspaceContext', () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
     context.initialize('SFDX');
     // Mock connection for file operations (required for configureProjectForTs)
-    const mockConnection = {
-      sendRequest: jest.fn().mockResolvedValue({ applied: true })
-    } as any;
-    context.connection = mockConnection;
+    context.connection!.sendRequest = jest.fn().mockResolvedValue({ applied: true });
     const baseTsconfigPathForceApp = resolve(join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json'));
     const tsconfigPathForceApp = resolve(join(FORCE_APP_ROOT, 'lwc', 'tsconfig.json'));
     const tsconfigPathUtils = resolve(join(UTILS_ROOT, 'lwc', 'tsconfig.json'));
@@ -142,6 +139,7 @@ describe('LWCWorkspaceContext', () => {
     if (!baseTsConfigBuffer) {
       throw new Error('Base tsconfig file not found');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const baseTsConfigForceAppContent = JSON.parse(baseTsConfigBuffer);
     expect(baseTsConfigForceAppContent).toEqual({
       compilerOptions: {
@@ -159,6 +157,7 @@ describe('LWCWorkspaceContext', () => {
     if (!tsconfigBuffer) {
       throw new Error('Tsconfig file not found');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const tsconfigForceAppContent = JSON.parse(Buffer.from(tsconfigBuffer).toString('utf8'));
     expect(tsconfigForceAppContent).toEqual({
       extends: '../../../../.sfdx/tsconfig.sfdx.json',

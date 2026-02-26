@@ -64,6 +64,7 @@ const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProv
       const contentFromUri = fileSystemProvider.getFileContent(exactMatch);
       if (contentFromUri) {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return JSON.parse(contentFromUri);
         } catch (error) {
           Logger.error(
@@ -76,6 +77,7 @@ const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProv
 
     if (content) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return JSON.parse(content);
       } catch (error) {
         Logger.error(

@@ -43,10 +43,11 @@ beforeAll(() => {
   delete process.env.P4USER;
 });
 
-const verifyJsconfigCore = async (fileSystemProvider: FileSystemDataProvider, jsconfigPath: string): Promise<void> => {
+const verifyJsconfigCore = (fileSystemProvider: FileSystemDataProvider, jsconfigPath: string): void => {
   const normalizedPath = normalizePath(jsconfigPath);
   const jsconfigContent = Buffer.from(fileSystemProvider.getFileContent(normalizedPath) ?? '').toString('utf8');
   expect(jsconfigContent).toContain('"compilerOptions": {');
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const jsconfig = JSON.parse(jsconfigContent);
   expect(jsconfig.compilerOptions.experimentalDecorators).toBe(true);
   expect(Array.isArray(jsconfig.include)).toBe(true);
@@ -64,7 +65,7 @@ const verifyJsconfigCore = async (fileSystemProvider: FileSystemDataProvider, js
   });
 };
 
-const verifyTypingsCore = async (fileSystemProvider: FileSystemDataProvider): Promise<void> => {
+const verifyTypingsCore = (fileSystemProvider: FileSystemDataProvider): void => {
   const typingsPath = path.join(CORE_ALL_ROOT, '.vscode', 'typings', 'lwc');
   expect(fileSystemProvider.fileExists(path.join(typingsPath, 'engine.d.ts'))).toBe(true);
   expect(fileSystemProvider.fileExists(path.join(typingsPath, 'lds.d.ts'))).toBe(true);
@@ -130,7 +131,7 @@ describe('WorkspaceContext', () => {
     expect(context.type).toBe('CORE_PARTIAL');
 
     expect(
-      await getModulesDirs(context.type, context.workspaceRoots, coreProjectFileSystemProvider, () =>
+      getModulesDirs(context.type, context.workspaceRoots, coreProjectFileSystemProvider, () =>
         context.initSfdxProjectConfigCache()
       )
     ).toEqual([normalizePath(path.join(context.workspaceRoots[0], 'modules'))]);
@@ -139,7 +140,7 @@ describe('WorkspaceContext', () => {
     context.initialize('CORE_ALL');
     expect(context.workspaceRoots.length).toBe(2);
 
-    const modulesDirs = await getModulesDirs(context.type, context.workspaceRoots, coreMultiFileSystemProvider, () =>
+    const modulesDirs = getModulesDirs(context.type, context.workspaceRoots, coreMultiFileSystemProvider, () =>
       context.initSfdxProjectConfigCache()
     );
     // For CORE_ALL with multiple roots, getModulesDirs only processes the first root
@@ -210,6 +211,7 @@ describe('WorkspaceContext', () => {
       sfdxFileSystemProvider.getFileContent(jsconfigPathForceApp) ?? ''
     ).toString('utf8');
     expect(jsconfigForceAppContent).toContain('"compilerOptions": {');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const jsconfigForceApp = JSON.parse(jsconfigForceAppContent);
     expect(jsconfigForceApp.compilerOptions.experimentalDecorators).toBe(true);
     expect(jsconfigForceApp.include[0]).toBe('**/*');
@@ -221,6 +223,7 @@ describe('WorkspaceContext', () => {
       'utf8'
     );
     expect(jsconfigUtilsContent).toContain('"compilerOptions": {');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const jsconfigUtils = JSON.parse(jsconfigUtilsContent);
     expect(jsconfigUtils.compilerOptions.target).toBe('es2017');
     expect(jsconfigUtils.compilerOptions.experimentalDecorators).toBe(true);
@@ -265,7 +268,7 @@ describe('WorkspaceContext', () => {
     expect(apexContents).not.toContain('declare type');
   });
 
-  it('configureCoreProject()', async () => {
+  it('configureCoreProject()', () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);
     context.initialize('CORE_PARTIAL');
     const jsconfigPath = path.join(CORE_PROJECT_ROOT, 'modules', 'jsconfig.json');
@@ -310,16 +313,17 @@ describe('WorkspaceContext', () => {
     // configure and verify typings/jsconfig after configuration:
     context.configureProject();
 
-    await verifyJsconfigCore(coreProjectFileSystemProvider, jsconfigPath);
-    await verifyTypingsCore(coreProjectFileSystemProvider);
+    verifyJsconfigCore(coreProjectFileSystemProvider, jsconfigPath);
+    verifyTypingsCore(coreProjectFileSystemProvider);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const settings = JSON.parse(
       Buffer.from(coreProjectFileSystemProvider.getFileContent(settingsPath) ?? '').toString('utf8')
     );
     verifyCoreSettings(settings);
   });
 
-  it('configureCoreMulti()', async () => {
+  it('configureCoreMulti()', () => {
     const context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemProvider);
     context.initialize('CORE_ALL');
 
@@ -335,7 +339,7 @@ describe('WorkspaceContext', () => {
     // Note: This test may need adjustment based on actual CORE_ALL behavior with multiple roots
     // For now, just verify the tsconfig still exists
     expect(coreMultiFileSystemProvider.fileExists(normalizePath(tsconfigPathForce))).toBe(true);
-    await verifyTypingsCore(coreMultiFileSystemProvider);
+    verifyTypingsCore(coreMultiFileSystemProvider);
 
     coreMultiFileSystemProvider.updateFileStat(normalizePath(tsconfigPathForce), {
       type: 'file',
@@ -346,7 +350,7 @@ describe('WorkspaceContext', () => {
     });
   });
 
-  it('configureCoreAll()', async () => {
+  it('configureCoreAll()', () => {
     const context = new WorkspaceContext(CORE_ALL_ROOT, coreFileSystemProvider);
     context.initialize('CORE_ALL');
     const jsconfigPathGlobal = path.join(CORE_ALL_ROOT, 'ui-global-components', 'modules', 'jsconfig.json');
@@ -360,9 +364,9 @@ describe('WorkspaceContext', () => {
     context.configureProject();
 
     // verify newly created jsconfig.json
-    await verifyJsconfigCore(coreFileSystemProvider, jsconfigPathGlobal);
-    await verifyJsconfigCore(coreFileSystemProvider, jsconfigPathForce);
-    await verifyTypingsCore(coreFileSystemProvider);
+    verifyJsconfigCore(coreFileSystemProvider, jsconfigPathGlobal);
+    verifyJsconfigCore(coreFileSystemProvider, jsconfigPathForce);
+    verifyTypingsCore(coreFileSystemProvider);
 
     // Commenting out core-workspace & launch.json tests until we finalize
     // where these should live or if they should exist at all

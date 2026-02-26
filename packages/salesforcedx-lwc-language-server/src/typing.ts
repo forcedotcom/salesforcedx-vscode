@@ -7,28 +7,28 @@
 import * as path from 'node:path';
 import * as xml2js from 'xml2js';
 
-const metaRegex = new RegExp(/(?<name>[\w-\.]+)\.(?<type>\w.+)-meta$/);
+const metaRegex = new RegExp(/(?<name>[\w.-]+)\.(?<type>\w.+)-meta$/);
 
 const declaration = (type: string, name: string): string => {
-    let modulePath: string;
-    switch (type) {
-        case 'asset':
-            modulePath = `@salesforce/contentAssetUrl/${name}`;
-            break;
-        case 'resource':
-            modulePath = `@salesforce/resourceUrl/${name}`;
-            break;
-        case 'messageChannel':
-            modulePath = `@salesforce/messageChannel/${name}__c`;
-            break;
-        case 'customLabel':
-            modulePath = `@salesforce/label/c.${name}`;
-            break;
-        default:
-            throw new Error(`${type} not supported`);
-    }
+  let modulePath: string;
+  switch (type) {
+    case 'asset':
+      modulePath = `@salesforce/contentAssetUrl/${name}`;
+      break;
+    case 'resource':
+      modulePath = `@salesforce/resourceUrl/${name}`;
+      break;
+    case 'messageChannel':
+      modulePath = `@salesforce/messageChannel/${name}__c`;
+      break;
+    case 'customLabel':
+      modulePath = `@salesforce/label/c.${name}`;
+      break;
+    default:
+      throw new Error(`${type} not supported`);
+  }
 
-    return `declare module "${modulePath}" {
+  return `declare module "${modulePath}" {
     var ${name}: string;
     export default ${name};
 }`;
@@ -36,9 +36,9 @@ const declaration = (type: string, name: string): string => {
 
 // Type definition for Typing data structure
 export type Typing = {
-    type: string;
-    name: string;
-    fileName: string;
+  type: string;
+  name: string;
+  fileName: string;
 };
 
 // Allowed types constant
@@ -46,38 +46,40 @@ const ALLOWED_TYPES: string[] = ['asset', 'resource', 'messageChannel', 'customL
 
 // Factory function to create Typing objects
 export const createTyping = (attributes: { type: string; name: string }): Typing => {
-    if (!ALLOWED_TYPES.includes(attributes.type)) {
-        const errorMessage: string = `Cannot create a Typing with "${attributes.type}" type. Must be one of [${ALLOWED_TYPES.toString()}]`;
-        throw new Error(errorMessage);
-    }
+  if (!ALLOWED_TYPES.includes(attributes.type)) {
+    const errorMessage: string = `Cannot create a Typing with "${attributes.type}" type. Must be one of [${ALLOWED_TYPES.toString()}]`;
+    throw new Error(errorMessage);
+  }
 
-    return {
-        type: attributes.type,
-        name: attributes.name,
-        fileName: `${attributes.name}.${attributes.type}.d.ts`,
-    };
+  return {
+    type: attributes.type,
+    name: attributes.name,
+    fileName: `${attributes.name}.${attributes.type}.d.ts`
+  };
 };
 
 // Utility function to create Typing from meta filename
 export const fromMeta = (metaFilename: string): Typing => {
-    const parsedPath = path.parse(metaFilename);
-    const { name, type } = metaRegex.exec(parsedPath.name)?.groups ?? { name: '', type: '' };
-    return createTyping({ name, type });
+  const parsedPath = path.parse(metaFilename);
+  const { name, type } = metaRegex.exec(parsedPath.name)?.groups ?? { name: '', type: '' };
+  return createTyping({ name, type });
 };
 
 // Utility function to generate declarations from custom labels
 export const declarationsFromCustomLabels = async (xmlDocument: string | Buffer): Promise<string> => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const doc = await new xml2js.Parser().parseStringPromise(xmlDocument);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (doc.CustomLabels === undefined || doc.CustomLabels.labels === undefined) {
-        return '';
-    }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const doc = await new xml2js.Parser().parseStringPromise(xmlDocument);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (doc.CustomLabels === undefined || doc.CustomLabels.labels === undefined) {
+    return '';
+  }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const declarations: string[] = doc.CustomLabels.labels.map((label: { [key: string]: string[] }) => declaration('customLabel', label.fullName[0]));
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  const declarations: string[] = doc.CustomLabels.labels.map((label: { [key: string]: string[] }) =>
+    declaration('customLabel', label.fullName[0])
+  );
 
-    return declarations.join('\n');
+  return declarations.join('\n');
 };
 
 // Utility function to get declaration for a Typing object
