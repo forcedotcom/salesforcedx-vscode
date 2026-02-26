@@ -44,7 +44,7 @@ class OasDocumentChecker {
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: 'SFDX: Running validations on OAS Document',
+          title: nls.localize('running_validations_on_oas_document'),
           cancellable: true
         },
         async () => {

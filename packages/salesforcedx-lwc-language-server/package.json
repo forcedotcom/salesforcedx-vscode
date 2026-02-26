@@ -100,7 +100,6 @@
     "@lwc/old-compiler": "npm:@lwc/compiler@0.34.8",
     "@types/babel-types": "^7.0.8",
     "@types/ejs": "^3.1.5",
-    "@types/xml2js": "^0.4.14",
     "colormin": "1.1.2",
     "jest-extended": "^0.11.5",
     "js-base64": "3.7.8",

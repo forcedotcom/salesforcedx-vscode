@@ -40,7 +40,7 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 
 The Salesforce Extension Pack installs these extensions.
 
-- [Salesforce CLI Integration](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)
+- [Salesforce CLI](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)
   This extension (`salesforcedx-vscode-core`) interacts with Salesforce CLI to provide core functionality.
 - [Apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)
   This extension (`salesforcedx-vscode-apex`) uses the Apex Language Server to provide features such as syntax highlighting and code completion.

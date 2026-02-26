@@ -5,7 +5,7 @@
  *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  *
  */
-import { ConditionOperator, UiOperatorValue } from '@salesforce/soql-model/model/model';
+import { AndOr, ConditionOperator, UiOperatorValue } from '@salesforce/soql-model/model/model';
 import { List, Map } from 'immutable';
 import { JsonMap } from '@salesforce/ts-types';
 import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
@@ -44,7 +44,7 @@ export type ToolingModelJson = JsonMap & {
   fields: string[];
   orderBy: JsonMap[];
   limit: string;
-  where: { conditions: JsonMap; andOr: string };
+  where: { conditions: JsonMap; andOr: AndOr };
   errors: JsonMap[];
   unsupported: JsonMap[];
   originalSoqlStatement: string;

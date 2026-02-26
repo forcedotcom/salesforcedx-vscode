@@ -15,10 +15,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "@salesforce/salesforcedx-utils": "*",
-    "jest": "^29.7.0",
-    "jest-junit": "14.0.1",
-    "ts-jest": "^29.4.1"
+    "@salesforce/salesforcedx-utils": "*"
   },
   "scripts": {
     "compile": "wireit",
