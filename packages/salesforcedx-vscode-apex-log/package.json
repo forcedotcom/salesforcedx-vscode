@@ -2,6 +2,9 @@
   "name": "salesforcedx-vscode-apex-log",
   "displayName": "Salesforce Apex Log",
   "description": "Execute anonymous Apex, retrieve Apex logs, and manage trace flags",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
   "version": "65.17.3",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
