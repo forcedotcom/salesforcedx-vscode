@@ -15,7 +15,6 @@ import {
   SEND_METRIC_LAUNCH_EVENT,
   breakpointUtil
 } from '@salesforce/salesforcedx-apex-replay-debugger';
-import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { ActivationTracker, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
@@ -241,7 +240,7 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
       const lineBpInfo = await salesforceApexExtension.exports.getLineBreakpointInfo();
       if (lineBpInfo?.length) {
         console.log(nls.localize('line_breakpoint_information_success'));
-        breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo as LineBreakpointInfo[]);
+        breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
         return true;
       } else {
         const errorMessage = nls.localize('no_line_breakpoint_information_for_current_project');
