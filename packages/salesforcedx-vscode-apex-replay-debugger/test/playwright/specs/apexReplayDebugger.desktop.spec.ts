@@ -7,6 +7,7 @@
 /* eslint-disable unicorn/numeric-separators-style -- timeouts use numeric literals; rule conflicts for 4–5 digit values */
 import { expect, type Page } from '@playwright/test';
 import {
+  APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
   createApexClass,
   ensureOutputPanelOpen,
@@ -29,14 +30,12 @@ import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
-/** Continue debug session (F5 or toolbar click). Repeats until session ends (stopOnEntry + run-to-completion). */
+/** Continue debug session (F5). Repeats until session ends (stopOnEntry + run-to-completion). */
 const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void> => {
   const toolbar = page.locator('.debug-toolbar');
   for (let i = 0; i < maxContinues; i++) {
     await toolbar.waitFor({ state: 'visible', timeout: 30000 });
-    // Use F5 (Continue) - more reliable than toolbar click in headless/Electron CI
     await page.keyboard.press('F5');
-    // CI is slower; allow more time for session to end after Continue
     const sessionEnded = await expect(toolbar)
       .not.toBeVisible({ timeout: 45000 })
       .then(() => true)
@@ -103,7 +102,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       page,
       apexLogNls['apexLog.command.traceFlagsCreateForCurrentUser'] as string
     );
-    const statusBar = page.getByRole('button', { name: /Tracing until/ });
+    const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ });
     await expect(statusBar).toBeVisible({ timeout: 30000 });
   });
 
@@ -194,7 +193,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       page,
       apexLogNls['apexLog.command.traceFlagsDeleteForCurrentUser'] as string
     );
-    const statusBar = page.getByRole('button', { name: /No Tracing/ });
+    const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ });
     await expect(statusBar).toBeVisible({ timeout: 60000 });
   });
 
