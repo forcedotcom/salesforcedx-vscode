@@ -7,7 +7,7 @@
 import * as vscode from 'vscode';
 import { SUITE_PARENT_ID, TEST_ID_PREFIXES } from '../constants';
 
-type TestItemType = 'suite' | 'class' | 'method' | 'suite-class' | 'unknown';
+type TestItemType = 'suite' | 'class' | 'method' | 'suite-class' | 'namespace' | 'package' | 'unknown';
 
 interface TestIdInfo {
   type: TestItemType;
@@ -20,21 +20,21 @@ interface TestIdInfo {
  * Parses a test item ID and returns information about its type and name
  */
 export const parseTestId = (id: string): TestIdInfo => {
-  if (id.startsWith(TEST_ID_PREFIXES.SUITE)) {
+  if (isSuite(id)) {
     return {
       type: 'suite',
       name: id.replace(TEST_ID_PREFIXES.SUITE, '')
     };
   }
 
-  if (id.startsWith(TEST_ID_PREFIXES.CLASS)) {
+  if (isClass(id)) {
     return {
       type: 'class',
       name: id.replace(TEST_ID_PREFIXES.CLASS, '')
     };
   }
 
-  if (id.startsWith(TEST_ID_PREFIXES.METHOD)) {
+  if (isMethod(id)) {
     const fullName = id.replace(TEST_ID_PREFIXES.METHOD, '');
     const parts = fullName.split('.');
     return {
@@ -44,7 +44,7 @@ export const parseTestId = (id: string): TestIdInfo => {
     };
   }
 
-  if (id.startsWith(TEST_ID_PREFIXES.SUITE_CLASS)) {
+  if (isSuiteClass(id)) {
     // Format: suite-class:SuiteName:ClassName
     const parts = id.split(':');
     if (parts.length >= 3) {
@@ -55,6 +55,20 @@ export const parseTestId = (id: string): TestIdInfo => {
         className: parts[2]
       };
     }
+  }
+
+  if (isNamespace(id)) {
+    return {
+      type: 'namespace',
+      name: id.replace(TEST_ID_PREFIXES.NAMESPACE, '')
+    };
+  }
+
+  if (isPackage(id)) {
+    return {
+      type: 'package',
+      name: id.replace(TEST_ID_PREFIXES.PACKAGE, '')
+    };
   }
 
   return {
@@ -82,6 +96,28 @@ export const isMethod = (id: string): boolean => id.startsWith(TEST_ID_PREFIXES.
  * Checks if a test item ID represents a suite-class placeholder
  */
 export const isSuiteClass = (id: string): boolean => id.startsWith(TEST_ID_PREFIXES.SUITE_CLASS);
+
+/**
+ * Checks if a test item ID represents a namespace container
+ */
+export const isNamespace = (id: string): boolean => id.startsWith(TEST_ID_PREFIXES.NAMESPACE);
+
+/**
+ * Checks if a test item ID represents a package container
+ */
+export const isPackage = (id: string): boolean => id.startsWith(TEST_ID_PREFIXES.PACKAGE);
+
+/**
+ * Creates a namespace container ID. namespaceKey is LOCAL_NAMESPACE_KEY for no namespace, or the namespace prefix.
+ */
+export const createNamespaceId = (namespaceKey: string): string =>
+  `${TEST_ID_PREFIXES.NAMESPACE}${namespaceKey}`;
+
+/**
+ * Creates a package container ID. packageKey is UNPACKAGED_PACKAGE_KEY, '1gp', or a Package2Id.
+ */
+export const createPackageId = (namespaceKey: string, packageKey: string): string =>
+  `${TEST_ID_PREFIXES.PACKAGE}${namespaceKey}:${packageKey}`;
 
 /**
  * Extracts the test name from a test item
@@ -149,6 +185,11 @@ export const gatherTests = (
     // Skip the suite parent node - it's just a container
     if (test.id === SUITE_PARENT_ID) {
       // Expand parent to get its children (suites)
+      test.children.forEach(child => include(child));
+      return;
+    }
+    // Namespace and package nodes are container-only; recurse into children
+    if (isNamespace(test.id) || isPackage(test.id)) {
       test.children.forEach(child => include(child));
       return;
     }

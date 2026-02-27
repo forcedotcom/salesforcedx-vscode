@@ -36,15 +36,10 @@ export const messages = {
   apex_test_method_run_text: 'SFDX: Run Apex Test Method',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex Testing',
-  collapse_tests_title: 'SFDX: Collapse All Apex Tests',
   configuration_title: 'Salesforce Apex Testing Configuration',
-  go_to_definition_title: 'Go to Definition',
-  refresh_test_title: 'Refresh Tests',
-  run_single_test_title: 'Run Single Test',
   run_tests_title: 'Run Tests',
+  run_tests_in_workspace_title: 'Run In-Workspace Tests',
   debug_tests_title: 'Debug Tests',
-  show_error_title: 'Display Error',
-  test_view_container_title: 'Test Viewer',
   test_view_name: 'Apex Tests',
   apex_test_run_concise: 'Display only failed test results.',
   apex_testing_discovery_source_description: 'Select the source for Apex test discovery.',
@@ -79,6 +74,9 @@ export const messages = {
   apex_test_failed_execution_message: '%s failed to run',
   apex_class_source_hidden:
     "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
+  test_explorer_local_namespace_label: 'Local Namespace',
+  test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
+  test_explorer_1gp_package_label: '%s (1GP)'
 } as const;
 
 export type MessageKey = keyof typeof messages;
