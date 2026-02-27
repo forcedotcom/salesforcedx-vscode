@@ -20,48 +20,32 @@ const ExtensionProviderServiceLive = Layer.effect(
 /**
  * Factory for a Layer that provides all services from the SalesforceVSCodeServicesApi.
  * Pass the ExtensionContext to include a working ExtensionContextServiceLayer.
- * When context is not provided, ExtensionContextService.Default is used (fails if getContext is called).
  */
 export const buildAllServicesLayer = (context: ExtensionContext) =>
   Layer.unwrapEffect(
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
-      // ErrorHandlerService depends on ChannelService, provide the extension's channel
       const channelLayer = api.services.ChannelServiceLayer(
-        context.extension.packageJSON.displayName ?? 'Salesforce Metadata'
+        context.extension.packageJSON.displayName ?? 'SOQL'
       );
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
-      // Merge all the service layers from the API
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
-        api.services.ComponentSetService.Default,
         api.services.ConnectionService.Default,
-        api.services.FsService.Default,
-        api.services.EditorService.Default,
-        errorHandlerWithChannel,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.MetadataDeployService.Default,
-        api.services.MetadataDeleteService.Default,
         api.services.MetadataDescribeService.Default,
-        api.services.MetadataRetrieveService.Default,
-        api.services.TransmogrifierService.Default,
         api.services.ProjectService.Default,
+        api.services.TransmogrifierService.Default,
+        api.services.SettingsService.Default,
+        api.services.WorkspaceService.Default,
         api.services.SdkLayerFor(context),
         channelLayer,
-        api.services.WorkspaceService.Default,
-        api.services.SourceTrackingService.Default,
-        api.services.FileWatcherService.Default
+        errorHandlerWithChannel
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
 
-/**
- * Layer that provides all services from the SalesforceVSCodeServicesApi.
- * Uses ExtensionContextService.Default (fails if getContext is called).
- * Use AllServicesLayerFor(context) to provide a working ExtensionContextService.
- */
-// eslint-disable-next-line functional/no-let
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {

@@ -22,7 +22,8 @@ import {
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { channelService, OUTPUT_CHANNEL, workspaceContext } from '../sf';
+import { channelService, OUTPUT_CHANNEL } from '../services/channel';
+import { getConnection } from '../services/org';
 
 type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
@@ -39,8 +40,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
     const { query, api } = response.data;
 
     try {
-      // Get connection from workspace context
-      const connection = await workspaceContext.getConnection();
+      const connection = await getConnection();
 
       // Execute query using the appropriate API
       const queryResult = await runSoqlQuery(connection, query, api === 'TOOLING');

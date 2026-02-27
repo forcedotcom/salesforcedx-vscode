@@ -11,7 +11,8 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, HTML_FILE, SOQL_BUILDER_UI_PATH } from '../constants';
 import { nls } from '../messages';
-import { channelService, isDefaultOrgSet } from '../sf';
+import { channelService } from '../services/channel';
+import { isDefaultOrgSet } from '../services/org';
 import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 

@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { FAILURE_CODE, SUCCESS_CODE } from '../sobjects/constants';
 import { getMinNames, getMinObjects } from '../sobjects/minObjectRetriever';
 import { streamAndWriteSobjectArtifacts, writeSobjectArtifacts } from './sobjectArtifactWriter';
@@ -50,10 +51,11 @@ const executeRefresh = (category: SObjectCategory, source: SObjectRefreshSource 
         { title: nls.localize('sobjects_refresh'), location: progressLocation, cancellable: true },
         (_progress, token) => {
           cancellationTokenSource.dispose();
-          if (source === 'startupmin') {
-            return writeSobjectArtifacts({ cancellationToken: token, sobjects: getMinObjects(), sobjectNames: getMinNames() });
-          }
-          return streamAndWriteSobjectArtifacts({ cancellationToken: token, category, source: source ?? 'manual' });
+          const artifactEffect =
+            source === 'startupmin'
+              ? writeSobjectArtifacts({ cancellationToken: token, sobjects: getMinObjects(), sobjectNames: getMinNames() })
+              : streamAndWriteSobjectArtifacts({ cancellationToken: token, category, source: source ?? 'manual' });
+          return Effect.runPromise(artifactEffect.pipe(Effect.provide(AllServicesLayer)));
         }
       )
     );

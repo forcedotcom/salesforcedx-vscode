@@ -108,7 +108,13 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "../soql-common/out/**",
+        "../salesforcedx-utils-vscode/out/**",
+        "../salesforcedx-vscode-i18n/out/**",
+        "../salesforcedx-utils/out/**",
+        "../salesforcedx-vscode-core/out/**",
+        "../salesforcedx-vscode-services/out/**"
       ],
       "output": [
         "out/**",

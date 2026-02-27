@@ -6,22 +6,28 @@
  */
 
 import type { QueryResult, DescribeSObjectResult } from '../types';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as debounce from 'debounce';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { trackErrorWithTelemetry } from '../commonUtils';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
-import {
-  channelService,
-  isDefaultOrgSet,
-  onOrgChange,
-  retrieveSObject,
-  retrieveSObjects,
-  workspaceContext
-} from '../sf';
+import { channelService } from '../services/channel';
+import { AllServicesLayer } from '../services/extensionProvider';
+import { getConnection, isDefaultOrgSet } from '../services/org';
+import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
 import { runQuery } from './queryRunner';
+
+const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function* (sobjectName: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.MetadataDescribeService.describeCustomObject(sobjectName).pipe(
+    Effect.catchAll(() => Effect.succeed<DescribeSObjectResult | undefined>(undefined))
+  );
+});
 
 // TODO: This should be exported from soql-builder-ui
 type SoqlEditorEvent =
@@ -71,12 +77,9 @@ type MessageType =
 class ConnectionChangedListener {
   protected editorInstances: SOQLEditorInstance[];
   protected static instance: ConnectionChangedListener;
+  protected static subscriptionStarted = false;
 
   protected constructor() {
-    onOrgChange(async (_orgInfo: any) => {
-      await this.connectionChanged();
-    });
-
     this.editorInstances = [];
   }
 
@@ -89,6 +92,20 @@ class ConnectionChangedListener {
 
   public addSoqlEditor(editor: SOQLEditorInstance): void {
     this.editorInstances.push(editor);
+    if (!ConnectionChangedListener.subscriptionStarted) {
+      ConnectionChangedListener.subscriptionStarted = true;
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const targetOrgRef = yield* api.services.TargetOrgRef();
+        yield* Effect.forkDaemon(
+          Stream.runForEach(targetOrgRef.changes, () =>
+            Effect.sync(() => ConnectionChangedListener.getInstance().connectionChanged())
+          )
+        );
+      })
+        .pipe(Effect.provide(AllServicesLayer), Effect.runPromise)
+        .catch(() => undefined);
+    }
   }
 
   public removeSoqlEditor(editor: SOQLEditorInstance): void {
@@ -102,11 +119,9 @@ class ConnectionChangedListener {
 }
 
 export class SOQLEditorInstance {
-  // when destroyed, dispose of all event listeners.
   public subscriptions: vscode.Disposable[] = [];
   protected lastIncomingSoqlStatement = '';
 
-  // Notify soqlEditorProvider when destroyed
   protected disposedCallback: ((instance: SOQLEditorInstance) => void) | undefined;
 
   constructor(
@@ -114,16 +129,12 @@ export class SOQLEditorInstance {
     protected webviewPanel: vscode.WebviewPanel,
     protected _token: vscode.CancellationToken
   ) {
-    // Update the UI when the Text Document is changed, if its the same document.
     vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
 
-    // Update the text document when message recieved
     webviewPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
 
-    // register editor with connection changed listener
     ConnectionChangedListener.getInstance().addSoqlEditor(this);
 
-    // Make sure we get rid of the event listeners when our editor is closed.
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
@@ -142,11 +153,6 @@ export class SOQLEditorInstance {
 
   protected updateWebview(document: vscode.TextDocument): void {
     const newSoqlStatement = document.getText();
-    // The automated onDocumentChangeHandler fires unnecessarily
-    // when we manually update the soql statement in the document
-    // this introduced a 'cache once' and muffles the unnecessary postMessage
-    // For more info, see section "From TextDocument to webviews"
-    // url: https://code.visualstudio.com/api/extension-guides/custom-editors#synchronizing-changes-with-the-textdocument
     if (this.lastIncomingSoqlStatement !== newSoqlStatement) {
       this.sendMessageToUi('text_soql_changed', newSoqlStatement);
     }
@@ -190,8 +196,9 @@ export class SOQLEditorInstance {
         break;
       }
       case 'sobject_metadata_request': {
-        retrieveSObject(event.payload)
-          .then(sobject => this.updateSObjectMetadata(sobject))
+        retrieveSObjectRawEffect(event.payload)
+          .pipe(Effect.provide(AllServicesLayer), Effect.runPromise)
+          .then(sobject => sobject && this.updateSObjectMetadata(sobject))
           .catch(() => {
             const message = nls.localize('error_sobject_metadata_request', event.payload);
             channelService.appendLine(message);
@@ -199,8 +206,8 @@ export class SOQLEditorInstance {
         break;
       }
       case 'sobjects_request': {
-        retrieveSObjects()
-          .then(sobjectNames => this.updateSObjects(sobjectNames))
+        listSObjectNamesEffect.pipe(Effect.runPromise)
+          .then(sobjectNames => sobjectNames && this.updateSObjects(sobjectNames))
           .catch(() => {
             const message = nls.localize('error_sobjects_request');
             channelService.appendLine(message);
@@ -233,7 +240,6 @@ export class SOQLEditorInstance {
   }
 
   protected async handleRunQuery(): Promise<void> {
-    // Check to see if a default org is set.
     if (!(await isDefaultOrgSet())) {
       const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
@@ -243,7 +249,7 @@ export class SOQLEditorInstance {
     }
 
     const queryText = this.document.getText();
-    const conn = await workspaceContext.getConnection();
+    const conn = await getConnection();
     const queryData = await runQuery(conn)(queryText);
     await this.openQueryDataView(queryData);
     this.runQueryDone();
@@ -260,12 +266,9 @@ export class SOQLEditorInstance {
     await webview.createOrShowWebView();
   }
 
-  // Write out the json to a given document. //
   protected updateTextDocument(document: vscode.TextDocument, soqlQuery: string): Thenable<boolean> {
     const edit = new vscode.WorkspaceEdit();
-
     edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), soqlQuery);
-
     return vscode.workspace.applyEdit(edit);
   }
 

@@ -11,9 +11,8 @@ import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { toUri } from '../vscode/fsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';
@@ -57,7 +56,7 @@ const SOBJECTS_DIR = 'sobjects';
 const STANDARDOBJECTS_DIR = 'standardObjects';
 const CUSTOMOBJECTS_DIR = 'customObjects';
 const SOQLMETADATA_DIR = 'soqlMetadata';
-const TYPINGS_DIR = path.join('typings', 'lwc', 'sobjects');
+const TYPINGS_SEGMENTS = ['typings', 'lwc', 'sobjects'] as const;
 
 export class ProjectService extends Effect.Service<ProjectService>()('ProjectService', {
   accessors: true,
@@ -111,36 +110,36 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
     });
     const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
       const { fsPath } = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return path.join(fsPath, Global.SFDX_STATE_FOLDER, TOOLS_DIR);
+      return Utils.joinPath(URI.file(fsPath), Global.SFDX_STATE_FOLDER, TOOLS_DIR);
     });
 
     const getSoqlMetadataPath = Effect.fn('ProjectService.getSoqlMetadataPath')(function* () {
-      return path.join(yield* getToolsFolder(), SOQLMETADATA_DIR);
+      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR);
     });
 
     const getSoqlStandardObjectsPath = Effect.fn('ProjectService.getSoqlStandardObjectsPath')(function* () {
-      return path.join(yield* getToolsFolder(), SOQLMETADATA_DIR, STANDARDOBJECTS_DIR);
+      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, STANDARDOBJECTS_DIR);
     });
 
     const getSoqlCustomObjectsPath = Effect.fn('ProjectService.getSoqlCustomObjectsPath')(function* () {
-      return path.join(yield* getToolsFolder(), SOQLMETADATA_DIR, CUSTOMOBJECTS_DIR);
+      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, CUSTOMOBJECTS_DIR);
     });
 
     const getFauxClassesPath = Effect.fn('ProjectService.getFauxClassesPath')(function* () {
-      return path.join(yield* getToolsFolder(), SOBJECTS_DIR);
+      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR);
     });
 
     const getFauxStandardObjectsPath = Effect.fn('ProjectService.getFauxStandardObjectsPath')(function* () {
-      return path.join(yield* getToolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);
+      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);
     });
 
     const getFauxCustomObjectsPath = Effect.fn('ProjectService.getFauxCustomObjectsPath')(function* () {
-      return path.join(yield* getToolsFolder(), SOBJECTS_DIR, CUSTOMOBJECTS_DIR);
+      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, CUSTOMOBJECTS_DIR);
     });
 
     const getTypingsPath = Effect.fn('ProjectService.getTypingsPath')(function* () {
       const { fsPath } = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return path.join(fsPath, Global.SFDX_STATE_FOLDER, TYPINGS_DIR);
+      return Utils.joinPath(URI.file(fsPath), Global.SFDX_STATE_FOLDER, ...TYPINGS_SEGMENTS);
     });
 
     return {
