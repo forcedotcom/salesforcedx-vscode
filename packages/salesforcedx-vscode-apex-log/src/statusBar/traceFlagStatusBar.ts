@@ -71,10 +71,16 @@ export const createTraceFlagStatusBar = () =>
     yield* Effect.fork(
       Stream.mergeAll(
         [
-          // because the org changed
+          // because the org changed — re-query trace flags from the new org
           Stream.concat(Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), targetOrgRef.changes).pipe(
             Stream.map(orgInfo => orgInfo.orgId),
             Stream.changes,
+            Stream.tap(() =>
+              api.services.TraceFlagService.getTraceFlags().pipe(
+                Effect.catchAll(() => Effect.succeed([])),
+                Effect.flatMap(flags => SubscriptionRef.set(currentTraceFlagsRef, flags))
+              )
+            ),
             Stream.as(undefined)
           ),
           // because the trace flags changed
