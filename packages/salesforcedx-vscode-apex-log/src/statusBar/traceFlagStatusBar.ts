@@ -23,7 +23,7 @@ const STATUS_BAR_ID = 'apex-trace-flag-status';
 const STATUS_BAR_PRIORITY = 48;
 
 const stopLink = (rec: TraceFlagItem) =>
-  ` [${nls.localize('trace_flag_tooltip_stop')}](command:sf.apex.traceFlags.deleteForId?${encodeURIComponent(rec.id)})`;
+  ` [${nls.localize('trace_flag_tooltip_stop')}](command:sf.apex.traceFlags.deleteForId?${encodeURIComponent(JSON.stringify([rec.id]))})`;
 
 const byName = Order.mapInput(Order.string, (r: TraceFlagItem) => r.tracedEntityName ?? r.tracedEntityId ?? '');
 
@@ -111,13 +111,21 @@ const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true })(
 
   const collectorRef = yield* LogCollectorStateRef;
   const collectorState = yield* SubscriptionRef.get(collectorRef);
-  statusBarItem.tooltip = buildTooltip(activeRecords, collectorState);
+  const { userId } = yield* SubscriptionRef.get(ref);
+  statusBarItem.tooltip = buildTooltip(activeRecords, collectorState, userId);
   statusBarItem.text = getStatusBarText(collectorState, activeRecords[0]);
   statusBarItem.show();
 });
 
+const hasCurrentUserTraceFlag = (records: TraceFlagItem[], userId: string | undefined) =>
+  Boolean(userId && records.some(r => r.logType === 'DEVELOPER_LOG' && r.tracedEntityId === userId));
+
 /** Build the tooltip for the status bar item */
-const buildTooltip = (activeRecords: TraceFlagItem[], collectorState: LogCollectorState): vscode.MarkdownString => {
+const buildTooltip = (
+  activeRecords: TraceFlagItem[],
+  collectorState: LogCollectorState,
+  userId: string | undefined
+): vscode.MarkdownString => {
   const byKey = LOG_TYPE_ORDER.reduce<Record<(typeof LOG_TYPE_ORDER)[number], TraceFlagItem[]>>(
     (acc, key) => ({
       ...acc,
@@ -130,6 +138,11 @@ const buildTooltip = (activeRecords: TraceFlagItem[], collectorState: LogCollect
   );
   const tooltip = new vscode.MarkdownString();
   tooltip.isTrusted = true;
+  if (!hasCurrentUserTraceFlag(activeRecords, userId)) {
+    tooltip.appendMarkdown(
+      `[${nls.localize('trace_flag_codelens_create')}](command:sf.apex.traceFlags.createForCurrentUser)\n\n---\n\n`
+    );
+  }
   const sections = LOG_TYPE_ORDER.map(key => ({ recs: byKey[key], labelKey: LABEL_KEYS[key] }));
   sections
     .filter(s => s.recs.length > 0)
