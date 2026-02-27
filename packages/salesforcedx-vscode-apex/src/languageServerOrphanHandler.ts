@@ -13,20 +13,7 @@ import { ProcessDetail } from './languageUtils/languageClientManager';
 import { nls } from './messages';
 import { getTelemetryService } from './telemetry/telemetry';
 
-const ADVICE = nls.localize('orphan_process_advice');
-const YES = nls.localize('yes');
-const CANCEL = nls.localize('cancel');
-const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes');
-const SHOW_PROCESSES_BTN = nls.localize('terminate_show_processes');
-const DISMISSED_DEFAULT = 'dismissed';
-const PROCESS_ID = nls.localize('process_id');
-const PROCESS_PARENT_ID = nls.localize('parent_process_id');
-const COMMAND = nls.localize('process_command');
-
 // these messages contain replaceable parameters, cannot localize yet
-const CONFIRM = 'terminate_processes_confirm';
-const TERMINATE_ORPHANED_PROCESSES = 'terminate_orphaned_language_server_instances';
-const TERMINATED_PROCESS = 'terminated_orphaned_process';
 
 const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
   const telemetryService = getTelemetryService();
@@ -74,10 +61,10 @@ const getResolutionForOrphanProcesses = async (orphanedProcesses: ProcessDetail[
   do {
     choice =
       (await vscode.window.showWarningMessage(
-        nls.localize(TERMINATE_ORPHANED_PROCESSES, orphanedCount),
-        TERMINATE_PROCESSES_BTN,
-        SHOW_PROCESSES_BTN
-      )) ?? DISMISSED_DEFAULT;
+        nls.localize('terminate_orphaned_language_server_instances', orphanedCount),
+        nls.localize('terminate_processes'),
+        nls.localize('terminate_show_processes')
+      )) ?? 'dismissed';
 
     if (requestsTermination(choice) && (await terminationConfirmation(orphanedCount))) {
       return true;
@@ -90,9 +77,9 @@ const getResolutionForOrphanProcesses = async (orphanedProcesses: ProcessDetail[
 
 const showOrphansInChannel = (orphanedProcesses: ProcessDetail[]) => {
   const columns: Column[] = [
-    { key: 'pid', label: PROCESS_ID },
-    { key: 'ppid', label: PROCESS_PARENT_ID },
-    { key: 'command', label: COMMAND }
+    { key: 'pid', label: nls.localize('process_id') },
+    { key: 'ppid', label: nls.localize('parent_process_id') },
+    { key: 'command', label: nls.localize('process_command') }
   ];
 
   const rows: Row[] = orphanedProcesses.map(processInfo => ({
@@ -106,22 +93,28 @@ const showOrphansInChannel = (orphanedProcesses: ProcessDetail[]) => {
   const tableString = createTable(rows, columns);
 
   channelService.showChannelOutput();
-  channelService.appendLine(ADVICE);
+  channelService.appendLine(nls.localize('orphan_process_advice'));
   channelService.appendLine('');
   channelService.appendLine(tableString);
 };
 
 const terminationConfirmation = async (orphanedCount: number): Promise<boolean> => {
-  const choice = await vscode.window.showWarningMessage(nls.localize(CONFIRM, orphanedCount), YES, CANCEL);
-  return choice === YES;
+  const choice = await vscode.window.showWarningMessage(
+    nls.localize('terminate_processes_confirm', orphanedCount),
+    nls.localize('yes'),
+    nls.localize('cancel')
+  );
+  return choice === nls.localize('yes');
 };
 
-const requestsTermination = (choice: string | undefined): boolean => choice === TERMINATE_PROCESSES_BTN;
+const requestsTermination = (choice: string | undefined): boolean =>
+  choice === nls.localize('terminate_processes');
 
-const showProcesses = (choice: string): boolean => choice === SHOW_PROCESSES_BTN;
+const showProcesses = (choice: string): boolean =>
+  choice === nls.localize('terminate_show_processes');
 
 const showProcessTerminated = (processDetail: ProcessDetail): void => {
-  channelService.appendLine(nls.localize(TERMINATED_PROCESS, processDetail.pid));
+  channelService.appendLine(nls.localize('terminated_orphaned_process', processDetail.pid));
 };
 
 const showTerminationFailed = (processInfo: ProcessDetail, err: any): void => {

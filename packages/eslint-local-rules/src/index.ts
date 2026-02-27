@@ -11,6 +11,7 @@ import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 
+import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
@@ -25,6 +26,7 @@ const plugin = {
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
+    'no-unused-i18n-messages': noUnusedI18nMessages,
     'no-vscode-message-literals': noVscodeMessageLiterals,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,

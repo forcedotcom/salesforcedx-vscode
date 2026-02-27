@@ -22,12 +22,10 @@ export const messages = {
     'Runs all tests in the current org except the ones that originate from installed managed packages',
   apex_test_run_all_test_label: 'All Tests',
   apex_test_run_all_tests_description_text: 'Runs all tests in the current org',
-  apex_test_run_codeAction_description_text: 'Run Apex test(s)',
   apex_test_run_codeAction_no_class_test_param_text:
     'Test class not provided. Run the code action on a class annotated with @isTest.',
   apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
-  apex_test_run_description_text: 'Run Apex test(s)',
   apex_test_run_text: 'SFDX: Run Apex Tests',
   apex_test_suite_add_text: 'SFDX: Add Tests to Apex Test Suite',
   apex_test_suite_create_text: 'SFDX: Create Apex Test Suite',
@@ -38,22 +36,11 @@ export const messages = {
   apex_test_method_run_text: 'SFDX: Run Apex Test Method',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex Testing',
-  collapse_tests_title: 'SFDX: Collapse All Apex Tests',
   configuration_title: 'Salesforce Apex Testing Configuration',
-  error_no_connection_found_message: 'No connection found',
-  go_to_definition_title: 'Go to Definition',
-  refresh_test_title: 'Refresh Tests',
-  run_single_test_title: 'Run Single Test',
   run_tests_title: 'Run Tests',
+  run_tests_in_workspace_title: 'Run In-Workspace Tests',
   debug_tests_title: 'Debug Tests',
-  show_error_title: 'Display Error',
-  test_view_container_title: 'Test Viewer',
-  test_view_loading_message: 'Loading Apex tests ...',
   test_view_name: 'Apex Tests',
-  test_view_no_tests_description:
-    "Your project doesn't contain any Apex test methods. To run Apex tests, open a project that contains methods with @istest annotations or the testMethod keyword",
-  test_view_no_tests_message: 'No Apex Tests Found',
-  test_view_show_error_title: 'Show Error',
   apex_test_run_concise: 'Display only failed test results.',
   apex_testing_discovery_source_description: 'Select the source for Apex test discovery.',
   apex_testing_discovery_source_ls_description: 'Use the Language Server (LS) for discovery.',
@@ -75,8 +62,6 @@ export const messages = {
   apex_test_update_results_failed_message: 'Failed to update test results: %s',
   apex_test_discovery_partial_warning:
     'Test discovery encountered URL length limits. Some tests may not be visible. Try refreshing or filtering by namespace.',
-  apex_test_in_workspace_tag: 'In Workspace and Org',
-  apex_test_org_only_tag: 'Org Only (Not in Project)',
   apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
   apex_test_debug_org_only_warning_message:
     'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',
@@ -87,13 +72,11 @@ export const messages = {
     'Tip: For the best experience viewing the markdown file, open it and run "Markdown: Open Preview" from the Command Palette.\n\n',
   apex_test_successful_execution_message: '%s successfully ran',
   apex_test_failed_execution_message: '%s failed to run',
-  test_view_refresh_failed_message:
-    'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s',
   apex_class_source_hidden:
     "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
-  apex_test_discovery_progress_title: 'Discovering Apex Tests',
-  apex_test_discovery_progress_fetching: 'Fetching tests from org...',
-  apex_test_discovery_progress_loading: 'Loading tests... (%s classes, %s methods)'
+  test_explorer_local_namespace_label: 'Local Namespace',
+  test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
+  test_explorer_1gp_package_label: '%s (1GP)'
 } as const;
 
 export type MessageKey = keyof typeof messages;

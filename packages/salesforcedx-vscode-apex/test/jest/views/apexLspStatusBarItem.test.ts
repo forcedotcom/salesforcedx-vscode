@@ -9,13 +9,6 @@ import { URI } from 'vscode-uri';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { nls } from '../../../src/messages';
 
-// Mock the nls.localize function
-jest.mock('../../../src/messages', () => ({
-  nls: {
-    localize: jest.fn().mockImplementation(key => key)
-  }
-}));
-
 jest.mock('vscode');
 
 describe('ApexLSPStatusBarItem', () => {
@@ -108,20 +101,20 @@ describe('ApexLSPStatusBarItem', () => {
   describe('status updates', () => {
     it('should update status when indexing', () => {
       statusBarItem.indexing();
-      expect(nls.localize).toHaveBeenCalledWith('apex_language_server_loading');
+      expect(mockLanguageStatusItem.text).toBe(nls.localize('apex_language_server_loading'));
       expect(mockLanguageStatusItem.severity).toBe(vscode.LanguageStatusSeverity.Information);
     });
 
     it('should update status when ready', () => {
       statusBarItem.ready();
-      expect(nls.localize).toHaveBeenCalledWith('apex_language_server_loaded');
+      expect(mockLanguageStatusItem.text).toBe(nls.localize('apex_language_server_loaded'));
       expect(mockLanguageStatusItem.severity).toBe(vscode.LanguageStatusSeverity.Information);
-      expect(mockLanguageStatusItem.command).toBeUndefined();
+      expect(mockRestartStatusItem.command).toBeDefined();
     });
 
     it('should update status when restarting', () => {
       statusBarItem.restarting();
-      expect(nls.localize).toHaveBeenCalledWith('apex_language_server_restarting');
+      expect(mockLanguageStatusItem.text).toBe(nls.localize('apex_language_server_restarting'));
       expect(mockLanguageStatusItem.severity).toBe(vscode.LanguageStatusSeverity.Information);
       expect(mockRestartStatusItem.command).toBeUndefined();
     });
