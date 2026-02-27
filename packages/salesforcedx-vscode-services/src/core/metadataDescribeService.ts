@@ -179,13 +179,13 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const runSObjectBatch = Effect.fn('MetadataDescribeService.runSObjectBatch')(function* (names: string[]) {
       const conn = yield* connectionService.getConnection();
       const body: SObjectBatchRequest = {
-        batchRequests: names.map(name => ({ method: 'GET', url: `${conn.version}/sobjects/${name}/describe` }))
+        batchRequests: names.map(name => ({ method: 'GET', url: `v${conn.version}/sobjects/${name}/describe` }))
       };
       return yield* Effect.tryPromise({
         try: () =>
           conn.request<SObjectBatchResponse>({
             method: 'POST',
-            url: 'composite/batch',
+            url: '/composite/batch',
             body: JSON.stringify(body),
             headers: {
               'User-Agent': 'salesforcedx-extension',

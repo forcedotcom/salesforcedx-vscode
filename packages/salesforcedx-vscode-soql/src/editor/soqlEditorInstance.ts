@@ -206,7 +206,8 @@ export class SOQLEditorInstance {
         break;
       }
       case 'sobjects_request': {
-        listSObjectNamesEffect.pipe(Effect.runPromise)
+        listSObjectNamesEffect
+          .pipe(Effect.provide(AllServicesLayer), Effect.runPromise)
           .then(sobjectNames => sobjectNames && this.updateSObjects(sobjectNames))
           .catch(() => {
             const message = nls.localize('error_sobjects_request');

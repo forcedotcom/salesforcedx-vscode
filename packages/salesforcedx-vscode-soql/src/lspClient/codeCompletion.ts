@@ -87,7 +87,7 @@ const expandFunctions: {
 } = {
   SOBJECTS_PLACEHOLDER: async (): Promise<ProtocolCompletionItem[]> => {
     try {
-      const sobjectNames = await listSObjectNamesEffect.pipe(Effect.runPromise);
+      const sobjectNames = await listSObjectNamesEffect.pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
 
       return sobjectNames.map(objName => {
         const item = new ProtocolCompletionItem(objName);

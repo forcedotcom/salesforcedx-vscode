@@ -7,14 +7,10 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { AllServicesLayer } from './extensionProvider';
 
 export const listSObjectNamesEffect = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* api.services.MetadataDescribeService.listSObjects().pipe(
     Effect.map(sobjects => sobjects.filter(s => s.queryable).map(s => s.name))
   );
-}).pipe(
-  Effect.provide(AllServicesLayer),
-  Effect.catchAll(() => Effect.succeed<string[]>([]))
-);
+}).pipe(Effect.catchAll(() => Effect.succeed<string[]>([])));

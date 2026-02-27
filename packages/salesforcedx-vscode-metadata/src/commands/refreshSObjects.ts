@@ -34,8 +34,8 @@ const gatherCategory = () =>
     return 'ALL' as const;
   });
 
-const executeRefresh = (category: SObjectCategory, source: SObjectRefreshSource | undefined) =>
-  Effect.gen(function* () {
+const executeRefresh = Effect.fn('executeRefresh')(
+  function* (category: SObjectCategory, source: SObjectRefreshSource | undefined) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
 
@@ -74,23 +74,22 @@ const executeRefresh = (category: SObjectCategory, source: SObjectRefreshSource 
 
     const exitCode = result.data.cancelled ? FAILURE_CODE : SUCCESS_CODE;
     yield* Effect.promise(() => vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode }));
-  }).pipe(
-    Effect.tapError(error =>
-      Effect.gen(function* () {
-        const msg = error instanceof Error ? error.message : String(error);
-        yield* Effect.promise(() => vscode.window.showErrorMessage(msg));
-        yield* Effect.promise(() => vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: FAILURE_CODE }));
-      })
-    ),
-    Effect.ensuring(Effect.sync(() => { activeState.isActive = false; }))
-  );
+  },
+  Effect.tapError(error =>
+    Effect.gen(function* () {
+      const msg = error instanceof Error ? error.message : String(error);
+      yield* Effect.promise(() => vscode.window.showErrorMessage(msg));
+      yield* Effect.promise(() => vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: FAILURE_CODE }));
+    })
+  ),
+  Effect.ensuring(Effect.sync(() => { activeState.isActive = false; }))
+);
 
 /**
  * Refresh SObject definitions command — Effect pattern, no SfCommandlet framework.
  * Registered as sf.internal.refreshsobjects in metadata's index.ts.
  */
-export const refreshSObjectsCommand = (source?: SObjectRefreshSource) =>
-  Effect.gen(function* () {
+export const refreshSObjectsCommand = Effect.fn('refreshSObjectsCommand')(function* (source?: SObjectRefreshSource) {
     if (activeState.isActive) {
       yield* Effect.promise(() =>
         vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'))

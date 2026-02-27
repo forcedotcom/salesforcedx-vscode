@@ -76,11 +76,11 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
 
   yield* (yield* api.services.MetadataDescribeService.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
     Stream.mapEffect(tx.toMinimalSObject),
+    Stream.tap(sobject => Effect.log(`saw desribe for sobject ${sobject.name}`)),
     Stream.runForEach(sobject =>
       Effect.gen(function* () {
         const isCustom = sobject.custom;
         const definition = generateSObjectDefinition(sobject);
-        const countRef = isCustom ? customRef : standardRef;
         return yield* Effect.all(
           [
             fs.writeFile(
@@ -95,7 +95,7 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
               Utils.joinPath(isCustom ? soqlCustom : soqlStandard, `${sobject.name}.json`),
               JSON.stringify(sobject, null, 2)
             ),
-            Ref.update(countRef, n => n + 1)
+            Ref.update(isCustom ? customRef : standardRef, n => n + 1)
           ],
           { concurrency: 'unbounded' }
         );
@@ -103,6 +103,10 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
     )
   );
 
+  yield* Effect.annotateCurrentSpan({
+    standardObjects: yield* Ref.get(standardRef),
+    customObjects: yield* Ref.get(customRef)
+  });
   return [yield* Ref.get(standardRef), yield* Ref.get(customRef)] as const;
 });
 
