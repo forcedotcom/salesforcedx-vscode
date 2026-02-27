@@ -18,7 +18,5 @@ import { MessageKey } from './i18n';
  * If omitted, we will assume _message.
  */
 export const messages: Partial<Record<MessageKey, string>> = {
-  channel_name: 'Aura 言語サーバ',
   client_name: 'Aura 言語サーバ',
-  index_components_text: 'Lightning コンポーネントをインデックス化しています'
 };

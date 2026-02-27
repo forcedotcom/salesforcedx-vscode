@@ -32,7 +32,6 @@ export const messages = {
   apex_language_server_restart_dialog_clean_and_restart: 'Clean Apex DB and Restart',
   apex_language_server_restart_dialog_prompt: 'Clean Apex DB and Restart? Or Restart Only?',
   apex_language_server_restart_dialog_restart_only: 'Restart Only',
-  apex_language_server_restart_failed: 'Failed to restart Apex Language Server: ',
   apex_language_server_restarting: 'Apex Language Server is restarting… $(sync~spin)',
   apex_log_get_no_logs_text: 'No Apex debug logs were found',
   apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
@@ -51,15 +50,9 @@ export const messages = {
   colorizer_out_of_sync_code_coverage_data:
     'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
-  error_no_connection_found_message: 'No connection found',
-  java_binary_not_executable_text: 'Java binary %s at %s is not executable. Please check the file permissions.',
   java_binary_missing_text: 'Java binary %s not found at %s. Please check your Java installation.',
   java_bin_missing_text: 'Java bin directory not found at %s. Please check your Java installation.',
   java_home_expansion_failed_text: 'Failed to expand Java home path. Please check your Java installation.',
-  java_home_invalid_text:
-    'The Java home path %s is invalid. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
-  java_home_undefined_text:
-    'Java home path is not set. Please set the Java home path in your settings or environment variables.',
   java_runtime_local_text:
     'Local Java runtime (%s) is unsupported. Set the salesforcedx-vscode-apex.java.home VS Code setting to a runtime outside of the current project. For more information, go to [Set Your Java Version](%s).',
   java_runtime_missing_text:
@@ -73,22 +66,17 @@ export const messages = {
   parent_process_id: 'Parent Process ID',
   process_command: 'Process Command',
   process_id: 'Process ID',
-  sobjects_no_refresh_if_already_active_error_text:
-    'sObject definitions refresh is already running. If you need to restart the process, cancel the running task.',
   source_java_home_env_var_text: 'The JAVA_HOME environment variable',
   source_java_home_setting_text: 'The salesforcedx-vscode-apex.java.home setting defined in VS Code settings',
   source_jdk_home_env_var_text: 'The JDK_HOME environment variable',
   source_missing_text:
     '%s points to a missing folder. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   terminate_failed: 'Failed to terminate Apex Language Server process PID: %d: %s',
-  terminate_orphaned_language_server_instances:
-    'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them?',
   terminate_processes: 'Terminate Processes',
-  terminate_processes_confirm: 'Terminate %d Orphaned Processes',
-  terminate_processes_title: 'Terminate Orphaned Processes',
+  terminate_processes_confirm: '%d orphaned Apex Language Server process(es) found. Terminate them?',
+  terminate_orphaned_language_server_instances: '%d orphaned Apex Language Server process(es) found.',
   terminate_show_processes: 'Show Processes',
   terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
-  terminated_orphaned_processes: 'Terminated %d orphaned processes.',
   unable_to_locate_document: 'You can run this command only on a source file.',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unknown: 'Unknown',

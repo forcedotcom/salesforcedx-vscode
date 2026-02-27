@@ -6,17 +6,17 @@
  */
 
 export const messages = {
-  auth_custom_detail: 'Enter a custom login URL',
-  auth_custom_label: 'Custom',
   auth_invalid_url: 'URL must begin with http:// or https://',
-  auth_prod_detail: 'login.salesforce.com',
-  auth_prod_label: 'Production',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
   auth_project_label: 'Project Default',
-  auth_sandbox_detail: 'test.salesforce.com',
+  auth_prod_detail: 'Production or Developer org',
+  auth_prod_label: 'Production',
+  auth_sandbox_detail: 'Sandbox org',
   auth_sandbox_label: 'Sandbox',
+  auth_custom_detail: 'Custom org',
+  auth_custom_label: 'Custom',
   channel_name: 'Salesforce Org Management',
-  config_set_name: 'Set Config',
+  config_set_name: 'Target Org',
   config_set_org_text: 'SFDX: Set a Default Org',
   default_org_expired:
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
@@ -24,12 +24,9 @@ export const messages = {
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
-  error_no_target_dev_hub: 'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  invalid_default_org: "The org you've chosen as your default org isn't valid. Please choose a different one.",
   missing_default_org: 'No Default Org Set',
-  notification_make_default_dev: 'Authorize a Dev Hub',
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
   org_delete_default_text: 'SFDX: Delete Default Org',
@@ -85,8 +82,6 @@ export const messages = {
   status_bar_open_org_tooltip: 'Open Default Org in Browser',
   status_bar_org_picker_tooltip: 'Change Default Org',
   table_header_name: 'Name',
-  table_header_value: 'Value',
   table_header_success: 'Success',
-  warning_using_global_username:
-    'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.'
+  table_header_value: 'Value',
 } as const;
