@@ -5,8 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { SObjectCategory, SObjectRefreshSource } from '../sobjects/types/general';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
+import * as Runtime from 'effect/Runtime';
+import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { AllServicesLayer } from '../services/extensionProvider';
@@ -17,8 +20,7 @@ import { streamAndWriteSobjectArtifacts, writeSobjectArtifacts } from './sobject
 /** Command ID for cross-extension refresh completion notification */
 export const SOBJECT_REFRESH_COMPLETE_CMD = 'sf.internal.sobjectrefresh.complete';
 
-/** Module-level active state — prevents concurrent executions. Object mutation is used to avoid `let`. */
-const activeState = { isActive: false };
+const refreshSemaphore = Effect.runSync(Effect.makeSemaphore(1));
 
 const gatherCategory = () =>
   Effect.promise(async () => {
@@ -38,6 +40,7 @@ const executeRefresh = Effect.fn('executeRefresh')(
   function* (category: SObjectCategory, source: SObjectRefreshSource | undefined) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
+    const extensionScope = yield* getExtensionScope();
 
     yield* channelService.appendToChannel(`Starting ${nls.localize('sobjects_refresh')}`);
 
@@ -45,6 +48,7 @@ const executeRefresh = Effect.fn('executeRefresh')(
       source === 'manual' ? vscode.ProgressLocation.Notification : vscode.ProgressLocation.Window;
 
     const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const rt = yield* Effect.runtime();
 
     const result = yield* Effect.promise(() =>
       vscode.window.withProgress(
@@ -55,7 +59,9 @@ const executeRefresh = Effect.fn('executeRefresh')(
             source === 'startupmin'
               ? writeSobjectArtifacts({ cancellationToken: token, sobjects: getMinObjects(), sobjectNames: getMinNames() })
               : streamAndWriteSobjectArtifacts({ cancellationToken: token, category, source: source ?? 'manual' });
-          return Effect.runPromise(artifactEffect.pipe(Effect.provide(AllServicesLayer)));
+          return Runtime.runPromise(rt)(
+            artifactEffect.pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope))
+          );
         }
       )
     );
@@ -82,31 +88,28 @@ const executeRefresh = Effect.fn('executeRefresh')(
       yield* Effect.promise(() => vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: FAILURE_CODE }));
     })
   ),
-  Effect.ensuring(Effect.sync(() => { activeState.isActive = false; }))
 );
 
 /**
  * Refresh SObject definitions command — Effect pattern, no SfCommandlet framework.
  * Registered as sf.internal.refreshsobjects in metadata's index.ts.
  */
-export const refreshSObjectsCommand = Effect.fn('refreshSObjectsCommand')(function* (source?: SObjectRefreshSource) {
-    if (activeState.isActive) {
-      yield* Effect.promise(() =>
-        vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'))
-      );
-      return;
-    }
-
-    activeState.isActive = true;
-
+const runRefresh = (source?: SObjectRefreshSource) =>
+  Effect.fn('runRefresh')(function* () {
     if (!source || source === 'manual') {
       const picked = yield* gatherCategory();
-      if (!picked) {
-        activeState.isActive = false;
-        return;
-      }
+      if (!picked) return;
       yield* executeRefresh(picked, source);
     } else {
       yield* executeRefresh('ALL', source);
+    }
+  });
+
+export const refreshSObjectsCommand = Effect.fn('refreshSObjectsCommand')(function* (source?: SObjectRefreshSource) {
+    const result = yield* refreshSemaphore.withPermitsIfAvailable(1)(runRefresh(source)());
+    if (Option.isNone(result)) {
+      yield* Effect.promise(() =>
+        vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'))
+      );
     }
   });

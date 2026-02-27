@@ -30,7 +30,8 @@ const WRITE_CONCURRENCY = 100;
  *
  * Phase 1: listSObjects + reset all 5 output dirs (parallel)
  * Phase 2: write typeNames.json (needs listSObjects result)
- * Phase 3: describeCustomObjects stream → toMinimal → 3 file writes per SObject
+ * Phase 3: describeCustomObjects stream (8 batches in flight) → toMinimal → 3 file writes per SObject
+ * (100 concurrent writes). Fetch and write overlap via stream buffering.
  */
 const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArtifacts')(function* (
   category: SObjectCategory,
@@ -76,12 +77,11 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
 
   yield* (yield* api.services.MetadataDescribeService.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
     Stream.mapEffect(tx.toMinimalSObject),
-    Stream.tap(sobject => Effect.log(`saw desribe for sobject ${sobject.name}`)),
-    Stream.runForEach(sobject =>
-      Effect.gen(function* () {
+    Stream.mapEffect(
+      sobject => {
         const isCustom = sobject.custom;
         const definition = generateSObjectDefinition(sobject);
-        return yield* Effect.all(
+        return Effect.all(
           [
             fs.writeFile(
               Utils.joinPath(isCustom ? fauxCustom : fauxStandard, `${sobject.name}${APEX_CLASS_EXTENSION}`),
@@ -99,8 +99,10 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
           ],
           { concurrency: 'unbounded' }
         );
-      })
-    )
+      },
+      { concurrency: WRITE_CONCURRENCY }
+    ),
+    Stream.runDrain
   );
 
   yield* Effect.annotateCurrentSpan({

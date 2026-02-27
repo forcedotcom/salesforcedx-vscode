@@ -11,6 +11,7 @@ import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import * as Option from 'effect/Option';
 import * as S from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -33,6 +34,7 @@ type SObjectBatchResponse = { hasErrors: boolean; results: SObjectBatchSubRespon
 
 const SOBJECT_CLIENT_ID = 'sfdx-vscode';
 const MAX_SOBJECT_BATCH_SIZE = 25;
+const BATCH_API_CONCURRENCY = 15;
 
 /** Subset of the full SObject global describe result */
 export type SObjectGlobalDescribeItem = { name: string; custom: boolean; queryable: boolean };
@@ -143,9 +145,9 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       }).pipe(Effect.withSpan('performListSObjects', { attributes: { orgId } }));
 
     const listSObjectsCache = yield* Cache.makeWith({
-      capacity: 20,
+      capacity: 5000,
       timeToLive: Exit.match({
-        onSuccess: () => Duration.minutes(30),
+        onSuccess: () => Duration.minutes(5),
         onFailure: () => Duration.zero
       }),
       lookup: (orgId: string) => performListSObjects(orgId)
@@ -223,12 +225,51 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const describeCustomObjects = Effect.fn('MetadataDescribeService.describeCustomObjects')(function* (
       objectNames: string[]
     ) {
-      return Stream.fromIterable(objectNames).pipe(
-        Stream.grouped(MAX_SOBJECT_BATCH_SIZE),
-        Stream.mapEffect(batch => runSObjectBatch(Chunk.toArray(batch))),
-        Stream.map(results => results.flatMap(sr => (Array.isArray(sr.result) ? [] : [sr.result]))),
-        Stream.tap(batchResults => Effect.annotateCurrentSpan({ batchResults })),
-        Stream.flattenIterables
+      const defaultOrgRef = yield* getDefaultOrgRef();
+      const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
+
+      // Partition into cached vs uncached by probing the cache without triggering lookups
+      const partitioned = yield* Effect.all(
+        objectNames.map(name => {
+          const cacheKey = `${orgId}:${name}`;
+          return sobjectDescribeCache
+            .getOptionComplete(cacheKey)
+            .pipe(Effect.map(opt => ({ name, cacheKey, cached: opt })));
+        }),
+        { concurrency: 'unbounded' }
+      );
+
+      const cachedResults = partitioned.flatMap(p => (Option.isSome(p.cached) ? [p.cached.value] : []));
+      const uncachedNames = partitioned.flatMap(p => (Option.isNone(p.cached) ? [p.name] : []));
+
+      yield* Effect.annotateCurrentSpan({ cacheHits: cachedResults.length, cacheMisses: uncachedNames.length });
+
+      return Stream.merge(
+        Stream.fromIterable(cachedResults),
+        Stream.fromIterable(uncachedNames).pipe(
+          Stream.grouped(MAX_SOBJECT_BATCH_SIZE),
+          Stream.mapEffect(
+            batch => {
+              const names = Chunk.toArray(batch);
+              return runSObjectBatch(names).pipe(
+                Effect.map(results =>
+                  results.flatMap((sr, i) =>
+                    Array.isArray(sr.result) ? [] : [{ result: sr.result, cacheKey: `${orgId}:${names[i]}` }]
+                  )
+                ),
+                Effect.tap(pairs =>
+                  Effect.all(
+                    pairs.map(({ result, cacheKey }) => sobjectDescribeCache.set(cacheKey, result)),
+                    { concurrency: 'unbounded' }
+                  )
+                ),
+                Effect.map(pairs => pairs.map(p => p.result))
+              );
+            },
+            { concurrency: BATCH_API_CONCURRENCY }
+          ),
+          Stream.flattenIterables
+        )
       );
     });
 
@@ -287,8 +328,8 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
        */
       describeCustomObject,
       /**
-       * Describes multiple SObjects using the composite/batch API (25 per batch, all batches in parallel).
-       * Uses POST /services/data/v{version}/composite/batch
+       * Describes multiple SObjects, returning cached results where available and
+       * batch-fetching uncached ones via the composite/batch API (25 per batch, parallel).
        */
       describeCustomObjects
     };
