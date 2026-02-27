@@ -10,6 +10,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as debounce from 'debounce';
 import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { trackErrorWithTelemetry } from '../commonUtils';
@@ -74,50 +75,6 @@ type MessageType =
   | 'connection_changed'
   | 'run_query_done';
 
-class ConnectionChangedListener {
-  protected editorInstances: SOQLEditorInstance[];
-  protected static instance: ConnectionChangedListener;
-  protected static subscriptionStarted = false;
-
-  protected constructor() {
-    this.editorInstances = [];
-  }
-
-  public static getInstance(): ConnectionChangedListener {
-    if (!ConnectionChangedListener.instance) {
-      ConnectionChangedListener.instance = new ConnectionChangedListener();
-    }
-    return ConnectionChangedListener.instance;
-  }
-
-  public addSoqlEditor(editor: SOQLEditorInstance): void {
-    this.editorInstances.push(editor);
-    if (!ConnectionChangedListener.subscriptionStarted) {
-      ConnectionChangedListener.subscriptionStarted = true;
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const targetOrgRef = yield* api.services.TargetOrgRef();
-        yield* Effect.forkDaemon(
-          Stream.runForEach(targetOrgRef.changes, () =>
-            Effect.sync(() => ConnectionChangedListener.getInstance().connectionChanged())
-          )
-        );
-      })
-        .pipe(Effect.provide(AllServicesLayer), Effect.runPromise)
-        .catch(() => undefined);
-    }
-  }
-
-  public removeSoqlEditor(editor: SOQLEditorInstance): void {
-    this.editorInstances = this.editorInstances.filter(instance => instance !== editor);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
-  public async connectionChanged(): Promise<void> {
-    this.editorInstances.forEach(editor => editor.onConnectionChanged());
-  }
-}
-
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
   protected lastIncomingSoqlStatement = '';
@@ -133,7 +90,18 @@ export class SOQLEditorInstance {
 
     webviewPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
 
-    ConnectionChangedListener.getInstance().addSoqlEditor(this);
+    const { onConnectionChanged } = this;
+    const fiber = Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const targetOrgRef = yield* api.services.TargetOrgRef();
+      yield* targetOrgRef.changes.pipe(
+        Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${org.orgId ?? '<NOT SET>'}`))),
+        Stream.map(org => org.orgId),
+        Stream.changes,
+        Stream.runForEach(() => Effect.sync(onConnectionChanged))
+      );
+    }).pipe(Effect.provide(AllServicesLayer), Effect.runFork);
+    this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(fiber)) });
 
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
@@ -274,7 +242,6 @@ export class SOQLEditorInstance {
   }
 
   protected dispose(): void {
-    ConnectionChangedListener.getInstance().removeSoqlEditor(this);
     this.subscriptions.forEach(dispposable => dispposable.dispose());
     if (this.disposedCallback) {
       this.disposedCallback(this);
@@ -285,7 +252,7 @@ export class SOQLEditorInstance {
     this.disposedCallback = callback;
   }
 
-  public onConnectionChanged(): void {
+  public onConnectionChanged = (): void => {
     this.sendMessageToUi('connection_changed');
-  }
+  };
 }
