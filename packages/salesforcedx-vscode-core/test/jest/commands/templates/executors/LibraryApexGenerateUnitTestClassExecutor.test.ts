@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TemplateType } from '@salesforce/templates';
-import {
-  CREATE_UNIT_NAME_KEY,
-  LibraryApexGenerateUnitTestClassExecutor,
-  TELEMETRY_NAME
-} from '../../../../../src/commands/templates/executors/libraryApexGenerateUnitTestClassExecutor';
+import { LibraryApexGenerateUnitTestClassExecutor } from '../../../../../src/commands/templates/executors/libraryApexGenerateUnitTestClassExecutor';
 import { APEX_CLASS_TYPE } from '../../../../../src/commands/templates/metadataTypeConstants';
 import { nls } from '../../../../../src/messages';
 
@@ -18,10 +14,10 @@ describe('LibraryApexGenerateUnitTestClassExecutor Unit Tests.', () => {
 
   beforeEach(() => {
     executor = new LibraryApexGenerateUnitTestClassExecutor();
-    jest.spyOn(nls, 'localize').mockReturnValue(CREATE_UNIT_NAME_KEY);
+    jest.spyOn(nls, 'localize').mockReturnValue('SFDX: Create Apex Unit Test Class');
   });
   it('Should have correct defaults properties.', () => {
-    expect(executor.telemetryName).toEqual(TELEMETRY_NAME);
+    expect(executor.telemetryName).toEqual('apex_generate_unit_test_class');
     expect(executor.metadataTypeName).toEqual(APEX_CLASS_TYPE);
     expect(executor.templateType).toEqual(TemplateType.ApexClass);
   });

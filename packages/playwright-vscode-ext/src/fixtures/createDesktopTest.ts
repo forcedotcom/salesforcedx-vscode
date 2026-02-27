@@ -76,10 +76,17 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
-      if (userSettings !== undefined && Object.keys(userSettings).length > 0) {
+      const effectiveUserSettings = {
+        ...(!process.env.CI ? { 'salesforcedx-vscode-salesforcedx.enableFileTraces': true } : {}),
+        ...userSettings
+      };
+      if (Object.keys(effectiveUserSettings).length > 0) {
         const userSettingsDir = path.join(userDataDir, 'User');
         await fs.mkdir(userSettingsDir, { recursive: true });
-        await fs.writeFile(path.join(userSettingsDir, 'settings.json'), JSON.stringify(userSettings, null, 2));
+        await fs.writeFile(
+          path.join(userSettingsDir, 'settings.json'),
+          JSON.stringify(effectiveUserSettings, null, 2)
+        );
       }
       const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
       await fs.mkdir(extensionsDir, { recursive: true });

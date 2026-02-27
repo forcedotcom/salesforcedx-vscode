@@ -35,7 +35,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_language_server_restart_dialog_prompt:
     'Apex DB をクリーンアップして再起動しますか？それとも再起動のみ行いますか？',
   apex_language_server_restart_dialog_restart_only: '再起動のみ',
-  apex_language_server_restart_failed: 'Apex 言語サーバの再起動に失敗しました: ',
   apex_language_server_restarting: 'Apex 言語サーバを再起動しています... $(sync~spin)',
   apex_log_get_no_logs_text: 'Apex デバッグログが見つかりませんでした。',
   apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
@@ -43,15 +42,9 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_log_list_text: 'Apex デバッグログを取得しています',
   cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
   client_name: 'Apex 言語サーバ',
-  java_binary_not_executable_text:
-    '%s の Java バイナリ %s が実行可能ではありません。ファイルの権限を確認してください。',
   java_binary_missing_text: '%s の Java バイナリ %s が見つかりません。Java のインストールを確認してください。',
   java_bin_missing_text: '%s に Java bin ディレクトリが見つかりません。Java のインストールを確認してください。',
   java_home_expansion_failed_text: 'Java ホームパスの展開に失敗しました。Java のインストールを確認してください。',
-  java_home_invalid_text:
-    'Java ホームパス %s が無効です。Salesforce Apex 拡張機能の設定方法についての詳細は、[Java 設定](%s) を参照してください。',
-  java_home_undefined_text:
-    'Java ホームパスが設定されていません。設定または環境変数で Java ホームパスを設定してください。',
   java_runtime_local_text:
     'ローカルの Java ランタイム (%s) はサポートされていません。VS Code の設定の salesforcedx-vscode-apex.java.home に現在のプロジェクト以外のランタイムのパスを設定してください。詳細については、[Java 設定](%s) を参照してください。',
   java_runtime_missing_text:
@@ -64,22 +57,14 @@ export const messages: Partial<Record<MessageKey, string>> = {
   parent_process_id: '親プロセス ID',
   process_command: 'プロセスコマンド',
   process_id: 'プロセス ID',
-  sobjects_no_refresh_if_already_active_error_text:
-    'sObject 定義の更新が既に実行中です。プロセスを再起動する必要がある場合は、実行中のタスクをキャンセルしてください。',
   source_java_home_env_var_text: '環境変数 JAVA_HOME',
   source_java_home_setting_text: 'VS Code の設定で定義される salesforcedx-vscode-apex.java.home の設定',
   source_jdk_home_env_var_text: '環境変数 JDK_HOME',
   source_missing_text:
     '指定されたフォルダ %s は存在しません。Salesforce Apex 拡張機能の設定方法についての詳細は、[Java 設定](%s) を参照してください。',
   terminate_failed: 'Apex 言語サーバプロセス PID: %d の終了に失敗しました: %s',
-  terminate_orphaned_language_server_instances:
-    '%d 個の孤立した Apex 言語サーバプロセスが見つかりました。\nこれらを終了しますか？',
   terminate_processes: 'プロセスを終了',
-  terminate_processes_confirm: '%d 個の孤立プロセスを終了',
-  terminate_processes_title: '孤立プロセスの終了',
   terminate_show_processes: 'プロセスを表示',
-  terminated_orphaned_process: 'Apex 言語サーバプロセス PID: %d を終了しました',
-  terminated_orphaned_processes: '%d 個の孤立プロセスを終了しました。',
   unable_to_locate_document: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unable_to_locate_editor: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unknown: '不明',
