@@ -18,6 +18,8 @@ import { generateFauxClassText } from '../sobjects/fauxClassGenerator';
 import { sobjectTypeFilter } from '../sobjects/sobjectFilter';
 import { generateTypeText } from '../sobjects/typingGenerator';
 
+type ProgressReporter = { report: (value: { increment?: number; message?: string }) => void };
+
 const APEX_CLASS_EXTENSION = '.cls';
 const TYPESCRIPT_TYPE_EXT = '.d.ts';
 // vscode.workspace.fs.writeFile adds ~90ms latency per call vs node:fs.
@@ -35,7 +37,8 @@ const WRITE_CONCURRENCY = 100;
  */
 const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArtifacts')(function* (
   category: SObjectCategory,
-  source: Exclude<SObjectRefreshSource, 'startupmin'>
+  source: Exclude<SObjectRefreshSource, 'startupmin'>,
+  progress: ProgressReporter
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fs = yield* api.services.FsService;
@@ -67,6 +70,8 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
     { concurrency: 'unbounded' }
   );
   const sobjectNames = allSObjects.filter(sobjectTypeFilter(category, source));
+  const total = sobjectNames.length;
+  const incrementPer = total > 0 ? 100 / total : 0;
 
   // Phase 2: typeNames.json — sobjectNames known, dirs ready
   yield* fs.writeFile(Utils.joinPath(soqlMeta, 'typeNames.json'), JSON.stringify(sobjectNames, null, 2));
@@ -74,6 +79,7 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   // Phase 3: describe stream + file writes overlapped.
   const standardRef = yield* Ref.make(0);
   const customRef = yield* Ref.make(0);
+  const processedRef = yield* Ref.make(0);
 
   yield* (yield* api.services.MetadataDescribeService.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
     Stream.mapEffect(tx.toMinimalSObject),
@@ -95,7 +101,12 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
               Utils.joinPath(isCustom ? soqlCustom : soqlStandard, `${sobject.name}.json`),
               JSON.stringify(sobject, null, 2)
             ),
-            Ref.update(isCustom ? customRef : standardRef, n => n + 1)
+            Ref.update(isCustom ? customRef : standardRef, n => n + 1),
+            Ref.updateAndGet(processedRef, n => n + 1).pipe(
+              Effect.tap(processed =>
+                Effect.sync(() => progress.report({ increment: incrementPer, message: `${processed}/${total}` }))
+              )
+            )
           ],
           { concurrency: 'unbounded' }
         );
@@ -118,7 +129,8 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
  */
 const writeSobjectArtifactsEffect = Effect.fn('writeSobjectArtifacts')(function* (
   sobjectStream: Stream.Stream<SObject>,
-  sobjectNames: SObjectShortDescription[]
+  sobjectNames: SObjectShortDescription[],
+  progress: ProgressReporter
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fs = yield* api.services.FsService;
@@ -149,6 +161,9 @@ const writeSobjectArtifactsEffect = Effect.fn('writeSobjectArtifacts')(function*
 
   const standardRef = yield* Ref.make(0);
   const customRef = yield* Ref.make(0);
+  const total = sobjectNames.length;
+  const incrementPer = total > 0 ? 100 / total : 0;
+  const processedRef = yield* Ref.make(0);
 
   yield* sobjectStream.pipe(
     Stream.mapEffect(
@@ -169,7 +184,12 @@ const writeSobjectArtifactsEffect = Effect.fn('writeSobjectArtifacts')(function*
               Utils.joinPath(isCustom ? soqlCustom : soqlStandard, `${sobject.name}.json`),
               JSON.stringify(sobject, null, 2)
             ),
-            Ref.update(isCustom ? customRef : standardRef, n => n + 1)
+            Ref.update(isCustom ? customRef : standardRef, n => n + 1),
+            Ref.updateAndGet(processedRef, n => n + 1).pipe(
+              Effect.tap(processed =>
+                Effect.sync(() => progress.report({ increment: incrementPer, message: `${processed}/${total}` }))
+              )
+            )
           ],
           { concurrency: 'unbounded' }
         );
@@ -186,6 +206,7 @@ type StreamWriterArgs = {
   cancellationToken: vscode.CancellationToken;
   category: SObjectCategory;
   source: Exclude<SObjectRefreshSource, 'startupmin'>;
+  progress: ProgressReporter;
 };
 
 /**
@@ -194,7 +215,7 @@ type StreamWriterArgs = {
 export const streamAndWriteSobjectArtifacts = (args: StreamWriterArgs) =>
   args.cancellationToken.isCancellationRequested
     ? Effect.succeed({ data: { cancelled: true, standardObjects: 0, customObjects: 0 } })
-    : streamAndWriteSobjectArtifactsEffect(args.category, args.source).pipe(
+    : streamAndWriteSobjectArtifactsEffect(args.category, args.source, args.progress).pipe(
         Effect.map(([standardCount, customCount]) => ({
           data: {
             cancelled: args.cancellationToken.isCancellationRequested,
@@ -208,6 +229,7 @@ type StaticWriterArgs = {
   cancellationToken: vscode.CancellationToken;
   sobjects: SObjectsStandardAndCustom;
   sobjectNames: SObjectShortDescription[];
+  progress: ProgressReporter;
 };
 
 /**
@@ -218,7 +240,8 @@ export const writeSobjectArtifacts = (args: StaticWriterArgs) =>
     ? Effect.succeed({ data: { cancelled: true, standardObjects: 0, customObjects: 0 } })
     : writeSobjectArtifactsEffect(
         Stream.fromIterable<SObject>([...args.sobjects.standard, ...args.sobjects.custom]),
-        args.sobjectNames
+        args.sobjectNames,
+        args.progress
       ).pipe(
         Effect.map(([standardCount, customCount]) => ({
           data: {

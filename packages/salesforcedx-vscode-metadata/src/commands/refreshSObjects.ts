@@ -53,12 +53,12 @@ const executeRefresh = Effect.fn('executeRefresh')(
     const result = yield* Effect.promise(() =>
       vscode.window.withProgress(
         { title: nls.localize('sobjects_refresh'), location: progressLocation, cancellable: true },
-        (_progress, token) => {
+        (progress, token) => {
           cancellationTokenSource.dispose();
           const artifactEffect =
             source === 'startupmin'
-              ? writeSobjectArtifacts({ cancellationToken: token, sobjects: getMinObjects(), sobjectNames: getMinNames() })
-              : streamAndWriteSobjectArtifacts({ cancellationToken: token, category, source: source ?? 'manual' });
+              ? writeSobjectArtifacts({ cancellationToken: token, sobjects: getMinObjects(), sobjectNames: getMinNames(), progress })
+              : streamAndWriteSobjectArtifacts({ cancellationToken: token, category, source: source ?? 'manual', progress });
           return Runtime.runPromise(rt)(
             artifactEffect.pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope))
           );
