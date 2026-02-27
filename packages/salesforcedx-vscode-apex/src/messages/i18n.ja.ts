@@ -21,10 +21,6 @@ import { MessageKey } from './i18n';
 export const messages: Partial<Record<MessageKey, string>> = {
   anon_apex_execute_document_text: 'SFDX: エディタの内容で匿名 Apex コードを実行',
   anon_apex_execute_selection_text: 'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
-  apex_execute_compile_success: '正常にコンパイルされました。',
-  apex_execute_runtime_success: '正常に実行されました。',
-  apex_execute_text: '匿名 Apex を実行',
-  apex_execute_unexpected_error: '予期せぬエラー',
   apex_language_server_already_restarting: 'Apex 言語サーバは既に再起動中です。お待ちください。',
   apex_language_server_failed_activate: 'Apex 言語サーバを有効化できませんでした。',
   apex_language_server_loaded: 'インデックス化が完了しました $(check)',
@@ -36,10 +32,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'Apex DB をクリーンアップして再起動しますか？それとも再起動のみ行いますか？',
   apex_language_server_restart_dialog_restart_only: '再起動のみ',
   apex_language_server_restarting: 'Apex 言語サーバを再起動しています... $(sync~spin)',
-  apex_log_get_no_logs_text: 'Apex デバッグログが見つかりませんでした。',
-  apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
-  apex_log_get_text: 'SFDX: Apex デバッグログを取得',
-  apex_log_list_text: 'Apex デバッグログを取得しています',
   cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
   client_name: 'Apex 言語サーバ',
   colorizer_no_code_coverage_current_file:
@@ -59,8 +51,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   java_runtime_missing_text:
     'Java ランタイムが見つかりませんでした。VS Code の設定の salesforcedx-vscode-apex.java.home にパスを指定してください。詳細については、[Java 設定](%s) を参照してください。',
   java_version_check_command_failed: 'Java コマンド %s の実行に失敗しました。エラー: %s',
-  launch_apex_replay_debugger_unsupported_file:
-    '匿名 Apex ファイル、Apex テストファイル、または Apex デバッグログファイルに対してのみこのコマンドを実行できます。',
   orphan_process_advice:
     '以下のプロセスリストは、適切にシャットダウンされなかった Apex 言語サーバのインスタンスです。\nこれらのプロセスは、この警告メッセージから停止することも、自分で処理することもできます。\n自分でこれらのプロセスを終了する場合は、関連するドキュメントを参照してプロセスを停止してください。',
   parent_process_id: '親プロセス ID',
@@ -74,13 +64,10 @@ export const messages: Partial<Record<MessageKey, string>> = {
   terminate_failed: 'Apex 言語サーバプロセス PID: %d の終了に失敗しました: %s',
   terminate_processes: 'プロセスを終了',
   terminate_show_processes: 'プロセスを表示',
-  unable_to_locate_document: 'ソースファイルに対してのみこのコマンドを実行できます。',
-  unable_to_locate_editor: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unknown: '不明',
   unknown_error: '不明なエラー',
   wrong_java_version_short: 'サポートされていない Java バージョン',
   wrong_java_version_text:
     'サポートされていない Java バージョンを検出しました。Java 11 以上がサポートされています。拡張機能の実行には [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) を推奨します。詳細については、[Java バージョンの設定](%s) を参照してください。',
-  yes: 'はい',
-  launch_apex_replay_debugger_with_selected_file: '選択されたファイルで Apex リプレイデバッガを起動'
+  yes: 'はい'
 };
