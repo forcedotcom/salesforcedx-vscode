@@ -42,12 +42,12 @@ const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void>
     if (!clicked) break;
     // CI is slower; allow more time for session to end after Continue
     const sessionEnded = await expect(toolbar)
-      .not.toBeVisible({ timeout: 25000 })
+      .not.toBeVisible({ timeout: 45000 })
       .then(() => true)
       .catch(() => false);
     if (sessionEnded) break;
   }
-  await expect(toolbar).not.toBeVisible({ timeout: 60000 });
+  await expect(toolbar).not.toBeVisible({ timeout: 90000 });
 };
 
 test('Apex Replay Debugger: trace flag, exec anon, replay from log and test class', async ({
@@ -95,9 +95,12 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
   });
 
   await test.step('wait for CodeLens in test class', async () => {
+    // Apex LS must finish indexing before CodeLens appear; CI is slower
+    const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
+    await expect(indexingComplete).toBeVisible({ timeout: 120000 });
     await openFileByName(page, 'ExampleApexClassTest.cls');
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
-    await expect(codelens.first()).toBeVisible({ timeout: 60000 });
+    await expect(codelens.first()).toBeVisible({ timeout: 90000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
   });
 
