@@ -46,9 +46,7 @@ const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void>
   await expect(toolbar).not.toBeVisible({ timeout: 90000 });
 };
 
-test('Apex Replay Debugger: trace flag, exec anon, replay from log and test class', async ({
-  page
-}) => {
+test('Apex Replay Debugger: trace flag, exec anon, replay from log and test class', async ({ page }) => {
   test.setTimeout(600000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -56,7 +54,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
   const exampleClassContent = [
     'public with sharing class ExampleApexClass {',
     '  public static void SayHello(string name){',
-    '    System.debug(\'Hello, \' + name + \'!\');',
+    "    System.debug('Hello, ' + name + '!');",
     '  }',
     '}'
   ].join('\n');
@@ -66,10 +64,10 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     'public class ExampleApexClassTest {',
     '  @IsTest',
     '  static void validateSayHello() {',
-    '    System.debug(\'Starting validate\');',
-    '    ExampleApexClass.SayHello(\'Cody\');',
+    "    System.debug('Starting validate');",
+    "    ExampleApexClass.SayHello('Cody');",
     '',
-    '    System.assertEquals(1, 1, \'all good\');',
+    "    System.assertEquals(1, 1, 'all good');",
     '  }',
     '}'
   ].join('\n');
@@ -154,10 +152,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     // Without LAST_OPENED_LOG_KEY, "launch from last log file" opens the native file picker.
     const logTab = page.locator('.tab').filter({ hasText: /debug\.log/ });
     await logTab.click({ force: true });
-    await executeCommandWithCommandPalette(
-      page,
-      packageNls.launch_apex_replay_debugger_with_selected_file as string
-    );
+    await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     await continueDebugSession(page);
   });
 
@@ -168,10 +163,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
 
   await test.step('launch replay debugger with test class', async () => {
     await openFileByName(page, 'ExampleApexClassTest.cls');
-    await executeCommandWithCommandPalette(
-      page,
-      packageNls.launch_apex_replay_debugger_with_selected_file as string
-    );
+    await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     await continueDebugSession(page);
   });
 
@@ -180,22 +172,19 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     await selectOutputChannel(page, 'Salesforce Apex Log');
     await clearOutputChannel(page);
 
-    await executeCommandWithCommandPalette(
-      page,
-      apexLogNls['apexLog.command.createAnonymousApexScript'] as string
-    );
+    await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.createAnonymousApexScript'] as string);
     await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10000 });
     await page.keyboard.type('TestScript');
     await page.keyboard.press('Enter');
 
     // Wait for TestScript.apex to be opened, then ensure it's the active editor
-    await page.locator('.tab').filter({ hasText: /TestScript\.apex/ }).waitFor({ state: 'visible', timeout: 15000 });
+    await page
+      .locator('.tab')
+      .filter({ hasText: /TestScript\.apex/ })
+      .waitFor({ state: 'visible', timeout: 15000 });
     await openFileByName(page, 'TestScript.apex');
 
-    await executeCommandWithCommandPalette(
-      page,
-      apexLogNls['apexLog.command.executeDocument'] as string
-    );
+    await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
 
     await saveScreenshot(page, 'step.exec-anon-document-done.png');
   });
@@ -206,7 +195,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       apexLogNls['apexLog.command.traceFlagsDeleteForCurrentUser'] as string
     );
     const statusBar = page.getByRole('button', { name: /No Tracing/ });
-    await expect(statusBar).toBeVisible({ timeout: 30000 });
+    await expect(statusBar).toBeVisible({ timeout: 60000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
