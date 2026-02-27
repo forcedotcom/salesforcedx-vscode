@@ -8,16 +8,24 @@
 import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
 import { O11yService } from '@salesforce/o11y-reporter';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
-// @ts-ignore o11y has no types
-import { pdpEventSchema } from 'o11y_schema/sf_pdp';
 import { Disposable, env, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
-async function getConnection() {
-  return WorkspaceContextUtil.getInstance().getConnection();
-}
+// o11y_schema is ESM-only; load via dynamic import() so it works when this package is required as CJS
+const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } = {
+  promise: null
+};
+const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
+  // @ts-ignore - o11y_schema has no types
+  pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(
+    (m) => m.pdpEventSchema
+  );
+  return pdpEventSchemaCache.promise;
+};
+const getConnection = async () =>
+  WorkspaceContextUtil.getInstance().getConnection();
 
 export class O11yReporter
   extends Disposable
@@ -81,11 +89,20 @@ export class O11yReporter
     return isInternalHost() ? { ...commonProperties, ...getInternalProperties() } : commonProperties;
   }
 
-  private sendPftEvent({ orgId, devHubId, commandId }: { orgId: string; devHubId: string; commandId: string }): void {
+  private async sendPftEvent({
+    orgId,
+    devHubId,
+    commandId
+  }: {
+    orgId: string;
+    devHubId: string;
+    commandId: string;
+  }): Promise<void> {
     // migrate the various properties to the expected o11y/PDP schema
     if (!this.productFeatureId) {
       return;
     }
+    const pdpEventSchema = await getPdpEventSchema();
     this.o11yService.logEventWithSchema(
       {
         eventName: 'vscodeExtension.executed',
@@ -129,7 +146,7 @@ export class O11yReporter
 
       // we also send these for monCloud/PFT
       if (eventName === 'commandExecution') {
-        this.sendPftEvent({ orgId, devHubId, commandId: props.commandName });
+        void this.sendPftEvent({ orgId, devHubId, commandId: props.commandName });
       }
     }
   }
