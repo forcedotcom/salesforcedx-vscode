@@ -28,7 +28,12 @@ import {
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
-import { findTestItemByName, TestTreeItem, verifyTestItems } from '../utils/apexTestsHelper';
+import {
+  expandTestExplorerNamespaceAndPackage,
+  findTestItemByName,
+  TestTreeItem,
+  verifyTestItems
+} from '../utils/apexTestsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -155,6 +160,8 @@ describe('Debug Apex Tests', () => {
     );
     await pause(Duration.seconds(20)); // Wait for the tests to load
 
+    await expandTestExplorerNamespaceAndPackage();
+
     const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test'];
     await verifyTestItems(expectedItems);
 
@@ -207,6 +214,8 @@ describe('Debug Apex Tests', () => {
       3,
       'DebugApexTests - Error getting test explorer section'
     );
+
+    await expandTestExplorerNamespaceAndPackage();
 
     // Hover a test name under one of the test class sections and click the debug button that is shown to the right of the test name on the Test sidebar
     let apexTestItem: TestTreeItem;

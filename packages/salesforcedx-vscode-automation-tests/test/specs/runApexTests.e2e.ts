@@ -38,6 +38,7 @@ import { expect } from 'chai';
 import { By, InputBox, QuickOpenBox,  } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
 import {
+  expandTestExplorerNamespaceAndPackage,
   findCheckboxElement,
   findTestItemByName,
   getTestResultsTabText,
@@ -258,6 +259,9 @@ describe('Run Apex Tests', () => {
     );
     await pause(Duration.seconds(20)); // Wait for the tests to load
 
+    // Expand namespace/package so test classes are visible (grouping: Namespace → Package → Class → Method)
+    await expandTestExplorerNamespaceAndPackage();
+
     // Verify the expected test items appear
     const expectedTestNames = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleApexClass3Test'];
     const testItems = await verifyTestItems(expectedTestNames);
@@ -313,6 +317,9 @@ describe('Run Apex Tests', () => {
   it('Run All Tests on a Class via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run All Tests on a Class via the Test Sidebar');
 
+    // Expand namespace/package so test classes are visible (grouping: Namespace → Package → Class → Method)
+    await expandTestExplorerNamespaceAndPackage();
+
     // Find and click on the test method in the Test Explorer
     const testClassItem = await findTestItemByName('ExampleApexClass2Test');
     await pause(Duration.seconds(5));
@@ -348,6 +355,9 @@ describe('Run Apex Tests', () => {
 
   it('Run Single Test via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run Single Test via the Test Sidebar');
+
+    // Expand namespace/package so test classes and methods are visible (grouping: Namespace → Package → Class → Method)
+    await expandTestExplorerNamespaceAndPackage();
 
     // Find and click on the test method in the Test Explorer
     await pause(Duration.seconds(5)); // Wait for the tests to load

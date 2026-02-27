@@ -54,7 +54,8 @@
       "command": "playwright test --config=playwright.config.web.ts",
       "dependencies": [
         "compile",
-        "../salesforcedx-vscode-services:vscode:bundle"
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server"
       ],
       "files": [
         "src/**/*.ts",
