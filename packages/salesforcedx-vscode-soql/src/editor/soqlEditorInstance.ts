@@ -98,7 +98,7 @@ export class SOQLEditorInstance {
         Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${org.orgId ?? '<NOT SET>'}`))),
         Stream.map(org => org.orgId),
         Stream.changes,
-        Stream.runForEach(() => Effect.sync(onConnectionChanged))
+        Stream.runForEach(() => Effect.sync(() => onConnectionChanged()))
       );
     }).pipe(Effect.provide(AllServicesLayer), Effect.runFork);
     this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(fiber)) });
