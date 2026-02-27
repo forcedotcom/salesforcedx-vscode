@@ -43,15 +43,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_log_list_text: 'Apex デバッグログを取得しています',
   cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
   client_name: 'Apex 言語サーバ',
-  colorizer_no_code_coverage_current_file:
-    'このファイルでコードカバレッジの情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-apex-testing.retrieve-test-code-coverage" を true に設定してください。次に、このファイルを含むApex テストを実行してください。Apex テストのサイドバーまたは、ファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行できます。',
-  colorizer_no_code_coverage_on_project:
-    'このプロジェクトでテスト実行の情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-apex-testing.retrieve-test-code-coverage" を true に設定してください。次に、Apex テストのサイドバーまたは、テストクラスファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行してください。',
-  colorizer_no_code_coverage_on_test_results:
-    'テスト実行 %s のコードカバレッジの情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-apex-testing.retrieve-test-code-coverage" を true に設定してください。次に、Apex テストのサイドバーまたは、テストクラスファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行してください。',
-  colorizer_out_of_sync_code_coverage_data:
-    'このファイルは更新されているようです。コードカバレッジの数値を更新するには、このファイルでテストを実行してください。',
-  colorizer_statusbar_hover_text: 'Apex コードカバレッジを強調表示',
   java_binary_not_executable_text:
     '%s の Java バイナリ %s が実行可能ではありません。ファイルの権限を確認してください。',
   java_binary_missing_text: '%s の Java バイナリ %s が見つかりません。Java のインストールを確認してください。',

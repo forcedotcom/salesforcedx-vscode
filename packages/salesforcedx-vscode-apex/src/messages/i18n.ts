@@ -42,15 +42,6 @@ export const messages = {
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex',
   client_name: 'Apex Language Server',
-  colorizer_no_code_coverage_current_file:
-    'No code coverage information was found for file %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
-  colorizer_no_code_coverage_on_project:
-    'No test run information was found for this project. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
-  colorizer_no_code_coverage_on_test_results:
-    'No code coverage information was found for test run %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
-  colorizer_out_of_sync_code_coverage_data:
-    'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
-  colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
   error_no_connection_found_message: 'No connection found',
   java_binary_not_executable_text: 'Java binary %s at %s is not executable. Please check the file permissions.',
   java_binary_missing_text: 'Java binary %s not found at %s. Please check your Java installation.',

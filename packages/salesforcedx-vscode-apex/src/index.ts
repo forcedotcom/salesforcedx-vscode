@@ -8,8 +8,6 @@
 import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
-import { CodeCoverageHandler as CodeCoverage } from './codecoverage/colorizer';
-import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import { anonApexDebug, anonApexExecute, apexLogGet, launchApexReplayDebuggerWithCurrentFile } from './commands';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
@@ -85,13 +83,6 @@ export const activate = async (context: vscode.ExtensionContext) => {
 };
 
 const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable => {
-  // Colorize code coverage
-  const statusBarToggle = new StatusBarToggle();
-  const colorizer = new CodeCoverage(statusBarToggle);
-  const apexToggleColorizerCmd = vscode.commands.registerCommand('sf.apex.toggle.colorizer', () =>
-    colorizer.toggleCoverage()
-  );
-
   // Customer-facing commands
   const anonApexRunDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.run.delegate', anonApexExecute);
   const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
@@ -120,7 +111,6 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     anonApexExecuteSelectionCmd,
     anonApexRunDelegateCmd,
     apexLogGetCmd,
-    apexToggleColorizerCmd,
     launchApexReplayDebuggerWithCurrentFileCmd,
     restartApexLanguageServerCmd
   );
