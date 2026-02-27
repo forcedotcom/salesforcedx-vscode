@@ -103,9 +103,6 @@
     "colormin": "1.1.2",
     "jest-extended": "^0.11.5",
     "js-base64": "3.7.8",
-    "num2fraction": "1.2.2",
-    "rollup": "0.68.2",
-    "uniq": "1.0.1",
-    "uniqs": "2.0.0"
+    "num2fraction": "1.2.2"
   }
 }
