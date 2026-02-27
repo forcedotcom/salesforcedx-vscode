@@ -21,6 +21,7 @@
     // TODO: cleanup unknown usage in catch blocks and remove below setting
     "useUnknownInCatchVariables": false,
     "noUnusedLocals": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "plugins": [{ "name": "@salesforce/vscode-i18n/tsPlugin" }]
   }
 }

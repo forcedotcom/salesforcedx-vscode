@@ -12,6 +12,7 @@ Interact with Gus (Salesforce Agile Accelerator org) via sf CLI. Requires alias 
 - **Queries** (sf data query, sf alias list): run without asking
 - **Writes** (create, update): **do not execute until user explicitly confirms**
   - Present the draft (subject, epic, details, assignee). Ask: "Create this work item?" or "Update work item X?"
+  - **Draft format:** Use bullet list, not markdown table (tables can render blank in some viewers). Put Details\_\_c in a code block so HTML content is visible.
   - Only run `sf data create record` / `sf data update record` after user says yes (or equivalent)
   - Answering scope questions (e.g. "just createProject") is not confirmation—still ask
 - **Epic selection**: when less than 50% sure which epic a work item belongs in, ask the user

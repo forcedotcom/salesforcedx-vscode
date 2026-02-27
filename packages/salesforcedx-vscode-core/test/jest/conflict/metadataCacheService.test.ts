@@ -21,13 +21,6 @@ jest.mock('../../../src/telemetry', () => ({
   }
 }));
 
-// Mock LocalizationService
-jest.mock('../../../src/messages', () => ({
-  nls: {
-    localize: jest.fn((key: string) => key)
-  }
-}));
-
 // Mock ChannelService
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),

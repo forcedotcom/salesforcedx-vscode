@@ -11,12 +11,9 @@ import { nls } from '../../../messages';
 import { LibraryBaseTemplateCommand } from '../libraryBaseTemplateCommand';
 import { APEX_CLASS_TYPE } from '../metadataTypeConstants';
 
-export const CREATE_UNIT_NAME_KEY = 'apex_generate_unit_test_class_text';
-export const TELEMETRY_NAME = 'apex_generate_unit_test_class';
-
 export class LibraryApexGenerateUnitTestClassExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
-  public executionName = nls.localize(CREATE_UNIT_NAME_KEY);
-  public telemetryName = TELEMETRY_NAME;
+  public executionName = nls.localize('apex_generate_unit_test_class_text');
+  public telemetryName = 'apex_generate_unit_test_class';
   public metadataTypeName = APEX_CLASS_TYPE;
   public templateType = TemplateType.ApexClass;
   public getOutputFileName(data: DirFileNameSelection) {

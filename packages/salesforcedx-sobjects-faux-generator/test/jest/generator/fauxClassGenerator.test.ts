@@ -18,10 +18,7 @@ import {
 } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
 
-jest.mock('../../../src/messages');
-
 const vscodeMocked = jest.mocked(vscode);
-const nlsMocked = jest.mocked(nls);
 
 describe('FauxClassGenerator Unit Tests.', () => {
   let typePath = '';
@@ -31,17 +28,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
     vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
     vscodeMocked.workspace.fs.createDirectory.mockResolvedValue(undefined);
     vscodeMocked.workspace.fs.delete.mockResolvedValue(undefined);
-
-    // Mock nls.localize to return the expected error message
-    nlsMocked.localize.mockImplementation((key, ...args) => {
-      if (key === 'no_sobject_output_folder_text') {
-        return `No output folder available ${args[0]}.  Please create this folder and refresh again`;
-      }
-      if (key === 'unsupported_sobject_category') {
-        return `SObject category cannot be used to generate metadata ${args[0]}`;
-      }
-      return key;
-    });
   });
 
   afterEach(() => {

@@ -18,11 +18,7 @@ import { MessageKey } from './i18n';
  * If omitted, we will assume _message.
  */
 export const messages: Partial<Record<MessageKey, string>> = {
-  lwc_test_run_description_text: 'LWC テストを実行',
   lightning_lwc_test_navigate_to_test: 'SFDX: Lightning Web Component テストへ移動',
-  no_lwc_jest_found_text:
-    'sfdx-lwc-jest がインストールされていません。https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation からインストールしてください。',
-  no_lwc_testrunner_found_text: 'lwc-testrunner がインストールされていません。',
   no_workspace_folder_found_for_test_text: 'このテストのワークスペースフォルダを特定できませんでした',
   run_test_title: 'テストを実行',
   debug_test_title: 'テストをデバッグ',

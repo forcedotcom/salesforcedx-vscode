@@ -22,11 +22,6 @@ export const messages = {
   forceignore_file_not_found_message: 'Forceignore file not found',
   existing_config_content_not_found_message: 'Existing config content not found',
   invalid_existing_config_format_message: 'Invalid existing config format',
-  invalid_template_config_message: 'Invalid template config: type=%s, isArray=%s, keys=%s, templateKeys=%s',
   workspaceRoots_0_required_message: 'workspaceRoots[0] is required: value=%s, isUndefined=%s',
-  jsconfigSfdxTemplate_not_found_message: 'jsconfigSfdxTemplate not found',
-  jsconfigTemplate_must_be_a_string_message: 'jsconfigTemplate must be a string, got: %s',
   invalid_paths_message: 'Invalid paths: fromPath=%s, toPath=%s',
-  relativeWorkspaceRoot_must_be_a_string_message: 'relativeWorkspaceRoot must be a string, got: type=%s, value=%s',
-  jsconfigTemplate_not_found_message: 'jsconfigTemplate not found'
 } as const;

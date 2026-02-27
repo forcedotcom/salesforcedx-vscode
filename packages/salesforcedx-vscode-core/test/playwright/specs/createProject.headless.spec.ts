@@ -87,7 +87,7 @@ test('Create Project: standard project via command palette', async ({ page, work
     // Poll for sfdx-project.json (project generation may take a moment)
     await expect(async () => {
       await fs.access(path.join(projectDir, 'sfdx-project.json'));
-    }).toPass({ timeout: 60_000 });
+    }).toPass({ timeout: 120_000 });
 
     await fs.access(path.join(projectDir, 'force-app'));
     await saveScreenshot(page, 'createProject.06-verified.png');

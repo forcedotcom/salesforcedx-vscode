@@ -15,12 +15,6 @@ import { nls } from '../../messages';
 import { ContinueOrCancel, getComponentName, getComponentPath, isContinue, OneOrMany } from '../../util';
 import { isComponentName, isDirFileNameSelection } from '../../util/types';
 import {
-  RENAME_NOT_SUPPORTED_MESSAGE,
-  INPUT_NO_COMPONENT_NAME_MESSAGE,
-  COMPONENT_CANNOT_BE_EMPTY_MESSAGE,
-  CREATE_NOT_SUPPORTED_MESSAGE,
-  INPUT_INCORRECT_COMPONENT_PROPERTIES_MESSAGE,
-  INPUT_DUP_ERROR,
   checkForExistingComponentInAltLocation,
   checkForDuplicateInComponent,
   checkForDuplicateName
@@ -36,15 +30,15 @@ export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionC
       return inputs;
     }
     if (Array.isArray(inputs.data)) {
-      return { type: 'CANCEL', msg: nls.localize(RENAME_NOT_SUPPORTED_MESSAGE) };
+      return { type: 'CANCEL', msg: nls.localize('rename_not_supported') };
     }
     const { data } = inputs;
     if (!isComponentName(data)) {
-      return { type: 'CANCEL', msg: nls.localize(INPUT_NO_COMPONENT_NAME_MESSAGE) };
+      return { type: 'CANCEL', msg: nls.localize('input_no_component_name') };
     }
     const { name } = data;
     if (!name) {
-      return { type: 'CANCEL', msg: nls.localize(COMPONENT_CANNOT_BE_EMPTY_MESSAGE) };
+      return { type: 'CANCEL', msg: nls.localize('component_empty') };
     }
 
     try {
@@ -70,19 +64,19 @@ export class LwcAuraDuplicateComponentCheckerForCreate implements PostconditionC
       return inputs;
     }
     if (Array.isArray(inputs.data)) {
-      return { type: 'CANCEL', msg: nls.localize(CREATE_NOT_SUPPORTED_MESSAGE) };
+      return { type: 'CANCEL', msg: nls.localize('create_not_supported') };
     }
 
     if (!isDirFileNameSelection(inputs.data)) {
-      return { type: 'CANCEL', msg: nls.localize(INPUT_INCORRECT_COMPONENT_PROPERTIES_MESSAGE) };
+      return { type: 'CANCEL', msg: nls.localize('input_incorrect_properties') };
     }
 
     const componentPath = inputs.data.outputdir;
     const componentName = getComponentName(inputs.data.fileName);
     return checkForExistingComponentInAltLocation(componentPath, componentName).then(exists => {
       if (exists) {
-        void notificationService.showErrorMessage(nls.localize(INPUT_DUP_ERROR));
-        return { type: 'CANCEL', msg: nls.localize(INPUT_DUP_ERROR) };
+        void notificationService.showErrorMessage(nls.localize('component_input_dup_error'));
+        return { type: 'CANCEL', msg: nls.localize('component_input_dup_error') };
       }
       // No duplicates found, continue with the process
       return { type: 'CONTINUE', data: inputs.data };

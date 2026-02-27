@@ -53,7 +53,6 @@ export const messages = {
   unmodeled_distance: 'DISTANCE expression',
   unmodeled_select: 'Unsupported SELECT expression',
   unmodeled_complexgroup: 'Complex condition containing NOT or a mix of AND and OR',
-  unmodeled_count: 'COUNT function',
   unmodeled_with: 'WITH filtering expression',
   unmodeled_groupby: 'GROUP BY clause',
   unmodeled_offset: 'OFFSET clause',
