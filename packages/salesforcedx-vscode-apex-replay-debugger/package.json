@@ -222,13 +222,13 @@
       "editor/context": [
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
-          "when": "sf:project_opened && resource =~ /\\.(cls|apex|log)$/"
+          "when": "sf:project_opened && (resource =~ /\\.(log|apex)$/ || (resource =~ /\\.cls$/ && sf:current_file_is_apex_test))"
         }
       ],
       "explorer/context": [
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
-          "when": "sf:project_opened && resource =~ /\\.(cls|apex|log)$/"
+          "when": "sf:project_opened && (resource =~ /\\.(log|apex)$/ || (resource =~ /\\.cls$/ && sf:current_file_is_apex_test))"
         }
       ]
     },

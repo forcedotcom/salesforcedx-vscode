@@ -42,7 +42,7 @@ export const launchApexReplayDebuggerWithCurrentFile = async () => {
     return;
   }
 
-  const apexTestClassName = await getApexTestClassName(sourceUri);
+  const apexTestClassName = getApexTestClassName(editor.document);
   if (apexTestClassName) {
     await launchApexReplayDebugger(apexTestClassName);
     return;
@@ -61,7 +61,12 @@ const launchReplayDebuggerLogFile = async (sourceUri: URI) => {
   });
 };
 
-const getApexTestClassName = (sourceUri: URI): string => basename(sourceUri.fsPath, '.cls');
+const IS_TEST_REG_EXP = /@isTest/i;
+
+const getApexTestClassName = (document: vscode.TextDocument): string | undefined =>
+  document.uri.fsPath.endsWith('.cls') && IS_TEST_REG_EXP.test(document.getText())
+    ? basename(document.uri.fsPath, '.cls')
+    : undefined;
 
 const launchAnonymousApexReplayDebugger = async () => {
   const commandlet = new SfCommandlet(

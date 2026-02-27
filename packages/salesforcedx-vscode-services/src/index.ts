@@ -35,7 +35,7 @@ import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStor
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
-import { watchPackageDirectoriesContext } from './vscode/editorContext';
+import { watchApexTestContext, watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
 import { setExtensionContext } from './vscode/extensionContext';
@@ -159,7 +159,9 @@ const activationEffect = (context: vscode.ExtensionContext) =>
         // watch the config files for changes, which various services use to invalidate caches
         Effect.forkIn(watchConfigFiles(), scope),
         // watch active editor changes to update package directories context
-        Effect.forkIn(watchPackageDirectoriesContext(), scope)
+        Effect.forkIn(watchPackageDirectoriesContext(), scope),
+        // watch active editor changes to update apex test context
+        Effect.forkIn(watchApexTestContext(), scope)
       ],
       {
         concurrency: 'unbounded'
