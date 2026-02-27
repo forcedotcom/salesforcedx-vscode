@@ -60,10 +60,7 @@ const expandPlaceholders = async (items: ProtocolCompletionItem[]): Promise<Prot
   const expandedItems = [...items];
 
   for (const [index, item] of items.entries()) {
-    const labelString = ((x: unknown): x is string => typeof x === 'string')(item.label)
-      ? item.label
-      : item.label.label;
-    const parsedCommand = labelString.match(EXPANDABLE_ITEM_PATTERN);
+    const parsedCommand = getLabelString(item).match(EXPANDABLE_ITEM_PATTERN);
     if (parsedCommand) {
       const commandName = parsedCommand[1];
 
@@ -205,7 +202,6 @@ const safeRetrieveSObject = async (sobjectName?: string): Promise<SObject | unde
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     return yield* api.services.MetadataDescribeService.describeCustomObject(sobjectName).pipe(
       Effect.flatMap(raw => api.services.TransmogrifierService.toMinimalSObject(raw)),
-      Effect.provide(AllServicesLayer),
       Effect.catchAll(() => Effect.succeed<SObject | undefined>(undefined))
     );
   }).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
