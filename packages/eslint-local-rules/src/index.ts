@@ -12,6 +12,7 @@ import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 
+import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
@@ -29,6 +30,7 @@ const plugin = {
     'no-effect-fn-wrapper': noEffectFnWrapper,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
+    'no-unused-i18n-messages': noUnusedI18nMessages,
     'no-vscode-message-literals': noVscodeMessageLiterals,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,

@@ -16,11 +16,9 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  lwc_test_run_description_text: 'Run LWC test(s)',
   lightning_lwc_test_navigate_to_test: 'SFDX: Navigate to Lightning Web Component Test',
-  no_lwc_jest_found_text:
-    'sfdx-lwc-jest is not installed. Install it from https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation',
-  no_lwc_testrunner_found_text: 'lwc-testrunner is not installed.',
+  no_lwc_jest_found_text: 'LWC Jest is not installed. Run npm install in your project.',
+  no_lwc_testrunner_found_text: 'LWC Test Runner is not installed. Install @salesforce/lwc-testrunner.',
   no_workspace_folder_found_for_test_text: 'Unable to determine workspace folder for this test',
   run_test_title: 'Run Test',
   debug_test_title: 'Debug Test',

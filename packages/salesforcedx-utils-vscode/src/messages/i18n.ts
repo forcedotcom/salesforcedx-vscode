@@ -16,9 +16,6 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  telemetry_legal_dialog_message:
-    'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
-  telemetry_legal_dialog_button_text: 'Read more',
 
   progress_notification_text: 'Running %s',
   notification_successful_execution_text: '%s successfully ran',
@@ -30,14 +27,12 @@ export const messages = {
   error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   error_no_target_dev_hub: 'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
-  cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
 
   error_access_token_expired: 'Access token expired or invalid.',
   error_access_token_expired_detail:
     'Please reauthenticate using the login button or the `SFDX Authorize an Org` command.  See the output channel for more details on the auth error',
   error_access_token_expired_login_button: 'Login',
 
-  channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:
@@ -53,7 +48,6 @@ export const messages = {
   type: 'TYPE',
   project_path: 'PROJECT PATH',
   ignored: 'IGNORED',
-  parameter_gatherer_enter_username_name: 'Enter target username',
   warning_using_global_username:
     'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.'
 } as const;
