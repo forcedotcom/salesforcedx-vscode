@@ -13,11 +13,6 @@ on:
         required: false
         default: true
         type: boolean
-      apexReplayDebugger:
-        description: 'Apex Replay Debugger'
-        required: false
-        default: false
-        type: boolean
       debugApexTests:
         description: 'Debug Apex Tests'
         required: false
@@ -54,11 +49,6 @@ on:
         description: 'Apex LSP'
         required: false
         default: true
-        type: boolean
-      apexReplayDebugger:
-        description: 'Apex Replay Debugger'
-        required: false
-        default: false
         type: boolean
       debugApexTests:
         description: 'Debug Apex Tests'
@@ -102,15 +92,6 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'apexLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  apexReplayDebugger:
-    if: ${{ inputs.apexReplayDebugger }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'apexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 

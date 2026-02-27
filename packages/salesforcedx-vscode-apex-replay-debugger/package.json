@@ -42,6 +42,7 @@
     "@salesforce/core": "^8.23.2",
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-metadata": "*",
     "salesforcedx-vscode-services": "*",
     "@salesforce/playwright-vscode-ext": "*"
   },
@@ -53,6 +54,7 @@
   ],
   "scripts": {
     "vscode:bundle": "wireit",
+    "test:desktop": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -147,6 +149,28 @@
       "output": [
         "*.vsix"
       ]
+    },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-apex:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-apex-testing:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     }
   },
   "activationEvents": [
