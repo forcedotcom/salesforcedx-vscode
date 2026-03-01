@@ -69,11 +69,12 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     const sourceTrackingService = yield* SourceTrackingService;
     const projectService = yield* ProjectService;
     const configService = yield* ConfigService;
-    const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
+    const metadataRegistryService = yield* MetadataRegistryService;
 
     const buildComponentSet = Effect.fn('MetadataRetrieveService.buildComponentSet')(function* (
       members: MetadataMember[]
     ) {
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       return yield* Effect.try({
         try: () => new ComponentSet(members, registryAccess),
         catch: e => {
@@ -98,6 +99,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       filterMembers: MetadataMember[]
     ) {
       yield* Effect.annotateCurrentSpan({ filterMembers, sourcePaths });
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const include = filterMembers.length > 0 ? yield* buildComponentSet(filterMembers) : undefined;
       const cs = yield* Effect.try({
         try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
@@ -188,7 +190,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         [connectionService.getConnection(), projectService.getSfProject(), workspaceService.getWorkspaceInfoOrThrow()],
         { concurrency: 'unbounded' }
       );
-
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const componentSet = yield* buildComponentSet(members);
 
       const tracking = yield* sourceTrackingService.getSourceTracking(options);
@@ -219,6 +221,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       options?: SourceTrackingOptions
     ) {
       yield* Effect.annotateCurrentSpan({ components: components.size });
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const [connection, project, configAggregator] = yield* Effect.all(
         [
           connectionService.getConnection(),
@@ -258,6 +261,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      */
     const retrieveComponentSetToDirectory = Effect.fn('MetadataRetrieveService.retrieveComponentSetToDirectory')(
       function* (components: NonEmptyComponentSet, outputPath: URI) {
+        const registryAccess = yield* metadataRegistryService.getRegistryAccess();
         const [connection, project, configAggregator] = yield* Effect.all(
           [
             connectionService.getConnection(),

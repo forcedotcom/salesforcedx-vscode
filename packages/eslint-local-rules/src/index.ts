@@ -9,6 +9,7 @@ import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
+import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
@@ -24,6 +25,7 @@ const plugin = {
     'no-duplicate-i18n-values': noDuplicateI18nValues,
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,
+    'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-vscode-message-literals': noVscodeMessageLiterals,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
