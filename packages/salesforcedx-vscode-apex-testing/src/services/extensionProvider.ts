@@ -4,10 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionPackageJsonSchema,
+  ExtensionProviderService,
+  type ExtensionPackageJson,
+  getServicesApi
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as vscode from 'vscode';
+import * as Schema from 'effect/Schema';
+import type { ExtensionContext } from 'vscode';
 import { EXTENSION_NAME } from '../constants';
 import { nls } from '../messages';
 
@@ -20,26 +26,32 @@ const ExtensionProviderServiceLive = Layer.effect(
   }))
 );
 
-/** Layer that provides all services from the SalesforceVSCodeServicesApi */
-export const AllServicesLayer = Layer.unwrapEffect(
-  Effect.gen(function* () {
-    const extensionProvider = yield* ExtensionProviderService;
-    const api = yield* extensionProvider.getServicesApi;
-    const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
-    const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
-    const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
-    const productFeatureId = extension?.packageJSON?.productFeatureId;
-    // Merge all the service layers from the API
-    return Layer.mergeAll(
-      ExtensionProviderServiceLive,
-      api.services.ConnectionService.Default,
-      api.services.ExtensionContextService.Default,
-      api.services.FileWatcherService.Default,
-      api.services.FsService.Default,
-      api.services.MetadataRetrieveService.Default,
-      api.services.ProjectService.Default,
-      api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint, productFeatureId }),
-      api.services.ChannelServiceLayer(CHANNEL_NAME)
-    );
-  }).pipe(Effect.provide(ExtensionProviderServiceLive))
-);
+export const buildAllServicesLayer = (context: ExtensionContext) =>
+  Layer.unwrapEffect(
+    Effect.gen(function* () {
+      const extensionProvider = yield* ExtensionProviderService;
+      const api = yield* extensionProvider.getServicesApi;
+      const emptyPjson: ExtensionPackageJson = {};
+      const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
+        Effect.catchAll(() => Effect.succeed(emptyPjson))
+      );
+      return Layer.mergeAll(
+        ExtensionProviderServiceLive,
+        api.services.ConnectionService.Default,
+        api.services.ExtensionContextServiceLayer(context),
+        api.services.FileWatcherService.Default,
+        api.services.FsService.Default,
+        api.services.MetadataRetrieveService.Default,
+        api.services.ProjectService.Default,
+        api.services.SdkLayerFor({
+          extensionName: pjson.name ?? EXTENSION_NAME,
+          extensionVersion: pjson.version ?? 'unknown',
+          o11yEndpoint: process.env.O11Y_ENDPOINT ?? pjson.o11yUploadEndpoint,
+          productFeatureId: pjson.productFeatureId
+        }),
+        api.services.ChannelServiceLayer(pjson.displayName ?? CHANNEL_NAME)
+      );
+    }).pipe(Effect.provide(ExtensionProviderServiceLive))
+  );
+
+export { AllServicesLayer, setAllServicesLayer } from './allServicesLayerRef';
