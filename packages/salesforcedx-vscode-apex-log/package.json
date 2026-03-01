@@ -189,6 +189,7 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
