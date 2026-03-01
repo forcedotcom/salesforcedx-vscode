@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-02-22T13:26:12.046Z
-Total metadata types: 1535
+Generated on: 2026-03-01T13:24:14.526Z
+Total metadata types: 1542
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -53685,6 +53685,189 @@ Total metadata types: 1535
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="OnboardingDataObjGrpVer">
+  <xsd:annotation>
+   <xsd:documentation>Represents a version of an onboarding data object group, containing computation settings and the related data objects.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="computationSource" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Source that&apos;s used for computation, such as a Flow ID or ExpressionSet ID.</xsd:documentation>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="computationType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the type of computation used for validity calculations. Valid values are: Formula StandardMinimumValidity</xsd:documentation>
+       <xsd:appinfo>Type: OnboardingDataObjGrpCompType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="objectDetail" minOccurs="0" maxOccurs="unbounded" type="OnboardingDataObject">
+      <xsd:annotation>
+       <xsd:documentation>Details of the data objects within this version.</xsd:documentation>
+       <xsd:appinfo>Type: OnboardingDataObject[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="onbrdDataObjGrpDocCatgMaps" minOccurs="0" maxOccurs="unbounded" type="OnbrdDataObjGrpDocCatgMap">
+      <xsd:annotation>
+       <xsd:documentation>Junction object that maps onboarding data category version, document type, and document category.</xsd:documentation>
+       <xsd:appinfo>Type: OnbrdDataObjGrpDocCatgMap[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="status" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Status of the version. Valid values are: Active Inactive</xsd:documentation>
+       <xsd:appinfo>Type: OnboardingDataObjVerGrpStatus (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="OnboardingDataObject">
+  <xsd:annotation>
+   <xsd:documentation>Represents a data object within an onboarding data object group version, specifying the target object and its field configurations.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="businessContext" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the business context for the data object. Valid values are: KYC_VALIDITY DVC</xsd:documentation>
+       <xsd:appinfo>Type: OnboardingDataObjBusContext (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="fieldDetail" minOccurs="0" maxOccurs="unbounded" type="OnboardingDataObjectField">
+      <xsd:annotation>
+       <xsd:documentation>Details of the fields within the data object.</xsd:documentation>
+       <xsd:appinfo>Type: OnboardingDataObjectField[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Target sObject type for this data object. Valid values are: Account Applicant ApplicationForm ApplicationFormProduct ApplicationFormSellerItem Contact IdentityDocument Opportunity PartyCreditProfile PartyExpense PartyFinancialAsset PartyFinancialAssetLien PartyFinancialLiability PartyFinclAssetAddlOwner PartyFinclLiabAddlBrwr PartyIdentityVerification PartyIdentityVerificationStep PartyIncome PartyProfile PartyProfileAddress PartyProfileRisk PartyScreeningSummary PersonEmployment</xsd:documentation>
+       <xsd:appinfo>Type: OnboardingDataObjGrpTgtObject (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="partyProfileDataObjectValidityDefinition" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Reference to the PartyProfileDataObjectValidityDefinition metadata type that defines validity settings for this data object.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="pathToRoot" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Relationship of the path from this data object to the root object in the hierarchy.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="relatedObjectRole" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Role of the related data object. Valid values are Parent and Child.</xsd:documentation>
+       <xsd:appinfo>Type: RelatedOnboardingDataObjRole (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="relatedOnboardingDataObjRecord" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Reference to a related onboarding data object record.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="targetObjectRelationshipField" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Field on the target object that establishes the relationship to the parent object.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="OnboardingDataObjectField">
+  <xsd:annotation>
+   <xsd:documentation>Represents a field within an onboarding data object, linking to validity definitions.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Required. API name of the field on the target object.</xsd:documentation>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="OnboardingDataObjectGroup">
+  <xsd:annotation>
+   <xsd:documentation>Represents the group of onboarding data objects used to configure validity period settings for KYC (Know Your Customer) processes. Defines the structure for tracking data validity across related party profile entities.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Description of the onboarding data object group.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. A user-friendly name for OnboardingDataObjectGroup, which is defined when the OnboardingDataObjectGroup is created.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="usageType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Usage type of the onboarding data object group. Valid values are: DocumentValidation ValidityPeriod</xsd:documentation>
+       <xsd:appinfo>Type: OnboardingDataObjGrpUsageType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="versionDetail" minOccurs="0" maxOccurs="unbounded" type="OnboardingDataObjGrpVer">
+      <xsd:annotation>
+       <xsd:documentation>Versions of the onboarding data object group, which define the computation settings and related data objects.</xsd:documentation>
+       <xsd:appinfo>Type: OnboardingDataObjGrpVer[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="OnbrdDataObjGrpDocCatgMap">
+  <xsd:annotation>
+   <xsd:documentation>Represents a data object within an onboarding data object group version, specifying the mapping between onboarding data category version, document type, document category.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="documentCategory" minOccurs="0" maxOccurs="unbounded" type="DocumentCategory">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the category of the document.</xsd:documentation>
+       <xsd:appinfo>Type: DocumentCategory[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="documentType" minOccurs="0" maxOccurs="unbounded" type="DocumentType">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the type of document that belongs to the document category.</xsd:documentation>
+       <xsd:appinfo>Type: DocumentType[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="OpportunityCriteriaBasedSharingRule">
   <xsd:annotation>
    <xsd:documentation>Represents a criteria-based sharing rule for opportunities. It extends the CriteriaBasedSharingRule metadata type and inherits its criteriaItems field.</xsd:documentation>
@@ -54697,6 +54880,104 @@ Total metadata types: 1535
       <xsd:annotation>
        <xsd:documentation>Deprecated in API version 48.0 and removed in API version 49.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="PartyPrflDataFldVldDef">
+  <xsd:annotation>
+   <xsd:documentation>Represents a field-level validity definition within a party profile data object validity definition, specifying validity duration and computation settings for individual fields.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_partyprofiledataobjectvaliditydefinition.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="computationSource" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>ID of the Flow or ExpressionSet that&apos;s used for computation. Required when computationType is Formula.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="computationType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies how validity is computed. Valid values are: Constant Formula</xsd:documentation>
+       <xsd:appinfo>Type: PtyPrflDataFldVldDefCompType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="durationType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Unit of time for the validity duration. Valid values are: Day Month Week Year Required when computationType is Constant.</xsd:documentation>
+       <xsd:appinfo>Type: PtyPrflDataFldVldDefDrtnType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="durationValue" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+      <xsd:annotation>
+       <xsd:documentation>Numeric value for the validity duration. Required when computationType is Constant.</xsd:documentation>
+       <xsd:appinfo>Type: int</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Name of the field-level validity definition.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="PartyProfileDataObjectValidityDefinition">
+  <xsd:annotation>
+   <xsd:documentation>Represents the validity definition for party profile data objects. Configures how field-level validity is tracked and computed for KYC (Know Your Customer) compliance, including duration settings and computation methods for data freshness verification.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_partyprofiledataobjectvaliditydefinition.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="businessContext" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Business context for the validity definition. Valid value is KYC_VALIDITY</xsd:documentation>
+       <xsd:appinfo>Type: PtyPrflDataObjVldDefBusCtx (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Description of the validity definition.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="fieldValidityDefinition" minOccurs="0" maxOccurs="unbounded" type="PartyPrflDataFldVldDef">
+      <xsd:annotation>
+       <xsd:documentation>Field-level validity definitions that specify the fields to track and their validity duration.</xsd:documentation>
+       <xsd:appinfo>Type: PartyPrflDataFldVldDef[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="fieldValidityResultObject" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Salesforce object where field validity results are stored. Valid values are: PartyCreditProfileFldVld PartyExpenseFldVld PartyFinclAstFldVld PartyFinclLiabFldVld PartyIdentityVerfFldVld PartyIncomeFldVld PartyPrflAddrFldVld PartyPrflFldVld PartyProfileRiskFldVld PartyScrnSumFldVld PersonEmpFldVld PtyFinclAstAddOwnrFldVld PtyFinclAstLienFldVld PtyFinclLiabAddBrwrFldVld</xsd:documentation>
+       <xsd:appinfo>Type: PtyPrflDataObjVldDefFldResObj (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. A user-friendly name for PartyProfileDataObjectValidityDefinition, which is defined when the PartyProfileDataObjectValidityDefinition is created.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="status" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Status of the validity definition. Valid values are: Active Inactive</xsd:documentation>
+       <xsd:appinfo>Type: PartyPrflDataObjVldDefStatus (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="targetObject" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Target sObject for which validity is defined. Valid values are: Account Applicant ApplicationForm ApplicationFormProduct ApplicationFormSellerItem Contact IdentityDocument Opportunity PartyCreditProfile PartyExpense PartyFinancialAsset PartyFinancialAssetLien PartyFinancialLiability PartyFinclAssetAddlOwner PartyFinclLiabAddlBrwr PartyIdentityVerification PartyIdentityVerificationStep PartyIncome PartyProfile PartyProfileAddress PartyProfileRisk PartyScreeningSummary PersonEmployment</xsd:documentation>
+       <xsd:appinfo>Type: OnboardingDataObjGrpTgtObject (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -74506,6 +74787,11 @@ Total metadata types: 1535
  <xsd:element name="OcrTargetObject" type="OcrTargetObject"/>
  <xsd:element name="OcrTemplate" type="OcrTemplate"/>
  <xsd:element name="OcrTemplateSampleDocument" type="OcrTemplateSampleDocument"/>
+ <xsd:element name="OnboardingDataObjGrpVer" type="OnboardingDataObjGrpVer"/>
+ <xsd:element name="OnboardingDataObject" type="OnboardingDataObject"/>
+ <xsd:element name="OnboardingDataObjectField" type="OnboardingDataObjectField"/>
+ <xsd:element name="OnboardingDataObjectGroup" type="OnboardingDataObjectGroup"/>
+ <xsd:element name="OnbrdDataObjGrpDocCatgMap" type="OnbrdDataObjGrpDocCatgMap"/>
  <xsd:element name="OpportunityCriteriaBasedSharingRule" type="OpportunityCriteriaBasedSharingRule"/>
  <xsd:element name="OpportunityInsightsSettings" type="OpportunityInsightsSettings"/>
  <xsd:element name="OpportunityListFieldsLabelMapping" type="OpportunityListFieldsLabelMapping"/>
@@ -74531,6 +74817,8 @@ Total metadata types: 1535
  <xsd:element name="PardotSettings" type="PardotSettings"/>
  <xsd:element name="ParticipantRole" type="ParticipantRole"/>
  <xsd:element name="PartyDataModelSettings" type="PartyDataModelSettings"/>
+ <xsd:element name="PartyPrflDataFldVldDef" type="PartyPrflDataFldVldDef"/>
+ <xsd:element name="PartyProfileDataObjectValidityDefinition" type="PartyProfileDataObjectValidityDefinition"/>
  <xsd:element name="PasswordPolicies" type="PasswordPolicies"/>
  <xsd:element name="PathAssistant" type="PathAssistant"/>
  <xsd:element name="PathAssistantSettings" type="PathAssistantSettings"/>
