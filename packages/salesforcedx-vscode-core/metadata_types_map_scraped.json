@@ -33780,6 +33780,141 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_outboundnetworkconnection.htm",
     "parent": "Metadata"
   },
+  "OnboardingDataObjectGroup": {
+    "fields": [
+      {
+        "Description": "Description of the onboarding data object group.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. A user-friendly name for OnboardingDataObjectGroup, which is defined when the OnboardingDataObjectGroup is created.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Usage type of the onboarding data object group. Valid values are: DocumentValidation ValidityPeriod",
+        "Field Name": "usageType",
+        "Field Type": "OnboardingDataObjGrpUsageType (enumeration of type string)"
+      },
+      {
+        "Description": "Versions of the onboarding data object group, which define the computation settings and related data objects.",
+        "Field Name": "versionDetail",
+        "Field Type": "OnboardingDataObjGrpVer[]"
+      }
+    ],
+    "short_description": "Represents the group of onboarding data objects used to configure validity period settings for KYC (Know Your Customer) processes. Defines the structure for tracking data validity across related party profile entities.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm",
+    "parent": "Metadata"
+  },
+  "OnboardingDataObjGrpVer": {
+    "fields": [
+      {
+        "Description": "Source that's used for computation, such as a Flow ID or ExpressionSet ID.",
+        "Field Name": "computationSource",
+        "Field Type": ""
+      },
+      {
+        "Description": "Specifies the type of computation used for validity calculations. Valid values are: Formula StandardMinimumValidity",
+        "Field Name": "computationType",
+        "Field Type": "OnboardingDataObjGrpCompType (enumeration of type string)"
+      },
+      {
+        "Description": "Details of the data objects within this version.",
+        "Field Name": "objectDetail",
+        "Field Type": "OnboardingDataObject[]"
+      },
+      {
+        "Description": "Junction object that maps onboarding data category version, document type, and document category.",
+        "Field Name": "onbrdDataObjGrpDocCatgMaps",
+        "Field Type": "OnbrdDataObjGrpDocCatgMap[]"
+      },
+      {
+        "Description": "Required. Status of the version. Valid values are: Active Inactive",
+        "Field Name": "status",
+        "Field Type": "OnboardingDataObjVerGrpStatus (enumeration of type string)"
+      }
+    ],
+    "short_description": "Represents a version of an onboarding data object group, containing computation settings and the related data objects.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm",
+    "parent": "Metadata"
+  },
+  "OnbrdDataObjGrpDocCatgMap": {
+    "fields": [
+      {
+        "Description": "Required. Specifies the category of the document.",
+        "Field Name": "documentCategory",
+        "Field Type": "DocumentCategory[]"
+      },
+      {
+        "Description": "Specifies the type of document that belongs to the document category.",
+        "Field Name": "documentType",
+        "Field Type": "DocumentType[]"
+      }
+    ],
+    "short_description": "Represents a data object within an onboarding data object group version, specifying the mapping between onboarding data category version, document type, document category.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm",
+    "parent": "Metadata"
+  },
+  "OnboardingDataObject": {
+    "fields": [
+      {
+        "Description": "Required. Specifies the business context for the data object. Valid values are: KYC_VALIDITY DVC",
+        "Field Name": "businessContext",
+        "Field Type": "OnboardingDataObjBusContext (enumeration of type string)"
+      },
+      {
+        "Description": "Details of the fields within the data object.",
+        "Field Name": "fieldDetail",
+        "Field Type": "OnboardingDataObjectField[]"
+      },
+      {
+        "Description": "Required. Target sObject type for this data object. Valid values are: Account Applicant ApplicationForm ApplicationFormProduct ApplicationFormSellerItem Contact IdentityDocument Opportunity PartyCreditProfile PartyExpense PartyFinancialAsset PartyFinancialAssetLien PartyFinancialLiability PartyFinclAssetAddlOwner PartyFinclLiabAddlBrwr PartyIdentityVerification PartyIdentityVerificationStep PartyIncome PartyProfile PartyProfileAddress PartyProfileRisk PartyScreeningSummary PersonEmployment",
+        "Field Name": "name",
+        "Field Type": "OnboardingDataObjGrpTgtObject (enumeration of type string)"
+      },
+      {
+        "Description": "Reference to the PartyProfileDataObjectValidityDefinition metadata type that defines validity settings for this data object.",
+        "Field Name": "partyProfileDataObjectValidityDefinition",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Relationship of the path from this data object to the root object in the hierarchy.",
+        "Field Name": "pathToRoot",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Role of the related data object. Valid values are Parent and Child.",
+        "Field Name": "relatedObjectRole",
+        "Field Type": "RelatedOnboardingDataObjRole (enumeration of type string)"
+      },
+      {
+        "Description": "Reference to a related onboarding data object record.",
+        "Field Name": "relatedOnboardingDataObjRecord",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Field on the target object that establishes the relationship to the parent object.",
+        "Field Name": "targetObjectRelationshipField",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a data object within an onboarding data object group version, specifying the target object and its field configurations.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm",
+    "parent": "Metadata"
+  },
+  "OnboardingDataObjectField": {
+    "fields": [
+      {
+        "Description": "Required. API name of the field on the target object.",
+        "Field Name": "name",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "Represents a field within an onboarding data object, linking to validity definitions.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_onboardingdataobjectgroup.htm",
+    "parent": "Metadata"
+  },
   "Package": {
     "fields": [
       {
@@ -33857,6 +33992,80 @@
     ],
     "short_description": "Use to specify the name and type of components to be retrieved in a package.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_package.htm",
+    "parent": "Metadata"
+  },
+  "PartyProfileDataObjectValidityDefinition": {
+    "fields": [
+      {
+        "Description": "Required. Business context for the validity definition. Valid value is KYC_VALIDITY",
+        "Field Name": "businessContext",
+        "Field Type": "PtyPrflDataObjVldDefBusCtx (enumeration of type string)"
+      },
+      {
+        "Description": "Description of the validity definition.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Field-level validity definitions that specify the fields to track and their validity duration.",
+        "Field Name": "fieldValidityDefinition",
+        "Field Type": "PartyPrflDataFldVldDef[]"
+      },
+      {
+        "Description": "Required. Salesforce object where field validity results are stored. Valid values are: PartyCreditProfileFldVld PartyExpenseFldVld PartyFinclAstFldVld PartyFinclLiabFldVld PartyIdentityVerfFldVld PartyIncomeFldVld PartyPrflAddrFldVld PartyPrflFldVld PartyProfileRiskFldVld PartyScrnSumFldVld PersonEmpFldVld PtyFinclAstAddOwnrFldVld PtyFinclAstLienFldVld PtyFinclLiabAddBrwrFldVld",
+        "Field Name": "fieldValidityResultObject",
+        "Field Type": "PtyPrflDataObjVldDefFldResObj (enumeration of type string)"
+      },
+      {
+        "Description": "Required. A user-friendly name for PartyProfileDataObjectValidityDefinition, which is defined when the PartyProfileDataObjectValidityDefinition is created.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Status of the validity definition. Valid values are: Active Inactive",
+        "Field Name": "status",
+        "Field Type": "PartyPrflDataObjVldDefStatus (enumeration of type string)"
+      },
+      {
+        "Description": "Required. Target sObject for which validity is defined. Valid values are: Account Applicant ApplicationForm ApplicationFormProduct ApplicationFormSellerItem Contact IdentityDocument Opportunity PartyCreditProfile PartyExpense PartyFinancialAsset PartyFinancialAssetLien PartyFinancialLiability PartyFinclAssetAddlOwner PartyFinclLiabAddlBrwr PartyIdentityVerification PartyIdentityVerificationStep PartyIncome PartyProfile PartyProfileAddress PartyProfileRisk PartyScreeningSummary PersonEmployment",
+        "Field Name": "targetObject",
+        "Field Type": "OnboardingDataObjGrpTgtObject (enumeration of type string)"
+      }
+    ],
+    "short_description": "Represents the validity definition for party profile data objects. Configures how field-level validity is tracked and computed for KYC (Know Your Customer) compliance, including duration settings and computation methods for data freshness verification.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_partyprofiledataobjectvaliditydefinition.htm",
+    "parent": "Metadata"
+  },
+  "PartyPrflDataFldVldDef": {
+    "fields": [
+      {
+        "Description": "ID of the Flow or ExpressionSet that's used for computation. Required when computationType is Formula.",
+        "Field Name": "computationSource",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Specifies how validity is computed. Valid values are: Constant Formula",
+        "Field Name": "computationType",
+        "Field Type": "PtyPrflDataFldVldDefCompType (enumeration of type string)"
+      },
+      {
+        "Description": "Unit of time for the validity duration. Valid values are: Day Month Week Year Required when computationType is Constant.",
+        "Field Name": "durationType",
+        "Field Type": "PtyPrflDataFldVldDefDrtnType (enumeration of type string)"
+      },
+      {
+        "Description": "Numeric value for the validity duration. Required when computationType is Constant.",
+        "Field Name": "durationValue",
+        "Field Type": "int"
+      },
+      {
+        "Description": "Required. Name of the field-level validity definition.",
+        "Field Name": "name",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a field-level validity definition within a party profile data object validity definition, specifying validity duration and computation settings for individual fields.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_partyprofiledataobjectvaliditydefinition.htm",
     "parent": "Metadata"
   },
   "ParticipantRole": {
