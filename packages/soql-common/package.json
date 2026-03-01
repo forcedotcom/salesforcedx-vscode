@@ -41,6 +41,9 @@
     "LICENSE.txt",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "compile": "wireit",
     "lint": "wireit",

@@ -1,0 +1,91 @@
+name: Publish soql-common Package to npm
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'packages/soql-common/**'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (e.g., soql-common-v1.0.4). Leave empty to create a new release from commits.'
+        required: false
+        type: string
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.tag-output.outputs.tag }}
+    steps:
+      - name: Get Github user info
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag == ''
+        id: github-user-info
+        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
+        with:
+          SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - uses: actions/checkout@v4
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag == ''
+        with:
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          fetch-depth: 0
+
+      - name: Conventional Changelog Action
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag == ''
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@3a392e9aa44a72686b0fc13259a90d287dd0877c
+        with:
+          git-user-name: ${{ steps.github-user-info.outputs.username }}
+          git-user-email: ${{ steps.github-user-info.outputs.email }}
+          github-token: ${{ secrets.IDEE_GH_TOKEN }}
+          tag-prefix: 'soql-common-v'
+          version-file: './packages/soql-common/package.json'
+          git-path: 'packages/soql-common'
+          release-count: '0'
+          output-file: 'packages/soql-common/CHANGELOG.md'
+          skip-on-empty: ${{ github.event_name == 'push' }}
+          skip-tag: false
+
+      - name: Create Github Release
+        if: steps.changelog.outputs.skipped == 'false'
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b
+        with:
+          name: ${{ steps.changelog.outputs.tag }}
+          tag: ${{ steps.changelog.outputs.tag }}
+          commit: develop
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          skipIfReleaseExists: true
+
+      - id: tag-output
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            echo "tag=$INPUT_TAG" >> $GITHUB_OUTPUT
+          elif [ "$CHANGELOG_SKIPPED" != "true" ] && [ -n "$CHANGELOG_TAG" ]; then
+            echo "tag=$CHANGELOG_TAG" >> $GITHUB_OUTPUT
+          else
+            echo "tag=" >> $GITHUB_OUTPUT
+          fi
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          CHANGELOG_SKIPPED: ${{ steps.changelog.outputs.skipped }}
+          CHANGELOG_TAG: ${{ steps.changelog.outputs.tag }}
+
+  publish:
+    name: Build and publish to npm
+    needs: create-release
+    if: needs.create-release.outputs.tag != ''
+    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
+    with:
+      githubTag: ${{ needs.create-release.outputs.tag }}
+      packageManager: npm
+      nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
+      packagePath: ./packages/soql-common
+      prerelease: false
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
