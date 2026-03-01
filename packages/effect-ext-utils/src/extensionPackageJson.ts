@@ -12,8 +12,7 @@ export const ExtensionPackageJsonSchema = Schema.Struct({
   name: Schema.optional(Schema.String),
   version: Schema.optional(Schema.String),
   displayName: Schema.optional(Schema.String),
-  o11yUploadEndpoint: Schema.optional(Schema.String),
-  productFeatureId: Schema.optional(Schema.String)
+  o11yUploadEndpoint: Schema.optional(Schema.String)
 });
 
 export type ExtensionPackageJson = Schema.Schema.Type<typeof ExtensionPackageJsonSchema>;
