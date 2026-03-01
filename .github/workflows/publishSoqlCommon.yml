@@ -53,7 +53,7 @@ jobs:
 
       - name: Create Github Release
         if: steps.changelog.outputs.skipped == 'false'
-        uses: ncipollo/release-action@v1.20.0
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b
         with:
           name: ${{ steps.changelog.outputs.tag }}
           tag: ${{ steps.changelog.outputs.tag }}
