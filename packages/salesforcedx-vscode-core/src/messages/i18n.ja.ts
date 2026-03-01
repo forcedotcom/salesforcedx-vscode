@@ -22,10 +22,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   channel_starting_message: '開始しています: ',
   channel_end: 'が終了しました。',
 
-
-
-
-
   parameter_gatherer_enter_file_name: 'ファイル名を入力',
   parameter_gatherer_enter_dir_name: 'フォルダを入力 (Enter で確認または Esc でキャンセル)',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
@@ -75,16 +71,11 @@ export const messages: Partial<Record<MessageKey, string>> = {
   project_generate_standard_template_display_text: '標準',
   project_generate_empty_template_display_text: '空',
 
-
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
-  start_apex_debug_logging: 'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
-  stop_apex_debug_logging: 'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
-
 
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
-
 
   error_fetching_auth_info_text:
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織に接続できませんでした。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',

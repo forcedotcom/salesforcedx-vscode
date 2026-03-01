@@ -17,8 +17,6 @@
  */
 
 export const messages = {
-  anon_apex_execute_document_text: 'SFDX: Execute Anonymous Apex with Editor Contents',
-  anon_apex_execute_selection_text: 'SFDX: Execute Anonymous Apex with Currently Selected Text',
   apex_language_server_already_restarting: 'Apex Language Server is already restarting. Please wait.',
   apex_language_server_failed_activate: 'Unable to activate the Apex Language Server',
   apex_language_server_loaded: 'Indexing complete $(check)',
@@ -29,7 +27,6 @@ export const messages = {
   apex_language_server_restart_dialog_prompt: 'Clean Apex DB and Restart? Or Restart Only?',
   apex_language_server_restart_dialog_restart_only: 'Restart Only',
   apex_language_server_restarting: 'Apex Language Server is restarting… $(sync~spin)',
-  apex_log_get_text: 'SFDX: Get Apex Debug Logs',
   cancel: 'Cancel',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex',
