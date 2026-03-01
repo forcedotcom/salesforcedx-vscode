@@ -19,8 +19,6 @@
 import { MessageKey } from './i18n';
 
 export const messages: Partial<Record<MessageKey, string>> = {
-  anon_apex_execute_document_text: 'SFDX: エディタの内容で匿名 Apex コードを実行',
-  anon_apex_execute_selection_text: 'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   apex_language_server_already_restarting: 'Apex 言語サーバは既に再起動中です。お待ちください。',
   apex_language_server_failed_activate: 'Apex 言語サーバを有効化できませんでした。',
   apex_language_server_loaded: 'インデックス化が完了しました $(check)',
