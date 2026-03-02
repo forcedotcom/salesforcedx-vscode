@@ -29,6 +29,7 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Failed to load resource', // Generic failed to load resources (paired with specific url filtering below)
   'vscode-userdata:/user/caches/cachedconfigurations', // VS Code user data caching in web environment
   'vsliveshare', // vscode liveshare ext
+  'MaxListenersExceededWarning', // expected when loading many dev extensions simultaneously
   'punycode', // known jsforce and transitive dep deprecation by node
   'selectedStep', // VS Code internal walkthrough/tutorial state errors
   'onWillSaveTextDocument', // VS Code save event timeout (non-critical)

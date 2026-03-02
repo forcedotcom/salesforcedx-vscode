@@ -6,6 +6,8 @@ test/**
 src/**
 **/*.map
 .gitignore
+.circular-deps.json
+.eslintcache
 tsconfig.json
 
 # ignore unused jsforce code

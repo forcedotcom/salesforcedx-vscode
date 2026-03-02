@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.19.0",
+  "version": "65.20.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -176,37 +176,13 @@
         {
           "command": "sf.apex.languageServer.restart",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.anon.apex.execute.selection",
-          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
-        },
-        {
-          "command": "sf.anon.apex.execute.document",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
-        },
-        {
-          "command": "sf.apex.log.get",
-          "when": "sf:project_opened && sf:has_target_org"
         }
       ]
     },
     "commands": [
       {
-        "command": "sf.anon.apex.execute.document",
-        "title": "%anon_apex_execute_document_text%"
-      },
-      {
-        "command": "sf.anon.apex.execute.selection",
-        "title": "%anon_apex_execute_selection_text%"
-      },
-      {
         "command": "sf.apex.languageServer.restart",
         "title": "%apex_language_server_restart%"
-      },
-      {
-        "command": "sf.apex.log.get",
-        "title": "%apex_log_get_text%"
       }
     ],
     "configuration": {

@@ -1,6 +1,6 @@
 ---
 name: concise
-description: when creating/modifying md files in skills/rules for AI
+description: when creating/modifying md files (plans) in skills/rules for AI
 disable-model-invocation: false
 ---
 
