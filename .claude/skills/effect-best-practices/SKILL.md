@@ -6,7 +6,20 @@ version: 1.1.0
 
 # Effect-TS Best Practices
 
-This skill enforces opinionated, consistent patterns for Effect-TS codebases. These patterns optimize for type safety, testability, observability, and maintainability.
+This skill enforces opinionated, consistent patterns for Effect-TS codebases.
+
+## Effect LS diagnostics (agent usage)
+
+Cursor's `read_lints` does not surface Effect Language Server diagnostics. Use the CLI:
+
+```bash
+npx effect-language-service diagnostics --file <path>
+# or whole project:
+npx effect-language-service diagnostics --project tsconfig.json
+```
+
+- Run when editing Effect code; fix reported issues (e.g. `unnecessaryFailYieldableError` → yield error directly)
+- `effect-language-service quickfixes` shows proposed code changes
 
 ## Quick Reference: Critical Rules
 
