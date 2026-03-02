@@ -83,7 +83,7 @@ const nodeBuild = await build({
   ...nodeConfig,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
-  plugins: [copyTemplates],
+  plugins: [...(nodeConfig.plugins ?? []), copyTemplates],
   metafile: true
 });
 
@@ -98,7 +98,7 @@ const browserBuild = await build({
   define: browserDefine,
   entryPoints: ['./out/src/index.js'],
   outfile: './dist/web/index.js',
-  plugins: [],
+  plugins: [...(commonConfigBrowser.plugins ?? []), copyTemplates],
   metafile: true
 });
 
