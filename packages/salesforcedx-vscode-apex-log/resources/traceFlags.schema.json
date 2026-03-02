@@ -1,0 +1,455 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$defs": {
+    "Date": {
+      "type": "string",
+      "description": "a string to be decoded into a Date"
+    }
+  },
+  "type": "object",
+  "required": [],
+  "properties": {
+    "defaultDebugLevels": {
+      "type": "object",
+      "required": [],
+      "properties": {},
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "NONE",
+          "INTERNAL",
+          "FINEST",
+          "FINER",
+          "FINE",
+          "DEBUG",
+          "INFO",
+          "WARN",
+          "ERROR"
+        ]
+      }
+    },
+    "traceFlags": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "DEVELOPER_LOG": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "logType",
+              "expirationDate",
+              "isActive"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "debugLevelId": {
+                "type": "string"
+              },
+              "tracedEntityName": {
+                "type": "string"
+              },
+              "tracedEntityId": {
+                "type": "string"
+              },
+              "logType": {
+                "type": "string",
+                "enum": [
+                  "USER_DEBUG",
+                  "DEVELOPER_LOG",
+                  "CLASS_TRACING"
+                ]
+              },
+              "startDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "expirationDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "isActive": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Standard debug logs for users. Captures Apex execution, database operations, and system events."
+        },
+        "USER_DEBUG": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "logType",
+              "expirationDate",
+              "isActive"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "debugLevelId": {
+                "type": "string"
+              },
+              "tracedEntityName": {
+                "type": "string"
+              },
+              "tracedEntityId": {
+                "type": "string"
+              },
+              "logType": {
+                "type": "string",
+                "enum": [
+                  "USER_DEBUG",
+                  "DEVELOPER_LOG",
+                  "CLASS_TRACING"
+                ]
+              },
+              "startDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "expirationDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "isActive": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "User debug statements (System.debug). Captures output from Debug.log() and similar."
+        },
+        "CLASS_TRACING": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "logType",
+              "expirationDate",
+              "isActive"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "debugLevelId": {
+                "type": "string"
+              },
+              "tracedEntityName": {
+                "type": "string"
+              },
+              "tracedEntityId": {
+                "type": "string"
+              },
+              "logType": {
+                "type": "string",
+                "enum": [
+                  "USER_DEBUG",
+                  "DEVELOPER_LOG",
+                  "CLASS_TRACING"
+                ]
+              },
+              "startDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "expirationDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "isActive": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Apex class execution traces. Used for profiling and debugging specific classes."
+        },
+        "TRIGGERS": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "logType",
+              "expirationDate",
+              "isActive"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "debugLevelId": {
+                "type": "string"
+              },
+              "tracedEntityName": {
+                "type": "string"
+              },
+              "tracedEntityId": {
+                "type": "string"
+              },
+              "logType": {
+                "type": "string",
+                "enum": [
+                  "USER_DEBUG",
+                  "DEVELOPER_LOG",
+                  "CLASS_TRACING"
+                ]
+              },
+              "startDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "expirationDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "isActive": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Apex trigger execution traces. TracedEntityId prefix 01q."
+        },
+        "OTHER": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "logType",
+              "expirationDate",
+              "isActive"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "debugLevelId": {
+                "type": "string"
+              },
+              "tracedEntityName": {
+                "type": "string"
+              },
+              "tracedEntityId": {
+                "type": "string"
+              },
+              "logType": {
+                "type": "string",
+                "enum": [
+                  "USER_DEBUG",
+                  "DEVELOPER_LOG",
+                  "CLASS_TRACING"
+                ]
+              },
+              "startDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "expirationDate": {
+                "$ref": "#/$defs/Date"
+              },
+              "isActive": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Other trace flag types."
+        }
+      },
+      "additionalProperties": false
+    },
+    "debugLevels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "developerName",
+          "masterLabel",
+          "language",
+          "apexCode",
+          "apexProfiling",
+          "callout",
+          "database",
+          "nba",
+          "system",
+          "validation",
+          "visualforce",
+          "wave",
+          "workflow"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Salesforce record ID of the DebugLevel."
+          },
+          "developerName": {
+            "type": "string",
+            "description": "Unique API name for this debug level."
+          },
+          "masterLabel": {
+            "type": "string",
+            "description": "User-facing label for this debug level."
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Language of the MasterLabel."
+          },
+          "apexCode": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "Apex code execution: DML, SOQL/SOSL, triggers, and test methods."
+          },
+          "apexProfiling": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "Cumulative profiling info: namespace limits, emails sent."
+          },
+          "callout": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "Request-response XML from external web service and API calls."
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "DML statements and inline SOQL/SOSL queries."
+          },
+          "nba": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "Einstein Next Best Action strategy execution."
+          },
+          "system": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "System method calls such as System.debug()."
+          },
+          "validation": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "Validation rule names and evaluation results."
+          },
+          "visualforce": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "Visualforce events, view state serialization/deserialization."
+          },
+          "wave": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "CRM Analytics (Wave) logging."
+          },
+          "workflow": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ERROR",
+              "WARN",
+              "INFO",
+              "DEBUG",
+              "FINE",
+              "FINER",
+              "FINEST"
+            ],
+            "description": "Workflow rules, flows, and process builder actions."
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "All DebugLevel records from the org."
+    }
+  },
+  "additionalProperties": false,
+  "title": "Trace Flags Configuration"
+}
