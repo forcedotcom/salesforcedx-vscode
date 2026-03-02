@@ -135,6 +135,8 @@ export default [
           ]
         }
       ],
+      'local/no-effect-fn-wrapper': 'error',
+      'local/require-effect-fn-span-name': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
@@ -558,6 +560,7 @@ export default [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
     ],
     rules: {
@@ -573,6 +576,7 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
+      'local/no-effect-service-accessor-calls': 'error',
 
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',

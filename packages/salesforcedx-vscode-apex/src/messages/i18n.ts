@@ -17,12 +17,6 @@
  */
 
 export const messages = {
-  anon_apex_execute_document_text: 'SFDX: Execute Anonymous Apex with Editor Contents',
-  anon_apex_execute_selection_text: 'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  apex_execute_compile_success: 'Compiled successfully.',
-  apex_execute_runtime_success: 'Executed successfully.',
-  apex_execute_text: 'Execute Anonymous Apex',
-  apex_execute_unexpected_error: 'Unexpected error',
   apex_language_server_already_restarting: 'Apex Language Server is already restarting. Please wait.',
   apex_language_server_failed_activate: 'Unable to activate the Apex Language Server',
   apex_language_server_loaded: 'Indexing complete $(check)',
@@ -33,10 +27,6 @@ export const messages = {
   apex_language_server_restart_dialog_prompt: 'Clean Apex DB and Restart? Or Restart Only?',
   apex_language_server_restart_dialog_restart_only: 'Restart Only',
   apex_language_server_restarting: 'Apex Language Server is restarting… $(sync~spin)',
-  apex_log_get_no_logs_text: 'No Apex debug logs were found',
-  apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
-  apex_log_get_text: 'SFDX: Get Apex Debug Logs',
-  apex_log_list_text: 'Getting Apex debug logs',
   cancel: 'Cancel',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex',
@@ -49,9 +39,6 @@ export const messages = {
   java_runtime_missing_text:
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting. For more information, go to [Set Your Java Version](%s).',
   java_version_check_command_failed: 'Running java command %s failed with error: %s',
-  launch_apex_replay_debugger_unsupported_file:
-    'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
-  launch_apex_replay_debugger_with_selected_file: 'Launch Apex Replay Debugger with Selected File',
   orphan_process_advice:
     "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
   parent_process_id: 'Parent Process ID',
@@ -68,8 +55,6 @@ export const messages = {
   terminate_orphaned_language_server_instances: '%d orphaned Apex Language Server process(es) found.',
   terminate_show_processes: 'Show Processes',
   terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
-  unable_to_locate_document: 'You can run this command only on a source file.',
-  unable_to_locate_editor: 'You can run this command only on a source file.',
   unknown: 'Unknown',
   unknown_error: 'Unknown error',
   wrong_java_version_short: 'Unsupported Java version',

@@ -7,7 +7,9 @@ description: Iterating on Playwright tests
 ## sequence
 
 1. run `web` locally (use `--retries 0`, follow debugging tips)
-2. run `desktop` locally
+2. run `desktop` locally (use `--retries 0`)
+
+**Passing args:** Use `--` to forward params to the underlying command, e.g. `npm run test:web -w <package> -- --retries 0` or `npm run test:desktop -w <package> -- --retries 0`
 3. edit github workflows if needed
 4. CI (windows, gha) - see `analyze-e2e.md` for monitoring and analyzing results
 

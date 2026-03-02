@@ -139,23 +139,26 @@ export const createOrgApexClassUri = (className: string): vscode.Uri => {
  * Opens an org-only Apex class in a virtual document
  */
 export const openOrgApexClass = async (className: string, position?: vscode.Position): Promise<void> => {
-  try {
-    const uri = createOrgApexClassUri(className);
-    const document = await vscode.workspace.openTextDocument(uri);
-    const editor = await vscode.window.showTextDocument(document, {
-      preview: false,
-      viewColumn: vscode.ViewColumn.Active
-    });
-
-    // Navigate to the specified position if provided
-    if (position) {
-      editor.selection = new vscode.Selection(position, position);
-      editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    void vscode.window.showErrorMessage(
-      nls.localize('apex_test_open_org_class_failed_message', className, errorMessage)
-    );
-  }
+  const uri = createOrgApexClassUri(className);
+  await Effect.runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const editor = yield* api.services.FsService.showTextDocument(uri, {
+        preview: false,
+        viewColumn: vscode.ViewColumn.Active
+      });
+      if (position) {
+        editor.selection = new vscode.Selection(position, position);
+        editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+      }
+    }).pipe(
+      Effect.provide(AllServicesLayer),
+      Effect.catchAll((error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return Effect.sync(() =>
+          void vscode.window.showErrorMessage(nls.localize('apex_test_open_org_class_failed_message', className, errorMessage))
+        );
+      })
+    )
+  );
 };

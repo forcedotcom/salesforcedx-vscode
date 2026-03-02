@@ -14,9 +14,8 @@ Do each of these steps, in order. Do not move to a step unless all previous are 
 
 5. If working in packages with `test:web`/`test:desktop` scripts:
    - Package-level only (not in root): `salesforcedx-vscode-core`, `salesforcedx-vscode-services` (web), `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata`, `salesforcedx-vscode-apex-testing`, `playwright-vscode-ext`
-   - Run from root: `npm run test:web -w <package-name>` / `npm run test:desktop -w <package-name>`
+   - Run from root: `npm run test:web -w <package-name> -- --retries 0` / `npm run test:desktop -w <package-name> -- --retries 0` (use `--` to forward params to the underlying command)
    - Skip if not in these packages
-   - Run with `--retries 0` for fast feedback and less flakes
 
 6. `npx knip` - check for dead code related to your changes
 

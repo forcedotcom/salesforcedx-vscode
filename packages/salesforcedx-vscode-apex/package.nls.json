@@ -1,9 +1,6 @@
 {
-  "anon_apex_execute_document_text": "SFDX: Execute Anonymous Apex with Editor Contents",
-  "anon_apex_execute_selection_text": "SFDX: Execute Anonymous Apex with Currently Selected Text",
   "apex_code_completion_stats_description": "Allow the Apex Language Server to collect telemetry on code completion usage",
   "apex_lsp_parity_capabilities_description": "Enable LSP parity capabilities.",
-  "apex_log_get_text": "SFDX: Get Apex Debug Logs",
   "apex_language_server_restart": "SFDX: Restart Apex Language Server",
   "apex_language_server_restart_behavior_description": "Controls the behavior of the Apex Language Server restart command.",
   "apex_language_server_restart_behavior_prompt_description": "Shows a dialog with options to choose between a simple restart or a clean restart with DB reset.",
@@ -16,8 +13,6 @@
   "apex_verbose_level_trace_description": "Output everything, including details about notifications and responses received by the client, and requests sent by the server.",
   "configuration_title": "Salesforce Apex Configuration",
   "enable-apex-ls-error-to-telemetry": "Allow the Apex Language Server to collect telemetry of errors",
-  "go_to_definition_title": "Go to Definition",
   "java_home_description": "Specifies the folder path to the Java runtime used to launch the Apex Language Server. Note on Windows the backslashes must be escaped. Java versions 11 or higher are supported.\n\nMac Example: `/Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home`\n\nWindows Example: `C:\\\\Program Files\\\\Zulu\\\\zulu-17`\n\nLinux Example: `/usr/lib/jvm/java-21-openjdk-amd64`",
-  "java_memory_description": "Specifies the amount of memory allocation to the Apex Language Server in MB, or null to use the system default value.",
-  "show_error_title": "Display Error"
+  "java_memory_description": "Specifies the amount of memory allocation to the Apex Language Server in MB, or null to use the system default value."
 }
