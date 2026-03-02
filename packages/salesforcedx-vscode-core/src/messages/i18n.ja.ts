@@ -70,13 +70,14 @@ export const messages: Partial<Record<MessageKey, string>> = {
   project_generate_open_dialog_create_label: 'プロジェクトを作成',
   project_generate_standard_template_display_text: '標準',
   project_generate_empty_template_display_text: '空',
-
+  project_generate_empty_template: '空のプロジェクトテンプレート',
+  project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
+  project_generate_react_b2e_template: 'React B2E のプロジェクトテンプレート',
+  project_generate_react_b2x_template: 'React B2X のプロジェクトテンプレート',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
-
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
-
   error_fetching_auth_info_text:
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織に接続できませんでした。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
   error_no_package_directories_found_on_setup_text:
