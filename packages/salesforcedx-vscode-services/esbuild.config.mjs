@@ -10,11 +10,29 @@ import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
 const copyTemplates = copy({
+  resolveFrom: 'cwd',
+  globbyOptions: { dot: true },
   assets: {
-    from: ['../../node_modules/@salesforce/templates/lib/templates/apexclass/**/*'],
-    to: ['./templates/apexclass']
+    from: ['../../node_modules/@salesforce/templates/lib/templates/**/*'],
+    to: ['./dist/templates']
   }
 });
+
+// Generate manifest listing all template file paths (relative to templates root).
+// Web bundle reads this instead of vscode.workspace.fs.readDirectory (not supported on HTTPS extension URIs).
+// Walk the copy destination (not source) so manifest only lists files that were actually bundled.
+const generateTemplatesManifest = async () => {
+  const { readdirSync, writeFileSync } = await import('fs');
+  const distTemplates = join(packageDir, 'dist/templates');
+
+  const prefix = distTemplates.replace(/\\/g, '/') + '/';
+  const paths = readdirSync(distTemplates, { recursive: true, withFileTypes: true })
+    .filter(e => e.isFile() && e.name !== 'manifest.json')
+    .map(e => `${e.path.replace(/\\/g, '/')}/${e.name}`.replace(prefix, ''));
+
+  writeFileSync(join(distTemplates, 'manifest.json'), JSON.stringify(paths));
+  console.log(`[esbuild] Generated templates manifest: ${paths.length} files`);
+};
 import { writeFile, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
@@ -104,3 +122,4 @@ const browserBuild = await build({
 
 await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
 await writeFile('dist/browser-metafile.json', JSON.stringify(browserBuild.metafile, null, 2));
+await generateTemplatesManifest();

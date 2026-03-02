@@ -8,6 +8,7 @@
 import * as SfTemplates from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
+
 // eslint-disable-next-line no-restricted-imports -- memfs polyfill on web; @salesforce/templates expects fs path
 import * as nodeFs from 'node:fs';
 import * as path from 'node:path';
@@ -69,28 +70,35 @@ const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
   return extensionUri;
 });
 
-const APEXCLASS_TEMPLATES = [
-  'ApexException.cls',
-  'ApexUnitTest.cls',
-  'BasicUnitTest.cls',
-  'DefaultApexClass.cls',
-  'InboundEmailService.cls',
-  '_class.cls-meta.xml'
-];
-
 /** Load template files from extension assets into the polyfilled fs (memfs on web).
- * On desktop, templates are on disk from the bundle; on web, load from extension assets. */
-const ensureTemplatesInFs = async (rootUri: URI, rootFsPath: string): Promise<void> => {
-  if (process.env.ESBUILD_PLATFORM !== 'web') return;
-  const dir = `${rootFsPath}/apexclass`;
-  nodeFs.mkdirSync(dir, { recursive: true });
-  await Promise.all(
-    APEXCLASS_TEMPLATES.map(async name => {
-      const content = await vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'apexclass', name));
-      nodeFs.writeFileSync(`${dir}/${name}`, Buffer.from(content));
-    })
-  );
-};
+ * Reads manifest.json (generated at build time) to get the file list, then reads each file
+ * via vscode.workspace.fs (supported on HTTPS extension URIs) and writes to memfs. */
+const ensureTemplatesInFs = (rootUri: URI, rootFsPath: string) =>
+  Effect.gen(function* () {
+    if (process.env.ESBUILD_PLATFORM !== 'web') return;
+    const manifestContent = yield* Effect.tryPromise({
+      try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),
+      catch: e =>
+        new Error(
+          `Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (${e instanceof Error ? e.message : String(e)})`
+        )
+    });
+    const paths: readonly string[] = JSON.parse(Buffer.from(manifestContent).toString());
+    const results = yield* Effect.promise(() =>
+      Promise.allSettled(
+        paths.map(async relativePath => {
+          const dest = `${rootFsPath}/${relativePath}`;
+          nodeFs.mkdirSync(dest.slice(0, dest.lastIndexOf('/')), { recursive: true });
+          const content = await vscode.workspace.fs.readFile(Utils.joinPath(rootUri, relativePath));
+          nodeFs.writeFileSync(dest, Buffer.from(content));
+        })
+      )
+    );
+    const failCount = results.filter(r => r.status === 'rejected').length;
+    if (failCount > 0) {
+      yield* Effect.logWarning(`${failCount}/${paths.length} template files failed to copy to memfs`);
+    }
+  });
 
 /**
  * Service that wraps @salesforce/templates TemplateService for creating templates.
@@ -102,7 +110,7 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
       const extensionUri = yield* getExtensionUri();
       const templatesRootUri = Utils.joinPath(extensionUri, 'dist', 'templates');
-      yield* Effect.promise(() => ensureTemplatesInFs(templatesRootUri, templatesRootUri.fsPath));
+      yield* ensureTemplatesInFs(templatesRootUri, templatesRootUri.fsPath);
       const templateService = SfTemplates.TemplateService.getInstance(params.cwd, {
         templatesRootPath: templatesRootUri.fsPath
       });
