@@ -3,7 +3,16 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
-    "types": ["jest", "node", "vscode"]
+    "types": [
+      "jest",
+      "node",
+      "vscode"
+    ],
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   },
   "exclude": [
     "node_modules",

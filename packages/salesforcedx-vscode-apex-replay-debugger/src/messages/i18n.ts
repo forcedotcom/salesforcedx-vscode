@@ -49,7 +49,14 @@ export const messages = {
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_no_results_found: 'No test results found',
   debug_test_no_debug_log: 'No debug log associated with test results',
-  channel_name: 'Apex Replay Debugger'
+  channel_name: 'Apex Replay Debugger',
+  apex_execute_text: 'Execute Anonymous Apex',
+  apex_execute_debug_failed: 'Execute anonymous failed: %s',
+  unable_to_locate_editor: 'You can run this command only on a source file.',
+  unable_to_locate_document: 'You can run this command only on a source file.',
+  launch_apex_replay_debugger_unsupported_file:
+    'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
+  launch_apex_replay_debugger_with_selected_file: 'Launch Apex Replay Debugger with Selected File'
 } as const;
 
 export type MessageKey = keyof typeof messages;

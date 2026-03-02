@@ -32,10 +32,15 @@ const retrieve = (members: MetadataMember[], openInEditor = false) =>
     }
 
     if (openInEditor) {
+      const fsService = yield* api.services.FsService;
       yield* Option.match(findFirstSuccessfulFile(result), {
         onNone: () => Effect.succeed(undefined),
         onSome: filePath =>
-          openFileInEditor(filePath).pipe(Effect.catchAll(e => Effect.log(`Could not open file: ${String(e)}`)))
+          fsService
+            .showTextDocument(
+              URI.from({ scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file', path: filePath })
+            )
+            .pipe(Effect.catchAll(e => Effect.log(`Could not open file: ${String(e)}`)))
       });
     }
 
@@ -45,26 +50,6 @@ const retrieve = (members: MetadataMember[], openInEditor = false) =>
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
   // for unknown reasons, the filePath is sometimes prefixed with a backslash
   Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '/'));
-
-const openFileInEditor = (filePath: string) =>
-  Effect.tryPromise({
-    try: () =>
-      vscode.workspace.openTextDocument(
-        URI.from({
-          scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file',
-          path: filePath
-        })
-      ),
-    catch: e => new Error(`Failed to open document at ${filePath}: ${String(e)}`)
-  }).pipe(
-    Effect.flatMap(document =>
-      Effect.tryPromise({
-        try: () => vscode.window.showTextDocument(document),
-        catch: e => new Error(`Failed to show document at ${filePath}: ${String(e)}`)
-      })
-    ),
-    Effect.withSpan('openFileInEditor', { attributes: { filePath } })
-  );
 
 export class OrgBrowserRetrieveService extends Effect.Service<OrgBrowserRetrieveService>()(
   'OrgBrowserRetrieveService',

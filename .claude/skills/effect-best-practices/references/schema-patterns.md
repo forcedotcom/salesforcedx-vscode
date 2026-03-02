@@ -337,6 +337,18 @@ export const Category: Schema.Schema<Category> = Schema.Struct({
 })
 ```
 
+## Schema.is Type Guard
+
+- `Schema.is(schema)` → `(u: unknown) => u is A` — match without decode/allocate
+- Prefer over `Set.has` etc — schema = single source of truth
+
+```typescript
+const isUserRole = Schema.is(UserRole)
+if (isUserRole(input)) {
+  // input: "admin" | "member" | "viewer"
+}
+```
+
 ## Decoding and Encoding
 
 ```typescript
@@ -350,4 +362,17 @@ const user = Schema.decodeUnknownSync(User)(rawData)
 // Encode - for serialization
 const encodeUser = Schema.encode(User)
 const encoded = yield* encodeUser(user) // Effect<UserEncoded, ParseError>
+```
+
+## JSON strings: Schema.parseJson
+
+Use `Schema.parseJson(schema)` instead of `JSON.parse` + manual decode. Handles invalid JSON (returns `Left`) and schema validation in one step.
+
+```typescript
+// JSON string → validated A. No try/catch — parse errors become Left
+const decoded = Schema.decodeUnknownEither(Schema.parseJson(MySchema))(jsonStr)
+const value = Either.getOrElse(decoded, () => undefined)
+
+// Sync decode (throws on invalid JSON or schema mismatch)
+const config = Schema.decodeUnknownSync(Schema.parseJson(ConfigSchema))(jsonStr)
 ```

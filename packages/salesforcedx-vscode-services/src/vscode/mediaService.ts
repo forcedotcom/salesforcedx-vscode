@@ -44,12 +44,9 @@ const ICON_DESCRIPTION_KEYS: Record<IconId, MessageKey> = {
   [ICONS.WARNING]: 'icon_warning'
 };
 
-const getIconDescription = (iconId: IconId) =>
-  Effect.fn('MediaService.getIconDescription')(function* () {
-    return yield* Effect.sync(() =>
-      nls.localize(ICON_DESCRIPTION_KEYS[iconId])
-    );
-  })();
+const getIconDescription = Effect.fn('MediaService.getIconDescription')(function* (iconId: IconId) {
+  return yield* Effect.sync(() => nls.localize(ICON_DESCRIPTION_KEYS[iconId]));
+});
 
 /** Effect service for media (icons, descriptions). */
 export class MediaService extends Effect.Service<MediaService>()('MediaService', {

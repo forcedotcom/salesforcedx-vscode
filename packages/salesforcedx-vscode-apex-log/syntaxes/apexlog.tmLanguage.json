@@ -1,7 +1,9 @@
 {
   "version": "https://github.com/Microsoft/vscode/commit/509108f986e813e87949beb03e84ba476dc098a7",
-  "scopeName": "text.log",
-  "fileTypes": ["log"],
+  "scopeName": "text.apexlog",
+  "fileTypes": [
+    "log"
+  ],
   "name": "Log file",
   "patterns": [
     {
@@ -45,7 +47,7 @@
       "name": "comment log.date"
     },
     {
-      "match": "\\d{2}:\\d{2}(:\\d{2}([.,]\\d{3,6})?)?(Z| ?[+-]\\d{2}:\\d{2})?\\b",
+      "match": "\\d{2}:\\d{2}(:\\d{2}([.,]\\d{1,6})?)?(Z| ?[+-]\\d{2}:\\d{2})?\\b",
       "name": "comment log.date"
     },
     {

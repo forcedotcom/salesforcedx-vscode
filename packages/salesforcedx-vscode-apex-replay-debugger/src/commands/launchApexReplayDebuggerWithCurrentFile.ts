@@ -17,7 +17,7 @@ import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { anonApexDebug } from './anonApexExecute';
+import { anonApexDebug } from './anonApexDebug';
 
 export const launchApexReplayDebuggerWithCurrentFile = async () => {
   const editor = vscode.window.activeTextEditor;
@@ -42,7 +42,7 @@ export const launchApexReplayDebuggerWithCurrentFile = async () => {
     return;
   }
 
-  const apexTestClassName = await getApexTestClassName(sourceUri);
+  const apexTestClassName = getApexTestClassName(editor.document);
   if (apexTestClassName) {
     await launchApexReplayDebugger(apexTestClassName);
     return;
@@ -61,7 +61,12 @@ const launchReplayDebuggerLogFile = async (sourceUri: URI) => {
   });
 };
 
-const getApexTestClassName = (sourceUri: URI): string => basename(sourceUri.fsPath, '.cls');
+const IS_TEST_REG_EXP = /@isTest/i;
+
+const getApexTestClassName = (document: vscode.TextDocument): string | undefined =>
+  document.uri.fsPath.endsWith('.cls') && IS_TEST_REG_EXP.test(document.getText())
+    ? basename(document.uri.fsPath, '.cls')
+    : undefined;
 
 const launchAnonymousApexReplayDebugger = async () => {
   const commandlet = new SfCommandlet(
@@ -73,13 +78,12 @@ const launchAnonymousApexReplayDebugger = async () => {
 };
 
 const launchApexReplayDebugger = async (apexTestClassName: string) => {
-  // Launch using QuickLaunch (the same way the "Debug All Tests" code lens runs)
   await vscode.commands.executeCommand('sf.test.view.debugTests', {
     name: apexTestClassName
   });
 };
 
-class AnonApexLaunchReplayDebuggerExecutor extends SfCommandletExecutor<{}> {
+class AnonApexLaunchReplayDebuggerExecutor extends SfCommandletExecutor<Record<string, never>> {
   public build(): Command {
     return new CommandBuilder(nls.localize('launch_apex_replay_debugger_with_selected_file'))
       .withLogName('launch_apex_replay_debugger_with_selected_file')

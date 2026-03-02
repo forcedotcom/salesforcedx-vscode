@@ -30,6 +30,8 @@ import {
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { channelService } from './channels';
+import { anonApexDebug } from './commands/anonApexDebug';
+import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
 import {
@@ -40,6 +42,7 @@ import {
   LIVESHARE_DEBUGGER_TYPE
 } from './debuggerConstants';
 import { nls } from './messages';
+import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 
 let extContext: vscode.ExtensionContext;
 
@@ -107,13 +110,23 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
   const sfCreateCheckpointsCmd = vscode.commands.registerCommand('sf.create.checkpoints', sfCreateCheckpoints);
   const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
 
+  const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
+  const anonApexDebugDocumentCmd = vscode.commands.registerCommand('sf.apex.debug.document', anonApexDebug);
+  const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
+    'sf.launch.apex.replay.debugger.with.current.file',
+    launchApexReplayDebuggerWithCurrentFile
+  );
+
   return vscode.Disposable.from(
     promptForLogCmd,
     launchFromLogFileCmd,
     launchFromLogFilePathCmd,
     launchFromLastLogFileCmd,
     sfCreateCheckpointsCmd,
-    sfToggleCheckpointCmd
+    sfToggleCheckpointCmd,
+    anonApexDebugDelegateCmd,
+    anonApexDebugDocumentCmd,
+    launchApexReplayDebuggerWithCurrentFileCmd
   );
 };
 
@@ -166,6 +179,7 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
   extContext = extensionContext;
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
   const commands = await registerCommands();
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(

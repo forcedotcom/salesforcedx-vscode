@@ -88,8 +88,6 @@ export const messages = {
   project_generate_empty_template_display_text: 'Empty',
   project_generate_analytics_template_display_text: 'Analytics',
   apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
-  start_apex_debug_logging: 'SFDX: Turn On Apex Debug Log for Replay Debugger',
-  stop_apex_debug_logging: 'SFDX: Turn Off Apex Debug Log for Replay Debugger',
 
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',

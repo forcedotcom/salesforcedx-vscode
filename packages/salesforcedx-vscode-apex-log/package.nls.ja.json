@@ -1,0 +1,5 @@
+{
+  "apexLog.command.executeDocument": "SFDX: エディタのコンテンツを使用して匿名 Apex を実行",
+  "apexLog.command.executeSelection": "SFDX: 現在選択されているテキストを使用して匿名 Apex を実行",
+  "apexLog.command.logGet": "SFDX: Apex デバッグログを取得"
+}

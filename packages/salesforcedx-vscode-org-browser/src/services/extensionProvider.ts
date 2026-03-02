@@ -44,6 +44,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.SdkLayerFor(context),
         channelLayer,
         api.services.WorkspaceService.Default,
+        api.services.FsService.Default,
         api.services.SourceTrackingService.Default,
         errorHandlerWithChannel,
         OrgBrowserRetrieveService.Default

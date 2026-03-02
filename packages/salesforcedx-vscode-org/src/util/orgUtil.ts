@@ -40,7 +40,7 @@ const orgIsExpired = (authFields: AuthFields) =>
   isString(authFields.expirationDate) && new Date(authFields.expirationDate) < new Date();
 
 /** One time notification about orgs that expire soon */
-export const checkForSoonToBeExpiredOrgs = Effect.fn(function* () {
+export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeExpiredOrgs')(function* () {
   const daysUntilExpiration = new Date();
   daysUntilExpiration.setDate(daysUntilExpiration.getDate() + DAYS_BEFORE_EXPIRE);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -285,7 +285,7 @@ export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> =>
 };
 
 /** Determine the type of org (DevHub, Sandbox, Org, or Scratch) */
-const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
+export const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
   if (orgAuth.isDevHub) {
     return 'DevHub';
   } else if (authFields && !authFields.expirationDate) {

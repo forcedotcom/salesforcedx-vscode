@@ -54,13 +54,6 @@ export {
   TOOLS
 } from './helpers/paths';
 export {
-  TraceFlags,
-  showTraceFlagExpiration,
-  disposeTraceFlagExpiration,
-  getTraceFlagExpirationKey,
-  handleTraceFlagCleanup
-} from './helpers/traceFlags';
-export {
   difference,
   extractJson,
   fileUtils,

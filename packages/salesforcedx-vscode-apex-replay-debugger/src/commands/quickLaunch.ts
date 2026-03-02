@@ -19,7 +19,6 @@ import {
   LibraryCommandletExecutor,
   notificationService,
   projectPaths,
-  TraceFlags,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
@@ -28,6 +27,7 @@ import * as vscode from 'vscode';
 import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
+import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
 import { retrieveTestCodeCoverage } from '../utils/settings';
 import { launchFromLogFile } from './launchFromLogFile';
 
@@ -53,7 +53,7 @@ class QuickLaunch {
       return false;
     }
 
-    if (!(await new TraceFlags(connection).ensureTraceFlags())) {
+    if (!(await ensureTraceFlagsForCurrentUser())) {
       return false;
     }
 

@@ -1,0 +1,18 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import * as Schema from 'effect/Schema';
+
+export class LogGetNoLogsError extends Schema.TaggedError<LogGetNoLogsError>()(
+  'LogGetNoLogsError',
+  { message: Schema.String }
+) {}
+
+export class OpenLogsFolderError extends Schema.TaggedError<OpenLogsFolderError>()(
+  'OpenLogsFolderError',
+  { message: Schema.String, cause: Schema.instanceOf(Error) }
+) {}

@@ -43,21 +43,20 @@ const suffixFromPath = (fsPath: string): string | undefined => {
 };
 
 /** Effect that uses MetadataRegistryService (cached) to resolve metadata type from URI */
-export const isItReadOnlyEffect = (readOnlyTypes: MetadataType[], uri: vscode.Uri) =>
-  Effect.fn('isItReadOnly', { attributes: { path: uri.path } })(function* () {
-    if (readOnlyTypes.length === 0) return false;
-    const suffix = suffixFromPath(uri.path);
-    if (!suffix) return false;
-    const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
-    const metadataType = registryAccess.getTypeBySuffix(suffix);
-    if (!metadataType) return false;
-    console.log(
-      'metadataType',
-      metadataType.id,
-      readOnlyTypes.some(opt => opt.id === metadataType.id)
-    );
-    return readOnlyTypes.some(opt => opt.id === metadataType.id);
-  });
+export const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: vscode.Uri) {
+  if (readOnlyTypes.length === 0) return false;
+  const suffix = suffixFromPath(uri.path);
+  if (!suffix) return false;
+  const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
+  const metadataType = registryAccess.getTypeBySuffix(suffix);
+  if (!metadataType) return false;
+  console.log(
+    'metadataType',
+    metadataType.id,
+    readOnlyTypes.some(opt => opt.id === metadataType.id)
+  );
+  return readOnlyTypes.some(opt => opt.id === metadataType.id);
+});
 
 /** Layer required to run isItReadOnlyEffect */
 export const isItReadOnlyLayer = Layer.mergeAll(MetadataRegistryService.Default, WorkspaceService.Default);
@@ -79,7 +78,7 @@ export class FsProvider implements vscode.FileSystemProvider {
         ctime: stats.ctimeMs,
         mtime: stats.mtimeMs,
         size: stats.size,
-        ...(isItReadOnlyEffect(this.readOnly, uri)().pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)
+        ...(isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)
           ? { permissions: vscode.FilePermission.Readonly }
           : {})
       };
@@ -120,7 +119,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): Promise<void> {
-    if (isItReadOnlyEffect(this.readOnly, uri)().pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
     const program = Effect.sync(() => {
@@ -147,7 +146,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
-    if (isItReadOnlyEffect(this.readOnly, uri)().pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
     await fs.promises.rm(uri.path, { recursive: options.recursive, force: true });
@@ -155,7 +154,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): Promise<void> {
-    if (isItReadOnlyEffect(this.readOnly, oldUri)().pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnlyEffect(this.readOnly, oldUri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(oldUri);
     }
     if (!options.overwrite && this.exists(newUri)) {

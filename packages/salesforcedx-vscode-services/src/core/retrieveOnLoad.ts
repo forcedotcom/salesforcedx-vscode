@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { ChannelService } from '../vscode/channelService';
+import { FsService } from '../vscode/fsService';
 import { SettingsService } from '../vscode/settingsService';
 import { ComponentSetService } from './componentSetService';
 import { MetadataRegistryService } from './metadataRegistryService';
@@ -94,21 +95,16 @@ export const retrieveOnLoadEffect = () =>
       `Retrieve on load completed. ${fileResponses.length} files retrieved successfully.`
     );
 
+    const fsService = yield* FsService;
     yield* Effect.forEach(
       fileResponses,
       filePath =>
-        Effect.tryPromise({
-          try: async () => {
-            const document = await vscode.workspace.openTextDocument(
-              URI.from({
-                scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file',
-                path: filePath
-              })
-            );
-            await vscode.window.showTextDocument(document, { preview: false });
-          },
-          catch: e => new Error(`Failed to open retrieved file ${filePath}: ${String(e)}`)
-        }).pipe(Effect.catchAll(error => channelService.appendToChannel(`Could not open file: ${String(error)}`))),
+        fsService
+          .showTextDocument(
+            URI.from({ scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file', path: filePath }),
+            { preview: false }
+          )
+          .pipe(Effect.catchAll(error => channelService.appendToChannel(`Could not open file: ${String(error)}`))),
       { concurrency: 'unbounded' }
     );
   }).pipe(

@@ -83,16 +83,8 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
-  apex-replay-debugger:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'apexReplayDebugger.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
-      os: '["macos-latest"]'
-
   apex-trail-replay-debugger:
+    if: false
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:

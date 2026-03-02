@@ -58,7 +58,6 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
       /** Handle a Cause by showing error notification - use with Effect.catchAllCause */
       handleCause: (cause: Cause.Cause<unknown>) =>
         Effect.gen(function* () {
-          console.error(cause);
           const error = Cause.squash(cause);
           const baseMessage = getBaseMessage(error);
           const actions = getActions(error);
@@ -69,7 +68,6 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
             const channel = yield* channelService.getChannel;
             const viewSuggestions = nls.localize('view_suggestions');
             const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(baseMessage, viewSuggestions));
-            console.log('selection', selection);
             if (selection === viewSuggestions) channel.show();
           } else {
             yield* Effect.sync(() => void vscode.window.showErrorMessage(baseMessage));

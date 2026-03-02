@@ -22,8 +22,6 @@ export { projectDeployStart } from './projectDeployStart';
 export { projectGenerateWithManifest, sfProjectGenerate } from './projectGenerate';
 export { projectRetrieveStart } from './projectRetrieveStart';
 export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/viewChanges';
-export { turnOnLogging } from './startApexDebugLogging';
-export { turnOffLogging } from './stopApexDebugLogging';
 export {
   analyticsGenerateTemplate,
   apexGenerateClass,

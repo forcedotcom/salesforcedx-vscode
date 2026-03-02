@@ -211,14 +211,19 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
                 () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
               )
             );
-            const username = yield* aliasService.getUsernameFromAlias(usernameOrAlias).pipe(
-              Effect.map(Option.getOrElse(() => usernameOrAlias))
-            );
+            const username = yield* aliasService
+              .getUsernameFromAlias(usernameOrAlias)
+              .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
             return yield* connectionCache.get(username);
           });
 
       // update the org ref in the background
-      yield* maybeUpdateDefaultOrgRef(conn, aliasService).pipe(Effect.forkDaemon);
+      yield* maybeUpdateDefaultOrgRef(conn).pipe(
+        Effect.provide(AliasService.Default),
+        Effect.tapError(e => Effect.logWarning(String(e))),
+        Effect.catchAll(() => Effect.void),
+        Effect.forkDaemon
+      );
       return conn;
     });
 
@@ -244,7 +249,8 @@ const getTracksSourceFromOrg = (conn: Connection) =>
   );
 
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
-const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection, aliasService: AliasService) {
+const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection) {
+  const aliasService = yield* AliasService;
   const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);

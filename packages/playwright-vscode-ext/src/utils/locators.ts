@@ -32,6 +32,9 @@ export const TAB_CLOSE_BUTTON = '.codicon-close';
 /** Status bar item label (web) */
 export const STATUS_BAR_ITEM_LABEL = '.statusbar-item-label';
 
+/** Apex Log trace flag status bar (salesforcedx-vscode-apex-log) */
+export const APEX_TRACE_FLAG_STATUS_BAR = '#salesforce\\.salesforcedx-vscode-apex-log\\.apex-trace-flag-status';
+
 /** Notification list items in the notification center */
 export const NOTIFICATION_LIST_ITEM = `${WORKBENCH} .notification-list-item`;
 

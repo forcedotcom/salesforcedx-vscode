@@ -9,22 +9,25 @@ import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { ExtensionContext } from 'vscode';
+import { getExtensionContext } from './extensionContext';
 
 export class ExtensionContextNotAvailableError extends Data.TaggedError('ExtensionContextNotAvailableError')<{}> {}
 
 /**
  * Service providing access to VS Code ExtensionContext.
  * Use ExtensionContextServiceLayer to provide the context.
+ * Default falls back to the services extension's context when set.
  */
 export class ExtensionContextService extends Effect.Service<ExtensionContextService>()('ExtensionContextService', {
   sync: (): {
     getContext: Effect.Effect<ExtensionContext, ExtensionContextNotAvailableError>;
     getDisplayName: Effect.Effect<string, ExtensionContextNotAvailableError>;
   } => ({
-    /** Get the ExtensionContext */
-    getContext: Effect.fail(new ExtensionContextNotAvailableError()),
-    /** Get the extension's display name from package.json */
-    getDisplayName: Effect.fail(new ExtensionContextNotAvailableError())
+    getContext: getExtensionContext(),
+    getDisplayName: Effect.gen(function* () {
+      const ctx = yield* getExtensionContext();
+      return ctx.extension.packageJSON.displayName;
+    })
   })
 }) {}
 
