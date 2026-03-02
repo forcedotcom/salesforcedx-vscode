@@ -14,6 +14,7 @@ import * as nodeFs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
+import { uriToPath } from '../vscode/paths';
 
 /** Re-export for consumers that don't depend on @salesforce/templates */
 export { TemplateType, type CreateOutput } from '@salesforce/templates';
@@ -115,7 +116,10 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
         templatesRootPath: templatesRootUri.fsPath
       });
       const templateOptions = params.outputdir
-        ? { ...params.options, outputdir: path.relative(params.cwd, params.outputdir.fsPath) }
+        ? {
+            ...params.options,
+            outputdir: path.relative(params.cwd, uriToPath(params.outputdir))
+          }
         : params.options;
       return yield* Effect.tryPromise(() => templateService.create(params.templateType, templateOptions));
     });
