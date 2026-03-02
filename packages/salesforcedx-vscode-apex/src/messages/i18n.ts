@@ -17,8 +17,6 @@
  */
 
 export const messages = {
-  anon_apex_execute_document_text: 'SFDX: Execute Anonymous Apex with Editor Contents',
-  anon_apex_execute_selection_text: 'SFDX: Execute Anonymous Apex with Currently Selected Text',
   apex_language_server_already_restarting: 'Apex Language Server is already restarting. Please wait.',
   apex_language_server_failed_activate: 'Unable to activate the Apex Language Server',
   apex_language_server_loaded: 'Indexing complete $(check)',
@@ -29,20 +27,10 @@ export const messages = {
   apex_language_server_restart_dialog_prompt: 'Clean Apex DB and Restart? Or Restart Only?',
   apex_language_server_restart_dialog_restart_only: 'Restart Only',
   apex_language_server_restarting: 'Apex Language Server is restarting… $(sync~spin)',
-  apex_log_get_text: 'SFDX: Get Apex Debug Logs',
   cancel: 'Cancel',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex',
   client_name: 'Apex Language Server',
-  colorizer_no_code_coverage_current_file:
-    'No code coverage information was found for file %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
-  colorizer_no_code_coverage_on_project:
-    'No test run information was found for this project. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
-  colorizer_no_code_coverage_on_test_results:
-    'No code coverage information was found for test run %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
-  colorizer_out_of_sync_code_coverage_data:
-    'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
-  colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
   java_binary_missing_text: 'Java binary %s not found at %s. Please check your Java installation.',
   java_bin_missing_text: 'Java bin directory not found at %s. Please check your Java installation.',
   java_home_expansion_failed_text: 'Failed to expand Java home path. Please check your Java installation.',

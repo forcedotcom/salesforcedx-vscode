@@ -19,8 +19,6 @@
 import { MessageKey } from './i18n';
 
 export const messages: Partial<Record<MessageKey, string>> = {
-  anon_apex_execute_document_text: 'SFDX: エディタの内容で匿名 Apex コードを実行',
-  anon_apex_execute_selection_text: 'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   apex_language_server_already_restarting: 'Apex 言語サーバは既に再起動中です。お待ちください。',
   apex_language_server_failed_activate: 'Apex 言語サーバを有効化できませんでした。',
   apex_language_server_loaded: 'インデックス化が完了しました $(check)',
@@ -34,15 +32,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_language_server_restarting: 'Apex 言語サーバを再起動しています... $(sync~spin)',
   cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
   client_name: 'Apex 言語サーバ',
-  colorizer_no_code_coverage_current_file:
-    'このファイルでコードカバレッジの情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-apex-testing.retrieve-test-code-coverage" を true に設定してください。次に、このファイルを含むApex テストを実行してください。Apex テストのサイドバーまたは、ファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行できます。',
-  colorizer_no_code_coverage_on_project:
-    'このプロジェクトでテスト実行の情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-apex-testing.retrieve-test-code-coverage" を true に設定してください。次に、Apex テストのサイドバーまたは、テストクラスファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行してください。',
-  colorizer_no_code_coverage_on_test_results:
-    'テスト実行 %s のコードカバレッジの情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-apex-testing.retrieve-test-code-coverage" を true に設定してください。次に、Apex テストのサイドバーまたは、テストクラスファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行してください。',
-  colorizer_out_of_sync_code_coverage_data:
-    'このファイルは更新されているようです。コードカバレッジの数値を更新するには、このファイルでテストを実行してください。',
-  colorizer_statusbar_hover_text: 'Apex コードカバレッジを強調表示',
   java_binary_missing_text: '%s の Java バイナリ %s が見つかりません。Java のインストールを確認してください。',
   java_bin_missing_text: '%s に Java bin ディレクトリが見つかりません。Java のインストールを確認してください。',
   java_home_expansion_failed_text: 'Java ホームパスの展開に失敗しました。Java のインストールを確認してください。',

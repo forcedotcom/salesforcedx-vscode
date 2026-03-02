@@ -34,7 +34,7 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
   return {
     uri: folders?.[0]?.uri ?? URI.parse(''),
     path: getPathWithSchema(folders?.[0]?.uri ?? URI.parse('')),
-    isEmpty: folders?.length === 0,
+    isEmpty: !folders?.length,
     isVirtualFs,
     // in e2e tests, but not on local runs, the path had windows-style \\ separators
     // vscode-uri implementation: https://github.com/microsoft/vscode-uri/blob/65786c7aef8aa1d142fedfde76073cc3549736d2/src/platform.ts#L19C18-L19C37
@@ -52,10 +52,10 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
       workspaceName: vscode.workspace.name
     })
   ),
-  Effect.withSpan('getWorkspaceInfoTask ( cache miss )')
+  Effect.withSpan('getWorkspaceInfoTask')
 );
 
-// Global cached workspace info - created once at module level
+// Global cached workspace info - created once at module level.  Only used on web, since ws can change on desktop
 const globalCachedWorkspaceInfo = Effect.runSync(
   Effect.cached(getWorkspaceInfoTask).pipe(Effect.withSpan('getWorkspaceInfo'))
 );
@@ -71,12 +71,13 @@ export class WorkspaceService extends Effect.Service<WorkspaceService>()('Worksp
   effect: Effect.gen(function* () {
     /** Get info about the workspace */
     const getWorkspaceInfo = Effect.fn('WorkspaceService.getWorkspaceInfo')(function* () {
-      return yield* globalCachedWorkspaceInfo;
+      return process.env.ESBUILD_PLATFORM === 'web' ? yield* globalCachedWorkspaceInfo : yield* getWorkspaceInfoTask;
     });
 
     /** GetWorkspaceInfo, throws if there is not one open */
     const getWorkspaceInfoOrThrow = Effect.fn('WorkspaceService.getWorkspaceInfoOrThrow')(function* () {
-      const info = yield* globalCachedWorkspaceInfo;
+      const info =
+        process.env.ESBUILD_PLATFORM === 'web' ? yield* globalCachedWorkspaceInfo : yield* getWorkspaceInfoTask;
       return yield* isNonEmptyWorkspace(info)
         ? Effect.succeed(info)
         : Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }));

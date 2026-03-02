@@ -37,7 +37,7 @@ export const messages = {
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex Testing',
   configuration_title: 'Salesforce Apex Testing Configuration',
-  run_tests_title: 'Run Tests',
+  run_tests_title: 'Run All Tests in Org',
   run_tests_in_workspace_title: 'Run In-Workspace Tests',
   debug_tests_title: 'Debug Tests',
   test_view_name: 'Apex Tests',
@@ -76,7 +76,16 @@ export const messages = {
     "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
   test_explorer_local_namespace_label: 'Local Namespace',
   test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
-  test_explorer_1gp_package_label: '%s (1GP)'
+  test_explorer_1gp_package_label: '%s (1GP)',
+  colorizer_no_code_coverage_current_file:
+    'No code coverage information was found for file %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
+  colorizer_no_code_coverage_on_project:
+    'No test run information was found for this project. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
+  colorizer_no_code_coverage_on_test_results:
+    'No code coverage information was found for test run %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
+  colorizer_out_of_sync_code_coverage_data:
+    'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
+  colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage'
 } as const;
 
 export type MessageKey = keyof typeof messages;

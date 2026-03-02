@@ -11,6 +11,8 @@ import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { channelService, initializeOutputChannel } from './channels';
+import { CodeCoverageHandler } from './codecoverage/colorizer';
+import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
@@ -207,6 +209,13 @@ export const activate = (context: vscode.ExtensionContext) => {
 };
 
 const registerCommands = (): vscode.Disposable => {
+  // Code coverage highlighting (owned by Apex Testing; works in Desktop and Web)
+  const statusBarToggle = new StatusBarToggle();
+  const colorizer = new CodeCoverageHandler(statusBarToggle);
+  const apexToggleColorizerCmd = vscode.commands.registerCommand('sf.apex.toggle.colorizer', () =>
+    colorizer.toggleCoverage()
+  );
+
   // Customer-facing commands
   const apexTestClassRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.test.class.run.delegate',
@@ -246,6 +255,8 @@ const registerCommands = (): vscode.Disposable => {
   );
 
   return vscode.Disposable.from(
+    apexToggleColorizerCmd,
+    statusBarToggle,
     apexTestClassRunCmd,
     apexTestClassRunDelegateCmd,
     apexDebugClassRunDelegateCmd,

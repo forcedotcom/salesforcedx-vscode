@@ -99,9 +99,6 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs')(function* (
       )
     )
   );
-
-  // this ref "change" might not change anything, but it refreshes the UI
-  yield* SubscriptionRef.set(yield* CurrentTraceFlags, [...items]);
 });
 
 const getPollIntervalSeconds = (): number =>
