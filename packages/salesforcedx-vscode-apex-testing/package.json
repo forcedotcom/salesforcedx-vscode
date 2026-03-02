@@ -361,6 +361,11 @@
           "type": "boolean",
           "default": false,
           "description": "%retrieve_test_code_coverage_text%"
+        },
+        "salesforcedx-vscode-apex-testing.disable-warnings-for-missing-coverage": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_disable_warnings_for_missing_coverage%"
         }
       }
     }
