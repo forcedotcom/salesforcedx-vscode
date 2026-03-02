@@ -70,10 +70,14 @@ test('Create Project: standard project via command palette', async ({ page, work
     // Triple-click to select all existing path text (Control+a doesn't select-all on mac)
     const input = quickInput.locator('input.input');
     await input.click({ clickCount: 3 });
-    await page.keyboard.type(targetDir);
+    // Trailing sep forces the simple dialog to navigate INTO the directory immediately.
+    // Without it, Windows shows the parent dir with the folder highlighted, then auto-navigates
+    // after a debounce — clicking "Create Project" during that transition doesn't register.
+    await page.keyboard.type(`${targetDir}${path.sep}`);
 
-    // Wait for dialog to validate the path
+    // Wait for dialog to show the directory contents (not just highlight the folder name)
     await expect(quickInput.getByText('path does not exist')).not.toBeVisible({ timeout: 5000 });
+    await expect(input).toHaveValue(new RegExp(`${targetDir.replaceAll('\\', '\\\\')}[/\\\\]$`), { timeout: 5000 });
     await saveScreenshot(page, 'createProject.05-folder-path-set.png');
 
     // Click "Create Project" button (openLabel from extension's showOpenDialog call)

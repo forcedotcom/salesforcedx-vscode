@@ -31,13 +31,13 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
   accessors: true,
   dependencies: [FsService.Default, MetadataRegistryService.Default],
   effect: Effect.gen(function* () {
-    const registry = yield* MetadataRegistryService.getRegistryAccess();
+    const registryService = yield* MetadataRegistryService;
     const fsService = yield* FsService;
     /** Mark components for deletion */
     const markComponentsForDeletion = Effect.fn('MetadataDeleteService.markComponentsForDeletion')(function* (
       componentSet: ComponentSet
     ) {
-      const deleteSet = new ComponentSet([], registry);
+      const deleteSet = new ComponentSet([], yield* registryService.getRegistryAccess());
 
       componentSet
         .toArray()

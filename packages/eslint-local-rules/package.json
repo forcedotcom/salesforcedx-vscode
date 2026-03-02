@@ -45,13 +45,17 @@
     },
     "check:circular-deps": {
       "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
-      "dependencies": ["compile"],
+      "dependencies": [
+        "compile"
+      ],
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
-      "output": [".circular-deps.json"]
+      "output": [
+        ".circular-deps.json"
+      ]
     },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
@@ -77,13 +81,14 @@
   "author": "Salesforce",
   "license": "BSD-3-Clause",
   "peerDependencies": {
-    "eslint": ">=8.0.0",
-    "@eslint/json": "^0.3.0"
+    "@eslint/json": "^0.3.0",
+    "eslint": ">=8.0.0"
   },
   "devDependencies": {
     "@humanwhocodes/momoa": "^3.3.10",
     "@types/eslint": "^9.0.0",
     "@types/estree": "^1.0.0",
+    "@typescript-eslint/parser": "^8.50.0",
     "@typescript-eslint/rule-tester": "^8.50.0",
     "@typescript-eslint/utils": "^8.50.0"
   }
