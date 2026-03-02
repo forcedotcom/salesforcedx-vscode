@@ -185,6 +185,10 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
 
     await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
 
+    // Wait for debug.log to open before proceeding — showTextDocument is async and
+    // will steal focus from the next step's command palette if it fires late.
+    const docLogTab = page.locator('.tab').filter({ hasText: /\.log$/ });
+    await expect(docLogTab).toBeVisible({ timeout: 30000 });
     await saveScreenshot(page, 'step.exec-anon-document-done.png');
   });
 
