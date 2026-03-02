@@ -90,6 +90,7 @@ export const messages = {
   project_generate_react_b2e_template_display_text: 'React B2E',
   project_generate_react_b2x_template_display_text: 'React B2X',
   project_generate_empty_template: 'Empty project template',
+  project_generate_standard_template: 'Standard project template',
   project_generate_analytics_template: 'Analytics project template',
   project_generate_react_b2e_template: 'React B2E project template',
   project_generate_react_b2x_template: 'React B2X project template',
