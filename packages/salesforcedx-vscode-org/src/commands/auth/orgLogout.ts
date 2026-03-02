@@ -121,7 +121,7 @@ export const orgLogoutDefault = async () => {
   }
 };
 
-const resolveTargetOrg = Effect.fn(function* () {
+const resolveTargetOrg = Effect.fn('OrgLogout.resolveTargetOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 

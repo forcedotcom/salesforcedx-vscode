@@ -141,6 +141,7 @@
     "vscode:package": "wireit",
     "vscode:package:modern": "wireit",
     "vscode:package:legacy": "wireit",
+    "run:web": "wireit",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} --force \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} --force \\;",
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
@@ -188,6 +189,7 @@
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
+        "./packages/salesforcedx-vscode-apex-log:compile",
         "./packages/salesforcedx-vscode-automation-tests:compile"
       ]
     },
@@ -218,6 +220,7 @@
         "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
+        "./packages/salesforcedx-vscode-apex-log:lint",
         "./packages/salesforcedx-vscode-automation-tests:lint",
         "./packages/playwright-vscode-ext:lint",
         "./packages/salesforcedx-lightning-lsp-common:lint",
@@ -254,6 +257,7 @@
         "./packages/salesforcedx-vscode-services:test",
         "./packages/salesforcedx-vscode-org:test",
         "./packages/salesforcedx-vscode-org-browser:test",
+        "./packages/salesforcedx-vscode-apex-log:test",
         "./packages/effect-ext-utils:test"
       ]
     },
@@ -271,6 +275,7 @@
         "./packages/salesforcedx-vscode-services:vscode:bundle",
         "./packages/salesforcedx-vscode-org:vscode:bundle",
         "./packages/salesforcedx-vscode-org-browser:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex-log:vscode:bundle",
         "./packages/salesforcedx-vscode-metadata:vscode:bundle",
         "./packages/salesforcedx-vscode-apex-testing:vscode:bundle"
       ]
@@ -289,6 +294,7 @@
         "./packages/salesforcedx-vscode:vscode:package",
         "./packages/salesforcedx-vscode-expanded:vscode:package",
         "./packages/salesforcedx-vscode-apex:vscode:package",
+        "./packages/salesforcedx-vscode-apex-log:vscode:package",
         "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package",
         "./packages/salesforcedx-vscode-apex-testing:vscode:package",
         "./packages/salesforcedx-vscode-visualforce:vscode:package",
@@ -307,6 +313,18 @@
       "dependencies": [
         "vscode:package:modern"
       ]
+    },
+    "run:web": {
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "service": true,
+      "dependencies": [
+        "./packages/salesforcedx-vscode-services:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-apex-log:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-org-browser:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-metadata:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-apex-testing:vscode:bundle:local"
+      ],
+      "files": []
     },
     "compile:github-actions": {
       "command": "tsc -p .github/actions/new-issue/tsconfig.json && tsc -p .github/actions/validate-issue/tsconfig.json && tsc -p .github/actions/check-feature-request/tsconfig.json",

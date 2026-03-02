@@ -10,7 +10,6 @@ import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverageHandler as CodeCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
-import { anonApexDebug, anonApexExecute, apexLogGet, launchApexReplayDebuggerWithCurrentFile } from './commands';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
@@ -92,19 +91,9 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     colorizer.toggleCoverage()
   );
 
-  // Customer-facing commands
-  const anonApexRunDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.run.delegate', anonApexExecute);
-  const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
-  const apexLogGetCmd = vscode.commands.registerCommand('sf.apex.log.get', apexLogGet);
-  const anonApexExecuteDocumentCmd = vscode.commands.registerCommand('sf.anon.apex.execute.document', anonApexExecute);
-  const anonApexDebugDocumentCmd = vscode.commands.registerCommand('sf.apex.debug.document', anonApexDebug);
-  const anonApexExecuteSelectionCmd = vscode.commands.registerCommand(
-    'sf.anon.apex.execute.selection',
-    anonApexExecute
-  );
-  const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
-    'sf.launch.apex.replay.debugger.with.current.file',
-    launchApexReplayDebuggerWithCurrentFile
+  // Customer-facing commands (log.get and anon.execute.* moved to salesforcedx-vscode-apex-log)
+  const anonApexRunDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.run.delegate', () =>
+    vscode.commands.executeCommand('sf.anon.apex.execute.document')
   );
   const restartApexLanguageServerCmd = vscode.commands.registerCommand(
     'sf.apex.languageServer.restart',
@@ -114,14 +103,8 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
   );
 
   return vscode.Disposable.from(
-    anonApexDebugDelegateCmd,
-    anonApexDebugDocumentCmd,
-    anonApexExecuteDocumentCmd,
-    anonApexExecuteSelectionCmd,
     anonApexRunDelegateCmd,
-    apexLogGetCmd,
     apexToggleColorizerCmd,
-    launchApexReplayDebuggerWithCurrentFileCmd,
     restartApexLanguageServerCmd
   );
 };

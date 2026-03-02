@@ -37,6 +37,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-testing",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-oas",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-log",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services"
@@ -51,6 +52,7 @@
         "${workspaceFolder}/packages/salesforcedx-vscode-metadata/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-org/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-apex/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex-log/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-visualforce/dist/**/*.js"
       ],
@@ -87,6 +89,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-oas",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-log",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata"
       ],
       "stopOnEntry": false,
@@ -100,6 +103,7 @@
         "${workspaceFolder}/packages/salesforcedx-vscode-metadata/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-org/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-apex/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex-log/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-visualforce/dist/**/*.js"
       ],

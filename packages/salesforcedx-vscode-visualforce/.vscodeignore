@@ -1,4 +1,6 @@
 .gitignore
+.circular-deps.json
+.eslintcache
 .eslint.json
 .vscode/**
 .vscode-test/**
