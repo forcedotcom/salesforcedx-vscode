@@ -10,12 +10,14 @@ import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService, initializeOutputChannel } from './channels';
 import {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
   apexTestClassRunCodeAction,
   apexTestClassRunCodeActionDelegate,
+  apexGenerateUnitTestClassCommand,
   apexTestMethodRunCodeAction,
   apexTestMethodRunCodeActionDelegate,
   apexTestRun,
@@ -173,6 +175,15 @@ const activateEffect = (context: vscode.ExtensionContext) =>
     }
 
     // Always register commands (they'll be no-ops if not in a project)
+    const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+    yield* registerCommand(
+      'sf.apex.generate.unit.test.class',
+      (outputDir?: vscode.Uri) =>
+        apexGenerateUnitTestClassCommand(
+          undefined,
+          outputDir ? URI.file(outputDir.fsPath) : undefined
+        )
+    );
     const commands = registerCommands();
     context.subscriptions.push(commands);
 

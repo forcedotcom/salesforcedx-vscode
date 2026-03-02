@@ -35,7 +35,6 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.23.2",
     "@salesforce/playwright-vscode-ext": "*"
   },
   "extensionDependencies": [
@@ -150,6 +149,7 @@
       "files": [
         "package.json",
         "package.nls.json",
+        "package.nls.ja.json",
         "README.md",
         "LICENSE.txt",
         "images/**",
@@ -230,6 +230,12 @@
     "menus": {
       "view/title": [],
       "view/item/context": [],
+      "explorer/context": [
+        {
+          "command": "sf.apex.generate.unit.test.class",
+          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
+        }
+      ],
       "commandPalette": [
         {
           "command": "sf.apex.test.last.class.run",
@@ -266,6 +272,10 @@
         {
           "command": "sf.apex.test.openOrgOnlyTest",
           "when": "false"
+        },
+        {
+          "command": "sf.apex.generate.unit.test.class",
+          "when": "sf:project_opened"
         }
       ]
     },
@@ -305,6 +315,10 @@
       {
         "command": "sf.apex.test.openOrgOnlyTest",
         "title": "%apex_test_open_org_class_command_title%"
+      },
+      {
+        "command": "sf.apex.generate.unit.test.class",
+        "title": "%apex_generate_unit_test_class_text%"
       }
     ],
     "configuration": {

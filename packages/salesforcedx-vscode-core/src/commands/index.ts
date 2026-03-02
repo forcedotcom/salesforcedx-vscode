@@ -26,7 +26,6 @@ export {
   analyticsGenerateTemplate,
   apexGenerateClass,
   apexGenerateTrigger,
-  apexGenerateUnitTestClass,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,

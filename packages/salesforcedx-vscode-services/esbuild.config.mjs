@@ -5,8 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { build } from 'esbuild';
+import copy from 'esbuild-plugin-copy';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
+
+const copyTemplates = copy({
+  assets: {
+    from: ['../../node_modules/@salesforce/templates/lib/templates/apexclass/**/*'],
+    to: ['./templates/apexclass']
+  }
+});
 import { writeFile, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
@@ -75,6 +83,7 @@ const nodeBuild = await build({
   ...nodeConfig,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
+  plugins: [copyTemplates],
   metafile: true
 });
 
@@ -89,6 +98,7 @@ const browserBuild = await build({
   define: browserDefine,
   entryPoints: ['./out/src/index.js'],
   outfile: './dist/web/index.js',
+  plugins: [],
   metafile: true
 });
 

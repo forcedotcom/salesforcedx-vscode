@@ -29,9 +29,12 @@ export const AllServicesLayer = Layer.unwrapEffect(
     const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
     const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
     const productFeatureId = extension?.packageJSON?.productFeatureId;
+    const channelLayer = api.services.ChannelServiceLayer(CHANNEL_NAME);
+    const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
     // Merge all the service layers from the API
     return Layer.mergeAll(
       ExtensionProviderServiceLive,
+      api.services.TemplateService.Default,
       api.services.ConnectionService.Default,
       api.services.ExtensionContextService.Default,
       api.services.FileWatcherService.Default,
@@ -39,7 +42,9 @@ export const AllServicesLayer = Layer.unwrapEffect(
       api.services.MetadataRetrieveService.Default,
       api.services.ProjectService.Default,
       api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint, productFeatureId }),
-      api.services.ChannelServiceLayer(CHANNEL_NAME)
+      channelLayer,
+      errorHandlerWithChannel,
+      api.services.WorkspaceService.Default
     );
   }).pipe(Effect.provide(ExtensionProviderServiceLive))
 );
