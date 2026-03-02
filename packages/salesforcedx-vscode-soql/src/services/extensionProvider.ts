@@ -8,6 +8,7 @@
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 
 const ExtensionProviderServiceLive = Layer.effect(
@@ -34,7 +35,6 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         ExtensionProviderServiceLive,
         api.services.ConnectionService.Default,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.MetadataDescribeService.Default,
         api.services.ProjectService.Default,
         api.services.TransmogrifierService.Default,
         api.services.SettingsService.Default,
@@ -50,4 +50,19 @@ export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;
+};
+
+/**
+ * Single persistent runtime for all SOQL extension Effect executions.
+ * Built once on first use to avoid rebuilding TransmogrifierService and other
+ * stateful services across sobject_metadata_request, sobjects_request, and
+ * code-completion calls. SObject describe/list use the services extension's
+ * shared singleton via MetadataDescribeApi (pre-satisfied, R = never).
+ */
+const createSoqlRuntime = () => ManagedRuntime.make(AllServicesLayer);
+// eslint-disable-next-line functional/no-let
+let _soqlRuntime: ReturnType<typeof createSoqlRuntime> | undefined;
+export const getSoqlRuntime = () => {
+  if (!_soqlRuntime) _soqlRuntime = createSoqlRuntime();
+  return _soqlRuntime;
 };

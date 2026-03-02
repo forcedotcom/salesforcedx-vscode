@@ -16,7 +16,7 @@ import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import type { Middleware } from 'vscode-languageclient/node';
 
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getSoqlRuntime } from '../services/extensionProvider';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { telemetryService } from '../telemetry';
 
@@ -84,7 +84,7 @@ const expandFunctions: {
 } = {
   SOBJECTS_PLACEHOLDER: async (): Promise<ProtocolCompletionItem[]> => {
     try {
-      const sobjectNames = await listSObjectNamesEffect.pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+      const sobjectNames = await getSoqlRuntime().runPromise(listSObjectNamesEffect);
 
       return sobjectNames.map(objName => {
         const item = new ProtocolCompletionItem(objName);
@@ -198,13 +198,13 @@ const safeRetrieveSObject = async (sobjectName?: string): Promise<SObject | unde
     telemetryService.sendException('SOQLanguageServerException', 'Missing `sobjectName` from SOQL completion context!');
     return undefined;
   }
-  return Effect.gen(function* () {
+  return getSoqlRuntime().runPromise(Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* api.services.MetadataDescribeService.describeCustomObject(sobjectName).pipe(
+    return yield* api.services.MetadataDescribeApi.describeCustomObject(sobjectName).pipe(
       Effect.flatMap(raw => api.services.TransmogrifierService.toMinimalSObject(raw)),
       Effect.catchAll(() => Effect.succeed<SObject | undefined>(undefined))
     );
-  }).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+  }));
 };
 
 const objectFieldMatchesSOQLContext = (field: SObjectField, soqlContext: SoqlItemContext) =>

@@ -9,21 +9,21 @@ import type { Connection } from '@salesforce/core';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { AllServicesLayer } from './extensionProvider';
+import { getSoqlRuntime } from './extensionProvider';
 
 /** TargetOrgRef (getDefaultOrgRef) has no requirements */
 export const isDefaultOrgSet = (): Promise<boolean> =>
-  Effect.gen(function* () {
+  getSoqlRuntime().runPromise(Effect.gen(function* () {
     const api = yield* getServicesApi;
     return yield* api.services.TargetOrgRef().pipe(
       Effect.flatMap(ref => SubscriptionRef.get(ref)),
       Effect.map(info => Boolean(info?.username))
     );
-  }).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+  }));
 
 export const getConnection = (): Promise<Connection> =>
-  Effect.gen(function* () {
+  getSoqlRuntime().runPromise(Effect.gen(function* () {
     const api = yield* getServicesApi;
     const connectionService = yield* api.services.ConnectionService;
     return yield* connectionService.getConnection();
-  }).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+  }));

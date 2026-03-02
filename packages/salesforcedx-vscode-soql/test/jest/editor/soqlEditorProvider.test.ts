@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 jest.mock('../../../src/services/extensionProvider', () => ({
-  AllServicesLayer: require('effect/Layer').empty
+  AllServicesLayer: require('effect/Layer').empty,
+  getSoqlRuntime: () => ({ runFork: () => undefined })
 }));
 
 import * as path from 'node:path';

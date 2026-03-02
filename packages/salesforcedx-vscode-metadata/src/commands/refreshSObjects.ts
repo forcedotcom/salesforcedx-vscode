@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { SObjectCategory, SObjectRefreshSource } from '../sobjects/types/general';
-import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Option from 'effect/Option';
-import * as Runtime from 'effect/Runtime';
-import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { AllServicesLayer } from '../services/extensionProvider';
@@ -19,6 +18,20 @@ import { streamAndWriteSobjectArtifacts, writeSobjectArtifacts } from './sobject
 
 /** Command ID for cross-extension refresh completion notification */
 export const SOBJECT_REFRESH_COMPLETE_CMD = 'sf.internal.sobjectrefresh.complete';
+
+/**
+ * Single persistent runtime for artifact writing — built once on first refresh,
+ * reused for all subsequent invocations to avoid rebuilding TransmogrifierService
+ * and other stateful services. SObject describe/list use the services extension's
+ * shared singleton via MetadataDescribeApi (pre-satisfied, R = never).
+ */
+const createArtifactRuntime = () => ManagedRuntime.make(AllServicesLayer);
+// eslint-disable-next-line functional/no-let
+let _artifactRuntime: ReturnType<typeof createArtifactRuntime> | undefined;
+const getArtifactRuntime = () => {
+  _artifactRuntime ??= createArtifactRuntime();
+  return _artifactRuntime;
+};
 
 const refreshSemaphore = Effect.runSync(Effect.makeSemaphore(1));
 
@@ -40,7 +53,6 @@ const executeRefresh = Effect.fn('executeRefresh')(
   function* (category: SObjectCategory, source: SObjectRefreshSource | undefined) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
-    const extensionScope = yield* getExtensionScope();
 
     yield* channelService.appendToChannel(`Starting ${nls.localize('sobjects_refresh')}`);
 
@@ -48,7 +60,6 @@ const executeRefresh = Effect.fn('executeRefresh')(
       source === 'manual' ? vscode.ProgressLocation.Notification : vscode.ProgressLocation.Window;
 
     const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const rt = yield* Effect.runtime();
 
     const result = yield* Effect.promise(() =>
       vscode.window.withProgress(
@@ -59,9 +70,7 @@ const executeRefresh = Effect.fn('executeRefresh')(
             source === 'startupmin'
               ? writeSobjectArtifacts({ cancellationToken: token, sobjects: getMinObjects(), sobjectNames: getMinNames(), progress })
               : streamAndWriteSobjectArtifacts({ cancellationToken: token, category, source: source ?? 'manual', progress });
-          return Runtime.runPromise(rt)(
-            artifactEffect.pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope))
-          );
+          return getArtifactRuntime().runPromise(artifactEffect);
         }
       )
     );

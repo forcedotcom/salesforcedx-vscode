@@ -43,7 +43,6 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.ExtensionContextServiceLayer(context),
         api.services.MetadataDeployService.Default,
         api.services.MetadataDeleteService.Default,
-        api.services.MetadataDescribeService.Default,
         api.services.MetadataRetrieveService.Default,
         api.services.TransmogrifierService.Default,
         api.services.ProjectService.Default,

@@ -8,6 +8,7 @@
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
 
@@ -39,7 +40,6 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.ExtensionContextServiceLayer(context),
         api.services.MetadataRetrieveService.Default,
         api.services.MetadataRegistryService.Default,
-        api.services.MetadataDescribeService.Default,
         api.services.ProjectService.Default,
         api.services.SdkLayerFor(context),
         channelLayer,
@@ -51,14 +51,23 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
 
-/**
- * Layer that provides all services from the SalesforceVSCodeServicesApi.
- * Uses ExtensionContextService.Default (fails if getContext is called).
- * Use buildAllServicesLayer(context) to provide a working ExtensionContextService.
- */
 // eslint-disable-next-line functional/no-let
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;
+};
+
+/**
+ * Single persistent runtime for org-browser Effect executions.
+ * Built once on first use to avoid rebuilding ComponentSetService and other
+ * stateful services on each tree-node expansion. Metadata describe/list use the
+ * services extension's shared singleton via MetadataDescribeApi (pre-satisfied, R = never).
+ */
+const createOrgBrowserRuntime = () => ManagedRuntime.make(AllServicesLayer);
+// eslint-disable-next-line functional/no-let
+let _orgBrowserRuntime: ReturnType<typeof createOrgBrowserRuntime> | undefined;
+export const getOrgBrowserRuntime = () => {
+  _orgBrowserRuntime ??= createOrgBrowserRuntime();
+  return _orgBrowserRuntime;
 };

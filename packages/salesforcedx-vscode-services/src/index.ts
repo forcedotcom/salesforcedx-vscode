@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
@@ -47,6 +48,20 @@ import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
+/** Strips the R (environment) requirement from a service accessor, producing a pre-satisfied variant. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PreSatisfied<F extends (...args: any[]) => Effect.Effect<any, any, any>> = (
+  ...args: Parameters<F>
+) => Effect.Effect<Effect.Effect.Success<ReturnType<F>>, Effect.Effect.Error<ReturnType<F>>, never>;
+
+export type MetadataDescribeApi = {
+  describe: PreSatisfied<typeof MetadataDescribeService.describe>;
+  listSObjects: PreSatisfied<typeof MetadataDescribeService.listSObjects>;
+  describeCustomObject: PreSatisfied<typeof MetadataDescribeService.describeCustomObject>;
+  describeCustomObjects: PreSatisfied<typeof MetadataDescribeService.describeCustomObjects>;
+  listMetadata: PreSatisfied<typeof MetadataDescribeService.listMetadata>;
+};
+
 export type SalesforceVSCodeServicesApi = {
   services: {
     AliasService: typeof AliasService;
@@ -65,6 +80,7 @@ export type SalesforceVSCodeServicesApi = {
     getErrorMessage: typeof getErrorMessage;
     MediaService: typeof MediaService;
     MetadataDeleteService: typeof MetadataDeleteService;
+    MetadataDescribeApi: MetadataDescribeApi;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
     MetadataRegistryService: typeof MetadataRegistryService;
@@ -225,10 +241,15 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     globalLayers,
     ChannelService.Default,
     errorHandlerWithChannel,
+    MetadataDescribeService.Default,
     ServicesSdkLayer()
   );
 
   // Build the layer with extensionScope - scoped services live until extension deactivates
+  const builtContext = await Effect.runPromise(
+    Layer.buildWithScope(requirements, extensionScope).pipe(Scope.extend(extensionScope))
+  );
+
   await Effect.runPromise(
     Effect.provide(
       activationEffect(context).pipe(
@@ -236,11 +257,24 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
           attributes: { isWeb: process.env.ESBUILD_PLATFORM === 'web' }
         })
       ),
-      await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope).pipe(Scope.extend(extensionScope)))
+      builtContext
     ).pipe(Scope.extend(extensionScope))
   );
 
   console.log('Salesforce Services extension is now active!');
+
+  // Pre-satisfied MetadataDescribeApi — backed by the singleton built during activation.
+  // R = never: builtContext supplies MetadataDescribeService and all its transitive deps.
+  const metadataDescribeSvc = Context.get(builtContext, MetadataDescribeService);
+  const metadataDescribeApi: MetadataDescribeApi = {
+    describe: forceRefresh => metadataDescribeSvc.describe(forceRefresh).pipe(Effect.provide(builtContext)),
+    listSObjects: () => metadataDescribeSvc.listSObjects().pipe(Effect.provide(builtContext)),
+    describeCustomObject: name => metadataDescribeSvc.describeCustomObject(name).pipe(Effect.provide(builtContext)),
+    describeCustomObjects: names => metadataDescribeSvc.describeCustomObjects(names).pipe(Effect.provide(builtContext)),
+    listMetadata: (type, folder, forceRefresh) =>
+      metadataDescribeSvc.listMetadata(type, folder, forceRefresh).pipe(Effect.provide(builtContext))
+  };
+
   // Return API for other extensions to consume
   return {
     services: {
@@ -260,6 +294,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       getErrorMessage,
       MediaService,
       MetadataDeleteService,
+      MetadataDescribeApi: metadataDescribeApi,
       MetadataDescribeService,
       MetadataDeployService,
       MetadataRegistryService,

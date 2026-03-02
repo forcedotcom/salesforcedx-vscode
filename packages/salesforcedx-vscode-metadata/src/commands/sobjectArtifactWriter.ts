@@ -60,7 +60,7 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   // Phase 1: listSObjects and dir resets run in parallel — saves ~0.5s
   const [allSObjects] = yield* Effect.all(
     [
-      (yield* api.services.MetadataDescribeService).listSObjects(),
+      api.services.MetadataDescribeApi.listSObjects(),
       fs.safeDelete(fauxStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxStandard))),
       fs.safeDelete(fauxCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxCustom))),
       fs.safeDelete(typings, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(typings))),
@@ -81,7 +81,7 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   const customRef = yield* Ref.make(0);
   const processedRef = yield* Ref.make(0);
 
-  yield* (yield* api.services.MetadataDescribeService.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
+  yield* (yield* api.services.MetadataDescribeApi.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
     Stream.mapEffect(tx.toMinimalSObject),
     Stream.mapEffect(
       sobject => {

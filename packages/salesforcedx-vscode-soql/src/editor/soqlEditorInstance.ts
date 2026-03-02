@@ -17,7 +17,7 @@ import { trackErrorWithTelemetry } from '../commonUtils';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { channelService } from '../services/channel';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection, isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
@@ -25,7 +25,7 @@ import { runQuery } from './queryRunner';
 
 const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.MetadataDescribeService.describeCustomObject(sobjectName).pipe(
+  return yield* api.services.MetadataDescribeApi.describeCustomObject(sobjectName).pipe(
     Effect.catchAll(() => Effect.succeed<DescribeSObjectResult | undefined>(undefined))
   );
 });
@@ -91,7 +91,7 @@ export class SOQLEditorInstance {
     webviewPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
 
     const { onConnectionChanged } = this;
-    const fiber = Effect.gen(function* () {
+    const fiber = getSoqlRuntime().runFork(Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const targetOrgRef = yield* api.services.TargetOrgRef();
       yield* targetOrgRef.changes.pipe(
@@ -100,7 +100,7 @@ export class SOQLEditorInstance {
         Stream.changes,
         Stream.runForEach(() => Effect.sync(() => onConnectionChanged()))
       );
-    }).pipe(Effect.provide(AllServicesLayer), Effect.runFork);
+    }));
     this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(fiber)) });
 
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
@@ -164,8 +164,8 @@ export class SOQLEditorInstance {
         break;
       }
       case 'sobject_metadata_request': {
-        retrieveSObjectRawEffect(event.payload)
-          .pipe(Effect.provide(AllServicesLayer), Effect.runPromise)
+        getSoqlRuntime()
+          .runPromise(retrieveSObjectRawEffect(event.payload))
           .then(sobject => sobject && this.updateSObjectMetadata(sobject))
           .catch(() => {
             const message = nls.localize('error_sobject_metadata_request', event.payload);
@@ -174,8 +174,8 @@ export class SOQLEditorInstance {
         break;
       }
       case 'sobjects_request': {
-        listSObjectNamesEffect
-          .pipe(Effect.provide(AllServicesLayer), Effect.runPromise)
+        getSoqlRuntime()
+          .runPromise(listSObjectNamesEffect)
           .then(sobjectNames => sobjectNames && this.updateSObjects(sobjectNames))
           .catch(() => {
             const message = nls.localize('error_sobjects_request');

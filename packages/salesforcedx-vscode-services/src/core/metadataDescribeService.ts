@@ -63,6 +63,13 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
   ],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
+
+    // ---------------------------------------------------------------------------
+    // Performers — execute network calls, used as Cache lookup functions.
+    // orgId is passed explicitly for span annotation; the actual connection is
+    // resolved from ConnectionService (which always targets the active org).
+    // ---------------------------------------------------------------------------
+
     const performDescribe = Effect.fn('MetadataDescribeService.performDescribe')(function* (orgId: string) {
       yield* Effect.annotateCurrentSpan({ orgId });
       const conn = yield* connectionService.getConnection();
@@ -90,79 +97,37 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       return result;
     });
 
-    const describeCache = yield* Cache.makeWith({
-      capacity: 20, // Maximum number of cached describe results (one per org)
-      timeToLive: Exit.match({
-        onSuccess: () => Duration.minutes(30),
-        onFailure: () => Duration.zero
-      }),
-      lookup: (orgId: string) =>
-        performDescribe(orgId).pipe(Effect.withSpan('performDescribe lookup', { attributes: { orgId } }))
+    const performListSObjects = Effect.fn('MetadataDescribeService.performListSObjects')(function* (orgId: string) {
+      yield* Effect.annotateCurrentSpan({ orgId });
+      const conn = yield* connectionService.getConnection();
+      return yield* Effect.tryPromise({
+        try: () => conn.describeGlobal(),
+        catch: e => {
+          const { cause } = unknownToErrorCause(e);
+          return new MetadataDescribeError({
+            cause,
+            function: 'listSObjects',
+            message: `Failed to list sobjects: ${cause.message ?? String(cause)}`
+          });
+        }
+      }).pipe(
+        Effect.map(result =>
+          result.sobjects.map(
+            s => ({ name: s.name, custom: s.custom, queryable: s.queryable }) satisfies SObjectGlobalDescribeItem
+          )
+        ),
+        Effect.withSpan('listSObjects (API call)')
+      );
     });
 
-    const describe = Effect.fn('MetadataDescribeService.describe')(function* (forceRefresh = false) {
-      const defaultOrgRef = yield* getDefaultOrgRef();
-      const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
-
-      if (!orgId) {
-        return yield* Effect.fail(
-          new MetadataDescribeError({
-            cause: new Error('No orgId found in connection'),
-            function: 'describe',
-            message: 'Failed to describe metadata: No orgId found in connection'
-          })
-        );
-      }
-
-      if (forceRefresh) {
-        yield* describeCache.invalidate(orgId);
-      }
-
-      return yield* describeCache.get(orgId);
-    });
-
-    const performListSObjects = (orgId: string) =>
-      Effect.gen(function* () {
-        const conn = yield* connectionService.getConnection();
-        return yield* Effect.tryPromise({
-          try: () => conn.describeGlobal(),
-          catch: e => {
-            const { cause } = unknownToErrorCause(e);
-            return new MetadataDescribeError({
-              cause,
-              function: 'listSObjects',
-              message: `Failed to list sobjects: ${cause.message ?? String(cause)}`
-            });
-          }
-        }).pipe(
-          Effect.map(result =>
-            result.sobjects.map(
-              s => ({ name: s.name, custom: s.custom, queryable: s.queryable }) satisfies SObjectGlobalDescribeItem
-            )
-          ),
-          Effect.withSpan('listSObjects (API call)')
-        );
-      }).pipe(Effect.withSpan('performListSObjects', { attributes: { orgId } }));
-
-    const listSObjectsCache = yield* Cache.makeWith({
-      capacity: 5000,
-      timeToLive: Exit.match({
-        onSuccess: () => Duration.minutes(5),
-        onFailure: () => Duration.zero
-      }),
-      lookup: (orgId: string) => performListSObjects(orgId)
-    });
-
-    const listSObjects = Effect.fn('MetadataDescribeService.listSObjects')(function* () {
-      const orgId = (yield* connectionService.getConnection()).getAuthInfoFields().orgId ?? 'default';
-      return yield* listSObjectsCache.get(orgId);
-    });
-
+    /**
+     * Fetches a single SObject describe from the API.
+     * Key is a plain objectName — org isolation is provided by the per-org cache.
+     */
     const performDescribeCustomObject = Effect.fn('MetadataDescribeService.performDescribeCustomObject')(function* (
-      cacheKey: string
+      objectName: string
     ) {
-      yield* Effect.annotateCurrentSpan({ cacheKey });
-      const objectName = cacheKey.slice(cacheKey.indexOf(':') + 1);
+      yield* Effect.annotateCurrentSpan({ objectName });
       const conn = yield* connectionService.getConnection();
       return yield* Effect.tryPromise({
         try: () => conn.describe(objectName),
@@ -176,6 +141,46 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           });
         }
       }).pipe(Effect.withSpan('describeCustomObject (API call)', { attributes: { objectName } }));
+    });
+
+    /**
+     * Fetches metadata component list for a given type/folder from the API.
+     * orgId is passed for span annotation; type and folder drive the API call.
+     */
+    const performListMetadata = Effect.fn('MetadataDescribeService.performListMetadata')(function* (
+      orgId: string,
+      type: string,
+      folder: string | undefined
+    ) {
+      yield* Effect.annotateCurrentSpan({ orgId, type, folder });
+      const conn = yield* connectionService.getConnection();
+      return yield* Effect.tryPromise({
+        try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
+        catch: e => {
+          const { cause } = unknownToErrorCause(e);
+          return new ListMetadataError({
+            cause,
+            metadataType: type,
+            folder,
+            message: `Failed to list metadata type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
+          });
+        }
+      }).pipe(
+        Effect.tap(result => Effect.annotateCurrentSpan({ result })),
+        Effect.withSpan('listMetadata (API call)'),
+        Effect.map(ensureArray),
+        Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
+        Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
+        Effect.mapError(e => {
+          const { cause } = unknownToErrorCause(e);
+          return new ListMetadataError({
+            cause,
+            metadataType: type,
+            folder,
+            message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
+          });
+        })
+      );
     });
 
     const runSObjectBatch = Effect.fn('MetadataDescribeService.runSObjectBatch')(function* (names: string[]) {
@@ -205,105 +210,191 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       }).pipe(Effect.map(res => res?.results));
     });
 
-    const sobjectDescribeCache = yield* Cache.makeWith({
-      capacity: 500,
+    // ---------------------------------------------------------------------------
+    // Per-org cache registry.
+    //
+    // Each org gets its own OrgCacheState (three caches) created lazily on first
+    // access. orgId is captured in each loader closure at creation time — loaders
+    // never read defaultOrgRef dynamically, eliminating race conditions.
+    //
+    // The registry itself uses Duration.infinity so org caches persist for the
+    // lifetime of the extension session (capacity 20 covers normal multi-org use).
+    // ---------------------------------------------------------------------------
+
+    const orgCacheRegistry = yield* Cache.makeWith({
+      capacity: 20,
       timeToLive: Exit.match({
-        onSuccess: () => Duration.minutes(30),
+        onSuccess: () => Duration.infinity,
         onFailure: () => Duration.zero
       }),
-      lookup: (cacheKey: string) => performDescribeCustomObject(cacheKey)
+      lookup: (orgId: string) =>
+        Effect.gen(function* () {
+          const describeCache = yield* Cache.makeWith({
+            capacity: 5,
+            timeToLive: Exit.match({
+              onSuccess: () => Duration.minutes(30),
+              onFailure: () => Duration.zero
+            }),
+            // Singleton cache: one metadata describe result per org.
+            // Fixed key 'describe' — the per-org cache provides isolation.
+            lookup: (_key: string) => performDescribe(orgId)
+          });
+
+          const listSObjectsCache = yield* Cache.makeWith({
+            capacity: 1,
+            timeToLive: Exit.match({
+              onSuccess: () => Duration.minutes(15),
+              onFailure: () => Duration.zero
+            }),
+            // Singleton cache: one global describe result per org.
+            lookup: (_key: string) => performListSObjects(orgId)
+          });
+
+          const sobjectDescribeCache = yield* Cache.makeWith({
+            capacity: 2000,
+            timeToLive: Exit.match({
+              onSuccess: () => Duration.minutes(15),
+              onFailure: () => Duration.zero
+            }),
+            // Key = plain objectName. Org isolation provided by the per-org cache.
+            lookup: (objectName: string) => performDescribeCustomObject(objectName)
+          });
+
+          const listMetadataCache = yield* Cache.makeWith({
+            capacity: 500,
+            timeToLive: Exit.match({
+              onSuccess: () => Duration.minutes(5),
+              onFailure: () => Duration.zero
+            }),
+            // Key = "${type}:${folder ?? ''}". Colons do not appear in Salesforce XML type names.
+            lookup: (key: string) => {
+              const colonIdx = key.indexOf(':');
+              const type = key.slice(0, colonIdx);
+              const folder = key.slice(colonIdx + 1) || undefined;
+              return performListMetadata(orgId, type, folder);
+            }
+          });
+
+          return { describeCache, listSObjectsCache, sobjectDescribeCache, listMetadataCache };
+        })
+    });
+
+    // ---------------------------------------------------------------------------
+    // Public service methods
+    // ---------------------------------------------------------------------------
+
+    const describe = Effect.fn('MetadataDescribeService.describe')(function* (forceRefresh = false) {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+
+      if (!orgId) {
+        return yield* Effect.fail(
+          new MetadataDescribeError({
+            cause: new Error('No orgId found in connection'),
+            function: 'describe',
+            message: 'Failed to describe metadata: No orgId found in connection'
+          })
+        );
+      }
+
+      const { describeCache } = yield* orgCacheRegistry.get(orgId);
+      if (forceRefresh) {
+        yield* describeCache.invalidate('describe');
+      }
+      return yield* describeCache.get('describe');
+    });
+
+    const listSObjects = Effect.fn('MetadataDescribeService.listSObjects')(function* () {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { listSObjectsCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
+      return yield* listSObjectsCache.get('global');
     });
 
     const describeCustomObject = Effect.fn('MetadataDescribeService.describeCustomObject')(function* (
       objectName: string
     ) {
-      const defaultOrgRef = yield* getDefaultOrgRef();
-      const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
-      return yield* sobjectDescribeCache.get(`${orgId}:${objectName}`);
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
+      return yield* sobjectDescribeCache.get(objectName);
     });
 
+    /**
+     * Describes multiple SObjects via the composite/batch API (25 per batch,
+     * up to 15 batches in flight). Results are written into the per-org
+     * sobjectDescribeCache as a side-effect so subsequent single-object lookups
+     * via describeCustomObject() benefit from the warm cache.
+     *
+     * No upfront cache probe — batches start immediately.
+     */
     const describeCustomObjects = Effect.fn('MetadataDescribeService.describeCustomObjects')(function* (
       objectNames: string[]
     ) {
-      const defaultOrgRef = yield* getDefaultOrgRef();
-      const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
 
-      // Partition into cached vs uncached by probing the cache without triggering lookups
-      const partitioned = yield* Effect.all(
-        objectNames.map(name => {
-          const cacheKey = `${orgId}:${name}`;
-          return sobjectDescribeCache
-            .getOptionComplete(cacheKey)
-            .pipe(Effect.map(opt => ({ name, cacheKey, cached: opt })));
-        }),
+      yield* Effect.annotateCurrentSpan({ objectCount: objectNames.length, orgId });
+
+      // Check which names are already in the cache (concurrent synchronous map lookups).
+      // On a warm cache (second run in same session) all 1367 names hit → zero batch API calls.
+      const cacheChecks = yield* Effect.all(
+        objectNames.map(name =>
+          sobjectDescribeCache.getOptionComplete(name).pipe(Effect.map(opt => ({ name, opt })))
+        ),
         { concurrency: 'unbounded' }
       );
 
-      const cachedResults = partitioned.flatMap(p => (Option.isSome(p.cached) ? [p.cached.value] : []));
-      const uncachedNames = partitioned.flatMap(p => (Option.isNone(p.cached) ? [p.name] : []));
-
-      yield* Effect.annotateCurrentSpan({ cacheHits: cachedResults.length, cacheMisses: uncachedNames.length });
-
-      return Stream.merge(
-        Stream.fromIterable(cachedResults),
-        Stream.fromIterable(uncachedNames).pipe(
-          Stream.grouped(MAX_SOBJECT_BATCH_SIZE),
-          Stream.mapEffect(
-            batch => {
-              const names = Chunk.toArray(batch);
-              return runSObjectBatch(names).pipe(
-                Effect.map(results =>
-                  results.flatMap((sr, i) =>
-                    Array.isArray(sr.result) ? [] : [{ result: sr.result, cacheKey: `${orgId}:${names[i]}` }]
-                  )
-                ),
-                Effect.tap(pairs =>
-                  Effect.all(
-                    pairs.map(({ result, cacheKey }) => sobjectDescribeCache.set(cacheKey, result)),
-                    { concurrency: 'unbounded' }
-                  )
-                ),
-                Effect.map(pairs => pairs.map(p => p.result))
-              );
-            },
-            { concurrency: BATCH_API_CONCURRENCY }
-          ),
-          Stream.flattenIterables
-        )
+      const { hits, missNames } = cacheChecks.reduce<{ hits: DescribeSObjectResult[]; missNames: string[] }>(
+        (acc, { name, opt }) => {
+          if (Option.isSome(opt)) acc.hits.push(opt.value);
+          else acc.missNames.push(name);
+          return acc;
+        },
+        { hits: [], missNames: [] }
       );
+
+      yield* Effect.annotateCurrentSpan({ cacheHits: hits.length, cacheMisses: missNames.length });
+
+      if (missNames.length === 0) {
+        return Stream.fromIterable(hits);
+      }
+
+      const missStream = Stream.fromIterable(missNames).pipe(
+        Stream.grouped(MAX_SOBJECT_BATCH_SIZE),
+        Stream.mapEffect(
+          batch => {
+            const names = Chunk.toArray(batch);
+            return runSObjectBatch(names).pipe(
+              Effect.map(results =>
+                results.flatMap((sr, i) =>
+                  Array.isArray(sr.result) ? [] : [{ name: names[i], result: sr.result }]
+                )
+              ),
+              Effect.tap(pairs =>
+                Effect.all(
+                  pairs.map(({ name, result }) => sobjectDescribeCache.set(name, result)),
+                  { concurrency: 'unbounded' }
+                )
+              ),
+              Effect.map(pairs => pairs.map(p => p.result))
+            );
+          },
+          { concurrency: BATCH_API_CONCURRENCY }
+        ),
+        Stream.flattenIterables
+      );
+
+      return Stream.concat(Stream.fromIterable(hits), missStream);
     });
 
-    const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (type: string, folder?: string) {
-      const conn = yield* connectionService.getConnection();
-      return yield* Effect.tryPromise({
-        try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
-        catch: e => {
-          const { cause } = unknownToErrorCause(e);
-          return new ListMetadataError({
-            cause,
-            metadataType: type,
-            folder,
-            message: `Failed to list metadata type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
-          });
-        }
-      }).pipe(
-        Effect.tap(result => Effect.annotateCurrentSpan({ result })),
-        Effect.withSpan('listMetadata (API call)'),
-        Effect.map(ensureArray),
-        Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
-        Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
-        Effect.mapError(e => {
-          const { cause } = unknownToErrorCause(e);
-          return new ListMetadataError({
-            cause,
-            metadataType: type,
-            folder,
-            message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
-          });
-        })
-      );
-
-      // Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } })
+    const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (
+      type: string,
+      folder?: string,
+      forceRefresh = false
+    ) {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { listMetadataCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
+      const key = `${type}:${folder ?? ''}`;
+      if (forceRefresh) yield* listMetadataCache.invalidate(key);
+      return yield* listMetadataCache.get(key);
     });
 
     return {
@@ -314,7 +405,8 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       describe,
       /**
        * Calls the Metadata API list method for a given type and optional folder.
-       * Returns the list of metadata components for that type.
+       * Results are cached per-org by type+folder key (TTL 5 min).
+       * When forceRefresh=true, invalidates the specific entry and re-fetches.
        */
       listMetadata,
       /**
@@ -328,8 +420,10 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
        */
       describeCustomObject,
       /**
-       * Describes multiple SObjects, returning cached results where available and
-       * batch-fetching uncached ones via the composite/batch API (25 per batch, parallel).
+       * Describes multiple SObjects via the composite/batch API (25 per batch,
+       * up to 15 batches in flight). Populates the per-org sobject cache as a
+       * side-effect. Returns an Effect<Stream> — yield* once to get the Stream,
+       * then consume it.
        */
       describeCustomObjects
     };

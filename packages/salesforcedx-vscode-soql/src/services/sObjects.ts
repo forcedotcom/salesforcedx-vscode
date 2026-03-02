@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 
 export const listSObjectNamesEffect = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.MetadataDescribeService.listSObjects().pipe(
+  return yield* api.services.MetadataDescribeApi.listSObjects().pipe(
     Effect.map(sobjects => sobjects.filter(s => s.queryable).map(s => s.name))
   );
 }).pipe(Effect.catchAll(() => Effect.succeed<string[]>([])));
