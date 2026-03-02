@@ -4,13 +4,13 @@ overview: Plan E2E test structure for the salesforcedx-vscode-apex-log extension
 todos:
   - id: fixtures
     content: Create test/playwright/fixtures (index.ts + desktopFixtures.ts) for web and desktop; add spans:server dep to test:web wireit
-    status: pending
+    status: completed
   - id: exec-anon-spec
     content: Write executeAnonymous.headless.spec.ts covering document/selection execution and script creation
-    status: pending
+    status: completed
   - id: verify-exec-anon
     content: 'Verify executeAnonymous: compile, lint, test:web, test:desktop'
-    status: pending
+    status: completed
   - id: trace-crud-spec
     content: Write traceFlagsCrud.headless.spec.ts covering open/create/delete trace flags and debug levels
     status: pending
