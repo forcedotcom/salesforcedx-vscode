@@ -6,6 +6,7 @@
  */
 
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
+import { getVirtualFs, setFs } from '@salesforce/core/fs';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import { Effect } from 'effect';
 // eslint-disable-next-line no-restricted-imports
@@ -34,6 +35,20 @@ export type WorkspaceReadFileClient = {
 const vscodeFileTypeToStatType = (vscodeType: vscode.FileType): 'file' | 'directory' =>
   vscodeType === vscode.FileType.Directory ? 'directory' : 'file';
 
+/** Invoke glob's callback form (web polyfill). No type assertion: glob's types don't declare the callback overload. */
+export const globWithCallback = (fn: unknown, pattern: string, cwd: string): Promise<string[]> => {
+  if (typeof fn !== 'function') {
+    return Promise.reject(new Error('glob callback API not available'));
+  }
+  return new Promise((resolve, reject) => {
+    const callback = (err: Error | null, result?: string[]) => {
+      if (err) reject(err);
+      else resolve(Array.isArray(result) ? result : []);
+    };
+    Reflect.apply(fn, undefined, [pattern, { cwd }, callback]);
+  });
+};
+
 const vscodeStatToFileStat = (vstat: vscode.FileStat): FileStat => ({
   type: vscodeFileTypeToStatType(vstat.type),
   ctime: vstat.ctime,
@@ -51,12 +66,28 @@ const vscodeStatToFileStat = (vstat: vscode.FileStat): FileStat => ({
  * have salesforcedx-vscode-services as an extensionDependency should use this.
  */
 export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient): void => {
+  // In web, point @salesforce/core fs (and thus glob) at the workspace Volume so findFiles sees memfs files.
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    const apiResult = Effect.runSync(Effect.either(getServicesApi));
+    if (apiResult._tag === 'Right') {
+      const svc = apiResult.right.services;
+      const volume = svc.getWorkspaceVolume?.();
+      if (volume !== undefined && volume !== null) {
+        setFs(getVirtualFs(volume));
+      }
+    }
+  }
+
+  const log = vscode.window.createOutputChannel('LWC workspace (client)');
+
   client.onRequest<WorkspaceReadFileParams, WorkspaceReadFileResult>(
     WORKSPACE_READ_FILE_REQUEST,
     async (params): Promise<WorkspaceReadFileResult> => {
       const { uri } = params;
+      log.appendLine(`[readFile] request uri=${uri ?? '?'}`);
       const apiResult = Effect.runSync(Effect.either(getServicesApi));
       if (apiResult._tag === 'Left') {
+        log.appendLine('[readFile] error: Services API not available');
         return { error: 'Services API not available' };
       }
       const api = apiResult.right;
@@ -68,20 +99,25 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
         }).pipe(Effect.provide(FsService.Default), Effect.either)
       );
       if (result._tag === 'Left') {
-        const message = result.left instanceof Error ? result.left.message : String(result.left);
+        const left = result.left;
+        const message = left instanceof Error ? left.message : String(left);
+        log.appendLine(`[readFile] error: ${message}`);
         return { error: message };
       }
-      return { content: result.right };
+      const content = result.right;
+      log.appendLine(`[readFile] success uri=${uri} size=${content?.length ?? 0}`);
+      return { content };
     }
   );
 
   client.onRequest<WorkspaceStatParams, WorkspaceStatResult>(
     WORKSPACE_STAT_REQUEST,
     async (params): Promise<WorkspaceStatResult> => {
-      console.log(`[LWC Init ${new Date().toISOString()}] workspace/stat handler invoked uri=${params?.uri ?? '?'}`);
-      const { uri } = params;
+      const { uri } = params ?? {};
+      log.appendLine(`[stat] request uri=${uri ?? '?'}`);
       const apiResult = Effect.runSync(Effect.either(getServicesApi));
       if (apiResult._tag === 'Left') {
+        log.appendLine('[stat] error: Services API not available');
         return { error: 'Services API not available' };
       }
       const api = apiResult.right;
@@ -93,10 +129,14 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
         }).pipe(Effect.provide(FsService.Default), Effect.either)
       );
       if (result._tag === 'Left') {
-        const message = result.left instanceof Error ? result.left.message : String(result.left);
+        const left = result.left;
+        const message = left instanceof Error ? left.message : String(left);
+        log.appendLine(`[stat] error: ${message}`);
         return { error: message };
       }
-      return { stat: vscodeStatToFileStat(result.right) };
+      const stat = vscodeStatToFileStat(result.right);
+      log.appendLine(`[stat] success uri=${uri} type=${stat.type} size=${stat.size}`);
+      return { stat };
     }
   );
 
@@ -104,7 +144,8 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
     WORKSPACE_READ_DIRECTORY_REQUEST,
     async (params): Promise<WorkspaceReadDirectoryResult> => {
       try {
-        const { uri: uriStr } = params;
+        const { uri: uriStr } = params ?? {};
+        log.appendLine(`[readDirectory] request uri=${uriStr ?? '?'}`);
         const uri = vscode.Uri.parse(uriStr);
         const entries: [string, vscode.FileType][] = await vscode.workspace.fs.readDirectory(uri);
         const result: DirectoryEntry[] = entries.map(([name, fileType]) => {
@@ -115,9 +156,11 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
             uri: entryUri.toString()
           };
         });
+        log.appendLine(`[readDirectory] success uri=${uriStr} entries=${result.length}`);
         return { entries: result };
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
+        log.appendLine(`[readDirectory] error: ${message}`);
         return { error: message };
       }
     }
@@ -135,28 +178,40 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
       findFilesLog.appendLine(
         `[findFiles] request baseFolderUri=${baseFolderUri ?? '?'} pattern=${p} scheme=${baseUri.scheme}`
       );
+      log.appendLine(`[findFiles] request baseFolderUri=${baseFolderUri ?? '?'} pattern=${p}`);
 
       try {
         const cwd = baseUri.fsPath;
-        findFilesLog.appendLine(`[findFiles] using fs.promises.glob (Node or web polyfill) pattern=${p} cwd=${cwd}`);
-        const matches: string[] = [];
-
-        for await (const m of await glob(p, { cwd })) {
-          matches.push(m);
+        findFilesLog.appendLine(`[findFiles] glob pattern=${p} cwd=${cwd} scheme=${baseUri.scheme}`);
+        let matches: string[] = [];
+        try {
+          for await (const match of glob(p, { cwd })) {
+            matches.push(match);
+          }
+        } catch (globErr) {
+          const msg = globErr instanceof Error ? globErr.message : String(globErr);
+          if (msg.includes('callback must be a function')) {
+            findFilesLog.appendLine('[findFiles] using glob callback API (web polyfill)');
+            matches = await globWithCallback(glob, p, cwd);
+          } else {
+            throw globErr;
+          }
         }
         const uris = matches.map((rel: string) =>
           vscode.Uri.joinPath(baseUri, ...rel.replaceAll('\\', '/').split('/').filter(Boolean)).toString()
         );
         findFilesLog.appendLine(`[findFiles] returned ${uris.length} uris`);
+        log.appendLine(`[findFiles] success pattern=${p} uris=${uris.length}`);
         return { uris };
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         const stack = e instanceof Error ? e.stack : undefined;
-        findFilesLog.appendLine(`[findFiles] glob failed with error: ${message}`);
+        findFilesLog.appendLine(`[findFiles] findFiles failed with error: ${message}`);
         if (stack) {
           findFilesLog.appendLine(`[findFiles] stack: ${stack}`);
         }
         findFilesLog.appendLine('[findFiles] returning undefined');
+        log.appendLine(`[findFiles] error: ${message}`);
         return { uris: undefined };
       }
     }

@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getVirtualFs, setFs } from '@salesforce/core/fs';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
+import { Volume } from 'memfs';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
 import { fsPrefix } from './constants';
@@ -16,6 +18,11 @@ import { FsProvider } from './fileSystemProvider';
 import { IndexedDBStorageService } from './indexedDbStorage';
 import { startWatch } from './memfsWatcher';
 import { projectFiles } from './projectInit';
+
+/** Volume backing the workspace in web; set before loadState so glob/fs in other extensions can use it via setFs(getVirtualFs(volume)). */
+const workspaceVolumeRef: { current: Volume | undefined } = { current: undefined };
+
+export const getWorkspaceVolume = (): Volume | undefined => workspaceVolumeRef.current;
 
 class WorkspaceFoldersNotAvailableError extends Data.TaggedError('WorkspaceFoldersNotAvailableError')<{}> {}
 
@@ -37,6 +44,11 @@ const waitForWorkspaceFolders = () =>
 /** Sets up the virtual file system for the extension */
 export const fileSystemSetup = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
+    // Create and set the workspace Volume so @salesforce/core fs (and thus glob) see the same in-memory FS.
+    // Other extensions (e.g. LWC) can call setFs(getVirtualFs(getWorkspaceVolume())) so their glob works.
+    workspaceVolumeRef.current = new Volume();
+    setFs(getVirtualFs(workspaceVolumeRef.current));
+
     const fsProvider = new FsProvider();
 
     // Load state from IndexedDB first

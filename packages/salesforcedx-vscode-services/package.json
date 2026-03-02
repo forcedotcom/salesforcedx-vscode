@@ -40,6 +40,7 @@
     "@opentelemetry/sdk-trace-node": "2.2.0",
     "@opentelemetry/sdk-trace-web": "2.2.0",
     "@salesforce/core": "^8.23.4",
+    "memfs": "^4.17.2",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/o11y-reporter": "^1.7.4",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
@@ -116,6 +117,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "out/**"
       ],
       "output": [
@@ -137,6 +139,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "out/**",
         "../../.esbuild-web-extra-settings.json"
       ],

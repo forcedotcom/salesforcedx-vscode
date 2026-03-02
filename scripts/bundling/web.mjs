@@ -63,6 +63,8 @@ export const commonConfigBrowser = {
   },
   alias: {
     async_hooks: emptyPolyfillsPath,
+    // Single fs module in web: all consumers (node:fs, node:fs/promises, @salesforce/core/fs) use the polyfill so setFs() affects glob.
+    '@salesforce/core/fs': fsPolyfillPath,
     // proper-lockfile and SDR use graceful-fs
     'graceful-fs': fsPolyfillPath,
     fs: fsPolyfillPath,

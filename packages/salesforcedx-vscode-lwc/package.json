@@ -96,6 +96,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "src/**"
       ],
       "output": [

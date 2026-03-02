@@ -25,7 +25,7 @@ import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
-import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
+import { fileSystemSetup, getWorkspaceVolume } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
@@ -58,6 +58,8 @@ export type SalesforceVSCodeServicesApi = {
     FileWatcherService: typeof FileWatcherService;
     FsService: typeof FsService;
     getErrorMessage: typeof getErrorMessage;
+    /** In web, the Volume backing the memfs workspace; undefined in Node. Use with setFs(getVirtualFs(volume)) so glob/fs see workspace files. */
+    getWorkspaceVolume: typeof getWorkspaceVolume;
     MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
@@ -227,6 +229,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       FileWatcherService,
       FsService,
       getErrorMessage,
+      getWorkspaceVolume,
       MetadataDeleteService,
       MetadataDescribeService,
       MetadataDeployService,
