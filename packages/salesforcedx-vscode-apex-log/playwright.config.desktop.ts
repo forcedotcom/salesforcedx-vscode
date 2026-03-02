@@ -4,7 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
+
+// Trace flag tests share org state; always run sequentially
+process.env.E2E_SEQUENTIAL = '1';
 
 export default createDesktopConfig();

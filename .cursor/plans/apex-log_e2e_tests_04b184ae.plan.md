@@ -13,10 +13,10 @@ todos:
     status: completed
   - id: trace-crud-spec
     content: Write traceFlagsCrud.headless.spec.ts covering open/create/delete trace flags and debug levels
-    status: pending
+    status: completed
   - id: verify-trace-crud
     content: 'Verify traceFlagsCrud: compile, lint, test:web, test:desktop'
-    status: pending
+    status: completed
   - id: log-retrieval-spec
     content: Write logRetrieval.headless.spec.ts covering get logs and open folder
     status: pending

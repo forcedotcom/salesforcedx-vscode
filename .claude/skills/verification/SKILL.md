@@ -28,7 +28,7 @@ Do each of these steps, in order. Do not move to a step unless all previous are 
 
 - Don't change /src AND /test together (except imports/renames)
 - Be aware of wireit caching; You can look in the bundle to see (and also turn off `minify` if that helps debug)
-- Port 3001 for tests (not 3000 - Docker/Grafana uses that)
+- Web test port is auto-assigned (free port picked at config time, passed via PORT env var to headless server)
 - All commands run from salesforcedx-vscode root; use `-w` to specify runs for a single package. Never `cd` into a package.
 - do not say a test/compile/lint failure was "pre-existing" without running the same operation on a previous version of the code before the current un-pushed commits began.
 
