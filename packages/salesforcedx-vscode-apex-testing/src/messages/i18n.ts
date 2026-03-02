@@ -37,7 +37,7 @@ export const messages = {
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex Testing',
   configuration_title: 'Salesforce Apex Testing Configuration',
-  run_tests_title: 'Run Tests',
+  run_tests_title: 'Run All Tests in Org',
   run_tests_in_workspace_title: 'Run In-Workspace Tests',
   debug_tests_title: 'Debug Tests',
   test_view_name: 'Apex Tests',
