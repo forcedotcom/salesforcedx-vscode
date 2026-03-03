@@ -5,12 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LspFileSystemAccessor } from '../providers/lspFileSystemAccessor';
+import { normalizePath } from '../utils';
 import { readAsTextDocument } from './testUtils';
 
 const FORCE_APP_ROOT = 'test-workspaces/sfdx-workspace/force-app/main/default';
 
 it('readAsTextDocument()', async () => {
+  const contentMap = new Map<string, string>();
   const fileSystemAccessor = new LspFileSystemAccessor();
+  jest
+    .spyOn(fileSystemAccessor, 'getFileContent')
+    .mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
+  jest.spyOn(fileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+    contentMap.set(normalizePath(uri), content);
+  });
+
   await fileSystemAccessor.updateFileContent(
     `${FORCE_APP_ROOT}/lwc/hello_world/hello_world.js`,
     'import { LightningElement } from "lwc";\n\nexport default class LwcHelloWorld extends LightningElement {}'

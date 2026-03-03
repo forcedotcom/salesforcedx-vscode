@@ -5,15 +5,81 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import {
+  SFDX_WORKSPACE_ROOT,
+  SFDX_WORKSPACE_STRUCTURE,
+  sfdxFileSystemAccessor
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { getSfdxPackageDirsPattern } from '../baseIndexer';
+import * as typingIndexerModule from '../typingIndexer';
 import TypingIndexer, { getMetaTypings, pathBasename } from '../typingIndexer';
+
+const FILE_STAT = { type: 'file' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
+const DIR_STAT = { type: 'directory' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
+
+const META_FILE_REL_PATHS = [
+  'force-app/main/default/contentassets/logo.asset-meta.xml',
+  'force-app/main/default/messageChannels/Channel1.messageChannel-meta.xml',
+  'force-app/main/default/messageChannels/Channel2.messageChannel-meta.xml',
+  'force-app/main/default/staticresources/bike_assets.resource-meta.xml',
+  'force-app/main/default/staticresources/logo.resource-meta.xml',
+  'force-app/main/default/staticresources/todocss.resource-meta.xml',
+  'utils/meta/staticresources/todoutil.resource-meta.xml'
+];
+
+const CUSTOM_LABELS_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+  <labels>
+    <fullName>TestLabel</fullName>
+    <language>en_US</language>
+    <value>Test</value>
+  </labels>
+</CustomLabels>`;
 
 let typingIndexer: TypingIndexer;
 
+function buildTypingIndexerContentMap(): Map<string, string> {
+  const map = new Map<string, string>();
+  const root = normalizePath(SFDX_WORKSPACE_ROOT);
+  for (const [rel, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE as Record<string, string>)) {
+    map.set(normalizePath(path.join(root, rel.replaceAll('\\', '/'))), content);
+  }
+  for (const rel of META_FILE_REL_PATHS) {
+    map.set(normalizePath(path.join(root, rel)), '');
+  }
+  map.set(
+    normalizePath(path.join(root, 'force-app/main/default/labels/CustomLabels.labels-meta.xml')),
+    CUSTOM_LABELS_XML
+  );
+  return map;
+}
+
+function mockSfdxAccessorForTypingIndexer(contentMap: Map<string, string>): void {
+  jest
+    .spyOn(sfdxFileSystemAccessor, 'getFileContent')
+    .mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+    const key = normalizePath(uri);
+    if (contentMap.has(key)) return FILE_STAT;
+    const prefix = `${key}/`;
+    for (const k of contentMap.keys()) {
+      if (k.startsWith(prefix)) return DIR_STAT;
+    }
+    return undefined;
+  });
+  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+    contentMap.set(normalizePath(uri), content);
+  });
+  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation(async (pathOrUri: string) => {
+    contentMap.delete(normalizePath(pathOrUri));
+  });
+}
+
 describe('TypingIndexer', () => {
   beforeAll(async () => {
+    const contentMap = buildTypingIndexerContentMap();
+    mockSfdxAccessorForTypingIndexer(contentMap);
     typingIndexer = await TypingIndexer.create(
       {
         workspaceRoot: SFDX_WORKSPACE_ROOT
@@ -62,6 +128,13 @@ describe('TypingIndexer', () => {
 
       void sfdxFileSystemAccessor.updateFileContent(`${typing}`, 'foobar');
       void sfdxFileSystemAccessor.updateFileContent(`${staleTyping}`, 'foobar');
+
+      const realGetMetaTypings = typingIndexerModule.getMetaTypings;
+      jest.spyOn(typingIndexerModule, 'getMetaTypings').mockImplementation(async indexer => {
+        const list = await realGetMetaTypings(indexer);
+        list.push(path.resolve(indexer.typingsBaseDir, 'extra.resource.d.ts'));
+        return list;
+      });
 
       await typingIndexer.deleteStaleMetaTypings();
 

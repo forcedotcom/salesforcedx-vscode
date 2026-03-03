@@ -5,29 +5,64 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { normalizePath, WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  readAsTextDocument,
+  createMockWorkspaceFindFilesConnection,
   FORCE_APP_ROOT,
-  UTILS_ROOT,
+  getSfdxWorkspaceRelativePaths,
+  readAsTextDocument,
   REGISTERED_EMPTY_FOLDER_ROOT,
   SFDX_WORKSPACE_ROOT,
+  SFDX_WORKSPACE_STRUCTURE,
   sfdxFileSystemAccessor,
-  createMockWorkspaceFindFilesConnection,
-  getSfdxWorkspaceRelativePaths
+  UTILS_ROOT
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { join, resolve } from 'node:path';
 import { URI } from 'vscode-uri';
 import { LWCWorkspaceContext } from '../context/lwcContext';
 
-// Discovery via workspace/findFiles so context can find LWC/aura roots (no server-side cache)
-sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-sfdxFileSystemAccessor.setFindFilesFromConnection(
-  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
-    relativePaths: getSfdxWorkspaceRelativePaths()
-  }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
-  WORKSPACE_FIND_FILES_REQUEST
-);
+const FILE_STAT = { type: 'file' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
+const DIR_STAT = { type: 'directory' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
+
+function buildContentMap(): Map<string, string> {
+  const map = new Map<string, string>();
+  const root = normalizePath(SFDX_WORKSPACE_ROOT);
+  for (const [rel, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE as Record<string, string>)) {
+    map.set(normalizePath(join(root, rel.replaceAll('\\', '/'))), content);
+  }
+  return map;
+}
+
+const contentMap = buildContentMap();
+
+beforeAll(() => {
+  sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+  sfdxFileSystemAccessor.setFindFilesFromConnection(
+    createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+      relativePaths: getSfdxWorkspaceRelativePaths()
+    }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
+    WORKSPACE_FIND_FILES_REQUEST
+  );
+
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+    const key = normalizePath(uri);
+    if (contentMap.has(key)) return FILE_STAT;
+    const prefix = `${key}/`;
+    for (const k of contentMap.keys()) {
+      if (k.startsWith(prefix)) return DIR_STAT;
+    }
+    return undefined;
+  });
+  jest
+    .spyOn(sfdxFileSystemAccessor, 'getFileContent')
+    .mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
+  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+    contentMap.set(normalizePath(uri), content);
+  });
+  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation(async (pathOrUri: string) => {
+    contentMap.delete(normalizePath(pathOrUri));
+  });
+});
 
 describe('LWCWorkspaceContext', () => {
   it('isLWCJavascript()', async () => {

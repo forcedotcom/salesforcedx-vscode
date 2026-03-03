@@ -6,24 +6,59 @@
  */
 import { normalizePath, WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  SFDX_WORKSPACE_ROOT,
-  sfdxFileSystemAccessor,
   createMockWorkspaceFindFilesConnection,
-  getSfdxWorkspaceRelativePaths
+  getSfdxWorkspaceRelativePaths,
+  SFDX_WORKSPACE_ROOT,
+  SFDX_WORKSPACE_STRUCTURE,
+  sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import ComponentIndexer, { Entry, unIndexedFiles } from '../componentIndexer';
 import { Tag, createTag, getTagName } from '../tag';
 
-// Simulate client: server discovers files via workspace/findFiles (no server-side cache)
-sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-sfdxFileSystemAccessor.setFindFilesFromConnection(
-  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
-    relativePaths: getSfdxWorkspaceRelativePaths()
-  }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
-  WORKSPACE_FIND_FILES_REQUEST
-);
+const FILE_STAT = { type: 'file' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
+const DIR_STAT = { type: 'directory' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
+
+function buildContentMap(): Map<string, string> {
+  const map = new Map<string, string>();
+  const root = normalizePath(SFDX_WORKSPACE_ROOT);
+  for (const [rel, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE as Record<string, string>)) {
+    map.set(normalizePath(path.join(root, rel.replaceAll('\\', '/'))), content);
+  }
+  return map;
+}
+
+const contentMap = buildContentMap();
+
+beforeAll(() => {
+  sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+  sfdxFileSystemAccessor.setFindFilesFromConnection(
+    createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+      relativePaths: getSfdxWorkspaceRelativePaths()
+    }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
+    WORKSPACE_FIND_FILES_REQUEST
+  );
+
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+    const key = normalizePath(uri);
+    if (contentMap.has(key)) return FILE_STAT;
+    const prefix = `${key}/`;
+    for (const k of contentMap.keys()) {
+      if (k.startsWith(prefix)) return DIR_STAT;
+    }
+    return undefined;
+  });
+  jest
+    .spyOn(sfdxFileSystemAccessor, 'getFileContent')
+    .mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
+  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+    contentMap.set(normalizePath(uri), content);
+  });
+  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation(async (pathOrUri: string) => {
+    contentMap.delete(normalizePath(pathOrUri));
+  });
+});
 
 // Mock objects for testing
 const createMockStats = (mtime: Date) => ({ mtime });

@@ -4,24 +4,79 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { DirectoryEntry, FileStat } from '../types/fileSystemTypes';
 import * as path from 'node:path';
 import { getModulesDirs } from '../baseContext';
 import '../../jest/matchers';
 import { LspFileSystemAccessor } from '../providers/lspFileSystemAccessor';
-import { normalizePath } from '../utils';
+import { normalizePath, type NormalizedPath } from '../utils';
 import {
   CORE_ALL_ROOT,
+  CORE_MULTI_ROOT,
   CORE_PROJECT_ROOT,
+  CORE_WORKSPACE_STRUCTURE,
+  CORE_PARTIAL_WORKSPACE_STRUCTURE,
   FORCE_APP_ROOT,
   UTILS_ROOT,
-  CORE_MULTI_ROOT,
-  sfdxFileSystemAccessor,
-  standardFileSystemAccessor,
+  SFDX_WORKSPACE_STRUCTURE,
   coreFileSystemAccessor,
+  coreMultiFileSystemAccessor,
   coreProjectFileSystemAccessor,
-  coreMultiFileSystemAccessor
+  sfdxFileSystemAccessor,
+  standardFileSystemAccessor
 } from './testUtils';
 import { WorkspaceContext } from './workspaceContext';
+
+const FILE_STAT: FileStat = { type: 'file', exists: true, ctime: 0, mtime: 0, size: 0 };
+const DIR_STAT: FileStat = { type: 'directory', exists: true, ctime: 0, mtime: 0, size: 0 };
+
+const buildContentMap = (root: string, structure: Record<string, string>): Map<string, string> => {
+  const map = new Map<string, string>();
+  const normRoot = normalizePath(root);
+  for (const [rel, content] of Object.entries(structure)) {
+    const full = normalizePath(path.join(normRoot, rel.replaceAll('\\', '/')));
+    map.set(full, content as string);
+  }
+  return map;
+};
+
+const mockAccessorWithVirtualFs = (accessor: LspFileSystemAccessor, contentMap: Map<string, string>): void => {
+  jest.spyOn(accessor, 'getFileContent').mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
+  jest.spyOn(accessor, 'getFileStat').mockImplementation(async (uri: string) => {
+    const key = normalizePath(uri);
+    if (contentMap.has(key)) return FILE_STAT;
+    const prefix = `${key}/`;
+    for (const k of contentMap.keys()) {
+      if (k.startsWith(prefix)) return DIR_STAT;
+    }
+    return undefined;
+  });
+  jest.spyOn(accessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
+    const key = normalizePath(uri);
+    const prefix = key ? `${key}/` : '';
+    const entriesByFirst = new Map<string, 'file' | 'directory'>();
+    for (const cacheKey of contentMap.keys()) {
+      if (!cacheKey.startsWith(prefix) || cacheKey === prefix) continue;
+      const after = cacheKey.slice(prefix.length);
+      const segEnd = after.indexOf('/');
+      const name = segEnd >= 0 ? after.slice(0, segEnd) : after;
+      const isDir = segEnd >= 0;
+      const existing = entriesByFirst.get(name);
+      if (existing === undefined) entriesByFirst.set(name, isDir ? 'directory' : 'file');
+      else if (isDir) entriesByFirst.set(name, 'directory');
+    }
+    return Array.from(entriesByFirst.entries()).map(
+      ([name, type]): DirectoryEntry => ({
+        name,
+        type,
+        uri: `file://${path.join(key, name)}`
+      })
+    );
+  });
+  jest.spyOn(accessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+    contentMap.set(normalizePath(uri), content);
+  });
+};
 
 // Test workspace paths - use absolute paths that work regardless of where code is run from
 const SFDX_WORKSPACE_PATH = normalizePath(
@@ -37,10 +92,26 @@ const CORE_WORKSPACE_PATH = normalizePath(
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 
 beforeAll(() => {
-  // make sure test runner config doesn't overlap with test workspace
   delete process.env.P4PORT;
   delete process.env.P4CLIENT;
   delete process.env.P4USER;
+
+  const sfdxMap = buildContentMap(SFDX_WORKSPACE_PATH, SFDX_WORKSPACE_STRUCTURE as Record<string, string>);
+  mockAccessorWithVirtualFs(sfdxFileSystemAccessor, sfdxMap);
+
+  const coreMap = buildContentMap(CORE_ALL_ROOT, CORE_WORKSPACE_STRUCTURE as Record<string, string>);
+  mockAccessorWithVirtualFs(coreFileSystemAccessor, coreMap);
+
+  const coreProjectMap = buildContentMap(CORE_PROJECT_ROOT, CORE_PARTIAL_WORKSPACE_STRUCTURE as Record<string, string>);
+  for (const [rel, content] of Object.entries(CORE_WORKSPACE_STRUCTURE as Record<string, string>)) {
+    if (rel.startsWith('.vscode/typings/')) {
+      coreProjectMap.set(normalizePath(path.join(CORE_ALL_ROOT, rel)), content as string);
+    }
+  }
+  mockAccessorWithVirtualFs(coreProjectFileSystemAccessor, coreProjectMap);
+
+  const coreMultiMap = buildContentMap(CORE_ALL_ROOT, CORE_WORKSPACE_STRUCTURE as Record<string, string>);
+  mockAccessorWithVirtualFs(coreMultiFileSystemAccessor, coreMultiMap);
 });
 
 const verifyJsconfigCore = async (fileSystemAccessor: LspFileSystemAccessor, jsconfigPath: string): Promise<void> => {

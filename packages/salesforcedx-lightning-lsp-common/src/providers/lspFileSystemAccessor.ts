@@ -111,9 +111,6 @@ export const getFileUriForPath = (filePath: NormalizedPath, workspaceFolderUri?:
   }
 };
 
-const FIND_FILES_TIMEOUT_MS = 8000;
-const FIND_FILES_LOG_FIRST_N = 8;
-
 /**
  * Accesses the file system via the LSP client (no local cache).
  * Reads use workspace/readFile, workspace/stat, workspace/findFiles when configured.
@@ -126,7 +123,6 @@ export class LspFileSystemAccessor {
   private statRequestMethod?: string;
   private connectionForFindFiles?: Connection;
   private findFilesRequestMethod?: string;
-  private findFilesLogCount = 0;
 
   public setFindFilesFromConnection(connection: Connection, requestMethod: string): void {
     this.connectionForFindFiles = connection;
@@ -232,30 +228,24 @@ export class LspFileSystemAccessor {
     basePath: NormalizedPath
   ): Promise<NormalizedPath[] | undefined> {
     if (!this.connectionForFindFiles || !this.findFilesRequestMethod) return undefined;
-    const logThis = ++this.findFilesLogCount <= FIND_FILES_LOG_FIRST_N;
     try {
       const baseFolderUri = getFileUriForPath(basePath, this.workspaceFolderUri);
       const params: WorkspaceFindFilesParams = { baseFolderUri, pattern };
-      if (logThis) {
-        Logger.info(`[findFilesWithGlobAsync] basePath=${basePath} baseFolderUri=${baseFolderUri} pattern=${pattern}`);
-      }
-      const result = await Promise.race([
-        this.connectionForFindFiles.sendRequest<WorkspaceFindFilesResult>(this.findFilesRequestMethod, params),
-        new Promise<WorkspaceFindFilesResult>((_, reject) =>
-          setTimeout(() => reject(new Error('workspace/findFiles timeout')), FIND_FILES_TIMEOUT_MS)
-        )
-      ]);
+      const findFilesRequestPromise = this.connectionForFindFiles.sendRequest<WorkspaceFindFilesResult>(
+        this.findFilesRequestMethod,
+        params
+      );
+      let findFilesTimeoutId: ReturnType<typeof setTimeout>;
+      const findFilesTimeoutPromise = new Promise<WorkspaceFindFilesResult>((_, reject) => {
+        findFilesTimeoutId = setTimeout(() => reject(new Error('workspace/findFiles timeout')), 8000); // 8 seconds
+      });
+      await findFilesRequestPromise.finally(() => clearTimeout(findFilesTimeoutId!));
+      const result = await Promise.race([findFilesRequestPromise, findFilesTimeoutPromise]);
       if (result?.error || !result?.uris) {
-        if (logThis) Logger.info(`[findFilesWithGlobAsync] error or empty: ${result?.error ?? 'none'}`);
         return undefined;
       }
-      if (logThis) Logger.info(`[findFilesWithGlobAsync] ${result.uris.length} uris for pattern=${pattern}`);
-      if (this.findFilesLogCount === FIND_FILES_LOG_FIRST_N + 1) {
-        Logger.info('[findFilesWithGlobAsync] further requests not logged');
-      }
       return result.uris.map(u => uriToNormalizedPath(u, this.workspaceFolderUri));
-    } catch (err) {
-      if (logThis) Logger.info(`[findFilesWithGlobAsync] failed: ${err instanceof Error ? err.message : String(err)}`);
+    } catch {
       return undefined;
     }
   }

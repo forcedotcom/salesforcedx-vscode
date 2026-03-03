@@ -194,7 +194,7 @@ export abstract class BaseServer {
     // Return capabilities immediately so the client sends the Initialize response and attaches
     // workspace/readFile and workspace/stat handlers. Defer performDelayedInitialization to the next tick
     // so the client has time to attach handlers before we send any workspace/readFile or workspace/stat.
-    setTimeout(() => {
+    const initTimer = setTimeout(() => {
       void this.performDelayedInitialization().catch((err: unknown) => {
         Logger.error(
           `Delayed initialization failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -202,6 +202,7 @@ export abstract class BaseServer {
         );
       });
     }, 0);
+    initTimer.unref();
 
     return this.capabilities;
   }
@@ -715,9 +716,13 @@ export abstract class BaseServer {
    * Files are loaded into fileSystemAccessor via onDidOpen events
    */
   protected async performDelayedInitialization(): Promise<void> {
-    // Prevent concurrent initialization attempts
+    // Prevent concurrent or duplicate initialization (e.g. timer fires after test called it directly)
     if (this.isInitializing) {
       Logger.info('[LWC] performDelayedInitialization: skipped (already initializing)');
+      return;
+    }
+    if (this.isDelayedInitializationComplete) {
+      Logger.info('[LWC] performDelayedInitialization: skipped (already complete)');
       return;
     }
 
@@ -740,16 +745,17 @@ export abstract class BaseServer {
         const basePath = this.workspaceRoots[0];
         Logger.info(`[LWC] performDelayedInitialization: findFiles basePath=${basePath}`);
         const findFilesTimeoutMs = 8000;
-        const findFilesWithTimeout = Promise.race([
-          Promise.all([
-            this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
-            this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
-            this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
-          ]),
-          new Promise<[undefined, undefined, undefined]>((_, reject) =>
-            setTimeout(() => reject(new Error('findFiles timeout')), findFilesTimeoutMs)
-          )
-        ]).catch(err => {
+        const findFilesPromise = Promise.all([
+          this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
+          this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
+          this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
+        ]);
+        let findFilesTimeoutId: ReturnType<typeof setTimeout>;
+        const findFilesTimeoutPromise = new Promise<[undefined, undefined, undefined]>((_, reject) => {
+          findFilesTimeoutId = setTimeout(() => reject(new Error('findFiles timeout')), findFilesTimeoutMs);
+        });
+        await findFilesPromise.finally(() => clearTimeout(findFilesTimeoutId!));
+        const findFilesWithTimeout = Promise.race([findFilesPromise, findFilesTimeoutPromise]).catch(err => {
           Logger.info(
             `[LWC] performDelayedInitialization: findFiles timed out or failed (${err instanceof Error ? err.message : String(err)}), continuing with hasLwcFiles=false`
           );

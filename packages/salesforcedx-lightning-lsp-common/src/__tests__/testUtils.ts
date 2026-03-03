@@ -434,6 +434,287 @@ export default class TestComponent extends LightningElement {
     <apiVersion>58.0</apiVersion>
     <isExposed>true</isExposed>
 </LightningComponentBundle>`,
+  // LWC todo / lightning_tree_example for lwcServerNode tests (createDocument uses structure in beforeAll)
+  'force-app/main/default/lwc/todo/todo.html': `<template>
+    <div>
+        <section class="todoapp">
+            <header class="header">
+                <h1>todos</h1>
+                <input class="new-todo"
+                    autofocus
+                    autocomplete="off"
+                    placeholder="What needs to be done?"
+                    onkeydown={handleKeyDown}
+                />
+            </header>
+            <section if:true={hasTodos} class="main">
+                <input class="toggle-all" type="checkbox" checked={isAllTodosCompleted} onclick={handleToggleAll} />
+                <div class="todo-list">
+                <template for:each={filteredTodos} for:item="todo">
+                    <c-todo_item
+                        key={todo.key}
+                        todo={todo}
+                        onremove={handleTodoRemove}
+                        onupdate={handleTodoUpdate}
+                        class="li"></c-todo_item>
+                </template>
+                </div>
+            </section>
+            <footer if:true={hasTodos} class="footer">
+                <span class="todo-count">
+                    <strong>{countTodos}</strong> {remainingItemsLabel} left
+                </span>
+                <ul class="filters">
+                    <li><a href="#/all" class={allFilterStyle}>All</a></li>
+                    <li><a href="#/active" class={activeFilterStyle}>Active</a></li>
+                    <li><a href="#/completed" class={completedFilterStyle}>Completed</a></li>
+                </ul>
+                <button if:true={completedTodos.length} class="clear-completed" onclick={handleClearCompleted}>
+                    Clear completed
+                </button>
+            </footer>
+        </section>
+        <footer class="info">
+            <p>Double-click to edit a todo</p>
+            <p><s>Part of <a href="http://todomvc.com">TodoMVC</a></s></p>
+        </footer>
+    </div>
+    <div if:true={$has5Todos_today}></div>
+</template>`,
+  'force-app/main/default/lwc/todo/todo.js': `import { LightningElement, track } from 'lwc';
+import { ENTER_KEY, guid } from 'c-utils';
+
+// todo list filters. keys match <a href="#/[key]"> in template.
+const FILTERS = {
+    all: 'all',
+    active: 'active',
+    completed: 'completed',
+};
+
+function getCurrentFilter() {
+    const rawHash = document.location.hash;
+    const location = rawHash.replace(/#\\//, '');
+    return FILTERS[location] || FILTERS.all;
+}
+
+export default class Todo extends LightningElement {
+    @track todos;
+    @track filter;
+    has5Todos_today;
+    $has5Todos_today;
+
+    constructor() {
+        super();
+        this.filter = getCurrentFilter();
+        window.addEventListener('hashchange', () => (
+            this.filter = getCurrentFilter()
+        ));
+    }
+    get hasTodos() {
+        return !!this.todos.length;
+    }
+
+    get filteredTodos() {
+        return this.todos.filter(todo => {
+            switch (this.filter) {
+                case FILTERS.active:
+                    return !todo.completed;
+                case FILTERS.completed:
+                    return todo.completed;
+                default:
+                    return true;
+            }
+        });
+    }
+
+    get completedTodos() {
+        return this.todos.filter(todo => todo.completed);
+    }
+
+    get countTodos() {
+        return this.activeTodos.length;
+    }
+
+    get activeTodos() {
+        return this.todos.filter(todo => !todo.completed);
+    }
+
+    get isAllTodosCompleted() {
+        return this.todos.length === this.completedTodos.length;
+    }
+
+    get remainingItemsLabel() {
+        return this.countTodos === 1 ? 'item' : 'items';
+    }
+
+    get allFilterStyle() {
+        return this.filter === FILTERS.all ? 'selected' : '';
+    }
+
+    get activeFilterStyle() {
+        return this.filter === FILTERS.active ? 'selected' : '';
+    }
+
+    get completedFilterStyle() {
+        return this.filter === FILTERS.completed ? 'selected' : '';
+    }
+
+    setTodos(todos) {
+        this.todos = todos;
+    }
+
+    addNewTodo(title) {
+        if (!title) {
+            return;
+        }
+        const completed = false;
+        const key = guid();
+        this.setTodos([...this.todos, {
+            key,
+            title,
+            completed,
+        }]);
+    }
+
+    handleKeyDown(evt) {
+        if (evt.keyCode !== ENTER_KEY) {
+            return;
+        }
+        const title = (evt.target.value || '').trim();
+        evt.target.value = '';
+        evt.preventDefault();
+        this.addNewTodo(title);
+    }
+
+    handleTodoRemove({ target }) {
+        this.setTodos(this.todos.filter(todo => todo !== target.todo));
+    }
+
+    handleTodoUpdate(evt) {
+        const key = evt.target.todo.key;
+        const todos = this.todos.map(todo => {
+            if (todo.key === key) {
+                return Object.assign({}, todo, evt.detail);
+            }
+            return todo;
+        });
+        this.setTodos(todos);
+    }
+
+    handleToggleAll({ target }) {
+        this.setTodos(this.todos.map(todo => (
+            Object.assign({}, todo, { completed: target.checked })
+        )));
+    }
+
+    handleClearCompleted() {
+        this.setTodos(this.todos.filter(todo => !todo.completed));
+    }
+}`,
+  'force-app/main/default/lwc/todo_item/todo_item.html': `<template>
+    <div class="view">
+        <input class="toggle" type="checkbox" checked={todo.completed} onchange={handleCompletedInput}>
+        <label ondblclick={handleEditModeInput}>{todo.title}</label>
+        <button class="destroy" onclick={handleRemoveInput}></button>
+    </div>
+    <input class="edit" type="text" value={todo.title}
+        onblur={handleBlur}
+        onchange={handleTitleInput}
+        onkeydown={handleKeyDown} />
+</template>`,
+  'force-app/main/default/lwc/todo_item/todo_item.js': `import { LightningElement, api, track } from 'lwc';
+import { ENTER_KEY, ESCAPE_KEY } from 'c-utils';
+
+/**
+ * TodoItem doc
+ */
+export default class TodoItem extends LightningElement {
+    @track
+    editing = false;
+
+    @track
+    _todo;
+
+    /** todo jsdoc */
+    @api
+    get todo() {
+        return this._todo;
+    }
+
+
+    set todo(newValue) {
+        this.classList[newValue.completed ? "add" : "remove"]("completed");
+        this._todo = newValue;
+    }
+
+    @api sameLine;
+
+    @api
+    nextLine;
+
+    fireUpdate() {
+        const title = this.root.querySelector('input.edit').value.trim();
+        const completed = this.root.querySelector('input.toggle').checked;
+        const detail = { title, completed };
+        const event = new CustomEvent('update', { detail });
+        this.dispatchEvent(event);
+    }
+
+    fireRemove() {
+        const event = new CustomEvent('remove');
+        this.dispatchEvent(event);
+    }
+
+    handleCompletedInput() {
+        this.fireUpdate();
+    }
+
+    handleRemoveInput() {
+        this.fireRemove();
+    }
+
+    handleEditModeInput() {
+        this.editing = true;
+        this.classList.add('editing');
+    }
+
+    handleBlur() {
+        this.editing = false;
+        this.classList.remove('editing');
+    }
+
+    handleTitleInput(evt) {
+        const title = evt.target.value.trim();
+        if (!title) {
+            this.fireRemove();
+            return;
+        }
+        this.fireUpdate();
+    }
+
+    handleKeyDown(evt) {
+        const { keyCode } = evt;
+        if (keyCode === ENTER_KEY || keyCode === ESCAPE_KEY) {
+            const el = this.root.querySelector('input.edit');
+            if (keyCode === ESCAPE_KEY) {
+                el.value = this.todo.title;
+            }
+            el.blur();
+        }
+    }
+
+    renderedCallback() {
+        if (this.editing) {
+            this.root.querySelector('input.edit').focus();
+        }
+    }
+}`,
+  'force-app/main/default/lwc/lightning_tree_example/lightning_tree_example.html': `<template>
+        <lightning-tree
+            items={items}
+            header="Roles">
+        </lightning-tree>
+</template>`,
   '.sfdx/typings/lwc/lds.d.ts': "declare module '@salesforce/lds' { /* LDS types */ }",
   '.sfdx/typings/lwc/engine.d.ts': "declare module '@salesforce/engine' { /* Engine types */ }",
   '.sfdx/typings/lwc/schema.d.ts': "declare module '@salesforce/schema' { /* Schema types */ }",

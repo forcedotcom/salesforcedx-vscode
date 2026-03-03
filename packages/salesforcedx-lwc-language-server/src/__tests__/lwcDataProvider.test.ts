@@ -22,13 +22,15 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
   return { default: content, ...content };
 });
 
-import { WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { normalizePath, WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  sfdxFileSystemAccessor,
-  SFDX_WORKSPACE_ROOT,
   createMockWorkspaceFindFilesConnection,
-  getSfdxWorkspaceRelativePaths
+  getSfdxWorkspaceRelativePaths,
+  SFDX_WORKSPACE_ROOT,
+  SFDX_WORKSPACE_STRUCTURE,
+  sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import ComponentIndexer from '../componentIndexer';
 import { DataProviderAttributes, LWCDataProvider } from '../lwcDataProvider';
@@ -38,12 +40,35 @@ import { TagAttrs, createTag, getTagName } from '../tag';
 sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
 sfdxFileSystemAccessor.setFindFilesFromConnection(
   createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
-  relativePaths: getSfdxWorkspaceRelativePaths()
-}) as Parameters<
-    typeof sfdxFileSystemAccessor.setFindFilesFromConnection
-  >[0],
+    relativePaths: getSfdxWorkspaceRelativePaths()
+  }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
   WORKSPACE_FIND_FILES_REQUEST
 );
+
+// LspFileSystemAccessor has no LSP read/stat in tests, so init() would exit early (fileExists(sfdx-project.json))
+// and createTagFromFile would get no content. Mock stat/content from SFDX_WORKSPACE_STRUCTURE so discovery works.
+const contentByPath: Record<string, string> = {};
+for (const [rel, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE)) {
+  contentByPath[normalizePath(path.join(SFDX_WORKSPACE_ROOT, rel.replaceAll('\\', '/')))] = content as string;
+}
+const fileStat = {
+  type: 'file' as const,
+  exists: true,
+  ctime: 0,
+  mtime: 0,
+  size: 0
+};
+
+beforeAll(() => {
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+    const key = normalizePath(uri);
+    return key in contentByPath ? fileStat : undefined;
+  });
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation(async (uri: string) => {
+    const key = normalizePath(uri);
+    return contentByPath[key];
+  });
+});
 
 const componentIndexer: ComponentIndexer = new ComponentIndexer({
   workspaceRoot: SFDX_WORKSPACE_ROOT,

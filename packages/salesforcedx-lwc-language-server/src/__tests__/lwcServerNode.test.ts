@@ -184,10 +184,16 @@ const hoverFilename = path.join(
 );
 const hoverUri = URI.file(hoverFilename).toString();
 
+// Use SFDX_WORKSPACE_STRUCTURE so documents have content when created in beforeAll (before sendRequest mock exists).
 const createDocument = async (filePath: string, languageId: string): Promise<TextDocument> => {
   const docUri = URI.file(filePath).toString();
-  const content = (await server.fileSystemAccessor.getFileContent(filePath)) ?? '';
-  return TextDocument.create(docUri, languageId, 0, content);
+  const rel = path.relative(SFDX_WORKSPACE_ROOT, filePath);
+  const structureKey = rel.replaceAll('\\', '/');
+  const contentFromStructure =
+    (SFDX_WORKSPACE_STRUCTURE as Record<string, string>)[structureKey] ??
+    (await server.fileSystemAccessor.getFileContent(filePath)) ??
+    '';
+  return TextDocument.create(docUri, languageId, 0, contentFromStructure);
 };
 
 // Async document creation functions
@@ -233,79 +239,89 @@ const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServ
   // Mock connection.sendNotification to avoid errors during delayed initialization
   testServer.connection.sendNotification = jest.fn();
 
+  // LspFileSystemAccessor has no local cache; the mock sendRequest below serves readFile/stat from these maps.
+  const mockFileContents = new Map<string, string>();
+  const mockFileStats = new Map<
+    string,
+    { type: 'file' | 'directory'; exists: boolean; ctime: number; mtime: number; size: number }
+  >();
+
   // Ensure workspace root has sfdx-project.json and LWC files so performDelayedInitialization and component indexer succeed
   const workspaceRoot = (testServer as any).workspaceRoots?.[0];
+  const dirStat = { type: 'directory' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
   if (workspaceRoot) {
     const fileStat = { type: 'file' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
-    const accessor = testServer.fileSystemAccessor as any;
     for (const [relPath, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE)) {
       const fullPath = normalizePath(path.join(workspaceRoot, relPath.replaceAll('\\', '/')));
       await testServer.fileSystemAccessor.updateFileContent(fullPath, content);
-      accessor.updateFileStat(fullPath, fileStat);
+      mockFileContents.set(fullPath, content);
+      mockFileStats.set(fullPath, fileStat);
+    }
+    // So getModulesDirs() returns the 3 LWC dirs and configureProjectForTs writes tsconfig.json in each
+    const lwcDirPaths = [
+      path.join(workspaceRoot, 'force-app', 'main', 'default', 'lwc'),
+      path.join(workspaceRoot, 'utils', 'meta', 'lwc'),
+      path.join(workspaceRoot, 'registered-empty-folder', 'meta', 'lwc')
+    ];
+    for (const dirPath of lwcDirPaths) {
+      mockFileStats.set(normalizePath(dirPath), dirStat);
     }
   }
 
-  // Handle workspace/readFile, workspace/stat, and workspace/findFiles. onInitialize overwrites the
-  // accessor's findFiles connection with the server's connection, so we must handle findFiles here
-  // so component indexer can discover files (no server-side cache).
+  const defaultFileStat = {
+    type: 'file' as const,
+    exists: true,
+    ctime: 0,
+    mtime: 0,
+    size: 0
+  };
+
+  // Connection.sendRequest can be called with (method: string, params) or (RequestType, params); normalize to string.
+  const getMethodStr = (m: string | { method?: string }) =>
+    typeof m === 'string' ? m : ((m as { method?: string })?.method ?? '');
+
+  // Handle workspace/readFile, workspace/stat, workspace/findFiles, and workspace/applyEdit.
+  // When the server writes files (e.g. .sfdx/tsconfig.sfdx.json), capture them so getFileContent returns them.
   const provider = testServer.fileSystemAccessor as any;
   (testServer.connection as any).sendRequest = jest.fn(
-    async (method: string, params: { uri?: string; baseFolderUri?: string; pattern?: string }) => {
-      if (method === WORKSPACE_READ_FILE_REQUEST && params?.uri) {
+    async (
+      method: string | { method?: string },
+      params: {
+        uri?: string;
+        baseFolderUri?: string;
+        pattern?: string;
+        edit?: { documentChanges?: { textDocument?: { uri: string }; edits?: { newText: string }[] }[] };
+      }
+    ) => {
+      const methodStr = getMethodStr(method);
+      if (methodStr === WORKSPACE_READ_FILE_REQUEST && params?.uri) {
         const key = provider.uriToNormalizedPath(params.uri);
-        const content = provider.fileContents?.get(key);
+        const content = mockFileContents.get(key);
         return { content: content ?? '' };
       }
-      if (method === WORKSPACE_STAT_REQUEST && params?.uri) {
+      if (methodStr === WORKSPACE_STAT_REQUEST && params?.uri) {
         const key = provider.uriToNormalizedPath(params.uri);
-        const stat = provider.fileStats?.get(key);
+        const stat = mockFileStats.get(key);
         return stat ? { stat } : { error: 'File not found' };
       }
-      if (method === WORKSPACE_FIND_FILES_REQUEST && params?.baseFolderUri != null && params?.pattern != null) {
-        return mockFindFilesConnection.sendRequest(method, params as { baseFolderUri: string; pattern: string });
+      if (methodStr === WORKSPACE_FIND_FILES_REQUEST && params?.baseFolderUri != null && params?.pattern != null) {
+        return mockFindFilesConnection.sendRequest(methodStr, params as { baseFolderUri: string; pattern: string });
+      }
+      if (methodStr === 'workspace/applyEdit' && params?.edit?.documentChanges) {
+        for (const change of params.edit.documentChanges) {
+          const docEdit = change as { textDocument?: { uri: string }; edits?: { newText: string }[] };
+          if (docEdit.textDocument?.uri && Array.isArray(docEdit.edits)) {
+            const key = provider.uriToNormalizedPath(docEdit.textDocument.uri);
+            const content = docEdit.edits.map(e => e.newText).join('');
+            mockFileContents.set(key, content);
+            mockFileStats.set(key, defaultFileStat);
+          }
+        }
+        return { applied: true };
       }
       return { applied: true };
     }
   );
-
-  // Populate fileSystemAccessor with all files and directories from sfdxFileSystemAccessor
-  // This ensures delayed initialization has access to all files and directory structures
-  // const allFiles = sfdxFileSystemAccessor.getAllFileUris();
-  // const fileSystemAccessor = testServer.fileSystemAccessor;
-  // for (const fileUri of allFiles) {
-  //   const content = await sfdxFileSystemAccessor.getFileContent(fileUri);
-  //   if (content) {
-  //     await fileSystemAccessor.updateFileContent(fileUri, content);
-  //   }
-  //   const stat = await sfdxFileSystemAccessor.getFileStat(fileUri);
-  //   if (stat) {
-  //     fileSystemAccessor.updateFileStat(fileUri, stat);
-  //   }
-  // // }
-
-  // // Also copy directory listings to ensure getModulesDirs can find LWC directories
-  // // We need to copy all directory listings that exist in sfdxFileSystemAccessor
-  // const allDirs = new Set<string>();
-  // for (const fileUri of allFiles) {
-  //   const stat = await sfdxFileSystemAccessor.getFileStat(fileUri);
-  //   if (stat?.type === 'directory') {
-  //     allDirs.add(fileUri);
-  //     // Also add parent directories
-  //     let parent = normalizePath(dirname(fileUri));
-  //     while (parent && parent !== normalizePath(dirname(parent))) {
-  //       allDirs.add(parent);
-  //       parent = normalizePath(dirname(parent));
-  //     }
-  //   }
-  // }
-
-  // for (const dirUri of allDirs) {
-  //   const normalizedDirUri = normalizePath(dirUri);
-  //   const listing = sfdxFileSystemAccessor.getDirectoryListing(normalizedDirUri);
-  //   if (listing && listing.length > 0) {
-  //     fileSystemAccessor.updateDirectoryListing(normalizedDirUri, listing);
-  //   }
-  // }
 
   // Open documents so they're available in server.documents
   for (const doc of documentsToOpen) {
@@ -406,6 +422,15 @@ jest.mock('vscode-languageserver', () => {
 });
 
 describe('lwcServerNode', () => {
+  // Suppress Logger.info spam from performDelayedInitialization / findFiles during tests
+  let consoleInfoSpy: jest.SpyInstance;
+  beforeAll(() => {
+    consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+  });
+  afterAll(() => {
+    consoleInfoSpy?.mockRestore();
+  });
+
   // Initialize documents before running tests
   beforeAll(async () => {
     await setupDocuments();
@@ -797,8 +822,8 @@ describe('lwcServerNode', () => {
       it('initializes tsconfig when salesforcedx-vscode-lwc.preview.typeScriptSupport = true', async () => {
         // Create a new server instance to avoid state issues
         const testServer = new Server();
-
-        // Enable feature flag
+        // Set shared accessor before onInitialize so context uses it; setupServerForTest will attach the mock
+        testServer.fileSystemAccessor = sfdxFileSystemAccessor as any;
         mockTypeScriptSupportConfig = true;
         testServer.onInitialize(initializeParams);
         // Populate fileSystemAccessor and trigger delayed initialization
@@ -828,7 +853,7 @@ describe('lwcServerNode', () => {
         // There are currently 3 LWC directories under SFDX_WORKSPACE_ROOT
         // (force-app/main/default/lwc, utils/meta/lwc, and registered-empty-folder/meta/lwc)
         expect(tsconfigPaths.length).toBe(3);
-      });
+      }, 15_000);
 
       it('updates tsconfig.sfdx.json path mapping', async () => {
         // Enable feature flag

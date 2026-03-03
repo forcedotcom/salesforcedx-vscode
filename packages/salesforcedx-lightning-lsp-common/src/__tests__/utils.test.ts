@@ -60,9 +60,15 @@ describe('utils', () => {
 
   describe('readJsonSync()', () => {
     let fileSystemAccessor: LspFileSystemAccessor;
+    const contentMap = new Map<string, string>();
 
     beforeEach(() => {
       fileSystemAccessor = new LspFileSystemAccessor();
+      contentMap.clear();
+      jest.spyOn(fileSystemAccessor, 'getFileContent').mockImplementation(async (uri: string) => contentMap.get(utils.normalizePath(uri)));
+      jest.spyOn(fileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+        contentMap.set(utils.normalizePath(uri), content);
+      });
     });
 
     it('should read json files', async () => {
