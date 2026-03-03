@@ -6,11 +6,11 @@ Updates for the Spring 26 (v66.0) release.
 
 #### salesforcedx-vscode-apex-testing
 
-- [W-21263254] Apex tests in the test panel tree are organized by namespace and package. You can also filter tests by namespace and package. ([PR #6888](https://github.com/forcedotcom/salesforcedx-vscode/pull/6888))
+- Apex tests in the test panel tree are organized by namespace and package. You can also filter tests by namespace and package. ([PR #6888](https://github.com/forcedotcom/salesforcedx-vscode/pull/6888))
 
 #### salesforcedx-vscode-core
 
-- [W-21360572] The create project command has new templates for React support ([PR #6884](https://github.com/forcedotcom/salesforcedx-vscode/pull/6884))
+- The create project command has new templates for React support ([PR #6884](https://github.com/forcedotcom/salesforcedx-vscode/pull/6884))
 
 #### salesforcedx-vscode-lwc
 
@@ -29,15 +29,15 @@ Updates for the Spring 26 (v66.0) release.
 
 #### salesforcedx-vscode-org
 
-- [W-21323001] we made the org picker UI nicer. Orgs are "*org*anized" into sections by type (ex: scratch org, sandbox) with aliased orgs at the top of their section. There are icon indicators (tree and leaf) for your default org and DevHub ([PR #6873](https://github.com/forcedotcom/salesforcedx-vscode/pull/6873))
+- We made the org picker UI nicer. Orgs are "*org*anized" into sections by type (ex: scratch org, sandbox) with aliased orgs at the top of their section. There are icon indicators (tree and leaf) for your default org and DevHub ([PR #6873](https://github.com/forcedotcom/salesforcedx-vscode/pull/6873))
 
 #### salesforcedx-vscode-services-types
 
-- [W-21323001] add media service to services extension and org picker icon updates ([PR #6873](https://github.com/forcedotcom/salesforcedx-vscode/pull/6873))
+- Add media service to services extension and org picker icon updates ([PR #6873](https://github.com/forcedotcom/salesforcedx-vscode/pull/6873))
 
 ## Fixed
 
-- Extension activation issues [W-21381917] ([PR #6914](https://github.com/forcedotcom/salesforcedx-vscode/pull/6914)) which should solve [issue #6914](https://github.com/forcedotcom/salesforcedx-vscode/issues/6914) and [issue #6916](https://github.com/forcedotcom/salesforcedx-vscode/issues/6916)
+- Extension activation issues ([PR #6914](https://github.com/forcedotcom/salesforcedx-vscode/pull/6914)) which should solve [issue #6914](https://github.com/forcedotcom/salesforcedx-vscode/issues/6914) and [issue #6916](https://github.com/forcedotcom/salesforcedx-vscode/issues/6916)
 
 #### salesforcedx-vscode-apex-testing
 
