@@ -88,7 +88,7 @@ function buildMapFromCommit(commit) {
         map[TYPE] = type[1];
         message = message.replace(type[0], '');
       }
-      message = message.trim();
+      message = message.replace(constants.GUS_WI_REGEX, '').trim();
       map[MESSAGE] = message.charAt(0).toUpperCase() + message.slice(1);
       map[FILES_CHANGED] = getFilesChanged(map[COMMIT]);
       map[PACKAGES] = getPackageHeaders(map[FILES_CHANGED]);
