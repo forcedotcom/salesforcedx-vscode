@@ -36,6 +36,13 @@ const SOBJECT_CLIENT_ID = 'sfdx-vscode';
 const MAX_SOBJECT_BATCH_SIZE = 25;
 const BATCH_API_CONCURRENCY = 15;
 
+const ListMetadataKeySchema = S.Data(
+  S.Struct({
+    type: S.String,
+    folder: S.optional(S.String)
+  })
+);
+
 /** Subset of the full SObject global describe result */
 export type SObjectGlobalDescribeItem = { name: string; custom: boolean; queryable: boolean };
 
@@ -230,7 +237,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       lookup: (orgId: string) =>
         Effect.gen(function* () {
           const describeCache = yield* Cache.makeWith({
-            capacity: 5,
+            capacity: 1,
             timeToLive: Exit.match({
               onSuccess: () => Duration.minutes(30),
               onFailure: () => Duration.zero
@@ -266,13 +273,9 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
               onSuccess: () => Duration.minutes(5),
               onFailure: () => Duration.zero
             }),
-            // Key = "${type}:${folder ?? ''}". Colons do not appear in Salesforce XML type names.
-            lookup: (key: string) => {
-              const colonIdx = key.indexOf(':');
-              const type = key.slice(0, colonIdx);
-              const folder = key.slice(colonIdx + 1) || undefined;
-              return performListMetadata(orgId, type, folder);
-            }
+            // Key = struct { type, folder }. Data.struct provides Hash/Equal.
+            lookup: (key: S.Schema.Type<typeof ListMetadataKeySchema>) =>
+              performListMetadata(orgId, key.type, key.folder)
           });
 
           return { describeCache, listSObjectsCache, sobjectDescribeCache, listMetadataCache };
@@ -283,17 +286,15 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     // Public service methods
     // ---------------------------------------------------------------------------
 
-    const describe = Effect.fn('MetadataDescribeService.describe')(function* (forceRefresh = false) {
+    const describe = Effect.fn('MetadataDescribeService.describe')(function* (forceRefresh?: boolean) {
       const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
 
       if (!orgId) {
-        return yield* Effect.fail(
-          new MetadataDescribeError({
-            cause: new Error('No orgId found in connection'),
-            function: 'describe',
-            message: 'Failed to describe metadata: No orgId found in connection'
-          })
-        );
+        return yield* new MetadataDescribeError({
+          cause: new Error('No orgId found in connection'),
+          function: 'describe',
+          message: 'Failed to describe metadata: No orgId found in connection'
+        });
       }
 
       const { describeCache } = yield* orgCacheRegistry.get(orgId);
@@ -388,7 +389,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     ) {
       const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
       const { listMetadataCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
-      const key = `${type}:${folder ?? ''}`;
+      const key = yield* S.decode(ListMetadataKeySchema)({ type, folder });
       if (forceRefresh) yield* listMetadataCache.invalidate(key);
       return yield* listMetadataCache.get(key);
     });
