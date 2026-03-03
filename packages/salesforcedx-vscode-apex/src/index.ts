@@ -93,10 +93,7 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     }
   );
 
-  return vscode.Disposable.from(
-    anonApexRunDelegateCmd,
-    restartApexLanguageServerCmd
-  );
+  return vscode.Disposable.from(anonApexRunDelegateCmd, restartApexLanguageServerCmd);
 };
 
 export const deactivate = async () => {
