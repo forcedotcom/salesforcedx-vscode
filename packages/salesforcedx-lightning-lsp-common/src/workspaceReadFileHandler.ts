@@ -17,6 +17,7 @@ import {
   WORKSPACE_STAT_REQUEST,
   WORKSPACE_READ_DIRECTORY_REQUEST,
   WORKSPACE_FIND_FILES_REQUEST,
+  WORKSPACE_DELETE_FILE_REQUEST,
   type WorkspaceReadFileParams,
   type WorkspaceReadFileResult,
   type WorkspaceStatParams,
@@ -24,7 +25,9 @@ import {
   type WorkspaceReadDirectoryParams,
   type WorkspaceReadDirectoryResult,
   type WorkspaceFindFilesParams,
-  type WorkspaceFindFilesResult
+  type WorkspaceFindFilesResult,
+  type WorkspaceDeleteFileParams,
+  type WorkspaceDeleteFileResult
 } from './lspCustomRequests';
 
 /** Client that can handle LSP requests (Node or Browser LanguageClient). */
@@ -214,6 +217,35 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
         log.appendLine(`[findFiles] error: ${message}`);
         return { uris: undefined };
       }
+    }
+  );
+
+  client.onRequest<WorkspaceDeleteFileParams, WorkspaceDeleteFileResult>(
+    WORKSPACE_DELETE_FILE_REQUEST,
+    async (params): Promise<WorkspaceDeleteFileResult> => {
+      const { uri } = params ?? {};
+      log.appendLine(`[deleteFile] request uri=${uri ?? '?'}`);
+      const apiResult = Effect.runSync(Effect.either(getServicesApi));
+      if (apiResult._tag === 'Left') {
+        log.appendLine('[deleteFile] error: Services API not available');
+        return { error: 'Services API not available' };
+      }
+      const api = apiResult.right;
+      const FsService = api.services.FsService;
+      const result = await Effect.runPromise(
+        Effect.gen(function* () {
+          const fs = yield* FsService;
+          return yield* fs.deleteFile(uri);
+        }).pipe(Effect.provide(FsService.Default), Effect.either)
+      );
+      if (result._tag === 'Left') {
+        const left = result.left;
+        const message = left instanceof Error ? left.message : String(left);
+        log.appendLine(`[deleteFile] error: ${message}`);
+        return { error: message };
+      }
+      log.appendLine(`[deleteFile] success uri=${uri}`);
+      return {};
     }
   );
 };

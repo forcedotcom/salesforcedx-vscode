@@ -7,7 +7,7 @@
 import { normalizePath, WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   SFDX_WORKSPACE_ROOT,
-  sfdxFileSystemProvider,
+  sfdxFileSystemAccessor,
   createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
@@ -17,13 +17,11 @@ import ComponentIndexer, { Entry, unIndexedFiles } from '../componentIndexer';
 import { Tag, createTag, getTagName } from '../tag';
 
 // Simulate client: server discovers files via workspace/findFiles (no server-side cache)
-sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-sfdxFileSystemProvider.setFindFilesFromConnection(
+sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+sfdxFileSystemAccessor.setFindFilesFromConnection(
   createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
     relativePaths: getSfdxWorkspaceRelativePaths()
-  }) as Parameters<
-    typeof sfdxFileSystemProvider.setFindFilesFromConnection
-  >[0],
+  }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
   WORKSPACE_FIND_FILES_REQUEST
 );
 
@@ -33,7 +31,7 @@ const createMockDirent = () => ({});
 
 const componentIndexer: ComponentIndexer = new ComponentIndexer({
   workspaceRoot: SFDX_WORKSPACE_ROOT,
-  fileSystemProvider: sfdxFileSystemProvider
+  fileSystemAccessor: sfdxFileSystemAccessor
 });
 
 beforeEach(async () => {
@@ -221,14 +219,8 @@ describe('ComponentIndexer', () => {
             path.join(newlyAddedFileDir, '__tests__', 'newlyAddedFile', 'newlyAddedFile.ts')
           ];
           for (const filePath of possibleFiles) {
-            if (await sfdxFileSystemProvider.fileExists(filePath)) {
-              sfdxFileSystemProvider.updateFileStat(filePath, {
-                type: 'file',
-                exists: false,
-                ctime: 0,
-                mtime: 0,
-                size: 0
-              });
+            if (await sfdxFileSystemAccessor.fileExists(filePath)) {
+              await sfdxFileSystemAccessor.deleteFile(filePath);
             }
           }
           // Re-initialize to pick up the cleaned state
@@ -245,31 +237,13 @@ describe('ComponentIndexer', () => {
           };
           const sfdxPath = path.join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json');
 
-          // Create directory if it doesn't exist
-          const sfdxDir = path.dirname(sfdxPath);
-          sfdxFileSystemProvider.updateFileStat(sfdxDir, {
-            type: 'directory',
-            exists: true,
-            ctime: 0,
-            mtime: 0,
-            size: 0
-          });
-
-          // Write the template tsconfig file
           const tsconfigContent = JSON.stringify(tsconfigTemplate, null, 4);
-          sfdxFileSystemProvider.updateFileStat(sfdxPath, {
-            type: 'file',
-            exists: true,
-            ctime: Date.now(),
-            mtime: Date.now(),
-            size: tsconfigContent.length
-          });
-          void sfdxFileSystemProvider.updateFileContent(sfdxPath, tsconfigContent);
+          void sfdxFileSystemAccessor.updateFileContent(sfdxPath, tsconfigContent);
 
           await componentIndexer.updateSfdxTsConfigPath();
 
           // Read and parse the updated tsconfig
-          const updatedTsconfigContent = await sfdxFileSystemProvider.getFileContent(sfdxPath);
+          const updatedTsconfigContent = await sfdxFileSystemAccessor.getFileContent(sfdxPath);
           expect(updatedTsconfigContent).not.toBeUndefined();
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const tsconfig = JSON.parse(updatedTsconfigContent!);
@@ -280,13 +254,7 @@ describe('ComponentIndexer', () => {
           }
 
           // Clean-up test files
-          sfdxFileSystemProvider.updateFileStat(sfdxPath, {
-            type: 'file',
-            exists: false,
-            ctime: 0,
-            mtime: 0,
-            size: 0
-          });
+          await sfdxFileSystemAccessor.deleteFile(sfdxPath);
         });
       });
     });

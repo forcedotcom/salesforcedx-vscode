@@ -6,7 +6,7 @@
  */
 
 import * as path from 'node:path';
-import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 
 const SFDX_PROJECT = 'sfdx-project.json';
 
@@ -31,11 +31,11 @@ export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX
  */
 export const detectWorkspaceHelper = async (
   root: string,
-  fileSystemProvider: IFileSystemProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<WorkspaceType> => {
   try {
     const sfdxProjectFile = getSfdxProjectFile(root);
-    const fileStat = await fileSystemProvider.getFileStat(sfdxProjectFile);
+    const fileStat = await fileSystemAccessor.getFileStat(sfdxProjectFile);
 
     if (fileStat?.type === 'file') {
       return 'SFDX';
@@ -45,7 +45,7 @@ export const detectWorkspaceHelper = async (
   }
 
   try {
-    const fileStat = await fileSystemProvider.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
+    const fileStat = await fileSystemAccessor.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
     if (fileStat?.type === 'file') {
       return 'CORE_ALL';
     }
@@ -55,7 +55,7 @@ export const detectWorkspaceHelper = async (
 
   try {
     const parentWorkspaceUserUri = path.join(root, '..', 'workspace-user.xml');
-    const fileStat = await fileSystemProvider.getFileStat(`${parentWorkspaceUserUri}`);
+    const fileStat = await fileSystemAccessor.getFileStat(`${parentWorkspaceUserUri}`);
     if (fileStat?.type === 'file') {
       return 'CORE_PARTIAL';
     }
@@ -65,7 +65,7 @@ export const detectWorkspaceHelper = async (
 
   try {
     const lwcConfigUri = path.join(root, 'lwc.config.json');
-    const fileStat = await fileSystemProvider.getFileStat(`${lwcConfigUri}`);
+    const fileStat = await fileSystemAccessor.getFileStat(`${lwcConfigUri}`);
     if (fileStat?.type === 'file') {
       return 'STANDARD_LWC';
     }
@@ -75,7 +75,7 @@ export const detectWorkspaceHelper = async (
 
   const packageJson = path.join(root, 'package.json');
   try {
-    const packageInfoContent = await fileSystemProvider.getFileContent(`${packageJson}`);
+    const packageInfoContent = await fileSystemAccessor.getFileContent(`${packageJson}`);
     if (!packageInfoContent) {
       throw new Error('Package info not found');
     }
@@ -101,7 +101,7 @@ export const detectWorkspaceHelper = async (
 
     try {
       const lernaJsonUri = path.join(root, 'lerna.json');
-      const fileStat = await fileSystemProvider.getFileStat(`${lernaJsonUri}`);
+      const fileStat = await fileSystemAccessor.getFileStat(`${lernaJsonUri}`);
       if (fileStat?.type === 'file') {
         return 'MONOREPO';
       }

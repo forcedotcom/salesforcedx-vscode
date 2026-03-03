@@ -9,7 +9,7 @@ import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { nls } from './messages';
-import { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 import { jsconfigCore } from './resources/core/jsconfig-core';
 import { settingsCore } from './resources/core/settings-core';
 import { jsconfigSfdx } from './resources/sfdx/jsconfig-sfdx';
@@ -49,10 +49,10 @@ const DEFAULT_SFDX_PROJECT_CONFIG: SfdxProjectConfig = {
 
 const readSfdxProjectConfig = async (
   root: string,
-  fileSystemProvider: IFileSystemProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<SfdxProjectConfig> => {
   const configPath = getSfdxProjectFile(root);
-  const configText = await fileSystemProvider.getFileContent(configPath);
+  const configText = await fileSystemAccessor.getFileContent(configPath);
 
   if (!configText) {
     return DEFAULT_SFDX_PROJECT_CONFIG;
@@ -80,13 +80,9 @@ const readSfdxProjectConfig = async (
 };
 
 const updateConfigFile =
-  (fileSystemProvider: IFileSystemProvider) =>
+  (fileSystemAccessor: LspFileSystemAccessor) =>
   async (filePath: string, content: string): Promise<void> => {
-    const dir = path.dirname(filePath);
-    fileSystemProvider.updateDirectoryListing(dir, []);
-    // updateFileContent is now async, but this function is synchronous
-    // Since this is used in contexts without connection, the promise resolves immediately
-    await fileSystemProvider.updateFileContent(filePath, content);
+    await fileSystemAccessor.updateFileContent(filePath, content);
   };
 
 const getCoreSettings = (workspaceRoots: string[]): Record<string, unknown> =>
@@ -108,11 +104,11 @@ const getCoreSettings = (workspaceRoots: string[]): Record<string, unknown> =>
 export const updateForceIgnoreFile = async (
   forceignorePath: string,
   addTsConfig: boolean,
-  fileSystemProvider: IFileSystemProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<void> => {
   let forceignoreContent = '';
   try {
-    const data = await fileSystemProvider.getFileContent(forceignorePath);
+    const data = await fileSystemAccessor.getFileContent(forceignorePath);
     if (!data) {
       throw new Error(nls.localize('forceignore_file_not_found_message'));
     }
@@ -138,13 +134,13 @@ export const updateForceIgnoreFile = async (
   }
 
   // Always write the forceignore file, even if it's empty
-  void fileSystemProvider.updateFileContent(forceignorePath, forceignoreContent.trim());
+  void fileSystemAccessor.updateFileContent(forceignorePath, forceignoreContent.trim());
 };
 
 export const getModulesDirs = async (
   workspaceType: WorkspaceType,
   workspaceRoots: string[],
-  fileSystemProvider: IFileSystemProvider,
+  fileSystemAccessor: LspFileSystemAccessor,
   getSfdxProjectConfig: () => SfdxProjectConfig | Promise<SfdxProjectConfig>
 ): Promise<NormalizedPath[]> => {
   // Normalize workspaceRoots at the start to ensure consistent path format
@@ -162,14 +158,14 @@ export const getModulesDirs = async (
 
         // Check for LWC components in new structure
         const newLwcDir = utils.normalizePath(path.join(newPkgDir, 'lwc'));
-        const newLwcDirStat = await fileSystemProvider.getFileStat(newLwcDir);
+        const newLwcDirStat = await fileSystemAccessor.getFileStat(newLwcDir);
         if (newLwcDirStat?.type === 'directory') {
           // Add the LWC directory itself, not individual components
           modulesDirs.push(newLwcDir);
         } else {
           // New structure doesn't exist, check for LWC components in old structure
           const oldLwcDir = utils.normalizePath(path.join(oldPkgDir, 'lwc'));
-          const oldLwcDirStat = await fileSystemProvider.getFileStat(oldLwcDir);
+          const oldLwcDirStat = await fileSystemAccessor.getFileStat(oldLwcDir);
           if (oldLwcDirStat?.type === 'directory') {
             modulesDirs.push(oldLwcDir);
           }
@@ -182,14 +178,14 @@ export const getModulesDirs = async (
     }
     case 'CORE_ALL':
       // For CORE_ALL, return the modules directories for each project
-      const projects = fileSystemProvider.getDirectoryListing(normalizedWorkspaceRoots[0]);
+      const projects = fileSystemAccessor.getDirectoryListing(normalizedWorkspaceRoots[0]);
       for (const project of projects) {
         // Use path.join instead of path.resolve since normalizedWorkspaceRoots[0] is already absolute
         // This prevents path.resolve from potentially duplicating path segments on Windows
         const modulesDir = path.join(normalizedWorkspaceRoots[0], project.name, 'modules');
         let pathExists = false;
         try {
-          const fileStat = await fileSystemProvider.getFileStat(modulesDir);
+          const fileStat = await fileSystemAccessor.getFileStat(modulesDir);
           if (fileStat?.type === 'directory') {
             pathExists = true;
           }
@@ -208,7 +204,7 @@ export const getModulesDirs = async (
         const modulesDir = path.join(ws, 'modules');
         let pathExists = false;
         try {
-          const fileStat = await fileSystemProvider.getFileStat(modulesDir);
+          const fileStat = await fileSystemAccessor.getFileStat(modulesDir);
           if (fileStat?.type === 'directory') {
             pathExists = true;
           }
@@ -249,18 +245,18 @@ export abstract class BaseWorkspaceContext {
 
   protected findNamespaceRootsUsingTypeCache: () => Promise<{ lwc: string[]; aura: string[] }>;
   public initSfdxProjectConfigCache: () => Promise<SfdxProjectConfig>;
-  public fileSystemProvider: FileSystemDataProvider;
+  public fileSystemAccessor: LspFileSystemAccessor;
   private readonly sfdxTypingsDir?: string;
   public connection?: Connection;
 
   /**
    * @param workspaceRoots
-   * @param fileSystemProvider
+   * @param fileSystemAccessor
    * @param options Optional. Pass sfdxTypingsDir for typings copy (web-safe; avoids __dirname).
    */
   constructor(
     workspaceRoots: NormalizedPath[] | NormalizedPath,
-    fileSystemProvider: FileSystemDataProvider,
+    fileSystemAccessor: LspFileSystemAccessor,
     connection?: Connection,
     options?: BaseWorkspaceContextOptions
   ) {
@@ -269,8 +265,8 @@ export abstract class BaseWorkspaceContext {
 
     this.findNamespaceRootsUsingTypeCache = utils.memoize(() => this.findNamespaceRootsUsingType());
     this.initSfdxProjectConfigCache = utils.memoize(async () => this.initSfdxProject());
-    this.fileSystemProvider = fileSystemProvider;
     this.connection = connection;
+    this.fileSystemAccessor = fileSystemAccessor;
     this.sfdxTypingsDir = options?.sfdxTypingsDir;
   }
 
@@ -340,13 +336,13 @@ export abstract class BaseWorkspaceContext {
   private async writeSettingsJson(): Promise<void> {
     const settingsPath = path.join(this.workspaceRoots[0], '.vscode', 'settings.json');
     const settings = getCoreSettings(this.workspaceRoots);
-    await updateConfigFile(this.fileSystemProvider)(settingsPath, JSON.stringify(settings, null, 2));
+    await updateConfigFile(this.fileSystemAccessor)(settingsPath, JSON.stringify(settings, null, 2));
   }
 
   private async writeCodeWorkspace(): Promise<void> {
     const workspacePath = path.join(this.workspaceRoots[0], 'core.code-workspace');
     const workspace = getCodeWorkspace(this.workspaceRoots);
-    await updateConfigFile(this.fileSystemProvider)(workspacePath, JSON.stringify(workspace, null, 2));
+    await updateConfigFile(this.fileSystemAccessor)(workspacePath, JSON.stringify(workspace, null, 2));
   }
 
   private async writeJsconfigJson(): Promise<void> {
@@ -365,7 +361,7 @@ export abstract class BaseWorkspaceContext {
   }
 
   private async writeSfdxJsconfig(): Promise<void> {
-    const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
+    const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemAccessor, () =>
       this.initSfdxProjectConfigCache()
     );
 
@@ -375,7 +371,7 @@ export abstract class BaseWorkspaceContext {
       // Skip if tsconfig.json already exists
       const tsconfigPath = path.join(modulesDir, 'tsconfig.json');
       try {
-        const fileStat = await this.fileSystemProvider.getFileStat(tsconfigPath);
+        const fileStat = await this.fileSystemAccessor.getFileStat(tsconfigPath);
         if (fileStat?.type === 'file' && fileStat?.exists === true) {
           continue;
         }
@@ -389,7 +385,7 @@ export abstract class BaseWorkspaceContext {
         // If jsconfig already exists, read and update it
         let jsconfigExists = false;
         try {
-          const fileStat = await this.fileSystemProvider.getFileStat(jsconfigPath);
+          const fileStat = await this.fileSystemAccessor.getFileStat(jsconfigPath);
           if (fileStat?.type === 'file' && fileStat?.exists === true) {
             jsconfigExists = true;
           }
@@ -398,7 +394,7 @@ export abstract class BaseWorkspaceContext {
         }
 
         if (jsconfigExists) {
-          const existingConfigContent = await this.fileSystemProvider.getFileContent(jsconfigPath);
+          const existingConfigContent = await this.fileSystemAccessor.getFileContent(jsconfigPath);
           if (!existingConfigContent) {
             throw new Error(nls.localize('existing_config_content_not_found_message'));
           }
@@ -466,7 +462,7 @@ export abstract class BaseWorkspaceContext {
           jsconfigContent = JSON.stringify(config, null, 2);
         }
 
-        await updateConfigFile(this.fileSystemProvider)(jsconfigPath, jsconfigContent);
+        await updateConfigFile(this.fileSystemAccessor)(jsconfigPath, jsconfigContent);
       } catch (error) {
         console.error(
           `writeSfdxJsconfig: Error reading/writing jsconfig: ${error instanceof Error ? error.message : String(error)}`
@@ -480,11 +476,11 @@ export abstract class BaseWorkspaceContext {
 
     // Update forceignore
     const forceignorePath = path.join(this.workspaceRoots[0], '.forceignore');
-    await updateForceIgnoreFile(forceignorePath, false, this.fileSystemProvider);
+    await updateForceIgnoreFile(forceignorePath, false, this.fileSystemAccessor);
   }
 
   private async writeCoreJsconfig(): Promise<void> {
-    const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
+    const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemAccessor, () =>
       this.initSfdxProjectConfigCache()
     );
 
@@ -493,27 +489,24 @@ export abstract class BaseWorkspaceContext {
 
       // Skip if tsconfig.json already exists
       const tsconfigPath = path.join(modulesDir, 'tsconfig.json');
-      const fileStat = await this.fileSystemProvider.getFileStat(tsconfigPath);
+      const fileStat = await this.fileSystemAccessor.getFileStat(tsconfigPath);
       if (fileStat?.type === 'file' && fileStat?.exists === true) {
-        // Remove tsconfig.json if it exists (as per test expectation)
-        this.fileSystemProvider.updateDirectoryListing(tsconfigPath, []);
-      }
-
-      try {
-        // For core workspaces, the typings are in the core directory, not the project directory
-        // Calculate relative path from modules directory to the core directory
-        const coreDir = this.type === 'CORE_ALL' ? this.workspaceRoots[0] : path.dirname(this.workspaceRoots[0]);
-        const relativeCoreRoot = utils.relativePath(modulesDir, coreDir);
-        const typingsInclude = `${relativeCoreRoot}/.vscode/typings/lwc/**/*.d.ts`;
-        const config = {
-          ...jsconfigCore,
-          include: [...jsconfigCore.include, typingsInclude]
-        };
-        const jsconfigContent = JSON.stringify(config, null, 2);
-        await updateConfigFile(this.fileSystemProvider)(jsconfigPath, jsconfigContent);
-      } catch (error) {
-        console.error('writeCoreJsconfig: Error reading/writing jsconfig:', error);
-        throw error;
+        // Skip writing jsconfig when tsconfig.json already exists (as per test expectation)
+      } else {
+        try {
+          const coreDir = this.type === 'CORE_ALL' ? this.workspaceRoots[0] : path.dirname(this.workspaceRoots[0]);
+          const relativeCoreRoot = utils.relativePath(modulesDir, coreDir);
+          const typingsInclude = `${relativeCoreRoot}/.vscode/typings/lwc/**/*.d.ts`;
+          const config = {
+            ...jsconfigCore,
+            include: [...jsconfigCore.include, typingsInclude]
+          };
+          const jsconfigContent = JSON.stringify(config, null, 2);
+          await updateConfigFile(this.fileSystemAccessor)(jsconfigPath, jsconfigContent);
+        } catch (error) {
+          console.error('writeCoreJsconfig: Error reading/writing jsconfig:', error);
+          throw error;
+        }
       }
     }
   }
@@ -525,13 +518,12 @@ export abstract class BaseWorkspaceContext {
     }
     // sfdxTypingsDir is injected by the host (Node or web) so we don't rely on __dirname (not available in web).
     const resourceTypingsDir = this.sfdxTypingsDir;
-    this.fileSystemProvider.updateDirectoryListing(typingsDir, []);
     try {
       const sourcePath = path.join(resourceTypingsDir, 'lds.d.ts');
       const destPath = path.join(typingsDir, 'lds.d.ts');
-      const content = await this.fileSystemProvider.getFileContent(sourcePath);
+      const content = await this.fileSystemAccessor.getFileContent(sourcePath);
       if (content) {
-        void this.fileSystemProvider.updateFileContent(destPath, content, this.connection);
+        void this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
       }
     } catch {
       // ignore
@@ -539,23 +531,23 @@ export abstract class BaseWorkspaceContext {
     try {
       const sourcePath = path.join(resourceTypingsDir, 'messageservice.d.ts');
       const destPath = path.join(typingsDir, 'messageservice.d.ts');
-      const content = await this.fileSystemProvider.getFileContent(sourcePath);
+      const content = await this.fileSystemAccessor.getFileContent(sourcePath);
       if (content) {
-        void this.fileSystemProvider.updateFileContent(destPath, content, this.connection);
+        void this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
       }
     } catch {
       // ignore
     }
-    const dirs = this.fileSystemProvider.getDirectoryListing(
+    const dirs = this.fileSystemAccessor.getDirectoryListing(
       utils.normalizePath(path.join(resourceTypingsDir, 'copied'))
     );
     for (const file of dirs) {
       try {
         const sourcePath = path.join(resourceTypingsDir, 'copied', file.name);
         const destPath = path.join(typingsDir, file.name);
-        const content = await this.fileSystemProvider.getFileContent(sourcePath);
+        const content = await this.fileSystemAccessor.getFileContent(sourcePath);
         if (content) {
-          void this.fileSystemProvider.updateFileContent(destPath, content, this.connection);
+          void this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
         }
       } catch {
         // ignore
@@ -564,7 +556,7 @@ export abstract class BaseWorkspaceContext {
   }
 
   private async initSfdxProject(): Promise<SfdxProjectConfig> {
-    return readSfdxProjectConfig(this.workspaceRoots[0], this.fileSystemProvider);
+    return readSfdxProjectConfig(this.workspaceRoots[0], this.fileSystemAccessor);
   }
 }
 

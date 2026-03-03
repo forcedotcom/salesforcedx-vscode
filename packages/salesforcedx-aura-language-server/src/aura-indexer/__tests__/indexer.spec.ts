@@ -32,7 +32,7 @@ jest.mock('../../resources/transformed-aura-system.json', () =>
 );
 
 import {
-  FileSystemDataProvider,
+  LspFileSystemAccessor,
   normalizePath,
   WORKSPACE_FIND_FILES_REQUEST
 } from '@salesforce/salesforcedx-lightning-lsp-common';
@@ -40,7 +40,7 @@ import {
   createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths,
   SFDX_WORKSPACE_ROOT,
-  sfdxFileSystemProvider
+  sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -49,12 +49,12 @@ import { AuraWorkspaceContext } from '../../context/auraContext';
 import AuraIndexer from '../indexer';
 
 // Discovery via workspace/findFiles (no server-side cache); use shared mock from common testUtils
-sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-sfdxFileSystemProvider.setFindFilesFromConnection(
+sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+sfdxFileSystemAccessor.setFindFilesFromConnection(
   createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
   relativePaths: getSfdxWorkspaceRelativePaths()
 }) as Parameters<
-    typeof sfdxFileSystemProvider.setFindFilesFromConnection
+    typeof sfdxFileSystemAccessor.setFindFilesFromConnection
   >[0],
   WORKSPACE_FIND_FILES_REQUEST
 );
@@ -75,7 +75,7 @@ const uriToFile = (uri: string): string => URI.parse(uri).fsPath;
 
 describe('indexer parsing content', () => {
   it('aura indexer', async () => {
-    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
+    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor);
     context.initialize('SFDX');
     await context.configureProject();
 
@@ -110,7 +110,7 @@ describe('indexer parsing content', () => {
   });
 
   it('should index a valid aura component', async () => {
-    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
+    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor);
     context.initialize('SFDX');
     await context.configureProject();
     const auraIndexer = new AuraIndexer(context);
@@ -131,7 +131,7 @@ describe('indexer parsing content', () => {
   });
 
   xit('should handle indexing an invalid aura component', async () => {
-    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
+    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new LspFileSystemAccessor());
     context.initialize('SFDX');
     await context.configureProject();
     const auraIndexer = new AuraIndexer(context);

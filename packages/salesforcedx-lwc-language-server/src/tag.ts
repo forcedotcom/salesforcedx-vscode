@@ -7,7 +7,7 @@
 import {
   ClassMember,
   AttributeInfo,
-  IFileSystemProvider,
+  LspFileSystemAccessor,
   normalizePath,
   Logger
 } from '@salesforce/salesforcedx-lightning-lsp-common';
@@ -66,7 +66,7 @@ const methodDoc = (method: ClassMember): string => {
 };
 
 // Utility function to create Tag
-export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFileSystemProvider): Promise<Tag> => {
+export const createTag = async (attributes: TagAttrs, fileSystemAccessor?: LspFileSystemAccessor): Promise<Tag> => {
   const file = attributes.file!;
   const metadata = attributes.metadata!;
 
@@ -74,10 +74,10 @@ export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFile
 
   if (attributes.updatedAt) {
     updatedAt = new Date(attributes.updatedAt);
-  } else if (file && fileSystemProvider) {
+  } else if (file && fileSystemAccessor) {
     try {
       // file is already normalized, and getFileStat normalizes internally
-      const stat = await fileSystemProvider.getFileStat(`file://${file}`);
+      const stat = await fileSystemAccessor.getFileStat(`file://${file}`);
       updatedAt = stat ? new Date(stat.mtime) : new Date();
     } catch {
       // If file doesn't exist or can't be read, use current date
@@ -113,13 +113,13 @@ export const getLwcName = (tag: Tag): string => {
 export const getLwcTypingsName = (tag: Tag): string => `c/${getTagName(tag)}`;
 
 // Utility function to get tag URI
-// If fileSystemProvider is provided, uses it to preserve the correct URI scheme (memfs:// or file://)
+// If fileSystemAccessor is provided, uses it to preserve the correct URI scheme (memfs:// or file://)
 // Otherwise, falls back to URI.file() for backward compatibility
-export const getTagUri = (tag: Tag, fileSystemProvider?: IFileSystemProvider): string => {
-  if (fileSystemProvider) {
+export const getTagUri = (tag: Tag, fileSystemAccessor?: LspFileSystemAccessor): string => {
+  if (fileSystemAccessor) {
     const normalizedPath = normalizePath(tag.file);
     try {
-      return fileSystemProvider.getFileUriForPath(normalizedPath);
+      return fileSystemAccessor.getFileUriForPath(normalizedPath);
     } catch (error) {
       Logger.error(
         `[getTagUri] Error in getFileUriForPath: ${error instanceof Error ? error.message : String(error)}`,
@@ -175,8 +175,8 @@ export const getTagRange = (tag: Tag): Range =>
     : Range.create(Position.create(0, 0), Position.create(0, 0));
 
 // Utility function to get tag location
-export const getTagLocation = (tag: Tag, fileSystemProvider?: IFileSystemProvider): Location =>
-  Location.create(getTagUri(tag, fileSystemProvider), getTagRange(tag));
+export const getTagLocation = (tag: Tag, fileSystemAccessor?: LspFileSystemAccessor): Location =>
+  Location.create(getTagUri(tag, fileSystemAccessor), getTagRange(tag));
 
 /** Escape glob special characters in a string so it matches literally */
 const escapeGlob = (s: string): string => s.replaceAll(/[*?[\]\\{}]/g, '\\$&');
@@ -187,25 +187,25 @@ const escapeGlob = (s: string): string => s.replaceAll(/[*?[\]\\{}]/g, '\\$&');
 const findFilesInDirectory = async (
   dirPath: string,
   baseName: string,
-  fileSystemProvider: IFileSystemProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<string[]> => {
   const normalizedDirPath = normalizePath(dirPath);
 
   const globPattern = `${escapeGlob(baseName)}.{html,css}`;
-  return (await fileSystemProvider.findFilesWithGlobAsync(globPattern, normalizedDirPath)) ?? [];
+  return (await fileSystemAccessor.findFilesWithGlobAsync(globPattern, normalizedDirPath)) ?? [];
 };
 
 // Utility function to get all locations
-export const getAllLocations = async (tag: Tag, fileSystemProvider: IFileSystemProvider): Promise<Location[]> => {
-  // tag.file is already normalized (comes from entry.path which is normalized by FileSystemDataProvider)
+export const getAllLocations = async (tag: Tag, fileSystemAccessor: LspFileSystemAccessor): Promise<Location[]> => {
+  // tag.file is already normalized (comes from entry.path which is normalized by LspFileSystemAccessor)
   const { dir, name } = path.parse(tag.file);
   // Normalize dir because path.parse() returns backslashes on Windows
   const normalizedDir = normalizePath(dir);
 
   const convertFileToLocation = (file: string): Location => {
     try {
-      // Use fileSystemProvider to get the correct URI scheme (memfs:// or file://)
-      const uri = fileSystemProvider.getFileUriForPath(normalizePath(file));
+      // Use fileSystemAccessor to get the correct URI scheme (memfs:// or file://)
+      const uri = fileSystemAccessor.getFileUriForPath(normalizePath(file));
       const position = Position.create(0, 0);
       const range = Range.create(position, position);
       const location = Location.create(uri, range);
@@ -220,12 +220,12 @@ export const getAllLocations = async (tag: Tag, fileSystemProvider: IFileSystemP
   };
 
   // Match files like name.html or name.css
-  const filteredFiles = await findFilesInDirectory(normalizedDir, name, fileSystemProvider);
+  const filteredFiles = await findFilesInDirectory(normalizedDir, name, fileSystemAccessor);
 
   const locations = filteredFiles.map(convertFileToLocation);
 
   try {
-    const tagLocation = getTagLocation(tag, fileSystemProvider);
+    const tagLocation = getTagLocation(tag, fileSystemAccessor);
     locations.unshift(tagLocation);
   } catch (error) {
     Logger.error(
@@ -256,7 +256,7 @@ export const getAttribute = (tag: Tag, name: string): AttributeInfo | null => fi
 export const getClassMemberLocation = (
   tag: Tag,
   name: string,
-  fileSystemProvider?: IFileSystemProvider
+  fileSystemAccessor?: LspFileSystemAccessor
 ): Location | null => {
   const classMember = findClassMember(tag, name);
   if (!classMember?.loc) {
@@ -264,7 +264,7 @@ export const getClassMemberLocation = (
   }
 
   try {
-    const tagUri = getTagUri(tag, fileSystemProvider);
+    const tagUri = getTagUri(tag, fileSystemAccessor);
     const range = toVSCodeRange(classMember.loc);
     const location = Location.create(tagUri, range);
     return location;
@@ -308,17 +308,17 @@ const getMethodDocs = (tag: Tag): string | null => {
 export const updateTagMetadata = async (
   tag: Tag,
   meta: any,
-  fileSystemProvider?: IFileSystemProvider
+  fileSystemAccessor?: LspFileSystemAccessor
 ): Promise<void> => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   tag.metadata = meta;
   tag._allAttributes = null;
   tag._methods = null;
   tag._properties = null;
-  if (fileSystemProvider) {
+  if (fileSystemAccessor) {
     try {
       // tag.file is already normalized, and getFileStat normalizes internally
-      const stat = await fileSystemProvider.getFileStat(`file://${tag.file}`);
+      const stat = await fileSystemAccessor.getFileStat(`file://${tag.file}`);
       tag.updatedAt = stat ? new Date(stat.mtime) : new Date();
     } catch {
       // If file doesn't exist or can't be read, use current date
@@ -332,7 +332,7 @@ export const updateTagMetadata = async (
 // Standalone function to create tag from file (replaces static fromFile method)
 export const createTagFromFile = async (
   file: string,
-  fileSystemProvider: IFileSystemProvider,
+  fileSystemAccessor: LspFileSystemAccessor,
   updatedAt?: Date
 ): Promise<Tag | null> => {
   if (file === '' || file.length === 0) {
@@ -344,10 +344,10 @@ export const createTagFromFile = async (
   try {
     // file is already normalized (comes from entry.path), and getFileContent normalizes internally
     // Try both with and without file:// prefix
-    let content = await fileSystemProvider.getFileContent(file);
+    let content = await fileSystemAccessor.getFileContent(file);
     if (!content) {
       const fileWithPrefix = file.startsWith('file://') ? file : `file://${file}`;
-      content = await fileSystemProvider.getFileContent(fileWithPrefix);
+      content = await fileSystemAccessor.getFileContent(fileWithPrefix);
     }
     if (!content) {
       return null;

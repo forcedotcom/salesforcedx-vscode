@@ -50,7 +50,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       case 'SFDX': {
         // For SFDX workspaces, discover lwc and aura roots via findFilesWithGlobAsync.
         // Call via provider so 'this' is bound when findFilesWithGlobAsync runs.
-        const provider = this.fileSystemProvider;
+        const provider = this.fileSystemAccessor;
         for (const root of this.workspaceRoots) {
           const normalizedRoot = normalizePath(root);
           const forceAppPath = normalizePath(path.join(root, 'force-app', 'main', 'default'));
@@ -65,7 +65,9 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           if ((await provider.findFilesWithGlobAsync?.('utils/meta/lwc/**', normalizedRoot))?.length) {
             roots.lwc.push(utilsLwcPath);
           }
-          if ((await provider.findFilesWithGlobAsync?.('registered-empty-folder/meta/lwc/**', normalizedRoot))?.length) {
+          if (
+            (await provider.findFilesWithGlobAsync?.('registered-empty-folder/meta/lwc/**', normalizedRoot))?.length
+          ) {
             roots.lwc.push(registeredLwcPath);
           }
           if ((await provider.findFilesWithGlobAsync?.('force-app/main/default/aura/**', normalizedRoot))?.length) {
@@ -78,7 +80,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         // optimization: discover LWC roots under project/modules/ via findFilesWithGlobAsync
         const workspaceRoot = normalizePath(this.workspaceRoots[0]);
         const pathsUnderLwc =
-          (await this.fileSystemProvider.findFilesWithGlobAsync('*/modules/**/lwc/**', workspaceRoot)) ?? [];
+          (await this.fileSystemAccessor.findFilesWithGlobAsync('*/modules/**/lwc/**', workspaceRoot)) ?? [];
         const lwcRootDirs = [
           ...new Set(
             pathsUnderLwc
@@ -98,7 +100,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         const pathsUnderModulesLwc =
           (await Promise.all(
             this.workspaceRoots.map(ws =>
-              this.fileSystemProvider.findFilesWithGlobAsync('modules/**/lwc/**', normalizePath(ws))
+              this.fileSystemAccessor.findFilesWithGlobAsync('modules/**/lwc/**', normalizePath(ws))
             )
           )) ?? [];
         const lwcRootDirs = [
@@ -122,7 +124,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       case 'UNKNOWN': {
         // discover all LWC roots via findFilesWithGlobAsync (same dirs findNamespaceRoots would find)
         const workspaceRoot = normalizePath(this.workspaceRoots[0]);
-        const pathsUnderLwc = (await this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**', workspaceRoot)) ?? [];
+        const pathsUnderLwc = (await this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**', workspaceRoot)) ?? [];
         const IGNORED_DIRS = new Set(['node_modules', 'bin', 'target', 'jest-modules', 'repository', 'git']);
         const lwcRootDirs = [
           ...new Set(
@@ -180,14 +182,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
     try {
       const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
-      this.fileSystemProvider.updateFileStat(baseTsConfigPath, {
-        type: 'file',
-        exists: true,
-        ctime: Date.now(),
-        mtime: Date.now(),
-        size: baseTsConfig.length
-      });
-      await this.fileSystemProvider.updateFileContent(baseTsConfigPath, baseTsConfig, this.connection);
+      await this.fileSystemAccessor.updateFileContent(baseTsConfigPath, baseTsConfig, this.connection);
     } catch (error) {
       Logger.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
       throw error;
@@ -198,7 +193,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
     const forceignore = path.join(this.workspaceRoots[0], '.forceignore');
     // TODO: We should only be looking through modules that have TS files
-    const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
+    const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemAccessor, () =>
       this.initSfdxProjectConfigCache()
     );
 
@@ -206,16 +201,8 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       const tsConfigPath = path.join(modulesDir, 'tsconfig.json');
       const relativeWorkspaceRoot = relativePath(path.dirname(tsConfigPath), this.workspaceRoots[0]);
       const tsConfigContent = ejs.render(tsConfigTemplate, { project_root: relativeWorkspaceRoot });
-      // Update file stat first
-      this.fileSystemProvider.updateFileStat(tsConfigPath, {
-        type: 'file',
-        exists: true,
-        ctime: Date.now(),
-        mtime: Date.now(),
-        size: tsConfigContent.length
-      });
-      await this.fileSystemProvider.updateFileContent(tsConfigPath, tsConfigContent, this.connection);
-      await updateForceIgnoreFile(forceignore, true, this.fileSystemProvider);
+      await this.fileSystemAccessor.updateFileContent(tsConfigPath, tsConfigContent, this.connection);
+      await updateForceIgnoreFile(forceignore, true, this.fileSystemAccessor);
     }
   }
 

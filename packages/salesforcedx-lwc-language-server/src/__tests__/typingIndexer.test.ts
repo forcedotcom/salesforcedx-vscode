@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { getSfdxPackageDirsPattern } from '../baseIndexer';
 import TypingIndexer, { getMetaTypings, pathBasename } from '../typingIndexer';
@@ -18,20 +18,20 @@ describe('TypingIndexer', () => {
       {
         workspaceRoot: SFDX_WORKSPACE_ROOT
       },
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
   });
 
   afterEach(async () => {
     // Clear the file system provider data for the typings directory
-    void sfdxFileSystemProvider.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
+    void sfdxFileSystemAccessor.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
   });
 
   describe('new', () => {
     it('initializes with the root of a workspace', async () => {
       // workspaceRoot is normalized by getWorkspaceRoot, so normalize the expected path for comparison
       expect(typingIndexer.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
-      expect(await getSfdxPackageDirsPattern(typingIndexer.workspaceRoot, sfdxFileSystemProvider)).toEqual(
+      expect(await getSfdxPackageDirsPattern(typingIndexer.workspaceRoot, sfdxFileSystemAccessor)).toEqual(
         '{force-app,utils,registered-empty-folder}'
       );
     });
@@ -49,7 +49,7 @@ describe('TypingIndexer', () => {
 
       for (const filename of filepaths) {
         const filepath = path.join(typingIndexer.typingsBaseDir, filename);
-        const exists = await sfdxFileSystemProvider.fileExists(`${filepath}`);
+        const exists = await sfdxFileSystemAccessor.fileExists(`${filepath}`);
         expect(exists).toBeTrue();
       }
     });
@@ -60,20 +60,19 @@ describe('TypingIndexer', () => {
       const typing: string = path.join(typingIndexer.typingsBaseDir, 'logo.resource.d.ts');
       const staleTyping: string = path.join(typingIndexer.typingsBaseDir, 'extra.resource.d.ts');
 
-      sfdxFileSystemProvider.updateDirectoryListing(`${typingIndexer.typingsBaseDir}`, []);
-      void sfdxFileSystemProvider.updateFileContent(`${typing}`, 'foobar');
-      void sfdxFileSystemProvider.updateFileContent(`${staleTyping}`, 'foobar');
+      void sfdxFileSystemAccessor.updateFileContent(`${typing}`, 'foobar');
+      void sfdxFileSystemAccessor.updateFileContent(`${staleTyping}`, 'foobar');
 
       await typingIndexer.deleteStaleMetaTypings();
 
-      expect(await sfdxFileSystemProvider.fileExists(`${typing}`)).toBeTrue();
-      expect(await sfdxFileSystemProvider.fileExists(`${staleTyping}`)).toBeFalse();
+      expect(await sfdxFileSystemAccessor.fileExists(`${typing}`)).toBeTrue();
+      expect(await sfdxFileSystemAccessor.fileExists(`${staleTyping}`)).toBeFalse();
     });
   });
 
   describe('#saveCustomLabelTypings', () => {
     afterEach(async () => {
-      void sfdxFileSystemProvider.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
+      void sfdxFileSystemAccessor.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
     });
 
     it('saves the custom labels xml file to 1 typings file', async () => {
@@ -85,8 +84,8 @@ describe('TypingIndexer', () => {
         'lwc',
         'customlabels.d.ts'
       );
-      expect(await sfdxFileSystemProvider.fileExists(`${customLabelPath}`)).toBeTrue();
-      const content = await sfdxFileSystemProvider.getFileContent(`${customLabelPath}`);
+      expect(await sfdxFileSystemAccessor.fileExists(`${customLabelPath}`)).toBeTrue();
+      const content = await sfdxFileSystemAccessor.getFileContent(`${customLabelPath}`);
       expect(content).toInclude('declare module');
     });
   });
@@ -119,16 +118,6 @@ describe('TypingIndexer', () => {
 
   describe('#metaTypings', () => {
     test("it returns all the paths for meta files' typings", async () => {
-      sfdxFileSystemProvider.updateDirectoryListing(
-        `${path.join(typingIndexer.typingsBaseDir, 'staticresources')}`,
-        []
-      );
-      sfdxFileSystemProvider.updateDirectoryListing(
-        `${path.join(typingIndexer.typingsBaseDir, 'messageChannels')}`,
-        []
-      );
-      sfdxFileSystemProvider.updateDirectoryListing(`${path.join(typingIndexer.typingsBaseDir, 'contentassets')}`, []);
-
       const expectedMetaFileTypingPaths: string[] = [
         '.sfdx/typings/lwc/logo.asset.d.ts',
         '.sfdx/typings/lwc/Channel1.messageChannel.d.ts',
@@ -137,7 +126,7 @@ describe('TypingIndexer', () => {
       ].map(item => path.resolve(`${typingIndexer.workspaceRoot}/${item}`));
 
       for (const filePath of expectedMetaFileTypingPaths) {
-        void sfdxFileSystemProvider.updateFileContent(`${filePath}`, 'foobar');
+        void sfdxFileSystemAccessor.updateFileContent(`${filePath}`, 'foobar');
       }
 
       const metaFilePaths: string[] = await getMetaTypings(typingIndexer);

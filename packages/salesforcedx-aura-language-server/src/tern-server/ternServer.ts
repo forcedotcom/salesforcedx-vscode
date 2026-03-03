@@ -6,7 +6,7 @@
  */
 // @ts-nocheck as this is a third party library
 import { extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common/providers/fileSystemDataProvider';
+import { LspFileSystemAccessor } from '@salesforce/salesforcedx-lightning-lsp-common/providers/lspFileSystemAccessor';
 import LineColumnFinder from 'line-column';
 import * as path from 'node:path';
 import * as util from 'node:util';
@@ -92,12 +92,12 @@ const auraInstanceLastSort = (a: string, b: string): number =>
  */
 const getJsFilesRecursively = async (
   dirPath: string,
-  fileSystemProvider: FileSystemDataProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<string[]> => {
-  if (!fileSystemProvider.findFilesWithGlobAsync) {
+  if (!fileSystemAccessor.findFilesWithGlobAsync) {
     return [];
   }
-  return (await fileSystemProvider.findFilesWithGlobAsync('**/*.js', dirPath)) ?? [];
+  return (await fileSystemAccessor.findFilesWithGlobAsync('**/*.js', dirPath)) ?? [];
 };
 
 const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: true }> => {
@@ -138,12 +138,12 @@ const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: 
 
 /**
  * Recursively search upward from the starting directory for resources/aura.
- * Uses fileSystemProvider.getFileStat (workspace/stat) for web compatibility.
+ * Uses fileSystemAccessor.getFileStat (workspace/stat) for web compatibility.
  * Handles monorepo, packaged, and bundled layouts.
  */
-const searchAuraResourcesPath = async (dir: string, fileSystemProvider: FileSystemDataProvider): Promise<string> => {
+const searchAuraResourcesPath = async (dir: string, fileSystemAccessor: LspFileSystemAccessor): Promise<string> => {
   const resourcesPath = path.join(dir, 'resources', 'aura');
-  const fileStat = await fileSystemProvider.getFileStat(resourcesPath);
+  const fileStat = await fileSystemAccessor.getFileStat(resourcesPath);
 
   if (fileStat?.type === 'directory') {
     return resourcesPath;
@@ -153,10 +153,10 @@ const searchAuraResourcesPath = async (dir: string, fileSystemProvider: FileSyst
     throw new Error('No resources/aura directory found');
   }
 
-  return searchAuraResourcesPath(path.dirname(dir), fileSystemProvider);
+  return searchAuraResourcesPath(path.dirname(dir), fileSystemAccessor);
 };
 
-const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<void> => {
+const ternInit = async (fileSystemAccessor: LspFileSystemAccessor): Promise<void> => {
   await asyncTernRequest({
     query: {
       type: 'ideInit',
@@ -165,14 +165,14 @@ const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<voi
     }
   });
 
-  const resources = await searchAuraResourcesPath(__dirname, fileSystemProvider);
-  const files = await getJsFilesRecursively(resources, fileSystemProvider);
+  const resources = await searchAuraResourcesPath(__dirname, fileSystemAccessor);
+  const files = await getJsFilesRecursively(resources, fileSystemAccessor);
 
   // special handling for hacking one snowflake file that needs to go last
   files.sort(auraInstanceLastSort);
 
   for (const file of files) {
-    const content = await fileSystemProvider.getFileContent(file);
+    const content = await fileSystemAccessor.getFileContent(file);
     if (!content) {
       throw new Error(nls.localize('file_not_found_message'));
     }
@@ -186,12 +186,12 @@ const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<voi
   }
 };
 
-export const init = (fileSystemProvider: FileSystemDataProvider) => ternInit(fileSystemProvider);
+export const init = (fileSystemAccessor: LspFileSystemAccessor) => ternInit(fileSystemAccessor);
 
 export const startServer = async (
   rootPath: string,
   wsroot: string,
-  fileSystemProvider: FileSystemDataProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<tern.Server> => {
   // Load JSON files at runtime using require() with paths resolved at module load time
   let browserJsonImport: unknown;
@@ -248,7 +248,7 @@ export const startServer = async (
     projectDir: rootPath,
     getFile: (filename: string, callback: (error: Error | undefined, content?: string) => void): void => {
       // note: this isn't invoked
-      void fileSystemProvider
+      void fileSystemAccessor
         .getFileContent(path.resolve(rootPath, filename))
         .then(content => callback(undefined, content))
         .catch((error: unknown) => {
@@ -263,8 +263,8 @@ export const startServer = async (
   asyncTernRequest = util.promisify(ternServer.request.bind(ternServer));
   asyncFlush = util.promisify(ternServer.flush.bind(ternServer));
 
-  // Don't initialize tern here - wait until fileSystemProvider is reconstructed
-  // await init(fileSystemProvider)();
+  // Don't initialize tern here - wait until fileSystemAccessor is reconstructed
+  // await init(fileSystemAccessor)();
 
   return ternServer;
 };
@@ -324,12 +324,8 @@ export const delFile = (close: TextDocumentChangeEvent<TextDocument>): void => {
   ternServer.delFile(uriToFile(document.uri));
 };
 
-export const onCompletion = async (
-  completionParams: CompletionParams,
-  fileSystemProvider: FileSystemDataProvider
-): Promise<CompletionList> => {
+export const onCompletion = async (completionParams: CompletionParams): Promise<CompletionList> => {
   try {
-    await init(fileSystemProvider);
     await asyncFlush();
 
     const { completions } = await ternRequest(completionParams, 'completions', {
@@ -372,12 +368,8 @@ export const onCompletion = async (
   }
 };
 
-export const onHover = async (
-  textDocumentPosition: TextDocumentPositionParams,
-  fileSystemProvider: FileSystemDataProvider
-): Promise<Hover> => {
+export const onHover = async (textDocumentPosition: TextDocumentPositionParams): Promise<Hover> => {
   try {
-    await init(fileSystemProvider);
     await asyncFlush();
     const info = await ternRequest(textDocumentPosition, 'type');
 
@@ -399,13 +391,12 @@ export const onHover = async (
 };
 
 export const onTypeDefinition = async (
-  textDocumentPosition: TextDocumentPositionParams,
-  fileSystemProvider: FileSystemDataProvider
+  textDocumentPosition: TextDocumentPositionParams
 ): Promise<Definition | undefined> => {
   const info = await ternRequest(textDocumentPosition, 'type');
   if (info?.origin) {
     try {
-      const content = await fileSystemProvider.getFileContent(info.origin);
+      const content = await fileSystemAccessor.getFileContent(info.origin);
       if (!content) {
         throw new Error('File not found');
       }
@@ -430,12 +421,8 @@ export const onTypeDefinition = async (
   return undefined;
 };
 
-export const onDefinition = async (
-  textDocumentPosition: TextDocumentPositionParams,
-  fileSystemProvider: FileSystemDataProvider
-): Promise<Location | undefined> => {
+export const onDefinition = async (textDocumentPosition: TextDocumentPositionParams): Promise<Location | undefined> => {
   try {
-    await init(fileSystemProvider);
     await asyncFlush();
     const { file, start, end } = await ternRequest(textDocumentPosition, 'definition', {
       preferFunction: false,
@@ -451,7 +438,7 @@ export const onDefinition = async (
         textDocumentPosition.position.character >= start?.ch &&
         textDocumentPosition.position.character <= end?.ch
       ) {
-        const typeDef = await onTypeDefinition(textDocumentPosition, fileSystemProvider);
+        const typeDef = await onTypeDefinition(textDocumentPosition);
         if (typeDef && 'uri' in typeDef && 'range' in typeDef) {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           return typeDef as Location;
@@ -478,11 +465,7 @@ export const onDefinition = async (
   return undefined;
 };
 
-export const onReferences = async (
-  reference: ReferenceParams,
-  fileSystemProvider: FileSystemDataProvider
-): Promise<Location[] | undefined> => {
-  await init(fileSystemProvider);
+export const onReferences = async (reference: ReferenceParams): Promise<Location[] | undefined> => {
   await asyncFlush();
   const { refs } = await ternRequest(reference, 'refs');
   if (refs && refs.length > 0) {
@@ -492,15 +475,13 @@ export const onReferences = async (
 };
 
 export const onSignatureHelp = async (
-  signatureParams: TextDocumentPositionParams,
-  fileSystemProvider: FileSystemDataProvider
+  signatureParams: TextDocumentPositionParams
 ): Promise<SignatureHelp | undefined> => {
   const {
     position,
     textDocument: { uri }
   } = signatureParams;
   try {
-    await init(fileSystemProvider);
     await asyncFlush();
     const files = ternServer.files;
     const fileName = ternServer.normalizeFilename(uriToFile(uri));

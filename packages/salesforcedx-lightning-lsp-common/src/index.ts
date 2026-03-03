@@ -65,15 +65,13 @@ export {
   WORKSPACE_READ_FILE_REQUEST,
   WORKSPACE_STAT_REQUEST,
   WORKSPACE_READ_DIRECTORY_REQUEST,
-  WORKSPACE_FIND_FILES_REQUEST
+  WORKSPACE_FIND_FILES_REQUEST,
+  WORKSPACE_DELETE_FILE_REQUEST
 } from './lspCustomRequests';
 
 // Re-export from file system providers
-export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
+export { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
-
-// Re-export from document sync
-export { syncDocumentToTextDocumentsProvider } from './documentSync';
 
 // Re-export TypeScript configuration templates
 export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';

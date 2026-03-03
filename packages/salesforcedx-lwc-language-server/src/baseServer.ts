@@ -10,10 +10,8 @@ import {
   toResolvedPath,
   getBasename,
   AttributeInfo,
-  FileSystemDataProvider,
+  LspFileSystemAccessor,
   BaseWorkspaceContext,
-  type BaseWorkspaceContextOptions,
-  syncDocumentToTextDocumentsProvider,
   NormalizedPath,
   WorkspaceType,
   normalizePath,
@@ -139,12 +137,12 @@ export abstract class BaseServer {
   public languageService!: LanguageService;
   public auraDataProvider!: AuraDataProvider;
   public lwcDataProvider!: LWCDataProvider;
-  public fileSystemProvider: FileSystemDataProvider;
+  public fileSystemAccessor: LspFileSystemAccessor;
   private workspaceType: WorkspaceType;
 
   constructor() {
     this.connection = this.createConnection();
-    this.fileSystemProvider = new FileSystemDataProvider();
+    this.fileSystemAccessor = new LspFileSystemAccessor();
 
     this.connection.onInitialize(params => this.onInitialize(params));
     this.connection.onCompletion(params => this.onCompletion(params));
@@ -159,11 +157,6 @@ export abstract class BaseServer {
 
   protected abstract createConnection(): Connection;
 
-  /** Override in Node to pass sfdxTypingsDir (avoids __dirname in common for web). */
-  protected getContextOptions(): BaseWorkspaceContextOptions | undefined {
-    return undefined;
-  }
-
   public onInitialize(params: InitializeParams): InitializeResult {
     this.workspaceFolders = params.workspaceFolders ?? [];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -171,15 +164,15 @@ export abstract class BaseServer {
 
     // Set workspace folder URIs first so the provider can convert paths to the client's scheme (e.g. memfs:// in browser).
     // Without this, fileExists/getFileStat send file:// URIs and the client cannot find files in memfs.
-    this.fileSystemProvider.setWorkspaceFolderUris(this.workspaceFolders.map(f => f.uri));
-    this.fileSystemProvider.setReadFileFromConnection(this.connection, WORKSPACE_READ_FILE_REQUEST);
-    this.fileSystemProvider.setReadStatFromConnection(this.connection, WORKSPACE_STAT_REQUEST);
-    this.fileSystemProvider.setFindFilesFromConnection(this.connection, WORKSPACE_FIND_FILES_REQUEST);
+    this.fileSystemAccessor.setWorkspaceFolderUris(this.workspaceFolders.map(f => f.uri));
+    this.fileSystemAccessor.setReadFileFromConnection(this.connection, WORKSPACE_READ_FILE_REQUEST);
+    this.fileSystemAccessor.setReadStatFromConnection(this.connection, WORKSPACE_STAT_REQUEST);
+    this.fileSystemAccessor.setFindFilesFromConnection(this.connection, WORKSPACE_FIND_FILES_REQUEST);
 
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // Use uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
     // This ensures all downstream code receives normalized paths
-    this.workspaceRoots = this.workspaceFolders.map(folder => this.fileSystemProvider.uriToNormalizedPath(folder.uri));
+    this.workspaceRoots = this.workspaceFolders.map(folder => this.fileSystemAccessor.uriToNormalizedPath(folder.uri));
 
     // Set up document event handlers
     this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
@@ -187,17 +180,11 @@ export abstract class BaseServer {
     this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
     // Create context but don't initialize yet - wait for files to be loaded via onDidOpen
-    this.context = new LWCWorkspaceContext(
-      this.workspaceRoots,
-      this.fileSystemProvider,
-      this.connection,
-      this.getContextOptions()
-    );
+    this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemAccessor, this.connection);
 
-    // Create component indexer with fileSystemProvider (will be re-initialized after delayed init)
     this.componentIndexer = new ComponentIndexer({
       workspaceRoot: this.workspaceRoots[0],
-      fileSystemProvider: this.fileSystemProvider
+      fileSystemAccessor: this.fileSystemAccessor
     });
 
     // Create data providers (will be re-initialized after delayed init)
@@ -410,7 +397,7 @@ export abstract class BaseServer {
   }
 
   /**
-   * Syncs FileSystemDataProvider from TextDocuments when a document is opened.
+   * Syncs LspFileSystemAccessor from TextDocuments when a document is opened.
    * This avoids duplicate reads - TextDocuments is the source of truth for open files.
    * Returns path info so subclasses can add logic without re-syncing.
    */
@@ -419,7 +406,7 @@ export abstract class BaseServer {
     const uri = document.uri;
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
+    const normalizedPath = this.fileSystemAccessor.uriToNormalizedPath(uri);
 
     if (
       normalizedPath.includes('/lwc/') &&
@@ -432,13 +419,6 @@ export abstract class BaseServer {
   public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
     const { document } = changeEvent;
     const { uri } = document;
-    const content = document.getText();
-
-    // Normalize URI to fsPath before syncing (entry point for path normalization)
-    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
-    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
-    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
-
     if (await this.context.isLWCTemplate(document)) {
       const diagnostics = templateLinter(document);
       await this.connection.sendDiagnostics({ uri, diagnostics });
@@ -510,13 +490,6 @@ export abstract class BaseServer {
 
   public async onDidSave(change: TextDocumentChangeEvent<TextDocument>): Promise<void> {
     const { document } = change;
-    const uri = document.uri;
-    const content = document.getText();
-
-    // Normalize URI to fsPath before syncing (entry point for path normalization)
-    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
-    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
-    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
 
     if (await this.context.isLWCJavascript(document)) {
       const { metadata } = javascriptCompileDocument(document);
@@ -559,7 +532,7 @@ export abstract class BaseServer {
         case 'tag':
           if (tag) {
             try {
-              result = await getAllLocations(tag, this.fileSystemProvider);
+              result = await getAllLocations(tag, this.fileSystemAccessor);
             } catch (error) {
               Logger.error(
                 `[onDefinition] Error getting all locations for tag ${cursorInfo.tag}: ${error instanceof Error ? error.message : String(error)}`,
@@ -594,7 +567,7 @@ export abstract class BaseServer {
               }
               const component: Tag | null = this.componentIndexer.findTagByURI(uri);
               if (component) {
-                const location = getClassMemberLocation(component, cursorInfo.name, this.fileSystemProvider);
+                const location = getClassMemberLocation(component, cursorInfo.name, this.fileSystemAccessor);
                 if (location) {
                   result = [location];
                 }
@@ -739,7 +712,7 @@ export abstract class BaseServer {
 
   /**
    * Performs delayed initialization of context and component indexer
-   * Files are loaded into fileSystemProvider via onDidOpen events
+   * Files are loaded into fileSystemAccessor via onDidOpen events
    */
   protected async performDelayedInitialization(): Promise<void> {
     // Prevent concurrent initialization attempts
@@ -763,15 +736,15 @@ export abstract class BaseServer {
       let htmlCount = 0;
       let jsCount = 0;
       let tsCount = 0;
-      if (this.fileSystemProvider.findFilesWithGlobAsync && this.workspaceRoots[0]) {
+      if (this.fileSystemAccessor.findFilesWithGlobAsync && this.workspaceRoots[0]) {
         const basePath = this.workspaceRoots[0];
         Logger.info(`[LWC] performDelayedInitialization: findFiles basePath=${basePath}`);
         const findFilesTimeoutMs = 8000;
         const findFilesWithTimeout = Promise.race([
           Promise.all([
-            this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
-            this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
-            this.fileSystemProvider.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
+            this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
+            this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
+            this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
           ]),
           new Promise<[undefined, undefined, undefined]>((_, reject) =>
             setTimeout(() => reject(new Error('findFiles timeout')), findFilesTimeoutMs)
@@ -803,7 +776,7 @@ export abstract class BaseServer {
       // For SFDX workspaces, wait for sfdx-project.json to be loaded before initializing component indexer
       if (this.workspaceType === 'SFDX') {
         const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
-        const sfdxExists = await this.fileSystemProvider.fileExists(sfdxProjectPath);
+        const sfdxExists = await this.fileSystemAccessor.fileExists(sfdxProjectPath);
         if (!sfdxExists) {
           Logger.info(
             `[LWC] performDelayedInitialization: SFDX workspace but sfdx-project.json not found at ${sfdxProjectPath}, exiting early`
@@ -813,10 +786,10 @@ export abstract class BaseServer {
         }
       }
 
-      // Re-initialize component indexer (files are now in fileSystemProvider)
+      // Re-initialize component indexer (files are now in fileSystemAccessor)
       this.componentIndexer = new ComponentIndexer({
         workspaceRoot: this.workspaceRoots[0],
-        fileSystemProvider: this.fileSystemProvider,
+        fileSystemAccessor: this.fileSystemAccessor,
         workspaceType: this.workspaceType
       });
 
@@ -825,7 +798,7 @@ export abstract class BaseServer {
       // Update data providers to use the new indexer
       this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
       this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider, this.connection);
+      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemAccessor, this.connection);
       this.languageService = getLanguageService({
         customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
         useDefaultDataProvider: false
@@ -864,7 +837,7 @@ export abstract class BaseServer {
     }
     this.componentIndexer = new ComponentIndexer({
       workspaceRoot: this.workspaceRoots[0],
-      fileSystemProvider: this.fileSystemProvider,
+      fileSystemAccessor: this.fileSystemAccessor,
       workspaceType: this.workspaceType
     });
     await this.componentIndexer.init();

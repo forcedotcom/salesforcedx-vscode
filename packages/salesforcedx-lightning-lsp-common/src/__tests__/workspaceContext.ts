@@ -68,7 +68,7 @@ export class WorkspaceContext extends BaseWorkspaceContext {
               .stat(vscode.Uri.file(modulesDir))
               .then(stat => stat.type === vscode.FileType.Directory)
           ) {
-            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
+            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemAccessor, 2);
             roots.lwc.push(...subroots.lwc);
           }
         }
@@ -82,7 +82,7 @@ export class WorkspaceContext extends BaseWorkspaceContext {
               .stat(vscode.Uri.file(modulesDir))
               .then(stat => stat.type === vscode.FileType.Directory)
           ) {
-            const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemProvider, 2);
+            const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemAccessor, 2);
             roots.lwc.push(...subroots.lwc);
           }
         }
@@ -95,7 +95,7 @@ export class WorkspaceContext extends BaseWorkspaceContext {
         if (this.type === 'MONOREPO') {
           depth += 2;
         }
-        const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemProvider, depth);
+        const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemAccessor, depth);
         roots.lwc.push(...unknownroots.lwc);
         return roots;
       }

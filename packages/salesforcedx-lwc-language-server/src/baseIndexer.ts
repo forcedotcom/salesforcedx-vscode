@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  IFileSystemProvider,
+  LspFileSystemAccessor,
   Logger,
   NormalizedPath,
   normalizePath
@@ -49,22 +49,22 @@ export const getWorkspaceRoot = (workspaceRoot: string): NormalizedPath => {
 /** Get SFDX configuration from sfdx-project.json */
 const getSfdxConfig = async (
   root: NormalizedPath,
-  fileSystemProvider: IFileSystemProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<SfdxProjectConfig> => {
   const filename = normalizePath(path.join(root, 'sfdx-project.json'));
 
-  if (fileSystemProvider) {
+  if (fileSystemAccessor) {
     // Also check with URI format in case that's needed
-    // const allFileUris = fileSystemProvider.getAllFileUris();
+    // const allFileUris = fileSystemAccessor.getAllFileUris();
 
     // Try to find the exact match
     // const exactMatch = allFileUris.find(uri => normalizePath(uri) === filename);
 
-    const content = await fileSystemProvider.getFileContent(filename);
+    const content = await fileSystemAccessor.getFileContent(filename);
 
     // // If content not found with direct path, try with exact match URI if found
     // if (!content && exactMatch) {
-    //   const contentFromUri = await fileSystemProvider.getFileContent(exactMatch);
+    //   const contentFromUri = await fileSystemAccessor.getFileContent(exactMatch);
     //   if (contentFromUri) {
     //     try {
     //       return JSON.parse(contentFromUri);
@@ -94,9 +94,9 @@ const getSfdxConfig = async (
 /** Get SFDX package directories pattern from sfdx-project.json */
 export const getSfdxPackageDirsPattern = async (
   workspaceRoot: NormalizedPath,
-  fileSystemProvider: IFileSystemProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<string> => {
-  const config = await getSfdxConfig(workspaceRoot, fileSystemProvider);
+  const config = await getSfdxConfig(workspaceRoot, fileSystemAccessor);
   const dirs = config.packageDirectories;
   const paths: string[] = dirs?.map(item => item.path) ?? [];
 

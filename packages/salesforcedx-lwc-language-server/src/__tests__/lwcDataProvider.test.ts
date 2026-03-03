@@ -24,7 +24,7 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
 
 import { WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  sfdxFileSystemProvider,
+  sfdxFileSystemAccessor,
   SFDX_WORKSPACE_ROOT,
   createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths
@@ -35,19 +35,19 @@ import { DataProviderAttributes, LWCDataProvider } from '../lwcDataProvider';
 import { TagAttrs, createTag, getTagName } from '../tag';
 
 // Discovery via workspace/findFiles (no server-side cache)
-sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-sfdxFileSystemProvider.setFindFilesFromConnection(
+sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+sfdxFileSystemAccessor.setFindFilesFromConnection(
   createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
   relativePaths: getSfdxWorkspaceRelativePaths()
 }) as Parameters<
-    typeof sfdxFileSystemProvider.setFindFilesFromConnection
+    typeof sfdxFileSystemAccessor.setFindFilesFromConnection
   >[0],
   WORKSPACE_FIND_FILES_REQUEST
 );
 
 const componentIndexer: ComponentIndexer = new ComponentIndexer({
   workspaceRoot: SFDX_WORKSPACE_ROOT,
-  fileSystemProvider: sfdxFileSystemProvider
+  fileSystemAccessor: sfdxFileSystemAccessor
 });
 const attributes: DataProviderAttributes = {
   indexer: componentIndexer
@@ -84,7 +84,7 @@ describe('provideValues()', () => {
 
     const componentIndexr = new ComponentIndexer({
       workspaceRoot: SFDX_WORKSPACE_ROOT,
-      fileSystemProvider: sfdxFileSystemProvider
+      fileSystemAccessor: sfdxFileSystemAccessor
     });
     componentIndexr.tags.set(getTagName(tag), tag);
 

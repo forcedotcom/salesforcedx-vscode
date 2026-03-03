@@ -8,8 +8,7 @@ import * as fs from 'node:fs';
 import { extname, join, resolve, dirname } from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
-import { DirectoryEntry } from '../types/fileSystemTypes';
+import { LspFileSystemAccessor } from '../providers/lspFileSystemAccessor';
 import { normalizePath } from '../utils';
 
 // Test workspace paths for common package (running from source)
@@ -29,6 +28,31 @@ const COMMON_CORE_ALL_ROOT = resolve(
 
 // Test workspace paths for other packages (running from compiled code)
 const PACKAGE_SFDX_WORKSPACE_ROOT = resolve(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  'test-workspaces',
+  'sfdx-workspace'
+);
+
+// Repo root test-workspaces (when LWC/Aura tests run with workspace at repo root)
+// From source: 7 up from common/src/__tests__ = repo; from out: 5 up from common/out/src/__tests__ = repo
+const REPO_SFDX_WORKSPACE_ROOT_7 = resolve(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  'test-workspaces',
+  'sfdx-workspace'
+);
+const REPO_SFDX_WORKSPACE_ROOT_5 = resolve(
   __dirname,
   '..',
   '..',
@@ -58,7 +82,7 @@ const normalizedDirname = __dirname.replaceAll('\\', '/');
 const isCommonPackage = __dirname.includes('salesforcedx-lightning-lsp-common') && !normalizedDirname.includes('/out/');
 
 // Normalize workspace roots to ensure consistent path format (especially Windows drive letter casing)
-// This ensures paths match how files are stored in FileSystemDataProvider (which normalizes paths)
+// This ensures paths match how files are stored in LspFileSystemAccessor (which normalizes paths)
 export const SFDX_WORKSPACE_ROOT = normalizePath(
   isCommonPackage ? COMMON_SFDX_WORKSPACE_ROOT : PACKAGE_SFDX_WORKSPACE_ROOT
 );
@@ -113,7 +137,7 @@ const getTestWorkspaceFiles = (): Record<string, string> => {
   const files: Record<string, string> = {};
 
   // Read all files from the test workspace to match what fast-glob would find
-  // This ensures the FileSystemDataProvider has all files that would be found by fast-glob
+  // This ensures the LspFileSystemAccessor has all files that would be found by fast-glob
   findFilesRecursively(SFDX_WORKSPACE_ROOT, SFDX_WORKSPACE_ROOT, files);
 
   return files;
@@ -138,13 +162,13 @@ const languageId = (path: string): string => {
 
 export const readAsTextDocument = async (
   path: string,
-  fileSystemProvider: FileSystemDataProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<TextDocument> => {
   // Normalize path for cross-platform compatibility
   const normalizedPath = normalizePath(path);
   // Create a proper file:// URI for the TextDocument
   const uri = URI.file(normalizedPath).toString();
-  const content = (await fileSystemProvider.getFileContent(normalizedPath)) ?? '';
+  const content = (await fileSystemAccessor.getFileContent(normalizedPath)) ?? '';
   return TextDocument.create(uri, languageId(path), 0, content);
 };
 
@@ -503,339 +527,33 @@ export const CORE_PARTIAL_WORKSPACE_STRUCTURE = {
   })
 };
 
-/** Helper function to populate FileSystemDataProvider with workspace structure */
-export const populateFileSystemProvider = (
-  fileSystemProvider: FileSystemDataProvider,
-  workspacePath: string,
-  structure: Record<string, string>
-): void => {
-  // Normalize workspace path for cross-platform compatibility
-  const normalizedWorkspacePath = normalizePath(workspacePath);
+// Pre-configured file system providers for different workspace types (InMemory so tests can populate/read without LSP)
+export const sfdxFileSystemAccessor = new LspFileSystemAccessor();
+export const standardFileSystemAccessor = new LspFileSystemAccessor();
+export const coreFileSystemAccessor = new LspFileSystemAccessor();
+export const coreProjectFileSystemAccessor = new LspFileSystemAccessor();
+export const coreMultiFileSystemAccessor = new LspFileSystemAccessor();
 
-  // First, create all directories
-  const allPaths = Object.keys(structure);
-  const directories = new Set<string>();
-
-  // Extract all directory paths from file paths
-  allPaths.forEach(filePath => {
-    const pathParts = filePath.split('/');
-    for (let i = 1; i < pathParts.length; i++) {
-      const dirPath = pathParts.slice(0, i).join('/');
-      directories.add(dirPath);
-    }
-  });
-
-  // Create workspace root directory listing
-  const workspaceRootEntries: DirectoryEntry[] = [];
-  const rootLevelPaths = allPaths.filter(p => !p.includes('/'));
-  const rootLevelDirs = allPaths.filter(p => p.includes('/') && !p.substring(0, p.indexOf('/')).includes('/'));
-  const rootLevelItems = new Set([...rootLevelPaths, ...rootLevelDirs.map(p => p.substring(0, p.indexOf('/')))]);
-
-  rootLevelItems.forEach(item => {
-    workspaceRootEntries.push({
-      name: item,
-      type: item.includes('.') ? 'file' : 'directory',
-      uri: normalizePath(join(normalizedWorkspacePath, item))
-    });
-  });
-
-  if (workspaceRootEntries.length > 0) {
-    fileSystemProvider.updateDirectoryListing(normalizedWorkspacePath, workspaceRootEntries);
+// Populate SFDX accessor so performDelayedInitialization finds sfdx-project.json and component indexer can read files.
+// Use all possible workspace roots so tests pass whether run from common, other packages, or repo root.
+const sfdxRootsToPopulate = [
+  COMMON_SFDX_WORKSPACE_ROOT,
+  PACKAGE_SFDX_WORKSPACE_ROOT,
+  REPO_SFDX_WORKSPACE_ROOT_7,
+  REPO_SFDX_WORKSPACE_ROOT_5
+];
+for (const root of sfdxRootsToPopulate) {
+  for (const [relPath, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE)) {
+    const fullPath = normalizePath(join(root, relPath.replaceAll('\\', '/')));
+    void sfdxFileSystemAccessor.updateFileContent(fullPath, content);
   }
-
-  // For CORE_PARTIAL detection, create parent workspace-user.xml file
-  if (structure === CORE_PARTIAL_WORKSPACE_STRUCTURE) {
-    const parentDir = normalizePath(resolve(normalizedWorkspacePath, '..'));
-    const parentWorkspaceUserFile = normalizePath(join(parentDir, 'workspace-user.xml'));
-    fileSystemProvider.updateFileStat(parentWorkspaceUserFile, {
-      type: 'file',
-      exists: true,
-      ctime: 0,
-      mtime: 0,
-      size: 0
-    });
-    void fileSystemProvider.updateFileContent(
-      parentWorkspaceUserFile,
-      '<?xml version="1.0" encoding="UTF-8"?><workspace></workspace>'
-    );
-  }
-
-  // Add template files for SFDX configuration
-  const jsconfigSfdxTemplate = JSON.stringify({
-    compilerOptions: {
-      experimentalDecorators: true,
-      baseUrl: '.',
-      paths: {
-        'c/*': ['*']
-      }
-    },
-    include: ['**/*', '<%= project_root %>/.sfdx/typings/lwc/**/*.d.ts'],
-    typeAcquisition: {
-      include: ['jest']
-    }
-  });
-
-  const jsconfigSfdxPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'jsconfig-sfdx.json'));
-  fileSystemProvider.updateFileStat(jsconfigSfdxPath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: jsconfigSfdxTemplate.length
-  });
-  void fileSystemProvider.updateFileContent(jsconfigSfdxPath, jsconfigSfdxTemplate);
-
-  // Add typings files that the test expects to be created
-  const ldsTypingsPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'lds.d.ts'));
-  const ldsTypingsContent = 'declare module "@salesforce/lds" { /* LDS types */ }';
-  fileSystemProvider.updateFileStat(ldsTypingsPath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: ldsTypingsContent.length
-  });
-  void fileSystemProvider.updateFileContent(ldsTypingsPath, ldsTypingsContent);
-
-  const engineTypingsPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'engine.d.ts'));
-  const engineTypingsContent = 'declare module "@salesforce/engine" { /* Engine types */ }';
-  fileSystemProvider.updateFileStat(engineTypingsPath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: engineTypingsContent.length
-  });
-  void fileSystemProvider.updateFileContent(engineTypingsPath, engineTypingsContent);
-
-  const schemaTypingsPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'schema.d.ts'));
-  const schemaTypingsContent = 'declare module "@salesforce/schema" { /* Schema types */ }';
-  fileSystemProvider.updateFileStat(schemaTypingsPath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: schemaTypingsContent.length
-  });
-  void fileSystemProvider.updateFileContent(schemaTypingsPath, schemaTypingsContent);
-
-  const apexTypingsPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'apex.d.ts'));
-  const apexTypingsContent = 'declare module "@salesforce/apex" { /* Apex types */ }';
-  fileSystemProvider.updateFileStat(apexTypingsPath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: apexTypingsContent.length
-  });
-  void fileSystemProvider.updateFileContent(apexTypingsPath, apexTypingsContent);
-
-  // Add Core template files
-  const jsconfigCoreTemplate = JSON.stringify({
-    compilerOptions: {
-      experimentalDecorators: true,
-      baseUrl: '.',
-      paths: {
-        'c/*': ['*']
-      }
-    },
-    include: ['**/*', '<%= project_root %>/.vscode/typings/lwc/**/*.d.ts'],
-    typeAcquisition: {
-      include: ['jest']
-    }
-  });
-
-  const jsconfigCorePath = normalizePath(join(__dirname, '..', 'resources', 'core', 'jsconfig-core.json'));
-  fileSystemProvider.updateFileStat(jsconfigCorePath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: jsconfigCoreTemplate.length
-  });
-  void fileSystemProvider.updateFileContent(jsconfigCorePath, jsconfigCoreTemplate);
-
-  // Add Core settings template
-  const settingsCoreTemplate = JSON.stringify({
-    'files.watcherExclude': {
-      '**/.git/objects/**': true,
-      '**/.git/subtree-cache/**': true,
-      '**/node_modules/**': true
-    },
-    'perforce.client': 'username-localhost-blt',
-    'perforce.user': 'username',
-    'perforce.port': 'ssl:host:port'
-  });
-
-  const settingsCorePath = normalizePath(join(__dirname, '..', 'resources', 'core', 'settings-core.json'));
-  fileSystemProvider.updateFileStat(settingsCorePath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: settingsCoreTemplate.length
-  });
-  void fileSystemProvider.updateFileContent(settingsCorePath, settingsCoreTemplate);
-
-  // Add Core typings files for Core workspaces
-  // For CORE_PARTIAL, the typings should be in the parent directory (CORE_ALL_ROOT)
-  if (structure === CORE_PARTIAL_WORKSPACE_STRUCTURE) {
-    const parentDir = normalizePath(resolve(normalizedWorkspacePath, '..'));
-    const coreTypingsPath = normalizePath(join(parentDir, '.vscode', 'typings', 'lwc'));
-    const coreEngineTypingsPath = normalizePath(join(coreTypingsPath, 'engine.d.ts'));
-    const coreLdsTypingsPath = normalizePath(join(coreTypingsPath, 'lds.d.ts'));
-
-    const coreEngineContent = "declare module '@salesforce/engine' { /* Engine types */ }";
-    const coreLdsContent = "declare module '@salesforce/lds' { /* LDS types */ }";
-
-    // Create directory
-    fileSystemProvider.updateFileStat(coreTypingsPath, {
-      type: 'directory',
-      exists: true,
-      ctime: 0,
-      mtime: 0,
-      size: 0
-    });
-
-    // Create engine.d.ts
-    fileSystemProvider.updateFileStat(coreEngineTypingsPath, {
-      type: 'file',
-      exists: true,
-      ctime: 0,
-      mtime: 0,
-      size: coreEngineContent.length
-    });
-    void fileSystemProvider.updateFileContent(coreEngineTypingsPath, coreEngineContent);
-
-    // Create lds.d.ts
-    fileSystemProvider.updateFileStat(coreLdsTypingsPath, {
-      type: 'file',
-      exists: true,
-      ctime: 0,
-      mtime: 0,
-      size: coreLdsContent.length
-    });
-    void fileSystemProvider.updateFileContent(coreLdsTypingsPath, coreLdsContent);
-  }
-
-  // Create directory entries and stats
-  directories.forEach(dirPath => {
-    const fullDirPath = normalizePath(join(normalizedWorkspacePath, dirPath));
-
-    fileSystemProvider.updateFileStat(fullDirPath, {
-      type: 'directory',
-      exists: true,
-      ctime: 0,
-      mtime: 0,
-      size: 0
-    });
-
-    // Create directory listing
-    const entries: DirectoryEntry[] = [];
-    const seenNames = new Set<string>();
-
-    // Find files that are direct children
-    const childFilePaths = allPaths.filter(
-      p => p.startsWith(`${dirPath}/`) && !p.substring(dirPath.length + 1).includes('/')
-    );
-    childFilePaths.forEach(childPath => {
-      const childName = childPath.substring(dirPath.length + 1);
-      if (!seenNames.has(childName)) {
-        seenNames.add(childName);
-        entries.push({
-          name: childName,
-          type: 'file',
-          uri: normalizePath(join(normalizedWorkspacePath, dirPath, childName))
-        });
-      }
-    });
-
-    // Also find directories that are direct children (even if they contain nested files)
-    directories.forEach(childDirPath => {
-      if (childDirPath.startsWith(`${dirPath}/`) && childDirPath !== dirPath) {
-        const relativePath = childDirPath.substring(dirPath.length + 1);
-        // Only include immediate children (not nested directories)
-        if (relativePath && !relativePath.includes('/')) {
-          const childName = relativePath;
-          if (!seenNames.has(childName)) {
-            seenNames.add(childName);
-            entries.push({
-              name: childName,
-              type: 'directory',
-              uri: normalizePath(join(normalizedWorkspacePath, dirPath, childName))
-            });
-          }
-        }
-      }
-    });
-
-    if (entries.length > 0) {
-      fileSystemProvider.updateDirectoryListing(fullDirPath, entries);
-    }
-  });
-
-  // Then, create all files with content
-  Object.entries(structure).forEach(([filePath, content]) => {
-    const fullFilePath = normalizePath(join(normalizedWorkspacePath, filePath));
-
-    fileSystemProvider.updateFileStat(fullFilePath, {
-      type: 'file',
-      exists: true,
-      ctime: 0,
-      mtime: 0,
-      size: content.length
-    });
-
-    void fileSystemProvider.updateFileContent(fullFilePath, content);
-  });
-};
-
-// Pre-configured file system providers for different workspace types
-export const sfdxFileSystemProvider = new FileSystemDataProvider();
-export const standardFileSystemProvider = new FileSystemDataProvider();
-export const coreFileSystemProvider = new FileSystemDataProvider();
-export const coreProjectFileSystemProvider = new FileSystemDataProvider();
-export const coreMultiFileSystemProvider = new FileSystemDataProvider();
-
-// Initialize the file system providers with their respective workspace structures
-populateFileSystemProvider(sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT, SFDX_WORKSPACE_STRUCTURE);
-populateFileSystemProvider(
-  standardFileSystemProvider,
-  isCommonPackage
-    ? resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'standard-workspace')
-    : resolve(__dirname, '..', '..', '..', '..', '..', 'test-workspaces', 'standard-workspace'),
-  STANDARD_WORKSPACE_STRUCTURE
-);
-populateFileSystemProvider(coreFileSystemProvider, CORE_ALL_ROOT, CORE_WORKSPACE_STRUCTURE);
-populateFileSystemProvider(coreProjectFileSystemProvider, CORE_PROJECT_ROOT, CORE_PARTIAL_WORKSPACE_STRUCTURE);
-
-// Set up Core Multi workspace with multiple roots
-populateFileSystemProvider(coreMultiFileSystemProvider, CORE_MULTI_ROOT[0], {
-  'modules/force/input-phone/input-phone.html': '<template><div>Input Phone</div></template>',
-  'modules/force/input-phone/input-phone.js': 'export default class InputPhone extends LightningElement {}',
-  'tsconfig.json': JSON.stringify({
-    compilerOptions: {
-      target: 'es2017',
-      module: 'commonjs'
-    }
-  })
-});
-populateFileSystemProvider(coreMultiFileSystemProvider, CORE_MULTI_ROOT[1], {
-  'modules/one/app-nav-bar/app-nav-bar.html': '<template><div>App Nav Bar</div></template>',
-  'modules/one/app-nav-bar/app-nav-bar.js': 'export default class AppNavBar extends LightningElement {}'
-});
+}
 
 // Create parent workspace-user.xml for CORE_PARTIAL detection
 const coreMultiParentDir = dirname(CORE_MULTI_ROOT[0]);
 const coreMultiParentWorkspaceUserFile = join(coreMultiParentDir, 'workspace-user.xml');
-coreMultiFileSystemProvider.updateFileStat(coreMultiParentWorkspaceUserFile, {
-  type: 'file',
-  exists: true,
-  ctime: 0,
-  mtime: 0,
-  size: 0
-});
-void coreMultiFileSystemProvider.updateFileContent(
+
+void coreMultiFileSystemAccessor.updateFileContent(
   coreMultiParentWorkspaceUserFile,
   '<?xml version="1.0" encoding="UTF-8"?><workspace></workspace>'
 );
@@ -848,34 +566,9 @@ const coreMultiLdsTypingsPath = join(coreMultiTypingsPath, 'lds.d.ts');
 const coreMultiEngineContent = "declare module '@salesforce/engine' { /* Engine types */ }";
 const coreMultiLdsContent = "declare module '@salesforce/lds' { /* LDS types */ }";
 
-// Create directory
-coreMultiFileSystemProvider.updateFileStat(coreMultiTypingsPath, {
-  type: 'directory',
-  exists: true,
-  ctime: 0,
-  mtime: 0,
-  size: 0
-});
+void coreMultiFileSystemAccessor.updateFileContent(coreMultiEngineTypingsPath, coreMultiEngineContent);
 
-// Create engine.d.ts
-coreMultiFileSystemProvider.updateFileStat(coreMultiEngineTypingsPath, {
-  type: 'file',
-  exists: true,
-  ctime: 0,
-  mtime: 0,
-  size: coreMultiEngineContent.length
-});
-void coreMultiFileSystemProvider.updateFileContent(coreMultiEngineTypingsPath, coreMultiEngineContent);
-
-// Create lds.d.ts
-coreMultiFileSystemProvider.updateFileStat(coreMultiLdsTypingsPath, {
-  type: 'file',
-  exists: true,
-  ctime: 0,
-  mtime: 0,
-  size: coreMultiLdsContent.length
-});
-void coreMultiFileSystemProvider.updateFileContent(coreMultiLdsTypingsPath, coreMultiLdsContent);
+void coreMultiFileSystemAccessor.updateFileContent(coreMultiLdsTypingsPath, coreMultiLdsContent);
 
 /** Relative paths (forward slashes) for the SFDX test workspace. Use with createMockWorkspaceFindFilesConnection(..., { relativePaths: getSfdxWorkspaceRelativePaths() }) when disk read is unavailable in test env. */
 export const getSfdxWorkspaceRelativePaths = (): string[] =>

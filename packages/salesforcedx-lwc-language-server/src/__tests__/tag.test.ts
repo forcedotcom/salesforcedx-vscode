@@ -6,7 +6,7 @@
  */
 import { WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  sfdxFileSystemProvider,
+  sfdxFileSystemAccessor,
   SFDX_WORKSPACE_ROOT,
   createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths
@@ -36,12 +36,12 @@ import {
 } from '../tag';
 
 // Discovery via workspace/findFiles (no server-side cache)
-sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-sfdxFileSystemProvider.setFindFilesFromConnection(
+sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+sfdxFileSystemAccessor.setFindFilesFromConnection(
   createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
   relativePaths: getSfdxWorkspaceRelativePaths()
 }) as Parameters<
-    typeof sfdxFileSystemProvider.setFindFilesFromConnection
+    typeof sfdxFileSystemAccessor.setFindFilesFromConnection
   >[0],
   WORKSPACE_FIND_FILES_REQUEST
 );
@@ -60,7 +60,7 @@ describe('Tag', () => {
 
   describe('.fromFile', () => {
     it('creates a tag from a lwc .js file', async () => {
-      const tag: Tag | null = await createTagFromFile(filepath, sfdxFileSystemProvider);
+      const tag: Tag | null = await createTagFromFile(filepath, sfdxFileSystemAccessor);
 
       expect(tag?.file).toEqual(filepath);
       expect(tag?.metadata.decorators);
@@ -73,7 +73,7 @@ describe('Tag', () => {
     let tag: Tag | null;
 
     beforeEach(async () => {
-      tag = await createTagFromFile(filepath, sfdxFileSystemProvider);
+      tag = await createTagFromFile(filepath, sfdxFileSystemAccessor);
     });
 
     describe('#classMembers', () => {
@@ -134,7 +134,7 @@ describe('Tag', () => {
 
     describe('#allLocations', () => {
       it('returns multiple files if present', async () => {
-        const allLocations = await getAllLocations(tag!, sfdxFileSystemProvider);
+        const allLocations = await getAllLocations(tag!, sfdxFileSystemAccessor);
         expect(allLocations.length).toEqual(3);
       });
     });
@@ -239,7 +239,7 @@ describe('Tag', () => {
     const fileWithErrors = join(SFDX_WORKSPACE_ROOT, 'javascript', '__tests__', 'fixtures', 'navmetadata.js');
 
     it('does not throw an error when finding a class member location without class members', async () => {
-      const tag: Tag | null = await createTagFromFile(fileWithErrors, sfdxFileSystemProvider);
+      const tag: Tag | null = await createTagFromFile(fileWithErrors, sfdxFileSystemAccessor);
       expect(tag).not.toBeNull();
       expect(() => getClassMemberLocation(tag!, 'account')).not.toThrow();
     });

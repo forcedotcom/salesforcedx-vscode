@@ -8,7 +8,7 @@ import * as os from 'node:os';
 import { join, resolve } from 'node:path';
 import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
+import { LspFileSystemAccessor } from '../providers/lspFileSystemAccessor';
 import * as utils from '../utils';
 import { NormalizedPath } from '../utils';
 import { WorkspaceContext } from './workspaceContext';
@@ -31,7 +31,7 @@ describe('utils', () => {
       type: FileChangeType.Deleted,
       uri: 'file:///Users/user/test/dir/lwc'
     };
-    const ctxt = new WorkspaceContext('' as NormalizedPath, new FileSystemDataProvider());
+    const ctxt = new WorkspaceContext('' as NormalizedPath, new LspFileSystemAccessor());
     ctxt.type = 'SFDX';
     expect(utils.isLWCRootDirectoryCreated(ctxt, [noLwcFolderCreated, noLwcFolderDeleted])).toBeFalsy();
     expect(utils.isLWCRootDirectoryCreated(ctxt, [noLwcFolderCreated])).toBeFalsy();
@@ -59,19 +59,19 @@ describe('utils', () => {
   });
 
   describe('readJsonSync()', () => {
-    let fileSystemProvider: FileSystemDataProvider;
+    let fileSystemAccessor: LspFileSystemAccessor;
 
     beforeEach(() => {
-      fileSystemProvider = new FileSystemDataProvider();
+      fileSystemAccessor = new LspFileSystemAccessor();
     });
 
     it('should read json files', async () => {
       const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
-      void fileSystemProvider.updateFileContent(
+      void fileSystemAccessor.updateFileContent(
         `${testFile}`,
         JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } })
       );
-      const settings = await utils.readJsonSync(testFile, fileSystemProvider);
+      const settings = await utils.readJsonSync(testFile, fileSystemAccessor);
 
       expect(settings).toHaveProperty('compilerOptions.paths.foo');
       expect(settings?.compilerOptions?.paths?.foo).toEqual(['bar']);
@@ -79,7 +79,7 @@ describe('utils', () => {
 
     it('should read json files with comments', async () => {
       const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
-      void fileSystemProvider.updateFileContent(
+      void fileSystemAccessor.updateFileContent(
         `${testFile}`,
         JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } })
       );
@@ -92,9 +92,9 @@ describe('utils', () => {
           }
         }
       };
-      void fileSystemProvider.updateFileContent(`${testFile}`, JSON.stringify(jsonWithComments));
+      void fileSystemAccessor.updateFileContent(`${testFile}`, JSON.stringify(jsonWithComments));
 
-      const settings = await utils.readJsonSync(testFile, fileSystemProvider);
+      const settings = await utils.readJsonSync(testFile, fileSystemAccessor);
 
       expect(settings).toHaveProperty('compilerOptions.paths.foo');
       expect(settings?.compilerOptions?.paths?.foo).toEqual(['bar']);
@@ -103,7 +103,7 @@ describe('utils', () => {
     it('should return empty object for non-existing files', async () => {
       const nonExistentFile = join(os.tmpdir(), `non-existent-${Date.now()}.json`);
 
-      const settings = await utils.readJsonSync(nonExistentFile, fileSystemProvider);
+      const settings = await utils.readJsonSync(nonExistentFile, fileSystemAccessor);
 
       expect(Object.keys(settings).length).toEqual(0);
     });

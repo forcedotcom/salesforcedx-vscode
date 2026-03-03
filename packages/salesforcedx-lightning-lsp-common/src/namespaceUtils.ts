@@ -6,7 +6,7 @@
  */
 
 import * as path from 'node:path';
-import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 import { normalizePath } from './utils';
 
 /**
@@ -14,13 +14,13 @@ import { normalizePath } from './utils';
  */
 const isModuleRoot = async (
   subdirs: string[],
-  fileSystemProvider: IFileSystemProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<boolean> => {
   for (const subdir of subdirs) {
     // Is a root if any subdir matches a name/name.js with name.js being a module
     const basename = path.basename(subdir);
     const modulePath = normalizePath(path.join(subdir, `${basename}.js`));
-    const stat = await fileSystemProvider.getFileStat(modulePath);
+    const stat = await fileSystemAccessor.getFileStat(modulePath);
     if (stat?.type === 'file') {
       return true;
     }
@@ -35,7 +35,7 @@ const traverse = async (
   candidate: string,
   depth: number,
   roots: { lwc: string[] },
-  fileSystemProvider: IFileSystemProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<void> => {
   if (depth - 1 < 0) {
     return;
@@ -50,21 +50,21 @@ const traverse = async (
   // module_root/name/name.js
   // Normalize candidate before calling getDirectoryListing to ensure path format consistency
   const normalizedCandidate = normalizePath(candidate);
-  const entries = fileSystemProvider.getDirectoryListing(normalizedCandidate);
+  const entries = fileSystemAccessor.getDirectoryListing(normalizedCandidate);
   const dirs = entries
     .filter(entry => entry.type === 'directory')
     .map(entry => normalizePath(path.join(normalizedCandidate, entry.name)));
 
   // Is a root if we have a folder called lwc
   const isDirLWC =
-    (await isModuleRoot(dirs, fileSystemProvider)) ||
+    (await isModuleRoot(dirs, fileSystemAccessor)) ||
     (!path.parse(normalizedCandidate).ext && path.parse(normalizedCandidate).name === 'lwc');
   if (isDirLWC) {
     // normalizedCandidate is already normalized and absolute, so we can use it directly
     roots.lwc.push(normalizedCandidate);
   } else {
     for (const subdir of dirs) {
-      await traverse(subdir, depth - 1, roots, fileSystemProvider);
+      await traverse(subdir, depth - 1, roots, fileSystemAccessor);
     }
   }
 };
@@ -80,7 +80,7 @@ const traverse = async (
  * The function recursively traverses directories up to `maxDepth` levels, skipping ignored folders.
  *
  * @param root - The root directory to search within
- * @param fileSystemProvider - The file system provider to use for file operations
+ * @param fileSystemAccessor - The file system provider to use for file operations
  * @param maxDepth - Maximum depth to traverse (default: 5)
  * @returns Object with `lwc` array containing normalized absolute paths to namespace roots.
  *
@@ -106,7 +106,7 @@ const traverse = async (
  */
 export const findNamespaceRoots = async (
   root: string,
-  fileSystemProvider: IFileSystemProvider,
+  fileSystemAccessor: LspFileSystemAccessor,
   maxDepth = 5
 ): Promise<{ lwc: string[] }> => {
   const roots: { lwc: string[] } = {
@@ -115,9 +115,9 @@ export const findNamespaceRoots = async (
 
   // Normalize root path before calling getFileStat to ensure path format consistency
   const normalizedRoot = normalizePath(root);
-  const stat = await fileSystemProvider.getFileStat(normalizedRoot);
+  const stat = await fileSystemAccessor.getFileStat(normalizedRoot);
   if (stat?.type === 'directory') {
-    await traverse(normalizedRoot, maxDepth, roots, fileSystemProvider);
+    await traverse(normalizedRoot, maxDepth, roots, fileSystemAccessor);
   }
   return roots;
 };

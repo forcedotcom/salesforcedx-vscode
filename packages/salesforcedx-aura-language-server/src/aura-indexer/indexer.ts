@@ -73,7 +73,7 @@ export default class AuraIndexer implements Indexer {
 
   public async indexFile(file: string, sfdxProject: boolean): Promise<TagInfo | undefined> {
     try {
-      const stat = await this.context.fileSystemProvider.getFileStat(file);
+      const stat = await this.context.fileSystemAccessor.getFileStat(file);
       if (stat?.type !== 'file') {
         return undefined;
       }
@@ -81,7 +81,7 @@ export default class AuraIndexer implements Indexer {
       this.clearTagsforFile(file, sfdxProject);
       return;
     }
-    const content = await this.context.fileSystemProvider.getFileContent(file);
+    const content = await this.context.fileSystemAccessor.getFileContent(file);
     const markup = content ?? '';
     const result = parse(markup);
     const tags: Node[] = [];

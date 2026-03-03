@@ -12,7 +12,7 @@ import {
   UTILS_ROOT,
   REGISTERED_EMPTY_FOLDER_ROOT,
   SFDX_WORKSPACE_ROOT,
-  sfdxFileSystemProvider,
+  sfdxFileSystemAccessor,
   createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
@@ -21,113 +21,111 @@ import { URI } from 'vscode-uri';
 import { LWCWorkspaceContext } from '../context/lwcContext';
 
 // Discovery via workspace/findFiles so context can find LWC/aura roots (no server-side cache)
-sfdxFileSystemProvider.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-sfdxFileSystemProvider.setFindFilesFromConnection(
+sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+sfdxFileSystemAccessor.setFindFilesFromConnection(
   createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
-  relativePaths: getSfdxWorkspaceRelativePaths()
-}) as Parameters<
-    typeof sfdxFileSystemProvider.setFindFilesFromConnection
-  >[0],
+    relativePaths: getSfdxWorkspaceRelativePaths()
+  }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
   WORKSPACE_FIND_FILES_REQUEST
 );
 
 describe('LWCWorkspaceContext', () => {
   it('isLWCJavascript()', async () => {
-    const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
+    const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemAccessor);
     context.initialize('SFDX');
 
     // lwc .js
     let document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isLWCJavascript(document)).toBeTruthy();
 
     // lwc .htm
     document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.html'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isLWCJavascript(document)).toBeFalsy();
 
     // aura cmps
     document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isLWCJavascript(document)).toBeFalsy();
 
     // .js outside namespace roots
     document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'aura', 'todoApp', 'randomJsInAuraFolder.js'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isLWCJavascript(document)).toBeFalsy();
 
     // lwc .js in utils
-    document = await readAsTextDocument(join(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.js'), sfdxFileSystemProvider);
+    document = await readAsTextDocument(join(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.js'), sfdxFileSystemAccessor);
     expect(await context.isLWCJavascript(document)).toBeTruthy();
   });
 
   it('isInsideModulesRoots()', async () => {
-    const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
+    const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemAccessor);
     context.initialize('SFDX');
 
     let document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isInsideModulesRoots(document)).toBeTruthy();
 
     document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isInsideModulesRoots(document)).toBeFalsy();
 
-    document = await readAsTextDocument(join(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.js'), sfdxFileSystemProvider);
+    document = await readAsTextDocument(join(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.js'), sfdxFileSystemAccessor);
     expect(await context.isInsideModulesRoots(document)).toBeTruthy();
   });
 
   it('isLWCTemplate()', async () => {
-    const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
+    const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemAccessor);
     context.initialize('SFDX');
 
     // .js is not a template
     let document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isLWCTemplate(document)).toBeFalsy();
 
     // .html is a template
     document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.html'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isLWCTemplate(document)).toBeTruthy();
 
     // aura cmps are not a template (sfdx assigns the 'html' language id to aura components)
     document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isLWCTemplate(document)).toBeFalsy();
 
     // html outside namespace roots is not a template
     document = await readAsTextDocument(
       join(FORCE_APP_ROOT, 'aura', 'todoApp', 'randomHtmlInAuraFolder.html'),
-      sfdxFileSystemProvider
+      sfdxFileSystemAccessor
     );
     expect(await context.isLWCTemplate(document)).toBeFalsy();
 
     // .html in utils folder is a template
-    document = await readAsTextDocument(join(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.html'), sfdxFileSystemProvider);
+    document = await readAsTextDocument(join(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.html'), sfdxFileSystemAccessor);
     expect(await context.isLWCTemplate(document)).toBeTruthy();
   });
 
   it('configureProjectForTs()', async () => {
-    const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
+    const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemAccessor);
     context.initialize('SFDX');
     // Mock connection for file operations (required for configureProjectForTs)
     const mockConnection = {
@@ -144,7 +142,7 @@ describe('LWCWorkspaceContext', () => {
     await context.configureProjectForTs();
 
     // verify forceignore
-    const forceignoreBuffer = await sfdxFileSystemProvider.getFileContent(forceignorePath);
+    const forceignoreBuffer = await sfdxFileSystemAccessor.getFileContent(forceignorePath);
     if (!forceignoreBuffer) {
       throw new Error('Forceignore file not found');
     }
@@ -153,7 +151,7 @@ describe('LWCWorkspaceContext', () => {
     expect(forceignoreContent).toContain('**/*.ts');
 
     // verify tsconfig.sfdx.json
-    const baseTsConfigBuffer = await sfdxFileSystemProvider.getFileContent(baseTsconfigPathForceApp);
+    const baseTsConfigBuffer = await sfdxFileSystemAccessor.getFileContent(baseTsconfigPathForceApp);
     if (!baseTsConfigBuffer) {
       throw new Error('Base tsconfig file not found');
     }
@@ -170,7 +168,7 @@ describe('LWCWorkspaceContext', () => {
     });
 
     //verify newly create tsconfig.json
-    const tsconfigBuffer = await sfdxFileSystemProvider.getFileContent(tsconfigPathForceApp);
+    const tsconfigBuffer = await sfdxFileSystemAccessor.getFileContent(tsconfigPathForceApp);
     if (!tsconfigBuffer) {
       throw new Error('Tsconfig file not found');
     }
@@ -182,40 +180,10 @@ describe('LWCWorkspaceContext', () => {
     });
 
     // clean up artifacts
-    sfdxFileSystemProvider.updateFileStat(baseTsconfigPathForceApp, {
-      type: 'file',
-      exists: false,
-      ctime: 0,
-      mtime: 0,
-      size: 0
-    });
-    sfdxFileSystemProvider.updateFileStat(tsconfigPathForceApp, {
-      type: 'file',
-      exists: false,
-      ctime: 0,
-      mtime: 0,
-      size: 0
-    });
-    sfdxFileSystemProvider.updateFileStat(tsconfigPathUtils, {
-      type: 'file',
-      exists: false,
-      ctime: 0,
-      mtime: 0,
-      size: 0
-    });
-    sfdxFileSystemProvider.updateFileStat(tsconfigPathRegisteredEmpty, {
-      type: 'file',
-      exists: false,
-      ctime: 0,
-      mtime: 0,
-      size: 0
-    });
-    sfdxFileSystemProvider.updateFileStat(forceignorePath, {
-      type: 'file',
-      exists: false,
-      ctime: 0,
-      mtime: 0,
-      size: 0
-    });
+    await sfdxFileSystemAccessor.deleteFile(baseTsconfigPathForceApp);
+    await sfdxFileSystemAccessor.deleteFile(tsconfigPathForceApp);
+    await sfdxFileSystemAccessor.deleteFile(tsconfigPathUtils);
+    await sfdxFileSystemAccessor.deleteFile(tsconfigPathRegisteredEmpty);
+    await sfdxFileSystemAccessor.deleteFile(forceignorePath);
   });
 });
