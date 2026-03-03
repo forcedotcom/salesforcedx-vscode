@@ -6,7 +6,4 @@
  */
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 
-// Trace flag tests share org state; always run sequentially
-process.env.E2E_SEQUENTIAL = '1';
-
 export default createDesktopConfig();

@@ -69,26 +69,14 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
-      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; must run sequentially.
-      - name: Run Apex Log E2E tests (sequential)
+      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:web sets E2E_SEQUENTIAL.
+      - name: Run Apex Log E2E tests
         if: steps.try-run.outcome == 'failure'
-        id: parallel-run
-        continue-on-error: true
         env:
           CI: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
-          E2E_SEQUENTIAL: 1
         run: |
           npm run test:web -w salesforcedx-vscode-apex-log -- --reporter=html
-
-      - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
-        env:
-          CI: 1
-          MINIMAL_ORG_ALIAS: minimalTestOrg
-          E2E_SEQUENTIAL: 1
-        run: |
-          npm run test:web -w salesforcedx-vscode-apex-log -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
@@ -183,28 +171,15 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
-      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; must run sequentially.
-      - name: Run Apex Log E2E tests (sequential)
+      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:desktop sets E2E_SEQUENTIAL.
+      - name: Run Apex Log E2E tests
         if: steps.try-run.outcome == 'failure'
-        id: parallel-run
-        continue-on-error: true
         env:
           CI: 1
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
-          E2E_SEQUENTIAL: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-apex-log -- --reporter=html
-
-      - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
-        env:
-          CI: 1
-          VSCODE_DESKTOP: 1
-          MINIMAL_ORG_ALIAS: minimalTestOrg
-          E2E_SEQUENTIAL: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-apex-log -- --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()

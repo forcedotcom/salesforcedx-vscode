@@ -186,6 +186,9 @@
     },
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
+      "env": {
+        "E2E_SEQUENTIAL": "1"
+      },
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
@@ -203,7 +206,8 @@
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
-        "VSCODE_DESKTOP": "1"
+        "VSCODE_DESKTOP": "1",
+        "E2E_SEQUENTIAL": "1"
       },
       "dependencies": [
         "vscode:bundle",
