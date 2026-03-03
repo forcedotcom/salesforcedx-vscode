@@ -1,21 +1,33 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { CodeCoverageResult } from '@salesforce/apex-node';
-import { SFDX_FOLDER, projectPaths, fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vscode';
-import { join, extname, basename } from 'node:path';
-import { Range, TextDocument, TextEditor, window, workspace } from 'vscode';
+import { Range, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
+import { Utils } from 'vscode-uri';
 import { channelService } from '../channels';
-import { IS_CLS_OR_TRIGGER, IS_TEST_REG_EXP } from '../constants';
+import { IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
+const SFDX_FOLDER = '.sfdx';
+const TOOLS = 'tools';
+const TEST_RESULTS = 'testresults';
+const APEX = 'apex';
+const IS_CLS_OR_TRIGGER = /(\.cls|\.trigger)$/;
+
+/** Path segment for apex test results (works in Desktop and Web). */
+const getApexTestResultsUri = (): Uri => {
+  const folder = workspace.workspaceFolders?.[0]?.uri;
+  if (!folder) {
+    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
+  }
+  return Utils.joinPath(folder, SFDX_FOLDER, TOOLS, TEST_RESULTS, APEX);
+};
 
 const getLineRange = (document: TextDocument, lineNumber: number): Range => {
   const adjustedLineNumber = lineNumber - 1;
@@ -39,22 +51,38 @@ type CoverageItem = {
   lines: { [key: string]: number };
 };
 
+const fileExists = async (uri: Uri): Promise<boolean> => {
+  try {
+    await workspace.fs.stat(uri);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const readFileUri = async (uri: Uri): Promise<string> => {
+  const data = await workspace.fs.readFile(uri);
+  return new TextDecoder().decode(data);
+};
+
 const getTestRunId = async (): Promise<string> => {
-  const testRunIdFile = join(pathToApexTestResultsFolder, 'test-run-id.txt');
-  if (!(await fileOrFolderExists(testRunIdFile))) {
+  const apexTestResultsUri = getApexTestResultsUri();
+  const testRunIdUri = Utils.joinPath(apexTestResultsUri, 'test-run-id.txt');
+  if (!(await fileExists(testRunIdUri))) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
-  return readFile(testRunIdFile);
+  return (await readFileUri(testRunIdUri)).trim();
 };
 
 const getCoverageData = async (): Promise<CoverageItem[] | CodeCoverageResult[]> => {
   const testRunId = await getTestRunId();
-  const testResultFilePath = join(pathToApexTestResultsFolder, `test-result-${testRunId}.json`);
+  const apexTestResultsUri = getApexTestResultsUri();
+  const testResultUri = Utils.joinPath(apexTestResultsUri, `test-result-${testRunId}.json`);
 
-  if (!(await fileOrFolderExists(testResultFilePath))) {
+  if (!(await fileExists(testResultUri))) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
   }
-  const testResultOutput = await readFile(testResultFilePath);
+  const testResultOutput = await readFileUri(testResultUri);
   const testResult = JSON.parse(testResultOutput);
   if (testResult.coverage === undefined && testResult.codecoverage === undefined) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
@@ -63,17 +91,28 @@ const getCoverageData = async (): Promise<CoverageItem[] | CodeCoverageResult[]>
   return testResult.codecoverage ?? testResult.coverage.coverage;
 };
 
-const isApexMetadata = (filePath: string): boolean => IS_CLS_OR_TRIGGER.test(filePath);
+/** Use document.uri.path for Web/Desktop compatibility (fsPath may be empty in Web for some schemes). */
+const docPath = (document: TextDocument): string => document.uri.fsPath || document.uri.path;
 
-const getApexMemberName = (filePath: string): string =>
-  isApexMetadata(filePath) ? basename(filePath, extname(filePath)) : '';
+const isApexMetadata = (pathOrUri: string): boolean => IS_CLS_OR_TRIGGER.test(pathOrUri);
+
+/** Get Apex class/trigger name from document URI (no Node path APIs). */
+const getApexMemberName = (document: TextDocument): string => {
+  const pathStr = docPath(document);
+  if (!isApexMetadata(pathStr)) {
+    return '';
+  }
+  const base = Utils.basename(document.uri);
+  const ext = base.includes('.') ? base.slice(base.lastIndexOf('.')) : '';
+  return ext ? base.slice(0, -ext.length) : base;
+};
 
 export class CodeCoverageHandler {
   public coveredLines: Range[] = [];
   public uncoveredLines: Range[] = [];
 
   constructor(private statusBar: StatusBarToggle) {
-    window.onDidChangeActiveTextEditor(async (editor) => await this.onDidChangeActiveTextEditor(editor), this);
+    window.onDidChangeActiveTextEditor(async editor => await this.onDidChangeActiveTextEditor(editor), this);
     void this.onDidChangeActiveTextEditor(window.activeTextEditor);
   }
 
@@ -108,7 +147,6 @@ export class CodeCoverageHandler {
           this.setCoverageDecorators(editor);
         }
       } catch (e) {
-        // telemetry
         this.handleCoverageException(e);
       }
       this.statusBar.toggle(true);
@@ -118,9 +156,9 @@ export class CodeCoverageHandler {
   private handleCoverageException(e: Error) {
     const disableWarning: boolean = workspace
       .getConfiguration()
-      .get<boolean>('salesforcedx-vscode-apex.disable-warnings-for-missing-coverage', false);
+      .get<boolean>('salesforcedx-vscode-apex-testing.disable-warnings-for-missing-coverage', false);
     if (disableWarning) {
-      channelService.appendLine(e.message);
+      void channelService.appendLine(e.message);
     } else {
       void window.showWarningMessage(e.message);
     }
@@ -140,21 +178,20 @@ const applyCoverageToSource = async (
 }> => {
   if (
     document &&
-    !document.uri.fsPath.includes(SFDX_FOLDER) &&
-    isApexMetadata(document.uri.fsPath) &&
+    !docPath(document).includes(SFDX_FOLDER) &&
+    isApexMetadata(docPath(document)) &&
     !IS_TEST_REG_EXP.test(document.getText())
   ) {
     const codeCovArray = await getCoverageData();
-    const apexMemberName = getApexMemberName(document.uri.fsPath);
+    const apexMemberName = getApexMemberName(document);
     const codeCovItem = codeCovArray.find(covItem => covItem.name === apexMemberName);
 
     if (!codeCovItem) {
-      throw new Error(nls.localize('colorizer_no_code_coverage_current_file', document.uri.fsPath));
+      throw new Error(nls.localize('colorizer_no_code_coverage_current_file', docPath(document)));
     }
 
     if (isCodeCoverageItem(codeCovItem)) {
       return {
-        // TODO node 22: use native js object.groupBy
         coveredLines: Object.entries(codeCovItem.lines)
           .filter(([, value]) => value === 1)
           .map(([key]) => getLineRange(document, Number(key))),

@@ -12,6 +12,8 @@ import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService, initializeOutputChannel } from './channels';
+import { CodeCoverageHandler } from './codecoverage/colorizer';
+import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
@@ -25,7 +27,7 @@ import {
   apexTestSuiteCreate,
   apexTestSuiteRun
 } from './commands';
-import { AllServicesLayer } from './services/extensionProvider';
+import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { telemetryService } from './telemetry/telemetry';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
@@ -203,8 +205,9 @@ const activateEffect = (context: vscode.ExtensionContext) =>
     };
   }).pipe(Effect.withSpan('apex-testing.activation'), Effect.provide(AllServicesLayer));
 
-export const activate = (context: vscode.ExtensionContext) =>
-  Effect.runPromise(
+export const activate = (context: vscode.ExtensionContext) => {
+  setAllServicesLayer(buildAllServicesLayer(context));
+  return Effect.runPromise(
     activateEffect(context).pipe(
       Effect.catchAll(error => {
         console.error('[Apex Testing] Activation failed:', error);
@@ -214,8 +217,16 @@ export const activate = (context: vscode.ExtensionContext) =>
       })
     )
   );
+};
 
 const registerCommands = (): vscode.Disposable => {
+  // Code coverage highlighting (owned by Apex Testing; works in Desktop and Web)
+  const statusBarToggle = new StatusBarToggle();
+  const colorizer = new CodeCoverageHandler(statusBarToggle);
+  const apexToggleColorizerCmd = vscode.commands.registerCommand('sf.apex.toggle.colorizer', () =>
+    colorizer.toggleCoverage()
+  );
+
   // Customer-facing commands
   const apexTestClassRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.test.class.run.delegate',
@@ -255,6 +266,8 @@ const registerCommands = (): vscode.Disposable => {
   );
 
   return vscode.Disposable.from(
+    apexToggleColorizerCmd,
+    statusBarToggle,
     apexTestClassRunCmd,
     apexTestClassRunDelegateCmd,
     apexDebugClassRunDelegateCmd,
