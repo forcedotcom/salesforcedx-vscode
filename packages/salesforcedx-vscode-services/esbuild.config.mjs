@@ -13,7 +13,7 @@ const copyTemplates = copy({
   resolveFrom: 'cwd',
   globbyOptions: { dot: true },
   assets: {
-    from: ['../../node_modules/@salesforce/templates/lib/templates/**/*'],
+    from: ['node_modules/@salesforce/templates/lib/templates/**/*'],
     to: ['./dist/templates']
   }
 });
