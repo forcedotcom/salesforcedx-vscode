@@ -12,11 +12,13 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
 import { AliasService } from './core/alias';
+import { ApexLogService } from './core/apexLogService';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { getDefaultOrgRef } from './core/defaultOrgRef';
+import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
@@ -26,6 +28,7 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
+import { TraceFlagItemStruct, TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
@@ -35,9 +38,10 @@ import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStor
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
-import { watchPackageDirectoriesContext } from './vscode/editorContext';
+import { watchApexTestContext, watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
+import { setExtensionContext } from './vscode/extensionContext';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
 import { FileWatcherService } from './vscode/fileWatcherService';
@@ -54,6 +58,7 @@ export type SalesforceVSCodeServicesApi = {
     /** contains most of the dependencies prebuilt in the services extension */
     prebuiltServicesDependencies: Context.Context<
       | AliasService
+      | ApexLogService
       | ChannelService
       | ComponentSetService
       | ConfigService
@@ -76,6 +81,7 @@ export type SalesforceVSCodeServicesApi = {
       | TransmogrifierService
       | WorkspaceService
     >;
+    ApexLogService: typeof ApexLogService;
     AliasService: typeof AliasService;
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
@@ -83,6 +89,7 @@ export type SalesforceVSCodeServicesApi = {
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
     registerCommandWithLayer: typeof registerCommandWithLayer;
+    ExecuteAnonymousService: typeof ExecuteAnonymousService;
     EditorService: typeof EditorService;
     ErrorHandlerService: typeof ErrorHandlerService;
     ExtensionContextService: typeof ExtensionContextService;
@@ -99,9 +106,12 @@ export type SalesforceVSCodeServicesApi = {
     ProjectService: typeof ProjectService;
     SdkLayerFor: typeof SdkLayerFor;
     SettingsService: typeof SettingsService;
+    SettingsWatcherService: typeof SettingsWatcherService;
     SourceTrackingService: typeof SourceTrackingService;
     TargetOrgRef: typeof getDefaultOrgRef;
     TransmogrifierService: typeof TransmogrifierService;
+    TraceFlagItemStruct: typeof TraceFlagItemStruct;
+    TraceFlagService: typeof TraceFlagService;
     WorkspaceService: typeof WorkspaceService;
   };
 };
@@ -152,6 +162,16 @@ export {
   ChildRelationshipSchema,
   PicklistValueSchema
 } from './core/transmogrifierService';
+export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
+export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
+export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
+export type {
+  DebugLevelCreateError,
+  TraceFlagCreateError,
+  TraceFlagNotFoundError,
+  TraceFlagUpdateError,
+  UserIdNotFoundError
+} from './errors/traceFlagErrors';
 export type { GetRegistryAccessError } from './core/metadataRegistryService';
 export type { FsServiceError } from './vscode/fsService';
 export { ICONS } from './vscode/mediaService';
@@ -186,7 +206,9 @@ const activationEffect = (context: vscode.ExtensionContext) =>
         // watch the config files for changes, which various services use to invalidate caches
         Effect.forkIn(watchConfigFiles(), scope),
         // watch active editor changes to update package directories context
-        Effect.forkIn(watchPackageDirectoriesContext(), scope)
+        Effect.forkIn(watchPackageDirectoriesContext(), scope),
+        // watch active editor changes to update apex test context
+        Effect.forkIn(watchApexTestContext(), scope)
       ],
       {
         concurrency: 'unbounded'
@@ -203,6 +225,7 @@ const activationEffect = (context: vscode.ExtensionContext) =>
  * Consumers should get both from the API, not via direct imports.
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
+  setExtensionContext(context);
   const extensionScope = Effect.runSync(getExtensionScope());
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -238,6 +261,9 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   /** they're global in the sense that they should be the same for all extension */
   const globalLayers = Layer.mergeAll(
     AliasService.Default,
+    ExtensionContextService.Default,
+    ExecuteAnonymousService.Default,
+    ApexLogService.Default,
     ComponentSetService.Default,
     ConfigService.Default,
     ConnectionService.Default,
@@ -256,6 +282,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     SettingsWatcherService.Default,
     SourceTrackingService.Default,
     TransmogrifierService.Default,
+    TraceFlagService.Default,
     WorkspaceService.Default
   );
 
@@ -288,12 +315,14 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   return {
     services: {
       prebuiltServicesDependencies: builtContext,
+      ApexLogService,
       AliasService,
       ChannelService,
       ChannelServiceLayer,
       ComponentSetService,
       ConfigService,
       ConnectionService,
+      ExecuteAnonymousService,
       registerCommandWithLayer,
       EditorService,
       ErrorHandlerService,
@@ -311,9 +340,12 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ProjectService,
       SdkLayerFor,
       SettingsService,
+      SettingsWatcherService,
       SourceTrackingService,
       TargetOrgRef: getDefaultOrgRef,
       TransmogrifierService,
+      TraceFlagItemStruct,
+      TraceFlagService,
       WorkspaceService
     }
   };
@@ -351,6 +383,7 @@ export {
   MetadataDeleteService,
   type MetadataDeleteService as MetadataDeleteServiceType
 } from './core/metadataDeleteService';
+export { type ApexLogListItem, type ApexLogService, type ListLogsOptions } from './core/apexLogService';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
 export {
   MetadataDeployService,
@@ -361,4 +394,6 @@ export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
+export { type SettingsWatcherService } from './vscode/settingsWatcherService';
+export { type DebugLevelItem, type TraceFlagItem, type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';

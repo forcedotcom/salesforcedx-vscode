@@ -18,9 +18,6 @@ import { MessageKey } from './i18n';
  * If omitted, we will assume _message.
  */
 export const messages: Partial<Record<MessageKey, string>> = {
-  telemetry_legal_dialog_message:
-    'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
-  telemetry_legal_dialog_button_text: 'さらに表示',
 
   progress_notification_text: '%s を実行しています。',
   notification_successful_execution_text: '%s が正常に実行されました。',
@@ -42,7 +39,4 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
   predicates_no_salesforce_project_found_text:
     '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
-  apex_debug_log_status_bar_text: '$(file-text) 詳細なログを記録しています。%s まで。',
-  apex_debug_log_status_bar_hover_text:
-    'Apex および Visualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
 };

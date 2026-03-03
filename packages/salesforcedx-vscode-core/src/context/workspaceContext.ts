@@ -9,12 +9,9 @@ import { Connection } from '@salesforce/core';
 import {
   OrgUserInfo,
   WorkspaceContextUtil,
-  disposeTraceFlagExpiration,
   UserService,
   refreshAllExtensionReporters,
-  handleTraceFlagCleanup,
-  getDevHubIdFromScratchOrg,
-  errorToString
+  getDevHubIdFromScratchOrg
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { workspaceContextUtils } from '.';
@@ -34,7 +31,6 @@ export class WorkspaceContext {
     this.onOrgChange = workspaceContextUtil.onOrgChange;
     this.onOrgChange(c => this.handleCliConfigChange(c));
     this.onOrgChange(c => this.handleOrgShapeChange(c));
-    this.onOrgChange(() => this.handleTraceFlagCleanup());
     this.onOrgChange(() => this.handleTelemetryUpdate());
   }
 
@@ -87,21 +83,6 @@ export class WorkspaceContext {
       }
     }
   }
-
-  /** Handle trace flag cleanup when org changes */
-  protected handleTraceFlagCleanup = async () => {
-    if (!this.coreExtensionContext) {
-      return;
-    }
-
-    try {
-      await handleTraceFlagCleanup(this.coreExtensionContext);
-    } catch (error) {
-      // If the action performed results in no default org set, we need to remove the trace flag expiration
-      disposeTraceFlagExpiration();
-      console.log('Failed to perform trace flag cleanup after org change:', errorToString(error));
-    }
-  };
 
   /** Update telemetry user ID when org changes */
   protected handleTelemetryUpdate = async () => {

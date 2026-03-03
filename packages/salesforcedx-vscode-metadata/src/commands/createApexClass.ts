@@ -137,11 +137,7 @@ const createFiles = Effect.fn('createFiles')(function* (className: string, outpu
 
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
 
-  // Open the class file
-  yield* Effect.promise(async () => {
-    const doc = await vscode.workspace.openTextDocument(clsUri);
-    await vscode.window.showTextDocument(doc);
-  });
+  yield* api.services.FsService.showTextDocument(clsUri);
 });
 
 /** Create Apex class command */

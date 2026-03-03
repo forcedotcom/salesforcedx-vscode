@@ -112,19 +112,18 @@ const executeRefresh = Effect.fn('executeRefresh')(
  * Refresh SObject definitions command — Effect pattern, no SfCommandlet framework.
  * Registered as sf.internal.refreshsobjects in metadata's index.ts.
  */
-const runRefresh = (source?: SObjectRefreshSource) =>
-  Effect.fn('runRefresh')(function* () {
-    if (!source || source === 'manual') {
-      const picked = yield* gatherCategory();
-      if (!picked) return;
-      yield* executeRefresh(picked, source);
-    } else {
-      yield* executeRefresh('ALL', source);
-    }
-  });
+const runRefresh = Effect.fn('runRefresh')(function* (source?: SObjectRefreshSource) {
+  if (!source || source === 'manual') {
+    const picked = yield* gatherCategory();
+    if (!picked) return;
+    yield* executeRefresh(picked, source);
+  } else {
+    yield* executeRefresh('ALL', source);
+  }
+});
 
 export const refreshSObjectsCommand = Effect.fn('refreshSObjectsCommand')(function* (source?: SObjectRefreshSource) {
-  const result = yield* refreshSemaphore.withPermitsIfAvailable(1)(runRefresh(source)());
+  const result = yield* refreshSemaphore.withPermitsIfAvailable(1)(runRefresh(source));
   if (Option.isNone(result)) {
     yield* Effect.promise(() =>
       vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'))

@@ -19,11 +19,14 @@ export { retrieveComponent } from './retrieveMetadata';
 export { retrieveSourcePaths } from './retrieveSourcePath';
 export { openDocumentation } from './openDocumentation';
 export { projectDeployStart } from './projectDeployStart';
-export { projectGenerateWithManifest, sfProjectGenerate } from './projectGenerate';
+export {
+  projectGenerateWithManifest,
+  ProjectGenerateArgs,
+  ProjectTemplate,
+  sfProjectGenerate
+} from './projectGenerate';
 export { projectRetrieveStart } from './projectRetrieveStart';
 export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/viewChanges';
-export { turnOnLogging } from './startApexDebugLogging';
-export { turnOffLogging } from './stopApexDebugLogging';
 export {
   analyticsGenerateTemplate,
   apexGenerateClass,

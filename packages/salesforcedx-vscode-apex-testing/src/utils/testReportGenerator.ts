@@ -148,11 +148,12 @@ export const writeAndOpenTestReport = async (
             // Then show the preview
             await vscode.commands.executeCommand('markdown.showPreview', uri);
           } else {
-            const document = await vscode.workspace.openTextDocument(uri);
-            await vscode.window.showTextDocument(document, {
-              preview: false,
-              preserveFocus: false
-            });
+            await Effect.runPromise(
+              Effect.gen(function* () {
+                const api = yield* (yield* ExtensionProviderService).getServicesApi;
+                yield* api.services.FsService.showTextDocument(uri, { preview: false, preserveFocus: false });
+              }).pipe(Effect.provide(AllServicesLayer))
+            );
           }
         } catch (error) {
           console.error('Failed to open test report:', error, 'URI:', uri.toString(), 'Report path:', reportPath);

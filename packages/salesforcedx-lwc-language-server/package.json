@@ -89,7 +89,7 @@
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",
     "ejs": "^3.1.10",
-    "minimatch": "^10.2.0",
+    "minimatch": "^10.2.3",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",
@@ -103,9 +103,6 @@
     "colormin": "1.1.2",
     "jest-extended": "^0.11.5",
     "js-base64": "3.7.8",
-    "num2fraction": "1.2.2",
-    "rollup": "0.68.2",
-    "uniq": "1.0.1",
-    "uniqs": "2.0.0"
+    "num2fraction": "1.2.2"
   }
 }

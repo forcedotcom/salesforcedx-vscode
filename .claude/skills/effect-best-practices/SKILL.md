@@ -1,12 +1,25 @@
 ---
 name: effect-best-practices
 description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Effect-TS Best Practices
 
-This skill enforces opinionated, consistent patterns for Effect-TS codebases. These patterns optimize for type safety, testability, observability, and maintainability.
+This skill enforces opinionated, consistent patterns for Effect-TS codebases.
+
+## Effect LS diagnostics (agent usage)
+
+Cursor's `read_lints` does not surface Effect Language Server diagnostics. Use the CLI:
+
+```bash
+npx effect-language-service diagnostics --file <path>
+# or whole project:
+npx effect-language-service diagnostics --project tsconfig.json
+```
+
+- Run when editing Effect code; fix reported issues (e.g. `unnecessaryFailYieldableError` → yield error directly)
+- `effect-language-service quickfixes` shows proposed code changes
 
 ## Quick Reference: Critical Rules
 
@@ -16,9 +29,11 @@ This skill enforces opinionated, consistent patterns for Effect-TS codebases. Th
 | Dependencies | `dependencies: [Dep.Default]` in service | Manual `Layer.provide` at usage sites |
 | Errors | `Schema.TaggedError` with `message` field | Plain classes or generic Error |
 | Error Specificity | `UserNotFoundError`, `SessionExpiredError` | Generic `NotFoundError`, `BadRequestError` |
-| Error Handling | `catchTag`/`catchTags` | `catchAll` or `mapError` |
+| Error Handling | `catchTag`/`catchTags`; catch only when needed | `catchAll`; swallowing; catching "just in case" |
 | IDs | `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string` for entity IDs |
 | Functions | `Effect.fn("Service.method")` | Anonymous generators |
+| Params vs deps | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params |
+| Naming | `FooCommand` for commands, domain names for helpers | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging | `Effect.log` with structured data | `console.log` |
 | Config | `Config.*` with validation | `process.env` directly (except build-time vars like `ESBUILD_*`) |
 | Options | `Option.match` with both cases | `Option.getOrThrow` |
@@ -76,6 +91,28 @@ const MainLive = Layer.mergeAll(UserService.Default, OtherService.Default)
 - Infrastructure with runtime injection (Cloudflare KV, worker bindings)
 - Factory patterns where resources are provided externally
 
+### Params vs Dependencies
+
+- **Params** = runtime data per call (IDs, user input, per-invocation config)
+- **Dependencies** = shared infrastructure (Ref, PubSub, SubscriptionRef, services) — provide via layer, **yield inside** the effect
+- Build Ref/PubSub/etc in the layer (e.g. `buildAllServicesLayer`); consumers yield them, don't receive as params
+
+```typescript
+// WRONG - passing shared infra as params
+const createStatusBar = (pubsub: PubSub.PubSub<void>, stateRef: SubscriptionRef.SubscriptionRef<State>) =>
+  Effect.gen(...)
+// Caller must create and pass; wiring scattered at call sites
+
+// CORRECT - yield inside, build in layer
+const PubSubTag = Context.GenericTag<PubSub.PubSub<void>>("PubSub")
+const createStatusBar = Effect.gen(function* () {
+  const pubsub = yield* PubSubTag
+  const stateRef = yield* StateRefTag
+  // ...
+})
+// Layer: Layer.effect(PubSubTag, PubSub.sliding<void>(1))
+```
+
 See `references/service-patterns.md` for detailed patterns.
 
 ## Error Definition Pattern
@@ -126,6 +163,15 @@ yield* effect.pipe(
     }),
 )
 ```
+
+### When to Catch (and When Not To)
+
+**Most errors surface to the user** (message/toast at runtime). Only catch when:
+
+- **Genuinely ignore** – accept failure and continue (e.g. optional pre-create)
+- **Better message** – default vague; map to clearer domain error
+
+Catch sparingly. No `catchAll` or "swallow to be safe." Use `catchTag`/`catchTags`; log or fail with improved error.
 
 ### Prefer Explicit Over Generic Errors
 
@@ -218,7 +264,7 @@ See `references/schema-patterns.md` for transforms and advanced patterns.
 
 ## Function Pattern with Effect.fn
 
-**Always use `Effect.fn`** for service methods. This provides automatic tracing with proper span names:
+**Always use `Effect.fn`** for service methods. This provides automatic tracing with proper span names. Span name is required; enforced by `local/require-effect-fn-span-name`.
 
 ```typescript
 // CORRECT - Effect.fn with descriptive name
@@ -237,6 +283,17 @@ const transfer = Effect.fn("AccountService.transfer")(
         // ...
     }
 )
+
+// WRONG - params on wrapper arrow, generator has none (closure capture)
+// Enforced by local/no-effect-fn-wrapper
+const findByIdBad = (id: UserId) =>
+    Effect.fn("UserService.findById")(function* () {
+        yield* repo.findById(id)  // id from closure
+    })
+
+// Naming: Don't append Effect. For commands use FooCommand; for helpers/lifecycle use domain names.
+// WRONG: logGetEffect, executeAnonymousDocumentEffect, activateEffect
+// CORRECT: logGetCommand, executeAnonymousDocumentCommand, executeAnonymous (helper), activation (lifecycle)
 ```
 
 ## Layer Composition
@@ -384,6 +441,9 @@ yield* Effect.gen(function* () {
 
 // FORBIDDEN - catchAll losing type info
 yield* effect.pipe(Effect.catchAll(() => Effect.fail(new GenericError())))
+
+// FORBIDDEN - swallowing errors (most errors surface to user; only catch when ignoring intentionally or providing better message)
+yield* effect.pipe(Effect.catchAll(() => Effect.void))
 
 // FORBIDDEN - console.log
 console.log("debug") // Use Effect.log

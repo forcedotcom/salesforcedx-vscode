@@ -103,20 +103,12 @@ jest.mock('../../../src/extensionProvider', () => {
     AllServicesLayer: Layer.succeed(DummyService, {})
   };
 });
-jest.mock('../../../src/messages', () => ({
-  nls: {
-    localize: jest.fn()
-  }
-}));
 // No local util module to mock; command imports come from utils-vscode above
 
 describe('orgList command', () => {
   let mockGetAuthFieldsFor: jest.SpyInstance;
 
   beforeEach(() => {
-    // Mock nls.localize
-    (nls.localize as jest.Mock).mockImplementation((key: string, ...args: string[]) => `${key}_${args.join('_')}`);
-
     // Reset all mocks
     jest.clearAllMocks();
 
@@ -361,7 +353,9 @@ describe('orgList command', () => {
 
       await displayRemainingOrgs();
 
-      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining('org_list_no_orgs_found'));
+      expect(channelService.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining(nls.localize('org_list_no_orgs_found'))
+      );
     });
 
     it('should create and display table for orgs', async () => {
@@ -384,7 +378,9 @@ describe('orgList command', () => {
 
       await displayRemainingOrgs();
 
-      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining('org_list_display_error'));
+      expect(channelService.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining(nls.localize('org_list_display_error', 'List error'))
+      );
     });
   });
 });

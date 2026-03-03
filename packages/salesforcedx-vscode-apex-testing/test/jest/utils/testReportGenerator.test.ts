@@ -50,8 +50,28 @@ jest.mock('../../../src/services/extensionProvider', () => {
 
   // Mock FsService as a class-like object with static accessor methods
   const MockFsService = {
-    writeFile: mockFsWrite,
-    safeWriteFile: mockFsWrite,
+    writeFile: (pathOrUri: unknown, _content: string) =>
+      Effect.promise(async () => {
+        // Call the global mockWriteFile which is set up by the test
+        // Extract the path to pass to the mock
+        const filePath = typeof pathOrUri === 'string' ? pathOrUri : ((pathOrUri as { fsPath?: string })?.fsPath ?? '');
+        const mockUri = {
+          fsPath: filePath,
+          path: filePath,
+          scheme: 'file',
+          authority: '',
+          query: '',
+          fragment: '',
+          toString: () => `file://${filePath}`
+        };
+
+        await (global as any).__mockWriteFile(mockUri, new TextEncoder().encode(_content));
+      }),
+    showTextDocument: (uri: unknown, options?: unknown) =>
+      Effect.promise(async () => {
+        const vscodeApi = require('vscode');
+        return vscodeApi.window.showTextDocument(uri, options);
+      }),
     Default: Layer.succeed(Context.GenericTag('FsService'), {
       writeFile: mockFsWrite,
       safeWriteFile: mockFsWrite
@@ -1105,7 +1125,6 @@ describe('testReportGenerator', () => {
 
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockExecuteCommand).not.toHaveBeenCalled();
-      expect(mockOpenTextDocument).toHaveBeenCalled();
       expect(mockShowTextDocument).toHaveBeenCalled();
       expect(appendLineSpy).toHaveBeenCalledWith(
         expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))

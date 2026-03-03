@@ -1,6 +1,8 @@
 .vscode/**
 .vscode-test/**
 .wireit/**
+.circular-deps.json
+.eslintcache
 **/*.map
 
 # ignore unused rxjs code

@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.19.0",
+  "version": "65.20.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +34,7 @@
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
     "@salesforce/source-tracking": "^7.8.1",
-    "@salesforce/templates": "^66.1.0",
+    "@salesforce/templates": "^66.2.1",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -282,10 +282,6 @@
         {
           "command": "sf.diff",
           "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org  && sf:show_shared_commands"
-        },
-        {
-          "command": "sf.launch.apex.replay.debugger.with.current.file",
-          "when": "sf:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         }
       ],
       "explorer/context": [
@@ -476,14 +472,6 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.start.apex.debug.logging",
-          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.stop.apex.debug.logging",
-          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
           "command": "sf.retrieve.component",
           "when": "false"
         },
@@ -574,10 +562,6 @@
         {
           "command": "sf.conflict.open",
           "when": "false"
-        },
-        {
-          "command": "sf.launch.apex.replay.debugger.with.current.file",
-          "when": "sf:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         },
         {
           "command": "sf.metadata.view.type.refresh",
@@ -699,14 +683,6 @@
         "title": "%apex_generate_trigger_text%"
       },
       {
-        "command": "sf.start.apex.debug.logging",
-        "title": "%start_apex_debug_logging%"
-      },
-      {
-        "command": "sf.stop.apex.debug.logging",
-        "title": "%stop_apex_debug_logging%"
-      },
-      {
         "command": "sf.retrieve.source.path",
         "title": "%retrieve_this_source_text%"
       },
@@ -797,10 +773,6 @@
           "light": "resources/light/go-to-file.svg",
           "dark": "resources/dark/go-to-file.svg"
         }
-      },
-      {
-        "command": "sf.launch.apex.replay.debugger.with.current.file",
-        "title": "%launch_apex_replay_debugger_with_current_file%"
       },
       {
         "command": "sf.rename.lightning.component",

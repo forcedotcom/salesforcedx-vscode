@@ -9,9 +9,7 @@ import {
   ActivationTracker,
   ChannelService,
   ensureCurrentWorkingDirIsProjectPath,
-  errorToString,
   getRootWorkspacePath,
-  handleTraceFlagCleanup,
   isSalesforceProjectOpened,
   notificationService,
   ProgressNotification,
@@ -62,8 +60,6 @@ import {
   sfProjectGenerate,
   sourceDiff,
   sourceFolderDiff,
-  turnOffLogging,
-  turnOnLogging,
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges,
@@ -124,7 +120,7 @@ const registerEffectCommands = () =>
   });
 
 /** Customer-facing commands */
-const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
+const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff),
@@ -144,8 +140,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
     vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger),
-    vscode.commands.registerCommand('sf.start.apex.debug.logging', () => turnOnLogging(extensionContext)),
-    vscode.commands.registerCommand('sf.stop.apex.debug.logging', () => turnOffLogging(extensionContext)),
     registerGetTelemetryServiceCommand()
   );
 const registerInternalDevCommands = (): vscode.Disposable =>
@@ -306,16 +300,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   void activateTracker.markActivationStop();
   reportExtensionPackStatus();
-
-  // Handle trace flag cleanup after setting target org
-  try {
-    await handleTraceFlagCleanup(extensionContext);
-  } catch (error) {
-    console.log(
-      'Trace flag cleanup not completed during activation of CLI Integration extension',
-      errorToString(error)
-    );
-  }
 
   setImmediate(() => {
     void WorkspaceContext.getInstance().initialize(extensionContext);
