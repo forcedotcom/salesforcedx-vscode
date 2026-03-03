@@ -6,6 +6,14 @@
  */
 import * as path from 'node:path';
 import { getModulesDirs } from '../baseContext';
+
+type JsconfigContent = {
+  compilerOptions: { experimentalDecorators?: boolean; target?: string; baseUrl?: string; paths?: Record<string, unknown> };
+  include: string[];
+  typeAcquisition?: { include?: string[] };
+};
+
+type VscodeSettings = Record<string, unknown>;
 import '../../jest/matchers';
 import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
 import { normalizePath } from '../utils';
@@ -47,8 +55,7 @@ const verifyJsconfigCore = (fileSystemProvider: FileSystemDataProvider, jsconfig
   const normalizedPath = normalizePath(jsconfigPath);
   const jsconfigContent = Buffer.from(fileSystemProvider.getFileContent(normalizedPath) ?? '').toString('utf8');
   expect(jsconfigContent).toContain('"compilerOptions": {');
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const jsconfig = JSON.parse(jsconfigContent);
+  const jsconfig = JSON.parse(jsconfigContent) as JsconfigContent;
   expect(jsconfig.compilerOptions.experimentalDecorators).toBe(true);
   expect(Array.isArray(jsconfig.include)).toBe(true);
   expect(jsconfig.include.length).toBe(2);
@@ -211,8 +218,7 @@ describe('WorkspaceContext', () => {
       sfdxFileSystemProvider.getFileContent(jsconfigPathForceApp) ?? ''
     ).toString('utf8');
     expect(jsconfigForceAppContent).toContain('"compilerOptions": {');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const jsconfigForceApp = JSON.parse(jsconfigForceAppContent);
+    const jsconfigForceApp = JSON.parse(jsconfigForceAppContent) as JsconfigContent;
     expect(jsconfigForceApp.compilerOptions.experimentalDecorators).toBe(true);
     expect(jsconfigForceApp.include[0]).toBe('**/*');
     expect(jsconfigForceApp.include[1]).toBe('../../../../.sfdx/typings/lwc/**/*.d.ts');
@@ -223,8 +229,7 @@ describe('WorkspaceContext', () => {
       'utf8'
     );
     expect(jsconfigUtilsContent).toContain('"compilerOptions": {');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const jsconfigUtils = JSON.parse(jsconfigUtilsContent);
+    const jsconfigUtils = JSON.parse(jsconfigUtilsContent) as JsconfigContent;
     expect(jsconfigUtils.compilerOptions.target).toBe('es2017');
     expect(jsconfigUtils.compilerOptions.experimentalDecorators).toBe(true);
     expect(jsconfigUtils.include[0]).toBe('util/*.js');
@@ -316,10 +321,9 @@ describe('WorkspaceContext', () => {
     verifyJsconfigCore(coreProjectFileSystemProvider, jsconfigPath);
     verifyTypingsCore(coreProjectFileSystemProvider);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const settings = JSON.parse(
       Buffer.from(coreProjectFileSystemProvider.getFileContent(settingsPath) ?? '').toString('utf8')
-    );
+    ) as VscodeSettings;
     verifyCoreSettings(settings);
   });
 
