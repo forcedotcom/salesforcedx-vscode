@@ -316,8 +316,7 @@ const getMethodDocs = (tag: Tag): string | null => {
 };
 
 // Utility function to update tag metadata
-export const updateTagMetadata = (tag: Tag, meta: any, fileSystemProvider?: IFileSystemProvider): void => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+export const updateTagMetadata = (tag: Tag, meta: Metadata, fileSystemProvider?: IFileSystemProvider): void => {
   tag.metadata = meta;
   tag._allAttributes = null;
   tag._methods = null;

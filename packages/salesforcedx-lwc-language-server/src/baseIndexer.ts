@@ -27,6 +27,16 @@ interface SfdxProjectConfig {
   sourceApiVersion?: string;
 }
 
+const isSfdxProjectConfig = (value: unknown): value is SfdxProjectConfig => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  return (
+    (!('namespace' in value) || typeof value.namespace === 'string' || value.namespace === undefined) &&
+    (!('sourceApiVersion' in value) || typeof value.sourceApiVersion === 'string' || value.sourceApiVersion === undefined)
+  );
+};
+
 // Utility function to resolve workspace root
 // Normalizes the path to ensure consistency (path.resolve() may reintroduce backslashes on Windows)
 // On Windows, path.isAbsolute() returns false for Windows-style paths on non-Windows platforms
@@ -64,8 +74,8 @@ const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProv
       const contentFromUri = fileSystemProvider.getFileContent(exactMatch);
       if (contentFromUri) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          return JSON.parse(contentFromUri);
+          const parsed: unknown = JSON.parse(contentFromUri);
+          return isSfdxProjectConfig(parsed) ? parsed : {};
         } catch (error) {
           Logger.error(
             `[getSfdxConfig] Error parsing JSON from URI: ${error instanceof Error ? error.message : String(error)}`,
@@ -77,8 +87,8 @@ const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProv
 
     if (content) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return JSON.parse(content);
+        const parsed: unknown = JSON.parse(content);
+        return isSfdxProjectConfig(parsed) ? parsed : {};
       } catch (error) {
         Logger.error(
           `[getSfdxConfig] Error parsing JSON: ${error instanceof Error ? error.message : String(error)}`,

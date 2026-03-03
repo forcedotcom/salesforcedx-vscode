@@ -9,6 +9,7 @@
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { PackageJson } from '../types/packageJson';
 
 // These unit tests check that specified dependencies in package.json do not use
 // ^ or ~ in the version range, either because those packages do not use semver
@@ -36,7 +37,7 @@ const checkFileExists = async (filePath: string): Promise<boolean> => {
   }
 };
 
-const runTests = async (): Promise<Record<string, unknown>> => {
+const runTests = async (): Promise<PackageJson> => {
   const packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
   const packageJson = await readJsonFile(packageJsonPath);
 
@@ -62,19 +63,19 @@ const runTests = async (): Promise<Record<string, unknown>> => {
     }
   }
 
-  return packageJson;
+  return packageJson as PackageJson;
 };
 
 describe('package.json dependencies', () => {
-  let packageJson: Record<string, unknown>;
+  let packageJson: PackageJson;
 
   beforeAll(async () => {
     packageJson = await runTests();
   });
 
   it('validates package dependencies', () => {
-    const dependencies: Record<string, string> = packageJson.dependencies as Record<string, string>;
-    const devDependencies: Record<string, string> = packageJson.devDependencies as Record<string, string>;
+    const dependencies = packageJson.dependencies ?? {};
+    const devDependencies = packageJson.devDependencies ?? {};
     let testMatchFound = false;
 
     for (const [name, versionRange] of Object.entries(dependencies)) {

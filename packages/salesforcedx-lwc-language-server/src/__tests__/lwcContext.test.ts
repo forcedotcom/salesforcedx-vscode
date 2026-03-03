@@ -141,8 +141,7 @@ describe('LWCWorkspaceContext', () => {
     if (!baseTsConfigBuffer) {
       throw new Error('Base tsconfig file not found');
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const baseTsConfigForceAppContent = JSON.parse(baseTsConfigBuffer);
+    const baseTsConfigForceAppContent = JSON.parse(baseTsConfigBuffer) as Record<string, unknown>;
     expect(baseTsConfigForceAppContent).toEqual({
       compilerOptions: {
         module: 'NodeNext',
@@ -159,8 +158,7 @@ describe('LWCWorkspaceContext', () => {
     if (!tsconfigBuffer) {
       throw new Error('Tsconfig file not found');
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const tsconfigForceAppContent = JSON.parse(Buffer.from(tsconfigBuffer).toString('utf8'));
+    const tsconfigForceAppContent = JSON.parse(Buffer.from(tsconfigBuffer).toString('utf8')) as Record<string, unknown>;
     expect(tsconfigForceAppContent).toEqual({
       extends: '../../../../.sfdx/tsconfig.sfdx.json',
       include: ['**/*.ts', '../../../../.sfdx/typings/lwc/**/*.d.ts'],

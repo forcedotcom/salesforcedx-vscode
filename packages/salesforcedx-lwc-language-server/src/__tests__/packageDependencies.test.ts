@@ -6,6 +6,7 @@
  */
 
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { PackageJson } from '@salesforce/salesforcedx-lightning-lsp-common';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { globSync } from 'glob';
 import * as path from 'node:path';
@@ -40,13 +41,13 @@ const checkFileExists = async (filePath: string): Promise<boolean> => {
 };
 
 // Variables to store loaded data
-let packageJson: Record<string, unknown>;
+let packageJson: PackageJson;
 let packageJsonPath: string;
 
 // Setup function to load package data
 const setupPackageData = async (): Promise<void> => {
   packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
-  packageJson = await readJsonFile(packageJsonPath);
+  packageJson = (await readJsonFile(packageJsonPath)) as PackageJson;
 
   // if we're in a monorepo, find other packages in the monorepo and make sure
   // references to those also use exact versions
@@ -81,8 +82,8 @@ describe('package.json dependencies', () => {
     expect(packageJson).toBeDefined();
     expect(packageJson.name).toBeDefined();
 
-    const dependencies: Record<string, string> = packageJson.dependencies as Record<string, string>;
-    const devDependencies: Record<string, string> = packageJson.devDependencies as Record<string, string>;
+    const dependencies = packageJson.dependencies ?? {};
+    const devDependencies = packageJson.devDependencies ?? {};
     let testMatchFound = false;
 
     // Check dependencies

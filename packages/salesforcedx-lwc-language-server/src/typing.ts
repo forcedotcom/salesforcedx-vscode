@@ -7,6 +7,26 @@
 import * as path from 'node:path';
 import * as xml2js from 'xml2js';
 
+interface CustomLabelsXml {
+  CustomLabels?: {
+    labels?: { fullName: string[] }[];
+  };
+}
+
+const isCustomLabelsXml = (value: unknown): value is CustomLabelsXml => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  if (!('CustomLabels' in value)) {
+    return true;
+  }
+  const cl = value.CustomLabels;
+  if (typeof cl !== 'object' || cl === null) {
+    return false;
+  }
+  return !('labels' in cl) || Array.isArray(cl.labels);
+};
+
 const metaRegex = new RegExp(/(?<name>[\w.-]+)\.(?<type>\w.+)-meta$/);
 
 const declaration = (type: string, name: string): string => {
@@ -67,18 +87,13 @@ export const fromMeta = (metaFilename: string): Typing => {
 
 // Utility function to generate declarations from custom labels
 export const declarationsFromCustomLabels = async (xmlDocument: string | Buffer): Promise<string> => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const doc = await new xml2js.Parser().parseStringPromise(xmlDocument);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  if (doc.CustomLabels === undefined || doc.CustomLabels.labels === undefined) {
+  const parsed: unknown = await new xml2js.Parser().parseStringPromise(xmlDocument);
+  if (!isCustomLabelsXml(parsed) || !parsed.CustomLabels?.labels) {
     return '';
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  const declarations: string[] = doc.CustomLabels.labels.map((label: { [key: string]: string[] }) =>
+  const declarations: string[] = parsed.CustomLabels.labels.map(label =>
     declaration('customLabel', label.fullName[0])
   );
-
   return declarations.join('\n');
 };
 

@@ -7,6 +7,7 @@
 
 import * as path from 'node:path';
 import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { readPackageJson } from './utils';
 
 const SFDX_PROJECT = 'sfdx-project.json';
 
@@ -80,14 +81,11 @@ export const detectWorkspaceHelper = (root: string, fileSystemProvider: IFileSys
     // File doesn't exist, continue
   }
 
-  const packageJson = path.join(root, 'package.json');
   try {
-    const packageInfoContent = fileSystemProvider.getFileContent(`${packageJson}`);
-    if (!packageInfoContent) {
+    const packageInfo = readPackageJson(root, fileSystemProvider);
+    if (!packageInfo) {
       throw new Error('Package info not found');
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const packageInfo: Record<string, unknown> = JSON.parse(packageInfoContent);
     const dependencies = Object.keys(packageInfo.dependencies ?? {});
     const devDependencies = Object.keys(packageInfo.devDependencies ?? {});
     const allDependencies: string[] = [...dependencies, ...devDependencies];
