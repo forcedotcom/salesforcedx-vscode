@@ -26,7 +26,7 @@ const getFreePort = (): Promise<number> =>
 
 /** Creates a standardized Playwright web config for VS Code extension testing */
 export const createWebConfig = async (options: WebConfigOptions = {}) => {
-  const port = await getFreePort();
+  const port = process.env.CI ? 3001 : await getFreePort();
   return defineConfig({
     testDir: options.testDir ?? './test/playwright/specs',
     fullyParallel: !process.env.E2E_SEQUENTIAL,
