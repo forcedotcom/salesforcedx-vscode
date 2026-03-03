@@ -41,7 +41,7 @@ We introduced Apex Log, a dedicated extension for Apex debugging and log workflo
 
 #### salesforcedx-vscode-services-types
 
-- Add media service to services extension and org picker icon updates ([PR #6873](https://github.com/forcedotcom/salesforcedx-vscode/pull/6873))
+- We integrated shared org icons into the Services extension and updated the org picker to use the new icons for a more consistent experience. ([PR #6873](https://github.com/forcedotcom/salesforcedx-vscode/pull/6873))
 
 ## Fixed
 
