@@ -35,7 +35,8 @@ jest.mock('../../../src/telemetry/telemetry', () => ({
 }));
 
 jest.mock('../../../src/settings', () => ({
-  retrieveTestCodeCoverage: jest.fn().mockReturnValue(false)
+  retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
+  retrieveTestRunConcise: jest.fn().mockReturnValue(false)
 }));
 
 jest.mock('../../../src/testDiscovery/packageResolution', () => ({
@@ -61,7 +62,10 @@ jest.mock('@salesforce/apex-node', () => ({
   },
   ResultFormat: {
     json: 'json'
-  }
+  },
+  HumanReporter: jest.fn().mockImplementation(() => ({
+    format: jest.fn().mockReturnValue('')
+  }))
 }));
 
 import { TestResult, TestService } from '@salesforce/apex-node';
@@ -132,6 +136,8 @@ describe('ApexTestController', () => {
       { uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }
     ];
     (vscode.workspace.fs.readFile as jest.Mock) = jest.fn();
+    // updateTestResults uses new vscode.TestRunRequest() - must be a constructor in Jest
+    (vscode as typeof vscode & { TestRunRequest: new () => vscode.TestRunRequest }).TestRunRequest = class {} as new () => vscode.TestRunRequest;
     (vscode.workspace.createFileSystemWatcher as jest.Mock) = jest.fn().mockReturnValue({
       onDidCreate: jest.fn(),
       onDidChange: jest.fn(),
