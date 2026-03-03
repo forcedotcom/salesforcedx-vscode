@@ -25,10 +25,10 @@ todos:
     status: completed
   - id: auto-collect-spec
     content: Write autoCollection.headless.spec.ts covering background log collection
-    status: pending
+    status: completed
   - id: verify-auto-collect
     content: 'Verify autoCollection: compile, lint, test:web, test:desktop'
-    status: pending
+    status: completed
   - id: trace-other-user-spec
     content: Write traceFlagsForOtherUser.headless.spec.ts covering create trace flag for another user via SOSL picker
     status: pending
