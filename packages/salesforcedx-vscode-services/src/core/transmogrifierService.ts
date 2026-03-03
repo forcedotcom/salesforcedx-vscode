@@ -17,7 +17,7 @@ export type DescribeSObjectResult = RawDescribeSObjectResult;
 export const PicklistValueSchema = S.Struct({
   active: S.Boolean,
   label: S.NullOr(S.String),
-  value: S.String,
+  value: S.String
 });
 
 export const SObjectFieldSchema = S.Struct({
@@ -35,13 +35,13 @@ export const SObjectFieldSchema = S.Struct({
   referenceTo: S.Array(S.String),
   relationshipName: S.NullOr(S.String),
   sortable: S.Boolean,
-  type: S.String,
+  type: S.String
 });
 
 export const ChildRelationshipSchema = S.Struct({
   childSObject: S.String,
   field: S.String,
-  relationshipName: S.NullOr(S.String),
+  relationshipName: S.NullOr(S.String)
 });
 
 export const SObjectSchema = S.Struct({
@@ -50,7 +50,7 @@ export const SObjectSchema = S.Struct({
   custom: S.Boolean,
   queryable: S.Boolean,
   fields: S.Array(SObjectFieldSchema),
-  childRelationships: S.Array(ChildRelationshipSchema),
+  childRelationships: S.Array(ChildRelationshipSchema)
 });
 
 export type SObject = S.Schema.Type<typeof SObjectSchema>;
@@ -76,33 +76,34 @@ const mapToSObject = (raw: RawDescribeSObjectResult): SObject => ({
     picklistValues: (f.picklistValues ?? []).map(pv => ({
       active: pv.active,
       label: pv.label ?? null,
-      value: pv.value,
+      value: pv.value
     })),
     referenceTo: [...(f.referenceTo ?? [])],
     relationshipName: f.relationshipName ?? null,
     sortable: f.sortable,
-    type: f.type,
+    type: f.type
   })),
   childRelationships: (raw.childRelationships ?? []).map(cr => ({
     childSObject: cr.childSObject,
     field: cr.field,
-    relationshipName: cr.relationshipName ?? null,
-  })),
+    relationshipName: cr.relationshipName ?? null
+  }))
 });
 
 export class TransmogrifierService extends Effect.Service<TransmogrifierService>()('TransmogrifierService', {
   accessors: true,
+  dependencies: [],
   effect: Effect.gen(function* () {
-    const toMinimalSObject = Effect.fn('TransmogrifierService.toMinimalSObject')(
-      function* (raw: DescribeSObjectResult) {
-        return mapToSObject(raw);
-      }
-    );
+    const toMinimalSObject = Effect.fn('TransmogrifierService.toMinimalSObject')(function* (
+      raw: DescribeSObjectResult
+    ) {
+      return mapToSObject(raw);
+    });
 
     const decodeSObject = Effect.fn('TransmogrifierService.decodeSObject')(function* (input: unknown) {
       return yield* S.decodeUnknown(SObjectSchema)(input);
     });
 
     return { toMinimalSObject, decodeSObject, SObjectSchema };
-  }),
+  })
 }) {}

@@ -27,18 +27,12 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
-      const channelLayer = api.services.ChannelServiceLayer(
-        context.extension.packageJSON.displayName ?? 'SOQL'
-      );
+      const channelLayer = api.services.ChannelServiceLayer(context.extension.packageJSON.displayName ?? 'SOQL');
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       return Layer.mergeAll(
+        Layer.succeedContext(api.services.prebuiltServicesDependencies),
         ExtensionProviderServiceLive,
-        api.services.ConnectionService.Default,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.ProjectService.Default,
-        api.services.TransmogrifierService.Default,
-        api.services.SettingsService.Default,
-        api.services.WorkspaceService.Default,
         api.services.SdkLayerFor(context),
         channelLayer,
         errorHandlerWithChannel
@@ -56,11 +50,10 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * Single persistent runtime for all SOQL extension Effect executions.
  * Built once on first use to avoid rebuilding TransmogrifierService and other
  * stateful services across sobject_metadata_request, sobjects_request, and
- * code-completion calls. SObject describe/list use the services extension's
- * shared singleton via MetadataDescribeApi (pre-satisfied, R = never).
+ * code-completion calls
  */
 const createSoqlRuntime = () => ManagedRuntime.make(AllServicesLayer);
-// eslint-disable-next-line functional/no-let
+
 let _soqlRuntime: ReturnType<typeof createSoqlRuntime> | undefined;
 export const getSoqlRuntime = () => {
   if (!_soqlRuntime) _soqlRuntime = createSoqlRuntime();

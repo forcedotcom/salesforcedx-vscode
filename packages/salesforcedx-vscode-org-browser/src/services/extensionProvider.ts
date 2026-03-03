@@ -34,17 +34,11 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       // Merge all the service layers from the API
       return Layer.mergeAll(
+        Layer.succeedContext(api.services.prebuiltServicesDependencies),
         ExtensionProviderServiceLive,
-        api.services.ConnectionService.Default,
-        api.services.ComponentSetService.Default,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.MetadataRetrieveService.Default,
-        api.services.MetadataRegistryService.Default,
-        api.services.ProjectService.Default,
         api.services.SdkLayerFor(context),
         channelLayer,
-        api.services.WorkspaceService.Default,
-        api.services.SourceTrackingService.Default,
         errorHandlerWithChannel,
         OrgBrowserRetrieveService.Default
       );
@@ -61,8 +55,7 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
 /**
  * Single persistent runtime for org-browser Effect executions.
  * Built once on first use to avoid rebuilding ComponentSetService and other
- * stateful services on each tree-node expansion. Metadata describe/list use the
- * services extension's shared singleton via MetadataDescribeApi (pre-satisfied, R = never).
+ * stateful services on each tree-node expansion
  */
 const createOrgBrowserRuntime = () => ManagedRuntime.make(AllServicesLayer);
 // eslint-disable-next-line functional/no-let

@@ -13,17 +13,21 @@ import { getSoqlRuntime } from './extensionProvider';
 
 /** TargetOrgRef (getDefaultOrgRef) has no requirements */
 export const isDefaultOrgSet = (): Promise<boolean> =>
-  getSoqlRuntime().runPromise(Effect.gen(function* () {
-    const api = yield* getServicesApi;
-    return yield* api.services.TargetOrgRef().pipe(
-      Effect.flatMap(ref => SubscriptionRef.get(ref)),
-      Effect.map(info => Boolean(info?.username))
-    );
-  }));
+  getSoqlRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* getServicesApi;
+      return yield* api.services.TargetOrgRef().pipe(
+        Effect.flatMap(ref => SubscriptionRef.get(ref)),
+        Effect.map(info => Boolean(info?.username))
+      );
+    })
+  );
 
 export const getConnection = (): Promise<Connection> =>
-  getSoqlRuntime().runPromise(Effect.gen(function* () {
-    const api = yield* getServicesApi;
-    const connectionService = yield* api.services.ConnectionService;
-    return yield* connectionService.getConnection();
-  }));
+  getSoqlRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* getServicesApi;
+      const connectionService = yield* api.services.ConnectionService;
+      return yield* connectionService.getConnection();
+    })
+  );

@@ -44,6 +44,7 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   const fs = yield* api.services.FsService;
   const project = yield* api.services.ProjectService;
   const tx = yield* api.services.TransmogrifierService;
+  const metadataDescribeService = yield* api.services.MetadataDescribeService;
 
   const [fauxStandard, fauxCustom, typings, soqlMeta, soqlStandard, soqlCustom] = yield* Effect.all(
     [
@@ -60,7 +61,7 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   // Phase 1: listSObjects and dir resets run in parallel — saves ~0.5s
   const [allSObjects] = yield* Effect.all(
     [
-      api.services.MetadataDescribeApi.listSObjects(),
+      metadataDescribeService.listSObjects(),
       fs.safeDelete(fauxStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxStandard))),
       fs.safeDelete(fauxCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxCustom))),
       fs.safeDelete(typings, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(typings))),
@@ -81,7 +82,7 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   const customRef = yield* Ref.make(0);
   const processedRef = yield* Ref.make(0);
 
-  yield* (yield* api.services.MetadataDescribeApi.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
+  yield* (yield* metadataDescribeService.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
     Stream.mapEffect(tx.toMinimalSObject),
     Stream.mapEffect(
       sobject => {

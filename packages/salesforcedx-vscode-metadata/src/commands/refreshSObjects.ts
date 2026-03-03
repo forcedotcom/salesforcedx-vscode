@@ -22,8 +22,7 @@ export const SOBJECT_REFRESH_COMPLETE_CMD = 'sf.internal.sobjectrefresh.complete
 /**
  * Single persistent runtime for artifact writing — built once on first refresh,
  * reused for all subsequent invocations to avoid rebuilding TransmogrifierService
- * and other stateful services. SObject describe/list use the services extension's
- * shared singleton via MetadataDescribeApi (pre-satisfied, R = never).
+ * and other stateful services
  */
 const createArtifactRuntime = () => ManagedRuntime.make(AllServicesLayer);
 // eslint-disable-next-line functional/no-let
@@ -68,8 +67,18 @@ const executeRefresh = Effect.fn('executeRefresh')(
           cancellationTokenSource.dispose();
           const artifactEffect =
             source === 'startupmin'
-              ? writeSobjectArtifacts({ cancellationToken: token, sobjects: getMinObjects(), sobjectNames: getMinNames(), progress })
-              : streamAndWriteSobjectArtifacts({ cancellationToken: token, category, source: source ?? 'manual', progress });
+              ? writeSobjectArtifacts({
+                  cancellationToken: token,
+                  sobjects: getMinObjects(),
+                  sobjectNames: getMinNames(),
+                  progress
+                })
+              : streamAndWriteSobjectArtifacts({
+                  cancellationToken: token,
+                  category,
+                  source: source ?? 'manual',
+                  progress
+                });
           return getArtifactRuntime().runPromise(artifactEffect);
         }
       )
@@ -82,9 +91,7 @@ const executeRefresh = Effect.fn('executeRefresh')(
       );
     }
     if (customObjects > 0) {
-      yield* channelService.appendToChannel(
-        nls.localize('processed_sobjects_length_text', customObjects, 'Custom')
-      );
+      yield* channelService.appendToChannel(nls.localize('processed_sobjects_length_text', customObjects, 'Custom'));
     }
 
     const exitCode = result.data.cancelled ? FAILURE_CODE : SUCCESS_CODE;
@@ -94,9 +101,11 @@ const executeRefresh = Effect.fn('executeRefresh')(
     Effect.gen(function* () {
       const msg = error instanceof Error ? error.message : String(error);
       yield* Effect.promise(() => vscode.window.showErrorMessage(msg));
-      yield* Effect.promise(() => vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: FAILURE_CODE }));
+      yield* Effect.promise(() =>
+        vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: FAILURE_CODE })
+      );
     })
-  ),
+  )
 );
 
 /**
@@ -115,10 +124,10 @@ const runRefresh = (source?: SObjectRefreshSource) =>
   });
 
 export const refreshSObjectsCommand = Effect.fn('refreshSObjectsCommand')(function* (source?: SObjectRefreshSource) {
-    const result = yield* refreshSemaphore.withPermitsIfAvailable(1)(runRefresh(source)());
-    if (Option.isNone(result)) {
-      yield* Effect.promise(() =>
-        vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'))
-      );
-    }
-  });
+  const result = yield* refreshSemaphore.withPermitsIfAvailable(1)(runRefresh(source)());
+  if (Option.isNone(result)) {
+    yield* Effect.promise(() =>
+      vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'))
+    );
+  }
+});

@@ -336,9 +336,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       // Check which names are already in the cache (concurrent synchronous map lookups).
       // On a warm cache (second run in same session) all 1367 names hit → zero batch API calls.
       const cacheChecks = yield* Effect.all(
-        objectNames.map(name =>
-          sobjectDescribeCache.getOptionComplete(name).pipe(Effect.map(opt => ({ name, opt })))
-        ),
+        objectNames.map(name => sobjectDescribeCache.getOptionComplete(name).pipe(Effect.map(opt => ({ name, opt })))),
         { concurrency: 'unbounded' }
       );
 
@@ -364,9 +362,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             const names = Chunk.toArray(batch);
             return runSObjectBatch(names).pipe(
               Effect.map(results =>
-                results.flatMap((sr, i) =>
-                  Array.isArray(sr.result) ? [] : [{ name: names[i], result: sr.result }]
-                )
+                results.flatMap((sr, i) => (Array.isArray(sr.result) ? [] : [{ name: names[i], result: sr.result }]))
               ),
               Effect.tap(pairs =>
                 Effect.all(

@@ -34,23 +34,12 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       // Merge all the service layers from the API
       return Layer.mergeAll(
+        Layer.succeedContext(api.services.prebuiltServicesDependencies),
         ExtensionProviderServiceLive,
-        api.services.ComponentSetService.Default,
-        api.services.ConnectionService.Default,
-        api.services.FsService.Default,
-        api.services.EditorService.Default,
         errorHandlerWithChannel,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.MetadataDeployService.Default,
-        api.services.MetadataDeleteService.Default,
-        api.services.MetadataRetrieveService.Default,
-        api.services.TransmogrifierService.Default,
-        api.services.ProjectService.Default,
         api.services.SdkLayerFor(context),
-        channelLayer,
-        api.services.WorkspaceService.Default,
-        api.services.SourceTrackingService.Default,
-        api.services.FileWatcherService.Default
+        channelLayer
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );

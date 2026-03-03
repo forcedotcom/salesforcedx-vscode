@@ -198,13 +198,16 @@ const safeRetrieveSObject = async (sobjectName?: string): Promise<SObject | unde
     telemetryService.sendException('SOQLanguageServerException', 'Missing `sobjectName` from SOQL completion context!');
     return undefined;
   }
-  return getSoqlRuntime().runPromise(Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* api.services.MetadataDescribeApi.describeCustomObject(sobjectName).pipe(
-      Effect.flatMap(raw => api.services.TransmogrifierService.toMinimalSObject(raw)),
-      Effect.catchAll(() => Effect.succeed<SObject | undefined>(undefined))
-    );
-  }));
+  return getSoqlRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const metadataDescribeService = yield* api.services.MetadataDescribeService;
+      return yield* metadataDescribeService.describeCustomObject(sobjectName).pipe(
+        Effect.flatMap(raw => api.services.TransmogrifierService.toMinimalSObject(raw)),
+        Effect.catchAll(() => Effect.succeed<SObject | undefined>(undefined))
+      );
+    })
+  );
 };
 
 const objectFieldMatchesSOQLContext = (field: SObjectField, soqlContext: SoqlItemContext) =>

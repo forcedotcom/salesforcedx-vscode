@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Resource } from '@effect/opentelemetry';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -48,22 +49,33 @@ import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
-/** Strips the R (environment) requirement from a service accessor, producing a pre-satisfied variant. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PreSatisfied<F extends (...args: any[]) => Effect.Effect<any, any, any>> = (
-  ...args: Parameters<F>
-) => Effect.Effect<Effect.Effect.Success<ReturnType<F>>, Effect.Effect.Error<ReturnType<F>>, never>;
-
-export type MetadataDescribeApi = {
-  describe: PreSatisfied<typeof MetadataDescribeService.describe>;
-  listSObjects: PreSatisfied<typeof MetadataDescribeService.listSObjects>;
-  describeCustomObject: PreSatisfied<typeof MetadataDescribeService.describeCustomObject>;
-  describeCustomObjects: PreSatisfied<typeof MetadataDescribeService.describeCustomObjects>;
-  listMetadata: PreSatisfied<typeof MetadataDescribeService.listMetadata>;
-};
-
 export type SalesforceVSCodeServicesApi = {
   services: {
+    /** contains most of the dependencies prebuilt in the services extension */
+    prebuiltServicesDependencies: Context.Context<
+      | AliasService
+      | ChannelService
+      | ComponentSetService
+      | ConfigService
+      | ConnectionService
+      | EditorService
+      | ErrorHandlerService
+      | FileWatcherService
+      | FsService
+      | MediaService
+      | MetadataDeleteService
+      | MetadataDeployService
+      | MetadataDescribeService
+      | MetadataRegistryService
+      | MetadataRetrieveService
+      | ProjectService
+      | Resource.Resource
+      | SettingsService
+      | SettingsWatcherService
+      | SourceTrackingService
+      | TransmogrifierService
+      | WorkspaceService
+    >;
     AliasService: typeof AliasService;
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
@@ -80,7 +92,6 @@ export type SalesforceVSCodeServicesApi = {
     getErrorMessage: typeof getErrorMessage;
     MediaService: typeof MediaService;
     MetadataDeleteService: typeof MetadataDeleteService;
-    MetadataDescribeApi: MetadataDescribeApi;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
     MetadataRegistryService: typeof MetadataRegistryService;
@@ -123,7 +134,11 @@ export type {
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
-export type { MetadataDescribeError, ListMetadataError, SObjectGlobalDescribeItem } from './core/metadataDescribeService';
+export type {
+  MetadataDescribeError,
+  ListMetadataError,
+  SObjectGlobalDescribeItem
+} from './core/metadataDescribeService';
 export type {
   DescribeSObjectResult,
   SObject,
@@ -197,10 +212,14 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     // first, before all other things, get the FS running.
     await Effect.runPromise(
       fileSystemSetup(context).pipe(
-        Effect.provide(SettingsService.Default),
-        Effect.provide(ChannelService.Default),
-        Effect.provide(IndexedDBStorageServiceShared),
-        Effect.provide(isItReadOnlyLayer),
+        Effect.provide(
+          Layer.mergeAll(
+            SettingsService.Default,
+            ChannelService.Default,
+            IndexedDBStorageServiceShared,
+            isItReadOnlyLayer
+          )
+        ),
         Scope.extend(extensionScope)
       )
     );
@@ -218,6 +237,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   /** they're global in the sense that they should be the same for all extension */
   const globalLayers = Layer.mergeAll(
+    AliasService.Default,
     ComponentSetService.Default,
     ConfigService.Default,
     ConnectionService.Default,
@@ -225,6 +245,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     FileWatcherService.Default,
     FsService.Default,
     MediaService.Default,
+    MetadataDescribeService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,
     MetadataRegistryService.Default,
@@ -234,6 +255,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     SettingsService.Default,
     SettingsWatcherService.Default,
     SourceTrackingService.Default,
+    TransmogrifierService.Default,
     WorkspaceService.Default
   );
 
@@ -241,7 +263,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     globalLayers,
     ChannelService.Default,
     errorHandlerWithChannel,
-    MetadataDescribeService.Default,
     ServicesSdkLayer()
   );
 
@@ -263,21 +284,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   console.log('Salesforce Services extension is now active!');
 
-  // Pre-satisfied MetadataDescribeApi — backed by the singleton built during activation.
-  // R = never: builtContext supplies MetadataDescribeService and all its transitive deps.
-  const metadataDescribeSvc = Context.get(builtContext, MetadataDescribeService);
-  const metadataDescribeApi: MetadataDescribeApi = {
-    describe: forceRefresh => metadataDescribeSvc.describe(forceRefresh).pipe(Effect.provide(builtContext)),
-    listSObjects: () => metadataDescribeSvc.listSObjects().pipe(Effect.provide(builtContext)),
-    describeCustomObject: name => metadataDescribeSvc.describeCustomObject(name).pipe(Effect.provide(builtContext)),
-    describeCustomObjects: names => metadataDescribeSvc.describeCustomObjects(names).pipe(Effect.provide(builtContext)),
-    listMetadata: (type, folder, forceRefresh) =>
-      metadataDescribeSvc.listMetadata(type, folder, forceRefresh).pipe(Effect.provide(builtContext))
-  };
-
   // Return API for other extensions to consume
   return {
     services: {
+      prebuiltServicesDependencies: builtContext,
       AliasService,
       ChannelService,
       ChannelServiceLayer,
@@ -294,7 +304,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       getErrorMessage,
       MediaService,
       MetadataDeleteService,
-      MetadataDescribeApi: metadataDescribeApi,
       MetadataDescribeService,
       MetadataDeployService,
       MetadataRegistryService,

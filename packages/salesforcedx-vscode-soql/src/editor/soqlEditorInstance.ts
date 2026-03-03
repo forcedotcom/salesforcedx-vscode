@@ -25,9 +25,10 @@ import { runQuery } from './queryRunner';
 
 const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.MetadataDescribeApi.describeCustomObject(sobjectName).pipe(
-    Effect.catchAll(() => Effect.succeed<DescribeSObjectResult | undefined>(undefined))
-  );
+  const metadataDescribeService = yield* api.services.MetadataDescribeService;
+  return yield* metadataDescribeService
+    .describeCustomObject(sobjectName)
+    .pipe(Effect.catchAll(() => Effect.succeed<DescribeSObjectResult | undefined>(undefined)));
 });
 
 // TODO: This should be exported from soql-builder-ui
@@ -91,16 +92,18 @@ export class SOQLEditorInstance {
     webviewPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
 
     const { onConnectionChanged } = this;
-    const fiber = getSoqlRuntime().runFork(Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const targetOrgRef = yield* api.services.TargetOrgRef();
-      yield* targetOrgRef.changes.pipe(
-        Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${org.orgId ?? '<NOT SET>'}`))),
-        Stream.map(org => org.orgId),
-        Stream.changes,
-        Stream.runForEach(() => Effect.sync(() => onConnectionChanged()))
-      );
-    }));
+    const fiber = getSoqlRuntime().runFork(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const targetOrgRef = yield* api.services.TargetOrgRef();
+        yield* targetOrgRef.changes.pipe(
+          Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${org.orgId ?? '<NOT SET>'}`))),
+          Stream.map(org => org.orgId),
+          Stream.changes,
+          Stream.runForEach(() => Effect.sync(() => onConnectionChanged()))
+        );
+      })
+    );
     this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(fiber)) });
 
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
