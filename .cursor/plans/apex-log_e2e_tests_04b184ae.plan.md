@@ -40,7 +40,7 @@ todos:
     status: completed
   - id: final-verify
     content: 'Final verification: compile, lint, vscode:bundle, knip, check:dupes'
-    status: pending
+    status: completed
 isProject: false
 ---
 
