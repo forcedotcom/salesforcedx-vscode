@@ -187,9 +187,14 @@
     },
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
+      "env": {
+        "E2E_SEQUENTIAL": "1"
+      },
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -202,11 +207,13 @@
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
-        "VSCODE_DESKTOP": "1"
+        "VSCODE_DESKTOP": "1",
+        "E2E_SEQUENTIAL": "1"
       },
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -242,7 +249,7 @@
         "salesforcedx-vscode-apex-log.logPollIntervalSeconds": {
           "type": "number",
           "default": 30,
-          "minimum": -1,
+          "minimum": 0,
           "maximum": 300,
           "description": "%apexLog.configuration.logPollIntervalSeconds.description%"
         },

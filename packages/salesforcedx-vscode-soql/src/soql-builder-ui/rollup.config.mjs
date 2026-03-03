@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import lwc from '@lwc/rollup-plugin';
 import alias from '@rollup/plugin-alias';
-import babel from '@rollup/plugin-babel';
+import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import inject from '@rollup/plugin-inject';
 import resolve from '@rollup/plugin-node-resolve';
@@ -121,9 +121,7 @@ export default {
     babel({
       extensions: ['.ts'],
       babelHelpers: 'bundled',
-      plugins: [
-        ['@babel/plugin-syntax-decorators', { version: 'legacy' }]
-      ],
+      plugins: [['@babel/plugin-syntax-decorators', { legacy: true }]],
       presets: [['@babel/preset-typescript', { allExtensions: true }]]
     }),
     lwc({

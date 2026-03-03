@@ -39,7 +39,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       browserType: 'chromium',
       headless: true,
       quality: 'stable',
-      port: 3001,
+      port: Number(process.env.PORT) || 3001,
       printServerLog: true,
       verbose: true,
       extensionDevelopmentPath,

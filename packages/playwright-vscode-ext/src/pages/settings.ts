@@ -195,7 +195,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         await expect(combobox).toHaveValue(value, { timeout: 10_000 });
       } else {
         // Handle textbox or spinbutton setting.
-        // fill() unreliable on spinbutton (input type=number). Use keyboard select-all + pressSequentially.
         const roleTextbox = row.getByRole('textbox').first();
         const roleSpinbutton = row.getByRole('spinbutton').first();
 
@@ -204,10 +203,15 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
         await inputElement.waitFor({ timeout: 30_000 });
         await inputElement.click({ timeout: 5000 });
-        // Select all via keyboard (works for both textbox and spinbutton on desktop + web)
-        const selectAllKey = isMacDesktop() ? 'Meta+a' : 'Control+a';
-        await page.keyboard.press(selectAllKey);
-        await inputElement.pressSequentially(value);
+        // Textbox: fill() clears and types (reliable for long URLs on web). Spinbutton: use select-all + pressSequentially.
+        const isSpinbutton = textboxCount === 0;
+        if (isSpinbutton) {
+          const selectAllKey = isMacDesktop() ? 'Meta+a' : 'Control+a';
+          await page.keyboard.press(selectAllKey);
+          await inputElement.pressSequentially(value);
+        } else {
+          await inputElement.fill(value);
+        }
         await inputElement.blur();
         await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
       }

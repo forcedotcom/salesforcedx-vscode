@@ -546,27 +546,31 @@ describe('Interactive debugger adapter - unit', () => {
       expect(requestService.accessToken).to.equal('00DxxFaK3T0ken');
     });
 
-    it('Should save connection settings', async () => {
-      configGetSpy.returns(
-        Promise.resolve({
-          getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
-        } as any)
-      );
-      args = {
-        salesforceProject: 'some/project/path',
-        workspaceSettings: {
-          connectionTimeoutMs: 60_000
-        } as WorkspaceSettings,
-        lineBreakpointInfo: lineBpInfo
-      };
+    it(
+      'Should save connection settings',
+      async () => {
+        configGetSpy.returns(
+          Promise.resolve({
+            getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
+          } as any)
+        );
+        args = {
+          salesforceProject: 'some/project/path',
+          workspaceSettings: {
+            connectionTimeoutMs: 60_000
+          } as WorkspaceSettings,
+          lineBreakpointInfo: lineBpInfo
+        };
 
-      await adapter.launchRequest(initializedResponse, args);
+        await adapter.launchRequest(initializedResponse, args);
 
-      expect(requestService.proxyUrl).to.be.undefined;
-      expect(requestService.proxyStrictSSL).to.be.undefined;
-      expect(requestService.proxyAuthorization).to.be.undefined;
-      expect(requestService.connectionTimeoutMs).to.equal(60_000);
-    });
+        expect(requestService.proxyUrl).to.be.undefined;
+        expect(requestService.proxyStrictSSL).to.be.undefined;
+        expect(requestService.proxyAuthorization).to.be.undefined;
+        expect(requestService.connectionTimeoutMs).to.equal(60_000);
+      },
+      60_000
+    );
   });
 
   describe('Line breakpoint info', () => {

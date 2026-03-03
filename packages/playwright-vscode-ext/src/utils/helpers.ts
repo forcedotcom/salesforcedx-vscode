@@ -54,7 +54,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
   'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)
   'testResults', // Test results folder access before it's created (non-critical)
-  'workspaceStorage' // Workspace storage access errors during initialization (non-critical)
+  'workspaceStorage', // Workspace storage access errors during initialization (non-critical)
+  'Illegal assignment from String to Integer' // Execute anonymous compile error (intentionally triggered in E2E)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
