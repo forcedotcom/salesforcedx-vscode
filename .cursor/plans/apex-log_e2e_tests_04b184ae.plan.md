@@ -37,7 +37,7 @@ todos:
     status: pending
   - id: ci-workflow
     content: Create apexLogE2E.yml workflow (web + desktop matrix, sequential, minimal org) and add to e2e.yml orchestrator
-    status: pending
+    status: completed
   - id: final-verify
     content: 'Final verification: compile, lint, vscode:bundle, knip, check:dupes'
     status: pending
