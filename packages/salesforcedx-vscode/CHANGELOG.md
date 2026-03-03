@@ -41,6 +41,4 @@ Updates for the Spring 26 (v66.0) release.
 
 #### salesforcedx-vscode-apex-testing
 
-- [W-21263244] namespaces and packages handling ([PR #6871](https://github.com/forcedotcom/salesforcedx-vscode/pull/6871))
-
-- Code coverage toggle not visible [Issue #6890](https://github.com/forcedotcom/salesforcedx-vscode/issues/6890) ([PR #6915](https://github.com/forcedotcom/salesforcedx-vscode/pull/6915))
+- Code coverage toggle was not visible [Issue #6890](https://github.com/forcedotcom/salesforcedx-vscode/issues/6890) ([PR #6915](https://github.com/forcedotcom/salesforcedx-vscode/pull/6915))
