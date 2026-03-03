@@ -248,7 +248,7 @@
         "salesforcedx-vscode-apex-log.logPollIntervalSeconds": {
           "type": "number",
           "default": 30,
-          "minimum": -1,
+          "minimum": 0,
           "maximum": 300,
           "description": "%apexLog.configuration.logPollIntervalSeconds.description%"
         },
