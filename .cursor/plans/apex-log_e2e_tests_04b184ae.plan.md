@@ -19,10 +19,10 @@ todos:
     status: completed
   - id: log-retrieval-spec
     content: Write logRetrieval.headless.spec.ts covering get logs and open folder
-    status: pending
+    status: completed
   - id: verify-log-retrieval
     content: 'Verify logRetrieval: compile, lint, test:web, test:desktop'
-    status: pending
+    status: completed
   - id: auto-collect-spec
     content: Write autoCollection.headless.spec.ts covering background log collection
     status: pending
