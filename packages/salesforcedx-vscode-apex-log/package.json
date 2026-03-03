@@ -49,6 +49,7 @@
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
     "copy:grammars": "wireit",
     "compile": "wireit",
     "lint": "wireit",
