@@ -18,22 +18,10 @@ Updates for the Spring 26 (v66.0) release.
 
 #### salesforcedx-vscode-apex-log
 
-Shane:
-- What's "apex-log"? A whole new extension for debug/logging. Things it can now do that you couldn't do before
-  - Create a TraceFlag on another user (search for users from your org and choose a level)
-  - Create new DebugLevels that you can reuse
-  - The improved StatusBarItem (in the bottom bar in VS Code shows whether you have a trace running and when it expires) has actions in its hover to manage some debug related tasks
-  - Click on it to open a file which shows TraceFlags and DebugLevels in your org (and has actions to create/delete them)
-  - If you have an active trace running, logs will automatically download in the background (there's a setting to control the polling frequency (`logPollIntervalSeconds`))
-  - Running Anonymous Apex will automatically retrieve and open the log file when you run them. Even if you don't have a trace flag active, we'll create one just for the life of the transaction so you can get the logs for it
-  - There's a new command to create a placeholder Anonymous Apex script
- 
-Sonal:
-
-We introduced Apex Log, a dedicated extension for Apex debugging and log workflows with these features-
-- You can create Trace Flags for any user in your org, define reusable Debug Levels, and manage both directly from VS Code.
-- An enhanced Status Bar indicator that shows when a trace is active and when it expires, with quick actions to view and manage Trace Flags and Debug Levels. Now logs automatically download in the background while a trace is active (polling frequency configurable via logPollIntervalSeconds).
-- Running Anonymous Apex now automatically retrieves and opens the corresponding log even creating a temporary Trace Flag, if needed. A new command also lets you quickly generate a placeholder Anonymous Apex script.
+- We introduced Apex Log, a dedicated extension for Apex debugging and log workflows with these features-
+  - You can create Trace Flags for any user in your org, define reusable Debug Levels, and manage both directly from VS Code.
+  - An enhanced Status Bar indicator that shows when a trace is active and when it expires, with quick actions to view and manage Trace Flags and Debug Levels. Now logs automatically download in the background while a trace is active (polling frequency configurable via `logPollIntervalSeconds`).
+  - Running Anonymous Apex now automatically retrieves and opens the corresponding log even creating a temporary Trace Flag, if needed. A new command also lets you quickly generate a placeholder Anonymous Apex script.
 
 #### salesforcedx-vscode-org
 
