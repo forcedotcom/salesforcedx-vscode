@@ -422,6 +422,18 @@ jest.mock('vscode-languageserver', () => {
 });
 
 describe('lwcServerNode', () => {
+  // Ensure setTimeout returns a value with unref (Node's Timer has it; jsdom/browser may not)
+  beforeAll(() => {
+    const realSetTimeout = global.setTimeout;
+    jest.spyOn(global, 'setTimeout').mockImplementation(((...args: unknown[]) => {
+      const id = realSetTimeout.apply(global, args as Parameters<typeof setTimeout>);
+      if (typeof (id as { unref?: () => void }).unref !== 'function') {
+        return Object.assign(id, { unref: () => {} });
+      }
+      return id;
+    }) as unknown as typeof setTimeout);
+  });
+
   // Suppress Logger.info spam from performDelayedInitialization / findFiles during tests
   let consoleInfoSpy: jest.SpyInstance;
   beforeAll(() => {
