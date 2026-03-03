@@ -9,6 +9,7 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { ResultFormat, TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { AllServicesLayer } from '../services/extensionProvider';
@@ -255,11 +256,94 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
   );
 };
 
+/** Get Apex class and test suite file URIs via ComponentSetService (works on web and desktop; same approach as org-browser / metadata). */
+export const findLocalApexClassAndTestSuiteUris = async (): Promise<{
+  apexClassUris: vscode.Uri[];
+  testSuiteUris: vscode.Uri[];
+}> => {
+  const empty: { apexClassUris: vscode.Uri[]; testSuiteUris: vscode.Uri[] } = {
+    apexClassUris: [],
+    testSuiteUris: []
+  };
+  const effect = Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const componentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+    const apexClassUris: vscode.Uri[] = [];
+    const testSuiteUris: vscode.Uri[] = [];
+    for (const comp of componentSet.getSourceComponents()) {
+      const typeName = comp.type?.name ?? '';
+      if (typeName === 'ApexClass' && comp.content) {
+        apexClassUris.push(vscode.Uri.file(comp.content));
+      } else if (typeName === 'ApexTestSuite') {
+        const filePath = comp.xml ?? comp.content ?? comp.walkContent?.()?.[0];
+        if (filePath) {
+          testSuiteUris.push(vscode.Uri.file(filePath));
+        }
+      }
+    }
+    const sort = (a: vscode.Uri, b: vscode.Uri) => (a.fsPath ?? a.path).localeCompare(b.fsPath ?? b.path);
+    return {
+      apexClassUris: apexClassUris.toSorted(sort),
+      testSuiteUris: testSuiteUris.toSorted(sort)
+    };
+  }).pipe(
+    Effect.provide(AllServicesLayer),
+    Effect.catchAll(() => Effect.succeed(empty))
+  );
+  const typedEffect: Effect.Effect<typeof empty, never, never> = effect;
+  return Effect.runPromise(typedEffect);
+};
+
+/** Web: find files by extension(s) by walking the workspace with FsService. Fallback when ComponentSetService is not used. */
+export const findFilesByExtensionsWeb = async (
+  rootPath: string,
+  extensions: string[],
+  options: { excludeDirNames?: string[] } = {}
+): Promise<vscode.Uri[]> => {
+  const { excludeDirNames = ['.sfdx'] } = options;
+  const result: vscode.Uri[] = [];
+  const walk = async (dirPath: string): Promise<void> => {
+    const entries = await Effect.runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        return yield* api.services.FsService.readDirectory(dirPath);
+      }).pipe(
+        Effect.provide(AllServicesLayer),
+        Effect.catchAll(() => Effect.succeed([]))
+      )
+    );
+    for (const uri of entries) {
+      const name = Utils.basename(uri);
+      const matchesExt = extensions.some(ext => name.endsWith(ext));
+      if (matchesExt) {
+        result.push(vscode.Uri.parse(uri.toString()));
+      } else {
+        const isDir = await Effect.runPromise(
+          Effect.gen(function* () {
+            const api = yield* (yield* ExtensionProviderService).getServicesApi;
+            return yield* api.services.FsService.isDirectory(uri);
+          }).pipe(
+            Effect.provide(AllServicesLayer),
+            Effect.catchAll(() => Effect.succeed(false))
+          )
+        );
+        if (isDir && !excludeDirNames.includes(name)) {
+          await walk(uri.toString());
+        }
+      }
+    }
+  };
+  if (rootPath) {
+    await walk(rootPath);
+  }
+  return result.toSorted((a, b) => (a.fsPath ?? a.path).localeCompare(b.fsPath ?? b.path));
+};
+
 /** Writes test result JSON file using FsService (works in both desktop and web modes) */
 export const writeTestResultJson = async (result: TestResult, outputDir: string): Promise<void> => {
   const testRunId = result.summary?.testRunId;
   const jsonFilename = testRunId ? `test-result-${testRunId}.json` : 'test-result.json';
-  const jsonFilePath = Utils.joinPath(URI.file(outputDir), jsonFilename);
+  const jsonFilePath = path.join(outputDir, jsonFilename);
   const jsonContent = JSON.stringify(result, null, 2);
 
   await Effect.runPromise(
@@ -270,7 +354,37 @@ export const writeTestResultJson = async (result: TestResult, outputDir: string)
   );
 };
 
-/** Writes test result JSON file, using FsService in web mode and testService.writeResultFiles in desktop mode */
+/** Writes test-run-id.txt using FsService (works in both desktop and web) so file watcher and controller can read it */
+export const writeTestRunIdFile = async (result: TestResult, outputDir: string): Promise<void> => {
+  const testRunId = result.summary?.testRunId;
+  if (!testRunId) {
+    return;
+  }
+  const filePath = path.join(outputDir, 'test-run-id.txt');
+  await Effect.runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      yield* api.services.FsService.writeFile(filePath, testRunId);
+    }).pipe(Effect.provide(AllServicesLayer))
+  );
+};
+
+/** Reads test-run-id.txt using FsService (works in both desktop and web) */
+export const readTestRunIdFile = async (apexTestPath: string): Promise<string | undefined> => {
+  const filePath = path.join(apexTestPath, 'test-run-id.txt');
+  return Effect.runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const content = yield* api.services.FsService.readFile(filePath);
+      return content.trim();
+    }).pipe(
+      Effect.provide(AllServicesLayer),
+      Effect.catchAll(() => Effect.succeed(undefined))
+    )
+  );
+};
+
+/** Writes test result JSON file: tries testService.writeResultFiles first, falls back to FsService (works in web and desktop) */
 export const writeTestResultJsonFile = async (
   result: TestResult,
   outputDir: string,
@@ -284,7 +398,12 @@ export const writeTestResultJsonFile = async (
       codeCoverage
     );
   } catch (error) {
-    // Log error but don't throw - test execution succeeded, just file writing failed
     console.error('Failed to write JSON test result file:', error);
+    try {
+      await writeTestResultJson(result, outputDir);
+      await writeTestRunIdFile(result, outputDir);
+    } catch (fallbackError) {
+      console.error('FsService fallback also failed:', fallbackError);
+    }
   }
 };

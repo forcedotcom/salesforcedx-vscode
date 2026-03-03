@@ -36,7 +36,7 @@ import {
 } from '../utils/testItemUtils';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
-import { buildClassToUriIndex, isFlowTest, writeTestResultJsonFile } from '../utils/testUtils';
+import { buildClassToUriIndex, isFlowTest, readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
@@ -49,7 +49,6 @@ import {
 } from './orgTestItems';
 
 const TEST_CONTROLLER_ID = 'sf.apex.testController';
-const TEST_RUN_ID_FILE = 'test-run-id.txt';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
 
 export class ApexTestController {
@@ -175,15 +174,7 @@ export class ApexTestController {
   }
 
   public async onResultFileCreate(apexTestPath: string, testResultFile: string): Promise<void> {
-    const testRunIdFile = path.join(apexTestPath, TEST_RUN_ID_FILE);
-    const fs = vscode.workspace.fs;
-    let testRunId: string | undefined;
-    try {
-      const testRunIdData = await fs.readFile(URI.file(testRunIdFile));
-      testRunId = Buffer.from(testRunIdData).toString('utf-8').trim();
-    } catch {
-      // test-run-id.txt might not exist
-    }
+    const testRunId = await readTestRunIdFile(apexTestPath);
 
     const testResultFilePath = path.join(
       apexTestPath,

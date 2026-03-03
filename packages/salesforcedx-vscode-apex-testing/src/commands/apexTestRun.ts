@@ -7,7 +7,7 @@
 
 import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
 import { isNotUndefined } from 'effect/Predicate';
-import { type CancellationToken, languages, window, workspace } from 'vscode';
+import { type CancellationToken, languages, Uri, window } from 'vscode';
 import { Utils } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
@@ -21,35 +21,58 @@ import {
   hasRootWorkspace,
   LibraryCommandletExecutor,
   type ParametersGatherer,
-  SFDX_FOLDER,
   SfCommandlet,
   SfWorkspaceChecker
 } from '../utils/commandletHelpers';
 import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
+import { findFilesByExtensionsWeb, findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
 import { runApexTests } from './apexTestRunUtils';
-
-const FILE_SEARCH_PATTERN = `{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`;
 
 /** Remove the extension from a filename */
 const removeExtension = (filename: string, ext: string): string =>
   filename.endsWith(ext) ? filename.slice(0, -ext.length) : filename;
 
+/** Get test suite and apex class URIs via ComponentSetService; fallback to FsService walk (web only) when empty */
+const findApexRunFiles = async (): Promise<{ testSuites: Uri[]; apexClasses: Uri[] }> => {
+  const fromComponentSet = await findLocalApexClassAndTestSuiteUris();
+  if (fromComponentSet.apexClassUris.length > 0 || fromComponentSet.testSuiteUris.length > 0) {
+    return {
+      testSuites: fromComponentSet.testSuiteUris,
+      apexClasses: fromComponentSet.apexClassUris
+    };
+  }
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    const all = await findFilesByExtensionsWeb(getRootWorkspacePath(), [
+      APEX_CLASS_EXT,
+      APEX_TESTSUITE_EXT
+    ]);
+    const { testSuites = [], apexClasses = [] } = Object.groupBy(all, file =>
+      file.path.endsWith(APEX_CLASS_EXT) ? 'apexClasses' : 'testSuites'
+    );
+    return { testSuites: testSuites ?? [], apexClasses: apexClasses ?? [] };
+  }
+  return { testSuites: [], apexClasses: [] };
+};
+
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
-    const { testSuites = [], apexClasses = [] } = Object.groupBy(
-      (await workspace.findFiles(FILE_SEARCH_PATTERN, SFDX_FOLDER)).toSorted((a, b) =>
-        a.fsPath.localeCompare(b.fsPath)
-      ),
-      file => (file.path.endsWith('.cls') ? 'apexClasses' : 'testSuites')
+    const { testSuites, apexClasses } = await findApexRunFiles();
+
+    const apexClassItems = await Promise.all(
+      apexClasses.map((uri): Promise<ApexTestQuickPickItem | undefined> =>
+        getTestInfo(uri).catch((): undefined => undefined)
+      )
     );
 
     const fileItems = [
-      ...(testSuites ?? []).map((testSuite): ApexTestQuickPickItem => ({
-        label: removeExtension(Utils.basename(testSuite), APEX_TESTSUITE_EXT),
-        description: testSuite.fsPath,
-        type: 'Suite' as const
-      })),
+      ...testSuites.map(
+        (testSuite): ApexTestQuickPickItem => ({
+          label: removeExtension(Utils.basename(testSuite), APEX_TESTSUITE_EXT),
+          description: testSuite.fsPath,
+          type: 'Suite' as const
+        })
+      ),
       {
         label: nls.localize('apex_test_run_all_local_test_label'),
         description: nls.localize('apex_test_run_all_local_tests_description_text'),
@@ -60,7 +83,7 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
         description: nls.localize('apex_test_run_all_tests_description_text'),
         type: 'All' as const
       },
-      ...(await Promise.all((apexClasses).map(getTestInfo))).filter(isNotUndefined)
+      ...apexClassItems.filter(isNotUndefined)
     ];
 
     const selection = await window.showQuickPick<ApexTestQuickPickItem>(fileItems);

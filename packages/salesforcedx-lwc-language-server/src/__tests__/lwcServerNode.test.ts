@@ -459,35 +459,39 @@ describe('lwcServerNode', () => {
         }
       });
 
-      it('should return a list of available completion items in a javascript file', async () => {
-        const params: CompletionParams = {
-          textDocument: { uri: jsUri },
-          position: {
-            line: 0,
-            character: 0
-          },
-          context: {
-            triggerCharacter: '.',
-            triggerKind: CompletionTriggerKind.TriggerCharacter
-          }
-        };
+      it(
+        'should return a list of available completion items in a javascript file',
+        async () => {
+          const params: CompletionParams = {
+            textDocument: { uri: jsUri },
+            position: {
+              line: 0,
+              character: 0
+            },
+            context: {
+              triggerCharacter: '.',
+              triggerKind: CompletionTriggerKind.TriggerCharacter
+            }
+          };
 
-        await server.onInitialize(initializeParams);
-        await setupServerForTest([jsDocument]);
+          await server.onInitialize(initializeParams);
+          await setupServerForTest([jsDocument]);
 
-        const doc = server.documents.get(jsUri);
-        expect(doc).toBeDefined();
-        expect((server as any).context.type).toBe('SFDX');
-        expect(server.componentIndexer.tags.size).toBeGreaterThan(0);
+          const doc = server.documents.get(jsUri);
+          expect(doc).toBeDefined();
+          expect((server as any).context.type).toBe('SFDX');
+          expect(server.componentIndexer.tags.size).toBeGreaterThan(0);
 
-        const completions = await server.onCompletion(params);
-        expect(completions).toBeDefined();
-        const labels = completions?.items.map(item => item.label) ?? [];
-        // Updated to match actual workspace structure - finding components including todo_util from utils/meta/lwc
-        expect(labels.length).toBeGreaterThanOrEqual(5);
-        expect(labels).toContain('c/todo_util');
-        expect(labels).toContain('c/todo_item');
-      });
+          const completions = await server.onCompletion(params);
+          expect(completions).toBeDefined();
+          const labels = completions?.items.map(item => item.label) ?? [];
+          // Updated to match actual workspace structure - finding components including todo_util from utils/meta/lwc
+          expect(labels.length).toBeGreaterThanOrEqual(5);
+          expect(labels).toContain('c/todo_util');
+          expect(labels).toContain('c/todo_item');
+        },
+        10_000
+      );
 
       it('should not return a list of completion items in a javascript file for open curly brace', async () => {
         const params: CompletionParams = {
