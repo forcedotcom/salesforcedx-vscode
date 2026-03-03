@@ -116,7 +116,3 @@
 
 - Web extensions use instanceUrl for isolating by org W-20890801 ([PR #6854](https://github.com/forcedotcom/salesforcedx-vscode/pull/6854))
 
-#### salesforcedx-vscode-soql
-
-- Fix compilation errors when running 'npm run build:soql-builder-ui' ([PR #6905](https://github.com/forcedotcom/salesforcedx-vscode/pull/6905))
-
