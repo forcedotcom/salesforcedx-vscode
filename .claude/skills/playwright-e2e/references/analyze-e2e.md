@@ -9,7 +9,7 @@ Monitor running e2e playwright tests for current branch, download artifacts on f
 
 ## Workflow
 
-First, use the `../../../agents/playwright-e2e-monitor.md` agent to efficiently retrieve artifacts. You can look at its doc to see where they get stored.
+**Delegate to** `../../../agents/playwright-e2e-monitor.md` subagent. If user provides a run URL (`.../actions/runs/12345`), include run-id `12345` in the subagent prompt.
 
 1. **Offer Analysis** (if artifacts downloaded)
    - Search HTML reports: `playwright-report/index.html` or `**/playwright-report/index.html`
@@ -26,9 +26,14 @@ Organized by branch and run ID.
 - `gh run download <run-id> -D <directory>` - Download artifacts
 - `gh run view <run-id> --web` - Open in browser
 
+## Run ID
+
+- From `gh run list`: run ID = `databaseId` of selected run
+- From URL: `.../actions/runs/<run-id>` or `.../actions/runs/<run-id>/job/...`
+
 ## Workflow Detection
 
-Filter `gh run list` JSON for `workflowName` containing "(Playwright)". Examples: "Metadata E2E (Playwright)" (`metadataE2E.yml`), "Services E2E (Playwright)" (`servicesE2E.yml`), "OrgBrowser E2E (Playwright)" (`orgBrowserE2E.yml`).
+Filter `workflowName` containing "(Playwright)". Examples: Metadata E2E, Services E2E, OrgBrowser E2E.
 
 ## Finding video
 
