@@ -11,12 +11,17 @@
 /* eslint-disable functional/no-try-statements */
 
 import { fs } from '@salesforce/core/fs';
+import type { MetadataType } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { unknownToErrorCause } from '../core/shared';
+import { WorkspaceService } from '../vscode/workspaceService';
 import { emitter } from './memfsWatcher';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
@@ -28,25 +33,54 @@ const handleFileSystemError = (error: unknown, uri: vscode.Uri): never => {
   throw error;
 };
 
-/**
- * the VSCode API doesn't store these anywhere by default.
- * This is hooked up to memfs right now, and its watcher handles everything else
- */
+/** Extract SDR suffix from path: "MyClass.cls" -> "cls", "MyClass.cls-meta.xml" -> "cls" */
+const suffixFromPath = (fsPath: string): string | undefined => {
+  const base = path.basename(fsPath);
+  const metaMatch = base.match(/\.([^.]+)-meta\.xml$/);
+  if (metaMatch) return metaMatch[1];
+  const ext = path.extname(fsPath).slice(1);
+  return ext || undefined;
+};
+
+/** Effect that uses MetadataRegistryService (cached) to resolve metadata type from URI */
+export const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: vscode.Uri) {
+  if (readOnlyTypes.length === 0) return false;
+  const suffix = suffixFromPath(uri.path);
+  if (!suffix) return false;
+  const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
+  const metadataType = registryAccess.getTypeBySuffix(suffix);
+  if (!metadataType) return false;
+  console.log(
+    'metadataType',
+    metadataType.id,
+    readOnlyTypes.some(opt => opt.id === metadataType.id)
+  );
+  return readOnlyTypes.some(opt => opt.id === metadataType.id);
+});
+
+/** Layer required to run isItReadOnlyEffect */
+export const isItReadOnlyLayer = Layer.mergeAll(MetadataRegistryService.Default, WorkspaceService.Default);
+
 export class FsProvider implements vscode.FileSystemProvider {
   public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = emitter.event;
+  public readOnly: MetadataType[] = [];
 
   public exists(uri: vscode.Uri): boolean {
     return fs.existsSync(uri.path);
   }
 
-  public stat(uri: vscode.Uri): vscode.FileStat {
+  public async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
     try {
       const stats = fs.statSync(uri.path);
+
       return {
         type: stats.isDirectory() ? vscode.FileType.Directory : vscode.FileType.File,
         ctime: stats.ctimeMs,
         mtime: stats.mtimeMs,
-        size: stats.size
+        size: stats.size,
+        ...(isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)
+          ? { permissions: vscode.FilePermission.Readonly }
+          : {})
       };
     } catch (error) {
       return handleFileSystemError(error, uri);
@@ -85,6 +119,9 @@ export class FsProvider implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): Promise<void> {
+    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+      throw vscode.FileSystemError.NoPermissions(uri);
+    }
     const program = Effect.sync(() => {
       if (!options.create && !this.exists(uri)) {
         return Effect.fail(vscode.FileSystemError.FileNotFound(uri));
@@ -109,11 +146,17 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
+    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+      throw vscode.FileSystemError.NoPermissions(uri);
+    }
     await fs.promises.rm(uri.path, { recursive: options.recursive, force: true });
     emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
   }
 
   public async rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): Promise<void> {
+    if (isItReadOnlyEffect(this.readOnly, oldUri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+      throw vscode.FileSystemError.NoPermissions(oldUri);
+    }
     if (!options.overwrite && this.exists(newUri)) {
       throw vscode.FileSystemError.FileExists(newUri);
     }

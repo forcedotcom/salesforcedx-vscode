@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.19.0",
+  "version": "66.0.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -53,16 +53,11 @@
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
     "@types/node": "^20.0.0",
-    "browserify-zlib": "^0.2.0",
-    "esbuild": "0.25.12",
-    "https-browserify": "^1.0.0",
     "jsforce": "^3.9.4",
-    "nyc": "^15",
-    "querystring-es3": "^0.2.1",
-    "stream-http": "^3.2.0",
-    "timers-browserify": "^2.0.12"
+    "svgtofont": "^3.5.0"
   },
   "scripts": {
+    "build:icons": "wireit",
     "vscode:bundle": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -70,20 +65,33 @@
     "compile": "wireit",
     "generate-types": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json resources",
     "test": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
     "test:e2e": "wireit",
-    "o11y:debug": "wireit"
+    "o11y:debug": "wireit",
+    "spans:server": "wireit"
   },
   "wireit": {
+    "build:icons": {
+      "command": "node scripts/build-icons.mjs",
+      "files": [
+        "scripts/build-icons.mjs",
+        "media/icons-src/*.svg",
+        "media/icons-src/icons.json"
+      ],
+      "output": [
+        "resources/icons-font/**"
+      ]
+    },
     "compile": {
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "build:icons",
         "generate-types",
         "../salesforcedx-vscode-i18n:compile"
       ],
@@ -199,7 +207,8 @@
         "README.md",
         "CHANGELOG.md",
         "LICENSE.txt",
-        "images/**"
+        "images/**",
+        "resources/icons-font/**"
       ],
       "output": [
         "*.vsix"
@@ -209,7 +218,8 @@
       "command": "playwright test --config=playwright.config.web.ts",
       "dependencies": [
         "vscode:bundle",
-        "../playwright-vscode-ext:compile"
+        "../playwright-vscode-ext:compile",
+        "spans:server"
       ],
       "files": [
         "playwright.config.web.ts"
@@ -236,6 +246,13 @@
       "files": [
         "scripts/o11yDebugServer.ts"
       ]
+    },
+    "spans:server": {
+      "command": "ts-node scripts/spanFileServer.ts",
+      "service": true,
+      "files": [
+        "scripts/spanFileServer.ts"
+      ]
     }
   },
   "activationEvents": [
@@ -248,6 +265,11 @@
     "configuration": {
       "title": "%configuration.title%",
       "properties": {
+        "salesforce-web-console.protectedOrg": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.protectedOrg.description%"
+        },
         "salesforce-web-console.instanceUrl": {
           "type": "string",
           "default": "",
@@ -277,10 +299,31 @@
           "type": "boolean",
           "default": false,
           "description": "%configuration.otelConsole.description%"
+        },
+        "salesforcedx-vscode-salesforcedx.enableFileTraces": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.otelFile.description%"
         }
       }
     },
-    "commands": []
+    "commands": [],
+    "icons": {
+      "sf-org-leaf": {
+        "description": "Leaf icon for default scratch org",
+        "default": {
+          "fontPath": "resources/icons-font/sf-media-icons.woff",
+          "fontCharacter": "\\E001"
+        }
+      },
+      "sf-org-tree": {
+        "description": "Tree icon for default dev hub",
+        "default": {
+          "fontPath": "resources/icons-font/sf-media-icons.woff",
+          "fontCharacter": "\\E002"
+        }
+      }
+    }
   },
   "sideEffects": true
 }

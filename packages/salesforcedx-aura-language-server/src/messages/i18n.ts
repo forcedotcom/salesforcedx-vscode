@@ -21,7 +21,6 @@ export const messages = {
   invalid_filesystem_provider_message: 'Invalid fileSystemProvider in initializationOptions',
   no_filesystem_provider_message:
     'No fileSystemProvider provided in initializationOptions. Static Aura resources will not be available for the language server.',
-  initialize_indexer_error_message: 'AuraServer initializeIndexer: Error: %s',
   indexer_initialization_error_message: 'AuraServer initializeIndexer: Error: %s',
   delayed_initialization_error_message: 'AuraServer performDelayedInitialization: Error: %s',
   file_not_found_message: 'File not found',

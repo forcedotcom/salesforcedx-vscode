@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.19.0",
+  "version": "66.0.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,7 +27,9 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.7",
+    "@salesforce/apex-node": "^8.4.10",
+    "salesforcedx-vscode-apex-log": "*",
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -36,17 +38,23 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "*",
     "@salesforce/core": "^8.23.2",
-    "esbuild": "0.25.12",
     "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-metadata": "*",
+    "salesforcedx-vscode-services": "*",
+    "@salesforce/playwright-vscode-ext": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-apex-log",
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
+    "test:desktop": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -63,9 +71,11 @@
         "../salesforcedx-apex-replay-debugger:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
+        "../salesforcedx-vscode-apex-log:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-core:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -134,45 +144,49 @@
         "CHANGELOG.md",
         "LICENSE.txt",
         "images/**",
-        "syntaxes/**",
         "resources/**"
       ],
       "output": [
         "*.vsix"
       ]
+    },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-apex:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-apex-testing:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     }
   },
   "activationEvents": [
     "onDebugResolve:apex",
     "onCommand:extension.replay-debugger.getLogFileName",
     "onCommand:sf.launch.replay.debugger.logfile",
-    "onCommand:sf.launch.replay.debugger.logfile.path"
+    "onCommand:sf.launch.replay.debugger.logfile.path",
+    "onCommand:sf.anon.apex.debug.delegate",
+    "onCommand:sf.apex.debug.document",
+    "onCommand:sf.launch.apex.replay.debugger.with.current.file"
   ],
   "main": "./dist/index.js",
   "contributes": {
     "breakpoints": [
       {
         "language": "apex"
-      }
-    ],
-    "languages": [
-      {
-        "id": "apexlog",
-        "aliases": [
-          "ApexLog",
-          "DebugLog"
-        ],
-        "extensions": [
-          ".log"
-        ],
-        "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "apexlog",
-        "scopeName": "text.log",
-        "path": "./syntaxes/apexlog.tmLanguage.json"
       }
     ],
     "menus": {
@@ -196,6 +210,18 @@
         {
           "command": "sf.test.view.debugSingleTest",
           "when": "false"
+        },
+        {
+          "command": "sf.anon.apex.debug.delegate",
+          "when": "sf:project_opened && editorLangId == 'apex'"
+        },
+        {
+          "command": "sf.apex.debug.document",
+          "when": "sf:project_opened && editorLangId == 'apex'"
+        },
+        {
+          "command": "sf.launch.apex.replay.debugger.with.current.file",
+          "when": "sf:project_opened && !inDebugMode"
         }
       ],
       "view/title": [
@@ -215,6 +241,18 @@
           "command": "sf.test.view.debugSingleTest",
           "when": "view == sf.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sf.launch.apex.replay.debugger.with.current.file",
+          "when": "sf:project_opened && (resource =~ /\\.(log|apex)$/ || (resource =~ /\\.cls$/ && sf:current_file_is_apex_test))"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.launch.apex.replay.debugger.with.current.file",
+          "when": "sf:project_opened && (resource =~ /\\.(log|apex)$/ || (resource =~ /\\.cls$/ && sf:current_file_is_apex_test))"
         }
       ]
     },
@@ -251,6 +289,18 @@
           "light": "resources/light/debug.svg",
           "dark": "resources/dark/debug.svg"
         }
+      },
+      {
+        "command": "sf.anon.apex.debug.delegate",
+        "title": "%anon_apex_execute_selection_text%"
+      },
+      {
+        "command": "sf.apex.debug.document",
+        "title": "%apex_debug_document_text%"
+      },
+      {
+        "command": "sf.launch.apex.replay.debugger.with.current.file",
+        "title": "%launch_apex_replay_debugger_with_selected_file%"
       }
     ],
     "views": {

@@ -52,6 +52,11 @@ jest.mock('../../../src/services/extensionProvider', () => {
 
         await (global as any).__mockWriteFile(mockUri, new TextEncoder().encode(_content));
       }),
+    showTextDocument: (uri: unknown, options?: unknown) =>
+      Effect.promise(async () => {
+        const vscodeApi = require('vscode');
+        return vscodeApi.window.showTextDocument(uri, options);
+      }),
     Default: Layer.succeed(Context.GenericTag('FsService'), {
       writeFile: (pathOrUri: unknown, _content: string) =>
         Effect.promise(async () => {
@@ -1118,7 +1123,6 @@ describe('testReportGenerator', () => {
 
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockExecuteCommand).not.toHaveBeenCalled();
-      expect(mockOpenTextDocument).toHaveBeenCalled();
       expect(mockShowTextDocument).toHaveBeenCalled();
       expect(appendLineSpy).toHaveBeenCalledWith(
         expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))

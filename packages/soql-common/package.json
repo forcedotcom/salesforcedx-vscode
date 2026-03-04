@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/soql-common",
-  "version": "1.0.0",
+  "version": "66.0.2",
   "description": "Common SOQL parsing utilities",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
@@ -41,6 +41,9 @@
     "LICENSE.txt",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "compile": "wireit",
     "lint": "wireit",

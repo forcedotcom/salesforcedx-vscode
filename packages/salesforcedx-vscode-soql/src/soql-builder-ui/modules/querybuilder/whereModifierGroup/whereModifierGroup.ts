@@ -12,8 +12,8 @@
  *
  */
 import { api, LightningElement, track } from 'lwc';
-import { debounce } from 'debounce';
-import { LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
+import debounce from 'debounce';
+import { ConditionOperator, LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
 import { ValidatorFactory } from '@salesforce/soql-model/validators/validatorFactory';
 import { splitMultiInputValues } from '@salesforce/soql-model/validators/inputUtils';
 import { JsonMap } from '@salesforce/types';
@@ -48,7 +48,7 @@ export default class WhereModifierGroup extends LightningElement {
   public _allModifiersHaveValue = false;
   public _sobjectMetadata: any;
   public _condition: JsonMap;
-  public _currentOperatorValue: string;
+  public _currentOperatorValue: UiOperatorValue | undefined;
   public handleSelectionEvent: () => void;
 
   @api
@@ -181,7 +181,7 @@ export default class WhereModifierGroup extends LightningElement {
     });
   }
 
-  public toOperatorModelValue(value: string): string | undefined {
+  public toOperatorModelValue(value: UiOperatorValue): ConditionOperator | undefined {
     const matchingOption = operatorOptions.find(
       (option) => option.value === value
     );
@@ -207,7 +207,7 @@ export default class WhereModifierGroup extends LightningElement {
     return allHaveValues;
   }
 
-  public isMultipleValueOperator(operatorValue: string): boolean {
+  public isMultipleValueOperator(operatorValue: UiOperatorValue): boolean {
     return (
       operatorValue === 'IN' ||
       operatorValue === 'NOT_IN' ||
@@ -216,7 +216,7 @@ export default class WhereModifierGroup extends LightningElement {
     );
   }
 
-  public isSpecialLikeCondition(operatorValue: string): boolean {
+  public isSpecialLikeCondition(operatorValue: UiOperatorValue): boolean {
     return (
       operatorValue === 'LIKE_START' ||
       operatorValue === 'LIKE_END' ||
@@ -228,7 +228,7 @@ export default class WhereModifierGroup extends LightningElement {
   public displayValue(
     type: LiteralType,
     rawValue: string,
-    operatorValue?: string
+    operatorValue?: UiOperatorValue
   ): string {
     let displayValue = rawValue;
     // eslint-disable-next-line default-case
@@ -336,7 +336,7 @@ export default class WhereModifierGroup extends LightningElement {
       this.resetErrorFlagsAndMessages();
 
       const fieldName = (this._currentFieldSelection = this.fieldEl.value[0]);
-      const op = (this._currentOperatorValue = this.operatorEl.value);
+      const op = (this._currentOperatorValue = this.operatorEl.value as UiOperatorValue);
       const opModelValue = this.toOperatorModelValue(op);
 
       this._criteriaDisplayValue = this.criteriaEl.value;

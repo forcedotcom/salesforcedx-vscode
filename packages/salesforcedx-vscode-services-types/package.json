@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-services",
-  "version": "65.19.0",
+  "version": "66.0.2",
   "description": "TypeScript type definitions for Salesforce VS Code Services extension API",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -12,14 +12,16 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-services-types",
+  "main": "out/index.js",
   "types": "out/index.d.ts",
   "exports": {
     ".": {
-      "types": "./out/index.d.ts"
+      "types": "./out/index.d.ts",
+      "default": "./out/index.js"
     }
   },
   "files": [
-    "out/**/*.d.ts",
+    "out/**",
     "README.md",
     "LICENSE.txt"
   ],
@@ -40,7 +42,8 @@
         "scripts/*.ts"
       ],
       "output": [
-        "src/index.ts"
+        "src/index.ts",
+        "src/icons.ts"
       ]
     },
     "compile": {

@@ -7,6 +7,10 @@
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { build } from 'esbuild';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const copyFiles = (src, dest) => {
   const stats = fs.statSync(src);
@@ -22,8 +26,11 @@ const copyFiles = (src, dest) => {
   }
 };
 
-const srcTemplatesPath = '../../node_modules/@salesforce/templates/lib/templates';
-const destTemplatesPath = './dist/templates';
+// Resolve templates from package node_modules first, then workspace root (for hoisted installs)
+const packageTemplates = path.join(__dirname, 'node_modules', '@salesforce', 'templates', 'lib', 'templates');
+const rootTemplates = path.join(__dirname, '..', '..', 'node_modules', '@salesforce', 'templates', 'lib', 'templates');
+const srcTemplatesPath = fs.existsSync(packageTemplates) ? packageTemplates : rootTemplates;
+const destTemplatesPath = path.join(__dirname, 'dist', 'templates');
 
 await build({
   ...nodeConfig,
@@ -33,4 +40,8 @@ await build({
   minify: true
 });
 
-copyFiles(srcTemplatesPath, destTemplatesPath);
+if (fs.existsSync(srcTemplatesPath)) {
+  copyFiles(srcTemplatesPath, destTemplatesPath);
+} else {
+  console.warn(`Templates path not found (tried ${packageTemplates} and ${rootTemplates}), skipping copy`);
+}

@@ -71,9 +71,10 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
 
     // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    execution.processExitSubject.subscribe(async exitCode => {
+    execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      // Only update state aggregators on successful completion (exit code 0)
+      // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
+      const exitCode = Array.isArray(data) ? data[0] : data;
       if (exitCode === 0) {
         await updateConfigAndStateAggregators();
       }
@@ -121,7 +122,7 @@ export const orgLogoutDefault = async () => {
   }
 };
 
-const resolveTargetOrg = Effect.fn(function* () {
+const resolveTargetOrg = Effect.fn('OrgLogout.resolveTargetOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 

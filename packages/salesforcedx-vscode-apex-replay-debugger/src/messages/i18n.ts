@@ -39,22 +39,24 @@ export const messages = {
   checkpoint_upload_error_wrap_up_message:
     'Your checkpoints have errors. Fix the errors listed in the output, then run %s again.',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
-  cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   cannot_delete_existing_checkpoint: 'Cannot delete existing checkpoint',
-  unable_to_parse_checkpoint_query_result: 'Unable to parse checkpoint query result',
   unable_to_retrieve_active_user_for_sf_project: 'Unable to retrieve active user for SFDX Project',
   unable_to_query_for_existing_checkpoints: 'Unable to query for existing checkpoints',
-  unable_to_load_vscode_core_extension: 'unable to load salesforce.salesforcedx-vscode-core extension',
   no_line_breakpoint_information_for_current_project: 'There is no line breakpoint information for the current project',
   line_breakpoint_information_success: 'Retrieved line breakpoint info from language server',
   language_client_not_ready: 'Unable to retrieve breakpoint info from language server, language server is not ready',
   unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
-  error_no_target_org:
-    'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_no_results_found: 'No test results found',
   debug_test_no_debug_log: 'No debug log associated with test results',
-  channel_name: 'Apex Replay Debugger'
+  channel_name: 'Apex Replay Debugger',
+  apex_execute_text: 'Execute Anonymous Apex',
+  apex_execute_debug_failed: 'Execute anonymous failed: %s',
+  unable_to_locate_editor: 'You can run this command only on a source file.',
+  unable_to_locate_document: 'You can run this command only on a source file.',
+  launch_apex_replay_debugger_unsupported_file:
+    'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
+  launch_apex_replay_debugger_with_selected_file: 'Launch Apex Replay Debugger with Selected File'
 } as const;
 
 export type MessageKey = keyof typeof messages;

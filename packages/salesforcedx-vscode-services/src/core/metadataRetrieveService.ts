@@ -21,6 +21,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { nls } from '../messages';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { uriToPath } from '../vscode/paths';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -68,11 +69,12 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     const sourceTrackingService = yield* SourceTrackingService;
     const projectService = yield* ProjectService;
     const configService = yield* ConfigService;
-    const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
+    const metadataRegistryService = yield* MetadataRegistryService;
 
     const buildComponentSet = Effect.fn('MetadataRetrieveService.buildComponentSet')(function* (
       members: MetadataMember[]
     ) {
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       return yield* Effect.try({
         try: () => new ComponentSet(members, registryAccess),
         catch: e => {
@@ -97,6 +99,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       filterMembers: MetadataMember[]
     ) {
       yield* Effect.annotateCurrentSpan({ filterMembers, sourcePaths });
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const include = filterMembers.length > 0 ? yield* buildComponentSet(filterMembers) : undefined;
       const cs = yield* Effect.try({
         try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
@@ -187,26 +190,26 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         [connectionService.getConnection(), projectService.getSfProject(), workspaceService.getWorkspaceInfoOrThrow()],
         { concurrency: 'unbounded' }
       );
-
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const componentSet = yield* buildComponentSet(members);
-
-      const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
 
       const tracking = yield* sourceTrackingService.getSourceTracking(options);
 
-      if (tracking) {
+      if (tracking && !options?.ignoreConflicts) {
         yield* Effect.promise(() =>
           vscode.window.withProgress(
-            { location: vscode.ProgressLocation.Notification, title, cancellable: false },
+            {
+              location: vscode.ProgressLocation.Notification,
+              title: nls.localize('checking_for_conflicts'),
+              cancellable: false
+            },
             () => tracking.reReadLocalTrackingCache()
           )
         ).pipe(Effect.withSpan('STL.ReReadLocalTrackingCache'));
-
-        if (!options?.ignoreConflicts) {
-          yield* sourceTrackingService.checkConflicts(tracking);
-        }
+        yield* sourceTrackingService.checkConflicts(tracking);
       }
 
+      const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
       return yield* performRetrieveOperation({ componentSet, connection, registryAccess, title, merge: true, project });
     });
 
@@ -218,6 +221,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       options?: SourceTrackingOptions
     ) {
       yield* Effect.annotateCurrentSpan({ components: components.size });
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const [connection, project, configAggregator] = yield* Effect.all(
         [
           connectionService.getConnection(),
@@ -257,6 +261,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      */
     const retrieveComponentSetToDirectory = Effect.fn('MetadataRetrieveService.retrieveComponentSetToDirectory')(
       function* (components: NonEmptyComponentSet, outputPath: URI) {
+        const registryAccess = yield* metadataRegistryService.getRegistryAccess();
         const [connection, project, configAggregator] = yield* Effect.all(
           [
             connectionService.getConnection(),

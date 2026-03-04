@@ -6,4 +6,6 @@ test/**
 src/**
 **/*.map
 .gitignore
+.circular-deps.json
+.eslintcache
 tsconfig.json

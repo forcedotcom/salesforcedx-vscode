@@ -11,14 +11,14 @@
       "description": "The Salesforce edition of the scratch org.",
       "type": "string",
       "enum": [
-        "Developer",
-        "Enterprise",
-        "Group",
-        "Partner Developer",
-        "Partner Enterprise",
-        "Partner Group",
-        "Partner Professional",
-        "Professional"
+        "developer",
+        "enterprise",
+        "group",
+        "partner-developer",
+        "partner-enterprise",
+        "partner-group",
+        "partner-professional",
+        "professional"
       ]
     },
     "country": {
@@ -452,6 +452,7 @@
               "EinsteinGPTForDevelopers",
               "EinsteinRecommendationBuilder",
               "EinsteinRecommendationBuilderMetadata",
+              "EinsteinSalesRepFdbk",
               "EinsteinSearch",
               "EinsteinVisits",
               "EinsteinVisitsED",

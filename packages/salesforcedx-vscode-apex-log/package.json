@@ -1,0 +1,419 @@
+{
+  "name": "salesforcedx-vscode-apex-log",
+  "displayName": "Salesforce Apex Log",
+  "description": "Execute anonymous Apex, retrieve Apex logs, and manage trace flags",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "version": "66.0.2",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-services"
+  ],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json",
+    "onFileSystem:memfs"
+  ],
+  "main": "./dist/index.js",
+  "types": "./out/src/index.d.ts",
+  "browser": "./dist/web/index.js",
+  "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
+    "jsforce": "^3.10.2",
+    "@salesforce/types": "^1.6.0",
+    "@salesforce/vscode-i18n": "*",
+    "effect": "^3.19.14",
+    "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "@salesforce/apex-tmlanguage": "^1.8.3",
+    "@salesforce/core": "^8.23.3",
+    "@salesforce/playwright-vscode-ext": "*",
+    "esbuild": "0.25.12",
+    "salesforcedx-vscode-services": "*"
+  },
+  "scripts": {
+    "vscode:bundle": "wireit",
+    "run:web": "wireit",
+    "test:web": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:debug": "npm run test:web -- --debug",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:e2e": "wireit",
+    "vscode:package": "wireit",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "copy:grammars": "wireit",
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty && npx ts-node scripts/generateTraceFlagsSchema.ts",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-vscode-services:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "scripts/**/*.ts",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo",
+        "resources/traceFlags.schema.json"
+      ]
+    },
+    "copy:grammars": {
+      "command": "shx mkdir -p syntaxes && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./syntaxes/",
+      "files": [
+        "../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+      ],
+      "output": [
+        "syntaxes/apex.tmLanguage"
+      ]
+    },
+    "vscode:bundle": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "copy:grammars",
+        "../salesforcedx-vscode-services:vscode:bundle"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "vscode:bundle:local": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "copy:grammars",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage --passWithNoTests",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "check:circular-deps"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
+      ],
+      "output": []
+    },
+    "vscode:package": {
+      "command": "vsce package",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**",
+        "resources/**",
+        "syntaxes/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    },
+    "test:web": {
+      "command": "playwright test --config=playwright.config.web.ts",
+      "env": {
+        "E2E_SEQUENTIAL": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.web.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_SEQUENTIAL": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:web",
+        "test:desktop"
+      ]
+    },
+    "run:web": {
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "service": true,
+      "dependencies": [
+        "vscode:bundle:local",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "syntaxes/**"
+      ]
+    }
+  },
+  "contributes": {
+    "configuration": {
+      "title": "%apexLog.configuration.title%",
+      "properties": {
+        "salesforcedx-vscode-apex-log.logPollIntervalSeconds": {
+          "type": "number",
+          "default": 30,
+          "minimum": 0,
+          "maximum": 300,
+          "description": "%apexLog.configuration.logPollIntervalSeconds.description%"
+        },
+        "salesforcedx-vscode-apex-log.traceFlagsDefaultDurationMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "%apexLog.configuration.traceFlagsDefaultDurationMinutes.description%"
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "apexlog",
+        "aliases": [
+          "ApexLog",
+          "DebugLog"
+        ],
+        "extensions": [
+          ".log"
+        ],
+        "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
+      },
+      {
+        "id": "apex-anon",
+        "aliases": [
+          "Anonymous Apex"
+        ],
+        "extensions": [
+          ".apex"
+        ],
+        "configuration": "./syntaxes/apex.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "apexlog",
+        "scopeName": "text.apexlog",
+        "path": "./syntaxes/apexlog.tmLanguage.json"
+      },
+      {
+        "language": "apex-anon",
+        "scopeName": "source.apex",
+        "path": "./syntaxes/apex.tmLanguage"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sf.create.anonymous.apex.script",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.anon.apex.execute.selection",
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.anon.apex.execute.document",
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && !editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.log.get",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.log.openFolder",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.open",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.createForCurrentUser",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.deleteForCurrentUser",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.createForUser",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.createLogLevel",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.deleteForId",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.apex.traceFlags.deleteDebugLevelForId",
+          "when": "sf:project_opened && sf:has_target_org"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sf.anon.apex.execute.selection",
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.anon.apex.execute.document",
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && !editorHasSelection && sf:has_target_org"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sf.create.anonymous.apex.script",
+        "title": "%apexLog.command.createAnonymousApexScript%"
+      },
+      {
+        "command": "sf.apex.log.get",
+        "title": "%apexLog.command.logGet%"
+      },
+      {
+        "command": "sf.apex.log.openFolder",
+        "title": "%apexLog.command.openLogsFolder%"
+      },
+      {
+        "command": "sf.apex.traceFlags.open",
+        "title": "%apexLog.command.traceFlagsOpen%"
+      },
+      {
+        "command": "sf.apex.traceFlags.createForCurrentUser",
+        "title": "%apexLog.command.traceFlagsCreateForCurrentUser%"
+      },
+      {
+        "command": "sf.apex.traceFlags.deleteForCurrentUser",
+        "title": "%apexLog.command.traceFlagsDeleteForCurrentUser%"
+      },
+      {
+        "command": "sf.apex.traceFlags.createForUser",
+        "title": "%apexLog.command.traceFlagsCreateForUser%"
+      },
+      {
+        "command": "sf.apex.traceFlags.createLogLevel",
+        "title": "%apexLog.command.traceFlagsCreateLogLevel%"
+      },
+      {
+        "command": "sf.apex.traceFlags.deleteForId",
+        "title": "%apexLog.command.traceFlagsDeleteForId%"
+      },
+      {
+        "command": "sf.apex.traceFlags.deleteDebugLevelForId",
+        "title": "%apexLog.command.traceFlagsDeleteDebugLevelForId%"
+      },
+      {
+        "command": "sf.anon.apex.execute.document",
+        "title": "%apexLog.command.executeDocument%"
+      },
+      {
+        "command": "sf.anon.apex.execute.selection",
+        "title": "%apexLog.command.executeSelection%"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "sf-traceflags:**",
+        "url": "./resources/traceFlags.schema.json"
+      }
+    ]
+  }
+}

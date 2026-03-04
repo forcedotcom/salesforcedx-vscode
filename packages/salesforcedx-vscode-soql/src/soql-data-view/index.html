@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link href="${tabulatorStyleUri}" rel="stylesheet" />
+    <link href="${baseStyleUri}" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSP TAG -->
+    <title>SOQL Query Data View</title>
+  </head>
+  <body>
+    <div>
+      <header>
+        <div>
+          <h3 id="webview-title"></h3>
+          <p id="total-records-size"></p>
+        </div>
+        <div class="button__save--group">
+          <button id="save-csv-button" class="button__save">
+            <img class="icon__save" alt="save icon" src="${iconSave}" /> .csv
+          </button>
+          <button id="save-json-button" class="button__save">
+            <img class="icon__save" alt="save icon" src="${iconSave}" /> .json
+          </button>
+        </div>
+      </header>
+      <div id="data-table"></div>
+    </div>
+  </body>
+  <script src="${tabulatorUri}"></script>
+  <script src="${viewControllerUri}"></script>
+</html>

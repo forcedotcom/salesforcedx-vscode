@@ -6,8 +6,7 @@
  */
 import { CancellationToken, CommandExecution, Command } from '@salesforce/salesforcedx-utils';
 import { ChildProcess } from 'node:child_process';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import { fromEvent, interval, Observable, Subscription } from 'rxjs';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const treeKill = require('tree-kill');
@@ -40,13 +39,13 @@ export class CliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
 
     // Process
-    this.processExitSubject = Observable.fromEvent(childProcess, 'exit');
+    this.processExitSubject = fromEvent<number | undefined>(childProcess, 'exit');
     this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
     });
-    this.processErrorSubject = Observable.fromEvent(childProcess, 'error');
+    this.processErrorSubject = fromEvent<Error | undefined>(childProcess, 'error');
     this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -57,15 +56,15 @@ export class CliCommandExecution implements CommandExecution {
     if (!childProcess.stdout) {
       throw new Error(NO_STDOUT_ERROR);
     }
-    this.stdoutSubject = Observable.fromEvent(childProcess.stdout, 'data');
+    this.stdoutSubject = fromEvent<Buffer | string>(childProcess.stdout, 'data');
     if (!childProcess.stderr) {
       throw new Error(NO_STDERR_ERROR);
     }
-    this.stderrSubject = Observable.fromEvent(childProcess.stderr, 'data');
+    this.stderrSubject = fromEvent<Buffer | string>(childProcess.stderr, 'data');
 
     // Cancellation watcher
     if (cancellationToken) {
-      const timer = Observable.interval(CANCELLATION_INTERVAL);
+      const timer = interval(CANCELLATION_INTERVAL);
       timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {

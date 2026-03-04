@@ -42,22 +42,18 @@ export const messages: Partial<Record<MessageKey, string>> = {
   checkpoint_upload_error_wrap_up_message:
     'チェックポイントにはエラーがあります。出力されるエラーを修正し、%s を再度実行してください。',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
-  cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
   cannot_delete_existing_checkpoint: '既存のチェックポイントを削除できません。',
-  unable_to_parse_checkpoint_query_result: 'チェックポイントのクエリ結果をパースできませんでした。',
   unable_to_retrieve_active_user_for_sf_project: 'SFDX プロジェクトの有効なユーザを取得できませんでした。',
   unable_to_query_for_existing_checkpoints: '既存のチェックポイントをクエリできませんでした。',
-  unable_to_load_vscode_core_extension: 'salesforce.salesforcedx-vscode-core の拡張機能を読み込めませんでした。',
   no_line_breakpoint_information_for_current_project:
     '現在のプロジェクトにはブレークポイントの情報を含む行がありません。',
   line_breakpoint_information_success: '言語サーバからブレークポイントの行を取得しました。',
   language_client_not_ready:
     '言語サーバからブレークポイントの情報を取得できませんでした。言語サーバが起動していません。',
   unable_to_retrieve_org_info: 'OrgInfo を取得できませんでした。',
-  error_no_target_org:
-    'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し、デフォルトの組織を設定してください。',
   debug_test_exec_name: 'テストをデバッグ',
   debug_test_no_results_found: 'テスト結果が見つかりませんでした',
   debug_test_no_debug_log: 'テスト結果に関連するデバッグログが見つかりませんでした',
-  channel_name: 'Apex Replay デバッガ'
+  channel_name: 'Apex Replay デバッガ',
+  apex_execute_debug_failed: '匿名 Apex の実行に失敗しました: %s'
 };
