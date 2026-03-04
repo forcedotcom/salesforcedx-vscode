@@ -46,8 +46,10 @@ export class ChannelService {
     execution.processExitSubject.subscribe(data => {
       this.showCommandWithTimestamp(execution.command.toCommand());
       this.channel.append(' ');
-      if (data !== undefined && data !== null) {
-        this.channel.appendLine(nls.localize('channel_end_with_exit_code', data.toString()));
+      // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
+      const exitCode = Array.isArray(data) ? data[0] : data;
+      if (exitCode !== undefined && exitCode !== null) {
+        this.channel.appendLine(nls.localize('channel_end_with_exit_code', String(exitCode)));
       } else {
         this.channel.appendLine(nls.localize('channel_end'));
       }
