@@ -36,15 +36,3 @@ Updates for the Spring 26 (v66.0) release.
 - We fixed some issues with extension activation. ([PR #6914](https://github.com/forcedotcom/salesforcedx-vscode/pull/6914), [ISSUE #6914](https://github.com/forcedotcom/salesforcedx-vscode/issues/6914), [ISSUE #6916](https://github.com/forcedotcom/salesforcedx-vscode/issues/6916))
 
 - We fixed an issue with code coverage toggle not being visible. ([PR #6915](https://github.com/forcedotcom/salesforcedx-vscode/pull/6915), [ISSUE #6890](https://github.com/forcedotcom/salesforcedx-vscode/issues/6890))
-
-#### salesforcedx-utils
-
-- Notifications fix W-21440844 ([PR #6933](https://github.com/forcedotcom/salesforcedx-vscode/pull/6933))
-
-#### salesforcedx-utils-vscode
-
-- Notifications fix W-21440844 ([PR #6933](https://github.com/forcedotcom/salesforcedx-vscode/pull/6933))
-
-#### salesforcedx-vscode-org
-
-- Notifications fix W-21440844 ([PR #6933](https://github.com/forcedotcom/salesforcedx-vscode/pull/6933))
