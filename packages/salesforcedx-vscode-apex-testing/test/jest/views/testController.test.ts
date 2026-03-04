@@ -28,7 +28,6 @@ jest.mock('../../../src/utils/testUtils', () => {
   };
 });
 
-
 jest.mock('../../../src/telemetry/telemetry', () => ({
   telemetryService: {
     sendEventData: jest.fn()
@@ -69,6 +68,7 @@ jest.mock('@salesforce/apex-node', () => ({
   }))
 }));
 
+import * as path from 'node:path';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
@@ -138,7 +138,8 @@ describe('ApexTestController', () => {
     ];
     (vscode.workspace.fs.readFile as jest.Mock) = jest.fn();
     // updateTestResults uses new vscode.TestRunRequest() - must be a constructor in Jest
-    (vscode as typeof vscode & { TestRunRequest: new () => vscode.TestRunRequest }).TestRunRequest = class {} as new () => vscode.TestRunRequest;
+    (vscode as typeof vscode & { TestRunRequest: new () => vscode.TestRunRequest }).TestRunRequest =
+      class {} as new () => vscode.TestRunRequest;
     (vscode.workspace.createFileSystemWatcher as jest.Mock) = jest.fn().mockReturnValue({
       onDidCreate: jest.fn(),
       onDidChange: jest.fn(),
@@ -640,7 +641,9 @@ describe('ApexTestController', () => {
       (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockTestRun);
       (mockTestController.createTestItem as jest.Mock).mockReturnValue(mockTestItem);
 
-      await controller.onResultFileCreate('/tmp', '/tmp/test-result.json');
+      const apexTestPath = '/tmp';
+      const testResultFilePath = path.join(apexTestPath, 'test-result.json');
+      await controller.onResultFileCreate(apexTestPath, testResultFilePath);
 
       expect(vscode.workspace.fs.readFile).toHaveBeenCalled();
     });
