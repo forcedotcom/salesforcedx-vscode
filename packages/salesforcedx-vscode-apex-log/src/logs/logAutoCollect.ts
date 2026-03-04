@@ -125,20 +125,19 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
 
   // when the org changes, clear the knownIds
   yield* Effect.fork(
-    Stream.concat(Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), targetOrgRef.changes)
-      .pipe(
-        Stream.map(orgInfo => orgInfo.orgId),
-        Stream.changes,
-        Stream.as(undefined)
-      )
-      .pipe(Stream.runForEach(() => Ref.set(knownIdsRef, new Set()).pipe(Effect.asVoid)))
+    Stream.concat(Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), targetOrgRef.changes).pipe(
+      Stream.map(orgInfo => orgInfo.orgId),
+      Stream.changes,
+      Stream.as(undefined),
+      Stream.runForEach(() => Ref.set(knownIdsRef, new Set()).pipe(Effect.asVoid))
+    )
   );
 
   const dynamicPollStream = Stream.concat(
     Stream.make(yield* SubscriptionRef.get(pollIntervalRef)),
     pollIntervalRef.changes
   ).pipe(
-    Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // -1 means don't poll
+    Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
     Stream.flatMap(
       interval => Stream.fromSchedule(Schedule.spaced(interval)).pipe(Stream.filter(() => vscode.window.state.active)),
       // With switch: true: When the interval changes, the previous schedule stream is interrupted and a new one starts.
@@ -147,14 +146,29 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
     )
   );
   const refreshStream = traceFlagRefreshRef.changes.pipe(Stream.as(undefined));
+  // When org becomes ready, status bar fetches trace flags and sets the ref. LogAutoCollect must also
+  // react to org changes so it doesn't miss the initial ref update (race on workspace reload).
+  const orgChangeStream = Stream.concat(
+    Stream.fromEffect(SubscriptionRef.get(targetOrgRef)),
+    targetOrgRef.changes
+  ).pipe(
+    Stream.map(orgInfo => orgInfo.orgId),
+    Stream.changes,
+    Stream.as(undefined)
+  );
 
   yield* Effect.fork(
     // run when we know something changed OR when it's time based on polling
-    Stream.mergeAll([dynamicPollStream, refreshStream], { concurrency: 'unbounded' }).pipe(
-      Stream.debounce(Duration.seconds(1)),
+    Stream.mergeAll([dynamicPollStream, refreshStream, orgChangeStream], { concurrency: 'unbounded' }).pipe(
+      // if the polling interval === the debounce, events don't make it through the stream
+      // 1s is fine except when the polling interval is very low
+      Stream.debounce(calculateDebounce(getPollIntervalSeconds())),
       Stream.runForEach(() => collectNewLogs(knownIdsRef, collectorRef))
     )
   );
 
   yield* Effect.sleep(Duration.infinity);
 });
+
+const calculateDebounce = (pollIntervalSeconds: number) =>
+  Duration.millis(pollIntervalSeconds === 0 ? 1000 : Math.min(1000, pollIntervalSeconds * 1000 * 0.8));

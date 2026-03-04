@@ -24,7 +24,9 @@ export class CommandOutput {
 
     return new Promise<string>((resolve: (result: string) => void, reject: (reason: string) => void) => {
       execution.processExitSubject.subscribe(data => {
-        if (data !== undefined && String(data) === '0') {
+        // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
+        const exitCode = Array.isArray(data) ? data[0] : data;
+        if (exitCode !== undefined && exitCode !== null && String(exitCode) === '0') {
           return resolve(stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled));
         } else {
           // Is the command is sf cli - if so, just use stdoutBuffer before stderrBuffer
