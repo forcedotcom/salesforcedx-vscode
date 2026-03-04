@@ -61,6 +61,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await page.keyboard.type("System.debug('hello');\nSystem.debug('selection');");
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
     await expect(page.locator(TAB).filter({ hasText: /debug\.log/ })).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator(EDITOR_WITH_URI).filter({ hasText: /hello|selection|USER_DEBUG/ })).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'exec-document.success.png');
   });
 
@@ -92,17 +93,23 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     });
 
     await expect(page.locator(TAB).filter({ hasText: /debug\.log/ })).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator(EDITOR_WITH_URI).filter({ hasText: /hello|selection|USER_DEBUG/ })).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'exec-selection.success.png');
   });
 
   await test.step('execute with compile error and verify error notification', async () => {
     await page.keyboard.press('Escape');
-    await page.locator(TAB).filter({ hasText: /\.apex$/ }).click({ force: true });
+    const apexTab = page.locator(TAB).filter({ hasText: /\.apex$/ });
+    await apexTab.click({ force: true });
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await executeCommandWithCommandPalette(page, 'Select All');
     await page.keyboard.press('Delete');
     await page.keyboard.type("Integer x = 'bad';");
+    // Ensure apex tab/editor has focus before command palette (when clause requires editorLangId apex)
+    await apexTab.click({ force: true });
+    await page.getByText("Integer x = 'bad';", { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
+    await editor.click();
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
     const errorNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
