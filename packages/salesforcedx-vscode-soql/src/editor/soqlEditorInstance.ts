@@ -89,7 +89,7 @@ export class SOQLEditorInstance {
   ) {
     vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
 
-    webviewPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
+    webviewPanel.webview.onDidReceiveMessage(this.onDidReceiveMessageHandler, this, this.subscriptions);
 
     const { onConnectionChanged } = this;
     const fiber = getSoqlRuntime().runFork(
@@ -144,7 +144,7 @@ export class SOQLEditorInstance {
     }
   }
 
-  protected onDidRecieveMessageHandler(event: SoqlEditorEvent): void {
+  protected onDidReceiveMessageHandler(event: SoqlEditorEvent): void {
     switch (event.type) {
       case 'ui_activated': {
         this.updateWebview(this.document);
