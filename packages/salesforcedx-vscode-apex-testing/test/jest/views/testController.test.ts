@@ -23,7 +23,8 @@ jest.mock('../../../src/utils/testUtils', () => {
   return {
     ...actual,
     getApexTests: jest.fn(),
-    buildClassToUriIndex: jest.fn().mockResolvedValue(new Map())
+    buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
+    readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
   };
 });
 
