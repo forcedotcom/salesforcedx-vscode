@@ -299,8 +299,8 @@ describe('ApexTestController', () => {
       const Effect = jest.requireActual('effect/Effect');
       discoverTestsSpy.mockReturnValue(Effect.fail(new Error('Discovery failed')));
 
-      // discoverTests catches errors and logs them, so it should not throw
-      await expect(controller.discoverTests()).resolves.not.toThrow();
+      // discoverTests catches errors and logs them, so it should resolve (not reject)
+      await expect(controller.discoverTests()).resolves.toBeUndefined();
     });
 
     it('should tag tests that exist in org but not in local workspace', async () => {
