@@ -9,7 +9,6 @@ import { expect } from '@playwright/test';
 
 import {
   closeSettingsTab,
-  closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   EDITOR_WITH_URI,
@@ -36,7 +35,6 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
 
   await test.step('setup workspace (command needs sfdx-project.json)', async () => {
     await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await setupMinimalOrgAndAuth(page);
