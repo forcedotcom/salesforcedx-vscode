@@ -66,7 +66,7 @@ const methodDoc = (method: ClassMember): string => {
 };
 
 // Utility function to create Tag
-export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFileSystemProvider): Promise<Tag> => {
+export const createTag = (attributes: TagAttrs, fileSystemProvider?: IFileSystemProvider): Tag => {
   const file = attributes.file!;
   const metadata = attributes.metadata!;
 
@@ -316,12 +316,7 @@ const getMethodDocs = (tag: Tag): string | null => {
 };
 
 // Utility function to update tag metadata
-export const updateTagMetadata = async (
-  tag: Tag,
-  meta: any,
-  fileSystemProvider?: IFileSystemProvider
-): Promise<void> => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+export const updateTagMetadata = (tag: Tag, meta: Metadata, fileSystemProvider?: IFileSystemProvider): void => {
   tag.metadata = meta;
   tag._allAttributes = null;
   tag._methods = null;

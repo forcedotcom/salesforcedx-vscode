@@ -11,6 +11,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { BaseWorkspaceContext } from './baseContext';
 import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { isPackageJson, PackageJson } from './types/packageJson';
 
 const RESOURCES_DIR = 'resources';
 
@@ -134,6 +135,20 @@ export const readJsonSync = async (file: string, fileSystemProvider: IFileSystem
 export const writeJsonSync = (file: string, json: SfdxTsConfig, fileSystemProvider: IFileSystemProvider): void => {
   const content = JSON.stringify(json, null, 4);
   void fileSystemProvider.updateFileContent(`${file}`, content);
+};
+
+/** Reads and parses the package.json at the given root directory. Returns `undefined` if not found, unparseable, or not a valid PackageJson shape. */
+export const readPackageJson = (root: string, fileSystemProvider: IFileSystemProvider): PackageJson | undefined => {
+  const content = fileSystemProvider.getFileContent(join(root, 'package.json'));
+  if (!content) {
+    return undefined;
+  }
+  try {
+    const parsed: unknown = JSON.parse(content);
+    return isPackageJson(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
 };
 
 /**

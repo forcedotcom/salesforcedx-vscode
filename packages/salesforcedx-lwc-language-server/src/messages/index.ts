@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { createNls } from '@salesforce/vscode-i18n';
 import { messages as enMessages } from './i18n';
 

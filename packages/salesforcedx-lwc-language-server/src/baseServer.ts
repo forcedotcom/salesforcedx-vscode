@@ -472,7 +472,7 @@ export abstract class BaseServer {
       if (metadata && this.componentIndexer) {
         const tag: Tag | null = this.componentIndexer.findTagByURI(uri);
         if (tag) {
-          await updateTagMetadata(tag, metadata);
+          updateTagMetadata(tag, metadata);
         }
       }
     }
@@ -546,7 +546,7 @@ export abstract class BaseServer {
       if (metadata && this.componentIndexer) {
         const tag: Tag | null = this.componentIndexer.findTagByURI(document.uri);
         if (tag) {
-          void updateTagMetadata(tag, metadata);
+          updateTagMetadata(tag, metadata);
         }
       }
     }
