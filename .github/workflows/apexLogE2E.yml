@@ -1,23 +1,12 @@
-name: OrgBrowser E2E (Playwright)
+name: Apex Log E2E (Playwright)
 
 on:
   workflow_dispatch:
   push:
     branches-ignore: [main, develop]
-    paths-ignore:
-      - '.claude/**'
-      - '.cursor/**'
-      - 'contributing/**'
-      - 'CONTRIBUTING.md'
-      - 'docs/**'
-      - 'README*'
-      - 'SECURITY*'
-      - 'CODE_OF_CONDUCT*'
-      - 'CHANGELOG*'
-      - '**/CHANGELOG*'
 
 concurrency:
-  group: ci-${{ github.ref }}-orgBrowserE2E
+  group: ci-${{ github.ref }}-apexLogE2E
   cancel-in-progress: true
 
 jobs:
@@ -25,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+      MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
     steps:
       - name: Checkout repository
@@ -52,66 +41,64 @@ jobs:
         continue-on-error: true
         timeout-minutes: 5
         env:
-          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-org-browser -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-apex-log -- --reporter=html
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
-        run: |
-          npm i -g @salesforce/cli
+        run: npm i -g @salesforce/cli
 
-      - name: Clone dreamhouse
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
+
+      - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'
         shell: bash
-        run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+        run: sf project generate -n minimal-project
 
-      - name: create scratch org and set up dreamhouse
+      - name: Create scratch org
         if: steps.try-run.outcome == 'failure'
-        # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
-          sf project deploy start
-          sf org assign permset -n dreamhouse
-        working-directory: dreamhouse-lwc
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
 
-      - name: Run Org Browser E2E tests (parallel)
+      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:web sets E2E_SEQUENTIAL.
+      - name: Run Apex Log E2E tests
         if: steps.try-run.outcome == 'failure'
-        id: parallel-run
-        continue-on-error: true
         env:
-          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:web -w salesforcedx-vscode-org-browser -- --reporter=html
-
-      - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
-        env:
-          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
-          CI: 1
-          E2E_SEQUENTIAL: 1
-        run: |
-          npm run test:web -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-apex-log -- --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: packages/salesforcedx-vscode-org-browser/playwright-report
+          name: playwright-report-apex-log-web
+          path: packages/salesforcedx-vscode-apex-log/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-apex-log-web
+          path: packages/salesforcedx-vscode-apex-log/test-results
           if-no-files-found: ignore
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'
         continue-on-error: true
         run: |
-          sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
 
   e2e-desktop:
     runs-on: ${{ matrix.os }}
@@ -122,8 +109,9 @@ jobs:
       fail-fast: false
 
     env:
-      DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+      MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      VSCODE_DESKTOP: 1
       PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
@@ -150,74 +138,63 @@ jobs:
         continue-on-error: true
         timeout-minutes: 5
         env:
-          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-apex-log -- --reporter=html
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
-        run: |
-          npm i -g @salesforce/cli
+        run: npm i -g @salesforce/cli
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
 
-      - name: Clone dreamhouse
+      - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'
         shell: bash
-        run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+        run: sf project generate -n minimal-project
 
-      - name: create scratch org and set up dreamhouse
+      - name: Create scratch org
         if: steps.try-run.outcome == 'failure'
-        # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
-          sf project deploy start
-          sf org assign permset -n dreamhouse
-        working-directory: dreamhouse-lwc
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
 
-      - name: Run Org Browser E2E tests (parallel)
+      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:desktop sets E2E_SEQUENTIAL.
+      - name: Run Apex Log E2E tests
         if: steps.try-run.outcome == 'failure'
-        id: parallel-run
-        continue-on-error: true
         env:
-          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
-
-      - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
-        env:
-          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
-          CI: 1
-          VSCODE_DESKTOP: 1
-          E2E_SEQUENTIAL: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-apex-log -- --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-desktop-${{ matrix.os }}
-          path: packages/salesforcedx-vscode-org-browser/playwright-report
+          name: playwright-report-apex-log-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-apex-log/playwright-report
           if-no-files-found: ignore
 
       - name: Upload Playwright Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-desktop-${{ matrix.os }}
-          path: packages/salesforcedx-vscode-org-browser/test-results
+          name: playwright-test-results-apex-log-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-apex-log/test-results
           if-no-files-found: ignore
 
       - name: Cleanup scratch org
@@ -225,4 +202,4 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true

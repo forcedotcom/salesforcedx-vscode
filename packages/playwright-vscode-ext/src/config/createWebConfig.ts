@@ -6,15 +6,28 @@
  */
 
 import { defineConfig, devices } from '@playwright/test';
+import { createServer } from 'node:net';
 
 type WebConfigOptions = {
   /** Test directory relative to extension root (default: './test/playwright/specs') */
   testDir?: string;
 };
 
+/** Binds to port 0 to let the OS assign a free port, then closes the listener. */
+const getFreePort = (): Promise<number> =>
+  new Promise((resolve, reject) => {
+    const server = createServer();
+    server.listen(0, () => {
+      const { port } = server.address() as { port: number };
+      server.close(() => resolve(port));
+    });
+    server.on('error', reject);
+  });
+
 /** Creates a standardized Playwright web config for VS Code extension testing */
-export const createWebConfig = (options: WebConfigOptions = {}) =>
-  defineConfig({
+export const createWebConfig = async (options: WebConfigOptions = {}) => {
+  const port = process.env.CI ? 3001 : await getFreePort();
+  return defineConfig({
     testDir: options.testDir ?? './test/playwright/specs',
     fullyParallel: !process.env.E2E_SEQUENTIAL,
     forbidOnly: !!process.env.CI,
@@ -24,7 +37,7 @@ export const createWebConfig = (options: WebConfigOptions = {}) =>
       : [['html', { open: 'never' }], ['list']],
     use: {
       viewport: { width: 1920, height: 1080 },
-      baseURL: 'http://localhost:3001',
+      baseURL: `http://localhost:${port}`,
       trace: process.env.CI ? 'on' : 'on-first-retry',
       screenshot: process.env.CI ? 'on' : 'only-on-failure',
       video: process.env.CI ? 'on' : 'retain-on-failure',
@@ -53,9 +66,10 @@ export const createWebConfig = (options: WebConfigOptions = {}) =>
       }
     ],
     webServer: {
-      command: 'node out/test/playwright/web/headlessServer.js',
-      url: 'http://localhost:3001',
+      command: `PORT=${port} node out/test/playwright/web/headlessServer.js`,
+      url: `http://localhost:${port}`,
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI
     }
   });
+};

@@ -5,7 +5,7 @@
   "apexLog.command.logGet": "SFDX: Get Apex Debug Logs",
   "apexLog.command.openLogsFolder": "SFDX: Open Apex Logs Folder",
   "apexLog.configuration.title": "Salesforce Apex Log",
-  "apexLog.configuration.logPollIntervalSeconds.description": "Polling interval in seconds for auto-collecting Apex debug logs when trace flags are active. Set to -1 to disable auto-collection.",
+  "apexLog.configuration.logPollIntervalSeconds.description": "Polling interval in seconds for auto-collecting Apex debug logs when trace flags are active. Set to 0 to disable auto-collection.",
   "apexLog.configuration.traceFlagsDefaultDurationMinutes.description": "Default duration in minutes for newly created trace flags.",
   "apexLog.command.executeDocument": "SFDX: Execute Anonymous Apex with Currently Open Editor",
   "apexLog.command.executeSelection": "SFDX: Execute Anonymous Apex with Editor's Selected Text",
