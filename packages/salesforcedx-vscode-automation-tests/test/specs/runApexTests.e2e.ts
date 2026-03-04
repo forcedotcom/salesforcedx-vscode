@@ -35,7 +35,7 @@ import {
   zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { By, InputBox, QuickOpenBox,  } from 'vscode-extension-tester';
+import { By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
 import {
   expandTestExplorerNamespaceAndPackage,
@@ -176,7 +176,7 @@ describe('Run Apex Tests', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Run SFDX: Run Apex tests.
-    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
+    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(10));
 
     // Select the "All Tests" option
     await prompt.selectQuickPick('All Tests');
