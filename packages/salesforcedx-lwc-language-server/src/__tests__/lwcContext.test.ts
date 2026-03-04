@@ -14,6 +14,7 @@ import {
   sfdxFileSystemProvider
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { join, resolve } from 'node:path';
+import { Connection } from 'vscode-languageserver';
 import { LWCWorkspaceContext } from '../context/lwcContext';
 
 describe('LWCWorkspaceContext', () => {
@@ -114,11 +115,9 @@ describe('LWCWorkspaceContext', () => {
   it('configureProjectForTs()', async () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
     context.initialize('SFDX');
-    // Mock connection for file operations (required for configureProjectForTs)
-    const mockConnection = {
+    context.connection = {
       sendRequest: jest.fn().mockResolvedValue({ applied: true })
-    } as any;
-    context.connection = mockConnection;
+    } as unknown as Connection;
     const baseTsconfigPathForceApp = resolve(join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json'));
     const tsconfigPathForceApp = resolve(join(FORCE_APP_ROOT, 'lwc', 'tsconfig.json'));
     const tsconfigPathUtils = resolve(join(UTILS_ROOT, 'lwc', 'tsconfig.json'));
@@ -142,7 +141,7 @@ describe('LWCWorkspaceContext', () => {
     if (!baseTsConfigBuffer) {
       throw new Error('Base tsconfig file not found');
     }
-    const baseTsConfigForceAppContent = JSON.parse(baseTsConfigBuffer);
+    const baseTsConfigForceAppContent = JSON.parse(baseTsConfigBuffer) as Record<string, unknown>;
     expect(baseTsConfigForceAppContent).toEqual({
       compilerOptions: {
         module: 'NodeNext',
@@ -159,7 +158,7 @@ describe('LWCWorkspaceContext', () => {
     if (!tsconfigBuffer) {
       throw new Error('Tsconfig file not found');
     }
-    const tsconfigForceAppContent = JSON.parse(Buffer.from(tsconfigBuffer).toString('utf8'));
+    const tsconfigForceAppContent = JSON.parse(Buffer.from(tsconfigBuffer).toString('utf8')) as Record<string, unknown>;
     expect(tsconfigForceAppContent).toEqual({
       extends: '../../../../.sfdx/tsconfig.sfdx.json',
       include: ['**/*.ts', '../../../../.sfdx/typings/lwc/**/*.d.ts'],
