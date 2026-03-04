@@ -369,6 +369,25 @@ export const writeTestRunIdFile = async (result: TestResult, outputDir: string):
   );
 };
 
+/** Writes test-result-<runId>-codecoverage.json using FsService (same content as apex-node writeResultFiles; works on web and desktop) */
+export const writeCodeCoverageJson = async (result: TestResult, outputDir: string): Promise<void> => {
+  const testRunId = result.summary?.testRunId;
+  if (!testRunId || !result.tests?.length) {
+    return;
+  }
+  const coverageData = result.tests
+    .map(record => record.perClassCoverage)
+    .filter((pcc): pcc is NonNullable<typeof pcc> => Boolean(pcc?.length));
+  const jsonFilePath = path.join(outputDir, `test-result-${testRunId}-codecoverage.json`);
+  const jsonContent = JSON.stringify(coverageData, null, 2);
+  await Effect.runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      yield* api.services.FsService.writeFile(jsonFilePath, jsonContent);
+    }).pipe(Effect.provide(AllServicesLayer))
+  );
+};
+
 /** Reads test-run-id.txt using FsService (works in both desktop and web) */
 export const readTestRunIdFile = async (apexTestPath: string): Promise<string | undefined> => {
   const filePath = path.join(apexTestPath, 'test-run-id.txt');
@@ -384,7 +403,15 @@ export const readTestRunIdFile = async (apexTestPath: string): Promise<string | 
   );
 };
 
-/** Writes test result JSON file: tries testService.writeResultFiles first, falls back to FsService (works in web and desktop) */
+const runFsServiceFallback = async (result: TestResult, outputDir: string, codeCoverage: boolean): Promise<void> => {
+  await writeTestResultJson(result, outputDir);
+  await writeTestRunIdFile(result, outputDir);
+  if (codeCoverage) {
+    await writeCodeCoverageJson(result, outputDir);
+  }
+};
+
+/** Writes test result JSON file: on web uses FsService only (apex-node writeResultFiles uses Node fs which fails); on desktop tries writeResultFiles first, then FsService fallback */
 export const writeTestResultJsonFile = async (
   result: TestResult,
   outputDir: string,
@@ -400,8 +427,7 @@ export const writeTestResultJsonFile = async (
   } catch (error) {
     console.error('Failed to write JSON test result file:', error);
     try {
-      await writeTestResultJson(result, outputDir);
-      await writeTestRunIdFile(result, outputDir);
+      await runFsServiceFallback(result, outputDir, codeCoverage);
     } catch (fallbackError) {
       console.error('FsService fallback also failed:', fallbackError);
     }
