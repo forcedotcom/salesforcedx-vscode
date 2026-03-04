@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { DirectoryEntry, FileStat } from '../types/fileSystemTypes';
+import type { DirectoryEntry } from '../types/fileSystemTypes';
 import * as path from 'node:path';
 import { getModulesDirs } from '../baseContext';
 import '../../jest/matchers';
@@ -23,12 +23,11 @@ import {
   coreMultiFileSystemAccessor,
   coreProjectFileSystemAccessor,
   sfdxFileSystemAccessor,
-  standardFileSystemAccessor
+  standardFileSystemAccessor,
+  FILE_STAT,
+  DIR_STAT
 } from './testUtils';
 import { WorkspaceContext } from './workspaceContext';
-
-const FILE_STAT: FileStat = { type: 'file', exists: true, ctime: 0, mtime: 0, size: 0 };
-const DIR_STAT: FileStat = { type: 'directory', exists: true, ctime: 0, mtime: 0, size: 0 };
 
 const buildContentMap = (root: string, structure: Record<string, string>): Map<string, string> => {
   const map = new Map<string, string>();

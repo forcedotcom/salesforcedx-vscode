@@ -4,133 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-// Mock the internal utils module (used by baseContext.ts via './utils')
-jest.mock(
-  '../../../salesforcedx-lightning-lsp-common/out/src/utils',
-  () => {
-    const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
-
-    return {
-      ...actual,
-      readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actual))
-    };
-  },
-  { virtual: true }
-);
-
-// Also mock the package-level export (for direct imports from the package)
-// This is used by componentIndexer.ts which imports readJsonSync from the package
-jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
-  const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
-  const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
-
-  const mockFn = jest.fn(createReadJsonSyncMockImplementation(actualUtils));
-
-  const mocked = {
-    ...actual,
-    readJsonSync: mockFn
-  };
-
-  return mocked;
-});
-
-// Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
-// jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
-// We need to mock both the package-level export AND the internal utils module
-// because baseContext.ts imports from './utils' directly (which resolves to out/src/utils.js)
-
-// Create the mock implementation function
-const createReadJsonSyncMockImplementation =
-  (actualUtils: any) => async (file: string, fileSystemAccessor: LspFileSystemAccessor) => {
-    try {
-      const normalizedFile = actualUtils.normalizePath?.(file);
-      const content = await fileSystemAccessor?.getFileContent?.(normalizedFile);
-      if (!content) {
-        const fallbackContent = await fileSystemAccessor?.getFileContent?.(file);
-        if (!fallbackContent) {
-          throw new Error('File not found', { cause: file });
-        }
-        const fallbackCleaned = fallbackContent
-          .replaceAll(/\/\/.*$/gm, '')
-          .replaceAll(/\/\*[\s\S]*?\*\//g, '')
-          .replaceAll(/,(\s*[}\]])/g, '$1');
-        try {
-          return JSON.parse(fallbackCleaned);
-        } catch {
-          return {};
-        }
-      }
-      let cleaned = content;
-      cleaned = cleaned.replaceAll(/\/\/.*$/gm, '');
-      cleaned = cleaned.replaceAll(/\/\*[\s\S]*?\*\//g, '');
-      cleaned = cleaned.replaceAll(/,(\s*[}\]])/g, '$1');
-      try {
-        return JSON.parse(cleaned);
-      } catch {
-        return {};
-      }
-    } catch {
-      return {};
-    }
-  };
-
-// Mock the internal utils module (used by baseContext.ts via './utils')
-jest.mock(
-  '../../../salesforcedx-lightning-lsp-common/out/src/utils',
-  () => {
-    const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
-
-    return {
-      ...actual,
-      readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actual))
-    };
-  },
-  { virtual: true }
-);
-
-// Also mock the package-level export (for direct imports from the package)
-// This is used by componentIndexer.ts which imports readJsonSync from the package
-jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
-  const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
-  const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
-
-  const mockFn = jest.fn(createReadJsonSyncMockImplementation(actualUtils));
-
-  const mocked = {
-    ...actual,
-    readJsonSync: mockFn
-  };
-
-  return mocked;
-});
-
-// Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
-jest.mock('../resources/transformed-lwc-standard.json', () => {
-  const fs = require('node:fs');
-
-  const pathModule = require('node:path');
-  // Find package root (lwc-language-server)
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  const filePath = pathModule.join(current, 'src', 'resources', 'transformed-lwc-standard.json');
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  // JSON imports in TypeScript are treated as default exports
-  return { default: content, ...content };
-});
-
-// Mock JSON imports from baseContext.ts - these are runtime require() calls in compiled code
-// moduleNameMapper doesn't apply to runtime require() calls within loaded modules - it only works for
-// static imports Jest resolves at the top level. So we need explicit mocks for these relative requires.
-
-// Mock relative imports - these need to match the exact paths Jest resolves when baseContext.js
-// executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
-// resolves to out/src/resources/... which we mock using paths relative to the test file.
-
 import {
   LspFileSystemAccessor,
   normalizePath,
@@ -148,6 +21,8 @@ import {
 import * as path from 'node:path';
 import { getLanguageService } from 'vscode-html-languageservice';
 import {
+  type Connection,
+  type TextDocuments,
   InitializeParams,
   TextDocumentPositionParams,
   Location,
@@ -161,6 +36,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
+import { BaseServer } from '../baseServer';
 import Server, { findDynamicContent } from '../lwcServerNode';
 
 // File paths and URIs
@@ -218,19 +94,22 @@ const mockFindFilesConnection = createMockWorkspaceFindFilesConnection(SFDX_WORK
   relativePaths: getSfdxWorkspaceRelativePaths()
 });
 
-const server: Server = new Server();
-server.fileSystemAccessor = sfdxFileSystemAccessor as any;
+const server: BaseServer = new Server();
+server.fileSystemAccessor = sfdxFileSystemAccessor;
 
 // Helper function to set up server for tests that need delayed initialization
-const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServer: Server = server): Promise<void> => {
+const setupServerForTest = async (
+  documentsToOpen: TextDocument[] = [],
+  testServer: BaseServer = server
+): Promise<void> => {
   // Reset delayed initialization flag to ensure fresh initialization
-  (testServer as any).isDelayedInitializationComplete = false;
+  testServer.isDelayedInitializationComplete = false;
 
   // Ensure file system accessor is set and bound to this server's connection (shared accessor
   // otherwise keeps the first server's connection, so findFiles/readFile would hit the wrong mock).
-  testServer.fileSystemAccessor = sfdxFileSystemAccessor as any;
+  testServer.fileSystemAccessor = sfdxFileSystemAccessor;
   testServer.fileSystemAccessor.setWorkspaceFolderUris(
-    (testServer as any).workspaceFolders?.map((f: { uri: string }) => f.uri) ?? []
+    testServer.workspaceFolders.map((f: { uri: string }) => f.uri) ?? []
   );
   testServer.fileSystemAccessor.setReadFileFromConnection(testServer.connection, WORKSPACE_READ_FILE_REQUEST);
   testServer.fileSystemAccessor.setReadStatFromConnection(testServer.connection, WORKSPACE_STAT_REQUEST);
@@ -247,7 +126,7 @@ const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServ
   >();
 
   // Ensure workspace root has sfdx-project.json and LWC files so performDelayedInitialization and component indexer succeed
-  const workspaceRoot = (testServer as any).workspaceRoots?.[0];
+  const workspaceRoot = testServer.workspaceRoots[0];
   const dirStat = { type: 'directory' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
   if (workspaceRoot) {
     const fileStat = { type: 'file' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
@@ -282,7 +161,7 @@ const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServ
 
   // Handle workspace/readFile, workspace/stat, workspace/findFiles, and workspace/applyEdit.
   // When the server writes files (e.g. .sfdx/tsconfig.sfdx.json), capture them so getFileContent returns them.
-  const provider = testServer.fileSystemAccessor as any;
+  const provider = testServer.fileSystemAccessor;
   (testServer.connection as any).sendRequest = jest.fn(
     async (
       method: string | { method?: string },
@@ -353,16 +232,6 @@ const deleteFromProvider = async (provider: LspFileSystemAccessor, filePath: str
   await provider.deleteFile(normalizePath(filePath));
 };
 
-// Helper function to create a file in the fileSystemAccessor (replaces vscode.workspace.fs.writeFile)
-// Uses path normalization to handle cross-platform paths
-const createFileInProvider = async (
-  provider: LspFileSystemAccessor,
-  filePath: string,
-  content: string
-): Promise<void> => {
-  await provider.updateFileContent(normalizePath(filePath), content);
-};
-
 let mockTypeScriptSupportConfig = false;
 
 // Helper function to create a fresh server instance with TypeScript support enabled
@@ -377,47 +246,51 @@ const createServerWithTsSupport = async (initializeParams: InitializeParams): Pr
 };
 
 jest.mock('vscode-languageserver', () => {
-  const actual = jest.requireActual('vscode-languageserver');
+  const actual = jest.requireActual<typeof import('vscode-languageserver')>('vscode-languageserver');
+  const mockConnection = {
+    onInitialize: (): boolean => true,
+    onCompletion: (): boolean => true,
+    onCompletionResolve: (): boolean => true,
+    onDidChangeWatchedFiles: (): boolean => true,
+    onHover: (): boolean => true,
+    onShutdown: (): boolean => true,
+    onDefinition: (): boolean => true,
+    onRequest: jest.fn(),
+    onNotification: jest.fn(),
+    sendRequest: jest.fn().mockResolvedValue({ applied: true }),
+    console: {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn()
+    },
+    workspace: {
+      getConfiguration: (): boolean => mockTypeScriptSupportConfig
+    }
+  } as unknown as Connection;
   return {
     ...actual,
-    createConnection: jest.fn().mockImplementation(() => ({
-      onInitialize: (): boolean => true,
-      onCompletion: (): boolean => true,
-      onCompletionResolve: (): boolean => true,
-      onDidChangeWatchedFiles: (): boolean => true,
-      onHover: (): boolean => true,
-      onShutdown: (): boolean => true,
-      onDefinition: (): boolean => true,
-      onRequest: jest.fn(),
-      onNotification: jest.fn(),
-      sendRequest: jest.fn().mockResolvedValue({ applied: true }),
-      console: {
-        log: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn(),
-        info: jest.fn()
-      },
-      workspace: {
-        getConfiguration: (): boolean => mockTypeScriptSupportConfig
-      }
-    })),
-    TextDocuments: jest.fn().mockImplementation(() => ({
-      listen: (): boolean => true,
-      onDidOpen: (): boolean => true,
-      onDidChangeContent: (): boolean => true,
-      get: (name: string): TextDocument => {
-        const docs = new Map([
-          [uri, document],
-          [jsUri, jsDocument],
-          [auraUri, auraDocument],
-          [hoverUri, hoverDocument]
-        ]);
-        return docs.get(name)!;
-      },
-      all: (): TextDocument[] => [document, jsDocument, auraDocument, hoverDocument],
-      onDidSave: (): boolean => true,
-      syncKind: 'html'
-    }))
+    createConnection: jest.fn().mockImplementation((): Connection => mockConnection),
+    TextDocuments: jest.fn().mockImplementation((): TextDocuments<TextDocument> => {
+      const mockTextDocuments = {
+        listen: (): boolean => true,
+        onDidOpen: (): boolean => true,
+        onDidChangeContent: (): boolean => true,
+        get: (name: string): TextDocument => {
+          const docs = new Map([
+            [uri, document],
+            [jsUri, jsDocument],
+            [auraUri, auraDocument],
+            [hoverUri, hoverDocument]
+          ]);
+          return docs.get(name)!;
+        },
+        all: (): TextDocument[] => [document, jsDocument, auraDocument, hoverDocument],
+        onDidSave: (): boolean => true,
+        syncKind: 'html'
+      };
+      return mockTextDocuments as unknown as TextDocuments<TextDocument>;
+    })
   };
 });
 
@@ -835,7 +708,7 @@ describe('lwcServerNode', () => {
         // Create a new server instance to avoid state issues
         const testServer = new Server();
         // Set shared accessor before onInitialize so context uses it; setupServerForTest will attach the mock
-        testServer.fileSystemAccessor = sfdxFileSystemAccessor as any;
+        testServer.fileSystemAccessor = sfdxFileSystemAccessor;
         mockTypeScriptSupportConfig = true;
         testServer.onInitialize(initializeParams);
         // Populate fileSystemAccessor and trigger delayed initialization
@@ -898,6 +771,7 @@ describe('lwcServerNode', () => {
           (await provider.getFileContent(baseTsconfigPath)) ??
           (await server.fileSystemAccessor.getFileContent(baseTsconfigPath));
         expect(sfdxTsConfigContent).not.toBeUndefined();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!);
         const pathMapping = Object.keys(sfdxTsConfig.compilerOptions.paths);
         expect(pathMapping.length).toBeGreaterThanOrEqual(11);
@@ -908,7 +782,7 @@ describe('lwcServerNode', () => {
       const baseTsconfigPath = path.join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json');
       const watchedFileDir = path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc', 'newlyAddedFile');
 
-      const getPathMappingKeys = async (serverInstance?: Server): Promise<string[]> => {
+      const getPathMappingKeys = async (serverInstance?: BaseServer): Promise<string[]> => {
         try {
           // After delayed initialization, tsconfig is written to fileSystemAccessor
           const provider = serverInstance ? serverInstance.fileSystemAccessor : server.fileSystemAccessor;
@@ -917,10 +791,11 @@ describe('lwcServerNode', () => {
             // If tsconfig doesn't exist, return empty array for tests
             return [];
           }
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const sfdxTsConfig = JSON.parse(sfdxTsConfigContent);
           return Object.keys(sfdxTsConfig.compilerOptions.paths ?? {});
         } catch (error) {
-          console.error(`Failed to read tsconfig: ${error.message}`);
+          console.error(`Failed to read tsconfig: ${error instanceof Error ? error.message : String(error)}`);
           return [];
         }
       };
@@ -995,7 +870,6 @@ describe('lwcServerNode', () => {
 
           // Create files after initialized
           const watchedFilePath = path.resolve(watchedFileDir, `newlyAddedFile${ext}`);
-          await createFileInProvider(testServer.fileSystemAccessor, watchedFilePath, '');
 
           const didChangeWatchedFilesParams: DidChangeWatchedFilesParams = {
             changes: [

@@ -5,32 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Mock JSON imports from baseContext.ts - these are runtime require() calls in compiled code
-// Mock JSON imports from indexer.ts
-const mockJsonFromAuraServer = (relativePath: string) => {
-  const pathModule = require('node:path');
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  const filePath = pathModule.join(current, 'src', relativePath);
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return { default: content, ...content };
-};
-
-// Mock relative imports from baseContext.js - these need to match the exact paths Jest resolves when baseContext.js
-// executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
-// resolves to out/src/resources/... which we mock using paths relative to the test file.
-
-// Mock JSON imports for aura indexer - from indexer.ts which is in src/aura-indexer/
-// So the relative path from indexer.ts is ../resources/, but from test file (src/aura-indexer/__tests__/) it's ../../resources/
-jest.mock('../../resources/aura-standard.json', () => mockJsonFromAuraServer('resources/aura-standard.json'));
-jest.mock('../../resources/transformed-aura-system.json', () =>
-  mockJsonFromAuraServer('resources/transformed-aura-system.json')
-);
-
 import {
   LspFileSystemAccessor,
   normalizePath,
@@ -54,56 +28,6 @@ const isUnderWorkspace = (p: string): boolean => {
   return key === normRoot || key.startsWith(`${normRoot}/`);
 };
 
-beforeAll(() => {
-  sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-  sfdxFileSystemAccessor.setFindFilesFromConnection(
-    createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
-      relativePaths: getSfdxWorkspaceRelativePaths()
-    }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
-    WORKSPACE_FIND_FILES_REQUEST
-  );
-
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
-    const key = normalizePath(uri);
-    if (!isUnderWorkspace(key)) return undefined;
-    try {
-      const stat = fs.statSync(uri);
-      return {
-        type: stat.isDirectory() ? ('directory' as const) : ('file' as const),
-        exists: true,
-        ctime: stat.ctimeMs,
-        mtime: stat.mtimeMs,
-        size: stat.size
-      };
-    } catch {
-      return undefined;
-    }
-  });
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation(async (uri: string) => {
-    const key = normalizePath(uri);
-    if (!isUnderWorkspace(key)) return undefined;
-    try {
-      return fs.readFileSync(uri, 'utf8');
-    } catch {
-      return undefined;
-    }
-  });
-  jest.spyOn(sfdxFileSystemAccessor, 'getDirectoryListing').mockImplementation(uri => {
-    const key = normalizePath(uri);
-    if (!isUnderWorkspace(key)) return [];
-    try {
-      const entries = fs.readdirSync(uri, { withFileTypes: true });
-      return entries.map(e => ({
-        name: e.name,
-        type: (e.isDirectory() ? 'directory' : 'file') as 'directory' | 'file',
-        uri: `file://${path.join(uri, e.name)}`
-      }));
-    } catch {
-      return [];
-    }
-  });
-});
-
 // Normalize paths for cross-platform test consistency
 // Converts absolute paths to relative paths from the workspace root
 const normalize = (start: string, p: string): string => {
@@ -119,6 +43,56 @@ const normalize = (start: string, p: string): string => {
 const uriToFile = (uri: string): string => URI.parse(uri).fsPath;
 
 describe('indexer parsing content', () => {
+  beforeAll(() => {
+    sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+    sfdxFileSystemAccessor.setFindFilesFromConnection(
+      createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+        relativePaths: getSfdxWorkspaceRelativePaths()
+      }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
+      WORKSPACE_FIND_FILES_REQUEST
+    );
+
+    jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+      const key = normalizePath(uri);
+      if (!isUnderWorkspace(key)) return undefined;
+      try {
+        const stat = fs.statSync(uri);
+        return {
+          type: stat.isDirectory() ? ('directory' as const) : ('file' as const),
+          exists: true,
+          ctime: stat.ctimeMs,
+          mtime: stat.mtimeMs,
+          size: stat.size
+        };
+      } catch {
+        return undefined;
+      }
+    });
+    jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation(async (uri: string) => {
+      const key = normalizePath(uri);
+      if (!isUnderWorkspace(key)) return undefined;
+      try {
+        return fs.readFileSync(uri, 'utf8');
+      } catch {
+        return undefined;
+      }
+    });
+    jest.spyOn(sfdxFileSystemAccessor, 'getDirectoryListing').mockImplementation(uri => {
+      const key = normalizePath(uri);
+      if (!isUnderWorkspace(key)) return [];
+      try {
+        const entries = fs.readdirSync(uri, { withFileTypes: true });
+        return entries.map(e => ({
+          name: e.name,
+          type: (e.isDirectory() ? 'directory' : 'file') as 'directory' | 'file',
+          uri: `file://${path.join(uri, e.name)}`
+        }));
+      } catch {
+        return [];
+      }
+    });
+  });
+
   it('aura indexer', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor);
     context.initialize('SFDX');

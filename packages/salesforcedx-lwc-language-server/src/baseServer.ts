@@ -129,8 +129,8 @@ export abstract class BaseServer {
   public readonly connection: Connection;
   public readonly documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
   protected context!: LWCWorkspaceContext;
-  protected workspaceFolders!: WorkspaceFolder[];
-  protected workspaceRoots!: NormalizedPath[];
+  public workspaceFolders!: WorkspaceFolder[];
+  public workspaceRoots!: NormalizedPath[];
   /** Set to true when performDelayedInitialization completes successfully (for tests and client). */
   public isDelayedInitializationComplete = false;
   public componentIndexer!: ComponentIndexer;
@@ -138,7 +138,7 @@ export abstract class BaseServer {
   public auraDataProvider!: AuraDataProvider;
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemAccessor: LspFileSystemAccessor;
-  private workspaceType: WorkspaceType;
+  protected workspaceType: WorkspaceType;
 
   constructor() {
     this.connection = this.createConnection();
@@ -182,19 +182,10 @@ export abstract class BaseServer {
     // Create context but don't initialize yet - wait for files to be loaded via onDidOpen
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemAccessor, this.connection);
 
-    this.componentIndexer = new ComponentIndexer({
-      workspaceRoot: this.workspaceRoots[0],
-      fileSystemAccessor: this.fileSystemAccessor
-    });
-
-    // Create data providers (will be re-initialized after delayed init)
-    this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
-    this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-
     // Return capabilities immediately so the client sends the Initialize response and attaches
     // workspace/readFile and workspace/stat handlers. Defer performDelayedInitialization to the next tick
     // so the client has time to attach handlers before we send any workspace/readFile or workspace/stat.
-    const initTimer = setTimeout(() => {
+    setTimeout(() => {
       void this.performDelayedInitialization().catch((err: unknown) => {
         Logger.error(
           `Delayed initialization failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -202,7 +193,6 @@ export abstract class BaseServer {
         );
       });
     }, 0);
-    initTimer.unref();
 
     return this.capabilities;
   }
@@ -716,64 +706,38 @@ export abstract class BaseServer {
    * Files are loaded into fileSystemAccessor via onDidOpen events
    */
   protected async performDelayedInitialization(): Promise<void> {
-    // Prevent concurrent or duplicate initialization (e.g. timer fires after test called it directly)
-    if (this.isInitializing) {
-      Logger.info('[LWC] performDelayedInitialization: skipped (already initializing)');
-      return;
-    }
-    if (this.isDelayedInitializationComplete) {
-      Logger.info('[LWC] performDelayedInitialization: skipped (already complete)');
-      return;
-    }
-
-    this.isInitializing = true;
-    Logger.info('[LWC] performDelayedInitialization: started');
-
     try {
-      // Initialize workspace context now that essential files are loaded via onDidOpen
-      // scheduleReinitialization waits for file loading to stabilize, so all files should be available
       this.context.initialize(this.workspaceType);
-
-      // Clear namespace cache to force re-detection now that files are synced
-      // This ensures directoryExists can infer directory existence from file paths
-      // But wait for LWC files to be loaded first - check if any LWC files exist
       let hasLwcFiles = false;
       let htmlCount = 0;
       let jsCount = 0;
       let tsCount = 0;
-      if (this.fileSystemAccessor.findFilesWithGlobAsync && this.workspaceRoots[0]) {
-        const basePath = this.workspaceRoots[0];
-        Logger.info(`[LWC] performDelayedInitialization: findFiles basePath=${basePath}`);
-        const findFilesTimeoutMs = 8000;
-        const findFilesPromise = Promise.all([
-          this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
-          this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
-          this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
-        ]);
-        let findFilesTimeoutId: ReturnType<typeof setTimeout>;
-        const findFilesTimeoutPromise = new Promise<[undefined, undefined, undefined]>((_, reject) => {
-          findFilesTimeoutId = setTimeout(() => reject(new Error('findFiles timeout')), findFilesTimeoutMs);
-        });
-        await findFilesPromise.finally(() => clearTimeout(findFilesTimeoutId!));
-        const findFilesWithTimeout = Promise.race([findFilesPromise, findFilesTimeoutPromise]).catch(err => {
-          Logger.info(
-            `[LWC] performDelayedInitialization: findFiles timed out or failed (${err instanceof Error ? err.message : String(err)}), continuing with hasLwcFiles=false`
-          );
-          return [undefined, undefined, undefined];
-        });
-        const [html, js, ts] = await findFilesWithTimeout;
-        htmlCount = html?.length ?? 0;
-        jsCount = js?.length ?? 0;
-        tsCount = ts?.length ?? 0;
-        hasLwcFiles = htmlCount > 0 || jsCount > 0 || tsCount > 0;
+      const basePath = this.workspaceRoots[0];
+      const findFilesTimeoutMs = 8000;
+      const findFilesPromise = Promise.all([
+        this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
+        this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
+        this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
+      ]);
+      let findFilesTimeoutId: ReturnType<typeof setTimeout>;
+      const findFilesTimeoutPromise = new Promise<[undefined, undefined, undefined]>((_, reject) => {
+        findFilesTimeoutId = setTimeout(() => reject(new Error('findFiles timeout')), findFilesTimeoutMs);
+      });
+      await findFilesPromise.finally(() => clearTimeout(findFilesTimeoutId!));
+      const findFilesWithTimeout = Promise.race([findFilesPromise, findFilesTimeoutPromise]).catch(err => {
         Logger.info(
-          `[LWC] performDelayedInitialization: findFiles result html=${htmlCount} js=${jsCount} ts=${tsCount} hasLwcFiles=${hasLwcFiles}`
+          `[LWC] performDelayedInitialization: findFiles timed out or failed (${err instanceof Error ? err.message : String(err)}), continuing with hasLwcFiles=false`
         );
-      } else {
-        Logger.info(
-          '[LWC] performDelayedInitialization: no findFilesWithGlobAsync or workspaceRoot, hasLwcFiles=false'
-        );
-      }
+        return [undefined, undefined, undefined];
+      });
+      const [html, js, ts] = await findFilesWithTimeout;
+      htmlCount = html?.length ?? 0;
+      jsCount = js?.length ?? 0;
+      tsCount = ts?.length ?? 0;
+      hasLwcFiles = htmlCount > 0 || jsCount > 0 || tsCount > 0;
+      Logger.info(
+        `[LWC] performDelayedInitialization: findFiles result html=${htmlCount} js=${jsCount} ts=${tsCount} hasLwcFiles=${hasLwcFiles}`
+      );
 
       if (hasLwcFiles) {
         this.context.clearNamespaceCache();
@@ -792,7 +756,6 @@ export abstract class BaseServer {
         }
       }
 
-      // Re-initialize component indexer (files are now in fileSystemAccessor)
       this.componentIndexer = new ComponentIndexer({
         workspaceRoot: this.workspaceRoots[0],
         fileSystemAccessor: this.fileSystemAccessor,
@@ -810,48 +773,17 @@ export abstract class BaseServer {
         useDefaultDataProvider: false
       });
 
-      const componentCount = this.componentIndexer.getCustomData().length;
-      Logger.info(`[LWC] performDelayedInitialization: componentIndexer.init done, componentCount=${componentCount}`);
-
-      // Configure TypeScript support now that files are loaded and context is initialized
       await this.configureTypeScriptSupport();
-
       void this.connection.sendNotification(ShowMessageNotification.type, {
         type: MessageType.Info,
         message: 'LWC Language Server is ready'
       });
       this.isDelayedInitializationComplete = true;
-      Logger.info('[LWC] performDelayedInitialization: completed successfully');
     } catch (error: unknown) {
       Logger.error(
         `Error during delayed initialization: ${error instanceof Error ? error.message : String(error)}`,
         error instanceof Error ? error : undefined
       );
-      // Do not rethrow: avoid uncaught rejection and process exit; server continues without full init
-    } finally {
-      this.isInitializing = false;
     }
-  }
-
-  /**
-   * Re-run only the component indexer and refresh data providers.
-   * Used when new LWC .js/.ts files are opened after delayed init (e.g. in browser when sibling is opened).
-   */
-  protected async reindexComponents(): Promise<void> {
-    if (!this.componentIndexer) {
-      return;
-    }
-    this.componentIndexer = new ComponentIndexer({
-      workspaceRoot: this.workspaceRoots[0],
-      fileSystemAccessor: this.fileSystemAccessor,
-      workspaceType: this.workspaceType
-    });
-    await this.componentIndexer.init();
-    this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
-    this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-    this.languageService = getLanguageService({
-      customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
-      useDefaultDataProvider: false
-    });
   }
 }

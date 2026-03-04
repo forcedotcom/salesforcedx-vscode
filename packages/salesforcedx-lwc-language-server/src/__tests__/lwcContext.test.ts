@@ -7,13 +7,15 @@
 
 import { normalizePath, WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
+  buildSfdxContentMap,
   createMockWorkspaceFindFilesConnection,
+  DIR_STAT,
+  FILE_STAT,
   FORCE_APP_ROOT,
   getSfdxWorkspaceRelativePaths,
   readAsTextDocument,
   REGISTERED_EMPTY_FOLDER_ROOT,
   SFDX_WORKSPACE_ROOT,
-  SFDX_WORKSPACE_STRUCTURE,
   sfdxFileSystemAccessor,
   UTILS_ROOT
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
@@ -21,19 +23,7 @@ import { join, resolve } from 'node:path';
 import { URI } from 'vscode-uri';
 import { LWCWorkspaceContext } from '../context/lwcContext';
 
-const FILE_STAT = { type: 'file' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
-const DIR_STAT = { type: 'directory' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
-
-function buildContentMap(): Map<string, string> {
-  const map = new Map<string, string>();
-  const root = normalizePath(SFDX_WORKSPACE_ROOT);
-  for (const [rel, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE as Record<string, string>)) {
-    map.set(normalizePath(join(root, rel.replaceAll('\\', '/'))), content);
-  }
-  return map;
-}
-
-const contentMap = buildContentMap();
+const contentMap = buildSfdxContentMap();
 
 beforeAll(() => {
   sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { FileStat } from '../types/fileSystemTypes';
 import * as fs from 'node:fs';
 import { extname, join, resolve, dirname } from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -850,6 +851,24 @@ const coreMultiLdsContent = "declare module '@salesforce/lds' { /* LDS types */ 
 void coreMultiFileSystemAccessor.updateFileContent(coreMultiEngineTypingsPath, coreMultiEngineContent);
 
 void coreMultiFileSystemAccessor.updateFileContent(coreMultiLdsTypingsPath, coreMultiLdsContent);
+
+/** Mock file stat for getFileStat mocks. Use with DIR_STAT for directory paths. */
+export const FILE_STAT: FileStat = { type: 'file', exists: true, ctime: 0, mtime: 0, size: 0 };
+/** Mock directory stat for getFileStat mocks. */
+export const DIR_STAT: FileStat = { type: 'directory', exists: true, ctime: 0, mtime: 0, size: 0 };
+
+/**
+ * Build a Map of absolute path -> content from SFDX_WORKSPACE_STRUCTURE.
+ * Use for mocking getFileContent/getFileStat in tests (e.g. tag, componentIndexer, lwcContext).
+ */
+export const buildSfdxContentMap = (): Map<string, string> => {
+  const map = new Map<string, string>();
+  const root = normalizePath(SFDX_WORKSPACE_ROOT);
+  for (const [rel, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE as Record<string, string>)) {
+    map.set(normalizePath(join(root, rel.replaceAll('\\', '/'))), content);
+  }
+  return map;
+};
 
 /** Relative paths (forward slashes) for the SFDX test workspace. Use with createMockWorkspaceFindFilesConnection(..., { relativePaths: getSfdxWorkspaceRelativePaths() }) when disk read is unavailable in test env. */
 export const getSfdxWorkspaceRelativePaths = (): string[] =>

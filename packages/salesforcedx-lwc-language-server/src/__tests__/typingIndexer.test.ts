@@ -6,6 +6,9 @@
  */
 import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
+  buildSfdxContentMap,
+  DIR_STAT,
+  FILE_STAT,
   SFDX_WORKSPACE_ROOT,
   SFDX_WORKSPACE_STRUCTURE,
   sfdxFileSystemAccessor
@@ -14,9 +17,6 @@ import * as path from 'node:path';
 import { getSfdxPackageDirsPattern } from '../baseIndexer';
 import * as typingIndexerModule from '../typingIndexer';
 import TypingIndexer, { getMetaTypings, pathBasename } from '../typingIndexer';
-
-const FILE_STAT = { type: 'file' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
-const DIR_STAT = { type: 'directory' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
 
 const META_FILE_REL_PATHS = [
   'force-app/main/default/contentassets/logo.asset-meta.xml',
@@ -39,58 +39,46 @@ const CUSTOM_LABELS_XML = `<?xml version="1.0" encoding="UTF-8"?>
 
 let typingIndexer: TypingIndexer;
 
-function buildTypingIndexerContentMap(): Map<string, string> {
-  const map = new Map<string, string>();
-  const root = normalizePath(SFDX_WORKSPACE_ROOT);
-  for (const [rel, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE as Record<string, string>)) {
-    map.set(normalizePath(path.join(root, rel.replaceAll('\\', '/'))), content);
-  }
-  for (const rel of META_FILE_REL_PATHS) {
-    map.set(normalizePath(path.join(root, rel)), '');
-  }
-  map.set(
-    normalizePath(path.join(root, 'force-app/main/default/labels/CustomLabels.labels-meta.xml')),
-    CUSTOM_LABELS_XML
-  );
-  return map;
-}
-
-function mockSfdxAccessorForTypingIndexer(contentMap: Map<string, string>): void {
-  jest
-    .spyOn(sfdxFileSystemAccessor, 'getFileContent')
-    .mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
-    const key = normalizePath(uri);
-    if (contentMap.has(key)) return FILE_STAT;
-    const prefix = `${key}/`;
-    for (const k of contentMap.keys()) {
-      if (k.startsWith(prefix)) return DIR_STAT;
-    }
-    return undefined;
-  });
-  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
-    contentMap.set(normalizePath(uri), content);
-  });
-  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation(async (pathOrUri: string) => {
-    contentMap.delete(normalizePath(pathOrUri));
-  });
-}
-
 describe('TypingIndexer', () => {
   beforeAll(async () => {
-    const contentMap = buildTypingIndexerContentMap();
-    mockSfdxAccessorForTypingIndexer(contentMap);
+    const contentMap = buildSfdxContentMap();
+    const root = normalizePath(SFDX_WORKSPACE_ROOT);
+    for (const [rel, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE as Record<string, string>)) {
+      contentMap.set(normalizePath(path.join(root, rel.replaceAll('\\', '/'))), content);
+    }
+    for (const rel of META_FILE_REL_PATHS) {
+      contentMap.set(normalizePath(path.join(root, rel)), '');
+    }
+    contentMap.set(
+      normalizePath(path.join(root, 'force-app/main/default/labels/CustomLabels.labels-meta.xml')),
+      CUSTOM_LABELS_XML
+    );
+
+    jest
+      .spyOn(sfdxFileSystemAccessor, 'getFileContent')
+      .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
+    jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+      const key = normalizePath(uri);
+      if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
+      const prefix = `${key}/`;
+      for (const k of contentMap.keys()) {
+        if (k.startsWith(prefix)) return Promise.resolve(DIR_STAT);
+      }
+      return Promise.resolve(undefined);
+    });
+    jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+      contentMap.set(normalizePath(uri), content);
+    });
+    jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation(async (pathOrUri: string) => {
+      contentMap.delete(normalizePath(pathOrUri));
+    });
+
     typingIndexer = await TypingIndexer.create(
       {
         workspaceRoot: SFDX_WORKSPACE_ROOT
       },
       sfdxFileSystemAccessor
     );
-  });
-
-  afterEach(async () => {
-    // Clear the file system provider data for the typings directory
-    void sfdxFileSystemAccessor.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
   });
 
   describe('new', () => {
