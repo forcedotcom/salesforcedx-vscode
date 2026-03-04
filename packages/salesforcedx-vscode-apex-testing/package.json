@@ -172,7 +172,7 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts test/playwright/specs/testExplorer.headless.spec.ts",
+      "command": "playwright test --config=playwright.config.web.ts",
       "dependencies": [
         "compile",
         "vscode:bundle",
