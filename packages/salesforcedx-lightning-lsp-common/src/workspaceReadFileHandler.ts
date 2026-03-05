@@ -9,8 +9,7 @@ import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
 import { getVirtualFs, setFs } from '@salesforce/core/fs';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import { Effect } from 'effect';
-// eslint-disable-next-line no-restricted-imports
-import { glob } from 'node:fs/promises';
+import { minimatch } from 'minimatch';
 import * as vscode from 'vscode';
 import {
   WORKSPACE_READ_FILE_REQUEST,
@@ -40,14 +39,7 @@ function isEitherResult(x: unknown): x is EitherResult {
 }
 
 function isVscodeFileStat(x: unknown): x is vscode.FileStat {
-  return (
-    typeof x === 'object' &&
-    x !== null &&
-    'type' in x &&
-    'ctime' in x &&
-    'mtime' in x &&
-    'size' in x
-  );
+  return typeof x === 'object' && x !== null && 'type' in x && 'ctime' in x && 'mtime' in x && 'size' in x;
 }
 
 /** Type guard for services that optionally expose getWorkspaceVolume (web). */
@@ -62,19 +54,75 @@ export type WorkspaceReadFileClient = {
 const vscodeFileTypeToStatType = (vscodeType: vscode.FileType): 'file' | 'directory' =>
   vscodeType === vscode.FileType.Directory ? 'directory' : 'file';
 
-/** Invoke glob's callback form (web polyfill). No type assertion: glob's types don't declare the callback overload. */
-export const globWithCallback = (fn: unknown, pattern: string, cwd: string): Promise<string[]> => {
-  if (typeof fn !== 'function') {
-    return Promise.reject(new Error('glob callback API not available'));
+function isCallable(u: unknown): u is (...args: unknown[]) => unknown {
+  return typeof u === 'function';
+}
+
+function isObjectWithKeys(u: unknown): u is object & Record<string, unknown> {
+  return typeof u === 'object' && u !== null;
+}
+
+/** Normalize unknown readdir entry to { name, isDir, isFile } without type assertions. */
+function normalizeDirent(entry: unknown): { name: string; isDir: boolean; isFile: boolean } {
+  let name = String(entry);
+  let isDir = false;
+  let isFile = true;
+  if (isObjectWithKeys(entry) && 'name' in entry) {
+    name = typeof entry.name === 'string' ? entry.name : String(entry);
+    if (isCallable(entry.isDirectory)) {
+      isDir = entry.isDirectory() === true;
+    }
+
+    isFile = isCallable(entry.isFile) ? entry.isFile() === true : !isDir;
   }
-  return new Promise((resolve, reject) => {
-    const callback = (err: Error | null, result?: string[]) => {
-      if (err) reject(err);
-      else resolve(Array.isArray(result) ? result : []);
-    };
-    Reflect.apply(fn, undefined, [pattern, { cwd }, callback]);
-  });
-};
+  return { name, isDir, isFile };
+}
+
+/**
+ * Find files by pattern using the given fs (readdir + minimatch). Used for memfs only.
+ * Caller should pass the virtual fs from getVirtualFs(volume) so we use the same volume as the workspace.
+ */
+async function findFilesWithFs(
+  cwd: string,
+  pattern: string,
+  fs: { readdir: (path: string, opts: { withFileTypes: true }) => Promise<unknown[]> },
+  log?: { appendLine(value: string): void }
+): Promise<string[]> {
+  const matches: string[] = [];
+  async function walk(dirPath: string, relPrefix: string): Promise<void> {
+    let entries: unknown[];
+    try {
+      const raw = await fs.readdir(dirPath, { withFileTypes: true });
+      entries = Array.isArray(raw) ? raw : [];
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log?.appendLine(`[findFiles] memfs readdir("${dirPath}") error: ${msg}`);
+      return;
+    }
+    const normalized = entries.map(normalizeDirent);
+    if (relPrefix === '') {
+      log?.appendLine(
+        `[findFiles] memfs readdir("${dirPath}") entries=${normalized.length} names=[${normalized
+          .slice(0, 10)
+          .map(e => e.name)
+          .join(', ')}${normalized.length > 10 ? '...' : ''}]`
+      );
+    }
+    for (const e of normalized) {
+      const relPath = relPrefix ? `${relPrefix}/${e.name}` : e.name;
+      const fullPath = dirPath.endsWith('/') ? `${dirPath}${e.name}` : `${dirPath}/${e.name}`;
+      if (e.isFile && minimatch(relPath, pattern, { matchBase: false })) {
+        matches.push(relPath.replaceAll('\\', '/'));
+      }
+      if (e.isDir && !e.name.startsWith('.')) {
+        await walk(fullPath, relPath);
+      }
+    }
+  }
+  await walk(cwd, '');
+  log?.appendLine(`[findFiles] memfs walk done matches=${matches.length}`);
+  return [...new Set(matches)].toSorted();
+}
 
 const vscodeStatToFileStat = (vstat: vscode.FileStat): FileStat => ({
   type: vscodeFileTypeToStatType(vstat.type),
@@ -154,17 +202,18 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
         }).pipe(Effect.provide(FsService.Default), Effect.either)
       );
       if (!isEitherResult(raw)) {
-        log.appendLine('[stat] error: unexpected result');
+        log.appendLine(`[stat] error uri=${uri ?? '?'}: unexpected result`);
         return { error: 'Unexpected result' };
       }
       if (raw._tag === 'Left') {
         const left = raw.left;
         const message = left instanceof Error ? left.message : String(left);
-        log.appendLine(`[stat] error: ${message}`);
-        return { error: message };
+        const logMsg = message || `(no message) left=${JSON.stringify(left)}`;
+        log.appendLine(`[stat] error uri=${uri ?? '?'}: ${logMsg}`);
+        return { error: message || 'Unknown stat error' };
       }
       if (!isVscodeFileStat(raw.right)) {
-        log.appendLine('[stat] error: invalid stat result');
+        log.appendLine(`[stat] error uri=${uri ?? '?'}: invalid stat result`);
         return { error: 'Invalid stat result' };
       }
       const stat = vscodeStatToFileStat(raw.right);
@@ -214,25 +263,43 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
       log.appendLine(`[findFiles] request baseFolderUri=${baseFolderUri ?? '?'} pattern=${p}`);
 
       try {
-        const cwd = baseUri.fsPath;
-        findFilesLog.appendLine(`[findFiles] glob pattern=${p} cwd=${cwd} scheme=${baseUri.scheme}`);
-        let matches: string[] = [];
-        try {
-          for await (const match of glob(p, { cwd })) {
-            matches.push(match);
-          }
-        } catch (globErr) {
-          const msg = globErr instanceof Error ? globErr.message : String(globErr);
-          if (msg.includes('callback must be a function')) {
-            findFilesLog.appendLine('[findFiles] using glob callback API (web polyfill)');
-            matches = await globWithCallback(glob, p, cwd);
+        let uris: string[];
+        if (baseUri.scheme === 'memfs') {
+          const cwd = baseUri.fsPath.replaceAll('\\', '/');
+          findFilesLog.appendLine(`[findFiles] memfs: cwd=${cwd} pattern=${p}`);
+          const apiResult = Effect.runSync(Effect.either(getServicesApi));
+          if (apiResult._tag === 'Left') {
+            findFilesLog.appendLine('[findFiles] memfs: Services API not available');
+            uris = [];
           } else {
-            throw globErr;
+            const services = apiResult.right.services;
+            const volume = hasGetWorkspaceVolume(services) ? services.getWorkspaceVolume?.() : undefined;
+            if (volume === undefined || volume === null) {
+              findFilesLog.appendLine('[findFiles] memfs: no workspace volume from services');
+              uris = [];
+            } else {
+              const fs = getVirtualFs(volume);
+              const fsPromises = fs.promises ?? fs;
+              const readdir = fsPromises?.readdir ?? fs.readdir;
+              if (!readdir) {
+                findFilesLog.appendLine('[findFiles] memfs: virtual fs has no readdir');
+                uris = [];
+              } else {
+                const matches = await findFilesWithFs(cwd, p, { readdir }, findFilesLog);
+                uris = matches.map((rel: string) =>
+                  vscode.Uri.joinPath(baseUri, ...rel.replaceAll('\\', '/').split('/').filter(Boolean)).toString()
+                );
+              }
+            }
           }
+        } else {
+          const include = new vscode.RelativePattern(baseUri, p);
+          findFilesLog.appendLine(
+            `[findFiles] vscode.workspace.findFiles baseUri=${baseFolderUri ?? '?'} pattern=${p}`
+          );
+          const found = await vscode.workspace.findFiles(include);
+          uris = found.map((u: vscode.Uri) => u.toString());
         }
-        const uris = matches.map((rel: string) =>
-          vscode.Uri.joinPath(baseUri, ...rel.replaceAll('\\', '/').split('/').filter(Boolean)).toString()
-        );
         findFilesLog.appendLine(`[findFiles] returned ${uris.length} uris`);
         log.appendLine(`[findFiles] success pattern=${p} uris=${uris.length}`);
         return { uris };

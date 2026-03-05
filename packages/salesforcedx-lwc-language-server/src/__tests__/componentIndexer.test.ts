@@ -194,7 +194,6 @@ describe('ComponentIndexer', () => {
     });
 
     describe('typescript path mapping', () => {
-      // test_component not on disk; discovery uses findFiles only (typescript may or may not be on disk)
       const data = [
         ['c/hello_world', 'force-app/main/default/lwc/hello_world/hello_world'],
         ['c/import_relative', 'force-app/main/default/lwc/import_relative/import_relative'],
@@ -204,8 +203,10 @@ describe('ComponentIndexer', () => {
           'force-app/main/default/lwc/lightning_datatable_example/lightning_datatable_example'
         ],
         ['c/lightning_tree_example', 'force-app/main/default/lwc/lightning_tree_example/lightning_tree_example'],
+        ['c/test_component', 'force-app/main/default/lwc/test_component/test_component'],
         ['c/todo_item', 'force-app/main/default/lwc/todo_item/todo_item'],
         ['c/todo', 'force-app/main/default/lwc/todo/todo'],
+        ['c/typescript', 'force-app/main/default/lwc/typescript/typescript'],
         ['c/utils', 'force-app/main/default/lwc/utils/utils'],
         ['c/todo_util', 'utils/meta/lwc/todo_util/todo_util'],
         ['c/todo_utils', 'utils/meta/lwc/todo_utils/todo_utils']

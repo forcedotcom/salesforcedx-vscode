@@ -123,9 +123,18 @@ describe('utils', () => {
     let fileSystemProvider: LspFileSystemAccessor;
     const root = join(os.tmpdir(), `pjson-test-${Date.now()}`);
     const packageJsonPath = join(root, 'package.json');
+    const contentMap = new Map<string, string>();
 
     beforeEach(() => {
       fileSystemProvider = new LspFileSystemAccessor();
+      contentMap.clear();
+      jest
+        .spyOn(fileSystemProvider, 'getFileContent')
+        .mockImplementation((uri: string) => Promise.resolve(contentMap.get(utils.normalizePath(uri))));
+      jest.spyOn(fileSystemProvider, 'updateFileContent').mockImplementation((uri: string, content: string) => {
+        contentMap.set(utils.normalizePath(uri), content);
+        return Promise.resolve();
+      });
     });
 
     const seedPackageJson = (pkg: PackageJson): void => {

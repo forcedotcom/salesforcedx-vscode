@@ -82,12 +82,12 @@ describe('TypingIndexer', () => {
   });
 
   describe('new', () => {
-    it('initializes with the root of a workspace', () => {
+    it('initializes with the root of a workspace', async () => {
       // workspaceRoot is normalized by getWorkspaceRoot, so normalize the expected path for comparison
       expect(typingIndexer.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
-      expect(getSfdxPackageDirsPattern(typingIndexer.workspaceRoot, sfdxFileSystemAccessor)).toEqual(
-        '{force-app,utils,registered-empty-folder}'
-      );
+      await expect(
+        getSfdxPackageDirsPattern(typingIndexer.workspaceRoot, sfdxFileSystemAccessor)
+      ).resolves.toEqual('{force-app,utils,registered-empty-folder}');
     });
   });
 
