@@ -111,9 +111,7 @@ const setupServerForTest = async (
   testServer.fileSystemAccessor.setWorkspaceFolderUris(
     testServer.workspaceFolders.map((f: { uri: string }) => f.uri) ?? []
   );
-  testServer.fileSystemAccessor.setReadFileFromConnection(testServer.connection, WORKSPACE_READ_FILE_REQUEST);
-  testServer.fileSystemAccessor.setReadStatFromConnection(testServer.connection, WORKSPACE_STAT_REQUEST);
-  testServer.fileSystemAccessor.setFindFilesFromConnection(testServer.connection, WORKSPACE_FIND_FILES_REQUEST);
+  testServer.fileSystemAccessor.setConnection(testServer.connection);
 
   // Mock connection.sendNotification to avoid errors during delayed initialization
   testServer.connection.sendNotification = jest.fn();

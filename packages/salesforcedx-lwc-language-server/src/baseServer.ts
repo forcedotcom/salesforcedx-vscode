@@ -14,10 +14,7 @@ import {
   BaseWorkspaceContext,
   NormalizedPath,
   WorkspaceType,
-  normalizePath,
-  WORKSPACE_READ_FILE_REQUEST,
-  WORKSPACE_STAT_REQUEST,
-  WORKSPACE_FIND_FILES_REQUEST
+  normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { basename, dirname, parse } from 'node:path';
@@ -165,9 +162,7 @@ export abstract class BaseServer {
     // Set workspace folder URIs first so the provider can convert paths to the client's scheme (e.g. memfs:// in browser).
     // Without this, fileExists/getFileStat send file:// URIs and the client cannot find files in memfs.
     this.fileSystemAccessor.setWorkspaceFolderUris(this.workspaceFolders.map(f => f.uri));
-    this.fileSystemAccessor.setReadFileFromConnection(this.connection, WORKSPACE_READ_FILE_REQUEST);
-    this.fileSystemAccessor.setReadStatFromConnection(this.connection, WORKSPACE_STAT_REQUEST);
-    this.fileSystemAccessor.setFindFilesFromConnection(this.connection, WORKSPACE_FIND_FILES_REQUEST);
+    this.fileSystemAccessor.setConnection(this.connection);
 
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // Use uriToNormalizedPath to handle both file:// and memfs:// schemes correctly

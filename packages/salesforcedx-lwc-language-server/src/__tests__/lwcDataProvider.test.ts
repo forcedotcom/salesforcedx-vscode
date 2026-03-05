@@ -21,7 +21,7 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
   return { default: content, ...content };
 });
 
-import { normalizePath, WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths,
@@ -30,6 +30,7 @@ import {
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
+import type { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import ComponentIndexer from '../componentIndexer';
 import { DataProviderAttributes, LWCDataProvider } from '../lwcDataProvider';
@@ -37,11 +38,10 @@ import { TagAttrs, createTag, getTagName } from '../tag';
 
 // Discovery via workspace/findFiles (no server-side cache)
 sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-sfdxFileSystemAccessor.setFindFilesFromConnection(
+sfdxFileSystemAccessor.setConnection(
   createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
     relativePaths: getSfdxWorkspaceRelativePaths()
-  }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
-  WORKSPACE_FIND_FILES_REQUEST
+  }) as Connection
 );
 
 // LspFileSystemAccessor has no LSP read/stat in tests, so init() would exit early (fileExists(sfdx-project.json))

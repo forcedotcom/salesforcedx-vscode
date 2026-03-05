@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { normalizePath, WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   buildSfdxContentMap,
   createMockWorkspaceFindFilesConnection,
@@ -15,6 +15,7 @@ import {
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
+import type { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import ComponentIndexer, { Entry, unIndexedFiles } from '../componentIndexer';
 import { Tag, createTag, getTagName } from '../tag';
@@ -23,11 +24,10 @@ const contentMap = buildSfdxContentMap();
 
 beforeAll(() => {
   sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-  sfdxFileSystemAccessor.setFindFilesFromConnection(
+  sfdxFileSystemAccessor.setConnection(
     createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
       relativePaths: getSfdxWorkspaceRelativePaths()
-    }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
-    WORKSPACE_FIND_FILES_REQUEST
+    }) as Connection
   );
 
   jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {

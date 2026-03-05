@@ -20,6 +20,9 @@ import { URI } from 'vscode-uri';
 import { Logger } from '../logger';
 import {
   WORKSPACE_DELETE_FILE_REQUEST,
+  WORKSPACE_READ_FILE_REQUEST,
+  WORKSPACE_STAT_REQUEST,
+  WORKSPACE_FIND_FILES_REQUEST,
   type WorkspaceReadFileResult,
   type WorkspaceStatResult,
   type WorkspaceFindFilesParams,
@@ -117,26 +120,11 @@ export const getFileUriForPath = (filePath: NormalizedPath, workspaceFolderUri?:
  */
 export class LspFileSystemAccessor {
   private workspaceFolderUri?: string;
-  private connectionForRead?: Connection;
-  private readFileRequestMethod?: string;
-  private connectionForStat?: Connection;
-  private statRequestMethod?: string;
-  private connectionForFindFiles?: Connection;
-  private findFilesRequestMethod?: string;
+  private connection?: Connection;
 
-  public setFindFilesFromConnection(connection: Connection, requestMethod: string): void {
-    this.connectionForFindFiles = connection;
-    this.findFilesRequestMethod = requestMethod;
-  }
-
-  public setReadFileFromConnection(connection: Connection, requestMethod: string): void {
-    this.connectionForRead = connection;
-    this.readFileRequestMethod = requestMethod;
-  }
-
-  public setReadStatFromConnection(connection: Connection, requestMethod: string): void {
-    this.connectionForStat = connection;
-    this.statRequestMethod = requestMethod;
+  /** Set the LSP connection used for workspace/readFile, workspace/stat, and workspace/findFiles. */
+  public setConnection(connection: Connection): void {
+    this.connection = connection;
   }
 
   /** Set workspace folder URI(s). In practice web has one memfs root, desktop has file://; we use the first. */
@@ -186,9 +174,9 @@ export class LspFileSystemAccessor {
 
   public async getFileContent(uri: string): Promise<string | undefined> {
     const key = normalizePath(uri);
-    if (this.connectionForRead && this.readFileRequestMethod) {
+    if (this.connection) {
       const fileUri = getFileUriForPath(key, this.workspaceFolderUri);
-      const result = await this.connectionForRead.sendRequest<WorkspaceReadFileResult>(this.readFileRequestMethod, {
+      const result = await this.connection.sendRequest<WorkspaceReadFileResult>(WORKSPACE_READ_FILE_REQUEST, {
         uri: fileUri
       });
       if (result.error) {
@@ -202,9 +190,9 @@ export class LspFileSystemAccessor {
 
   public async getFileStat(uri: string): Promise<FileStat | undefined> {
     const key = normalizePath(uri);
-    if (this.connectionForStat && this.statRequestMethod) {
+    if (this.connection) {
       const fileUri = getFileUriForPath(key, this.workspaceFolderUri);
-      const result = await this.connectionForStat.sendRequest<WorkspaceStatResult>(this.statRequestMethod, {
+      const result = await this.connection.sendRequest<WorkspaceStatResult>(WORKSPACE_STAT_REQUEST, {
         uri: fileUri
       });
       if (result.error) return undefined;
@@ -227,12 +215,12 @@ export class LspFileSystemAccessor {
     pattern: string,
     basePath: NormalizedPath
   ): Promise<NormalizedPath[] | undefined> {
-    if (!this.connectionForFindFiles || !this.findFilesRequestMethod) return undefined;
+    if (!this.connection) return undefined;
     try {
       const baseFolderUri = getFileUriForPath(basePath, this.workspaceFolderUri);
       const params: WorkspaceFindFilesParams = { baseFolderUri, pattern };
-      const findFilesRequestPromise = this.connectionForFindFiles.sendRequest<WorkspaceFindFilesResult>(
-        this.findFilesRequestMethod,
+      const findFilesRequestPromise = this.connection.sendRequest<WorkspaceFindFilesResult>(
+        WORKSPACE_FIND_FILES_REQUEST,
         params
       );
       let findFilesTimeoutId: ReturnType<typeof setTimeout>;

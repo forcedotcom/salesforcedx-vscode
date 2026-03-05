@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { normalizePath, WORKSPACE_FIND_FILES_REQUEST } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   buildSfdxContentMap,
   createMockWorkspaceFindFilesConnection,
@@ -28,11 +28,10 @@ const contentMap = buildSfdxContentMap();
 
 beforeAll(() => {
   sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
-  sfdxFileSystemAccessor.setFindFilesFromConnection(
+  sfdxFileSystemAccessor.setConnection(
     createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
       relativePaths: getSfdxWorkspaceRelativePaths()
-    }) as Parameters<typeof sfdxFileSystemAccessor.setFindFilesFromConnection>[0],
-    WORKSPACE_FIND_FILES_REQUEST
+    }) as Connection
   );
 
   jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {

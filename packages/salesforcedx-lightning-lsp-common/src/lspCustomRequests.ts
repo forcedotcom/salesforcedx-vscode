@@ -10,7 +10,7 @@ import type { DirectoryEntry, FileStat } from './types/fileSystemTypes';
 /**
  * Custom LSP request: client (extension) reads file via FsService and returns content.
  * Server sends this request when LspFileSystemAccessor is configured
- * with setReadFileFromConnection(connection, WORKSPACE_READ_FILE_REQUEST).
+ * with setConnection(connection); the accessor uses WORKSPACE_READ_FILE_REQUEST.
  */
 export const WORKSPACE_READ_FILE_REQUEST = 'workspace/readFile' as const;
 
@@ -27,7 +27,7 @@ export interface WorkspaceReadFileResult {
 /**
  * Custom LSP request: client returns file stat via FsService.stat.
  * Server sends this when LspFileSystemAccessor is configured
- * with setReadStatFromConnection(connection, WORKSPACE_STAT_REQUEST).
+ * with setConnection(connection); the accessor uses WORKSPACE_STAT_REQUEST.
  */
 export const WORKSPACE_STAT_REQUEST = 'workspace/stat' as const;
 
@@ -60,7 +60,7 @@ export interface WorkspaceReadDirectoryResult {
 
 /**
  * Custom LSP request: client returns file URIs matching a glob via vscode.workspace.findFiles.
- * Server sends this when the file system provider is configured with setFindFilesFromConnection,
+ * Server sends this when the file system provider is configured with setConnection(connection);
  * so the server can discover files without relying on the stat cache (e.g. for LWC component indexing).
  */
 export const WORKSPACE_FIND_FILES_REQUEST = 'workspace/findFiles' as const;
