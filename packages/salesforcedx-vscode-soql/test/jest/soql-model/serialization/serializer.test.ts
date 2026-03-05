@@ -6,6 +6,7 @@
  */
 
 import { FieldRefImpl } from '../../../../src/soql-model/model/impl/fieldRefImpl';
+import { FieldSelectionImpl } from '../../../../src/soql-model/model/impl/fieldSelectionImpl';
 import { FromImpl } from '../../../../src/soql-model/model/impl/fromImpl';
 import { HeaderCommentsImpl } from '../../../../src/soql-model/model/impl/headerCommentsImpl';
 import { QueryImpl } from '../../../../src/soql-model/model/impl/queryImpl';
@@ -16,7 +17,7 @@ describe('ModelSerializer should', () => {
   it('transform model to SOQL syntax', () => {
     const expected = 'SELECT field\n  FROM object\n';
     const actual = new ModelSerializer(
-      new QueryImpl(new SelectExprsImpl([new FieldRefImpl('field')]), new FromImpl('object'))
+      new QueryImpl(new SelectExprsImpl([new FieldSelectionImpl(new FieldRefImpl('field'))]), new FromImpl('object'))
     ).serialize();
     expect(actual).toEqual(expected);
   });
@@ -25,7 +26,7 @@ describe('ModelSerializer should', () => {
     const expected = '// Comment 1\n// Comment 2\nSELECT field\n  FROM object\n';
 
     const query = new QueryImpl(
-      new SelectExprsImpl([new FieldRefImpl('field')]),
+      new SelectExprsImpl([new FieldSelectionImpl(new FieldRefImpl('field'))]),
       new FromImpl('object')
     );
     query.headerComments = new HeaderCommentsImpl('// Comment 1\n// Comment 2\n');
