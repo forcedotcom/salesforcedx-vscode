@@ -7,9 +7,12 @@
 
 import type { QueryResult } from '../types';
 import type { JsonMap } from '@salesforce/ts-types';
+import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { getDocumentName, trackErrorWithTelemetry } from '../commonUtils';
+import { getDocumentName } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
   DATA_VIEW_RESOURCE_ROOTS_PATH,
@@ -25,6 +28,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 import { channelService } from '../services/channel';
+import { getSoqlRuntime } from '../services/extensionProvider';
 import { FileFormat, QueryDataFileService as FileService } from './queryDataFileService';
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
@@ -52,19 +56,24 @@ export class QueryDataViewService {
     QueryDataViewService.extensionPath = extensionContext.extensionPath;
   }
 
-  private updateWebviewWith(queryData: QueryResult<JsonMap>) {
-    this.currentPanel?.webview
-      .postMessage({
-        type: 'update',
-        data: extendQueryData(this.queryText, queryData),
-        documentName: getDocumentName(this.document)
-      })
-      .then(undefined, (err: string) => {
-        const errorType = 'data_view_post_message';
-        const message = nls.localize('error_unknown_error', errorType);
-        channelService.appendLine(message);
-        trackErrorWithTelemetry(errorType, err);
-      });
+  private updateWebviewWith(queryData: QueryResult<JsonMap>): Effect.Effect<void> {
+    return Effect.promise(
+      () =>
+        this.currentPanel?.webview.postMessage({
+          type: 'update',
+          data: extendQueryData(this.queryText, queryData),
+          documentName: getDocumentName(this.document)
+        }) ?? Promise.resolve(false)
+    ).pipe(
+      Effect.asVoid,
+      Effect.catchAllCause(cause =>
+        Effect.sync(() => {
+          const errorType = 'data_view_post_message';
+          channelService.appendLine(nls.localize('error_unknown_error', errorType));
+          channelService.appendLine(`soql_error_${errorType}: ${String(cause)}`);
+        })
+      )
+    );
   }
 
   public async createOrShowWebView(): Promise<vscode.Webview> {
@@ -90,9 +99,7 @@ export class QueryDataViewService {
       this.subscriptions
     );
 
-    // set the tab icon for the webview
     const salesforceCloudUri = Utils.joinPath(extensionUri, IMAGES_DIR_NAME, 'Salesforce_Cloud.png');
-
     this.currentPanel.iconPath = {
       light: salesforceCloudUri,
       dark: salesforceCloudUri
@@ -100,37 +107,59 @@ export class QueryDataViewService {
 
     this.currentPanel.webview.html = await this.getWebViewContent(this.currentPanel.webview);
 
-    this.currentPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
+    // Stream-based message handling: each message dispatched as a named OTel span
+    const panel = this.currentPanel;
+    const messageFiber = getSoqlRuntime().runFork(
+      Stream.async<DataViewEvent>(emit => {
+        const disposable = panel.webview.onDidReceiveMessage((event: DataViewEvent) => {
+          void emit.single(event);
+        });
+        return Effect.sync(() => disposable.dispose());
+      }).pipe(
+        Stream.mapEffect(
+          event =>
+            this.handleMessageEffect(event).pipe(
+              Effect.catchAllCause(() =>
+                Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', event.type)))
+              )
+            ),
+          { concurrency: 'unbounded' }
+        ),
+        Stream.runDrain
+      )
+    );
+    this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(messageFiber)) });
 
     return this.currentPanel.webview;
   }
 
-  protected onDidRecieveMessageHandler(message: DataViewEvent): void {
+  private handleMessageEffect = (message: DataViewEvent): Effect.Effect<void> => {
     const { type, format } = message;
     switch (type) {
       case 'activate':
-        this.updateWebviewWith(this.queryData);
-        break;
-      case 'save_records':
-        void this.handleSaveRecords(format);
-        break;
-      default:
-        channelService.appendLine(nls.localize('error_unknown_error', type));
-        trackErrorWithTelemetry('data_view_message_type', type);
-        break;
-    }
-  }
+        return this.updateWebviewWith(this.queryData).pipe(Effect.withSpan('QueryDataView.activate'));
 
-  protected async handleSaveRecords(format: FileFormat): Promise<void> {
-    try {
-      const fileService = new FileService(this.queryText, this.queryData, format, this.document);
-      await fileService.save();
-    } catch {
-      const message = nls.localize('error_data_view_save');
-      vscode.window.showErrorMessage(message);
-      trackErrorWithTelemetry('data_view_save', message);
+      case 'save_records':
+        return this.handleSaveRecordsEffect(format).pipe(Effect.withSpan('QueryDataView.save_records'));
+
+      default:
+        return Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', type))).pipe(
+          Effect.withSpan('QueryDataView.unknown_message', { attributes: { messageType: type } })
+        );
     }
-  }
+  };
+
+  private handleSaveRecordsEffect = (format: FileFormat): Effect.Effect<void> => {
+    const self = this;
+    return Effect.gen(function* () {
+      const fileService = new FileService(self.queryText, self.queryData, format, self.document);
+      yield* Effect.promise(() => fileService.save());
+    }).pipe(
+      Effect.catchAllCause(() =>
+        Effect.sync(() => vscode.window.showErrorMessage(nls.localize('error_data_view_save')))
+      )
+    );
+  };
 
   protected async getWebViewContent(webview: vscode.Webview): Promise<string> {
     const extensionUri = URI.file(QueryDataViewService.extensionPath);

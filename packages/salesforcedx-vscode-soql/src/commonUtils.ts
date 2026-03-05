@@ -8,19 +8,10 @@
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { channelService } from './services/channel';
-import { telemetryService } from './telemetry';
 
 export const getDocumentName = (document: vscode.TextDocument): string =>
   Utils.basename(document.uri) || '';
 
 export const trackErrorWithTelemetry = (problemId: string, error: string): void => {
-  try {
-    try {
-      telemetryService.sendException(`soql_error_${problemId.toLocaleLowerCase()}`, error);
-    } catch {
-      channelService.appendLine(`soql_error_telemetry:  ${error.toString()}`);
-    }
-  } catch (err) {
-    console.error(err);
-  }
+  channelService.appendLine(`soql_error_${problemId.toLocaleLowerCase()}: ${error}`);
 };

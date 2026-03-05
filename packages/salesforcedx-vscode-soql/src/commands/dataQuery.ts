@@ -133,10 +133,10 @@ type QueryAndApiInputs = {
   api: 'REST' | 'TOOLING';
 };
 
-export const dataQuery = (): void => {
+export const dataQuery = Effect.fn('sf.data.query')(function* () {
   const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new GetQueryAndApiInputs(), new DataQueryExecutor());
-  void commandlet.run();
-};
+  yield* Effect.promise(() => commandlet.run());
+});
 
 /**
  * Retrieves the maximum fetch limit from user configuration.
