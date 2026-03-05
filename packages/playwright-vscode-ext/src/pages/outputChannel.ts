@@ -21,13 +21,10 @@ import { openCommandPalette } from './commands';
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
 const outputPanelCodeArea = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-lines`);
-const filterInput = (page: Page) => page.getByPlaceholder(/Filter \(e\.g\./i).first();
+// Filter input lives in "Output actions" toolbar, a sibling of [id="workbench.panel.output"] -- not inside it
+const filterInput = (page: Page) => page.getByRole('textbox', { name: /Filter \(e\.g\./ }).first();
 
 const ensureOutputFilterReady = async (page: Page, timeout: number) => {
-  const panel = outputPanel(page);
-  const outputTab = panel.getByRole('tab', { name: /Output/i }).first();
-  const tabVisible = await outputTab.isVisible().catch(() => false);
-  if (tabVisible) await outputTab.hover({ force: true });
   const input = filterInput(page);
   await expect(input, 'Output filter should be visible and usable').toBeVisible({ timeout });
   return input;
@@ -60,20 +57,19 @@ const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, 
   const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
   try {
     await expect(async () => {
-      await input.click({ force: true });
-      await input.fill('', { force: true });
-      await expect(input).toHaveValue('', { timeout: 5000 });
-      await page.keyboard.press('Enter');
-      await input.fill(expectedText, { force: true });
+      await input.focus();
+      await input.fill('');
+      await input.press('Enter');
+      await input.fill(expectedText);
       await expect(input).toHaveValue(expectedText, { timeout: 5000 });
-      await page.keyboard.press('Enter');
+      await input.press('Enter');
       const combinedText = await getAllOutputText(page);
       expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
     }).toPass({ timeout });
   } finally {
-    await input.click({ force: true }).catch(() => {});
-    await input.fill('', { force: true }).catch(() => {});
-    await page.keyboard.press('Enter').catch(() => {});
+    await input.focus().catch(() => {});
+    await input.fill('').catch(() => {});
+    await input.press('Enter').catch(() => {});
   }
 };
 
