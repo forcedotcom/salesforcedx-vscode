@@ -62,6 +62,7 @@ jobs:
           skip-on-empty: ${{ github.event_name == 'push' }}
           skip-tag: false
           pre-changelog-generation: scripts/soql-common-version-hook.js
+          pre-commit: scripts/soql-common-version-hook.js
 
       - name: Create Github Release
         if: steps.changelog.outputs.skipped == 'false'

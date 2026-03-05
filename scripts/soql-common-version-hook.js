@@ -1,5 +1,8 @@
 'use strict'
 
+const fs = require('fs')
+const path = require('path')
+
 /**
  * pre-changelog-generation hook for TriPSs/conventional-changelog-action.
  * When RELEASE_TYPE env var is set (from workflow_dispatch input), override
@@ -15,4 +18,18 @@ exports.preVersionGeneration = (proposedVersion) => {
   if (releaseType === 'major') return `${major + 1}.0.0`
   if (releaseType === 'minor') return `${major}.${minor + 1}.0`
   return `${major}.${minor}.${patch + 1}`
+}
+
+/**
+ * pre-commit hook for TriPSs/conventional-changelog-action.
+ * Patches the soql-common version in the root package-lock.json so it stays
+ * in sync with the bumped packages/soql-common/package.json.
+ */
+exports.preCommit = ({ version }) => {
+  const lockPath = path.join(process.env.GITHUB_WORKSPACE, 'package-lock.json')
+  const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'))
+  if (lock.packages?.['packages/soql-common']) {
+    lock.packages['packages/soql-common'].version = version
+  }
+  fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n')
 }
