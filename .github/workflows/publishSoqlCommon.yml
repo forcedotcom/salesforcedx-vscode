@@ -12,6 +12,15 @@ on:
         description: 'Release tag to publish (e.g., soql-common-v1.0.4). Leave empty to create a new release from commits.'
         required: false
         type: string
+      releaseType:
+        description: 'Version bump type when creating a new release from commits (ignored if tag is provided)'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   create-release:
@@ -50,6 +59,7 @@ jobs:
           output-file: 'packages/soql-common/CHANGELOG.md'
           skip-on-empty: ${{ github.event_name == 'push' }}
           skip-tag: false
+          version-type: ${{ github.event.inputs.releaseType || 'patch' }}
 
       - name: Create Github Release
         if: steps.changelog.outputs.skipped == 'false'
