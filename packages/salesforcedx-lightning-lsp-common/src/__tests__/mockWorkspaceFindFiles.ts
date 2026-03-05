@@ -53,18 +53,16 @@ const findFilesOnDisk = (dirPath: string, basePath: string, pattern: string): st
   return results;
 };
 
-export interface MockWorkspaceFindFilesOptions {
-  /** When set, use this list of relative paths instead of reading disk (e.g. when Jest cannot read workspace). */
-  relativePaths?: string[];
-}
-
 /**
  * Creates a mock connection that handles workspace/findFiles by discovering files on disk
  * under the given base path (or from options.relativePaths when disk read is unavailable).
  */
 export const createMockWorkspaceFindFilesConnection = (
   _workspaceRoot: string,
-  options: MockWorkspaceFindFilesOptions = {}
+  options: {
+    /** When set, use this list of relative paths instead of reading disk (e.g. when Jest cannot read workspace). */
+    relativePaths?: string[];
+  } = {}
 ) => ({
   sendRequest: (
     method: string,

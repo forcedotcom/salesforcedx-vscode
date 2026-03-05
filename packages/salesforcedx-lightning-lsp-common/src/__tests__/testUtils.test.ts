@@ -12,31 +12,25 @@ const FORCE_APP_ROOT = 'test-workspaces/sfdx-workspace/force-app/main/default';
 
 it('readAsTextDocument()', async () => {
   const contentMap = new Map<string, string>();
+  // Seed content synchronously so we don't depend on updateFileContent (which in production
+  // sends LSP requests to the client—not available in unit tests). getFileContent is mocked
+  // to read from this map.
+  const set = (path: string, content: string) => contentMap.set(normalizePath(path), content);
+  set(`${FORCE_APP_ROOT}/lwc/hello_world/hello_world.js`, 'import { LightningElement } from "lwc";\n\nexport default class LwcHelloWorld extends LightningElement {}');
+  set(`${FORCE_APP_ROOT}/lwc/hello_world/hello_world.html`, '<template>Hello From a Lightning Web Component</template>\n');
+  set(
+    `${FORCE_APP_ROOT}/aura/helloWorldApp/helloWorldApp.app`,
+    '<aura:application xmlns:aura="http://soap.sforce.com/2006/04/metadata" xmlns:apex="http://soap.sforce.com/2006/04/metadata" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:js="http://soap.sforce.com/2006/04/metadata" xmlns:lwc="http://soap.sforce.com/2006/04/metadata" template="b1">Hello World</aura:application>'
+  );
+  set(
+    `${FORCE_APP_ROOT}/aura/wireLdsCmp/wireLdsCmp.cmp`,
+    '<aura:component xmlns:aura="http://soap.sforce.com/2006/04/metadata" xmlns:apex="http://soap.sforce.com/2006/04/metadata" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:js="http://soap.sforce.com/2006/04/metadata" xmlns:lwc="http://soap.sforce.com/2006/04/metadata" template="b1">Hello World</aura:component>'
+  );
+
   const fileSystemAccessor = new LspFileSystemAccessor();
   jest
     .spyOn(fileSystemAccessor, 'getFileContent')
     .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
-  jest.spyOn(fileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
-    contentMap.set(normalizePath(uri), content);
-    return Promise.resolve();
-  });
-
-  await fileSystemAccessor.updateFileContent(
-    `${FORCE_APP_ROOT}/lwc/hello_world/hello_world.js`,
-    'import { LightningElement } from "lwc";\n\nexport default class LwcHelloWorld extends LightningElement {}'
-  );
-  await fileSystemAccessor.updateFileContent(
-    `${FORCE_APP_ROOT}/lwc/hello_world/hello_world.html`,
-    '<template>Hello From a Lightning Web Component</template>\n'
-  );
-  await fileSystemAccessor.updateFileContent(
-    `${FORCE_APP_ROOT}/aura/helloWorldApp/helloWorldApp.app`,
-    '<aura:application xmlns:aura="http://soap.sforce.com/2006/04/metadata" xmlns:apex="http://soap.sforce.com/2006/04/metadata" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:js="http://soap.sforce.com/2006/04/metadata" xmlns:lwc="http://soap.sforce.com/2006/04/metadata" template="b1">Hello World</aura:application>'
-  );
-  await fileSystemAccessor.updateFileContent(
-    `${FORCE_APP_ROOT}/aura/wireLdsCmp/wireLdsCmp.cmp`,
-    '<aura:component xmlns:aura="http://soap.sforce.com/2006/04/metadata" xmlns:apex="http://soap.sforce.com/2006/04/metadata" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:js="http://soap.sforce.com/2006/04/metadata" xmlns:lwc="http://soap.sforce.com/2006/04/metadata" template="b1">Hello World</aura:component>'
-  );
 
   // reads .js file
   let document = await readAsTextDocument(`${FORCE_APP_ROOT}/lwc/hello_world/hello_world.js`, fileSystemAccessor);

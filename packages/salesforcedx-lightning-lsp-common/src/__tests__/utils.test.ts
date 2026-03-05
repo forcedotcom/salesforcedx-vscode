@@ -62,6 +62,9 @@ describe('utils', () => {
   describe('readJsonSync()', () => {
     let fileSystemAccessor: LspFileSystemAccessor;
     const contentMap = new Map<string, string>();
+    const setContent = (path: string, content: string): void => {
+      contentMap.set(utils.normalizePath(path), content);
+    };
 
     beforeEach(() => {
       fileSystemAccessor = new LspFileSystemAccessor();
@@ -69,18 +72,11 @@ describe('utils', () => {
       jest
         .spyOn(fileSystemAccessor, 'getFileContent')
         .mockImplementation((uri: string) => Promise.resolve(contentMap.get(utils.normalizePath(uri))));
-      jest.spyOn(fileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
-        contentMap.set(utils.normalizePath(uri), content);
-        return Promise.resolve();
-      });
     });
 
     it('should read json files', async () => {
       const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
-      void fileSystemAccessor.updateFileContent(
-        `${testFile}`,
-        JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } })
-      );
+      setContent(testFile, JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } }));
       const settings = await utils.readJsonSync(testFile, fileSystemAccessor);
 
       expect(settings).toHaveProperty('compilerOptions.paths.foo');
@@ -89,11 +85,6 @@ describe('utils', () => {
 
     it('should read json files with comments', async () => {
       const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
-      void fileSystemAccessor.updateFileContent(
-        `${testFile}`,
-        JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } })
-      );
-
       const jsonWithComments = {
         compilerOptions: {
           paths: {
@@ -102,7 +93,7 @@ describe('utils', () => {
           }
         }
       };
-      void fileSystemAccessor.updateFileContent(`${testFile}`, JSON.stringify(jsonWithComments));
+      setContent(testFile, JSON.stringify(jsonWithComments));
 
       const settings = await utils.readJsonSync(testFile, fileSystemAccessor);
 
@@ -124,6 +115,10 @@ describe('utils', () => {
     const root = join(os.tmpdir(), `pjson-test-${Date.now()}`);
     const packageJsonPath = join(root, 'package.json');
     const contentMap = new Map<string, string>();
+    const setContent = (path: string, content: string): void => {
+      contentMap.set(utils.normalizePath(path), content);
+    };
+    const seedPackageJson = (pkg: PackageJson): void => setContent(packageJsonPath, JSON.stringify(pkg));
 
     beforeEach(() => {
       fileSystemProvider = new LspFileSystemAccessor();
@@ -131,32 +126,24 @@ describe('utils', () => {
       jest
         .spyOn(fileSystemProvider, 'getFileContent')
         .mockImplementation((uri: string) => Promise.resolve(contentMap.get(utils.normalizePath(uri))));
-      jest.spyOn(fileSystemProvider, 'updateFileContent').mockImplementation((uri: string, content: string) => {
-        contentMap.set(utils.normalizePath(uri), content);
-        return Promise.resolve();
-      });
     });
-
-    const seedPackageJson = (pkg: PackageJson): void => {
-      void fileSystemProvider.updateFileContent(packageJsonPath, JSON.stringify(pkg));
-    };
 
     it('returns undefined when package.json does not exist', async () => {
       expect(await utils.readPackageJson(root, fileSystemProvider)).toBeUndefined();
     });
 
     it('returns undefined when package.json content is not valid JSON', async () => {
-      void fileSystemProvider.updateFileContent(packageJsonPath, '{ not valid json }');
+      setContent(packageJsonPath, '{ not valid json }');
       expect(await utils.readPackageJson(root, fileSystemProvider)).toBeUndefined();
     });
 
     it('returns undefined when package.json is not an object', async () => {
-      void fileSystemProvider.updateFileContent(packageJsonPath, '"just a string"');
+      setContent(packageJsonPath, '"just a string"');
       expect(await utils.readPackageJson(root, fileSystemProvider)).toBeUndefined();
     });
 
     it('returns undefined when dependencies values are not strings', async () => {
-      void fileSystemProvider.updateFileContent(packageJsonPath, JSON.stringify({ dependencies: { foo: 42 } }));
+      setContent(packageJsonPath, JSON.stringify({ dependencies: { foo: 42 } }));
       expect(await utils.readPackageJson(root, fileSystemProvider)).toBeUndefined();
     });
 
