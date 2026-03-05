@@ -1,6 +1,7 @@
 {
   "name": "@salesforce/soql-common",
-  "version": "66.0.3",
+  "version": "1.0.0",
+  "versionedIndependently": true,
   "description": "Common SOQL parsing utilities",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
