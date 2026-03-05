@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { dataQuery } from './commands/dataQuery';
 import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
@@ -13,40 +15,54 @@ import { soqlOpenNew } from './commands/soqlFileCreate';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
-import { channelService } from './services/channel';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
-import { telemetryService } from './telemetry';
+import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+
+const EXTENSION_NAME = 'salesforcedx-vscode-soql';
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+  const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
-
-  await telemetryService.initializeService(extensionContext);
-  channelService.appendLine(`SOQL Extension Initializing in mode ${extensionContext.extensionMode}`);
-  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
-
-  extensionContext.subscriptions.push(SOQLEditorProvider.register(extensionContext));
-  QueryDataViewService.register(extensionContext);
-
-  extensionContext.subscriptions.push(
-    vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew),
-    vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle),
-    vscode.commands.registerCommand('soql.walkthrough.open', () => {
-      vscode.commands.executeCommand(
-        'workbench.action.openWalkthrough',
-        'salesforce.salesforcedx-vscode-soql#soqlWalkthrough',
-        false
-      );
-    }),
-    vscode.commands.registerCommand('sf.data.query.input', dataQuery),
-    vscode.commands.registerCommand('sf.data.query.selection', dataQuery)
+  await Effect.runPromise(
+    activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope))
   );
-
-  await startLanguageClient(extensionContext);
-  void activationTracker.markActivationStop();
-  channelService.appendLine('SOQL Extension Activated');
 };
 
-export const deactivate = (): Thenable<void> => {
-  telemetryService.sendExtensionDeactivationEvent();
-  return stopLanguageClient();
-};
+export const deactivate = async (): Promise<void> =>
+  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
+
+export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (
+  context: vscode.ExtensionContext
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const svc = yield* api.services.ChannelService;
+  yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
+
+  yield* Effect.sync(() => {
+    context.subscriptions.push(
+      SOQLEditorProvider.register(context),
+      vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew),
+      vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle),
+      vscode.commands.registerCommand('soql.walkthrough.open', () => {
+        void vscode.commands.executeCommand(
+          'workbench.action.openWalkthrough',
+          'salesforce.salesforcedx-vscode-soql#soqlWalkthrough',
+          false
+        );
+      }),
+      vscode.commands.registerCommand('sf.data.query.input', dataQuery),
+      vscode.commands.registerCommand('sf.data.query.selection', dataQuery)
+    );
+    QueryDataViewService.register(context);
+  });
+
+  yield* Effect.promise(() => startLanguageClient(context));
+  yield* svc.appendToChannel('SOQL Extension Activated');
+});
+
+export const deactivateEffect = Effect.fn(`deactivation:${EXTENSION_NAME}`)(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const svc = yield* api.services.ChannelService;
+  yield* closeExtensionScope();
+  yield* Effect.promise(() => stopLanguageClient() ?? Promise.resolve());
+  yield* svc.appendToChannel('SOQL Extension Deactivated');
+});
