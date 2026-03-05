@@ -12,14 +12,25 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const copyFiles = (src, dest) => {
+const copyTreeSanitized = (src, dest) => {
   const stats = fs.statSync(src);
-  try {
-    if (stats.isDirectory()) {
-      fs.cpSync(src, dest, { recursive: true });
-    } else {
-      fs.cpSync(src, dest);
+  if (!stats.isDirectory()) {
+    fs.cpSync(src, dest);
+    return;
+  }
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src)) {
+    const sanitized = entry.trimEnd();
+    if (sanitized !== entry) {
+      console.warn(`Sanitized filename: "${entry}" → "${sanitized}" in ${src}`);
     }
+    copyTreeSanitized(path.join(src, entry), path.join(dest, sanitized));
+  }
+};
+
+const copyFiles = (src, dest) => {
+  try {
+    copyTreeSanitized(src, dest);
     console.log(`Copied from ${src} to ${dest}`);
   } catch (error) {
     console.error('An error occurred:', error);
