@@ -10,7 +10,7 @@ import { isNotUndefined } from 'effect/Predicate';
 import { type CancellationToken, languages, Uri, window } from 'vscode';
 import { Utils } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
+import { APEX_TESTSUITE_EXT } from '../constants';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
@@ -26,33 +26,17 @@ import {
 } from '../utils/commandletHelpers';
 import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { findFilesByExtensionsWeb, findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
+import { findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
 import { runApexTests } from './apexTestRunUtils';
 
 /** Remove the extension from a filename */
 const removeExtension = (filename: string, ext: string): string =>
   filename.endsWith(ext) ? filename.slice(0, -ext.length) : filename;
 
-/** Get test suite and apex class URIs via ComponentSetService; fallback to FsService walk (web only) when empty */
+/** Get test suite and apex class URIs via ComponentSetService */
 const findApexRunFiles = async (): Promise<{ testSuites: Uri[]; apexClasses: Uri[] }> => {
-  const fromComponentSet = await findLocalApexClassAndTestSuiteUris();
-  if (fromComponentSet.apexClassUris.length > 0 || fromComponentSet.testSuiteUris.length > 0) {
-    return {
-      testSuites: fromComponentSet.testSuiteUris,
-      apexClasses: fromComponentSet.apexClassUris
-    };
-  }
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    const all = await findFilesByExtensionsWeb(getRootWorkspacePath(), [
-      APEX_CLASS_EXT,
-      APEX_TESTSUITE_EXT
-    ]);
-    const { testSuites = [], apexClasses = [] } = Object.groupBy(all, file =>
-      file.path.endsWith(APEX_CLASS_EXT) ? 'apexClasses' : 'testSuites'
-    );
-    return { testSuites: testSuites ?? [], apexClasses: apexClasses ?? [] };
-  }
-  return { testSuites: [], apexClasses: [] };
+  const { testSuiteUris, apexClassUris } = await findLocalApexClassAndTestSuiteUris();
+  return { testSuites: testSuiteUris, apexClasses: apexClassUris };
 };
 
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {

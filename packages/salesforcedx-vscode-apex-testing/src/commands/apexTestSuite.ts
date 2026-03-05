@@ -9,21 +9,19 @@ import { TestService } from '@salesforce/apex-node';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT } from '../constants';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
 import {
   CancelResponse,
   ContinueResponse,
-  getRootWorkspacePath,
   LibraryCommandletExecutor,
   ParametersGatherer,
   SfCommandlet,
   SfWorkspaceChecker
 } from '../utils/commandletHelpers';
 import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
-import { findFilesByExtensionsWeb, findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
+import { findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
 import { getTestController } from '../views/testController';
 import { ApexLibraryTestRunExecutor } from './apexTestRun';
 
@@ -31,18 +29,11 @@ type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const { apexClassUris } = await findLocalApexClassAndTestSuiteUris();
-  const apexClasses =
-    apexClassUris.length > 0
-      ? apexClassUris
-      : process.env.ESBUILD_PLATFORM === 'web'
-        ? await findFilesByExtensionsWeb(getRootWorkspacePath(), [APEX_CLASS_EXT])
-        : apexClassUris;
-
-  if (apexClasses.length === 0) {
+  if (apexClassUris.length === 0) {
     return [];
   }
   const items = await Promise.all(
-    apexClasses.map(
+    apexClassUris.map(
       (uri): Promise<ApexTestQuickPickItem | undefined> => getTestInfo(uri).catch((): undefined => undefined)
     )
   );

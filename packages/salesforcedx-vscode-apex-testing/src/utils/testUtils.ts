@@ -11,7 +11,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { getUriPath } from '../utils/commandletHelpers';
@@ -292,51 +292,6 @@ export const findLocalApexClassAndTestSuiteUris = async (): Promise<{
   );
   const typedEffect: Effect.Effect<typeof empty, never, never> = effect;
   return Effect.runPromise(typedEffect);
-};
-
-/** Web: find files by extension(s) by walking the workspace with FsService. Fallback when ComponentSetService is not used. */
-export const findFilesByExtensionsWeb = async (
-  rootPath: string,
-  extensions: string[],
-  options: { excludeDirNames?: string[] } = {}
-): Promise<vscode.Uri[]> => {
-  const { excludeDirNames = ['.sfdx'] } = options;
-  const result: vscode.Uri[] = [];
-  const walk = async (dirPath: string): Promise<void> => {
-    const entries = await Effect.runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        return yield* api.services.FsService.readDirectory(dirPath);
-      }).pipe(
-        Effect.provide(AllServicesLayer),
-        Effect.catchAll(() => Effect.succeed([]))
-      )
-    );
-    for (const uri of entries) {
-      const name = Utils.basename(uri);
-      const matchesExt = extensions.some(ext => name.endsWith(ext));
-      if (matchesExt) {
-        result.push(vscode.Uri.parse(uri.toString()));
-      } else {
-        const isDir = await Effect.runPromise(
-          Effect.gen(function* () {
-            const api = yield* (yield* ExtensionProviderService).getServicesApi;
-            return yield* api.services.FsService.isDirectory(uri);
-          }).pipe(
-            Effect.provide(AllServicesLayer),
-            Effect.catchAll(() => Effect.succeed(false))
-          )
-        );
-        if (isDir && !excludeDirNames.includes(name)) {
-          await walk(uri.toString());
-        }
-      }
-    }
-  };
-  if (rootPath) {
-    await walk(rootPath);
-  }
-  return result.toSorted((a, b) => (a.fsPath ?? a.path).localeCompare(b.fsPath ?? b.path));
 };
 
 /** Writes test result JSON file using FsService (works in both desktop and web modes) */
