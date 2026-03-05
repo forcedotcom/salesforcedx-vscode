@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Connection } from '@salesforce/core';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import {
   CancelResponse,
   Column,
@@ -16,13 +17,14 @@ import {
   Row,
   SfCommandlet,
   SfWorkspaceChecker,
-  workspaceUtils,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { channelService, OUTPUT_CHANNEL } from '../services/channel';
+import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection } from '../services/org';
 
 type QueryResult = Awaited<ReturnType<Connection['query']>>;
@@ -64,7 +66,13 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
 
     const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
     const fileName = `soql-query-${timestamp}.csv`;
-    const fileUri = Utils.joinPath(URI.file(workspaceUtils.getRootWorkspacePath()), '.sfdx', 'data', fileName);
+    const { fsPath: workspacePath } = await getSoqlRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* getServicesApi;
+        return yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+      })
+    );
+    const fileUri = Utils.joinPath(URI.file(workspacePath), '.sfdx', 'data', fileName);
     const filePath = fileUri.fsPath;
     await writeFile(filePath, csvContent);
 
