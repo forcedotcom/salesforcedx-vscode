@@ -11,7 +11,6 @@ import {
   Column,
   ContinueResponse,
   createTable,
-  LibraryCommandletExecutor,
   ParametersGatherer,
   Row,
   SfCommandlet
@@ -20,41 +19,29 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { channelService, OUTPUT_CHANNEL } from '../services/channel';
+import { channelService } from '../services/channel';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection } from '../services/org';
 
 type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
-class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
-  protected showSuccessNotifications = false;
+class DataQueryExecutor {
+  public async execute(response: ContinueResponse<QueryAndApiInputs>): Promise<void> {
+    if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
+      channelService.clear();
+    }
 
-  constructor() {
-    super(nls.localize('data_query_input_text'), 'data_soql_query_library', OUTPUT_CHANNEL);
-    // Disable automatic success notifications since we show our own custom success notification
-    // Keep failure notifications enabled for automatic error handling
-  }
-
-  public async run(response: ContinueResponse<QueryAndApiInputs>): Promise<boolean> {
     const { query, api } = response.data;
 
     try {
       const connection = await getConnection();
-
-      // Execute query using the appropriate API
       const queryResult = await runSoqlQuery(connection, query, api === 'TOOLING');
-
-      // Display results in table format
       displayTableResults(queryResult);
-
-      // Save results to CSV file and show notification
       await this.saveResultsToCSV(queryResult);
-
-      return true;
     } catch (error) {
-      const errorMessage = formatErrorMessage(error);
-      channelService.appendLine(errorMessage);
-      return false;
+      channelService.appendLine(formatErrorMessage(error));
+    } finally {
+      channelService.show();
     }
   }
 
