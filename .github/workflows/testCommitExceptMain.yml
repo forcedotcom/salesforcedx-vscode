@@ -1,7 +1,7 @@
 name: Commit Workflow
 on:
   push:
-    branches-ignore: [main, develop, sm/feedback-3]
+    branches-ignore: [main, develop]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'

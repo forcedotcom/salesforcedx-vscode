@@ -3,7 +3,7 @@ name: Apex Replay Debugger E2E (Playwright)
 on:
   workflow_dispatch:
   push:
-    branches-ignore: [main, develop, sm/feedback-3]
+    branches-ignore: [main, develop]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'

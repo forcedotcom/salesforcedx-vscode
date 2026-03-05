@@ -3,7 +3,7 @@ name: Playwright VS Code Ext E2E Tests
 on:
   workflow_dispatch:
   push:
-    branches-ignore: [main, develop, sm/feedback-3]
+    branches-ignore: [main, develop]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'

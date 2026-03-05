@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: restore-workflows
     content: Restore all temporarily disabled workflows, commit, push, verify everything still passes
-    status: pending
+    status: completed
 isProject: false
 ---
 
