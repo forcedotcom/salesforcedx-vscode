@@ -38,22 +38,29 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
 
   yield* Effect.sync(() => {
-    context.subscriptions.push(
-      SOQLEditorProvider.register(context),
-      vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew),
-      vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle),
-      vscode.commands.registerCommand('soql.walkthrough.open', () => {
-        void vscode.commands.executeCommand(
-          'workbench.action.openWalkthrough',
-          'salesforce.salesforcedx-vscode-soql#soqlWalkthrough',
-          false
-        );
-      }),
-      vscode.commands.registerCommand('sf.data.query.input', dataQuery),
-      vscode.commands.registerCommand('sf.data.query.selection', dataQuery)
-    );
+    context.subscriptions.push(SOQLEditorProvider.register(context));
     QueryDataViewService.register(context);
   });
+
+  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  yield* Effect.all(
+    [
+      registerCommand('soql.builder.open.new', soqlOpenNew),
+      registerCommand('soql.builder.toggle', soqlBuilderToggle),
+      registerCommand('soql.walkthrough.open', () =>
+        Effect.promise(() =>
+          vscode.commands.executeCommand(
+            'workbench.action.openWalkthrough',
+            'salesforce.salesforcedx-vscode-soql#soqlWalkthrough',
+            false
+          )
+        )
+      ),
+      registerCommand('sf.data.query.input', dataQuery),
+      registerCommand('sf.data.query.selection', dataQuery)
+    ],
+    { concurrency: 'unbounded' }
+  );
 
   yield* Effect.promise(() => startLanguageClient(context));
   yield* svc.appendToChannel('SOQL Extension Activated');
