@@ -136,7 +136,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   source_diff_folder_title: '%s - ファイル差分',
   lib_retrieve_result_title: '取得されたソース',
   lib_retrieve_message_title: '取得警告',
-  sobjects_refresh: 'SFDX: SObject 定義を更新',
   component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています',
   rename_component_input_dup_file_name_error:
     'このファイル名は現在のコンポーネントディレクトリで既に使用されています。別の名前を選択して再試行してください。',

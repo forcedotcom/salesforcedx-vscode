@@ -513,7 +513,6 @@ export const messages = {
   lib_retrieve_message_title: 'Retrieve Warnings',
   package_id_validation_error: 'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
-  sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   rename_lightning_component: 'SFDX: Rename Component',
   component_input_dup_error: 'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:
