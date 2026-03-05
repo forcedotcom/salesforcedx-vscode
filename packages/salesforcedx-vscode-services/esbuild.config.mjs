@@ -22,12 +22,14 @@ const templatesPkgPath = dirname(
   createRequire(import.meta.url).resolve('@salesforce/templates/package.json')
 );
 const templatesLibPath = join(templatesPkgPath, 'lib/templates');
+// Use forward slashes in glob so copy works on Windows CI (globby is cross-platform when pattern uses /).
+const templatesGlob = `${templatesLibPath.replace(/\\/g, '/')}/**/*`;
 
 const copyTemplates = copy({
   resolveFrom: 'cwd',
   globbyOptions: { dot: true },
   assets: {
-    from: [join(templatesLibPath, '**/*')],
+    from: [templatesGlob],
     to: ['./dist/templates']
   }
 });
