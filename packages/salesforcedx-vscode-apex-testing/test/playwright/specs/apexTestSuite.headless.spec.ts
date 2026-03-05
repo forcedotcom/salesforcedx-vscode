@@ -41,6 +41,9 @@ const createApexTestSuiteViaPalette = async (
   // Wait for next prompt (select test classes)
   await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
 
+  // Wait for the quick pick list to populate
+  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 20_000 });
+
   // Type test class name to filter the list
   await page.keyboard.type(testClassName);
 

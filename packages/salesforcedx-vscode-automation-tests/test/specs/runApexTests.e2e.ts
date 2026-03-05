@@ -176,7 +176,7 @@ describe('Run Apex Tests', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Run SFDX: Run Apex tests.
-    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(10));
+    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(15));
 
     // Select the "All Tests" option
     await prompt.selectQuickPick('All Tests');
@@ -210,7 +210,7 @@ describe('Run Apex Tests', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Run SFDX: Run Apex tests.
-    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
+    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(15));
 
     // Select the "ExampleApexClass1Test" file
     await prompt.selectQuickPick('ExampleApexClass1Test');

@@ -33,12 +33,25 @@ type QuickPickItemWithDescription = ApexTestQuickPickItem & Required<Pick<ApexTe
 const removeExtension = (filename: string, ext: string): string =>
   filename.endsWith(ext) ? filename.slice(0, -ext.length) : filename;
 
+/**
+ * Path string for FsService.readFile. On web, FsService.toUri() expects a path string and converts it to memfs:${path};
+ * passing uri.path ensures the correct scheme. On desktop, fsPath works for file URIs.
+ */
+const getUriPathForRead = (uri: URI): string =>
+  process.env.ESBUILD_PLATFORM === 'web' ? uri.path : (uri.scheme === 'file' ? uri.fsPath : uri.path) ?? uri.path;
+
 /** Read the file and return a quickPick Item. Will return undefined if the file has no tests (based on the @isTest annotation). */
-export const getTestInfo = async (sourceUri: URI): Promise<QuickPickItemWithDescription | undefined> =>
-  IS_TEST_REG_EXP.test(await readFile(sourceUri.fsPath))
+export const getTestInfo = async (sourceUri: URI): Promise<QuickPickItemWithDescription | undefined> => {
+  const pathForRead = getUriPathForRead(sourceUri);
+  if (!pathForRead) {
+    return undefined;
+  }
+  const hasTests = IS_TEST_REG_EXP.test(await readFile(pathForRead));
+  return hasTests
     ? {
         label: removeExtension(Utils.basename(sourceUri), APEX_CLASS_EXT),
-        description: sourceUri.fsPath,
+        description: pathForRead,
         type: 'Class'
       }
     : undefined;
+};
