@@ -71,12 +71,12 @@ class Bar extends LightningElement {
 }
 `;
 
-it('can get metadata from a simple component', async () => {
-  await compileSource(codeOk, 'foo.js');
+it('can get metadata from a simple component', () => {
+  compileSource(codeOk, 'foo.js');
 });
 
-it('displays an error for a component with syntax error', async () => {
-  const result = await compileSource(codeSyntaxError, 'foo.js');
+it('displays an error for a component with syntax error', () => {
+  const result = compileSource(codeSyntaxError, 'foo.js');
   expect(result.metadata).toBeUndefined();
   expect(result.diagnostics).toBeDefined();
   expect(result.diagnostics).toHaveLength(1);
@@ -84,22 +84,22 @@ it('displays an error for a component with syntax error', async () => {
   expect(diagnostic.message).toMatch('Unexpected token (4:17)');
 });
 
-it('returns empty metadata for a script without a clear main component class', async () => {
-  const result = await compileSource(codeWithoutDefaultExportMultipleClasses, 'foo.js');
+it('returns empty metadata for a script without a clear main component class', () => {
+  const result = compileSource(codeWithoutDefaultExportMultipleClasses, 'foo.js');
   expect(result.metadata?.decorators).toHaveLength(0);
   expect(result.metadata?.classMembers).toHaveLength(0);
   expect(result.metadata?.exports).toHaveLength(0);
 });
 
-it('returns metadata for a script with one component class, even when not exported', async () => {
-  const result = await compileSource(codeWithoutDefaultExportSingleClass, 'foo.js');
+it('returns metadata for a script with one component class, even when not exported', () => {
+  const result = compileSource(codeWithoutDefaultExportSingleClass, 'foo.js');
   expect(result.metadata?.decorators).toHaveLength(1);
   expect(result.metadata?.classMembers).toHaveLength(1);
   expect(result.metadata?.exports).toHaveLength(0);
 });
 
-it('displays an error for a component with other errors', async () => {
-  const result = await compileSource(codeError, 'foo.js');
+it('displays an error for a component with other errors', () => {
+  const result = compileSource(codeError, 'foo.js');
   expect(result.metadata).toBeUndefined();
   expect(result.diagnostics).toBeDefined();
   expect(result.diagnostics).toHaveLength(1);
@@ -118,7 +118,7 @@ it('displays an error for a component with other errors', async () => {
   });
 });
 
-it('compileDocument returns list of javascript syntax errors', async () => {
+it('compileDocument returns list of javascript syntax errors', () => {
   const document = TextDocument.create('file:///example.js', 'javascript', 0, codeSyntaxError);
   const { diagnostics } = compileDocument(document);
 
@@ -132,9 +132,9 @@ it('compileDocument returns list of javascript syntax errors', async () => {
   expect(diagnostics![0].source).toBe(DIAGNOSTIC_SOURCE);
 });
 
-it('compileDocument returns list of javascript regular errors', async () => {
+it('compileDocument returns list of javascript regular errors', () => {
   const document = TextDocument.create('file:///example.js', 'javascript', 0, codeError);
-  const { diagnostics } = await compileDocument(document);
+  const { diagnostics } = compileDocument(document);
 
   expect(diagnostics).toBeDefined();
   expect(diagnostics!).toHaveLength(1);
@@ -146,7 +146,7 @@ it('compileDocument returns list of javascript regular errors', async () => {
   expect(diagnostics![0].source).toBe(DIAGNOSTIC_SOURCE);
 });
 
-it('linter returns empty diagnostics on correct file', async () => {
+it('linter returns empty diagnostics on correct file', () => {
   const content = `
     import { LightningElement } from 'lwc';
     export default class Foo extends LightningElement {
@@ -257,7 +257,7 @@ it('mapLwcMetadataToInternal returns expected javascript metadata', async () => 
   });
 });
 
-it('use compileDocument()', async () => {
+it('use compileDocument()', () => {
   const content = `
         import { LightningElement, api } from 'lwc';
         export default class Foo extends LightningElement {
