@@ -8,7 +8,7 @@
 export const sampleProjectName = 'MyProject';
 
 // VS Code settings sections and keys used across services and tests
-export const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
+export const CODE_BUILDER_WEB_SECTION = 'salesforce-web-console';
 export const SALESFORCE_DX_SECTION = 'salesforcedx-vscode-salesforcedx';
 export const INSTANCE_URL_KEY = 'instanceUrl';
 export const ACCESS_TOKEN_KEY = 'accessToken';

@@ -272,22 +272,22 @@
           "default": false,
           "description": "%configuration.protectedOrg.description%"
         },
-        "salesforcedx-vscode-code-builder-web.instanceUrl": {
+        "salesforce-web-console.instanceUrl": {
           "type": "string",
           "default": "",
           "description": "%configuration.instanceUrl.description%"
         },
-        "salesforcedx-vscode-code-builder-web.accessToken": {
+        "salesforce-web-console.accessToken": {
           "type": "string",
           "default": "",
           "description": "%configuration.accessToken.description%"
         },
-        "salesforcedx-vscode-code-builder-web.apiVersion": {
+        "salesforce-web-console.apiVersion": {
           "type": "string",
           "default": "64.0",
           "description": "%configuration.apiVersion.description%"
         },
-        "salesforcedx-vscode-code-builder-web.retrieveOnLoad": {
+        "salesforce-web-console.retrieveOnLoad": {
           "type": "string",
           "default": "",
           "description": "%configuration.retrieveOnLoad.description%"
