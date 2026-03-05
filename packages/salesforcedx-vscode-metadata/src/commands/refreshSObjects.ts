@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
+import { CORE_EXTENSION_ID } from '../constants';
 import { nls } from '../messages';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { FAILURE_CODE, SUCCESS_CODE } from '../sobjects/constants';
@@ -94,24 +95,24 @@ const executeRefresh = Effect.fn('executeRefresh')(
       yield* channelService.appendToChannel(nls.localize('processed_sobjects_length_text', customObjects, 'Custom'));
     }
 
-    const exitCode = result.data.cancelled ? FAILURE_CODE : SUCCESS_CODE;
-    yield* Effect.promise(() => vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode }));
+    if (vscode.extensions.getExtension(CORE_EXTENSION_ID)) {
+      const exitCode = result.data.cancelled ? FAILURE_CODE : SUCCESS_CODE;
+      yield* Effect.promise(() => vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode }));
+    }
   },
   Effect.tapError(error =>
     Effect.gen(function* () {
       const msg = error instanceof Error ? error.message : String(error);
       yield* Effect.promise(() => vscode.window.showErrorMessage(msg));
-      yield* Effect.promise(() =>
-        vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: FAILURE_CODE })
-      );
+      if (vscode.extensions.getExtension(CORE_EXTENSION_ID)) {
+        yield* Effect.promise(() =>
+          vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: FAILURE_CODE })
+        );
+      }
     })
   )
 );
 
-/**
- * Refresh SObject definitions command — Effect pattern, no SfCommandlet framework.
- * Registered as sf.internal.refreshsobjects in metadata's index.ts.
- */
 const runRefresh = Effect.fn('runRefresh')(function* (source?: SObjectRefreshSource) {
   if (!source || source === 'manual') {
     const picked = yield* gatherCategory();

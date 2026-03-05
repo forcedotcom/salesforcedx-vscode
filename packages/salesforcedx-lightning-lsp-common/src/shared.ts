@@ -7,6 +7,7 @@
 
 import * as path from 'node:path';
 import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { readPackageJson } from './utils';
 
 const SFDX_PROJECT = 'sfdx-project.json';
 
@@ -29,10 +30,7 @@ export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX
  * @param root
  * @returns WorkspaceType for singular root
  */
-export const detectWorkspaceHelper = async (
-  root: string,
-  fileSystemProvider: IFileSystemProvider
-): Promise<WorkspaceType> => {
+export const detectWorkspaceHelper = (root: string, fileSystemProvider: IFileSystemProvider): WorkspaceType => {
   // Early return if no files are available
   try {
     const allFiles = fileSystemProvider.getAllFileUris();
@@ -83,16 +81,14 @@ export const detectWorkspaceHelper = async (
     // File doesn't exist, continue
   }
 
-  const packageJson = path.join(root, 'package.json');
   try {
-    const packageInfoContent = fileSystemProvider.getFileContent(`${packageJson}`);
-    if (!packageInfoContent) {
+    const packageInfo = readPackageJson(root, fileSystemProvider);
+    if (!packageInfo) {
       throw new Error('Package info not found');
     }
-    const packageInfo = JSON.parse(packageInfoContent);
     const dependencies = Object.keys(packageInfo.dependencies ?? {});
     const devDependencies = Object.keys(packageInfo.devDependencies ?? {});
-    const allDependencies = [...dependencies, ...devDependencies];
+    const allDependencies: string[] = [...dependencies, ...devDependencies];
     const hasLWCdependencies = allDependencies.some(key => key.startsWith('@lwc/') || key === 'lwc');
 
     // any type of @lwc is a dependency
@@ -125,24 +121,4 @@ export const detectWorkspaceHelper = async (
   }
 
   return 'UNKNOWN';
-};
-
-/**
- * @param workspaceRoots
- * @returns WorkspaceType, actively not supporting workspaces of mixed type
- */
-export const detectWorkspaceType = async (
-  workspaceRoots: string[],
-  fileSystemProvider: IFileSystemProvider
-): Promise<WorkspaceType> => {
-  if (workspaceRoots.length === 1) {
-    return await detectWorkspaceHelper(workspaceRoots[0], fileSystemProvider);
-  }
-  for (const root of workspaceRoots) {
-    const type = await detectWorkspaceHelper(root, fileSystemProvider);
-    if (type !== 'CORE_PARTIAL') {
-      return 'UNKNOWN';
-    }
-  }
-  return 'CORE_PARTIAL';
 };

@@ -109,8 +109,8 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       );
     });
     const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
-      const { fsPath } = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return Utils.joinPath(URI.file(fsPath), Global.SFDX_STATE_FOLDER, TOOLS_DIR);
+      const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
+      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, TOOLS_DIR);
     });
 
     const getSoqlMetadataPath = Effect.fn('ProjectService.getSoqlMetadataPath')(function* () {
@@ -138,8 +138,8 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
     });
 
     const getTypingsPath = Effect.fn('ProjectService.getTypingsPath')(function* () {
-      const { fsPath } = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return Utils.joinPath(URI.file(fsPath), Global.SFDX_STATE_FOLDER, ...TYPINGS_SEGMENTS);
+      const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
+      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, ...TYPINGS_SEGMENTS);
     });
 
     return {
