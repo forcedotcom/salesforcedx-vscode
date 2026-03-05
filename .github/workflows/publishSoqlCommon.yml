@@ -48,6 +48,8 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag == ''
         id: changelog
         uses: TriPSs/conventional-changelog-action@3a392e9aa44a72686b0fc13259a90d287dd0877c
+        env:
+          RELEASE_TYPE: ${{ github.event.inputs.releaseType }}
         with:
           git-user-name: ${{ steps.github-user-info.outputs.username }}
           git-user-email: ${{ steps.github-user-info.outputs.email }}
@@ -59,7 +61,7 @@ jobs:
           output-file: 'packages/soql-common/CHANGELOG.md'
           skip-on-empty: ${{ github.event_name == 'push' }}
           skip-tag: false
-          version-type: ${{ github.event.inputs.releaseType || 'patch' }}
+          pre-changelog-generation: scripts/soql-common-version-hook.js
 
       - name: Create Github Release
         if: steps.changelog.outputs.skipped == 'false'
