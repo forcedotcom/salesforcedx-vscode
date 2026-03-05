@@ -19,8 +19,8 @@ import {
   workspaceUtils,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { channelService, OUTPUT_CHANNEL } from '../services/channel';
 import { getConnection } from '../services/org';
@@ -64,8 +64,8 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
 
     const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
     const fileName = `soql-query-${timestamp}.csv`;
-    const outputDir = path.join(workspaceUtils.getRootWorkspacePath(), '.sfdx', 'data');
-    const filePath = path.join(outputDir, fileName);
+    const fileUri = Utils.joinPath(URI.file(workspaceUtils.getRootWorkspacePath()), '.sfdx', 'data', fileName);
+    const filePath = fileUri.fsPath;
     await writeFile(filePath, csvContent);
 
     // Show success message with clickable file link
@@ -77,7 +77,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
       )
       .then(selection => {
         if (selection === openFileAction) {
-          vscode.workspace.openTextDocument(vscode.Uri.file(filePath)).then(doc => {
+          vscode.workspace.openTextDocument(fileUri).then(doc => {
             vscode.window.showTextDocument(doc);
           });
         }

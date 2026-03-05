@@ -6,9 +6,8 @@
  */
 
 import { readFile } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, HTML_FILE, SOQL_BUILDER_UI_PATH } from '../constants';
 import { nls } from '../messages';
 import { channelService } from '../services/channel';
@@ -32,11 +31,11 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken
   ): Promise<void> {
-    const soqlBuilderWebAssetsModule = getSoqlBuilderLocation(this.extensionContext);
+    const soqlBuilderUri = getSoqlBuilderLocation(this.extensionContext);
 
     webviewPanel.webview.options = {
       enableScripts: true,
-      localResourceRoots: [URI.file(soqlBuilderWebAssetsModule)]
+      localResourceRoots: [soqlBuilderUri]
     };
     webviewPanel.webview.html = await this.getWebViewContent(webviewPanel.webview);
     const instance = new SOQLEditorInstance(document, webviewPanel, _token);
@@ -52,11 +51,9 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   }
 
   private async getWebViewContent(webview: vscode.Webview): Promise<string> {
-    const soqlBuilderWebAssetsModule = getSoqlBuilderLocation(this.extensionContext);
-
-    const pathToHtml = path.join(soqlBuilderWebAssetsModule, HTML_FILE);
-    const htmlContent = await readFile(pathToHtml);
-    return HtmlUtils.transformHtml(htmlContent, soqlBuilderWebAssetsModule, webview);
+    const soqlBuilderUri = getSoqlBuilderLocation(this.extensionContext);
+    const htmlContent = await readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE).fsPath);
+    return HtmlUtils.transformHtml(htmlContent, soqlBuilderUri, webview);
   }
 
   private disposeInstance(instance: SOQLEditorInstance) {
@@ -67,5 +64,5 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   }
 }
 
-const getSoqlBuilderLocation = (extensionContext: vscode.ExtensionContext): string =>
-  path.join(extensionContext.extensionPath, SOQL_BUILDER_UI_PATH);
+const getSoqlBuilderLocation = (extensionContext: vscode.ExtensionContext): URI =>
+  Utils.joinPath(extensionContext.extensionUri, SOQL_BUILDER_UI_PATH);

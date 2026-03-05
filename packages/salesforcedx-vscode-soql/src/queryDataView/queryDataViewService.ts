@@ -7,9 +7,8 @@
 
 import type { QueryResult } from '../types';
 import type { JsonMap } from '@salesforce/ts-types';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { getDocumentName, trackErrorWithTelemetry } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
@@ -69,14 +68,15 @@ export class QueryDataViewService {
   }
 
   public async createOrShowWebView(): Promise<vscode.Webview> {
+    const extensionUri = URI.file(QueryDataViewService.extensionPath);
     this.currentPanel = vscode.window.createWebviewPanel(
       this.viewType,
       QUERY_DATA_VIEW_PANEL_TITLE,
       vscode.ViewColumn.Two,
       {
         localResourceRoots: [
-          URI.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_RESOURCE_ROOTS_PATH)),
-          URI.file(path.join(QueryDataViewService.extensionPath, IMAGES_DIR_NAME))
+          Utils.joinPath(extensionUri, DATA_VIEW_RESOURCE_ROOTS_PATH),
+          Utils.joinPath(extensionUri, IMAGES_DIR_NAME)
         ],
         enableScripts: true
       }
@@ -91,8 +91,7 @@ export class QueryDataViewService {
     );
 
     // set the tab icon for the webview
-    const imagesDirPath = path.join(QueryDataViewService.extensionPath, IMAGES_DIR_NAME);
-    const salesforceCloudUri = URI.file(path.join(imagesDirPath, 'Salesforce_Cloud.png'));
+    const salesforceCloudUri = Utils.joinPath(extensionUri, IMAGES_DIR_NAME, 'Salesforce_Cloud.png');
 
     this.currentPanel.iconPath = {
       light: salesforceCloudUri,
@@ -134,20 +133,21 @@ export class QueryDataViewService {
   }
 
   protected async getWebViewContent(webview: vscode.Webview): Promise<string> {
+    const extensionUri = URI.file(QueryDataViewService.extensionPath);
     const baseStyleUri = webview.asWebviewUri(
-      URI.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_STYLE_FILENAME))
+      Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
     );
     const tabulatorStyleUri = webview.asWebviewUri(
-      URI.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_UI_PATH, TABULATOR_STYLE_FILENAME))
+      Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH, TABULATOR_STYLE_FILENAME)
     );
     const viewControllerUri = webview.asWebviewUri(
-      URI.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME))
+      Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME)
     );
     const tabulatorUri = webview.asWebviewUri(
-      URI.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_UI_PATH, TABULATOR_SCRIPT_FILENAME))
+      Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH, TABULATOR_SCRIPT_FILENAME)
     );
     const saveIconUri = webview.asWebviewUri(
-      URI.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME))
+      Utils.joinPath(extensionUri, DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME)
     );
 
     const staticAssets = {

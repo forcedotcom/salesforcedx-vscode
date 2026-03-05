@@ -6,8 +6,8 @@
  */
 
 import { readFile } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI, Utils } from 'vscode-uri';
 import { DATA_VIEW_UI_PATH, HTML_FILE } from '../constants';
 import { HtmlUtils } from '../editor/htmlUtils';
 
@@ -18,9 +18,8 @@ export const getHtml = async (
 ): Promise<string> => {
   const { baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri } = assets;
 
-  const pathToDataViewDist = path.join(extensionPath, DATA_VIEW_UI_PATH);
-  const pathToHtml = path.join(pathToDataViewDist, HTML_FILE);
-  let html = await readFile(pathToHtml);
+  const dataViewDistUri = Utils.joinPath(URI.file(extensionPath), DATA_VIEW_UI_PATH);
+  let html = await readFile(Utils.joinPath(dataViewDistUri, HTML_FILE).fsPath);
   /*
   We need to replace the hrefs with webviewUris,
   this will need to change once we need a standalone data view.
