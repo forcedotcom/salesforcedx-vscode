@@ -9,9 +9,8 @@ jest.mock('../../../src/services/extensionProvider', () => ({
   getSoqlRuntime: () => ({ runFork: () => undefined })
 }));
 
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, SOQL_BUILDER_UI_PATH } from '../../../src/constants';
 import { HtmlUtils } from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
@@ -116,14 +115,14 @@ describe('SOQLEditorProvider', () => {
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
-      const expectedPath = path.join(extensionContext.extensionPath, SOQL_BUILDER_UI_PATH);
+      const expectedUri = Utils.joinPath(extensionContext.extensionUri, SOQL_BUILDER_UI_PATH);
 
       expect(mockWebviewPanel.webview.options.enableScripts).toBe(true);
       expect(mockWebviewPanel.webview.options.localResourceRoots).toHaveLength(1);
       const uri = mockWebviewPanel.webview.options.localResourceRoots![0];
       expect(uri.scheme).toBe('file');
-      expect(uri.path.replaceAll('\\', '/')).toBe(expectedPath.replaceAll('\\', '/'));
-      expect(uri.fsPath.replaceAll('\\', '/')).toBe(expectedPath.replaceAll('\\', '/'));
+      expect(uri.path).toBe(expectedUri.path);
+      expect(uri.fsPath).toBe(expectedUri.fsPath);
       expect(mockWebviewPanel.webview.html).toBe(mockTransformedHtml);
     });
 
