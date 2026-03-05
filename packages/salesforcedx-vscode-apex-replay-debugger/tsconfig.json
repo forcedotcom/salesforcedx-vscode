@@ -2,11 +2,22 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "out"
+    "outDir": "out",
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/playwright/**/*.ts", "playwright.config.desktop.ts", "package.nls.json"],
   "references": [
+    {
+      "path": "../salesforcedx-vscode-apex-log"
+    },
+    {
+      "path": "../effect-ext-utils"
+    },
     {
       "path": "../salesforcedx-apex-replay-debugger"
     },
@@ -24,6 +35,15 @@
     },
     {
       "path": "../salesforcedx-vscode-core"
+    },
+    {
+      "path": "../salesforcedx-vscode-metadata"
+    },
+    {
+      "path": "../salesforcedx-vscode-services"
+    },
+    {
+      "path": "../playwright-vscode-ext"
     }
   ]
 }

@@ -7,14 +7,7 @@
   "apex_test_last_class_run_text": "SFDX: Re-Run Last Run Apex Test Class",
   "apex_test_last_method_run_text": "SFDX: Re-Run Last Run Apex Test Method",
   "apex_test_method_run_text": "SFDX: Run Apex Test Method",
-  "collapse_tests_title": "SFDX: Collapse All Apex Tests",
   "configuration_title": "Salesforce Apex Testing Configuration",
-  "go_to_definition_title": "Go to Definition",
-  "refresh_test_title": "Refresh Tests",
-  "run_single_test_title": "Run Single Test",
-  "run_tests_title": "Run Tests",
-  "show_error_title": "Display Error",
-  "test_view_container_title": "Test Viewer",
   "test_view_name": "Apex Tests",
   "apex_test_run_concise": "Display only failed test results.",
   "apex_test_payload_build_failed_message": "Failed to build test payload",
@@ -36,5 +29,6 @@
   "apex_test_coverage_threshold_description": "Coverage threshold as a percentage. Tests with coverage below this threshold will be highlighted as poorly covered. Default is 75%.",
   "retrieve_test_code_coverage_text": "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
   "apex_test_successful_execution_message": "%s successfully ran",
-  "apex_test_failed_execution_message": "%s failed to run"
+  "apex_test_failed_execution_message": "%s failed to run",
+  "apex_disable_warnings_for_missing_coverage": "Disable UI warning when Apex test coverage is missing."
 }

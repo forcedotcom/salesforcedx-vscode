@@ -18,6 +18,10 @@ export const getLocalTracesEnabled = (): boolean =>
 export const getConsoleTracesEnabled = (): boolean =>
   getOptionalBooleanConfiguration(SALESFORCE_DX_SECTION)('enableConsoleTraces');
 
+/** export spans to ~/.sf/vscode-spans/ for AI consumption. Node writes directly; Web POSTs to local span file server (port 3003). */
+export const getFileTracesEnabled = (): boolean =>
+  getOptionalBooleanConfiguration(SALESFORCE_DX_SECTION)('enableFileTraces');
+
 const getOptionalBooleanConfiguration =
   (section: string) =>
   (configName: string): boolean => {

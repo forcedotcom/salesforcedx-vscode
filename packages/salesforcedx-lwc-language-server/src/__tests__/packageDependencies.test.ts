@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { PackageJson } from '@salesforce/salesforcedx-lightning-lsp-common';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { globSync } from 'glob';
 import * as path from 'node:path';
@@ -21,10 +20,11 @@ import * as vscode from 'vscode';
 const checkedPackagePatterns: RegExp[] = [/^@salesforce/i, /^@lwc/i];
 
 // Helper functions for async file operations
-const readJsonFile = async (jsonFilePath: string): Promise<any> => {
+const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
   try {
     const fileBuffer = await vscode.workspace.fs.readFile(vscode.Uri.file(jsonFilePath));
     const fileContent = Buffer.from(fileBuffer).toString('utf8');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(fileContent);
   } catch (e) {
     throw new Error(`Error reading json file from ${jsonFilePath}: ${e}`);
@@ -41,13 +41,13 @@ const checkFileExists = async (filePath: string): Promise<boolean> => {
 };
 
 // Variables to store loaded data
-let packageJson: any;
+let packageJson: PackageJson;
 let packageJsonPath: string;
 
 // Setup function to load package data
 const setupPackageData = async (): Promise<void> => {
   packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
-  packageJson = await readJsonFile(packageJsonPath);
+  packageJson = (await readJsonFile(packageJsonPath)) as PackageJson;
 
   // if we're in a monorepo, find other packages in the monorepo and make sure
   // references to those also use exact versions
@@ -82,8 +82,8 @@ describe('package.json dependencies', () => {
     expect(packageJson).toBeDefined();
     expect(packageJson.name).toBeDefined();
 
-    const dependencies: { [key: string]: string } = packageJson.dependencies ?? {};
-    const devDependencies: { [key: string]: string } = packageJson.devDependencies ?? {};
+    const dependencies = packageJson.dependencies ?? {};
+    const devDependencies = packageJson.devDependencies ?? {};
     let testMatchFound = false;
 
     // Check dependencies

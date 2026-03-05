@@ -134,7 +134,7 @@ export const updateForceIgnoreFile = async (
   }
 
   // Always write the forceignore file, even if it's empty
-  void fileSystemAccessor.updateFileContent(forceignorePath, forceignoreContent.trim());
+  await fileSystemAccessor.updateFileContent(forceignorePath, forceignoreContent.trim());
 };
 
 export const getModulesDirs = async (
@@ -523,7 +523,7 @@ export abstract class BaseWorkspaceContext {
       const destPath = path.join(typingsDir, 'lds.d.ts');
       const content = await this.fileSystemAccessor.getFileContent(sourcePath);
       if (content) {
-        void this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
+        await this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
       }
     } catch {
       // ignore
@@ -533,7 +533,7 @@ export abstract class BaseWorkspaceContext {
       const destPath = path.join(typingsDir, 'messageservice.d.ts');
       const content = await this.fileSystemAccessor.getFileContent(sourcePath);
       if (content) {
-        void this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
+        await this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
       }
     } catch {
       // ignore
@@ -547,7 +547,7 @@ export abstract class BaseWorkspaceContext {
         const destPath = path.join(typingsDir, file.name);
         const content = await this.fileSystemAccessor.getFileContent(sourcePath);
         if (content) {
-          void this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
+          await this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
         }
       } catch {
         // ignore

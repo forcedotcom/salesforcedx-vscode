@@ -12,14 +12,14 @@
   "sideEffects": false,
   "exports": {
     ".": {
+      "types": "./out/src/index.d.ts",
       "import": "./out/src/index.js",
-      "require": "./out/src/index.js",
-      "types": "./out/src/index.d.ts"
+      "require": "./out/src/index.js"
     },
     "./workspaceLoader": {
+      "types": "./out/src/workspaceLoader.d.ts",
       "import": "./out/src/workspaceLoader.js",
-      "require": "./out/src/workspaceLoader.js",
-      "types": "./out/src/workspaceLoader.d.ts"
+      "require": "./out/src/workspaceLoader.js"
     },
     "./workspaceReadFileHandler": {
       "import": "./out/src/workspaceReadFileHandler.js",
@@ -27,9 +27,9 @@
       "types": "./out/src/workspaceReadFileHandler.d.ts"
     },
     "./testUtils": {
+      "types": "./out/src/__tests__/testUtils.d.ts",
       "import": "./out/src/__tests__/testUtils.js",
-      "require": "./out/src/__tests__/testUtils.js",
-      "types": "./out/src/__tests__/testUtils.d.ts"
+      "require": "./out/src/__tests__/testUtils.js"
     },
     "./providers/lspFileSystemAccessor": {
       "import": "./out/src/providers/lspFileSystemAccessor.js",
@@ -52,6 +52,7 @@
       "command": "tsc --build --pretty && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../effect-ext-utils:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],

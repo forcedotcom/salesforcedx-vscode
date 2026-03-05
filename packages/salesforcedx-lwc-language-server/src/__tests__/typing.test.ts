@@ -56,7 +56,7 @@ describe('getDeclaration', () => {
     expect(getDeclaration(typing)).toEqual(expectedDeclaration);
   });
 
-  it('handles a full path', async () => {
+  it('handles a full path', () => {
     const typing: Typing = fromMeta(path.join('.', 'foo', 'bar', 'buz', 'logo.asset-meta.xml'));
     const expectedDeclaration = `declare module "@salesforce/contentAssetUrl/logo" {
     var logo: string;

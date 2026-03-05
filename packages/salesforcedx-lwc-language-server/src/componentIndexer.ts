@@ -8,7 +8,7 @@ import {
   detectWorkspaceHelper,
   WorkspaceType,
   readJsonSync,
-  writeJsonSync,
+  writeJson,
   SfdxTsConfig,
   TsConfigPaths,
   LspFileSystemAccessor,
@@ -288,7 +288,7 @@ export default class ComponentIndexer {
             paths.push(componentFilePath);
           }
         }
-        writeJsonSync(sfdxTsConfigPath, sfdxTsConfig, this.fileSystemAccessor);
+        await writeJson(sfdxTsConfigPath, sfdxTsConfig, this.fileSystemAccessor);
       } catch (err) {
         Logger.error(err);
       }

@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.18.0",
+  "version": "66.0.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,16 +27,16 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.7",
+    "@salesforce/apex-node": "^8.4.10",
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/types": "1.7.1",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.19.13",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "@salesforce/playwright-vscode-ext": "*",
-    "esbuild": "0.25.12"
+    "@salesforce/playwright-vscode-ext": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -177,6 +177,7 @@
         "compile",
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
@@ -221,55 +222,14 @@
   "types": "./out/src/index.d.ts",
   "contributes": {
     "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "test",
-          "title": "%test_view_container_title%",
-          "icon": "media/dep.svg"
-        }
-      ]
+      "activitybar": []
     },
     "views": {
       "test": []
     },
     "menus": {
-      "view/title": [
-        {
-          "command": "sf.test.view.run",
-          "when": "view == sf.test.view",
-          "group": "navigation@1"
-        },
-        {
-          "command": "sf.test.view.refresh",
-          "when": "view == sf.test.view",
-          "group": "navigation@2"
-        },
-        {
-          "command": "sf.test.view.collapseAll",
-          "when": "view == sf.test.view",
-          "group": "navigation@3"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "sf.test.view.showError",
-          "when": "view == sf.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
-        },
-        {
-          "command": "sf.test.view.goToDefinition",
-          "when": "view == sf.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
-        },
-        {
-          "command": "sf.test.view.runClassTests",
-          "when": "view == sf.test.view && viewItem =~ /apexTestGroup/",
-          "group": "inline"
-        },
-        {
-          "command": "sf.test.view.runSingleTest",
-          "when": "view == sf.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
-          "group": "inline"
-        }
-      ],
+      "view/title": [],
+      "view/item/context": [],
       "commandPalette": [
         {
           "command": "sf.apex.test.last.class.run",
@@ -304,34 +264,6 @@
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sf.test.view.runClassTests",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.runSingleTest",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.goToDefinition",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.showError",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.run",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.refresh",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.collapseAll",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.apex.test.openOrgOnlyTest",
           "when": "false"
         }
@@ -353,62 +285,6 @@
       {
         "command": "sf.apex.test.suite.add",
         "title": "%apex_test_suite_add_text%"
-      },
-      {
-        "command": "sf.test.view.run",
-        "title": "%run_tests_title%",
-        "icon": {
-          "light": "resources/light/play-button.svg",
-          "dark": "resources/dark/play-button.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.collapseAll",
-        "title": "%collapse_tests_title%",
-        "icon": {
-          "light": "resources/light/collapse-all.svg",
-          "dark": "resources/dark/collapse-all.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.refresh",
-        "title": "%refresh_test_title%",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.showError",
-        "title": "%show_error_title%",
-        "icon": {
-          "light": "resources/light/document/notRun.svg",
-          "dark": "resources/dark/document/notRun.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.goToDefinition",
-        "title": "%go_to_definition_title%",
-        "icon": {
-          "light": "resources/light/document/notRun.svg",
-          "dark": "resources/dark/document/notRun.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.runClassTests",
-        "title": "%run_tests_title%",
-        "icon": {
-          "light": "resources/light/play-button.svg",
-          "dark": "resources/dark/play-button.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.runSingleTest",
-        "title": "%run_single_test_title%",
-        "icon": {
-          "light": "resources/light/play-button.svg",
-          "dark": "resources/dark/play-button.svg"
-        }
       },
       {
         "command": "sf.apex.test.last.class.run",
@@ -485,6 +361,11 @@
           "type": "boolean",
           "default": false,
           "description": "%retrieve_test_code_coverage_text%"
+        },
+        "salesforcedx-vscode-apex-testing.disable-warnings-for-missing-coverage": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_disable_warnings_for_missing_coverage%"
         }
       }
     }

@@ -11,6 +11,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { BaseWorkspaceContext } from './baseContext';
 import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
+import { isPackageJson, PackageJson } from './types/packageJson';
 
 const RESOURCES_DIR = 'resources';
 
@@ -131,9 +132,30 @@ export const readJsonSync = async (file: string, fileSystemAccessor: LspFileSyst
   }
 };
 
-export const writeJsonSync = (file: string, json: SfdxTsConfig, fileSystemAccessor: LspFileSystemAccessor): void => {
+export const writeJson = async (
+  file: string,
+  json: SfdxTsConfig,
+  fileSystemAccessor: LspFileSystemAccessor
+): Promise<void> => {
   const content = JSON.stringify(json, null, 4);
-  void fileSystemAccessor.updateFileContent(`${file}`, content);
+  await fileSystemAccessor.updateFileContent(`${file}`, content);
+};
+
+/** Reads and parses the package.json at the given root directory. Returns `undefined` if not found, unparseable, or not a valid PackageJson shape. */
+export const readPackageJson = async (
+  root: string,
+  fileSystemAccessor: LspFileSystemAccessor
+): Promise<PackageJson | undefined> => {
+  const content = await fileSystemAccessor.getFileContent(join(root, 'package.json'));
+  if (!content) {
+    return undefined;
+  }
+  try {
+    const parsed: unknown = JSON.parse(content);
+    return isPackageJson(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
 };
 
 /**

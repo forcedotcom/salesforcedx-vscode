@@ -82,10 +82,10 @@ describe('TypingIndexer', () => {
   });
 
   describe('new', () => {
-    it('initializes with the root of a workspace', async () => {
+    it('initializes with the root of a workspace', () => {
       // workspaceRoot is normalized by getWorkspaceRoot, so normalize the expected path for comparison
       expect(typingIndexer.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
-      expect(await getSfdxPackageDirsPattern(typingIndexer.workspaceRoot, sfdxFileSystemAccessor)).toEqual(
+      expect(getSfdxPackageDirsPattern(typingIndexer.workspaceRoot, sfdxFileSystemAccessor)).toEqual(
         '{force-app,utils,registered-empty-folder}'
       );
     });
@@ -132,10 +132,6 @@ describe('TypingIndexer', () => {
   });
 
   describe('#saveCustomLabelTypings', () => {
-    afterEach(async () => {
-      void sfdxFileSystemAccessor.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
-    });
-
     it('saves the custom labels xml file to 1 typings file', async () => {
       await typingIndexer.saveCustomLabelTypings();
       const customLabelPath: string = path.join(

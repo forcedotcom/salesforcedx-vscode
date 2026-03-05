@@ -52,29 +52,29 @@ describe('indexer parsing content', () => {
       WORKSPACE_FIND_FILES_REQUEST
     );
 
-    jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+    jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
       const key = normalizePath(uri);
-      if (!isUnderWorkspace(key)) return undefined;
+      if (!isUnderWorkspace(key)) return Promise.resolve(undefined);
       try {
         const stat = fs.statSync(uri);
-        return {
+        return Promise.resolve({
           type: stat.isDirectory() ? ('directory' as const) : ('file' as const),
           exists: true,
           ctime: stat.ctimeMs,
           mtime: stat.mtimeMs,
           size: stat.size
-        };
+        });
       } catch {
-        return undefined;
+        return Promise.resolve(undefined);
       }
     });
-    jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation(async (uri: string) => {
+    jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) => {
       const key = normalizePath(uri);
-      if (!isUnderWorkspace(key)) return undefined;
+      if (!isUnderWorkspace(key)) return Promise.resolve(undefined);
       try {
-        return fs.readFileSync(uri, 'utf8');
+        return Promise.resolve(fs.readFileSync(uri, 'utf8'));
       } catch {
-        return undefined;
+        return Promise.resolve(undefined);
       }
     });
     jest.spyOn(sfdxFileSystemAccessor, 'getDirectoryListing').mockImplementation(uri => {

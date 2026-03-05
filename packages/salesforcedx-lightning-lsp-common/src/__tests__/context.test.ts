@@ -7,6 +7,18 @@
 import type { DirectoryEntry } from '../types/fileSystemTypes';
 import * as path from 'node:path';
 import { getModulesDirs } from '../baseContext';
+
+type JsconfigContent = {
+  compilerOptions: {
+    experimentalDecorators?: boolean;
+    target?: string;
+    baseUrl?: string;
+    paths?: Record<string, unknown>;
+  };
+  include: string[];
+  typeAcquisition?: { include?: string[] };
+};
+
 import '../../jest/matchers';
 import { LspFileSystemAccessor } from '../providers/lspFileSystemAccessor';
 import { normalizePath, type NormalizedPath } from '../utils';
@@ -40,15 +52,17 @@ const buildContentMap = (root: string, structure: Record<string, string>): Map<s
 };
 
 const mockAccessorWithVirtualFs = (accessor: LspFileSystemAccessor, contentMap: Map<string, string>): void => {
-  jest.spyOn(accessor, 'getFileContent').mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
-  jest.spyOn(accessor, 'getFileStat').mockImplementation(async (uri: string) => {
+  jest
+    .spyOn(accessor, 'getFileContent')
+    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
+  jest.spyOn(accessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
-    if (contentMap.has(key)) return FILE_STAT;
+    if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
     const prefix = `${key}/`;
     for (const k of contentMap.keys()) {
-      if (k.startsWith(prefix)) return DIR_STAT;
+      if (k.startsWith(prefix)) return Promise.resolve(DIR_STAT);
     }
-    return undefined;
+    return Promise.resolve(undefined);
   });
   jest.spyOn(accessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
     const key = normalizePath(uri);
@@ -72,8 +86,9 @@ const mockAccessorWithVirtualFs = (accessor: LspFileSystemAccessor, contentMap: 
       })
     );
   });
-  jest.spyOn(accessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+  jest.spyOn(accessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentMap.set(normalizePath(uri), content);
+    return Promise.resolve();
   });
 };
 
@@ -117,7 +132,7 @@ const verifyJsconfigCore = async (fileSystemAccessor: LspFileSystemAccessor, jsc
   const normalizedPath = normalizePath(jsconfigPath);
   const jsconfigContent = Buffer.from((await fileSystemAccessor.getFileContent(normalizedPath)) ?? '').toString('utf8');
   expect(jsconfigContent).toContain('"compilerOptions": {');
-  const jsconfig = JSON.parse(jsconfigContent);
+  const jsconfig = JSON.parse(jsconfigContent) as JsconfigContent;
   expect(jsconfig.compilerOptions.experimentalDecorators).toBe(true);
   expect(Array.isArray(jsconfig.include)).toBe(true);
   expect(jsconfig.include.length).toBe(2);
@@ -228,7 +243,7 @@ describe('WorkspaceContext', () => {
       (await sfdxFileSystemAccessor.getFileContent(jsconfigPathForceApp)) ?? ''
     ).toString('utf8');
     expect(jsconfigForceAppContent).toContain('"compilerOptions": {');
-    const jsconfigForceApp = JSON.parse(jsconfigForceAppContent);
+    const jsconfigForceApp = JSON.parse(jsconfigForceAppContent) as JsconfigContent;
     expect(jsconfigForceApp.compilerOptions.experimentalDecorators).toBe(true);
     expect(jsconfigForceApp.include[0]).toBe('**/*');
     expect(jsconfigForceApp.include[1]).toBe('../../../../.sfdx/typings/lwc/**/*.d.ts');
@@ -239,7 +254,7 @@ describe('WorkspaceContext', () => {
       (await sfdxFileSystemAccessor.getFileContent(jsconfigPathUtils)) ?? ''
     ).toString('utf8');
     expect(jsconfigUtilsContent).toContain('"compilerOptions": {');
-    const jsconfigUtils = JSON.parse(jsconfigUtilsContent);
+    const jsconfigUtils = JSON.parse(jsconfigUtilsContent) as JsconfigContent;
     expect(jsconfigUtils.compilerOptions.target).toBe('es2017');
     expect(jsconfigUtils.compilerOptions.experimentalDecorators).toBe(true);
     expect(jsconfigUtils.include[0]).toBe('util/*.js');
@@ -301,6 +316,7 @@ describe('WorkspaceContext', () => {
     await verifyJsconfigCore(coreProjectFileSystemAccessor, jsconfigPath);
     await verifyTypingsCore(coreProjectFileSystemAccessor);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const settings = JSON.parse(
       Buffer.from((await coreProjectFileSystemAccessor.getFileContent(settingsPath)) ?? '').toString('utf8')
     );

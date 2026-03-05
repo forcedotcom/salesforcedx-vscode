@@ -14,7 +14,8 @@ export {
   getSfdxResource,
   memoize,
   readJsonSync,
-  writeJsonSync,
+  writeJson,
+  readPackageJson,
   extractJsonFromImport,
   SfdxTsConfig,
   TsConfigPaths,
@@ -72,6 +73,7 @@ export {
 // Re-export from file system providers
 export { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
+export { PackageJson, isPackageJson } from './types/packageJson';
 
 // Re-export TypeScript configuration templates
 export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';

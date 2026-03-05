@@ -7,12 +7,12 @@
 import { AuthInfo, OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ICONS, type DefaultOrgInfoSchema } from '@salesforce/vscode-services';
 import { Duration } from 'effect';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';
@@ -51,13 +51,13 @@ const orgTypeToLabel = (type: OrgType): string => {
 const getIconForOrgType = (type: OrgType): string => {
   switch (type) {
     case 'DevHub':
-      return '$(server)';
+      return ICONS.ORG_TYPE_DEVHUB;
     case 'Sandbox':
-      return '$(beaker)';
+      return ICONS.ORG_TYPE_SANDBOX;
     case 'Scratch':
-      return '$(zap)';
+      return ICONS.ORG_TYPE_SCRATCH;
     default:
-      return '$(cloud)';
+      return ICONS.ORG_TYPE_ORG;
   }
 };
 /** QuickPickItem for org selection with metadata for handling */
@@ -101,12 +101,12 @@ const orgAuthToQuickPickItem =
     const aliasDisplay = orgAuth.aliases?.length ? orgAuth.aliases.join(', ') : undefined;
     const label = aliasDisplay ? `${typeIcon} ${aliasDisplay}` : `${typeIcon} ${orgAuth.username}`;
     const defaultSuffix =
-      defaultMarkers === '🌳,🍁'
-        ? 'Default Org · Default Dev Hub 🌳🍁'
-        : defaultMarkers === '🍁'
-          ? 'Default Org 🍁'
-          : defaultMarkers === '🌳'
-            ? 'Default Dev Hub 🌳'
+      defaultMarkers === `${ICONS.SF_DEFAULT_HUB} ${ICONS.SF_DEFAULT_ORG}`
+        ? `Default Org ${ICONS.SF_DEFAULT_ORG} · Default Dev Hub ${ICONS.SF_DEFAULT_HUB}`
+        : defaultMarkers === ICONS.SF_DEFAULT_ORG
+          ? `Default Org ${ICONS.SF_DEFAULT_ORG}`
+          : defaultMarkers === ICONS.SF_DEFAULT_HUB
+            ? `Default Dev Hub ${ICONS.SF_DEFAULT_HUB}`
             : undefined;
     const descriptionParts = [aliasDisplay ? orgAuth.username : undefined, defaultSuffix].filter(Boolean);
     return {
@@ -121,23 +121,23 @@ const orgAuthToQuickPickItem =
 /** Action items for SFDX commands */
 const ACTION_ITEMS: OrgQuickPickItem[] = [
   {
-    label: `$(plus) ${nls.localize('org_login_web_authorize_org_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_login_web_authorize_org_text')}`,
     commandId: 'sf.org.login.web'
   },
   {
-    label: `$(plus) ${nls.localize('org_login_web_authorize_dev_hub_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_login_web_authorize_dev_hub_text')}`,
     commandId: 'sf.org.login.web.dev.hub'
   },
   {
-    label: `$(plus) ${nls.localize('org_create_default_scratch_org_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_create_default_scratch_org_text')}`,
     commandId: 'sf.org.create'
   },
   {
-    label: `$(plus) ${nls.localize('org_login_access_token_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_login_access_token_text')}`,
     commandId: 'sf.org.login.access.token'
   },
   {
-    label: `$(plus) ${nls.localize('org_list_clean_text')}`,
+    label: `${ICONS.ADD} ${nls.localize('org_list_clean_text')}`,
     commandId: 'sf.org.list.clean'
   }
 ];
@@ -166,11 +166,10 @@ export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse
 
   const quickPickList = [
     ...ACTION_ITEMS,
-    { kind: vscode.QuickPickItemKind?.Separator ?? -1, label: '' },
     ...authorizationsToQuickPickItems(authorizations, defaultConfig).flatMap((item, index, array) => {
       // add a separator if the previous item is not the same type as the current item
       if (item.orgType && (index === 0 || item.orgType !== array[index - 1].orgType)) {
-        return [{ kind: vscode.QuickPickItemKind?.Separator ?? -1, label: orgTypeToLabel(item.orgType) }, item];
+        return [{ kind: vscode.QuickPickItemKind?.Separator ?? 1, label: orgTypeToLabel(item.orgType) }, item];
       }
       return [item];
     })
@@ -198,7 +197,7 @@ export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse
 };
 
 /** Create and initialize OrgList with Effect-based TargetOrgRef watching */
-export const createOrgPicker = Effect.fn(function* () {
+export const createOrgPicker = Effect.fn('OrgPicker.createOrgPicker')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orgPickerStatuBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48);
   const orgOpenStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 49);
@@ -207,13 +206,14 @@ export const createOrgPicker = Effect.fn(function* () {
   yield* Effect.addFinalizer(() => Effect.sync(() => orgOpenStatusBarItem.dispose()));
 
   orgPickerStatuBarItem.command = 'sf.set.default.org';
-  // we always show this one, even if there is no org
-  orgPickerStatuBarItem.show();
 
-  // these don't change, we just show/hide based on there being an org or
+  // these don't change, we just show/hide based on there being an org
   orgOpenStatusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
   orgOpenStatusBarItem.command = ORG_OPEN_COMMAND;
-  orgOpenStatusBarItem.text = '$(browser)';
+  orgOpenStatusBarItem.text = ICONS.BROWSER;
+
+  // we always show this one, even if there is no org
+  orgPickerStatuBarItem.show();
 
   // watch for org changes
   const targetOrgRef = yield* api.services.TargetOrgRef();
@@ -255,7 +255,7 @@ const getStatusBarContent = Effect.fn('updateTargetOrgDisplay')(function* (orgIn
   const orgType = getOrgTypeFromInfo(orgInfo);
   const typeIcon = getIconForOrgType(orgType);
   const displayName = aliases?.[0] ?? username;
-  const text = `${typeIcon} ${displayName}${isExpired ? ' $(warning)' : ''}`;
+  const text = `${typeIcon} ${displayName}${isExpired ? ` ${ICONS.WARNING}` : ''}`;
 
   const tooltip = new vscode.MarkdownString();
   tooltip.appendMarkdown(`**Type: ${orgType}**${isExpired ? ' — Expired' : ''}\n\n`);

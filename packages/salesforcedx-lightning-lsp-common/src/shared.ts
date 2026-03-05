@@ -7,6 +7,7 @@
 
 import * as path from 'node:path';
 import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
+import { readPackageJson } from './utils';
 
 const SFDX_PROJECT = 'sfdx-project.json';
 
@@ -73,16 +74,14 @@ export const detectWorkspaceHelper = async (
     // File doesn't exist, continue
   }
 
-  const packageJson = path.join(root, 'package.json');
   try {
-    const packageInfoContent = await fileSystemAccessor.getFileContent(`${packageJson}`);
-    if (!packageInfoContent) {
+    const packageInfo = await readPackageJson(root, fileSystemAccessor);
+    if (!packageInfo) {
       throw new Error('Package info not found');
     }
-    const packageInfo = JSON.parse(packageInfoContent);
     const dependencies = Object.keys(packageInfo.dependencies ?? {});
     const devDependencies = Object.keys(packageInfo.devDependencies ?? {});
-    const allDependencies = [...dependencies, ...devDependencies];
+    const allDependencies: string[] = [...dependencies, ...devDependencies];
     const hasLWCdependencies = allDependencies.some(key => key.startsWith('@lwc/') || key === 'lwc');
 
     // any type of @lwc is a dependency

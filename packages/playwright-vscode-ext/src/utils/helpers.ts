@@ -29,6 +29,7 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Failed to load resource', // Generic failed to load resources (paired with specific url filtering below)
   'vscode-userdata:/user/caches/cachedconfigurations', // VS Code user data caching in web environment
   'vsliveshare', // vscode liveshare ext
+  'MaxListenersExceededWarning', // expected when loading many dev extensions simultaneously
   'punycode', // known jsforce and transitive dep deprecation by node
   'selectedStep', // VS Code internal walkthrough/tutorial state errors
   'onWillSaveTextDocument', // VS Code save event timeout (non-critical)
@@ -47,13 +48,14 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   "'allow-scripts' permissions is not set", //
   'Blocked script execution', // Webview sandboxing initialization errors (non-critical)
   'vscode-webview://', // Webview internal URLs (paired with blocked script errors)
-
+  'Connection failed, falling back to static endpoint', // o11y unauthnticated connection
   // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
   'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
   'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
   'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)
   'testResults', // Test results folder access before it's created (non-critical)
-  'workspaceStorage' // Workspace storage access errors during initialization (non-critical)
+  'workspaceStorage', // Workspace storage access errors during initialization (non-critical)
+  'Illegal assignment from String to Integer' // Execute anonymous compile error (intentionally triggered in E2E)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -61,7 +63,8 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'workbench.web.main.nls.js',
   'marketplace.visualstudio.com',
   'vscode-unpkg.net', // VS Code extension marketplace CDN
-  'scratchOrgInfo' // asking the org if it's a devhub during auth ?
+  'scratchOrgInfo', // asking the org if it's a devhub during auth ?
+  'Package2Member' // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {

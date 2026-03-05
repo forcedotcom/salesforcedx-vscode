@@ -15,9 +15,10 @@ it('readAsTextDocument()', async () => {
   const fileSystemAccessor = new LspFileSystemAccessor();
   jest
     .spyOn(fileSystemAccessor, 'getFileContent')
-    .mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
-  jest.spyOn(fileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
+  jest.spyOn(fileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentMap.set(normalizePath(uri), content);
+    return Promise.resolve();
   });
 
   await fileSystemAccessor.updateFileContent(

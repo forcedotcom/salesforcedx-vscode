@@ -3,6 +3,17 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
     branches: [develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - 'README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
 
 jobs:
   pr-validation:
@@ -15,7 +26,7 @@ jobs:
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm
-      - run: npm ci
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - run: npm run compile -w @salesforce/eslint-plugin-vscode-extensions
         name: Compile ESLint rules
       - name: Lint

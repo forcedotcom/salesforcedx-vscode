@@ -66,9 +66,12 @@ const methodDoc = (method: ClassMember): string => {
 };
 
 // Utility function to create Tag
-export const createTag = async (attributes: TagAttrs, fileSystemAccessor?: LspFileSystemAccessor): Promise<Tag> => {
+export const createTag = async (
+  attributes: TagAttrs,
+  fileSystemAccessor?: LspFileSystemAccessor
+): Promise<Tag> => {
   const file = attributes.file!;
-  const metadata = attributes.metadata!;
+  const metadata = attributes.metadata ?? { decorators: [], exports: [] };
 
   let updatedAt: Date;
 
@@ -307,10 +310,9 @@ const getMethodDocs = (tag: Tag): string | null => {
 // Utility function to update tag metadata
 export const updateTagMetadata = async (
   tag: Tag,
-  meta: any,
+  meta: Metadata,
   fileSystemAccessor?: LspFileSystemAccessor
 ): Promise<void> => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   tag.metadata = meta;
   tag._allAttributes = null;
   tag._methods = null;

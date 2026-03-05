@@ -4,6 +4,17 @@ on:
   workflow_dispatch:
   push:
     branches-ignore: [main, develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - 'README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
 
 concurrency:
   group: ci-${{ github.ref }}-servicesE2E
@@ -31,7 +42,7 @@ jobs:
       - uses: google/wireit@setup-github-actions-caching/v2
 
       - name: Install dependencies
-        run: npm ci
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config

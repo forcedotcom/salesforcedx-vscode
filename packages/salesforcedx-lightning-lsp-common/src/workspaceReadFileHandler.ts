@@ -30,6 +30,30 @@ import {
   type WorkspaceDeleteFileResult
 } from './lspCustomRequests';
 
+/** Either-shaped result from Effect.either (Left | Right) */
+type EitherResult = { _tag: 'Left'; left: unknown } | { _tag: 'Right'; right: unknown };
+
+function isEitherResult(x: unknown): x is EitherResult {
+  if (typeof x !== 'object' || x === null || !('_tag' in x)) return false;
+  const tag = Reflect.get(x, '_tag');
+  return tag === 'Left' || tag === 'Right';
+}
+
+function isVscodeFileStat(x: unknown): x is vscode.FileStat {
+  return (
+    typeof x === 'object' &&
+    x !== null &&
+    'type' in x &&
+    'ctime' in x &&
+    'mtime' in x &&
+    'size' in x
+  );
+}
+
+/** Type guard for services that optionally expose getWorkspaceVolume (web). */
+const hasGetWorkspaceVolume = (s: unknown): s is { getWorkspaceVolume?: () => import('memfs').Volume | undefined } =>
+  typeof s === 'object' && s !== null && 'getWorkspaceVolume' in s;
+
 /** Client that can handle LSP requests (Node or Browser LanguageClient). */
 export type WorkspaceReadFileClient = {
   onRequest<P, R>(method: string, handler: (params: P) => Promise<R>): void;
@@ -73,8 +97,8 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
   if (process.env.ESBUILD_PLATFORM === 'web') {
     const apiResult = Effect.runSync(Effect.either(getServicesApi));
     if (apiResult._tag === 'Right') {
-      const svc = apiResult.right.services;
-      const volume = svc.getWorkspaceVolume?.();
+      const services = apiResult.right.services;
+      const volume = hasGetWorkspaceVolume(services) ? services.getWorkspaceVolume?.() : undefined;
       if (volume !== undefined && volume !== null) {
         setFs(getVirtualFs(volume));
       }
@@ -107,9 +131,7 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
         log.appendLine(`[readFile] error: ${message}`);
         return { error: message };
       }
-      const content = result.right;
-      log.appendLine(`[readFile] success uri=${uri} size=${content?.length ?? 0}`);
-      return { content };
+      return { content: result.right };
     }
   );
 
@@ -125,19 +147,27 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
       }
       const api = apiResult.right;
       const FsService = api.services.FsService;
-      const result = await Effect.runPromise(
+      const raw = await Effect.runPromise(
         Effect.gen(function* () {
           const fs = yield* FsService;
           return yield* fs.stat(uri);
         }).pipe(Effect.provide(FsService.Default), Effect.either)
       );
-      if (result._tag === 'Left') {
-        const left = result.left;
+      if (!isEitherResult(raw)) {
+        log.appendLine('[stat] error: unexpected result');
+        return { error: 'Unexpected result' };
+      }
+      if (raw._tag === 'Left') {
+        const left = raw.left;
         const message = left instanceof Error ? left.message : String(left);
         log.appendLine(`[stat] error: ${message}`);
         return { error: message };
       }
-      const stat = vscodeStatToFileStat(result.right);
+      if (!isVscodeFileStat(raw.right)) {
+        log.appendLine('[stat] error: invalid stat result');
+        return { error: 'Invalid stat result' };
+      }
+      const stat = vscodeStatToFileStat(raw.right);
       log.appendLine(`[stat] success uri=${uri} type=${stat.type} size=${stat.size}`);
       return { stat };
     }
@@ -232,14 +262,18 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
       }
       const api = apiResult.right;
       const FsService = api.services.FsService;
-      const result = await Effect.runPromise(
+      const raw = await Effect.runPromise(
         Effect.gen(function* () {
           const fs = yield* FsService;
           return yield* fs.deleteFile(uri);
         }).pipe(Effect.provide(FsService.Default), Effect.either)
       );
-      if (result._tag === 'Left') {
-        const left = result.left;
+      if (!isEitherResult(raw)) {
+        log.appendLine('[deleteFile] error: unexpected result');
+        return { error: 'Unexpected result' };
+      }
+      if (raw._tag === 'Left') {
+        const left = raw.left;
         const message = left instanceof Error ? left.message : String(left);
         log.appendLine(`[deleteFile] error: ${message}`);
         return { error: message };

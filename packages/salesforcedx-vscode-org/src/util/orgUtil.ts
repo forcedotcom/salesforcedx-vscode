@@ -21,6 +21,7 @@ import {
   ConfigAggregatorProvider,
   ConfigUtil
 } from '@salesforce/salesforcedx-utils-vscode';
+import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import { isNotUndefined, isString } from 'effect/Predicate';
@@ -39,7 +40,7 @@ const orgIsExpired = (authFields: AuthFields) =>
   isString(authFields.expirationDate) && new Date(authFields.expirationDate) < new Date();
 
 /** One time notification about orgs that expire soon */
-export const checkForSoonToBeExpiredOrgs = Effect.fn(function* () {
+export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeExpiredOrgs')(function* () {
   const daysUntilExpiration = new Date();
   daysUntilExpiration.setDate(daysUntilExpiration.getDate() + DAYS_BEFORE_EXPIRE);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -284,7 +285,7 @@ export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> =>
 };
 
 /** Determine the type of org (DevHub, Sandbox, Org, or Scratch) */
-const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
+export const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
   if (orgAuth.isDevHub) {
     return 'DevHub';
   } else if (authFields && !authFields.expirationDate) {
@@ -311,15 +312,14 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
   const isDefaultOrg = matchesOrgProperty ?? matchesOrgUsername;
 
   if (isDefaultDevHub && isDefaultOrg) {
-    return '🌳,🍁';
+    return `${ICONS.SF_DEFAULT_HUB} ${ICONS.SF_DEFAULT_ORG}`;
   } else if (isDefaultDevHub) {
-    return '🌳';
+    return ICONS.SF_DEFAULT_HUB;
   } else if (isDefaultOrg) {
-    return '🍁';
+    return ICONS.SF_DEFAULT_ORG;
   }
   return '';
 };
-
 /** Process a single org authorization into display data */
 const processOrgForDisplay = async (
   orgAuth: OrgAuthorization,

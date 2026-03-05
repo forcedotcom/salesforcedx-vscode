@@ -9,24 +9,23 @@ import * as Effect from 'effect/Effect';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField } from './types';
 
-export const createCustomFieldNode =
-  (projectComponentSet: ComponentSet) => (element: OrgBrowserTreeItem) =>
-    Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
-      return yield* Effect.sync(() => {
-        const fieldFullName = `${element.componentName}.${removeNamespacePrefix(element)(field).name}`;
-        const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
-          fullName: fieldFullName,
-          type: 'CustomField'
-        });
-        return new OrgBrowserTreeItem({
-          kind: 'component',
-          xmlName: 'CustomField',
-          componentName: `${element.componentName}.${field.name}`,
-          label: getFieldLabel(removeNamespacePrefix(element)(field)),
-          filePresent: filePaths.length > 0
-        });
+export const createCustomFieldNode = (projectComponentSet: ComponentSet) => (element: OrgBrowserTreeItem) =>
+  Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
+    return yield* Effect.sync(() => {
+      const fieldFullName = `${element.componentName}.${removeNamespacePrefix(element)(field).name}`;
+      const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
+        fullName: fieldFullName,
+        type: 'CustomField'
+      });
+      return new OrgBrowserTreeItem({
+        kind: 'component',
+        xmlName: 'CustomField',
+        componentName: `${element.componentName}.${field.name}`,
+        label: getFieldLabel(removeNamespacePrefix(element)(field)),
+        filePresent: filePaths.length > 0
       });
     });
+  });
 
 /** build out the label for a CustomField */
 const getFieldLabel = (f: CustomObjectField): string => {

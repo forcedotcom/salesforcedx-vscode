@@ -27,6 +27,18 @@ interface SfdxProjectConfig {
   sourceApiVersion?: string;
 }
 
+const isSfdxProjectConfig = (value: unknown): value is SfdxProjectConfig => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  return (
+    (!('namespace' in value) || typeof value.namespace === 'string' || value.namespace === undefined) &&
+    (!('sourceApiVersion' in value) ||
+      typeof value.sourceApiVersion === 'string' ||
+      value.sourceApiVersion === undefined)
+  );
+};
+
 // Utility function to resolve workspace root
 // Normalizes the path to ensure consistency (path.resolve() may reintroduce backslashes on Windows)
 // On Windows, path.isAbsolute() returns false for Windows-style paths on non-Windows platforms
@@ -54,32 +66,12 @@ const getSfdxConfig = async (
   const filename = normalizePath(path.join(root, 'sfdx-project.json'));
 
   if (fileSystemAccessor) {
-    // Also check with URI format in case that's needed
-    // const allFileUris = fileSystemAccessor.getAllFileUris();
-
-    // Try to find the exact match
-    // const exactMatch = allFileUris.find(uri => normalizePath(uri) === filename);
-
     const content = await fileSystemAccessor.getFileContent(filename);
-
-    // // If content not found with direct path, try with exact match URI if found
-    // if (!content && exactMatch) {
-    //   const contentFromUri = await fileSystemAccessor.getFileContent(exactMatch);
-    //   if (contentFromUri) {
-    //     try {
-    //       return JSON.parse(contentFromUri);
-    //     } catch (error) {
-    //       Logger.error(
-    //         `[getSfdxConfig] Error parsing JSON from URI: ${error instanceof Error ? error.message : String(error)}`,
-    //         error
-    //       );
-    //     }
-    //   }
-    // }
 
     if (content) {
       try {
-        return JSON.parse(content);
+        const parsed: unknown = JSON.parse(content);
+        return isSfdxProjectConfig(parsed) ? parsed : {};
       } catch (error) {
         Logger.error(
           `[getSfdxConfig] Error parsing JSON: ${error instanceof Error ? error.message : String(error)}`,

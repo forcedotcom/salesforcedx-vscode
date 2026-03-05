@@ -47,6 +47,7 @@ export default [
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
+      'packages/salesforcedx-vscode-soql/src/soql-data-view/**',
       'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
       'packages/soql-common/src/soql-parser.lib/**',
@@ -134,8 +135,12 @@ export default [
           ]
         }
       ],
+      'local/no-effect-fn-wrapper': 'error',
+      'local/require-effect-fn-span-name': 'error',
       'local/no-duplicate-i18n-values': 'error',
+      'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
+      'local/no-vscode-progress-title-literals': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
@@ -555,6 +560,7 @@ export default [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
     ],
     rules: {
@@ -570,6 +576,7 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
+      'local/no-effect-service-accessor-calls': 'error',
 
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',
@@ -634,9 +641,11 @@ export default [
       'packages/salesforcedx-vscode-org-browser/test/**/*.ts',
       'packages/salesforcedx-vscode-metadata/test/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/test/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/test/**/*.ts',
       'packages/salesforcedx-vscode-services/playwright*.ts',
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
       'packages/salesforcedx-vscode-metadata/playwright*.ts',
+      'packages/salesforcedx-vscode-apex-log/playwright*.ts',
       'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-core/playwright*.ts'
     ],
@@ -651,6 +660,19 @@ export default [
       'functional/no-loop-statements': 'off',
       'functional/prefer-property-signatures': 'off',
       'import/no-extraneous-dependencies': 'off'
+    }
+  },
+  // i18n TS plugin - node:fs; type assertions; triple-slash for tsserverlibrary
+  {
+    files: ['packages/salesforcedx-vscode-i18n/src/hover/**/*.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
+      '@typescript-eslint/consistent-type-assertions': 'off',
+      '@typescript-eslint/triple-slash-reference': 'off',
+      '@typescript-eslint/array-type': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
+      'prefer-arrow/prefer-arrow-functions': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off'
     }
   },
   // ESLint plugin rules for eslint-local-rules package only

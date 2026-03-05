@@ -9,12 +9,13 @@ import { join, resolve } from 'node:path';
 import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { LspFileSystemAccessor } from '../providers/lspFileSystemAccessor';
+import { PackageJson } from '../types/packageJson';
 import * as utils from '../utils';
 import { NormalizedPath } from '../utils';
 import { WorkspaceContext } from './workspaceContext';
 
 describe('utils', () => {
-  it('isLWCRootDirectoryChange', async () => {
+  it('isLWCRootDirectoryChange', () => {
     const noLwcFolderCreated: FileEvent = {
       type: FileChangeType.Created,
       uri: 'file:///Users/user/test/dir'
@@ -65,9 +66,12 @@ describe('utils', () => {
     beforeEach(() => {
       fileSystemAccessor = new LspFileSystemAccessor();
       contentMap.clear();
-      jest.spyOn(fileSystemAccessor, 'getFileContent').mockImplementation(async (uri: string) => contentMap.get(utils.normalizePath(uri)));
-      jest.spyOn(fileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+      jest
+        .spyOn(fileSystemAccessor, 'getFileContent')
+        .mockImplementation((uri: string) => Promise.resolve(contentMap.get(utils.normalizePath(uri))));
+      jest.spyOn(fileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
         contentMap.set(utils.normalizePath(uri), content);
+        return Promise.resolve();
       });
     });
 
@@ -112,6 +116,73 @@ describe('utils', () => {
       const settings = await utils.readJsonSync(nonExistentFile, fileSystemAccessor);
 
       expect(Object.keys(settings).length).toEqual(0);
+    });
+  });
+
+  describe('readPackageJson()', () => {
+    let fileSystemProvider: LspFileSystemAccessor;
+    const root = join(os.tmpdir(), `pjson-test-${Date.now()}`);
+    const packageJsonPath = join(root, 'package.json');
+
+    beforeEach(() => {
+      fileSystemProvider = new LspFileSystemAccessor();
+    });
+
+    const seedPackageJson = (pkg: PackageJson): void => {
+      void fileSystemProvider.updateFileContent(packageJsonPath, JSON.stringify(pkg));
+    };
+
+    it('returns undefined when package.json does not exist', async () => {
+      expect(await utils.readPackageJson(root, fileSystemProvider)).toBeUndefined();
+    });
+
+    it('returns undefined when package.json content is not valid JSON', async () => {
+      void fileSystemProvider.updateFileContent(packageJsonPath, '{ not valid json }');
+      expect(await utils.readPackageJson(root, fileSystemProvider)).toBeUndefined();
+    });
+
+    it('returns undefined when package.json is not an object', async () => {
+      void fileSystemProvider.updateFileContent(packageJsonPath, '"just a string"');
+      expect(await utils.readPackageJson(root, fileSystemProvider)).toBeUndefined();
+    });
+
+    it('returns undefined when dependencies values are not strings', async () => {
+      void fileSystemProvider.updateFileContent(packageJsonPath, JSON.stringify({ dependencies: { foo: 42 } }));
+      expect(await utils.readPackageJson(root, fileSystemProvider)).toBeUndefined();
+    });
+
+    it('parses name', async () => {
+      seedPackageJson({ name: 'my-package' });
+      expect((await utils.readPackageJson(root, fileSystemProvider))?.name).toBe('my-package');
+    });
+
+    it('parses dependencies and devDependencies', async () => {
+      seedPackageJson({
+        dependencies: { '@lwc/engine-dom': '8.0.0' },
+        devDependencies: { typescript: '5.0.0' }
+      });
+      const result = await utils.readPackageJson(root, fileSystemProvider);
+      expect(result?.dependencies).toEqual({ '@lwc/engine-dom': '8.0.0' });
+      expect(result?.devDependencies).toEqual({ typescript: '5.0.0' });
+    });
+
+    it('parses lwc field', async () => {
+      seedPackageJson({ lwc: { modules: [{ dir: 'src/modules' }] } });
+      expect((await utils.readPackageJson(root, fileSystemProvider))?.lwc).toBeTruthy();
+    });
+
+    it('parses workspaces field', async () => {
+      seedPackageJson({ workspaces: ['packages/*'] });
+      expect((await utils.readPackageJson(root, fileSystemProvider))?.workspaces).toBeTruthy();
+    });
+
+    it('returns empty object fields as undefined when not present', async () => {
+      seedPackageJson({});
+      const result = await utils.readPackageJson(root, fileSystemProvider);
+      expect(result?.dependencies).toBeUndefined();
+      expect(result?.devDependencies).toBeUndefined();
+      expect(result?.lwc).toBeUndefined();
+      expect(result?.workspaces).toBeUndefined();
     });
   });
 });

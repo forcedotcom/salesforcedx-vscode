@@ -20,6 +20,7 @@ import {
   UTILS_ROOT
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { join, resolve } from 'node:path';
+import { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { LWCWorkspaceContext } from '../context/lwcContext';
 
@@ -34,23 +35,25 @@ beforeAll(() => {
     WORKSPACE_FIND_FILES_REQUEST
   );
 
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
-    if (contentMap.has(key)) return FILE_STAT;
+    if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
     const prefix = `${key}/`;
     for (const k of contentMap.keys()) {
-      if (k.startsWith(prefix)) return DIR_STAT;
+      if (k.startsWith(prefix)) return Promise.resolve(DIR_STAT);
     }
-    return undefined;
+    return Promise.resolve(undefined);
   });
   jest
     .spyOn(sfdxFileSystemAccessor, 'getFileContent')
-    .mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
-  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
+  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentMap.set(normalizePath(uri), content);
+    return Promise.resolve();
   });
-  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation(async (pathOrUri: string) => {
+  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation((pathOrUri: string) => {
     contentMap.delete(normalizePath(pathOrUri));
+    return Promise.resolve();
   });
 });
 
@@ -152,11 +155,9 @@ describe('LWCWorkspaceContext', () => {
   it('configureProjectForTs()', async () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemAccessor);
     context.initialize('SFDX');
-    // Mock connection for file operations (required for configureProjectForTs)
-    const mockConnection = {
+    context.connection = {
       sendRequest: jest.fn().mockResolvedValue({ applied: true })
-    } as any;
-    context.connection = mockConnection;
+    } as unknown as Connection;
     const baseTsconfigPathForceApp = resolve(join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json'));
     const tsconfigPathForceApp = resolve(join(FORCE_APP_ROOT, 'lwc', 'tsconfig.json'));
     const tsconfigPathUtils = resolve(join(UTILS_ROOT, 'lwc', 'tsconfig.json'));
@@ -180,7 +181,7 @@ describe('LWCWorkspaceContext', () => {
     if (!baseTsConfigBuffer) {
       throw new Error('Base tsconfig file not found');
     }
-    const baseTsConfigForceAppContent = JSON.parse(baseTsConfigBuffer);
+    const baseTsConfigForceAppContent = JSON.parse(baseTsConfigBuffer) as Record<string, unknown>;
     expect(baseTsConfigForceAppContent).toEqual({
       compilerOptions: {
         module: 'NodeNext',
@@ -197,7 +198,7 @@ describe('LWCWorkspaceContext', () => {
     if (!tsconfigBuffer) {
       throw new Error('Tsconfig file not found');
     }
-    const tsconfigForceAppContent = JSON.parse(Buffer.from(tsconfigBuffer).toString('utf8'));
+    const tsconfigForceAppContent = JSON.parse(Buffer.from(tsconfigBuffer).toString('utf8')) as Record<string, unknown>;
     expect(tsconfigForceAppContent).toEqual({
       extends: '../../../../.sfdx/tsconfig.sfdx.json',
       include: ['**/*.ts', '../../../../.sfdx/typings/lwc/**/*.d.ts'],

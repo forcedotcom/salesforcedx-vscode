@@ -35,7 +35,7 @@ jobs:
         run: |
           node bundle-publish-scripts/scripts/update-references-in-vsce.js
           node bundle-publish-scripts/scripts/update-bundle-configs-in-vsce.js
-      - run: npm ci
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - run: rm -rf ./bundle-publish-scripts
       - name: Create and Push the Release Branch
         id: create_step

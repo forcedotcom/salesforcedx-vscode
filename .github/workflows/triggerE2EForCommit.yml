@@ -30,21 +30,7 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
-  core-create-project:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'createProject.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
-
-  core-sfdx-project-json:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'sfdxProjectJson.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # core-create-project: migrated to Playwright in coreE2E.yml (createProject.headless.spec.ts)
 
   core-sobjects-definitions:
     uses: ./.github/workflows/runE2ETest.yml
@@ -97,16 +83,8 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
-  apex-replay-debugger:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'apexReplayDebugger.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
-      os: '["macos-latest"]'
-
   apex-trail-replay-debugger:
+    if: false
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:

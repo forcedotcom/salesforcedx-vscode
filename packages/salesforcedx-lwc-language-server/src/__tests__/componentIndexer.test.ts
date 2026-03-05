@@ -30,23 +30,25 @@ beforeAll(() => {
     WORKSPACE_FIND_FILES_REQUEST
   );
 
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
-    if (contentMap.has(key)) return FILE_STAT;
+    if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
     const prefix = `${key}/`;
     for (const k of contentMap.keys()) {
-      if (k.startsWith(prefix)) return DIR_STAT;
+      if (k.startsWith(prefix)) return Promise.resolve(DIR_STAT);
     }
-    return undefined;
+    return Promise.resolve(undefined);
   });
   jest
     .spyOn(sfdxFileSystemAccessor, 'getFileContent')
-    .mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
-  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
+  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentMap.set(normalizePath(uri), content);
+    return Promise.resolve();
   });
-  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation(async (pathOrUri: string) => {
+  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation((pathOrUri: string) => {
     contentMap.delete(normalizePath(pathOrUri));
+    return Promise.resolve();
   });
 });
 
@@ -211,15 +213,14 @@ describe('ComponentIndexer', () => {
         const resolvedFilePath = [normalizePath(path.join(componentIndexer.workspaceRoot, filePath))];
         return [componentName, resolvedFilePath];
       });
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const expectedComponents = Object.fromEntries(data);
 
       describe('#tsConfigPathMapping', () => {
         it('returns a map of files inside an lwc watched directory where the .js or .ts files match the directory name', async () => {
           const tsConfigPathMapping = await componentIndexer.getTsConfigPathMapping();
-          // Discovery via findFiles (disk); may include extra entries e.g. c/typescript if present on disk
-          for (const [key, value] of Object.entries(expectedComponents)) {
-            expect(tsConfigPathMapping[key]).toEqual(value);
-          }
+          expect(tsConfigPathMapping).toEqual(expectedComponents);
         });
       });
 
@@ -291,8 +292,7 @@ describe('ComponentIndexer', () => {
         const stats = createMockStats(new Date('2020-01-01'));
         const dirent = createMockDirent();
         const tags: Tag[] = [await createTag({ file: '/foo', updatedAt: new Date('2020-01-01') })];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const entries: Entry[] = [{ path: '/foo', stats: stats as any, dirent: dirent as any, name: 'foo' }];
+        const entries: Entry[] = [{ path: '/foo', stats, dirent, name: 'foo' }];
 
         expect(unIndexedFiles(entries, tags).length).toEqual(0);
       });
@@ -301,18 +301,16 @@ describe('ComponentIndexer', () => {
         const stats = createMockStats(new Date('2020-02-01'));
         const dirent = createMockDirent();
         const tags: Tag[] = [await createTag({ file: '/foo', updatedAt: new Date('2020-01-01') })];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const entries: Entry[] = [{ path: '/foo', stats: stats as any, dirent: dirent as any, name: 'foo' }];
+        const entries: Entry[] = [{ path: '/foo', stats, dirent, name: 'foo' }];
 
         expect(unIndexedFiles(entries, tags).length).toEqual(1);
       });
 
-      it('it returns entries 1 entries when there is no matching tag', async () => {
+      it('it returns entries 1 entries when there is no matching tag', () => {
         const stats = createMockStats(new Date('2020-02-01'));
         const dirent = createMockDirent();
         const tags: Tag[] = [];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const entries: Entry[] = [{ path: '/foo', stats: stats as any, dirent: dirent as any, name: 'foo' }];
+        const entries: Entry[] = [{ path: '/foo', stats, dirent, name: 'foo' }];
 
         expect(unIndexedFiles(entries, tags).length).toEqual(1);
       });

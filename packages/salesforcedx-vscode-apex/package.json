@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.18.0",
+  "version": "66.0.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,7 +27,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.7",
+    "@salesforce/apex-node": "^8.4.10",
     "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -38,7 +38,6 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "esbuild": "0.25.12",
     "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
@@ -177,37 +176,13 @@
         {
           "command": "sf.apex.languageServer.restart",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.anon.apex.execute.selection",
-          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
-        },
-        {
-          "command": "sf.anon.apex.execute.document",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
-        },
-        {
-          "command": "sf.apex.log.get",
-          "when": "sf:project_opened && sf:has_target_org"
         }
       ]
     },
     "commands": [
       {
-        "command": "sf.anon.apex.execute.document",
-        "title": "%anon_apex_execute_document_text%"
-      },
-      {
-        "command": "sf.anon.apex.execute.selection",
-        "title": "%anon_apex_execute_selection_text%"
-      },
-      {
         "command": "sf.apex.languageServer.restart",
         "title": "%apex_language_server_restart%"
-      },
-      {
-        "command": "sf.apex.log.get",
-        "title": "%apex_log_get_text%"
       }
     ],
     "configuration": {
@@ -257,11 +232,6 @@
             "%apex_messages_level_trace_description%",
             "%apex_off_level_trace_description%"
           ]
-        },
-        "salesforcedx-vscode-apex.disable-warnings-for-missing-coverage": {
-          "type": "boolean",
-          "default": false,
-          "description": "%apex_code_disable-warnings-for-missing-coverage%"
         },
         "salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry": {
           "type": "boolean",

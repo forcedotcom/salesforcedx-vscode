@@ -9,6 +9,7 @@
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { PackageJson } from '../types/packageJson';
 
 // These unit tests check that specified dependencies in package.json do not use
 // ^ or ~ in the version range, either because those packages do not use semver
@@ -17,12 +18,13 @@ import * as vscode from 'vscode';
 
 const checkedPackagePatterns: RegExp[] = [/^@salesforce/i, /^@lwc/i];
 
-const readJsonFile = async (jsonFilePath: string) => {
+const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
   try {
     const content = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(jsonFilePath))).toString('utf8');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(content);
   } catch (e) {
-    throw new Error(`Error reading json file from ${jsonFilePath}: ${e}`);
+    throw new Error(`Error reading json file from ${jsonFilePath}: ${String(e)}`);
   }
 };
 
@@ -35,7 +37,7 @@ const checkFileExists = async (filePath: string): Promise<boolean> => {
   }
 };
 
-const runTests = async () => {
+const runTests = async (): Promise<PackageJson> => {
   const packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
   const packageJson = await readJsonFile(packageJsonPath);
 
@@ -54,26 +56,26 @@ const runTests = async () => {
           const peerPackageJsonPath = path.join(monorepoRootPath, match, 'package.json');
           const peerPackageJson = await readJsonFile(peerPackageJsonPath);
           if (peerPackageJson.name !== packageJson.name) {
-            checkedPackagePatterns.push(new RegExp(`^${peerPackageJson.name}`, 'i'));
+            checkedPackagePatterns.push(new RegExp(`^${String(peerPackageJson.name)}`, 'i'));
           }
         }
       }
     }
   }
 
-  return packageJson;
+  return packageJson as PackageJson;
 };
 
 describe('package.json dependencies', () => {
-  let packageJson: any;
+  let packageJson: PackageJson;
 
   beforeAll(async () => {
     packageJson = await runTests();
   });
 
   it('validates package dependencies', () => {
-    const dependencies: { [key: string]: string } = packageJson.dependencies;
-    const devDependencies: { [key: string]: string } = packageJson.devDependencies;
+    const dependencies = packageJson.dependencies ?? {};
+    const devDependencies = packageJson.devDependencies ?? {};
     let testMatchFound = false;
 
     for (const [name, versionRange] of Object.entries(dependencies)) {
@@ -101,7 +103,7 @@ describe('package.json dependencies', () => {
     }
 
     if (!testMatchFound) {
-      console.log(`no dependencies matching expected patterns ${checkedPackagePatterns}`);
+      console.log(`no dependencies matching expected patterns ${checkedPackagePatterns.join(', ')}`);
     }
   });
 });
