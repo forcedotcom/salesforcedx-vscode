@@ -64,7 +64,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await expect(logTab).toBeVisible({ timeout: 60_000 });
     await saveScreenshot(page, 'exec-document.success.png');
     // Close debug.log so the .apex file is active for the next step (execute anonymous requires editorLangId apex)
-    await page.keyboard.press('Control+F4');
+    await executeCommandWithCommandPalette(page, 'View: Close Editor');
     await expect(logTab).not.toBeVisible({ timeout: 5000 });
   });
 
@@ -94,7 +94,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await expect(logTab).toBeVisible({ timeout: 60_000 });
     await saveScreenshot(page, 'exec-selection.success.png');
     // Close debug.log so the .apex file is active for the next step
-    await page.keyboard.press('Control+F4');
+    await executeCommandWithCommandPalette(page, 'View: Close Editor');
     await expect(logTab).not.toBeVisible({ timeout: 5000 });
   });
 
