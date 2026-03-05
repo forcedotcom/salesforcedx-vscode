@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
+import { CORE_EXTENSION_ID } from '../constants';
 import { nls } from '../messages';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { FAILURE_CODE, SUCCESS_CODE } from '../sobjects/constants';
@@ -94,8 +95,7 @@ const executeRefresh = Effect.fn('executeRefresh')(
       yield* channelService.appendToChannel(nls.localize('processed_sobjects_length_text', customObjects, 'Custom'));
     }
 
-    // core extension will not be installed in web ide, so we won't be able to call that command
-    if (process.env.ESBUILD_PLATFORM !== 'web') {
+    if (vscode.extensions.getExtension(CORE_EXTENSION_ID)) {
       const exitCode = result.data.cancelled ? FAILURE_CODE : SUCCESS_CODE;
       yield* Effect.promise(() => vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode }));
     }
@@ -104,7 +104,7 @@ const executeRefresh = Effect.fn('executeRefresh')(
     Effect.gen(function* () {
       const msg = error instanceof Error ? error.message : String(error);
       yield* Effect.promise(() => vscode.window.showErrorMessage(msg));
-      if (process.env.ESBUILD_PLATFORM !== 'web') {
+      if (vscode.extensions.getExtension(CORE_EXTENSION_ID)) {
         yield* Effect.promise(() =>
           vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: FAILURE_CODE })
         );
