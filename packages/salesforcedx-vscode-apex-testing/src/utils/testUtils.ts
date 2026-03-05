@@ -6,12 +6,11 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import { ResultFormat, TestResult, TestService } from '@salesforce/apex-node';
+import { TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { getUriPath } from '../utils/commandletHelpers';
@@ -295,37 +294,38 @@ export const findLocalApexClassAndTestSuiteUris = async (): Promise<{
 };
 
 /** Writes test result JSON file using FsService (works in both desktop and web modes) */
-export const writeTestResultJson = async (result: TestResult, outputDir: string): Promise<void> => {
+export const writeTestResultJson = async (result: TestResult, outputDir: string | vscode.Uri): Promise<void> => {
   const testRunId = result.summary?.testRunId;
   const jsonFilename = testRunId ? `test-result-${testRunId}.json` : 'test-result.json';
-  const jsonFilePath = path.join(outputDir, jsonFilename);
   const jsonContent = JSON.stringify(result, null, 2);
-
   await Effect.runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      yield* api.services.FsService.writeFile(jsonFilePath, jsonContent);
+      const outputDirUri = yield* api.services.FsService.toUri(outputDir);
+      const jsonFileUri = Utils.joinPath(outputDirUri, jsonFilename);
+      yield* api.services.FsService.writeFile(jsonFileUri, jsonContent);
     }).pipe(Effect.provide(AllServicesLayer))
   );
 };
 
 /** Writes test-run-id.txt using FsService (works in both desktop and web) so file watcher and controller can read it */
-export const writeTestRunIdFile = async (result: TestResult, outputDir: string): Promise<void> => {
+export const writeTestRunIdFile = async (result: TestResult, outputDir: string | vscode.Uri): Promise<void> => {
   const testRunId = result.summary?.testRunId;
   if (!testRunId) {
     return;
   }
-  const filePath = path.join(outputDir, 'test-run-id.txt');
   await Effect.runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      yield* api.services.FsService.writeFile(filePath, testRunId);
+      const outputDirUri = yield* api.services.FsService.toUri(outputDir);
+      const fileUri = Utils.joinPath(outputDirUri, 'test-run-id.txt');
+      yield* api.services.FsService.writeFile(fileUri, testRunId);
     }).pipe(Effect.provide(AllServicesLayer))
   );
 };
 
 /** Writes test-result-<runId>-codecoverage.json using FsService (same content as apex-node writeResultFiles; works on web and desktop) */
-export const writeCodeCoverageJson = async (result: TestResult, outputDir: string): Promise<void> => {
+export const writeCodeCoverageJson = async (result: TestResult, outputDir: string | vscode.Uri): Promise<void> => {
   const testRunId = result.summary?.testRunId;
   if (!testRunId || !result.tests?.length) {
     return;
@@ -333,32 +333,37 @@ export const writeCodeCoverageJson = async (result: TestResult, outputDir: strin
   const coverageData = result.tests
     .map(record => record.perClassCoverage)
     .filter((pcc): pcc is NonNullable<typeof pcc> => Boolean(pcc?.length));
-  const jsonFilePath = path.join(outputDir, `test-result-${testRunId}-codecoverage.json`);
   const jsonContent = JSON.stringify(coverageData, null, 2);
   await Effect.runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      yield* api.services.FsService.writeFile(jsonFilePath, jsonContent);
+      const outputDirUri = yield* api.services.FsService.toUri(outputDir);
+      const jsonFileUri = Utils.joinPath(outputDirUri, `test-result-${testRunId}-codecoverage.json`);
+      yield* api.services.FsService.writeFile(jsonFileUri, jsonContent);
     }).pipe(Effect.provide(AllServicesLayer))
   );
 };
 
 /** Reads test-run-id.txt using FsService (works in both desktop and web) */
-export const readTestRunIdFile = async (apexTestPath: string): Promise<string | undefined> => {
-  const filePath = path.join(apexTestPath, 'test-run-id.txt');
-  return Effect.runPromise(
+export const readTestRunIdFile = async (apexTestPath: string | vscode.Uri): Promise<string | undefined> =>
+  Effect.runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const content = yield* api.services.FsService.readFile(filePath);
+      const apexTestUri = yield* api.services.FsService.toUri(apexTestPath);
+      const fileUri = Utils.joinPath(apexTestUri, 'test-run-id.txt');
+      const content = yield* api.services.FsService.readFile(fileUri);
       return content.trim();
     }).pipe(
       Effect.provide(AllServicesLayer),
       Effect.catchAll(() => Effect.succeed(undefined))
     )
   );
-};
 
-const runFsServiceFallback = async (result: TestResult, outputDir: string, codeCoverage: boolean): Promise<void> => {
+const runFsServiceFallback = async (
+  result: TestResult,
+  outputDir: string | vscode.Uri,
+  codeCoverage: boolean
+): Promise<void> => {
   await writeTestResultJson(result, outputDir);
   await writeTestRunIdFile(result, outputDir);
   if (codeCoverage) {
@@ -366,25 +371,16 @@ const runFsServiceFallback = async (result: TestResult, outputDir: string, codeC
   }
 };
 
-/** Writes test result JSON file: on web uses FsService only (apex-node writeResultFiles uses Node fs which fails); on desktop tries writeResultFiles first, then FsService fallback */
+/** Writes test result JSON file via FsService (works on web and desktop) */
 export const writeTestResultJsonFile = async (
   result: TestResult,
-  outputDir: string,
+  outputDir: string | vscode.Uri,
   codeCoverage: boolean,
-  testService: TestService
+  _testService: TestService
 ): Promise<void> => {
   try {
-    await testService.writeResultFiles(
-      result,
-      { resultFormats: [ResultFormat.json], dirPath: outputDir },
-      codeCoverage
-    );
+    await runFsServiceFallback(result, outputDir, codeCoverage);
   } catch (error) {
     console.error('Failed to write JSON test result file:', error);
-    try {
-      await runFsServiceFallback(result, outputDir, codeCoverage);
-    } catch (fallbackError) {
-      console.error('FsService fallback also failed:', fallbackError);
-    }
   }
 };

@@ -18,15 +18,6 @@ export type ApexTestQuickPickItem = QuickPickItem & {
   type: TestType;
 };
 
-/** Reads a file using FsService (works in both desktop and web modes) */
-export const readFile = (filePath: string): Promise<string> =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      return yield* api.services.FsService.readFile(filePath);
-    }).pipe(Effect.provide(AllServicesLayer))
-  );
-
 type QuickPickItemWithDescription = ApexTestQuickPickItem & Required<Pick<ApexTestQuickPickItem, 'description'>>;
 
 /** Remove the extension from a filename */
@@ -34,24 +25,31 @@ const removeExtension = (filename: string, ext: string): string =>
   filename.endsWith(ext) ? filename.slice(0, -ext.length) : filename;
 
 /**
- * Path string for FsService.readFile. On web, FsService.toUri() expects a path string and converts it to memfs:${path};
- * passing uri.path ensures the correct scheme. On desktop, fsPath works for file URIs.
+ * Path string for FsService.readFile so toUri() resolves correctly.
+ * On web we must pass uri.path (e.g. /MyProject/...) so toUri() produces memfs:/MyProject/...;
+ * uriToPath would use fsPath which can be wrong for memfs. On desktop, uriToPath is correct.
  */
-const getUriPathForRead = (uri: URI): string =>
-  process.env.ESBUILD_PLATFORM === 'web' ? uri.path : (uri.scheme === 'file' ? uri.fsPath : uri.path) ?? uri.path;
+const getPathForRead = (uri: URI, uriToPathResult: string): string =>
+  process.env.ESBUILD_PLATFORM === 'web' ? uri.path : uriToPathResult;
 
 /** Read the file and return a quickPick Item. Will return undefined if the file has no tests (based on the @isTest annotation). */
 export const getTestInfo = async (sourceUri: URI): Promise<QuickPickItemWithDescription | undefined> => {
-  const pathForRead = getUriPathForRead(sourceUri);
-  if (!pathForRead) {
-    return undefined;
-  }
-  const hasTests = IS_TEST_REG_EXP.test(await readFile(pathForRead));
-  return hasTests
-    ? {
-        label: removeExtension(Utils.basename(sourceUri), APEX_CLASS_EXT),
-        description: pathForRead,
-        type: 'Class'
+  const result = await Effect.runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const pathForDisplay = yield* api.services.FsService.uriToPath(sourceUri);
+      const pathForRead = getPathForRead(sourceUri, pathForDisplay);
+      const content = yield* api.services.FsService.readFile(pathForRead);
+      const hasTests = IS_TEST_REG_EXP.test(content);
+      if (!hasTests) {
+        return undefined;
       }
-    : undefined;
+      return {
+        label: removeExtension(Utils.basename(sourceUri), APEX_CLASS_EXT),
+        description: pathForDisplay,
+        type: 'Class' as const
+      };
+    }).pipe(Effect.provide(AllServicesLayer))
+  );
+  return result;
 };
