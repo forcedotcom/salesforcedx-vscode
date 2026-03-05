@@ -6,12 +6,14 @@
  */
 
 import type { QueryResult } from '../types';
-import { getRootWorkspacePath, writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
+import { getSoqlRuntime } from '../services/extensionProvider';
 import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
 
 export enum FileFormat {
@@ -57,9 +59,15 @@ export class QueryDataFileService {
       const selectedFileSavePath = fileInfo.fsPath;
       const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
 
-      // Save query results to disk
-      await writeFile(selectedFileSavePath, fileContentString);
-      showFileInExplorer(selectedFileSavePath);
+      const workspacePath = await getSoqlRuntime().runPromise(
+        Effect.gen(function* () {
+          const api = yield* getServicesApi;
+          yield* api.services.FsService.writeFile(fileInfo, fileContentString);
+          const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+          return fsPath;
+        })
+      );
+      showFileInExplorer(fileInfo, workspacePath);
       showSaveSuccessMessage(Utils.basename(fileInfo));
       return selectedFileSavePath;
     }
@@ -67,10 +75,10 @@ export class QueryDataFileService {
   }
 }
 
-const showFileInExplorer = (targetPath: string) => {
+const showFileInExplorer = (fileUri: URI, workspacePath: string): void => {
   // Only reveal saved file if its inside current workspace
-  if (targetPath.startsWith(getRootWorkspacePath())) {
-    vscode.commands.executeCommand('revealInExplorer', URI.file(targetPath));
+  if (fileUri.fsPath.startsWith(workspacePath)) {
+    vscode.commands.executeCommand('revealInExplorer', fileUri);
   }
 };
 

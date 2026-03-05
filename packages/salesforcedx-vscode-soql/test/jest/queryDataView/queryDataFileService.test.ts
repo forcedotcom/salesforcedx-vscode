@@ -10,6 +10,12 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { FileFormat, QueryDataFileService } from '../../../src/queryDataView/queryDataFileService';
 
+const mockRunPromise = jest.fn();
+jest.mock('../../../src/services/extensionProvider', () => ({
+  AllServicesLayer: require('effect/Layer').empty,
+  getSoqlRuntime: () => ({ runFork: () => undefined, runPromise: mockRunPromise })
+}));
+
 describe('Query Data File Service', () => {
   const queryText = 'SELECT Id, Name FROM Account';
   const queryData: QueryResult<JsonMap> = {
@@ -27,12 +33,11 @@ describe('Query Data File Service', () => {
     const queryDataFileService = new QueryDataFileService(queryText, queryData, format, document);
 
     (vscode.window.showSaveDialog as any).mockReturnValue(URI.file(savedFilePath));
-
-    const writeFileSpy = jest.spyOn(vscode.workspace.fs, 'writeFile');
+    mockRunPromise.mockResolvedValue('/test/workspace');
 
     const selectedFilePath = await queryDataFileService.save();
 
-    expect(writeFileSpy).toHaveBeenCalled();
+    expect(mockRunPromise).toHaveBeenCalled();
     expect(selectedFilePath).toEqual(savedFilePath);
   });
 });
