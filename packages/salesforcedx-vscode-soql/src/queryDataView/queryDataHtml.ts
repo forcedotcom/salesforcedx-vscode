@@ -5,11 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { DATA_VIEW_UI_PATH, HTML_FILE } from '../constants';
 import { HtmlUtils } from '../editor/htmlUtils';
+import { getSoqlRuntime } from '../services/extensionProvider';
 
 export const getHtml = async (
   assets: { [index: string]: vscode.Uri },
@@ -19,7 +21,12 @@ export const getHtml = async (
   const { baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri } = assets;
 
   const dataViewDistUri = Utils.joinPath(URI.file(extensionPath), DATA_VIEW_UI_PATH);
-  let html = await readFile(Utils.joinPath(dataViewDistUri, HTML_FILE).fsPath);
+  let html = await getSoqlRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* getServicesApi;
+      return yield* api.services.FsService.readFile(Utils.joinPath(dataViewDistUri, HTML_FILE));
+    })
+  );
   /*
   We need to replace the hrefs with webviewUris,
   this will need to change once we need a standalone data view.
