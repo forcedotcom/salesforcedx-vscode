@@ -16,12 +16,11 @@ import {
   ParametersGatherer,
   Row,
   SfCommandlet,
-  SfWorkspaceChecker,
-  writeFile
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { channelService, OUTPUT_CHANNEL } from '../services/channel';
 import { getSoqlRuntime } from '../services/extensionProvider';
@@ -66,15 +65,16 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
 
     const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
     const fileName = `soql-query-${timestamp}.csv`;
-    const { fsPath: workspacePath } = await getSoqlRuntime().runPromise(
+    const fileUri = await getSoqlRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* getServicesApi;
-        return yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+        const { uri: workspaceUri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+        const uri = Utils.joinPath(workspaceUri, '.sfdx', 'data', fileName);
+        yield* api.services.FsService.writeFile(uri, csvContent);
+        return uri;
       })
     );
-    const fileUri = Utils.joinPath(URI.file(workspacePath), '.sfdx', 'data', fileName);
     const filePath = fileUri.fsPath;
-    await writeFile(filePath, csvContent);
 
     // Show success message with clickable file link
     const openFileAction = nls.localize('data_query_open_file');
