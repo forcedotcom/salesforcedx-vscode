@@ -8,21 +8,20 @@ Monitor running e2e playwright tests, download artifacts on failure, provide ana
 
 ## Workflow
 
-1. **Get Current Branch** If the user didn't provide a github link
-   - `git branch --show-current`
-   - Detached HEAD/no branch → error, stop
-
-2. **Find E2E Workflows**
+1. **Get Run ID**
+   - User provided URL/run-id → use it, skip discovery
+   - Else: `git branch --show-current` (detached HEAD → error, stop)
    - `gh run list -b <branch> --limit 50 --json databaseId,status,conclusion,workflowName,createdAt,headBranch`
    - Filter `workflowName` containing "(Playwright)"
-   - Prioritize `in_progress`/`queued`, then most recent completed
+   - Pick: `in_progress`/`queued` first, else most recent completed
+   - **Run ID = `databaseId`** of selected run
 
-3. **Monitor Until Complete**
+2. **Monitor Until Complete**
    - **NEVER RETURN BEFORE CI COMPLETES**
    - `in_progress`/`queued`: `gh run watch <run-id>` or poll until `status: "completed"`
    - Multiple running → monitor all
 
-4. **Handle Results**
+3. **Handle Results**
 
    **Success:**
    - Report: "✓ E2E tests passed for workflow `<workflow-name>` on branch `<branch-name>`"
@@ -34,7 +33,7 @@ Monitor running e2e playwright tests, download artifacts on failure, provide ana
    - Extract/unzip if needed
    - Report failure with artifact location
 
-5. **Do not offer analysis, let the main agent do that**
+4. **Do not offer analysis, let the main agent do that**
    - You can offer to open HTML report, or traces, show test results, open workflow on github, open videos
 
 ## Error Handling

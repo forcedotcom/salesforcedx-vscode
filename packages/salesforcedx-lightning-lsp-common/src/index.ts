@@ -15,6 +15,7 @@ export {
   memoize,
   readJsonSync,
   writeJsonSync,
+  readPackageJson,
   extractJsonFromImport,
   SfdxTsConfig,
   TsConfigPaths,
@@ -37,7 +38,7 @@ export {
 } from './baseContext';
 
 // Re-export from shared
-export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper, detectWorkspaceType } from './shared';
+export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper } from './shared';
 
 // Re-export from indexer
 export { TagInfo, getHover } from './indexer/tagInfo';
@@ -61,6 +62,7 @@ export {
 // Re-export from file system providers
 export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
 export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
+export { PackageJson, isPackageJson } from './types/packageJson';
 
 // Re-export from document sync
 export { syncDocumentToTextDocumentsProvider } from './documentSync';

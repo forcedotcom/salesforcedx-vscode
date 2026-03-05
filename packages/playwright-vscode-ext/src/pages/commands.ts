@@ -55,9 +55,8 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await input.click({ timeout: 5000 });
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 
-  // Type the command after the '>' prefix - retry if VS Code filtering interrupts typing
-  await page.keyboard.press('End'); // so that we type AFTER the '>' prefix
-  await input.pressSequentially(command, { delay: 5 });
+  // fill() is faster than pressSequentially on CI (avoids timeout on macOS)
+  await input.fill(`>${command}`);
 
   // Wait for command list to appear
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
@@ -123,7 +122,7 @@ const retryCommandPaletteSearch = async (
 
     const input = widget.locator('input.input');
     await input.click({ timeout: 5000 });
-    await input.pressSequentially(commandText, { delay: 5 });
+    await input.fill(`>${commandText}`);
 
     await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
 

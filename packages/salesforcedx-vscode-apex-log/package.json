@@ -5,7 +5,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "65.17.3",
+  "version": "66.0.3",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -49,6 +49,7 @@
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
     "copy:grammars": "wireit",
     "compile": "wireit",
     "lint": "wireit",
@@ -186,9 +187,14 @@
     },
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
+      "env": {
+        "E2E_SEQUENTIAL": "1"
+      },
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -201,11 +207,13 @@
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
-        "VSCODE_DESKTOP": "1"
+        "VSCODE_DESKTOP": "1",
+        "E2E_SEQUENTIAL": "1"
       },
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -241,7 +249,7 @@
         "salesforcedx-vscode-apex-log.logPollIntervalSeconds": {
           "type": "number",
           "default": 30,
-          "minimum": -1,
+          "minimum": 0,
           "maximum": 300,
           "description": "%apexLog.configuration.logPollIntervalSeconds.description%"
         },
