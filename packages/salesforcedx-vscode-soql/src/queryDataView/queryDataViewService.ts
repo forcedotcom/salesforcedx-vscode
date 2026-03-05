@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
@@ -41,7 +41,7 @@ type DataViewEvent = {
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
   public readonly viewType = QUERY_DATA_VIEW_TYPE;
-  public static extensionPath: string;
+  public static extensionUri: vscode.Uri;
   private queryText: string;
 
   constructor(
@@ -53,7 +53,7 @@ export class QueryDataViewService {
   }
 
   public static register(extensionContext: vscode.ExtensionContext): void {
-    QueryDataViewService.extensionPath = extensionContext.extensionPath;
+    QueryDataViewService.extensionUri = extensionContext.extensionUri;
   }
 
   private updateWebviewWith(queryData: QueryResult<JsonMap>): Effect.Effect<void> {
@@ -77,7 +77,7 @@ export class QueryDataViewService {
   }
 
   public async createOrShowWebView(): Promise<vscode.Webview> {
-    const extensionUri = URI.file(QueryDataViewService.extensionPath);
+    const { extensionUri } = QueryDataViewService;
     this.currentPanel = vscode.window.createWebviewPanel(
       this.viewType,
       QUERY_DATA_VIEW_PANEL_TITLE,
@@ -162,7 +162,7 @@ export class QueryDataViewService {
   };
 
   protected async getWebViewContent(webview: vscode.Webview): Promise<string> {
-    const extensionUri = URI.file(QueryDataViewService.extensionPath);
+    const { extensionUri } = QueryDataViewService;
     const baseStyleUri = webview.asWebviewUri(
       Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
     );
@@ -187,6 +187,6 @@ export class QueryDataViewService {
       saveIconUri
     };
 
-    return await getHtml(staticAssets, QueryDataViewService.extensionPath, webview);
+    return await getHtml(staticAssets, extensionUri, webview);
   }
 }
