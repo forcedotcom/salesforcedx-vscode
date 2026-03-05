@@ -11,6 +11,7 @@ jest.mock('../../../src/services/extensionProvider', () => ({
 
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, SOQL_BUILDER_UI_PATH } from '../../../src/constants';
 import { HtmlUtils } from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
@@ -30,6 +31,7 @@ describe('SOQLEditorProvider', () => {
     extensionContext = {
       /** The absolute file path of the directory containing the extension. */
       extensionPath: '/path/to/extension',
+      extensionUri: URI.file('/path/to/extension'),
       subscriptions: [],
       /** Get the absolute path of a resource contained in the extension. */
       asAbsolutePath: jest.fn((p: string) => `/path/to/extension/${p}`),
