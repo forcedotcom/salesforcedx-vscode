@@ -6,10 +6,8 @@
  */
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 jest.mock('../resources/transformed-lwc-standard.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pathModule = require('node:path');
+  const fs = require('node:fs') as typeof import('node:fs');
+  const pathModule = require('node:path') as typeof import('node:path');
   // Find package root (lwc-language-server)
   let current = __dirname;
   while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
@@ -18,7 +16,7 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
     current = parent;
   }
   const filePath = pathModule.join(current, 'src', 'resources', 'transformed-lwc-standard.json');
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const content = JSON.parse(fs.readFileSync(filePath, 'utf8')) as Record<string, unknown>;
   // JSON imports in TypeScript are treated as default exports
   return { default: content, ...content };
 });

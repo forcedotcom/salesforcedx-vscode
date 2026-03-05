@@ -31,7 +31,6 @@ import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreat
 import { CompositePreconditionChecker } from '../preconditionCheckers/compositePreconditionChecker';
 import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
-import { setTargetOrgOrAlias } from '../util/orgUtil';
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
@@ -78,12 +77,6 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
         const createParser = new OrgCreateResultParser(stdOut);
 
         if (createParser.createIsSuccessful()) {
-          // Explicitly ensure the org change event is triggered
-          // Use the alias that was provided when creating the org
-          if (response.data.alias) {
-            await setTargetOrgOrAlias(response.data.alias);
-          }
-
           // Set workspace org type to source-tracked for newly created scratch orgs
           // Scratch orgs are always source-tracked, so set the context to true
           await vscode.commands.executeCommand('setContext', 'sf:target_org_has_change_tracking', true);

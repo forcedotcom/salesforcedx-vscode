@@ -157,11 +157,13 @@ describe('ComponentIndexer', () => {
         const resolvedFilePath = [normalizePath(path.join(componentIndexer.workspaceRoot, filePath))];
         return [componentName, resolvedFilePath];
       });
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const expectedComponents = Object.fromEntries(data);
 
       describe('#tsConfigPathMapping', () => {
-        it('returns a map of files inside an lwc watched directory where the .js or .ts files match the directory name', async () => {
-          const tsConfigPathMapping = await componentIndexer.getTsConfigPathMapping();
+        it('returns a map of files inside an lwc watched directory where the .js or .ts files match the directory name', () => {
+          const tsConfigPathMapping = componentIndexer.getTsConfigPathMapping();
           expect(tsConfigPathMapping).toEqual(expectedComponents);
         });
       });
@@ -258,32 +260,29 @@ describe('ComponentIndexer', () => {
 
   describe('helper functions', () => {
     describe('unIndexedFiles', () => {
-      it('it returns entries 0 entries when they match', async () => {
+      it('it returns entries 0 entries when they match', () => {
         const stats = createMockStats(new Date('2020-01-01'));
         const dirent = createMockDirent();
-        const tags: Tag[] = [await createTag({ file: '/foo', updatedAt: new Date('2020-01-01') })];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const entries: Entry[] = [{ path: '/foo', stats: stats as any, dirent: dirent as any, name: 'foo' }];
+        const tags: Tag[] = [createTag({ file: '/foo', updatedAt: new Date('2020-01-01') })];
+        const entries: Entry[] = [{ path: '/foo', stats, dirent, name: 'foo' }];
 
         expect(unIndexedFiles(entries, tags).length).toEqual(0);
       });
 
-      it('it returns entries 1 entries when the entries date is different', async () => {
+      it('it returns entries 1 entries when the entries date is different', () => {
         const stats = createMockStats(new Date('2020-02-01'));
         const dirent = createMockDirent();
-        const tags: Tag[] = [await createTag({ file: '/foo', updatedAt: new Date('2020-01-01') })];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const entries: Entry[] = [{ path: '/foo', stats: stats as any, dirent: dirent as any, name: 'foo' }];
+        const tags: Tag[] = [createTag({ file: '/foo', updatedAt: new Date('2020-01-01') })];
+        const entries: Entry[] = [{ path: '/foo', stats, dirent, name: 'foo' }];
 
         expect(unIndexedFiles(entries, tags).length).toEqual(1);
       });
 
-      it('it returns entries 1 entries when there is no matching tag', async () => {
+      it('it returns entries 1 entries when there is no matching tag', () => {
         const stats = createMockStats(new Date('2020-02-01'));
         const dirent = createMockDirent();
         const tags: Tag[] = [];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const entries: Entry[] = [{ path: '/foo', stats: stats as any, dirent: dirent as any, name: 'foo' }];
+        const entries: Entry[] = [{ path: '/foo', stats, dirent, name: 'foo' }];
 
         expect(unIndexedFiles(entries, tags).length).toEqual(1);
       });
