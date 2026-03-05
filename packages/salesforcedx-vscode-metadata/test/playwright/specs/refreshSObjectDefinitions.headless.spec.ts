@@ -27,14 +27,17 @@ import {
   QUICK_INPUT_LIST_ROW
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { RETRIEVE_TIMEOUT } from '../../constants';
 
-test.setTimeout(RETRIEVE_TIMEOUT);
+const CUSTOM_TIMEOUT = 30_000;
+const STANDARD_TIMEOUT = 120_000;
+
+test.setTimeout(STANDARD_TIMEOUT + CUSTOM_TIMEOUT + 60_000);
 
 const runRefreshAndVerify = async (
   page: Page,
   quickPickOption: string,
-  expectedOutputText: string
+  expectedOutputText: string,
+  timeout: number
 ) => {
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
@@ -47,7 +50,7 @@ const runRefreshAndVerify = async (
   const row = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: quickPickOption });
   await row.click();
 
-  await waitForOutputChannelText(page, { expectedText: expectedOutputText, timeout: RETRIEVE_TIMEOUT });
+  await waitForOutputChannelText(page, { expectedText: expectedOutputText, timeout });
 };
 
 test('Refresh SObject Definitions: Custom, Standard, All via output channel', async ({ page }) => {
@@ -72,15 +75,15 @@ test('Refresh SObject Definitions: Custom, Standard, All via output channel', as
   });
 
   await test.step('Refresh SObject Definitions for Custom SObjects', async () => {
-    await runRefreshAndVerify(page, packageNls.sobject_refresh_custom, packageNls.sobject_refresh_output_custom);
+    await runRefreshAndVerify(page, packageNls.sobject_refresh_custom, packageNls.sobject_refresh_output_custom, CUSTOM_TIMEOUT);
   });
 
   await test.step('Refresh SObject Definitions for Standard SObjects', async () => {
-    await runRefreshAndVerify(page, packageNls.sobject_refresh_standard, packageNls.sobject_refresh_output_standard);
+    await runRefreshAndVerify(page, packageNls.sobject_refresh_standard, packageNls.sobject_refresh_output_standard, STANDARD_TIMEOUT);
   });
 
   await test.step('Refresh SObject Definitions for All SObjects', async () => {
-    await runRefreshAndVerify(page, packageNls.sobject_refresh_all, packageNls.sobject_refresh_output_standard);
+    await runRefreshAndVerify(page, packageNls.sobject_refresh_all, packageNls.sobject_refresh_output_standard, STANDARD_TIMEOUT);
     await waitForOutputChannelText(page, {
       expectedText: packageNls.sobject_refresh_output_custom,
       timeout: 10_000
