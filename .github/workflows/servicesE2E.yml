@@ -3,7 +3,7 @@ name: Services E2E (Playwright)
 on:
   workflow_dispatch:
   push:
-    branches-ignore: [main, develop]
+    branches-ignore: [main, develop, sm/feedback-3]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'

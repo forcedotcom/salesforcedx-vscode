@@ -1,0 +1,87 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { dreamhouseTest as test } from '../fixtures';
+import {
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
+  createDreamhouseOrg,
+  upsertScratchOrgAuthFieldsToSettings,
+  executeCommandWithCommandPalette,
+  verifyCommandExists,
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  clearOutputChannel,
+  waitForOutputChannelText,
+  validateNoCriticalErrors,
+  ensureSecondarySideBarHidden,
+  QUICK_INPUT_WIDGET,
+  QUICK_INPUT_LIST_ROW
+} from '@salesforce/playwright-vscode-ext';
+import packageNls from '../../../package.nls.json';
+import { RETRIEVE_TIMEOUT } from '../../constants';
+
+test.setTimeout(RETRIEVE_TIMEOUT);
+
+const runRefreshAndVerify = async (
+  page: import('@playwright/test').Page,
+  quickPickOption: string,
+  expectedOutputText: string
+) => {
+  await ensureOutputPanelOpen(page);
+  await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+  await clearOutputChannel(page);
+
+  await executeCommandWithCommandPalette(page, packageNls.sobjects_refresh);
+
+  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+  const row = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: quickPickOption });
+  await row.click();
+
+  await waitForOutputChannelText(page, { expectedText: expectedOutputText, timeout: RETRIEVE_TIMEOUT });
+};
+
+test('Refresh SObject Definitions: Custom, Standard, All via output channel', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
+
+  await test.step('setup dreamhouse org', async () => {
+    const createResult = await createDreamhouseOrg();
+    await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+    await waitForOutputChannelText(page, {
+      expectedText: 'Salesforce Metadata activation complete',
+      timeout: 30_000
+    });
+    await verifyCommandExists(page, packageNls.sobjects_refresh, 30_000);
+  });
+
+  await test.step('Refresh SObject Definitions for Custom SObjects', async () => {
+    await runRefreshAndVerify(page, 'Custom SObjects', 'Custom sObjects');
+  });
+
+  await test.step('Refresh SObject Definitions for Standard SObjects', async () => {
+    await runRefreshAndVerify(page, 'Standard SObjects', 'Standard sObjects');
+  });
+
+  await test.step('Refresh SObject Definitions for All SObjects', async () => {
+    await runRefreshAndVerify(page, 'All SObjects', 'Standard sObjects');
+    await waitForOutputChannelText(page, { expectedText: 'Custom sObjects', timeout: 10_000 });
+  });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+});

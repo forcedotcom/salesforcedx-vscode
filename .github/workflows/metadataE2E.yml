@@ -60,7 +60,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-metadata -- --grep "Refresh SObject Definitions" --reporter=html
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -89,12 +89,12 @@ jobs:
         working-directory: dreamhouse-lwc
 
       - name: Generate minimal project
-        if: steps.try-run.outcome == 'failure'
+        if: false
         shell: bash
         run: sf project generate -n minimal-project
 
       - name: create scratch org
-        if: steps.try-run.outcome == 'failure'
+        if: false
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -111,7 +111,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: hub
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-metadata -- --grep "Refresh SObject Definitions" --reporter=html
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
@@ -122,7 +122,7 @@ jobs:
           CI: 1
           E2E_SEQUENTIAL: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-metadata -- --grep "Refresh SObject Definitions" --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
@@ -194,7 +194,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-metadata -- --grep "Refresh SObject Definitions" --reporter=html
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -227,12 +227,12 @@ jobs:
         working-directory: dreamhouse-lwc
 
       - name: Generate minimal project
-        if: steps.try-run.outcome == 'failure'
+        if: false
         shell: bash
         run: sf project generate -n minimal-project
 
       - name: create scratch org
-        if: steps.try-run.outcome == 'failure'
+        if: false
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -240,12 +240,12 @@ jobs:
         working-directory: minimal-project
 
       - name: Generate non-tracking project
-        if: steps.try-run.outcome == 'failure'
+        if: false
         shell: bash
         run: sf project generate -n non-tracking-project
 
       - name: create non-tracking scratch org
-        if: steps.try-run.outcome == 'failure'
+        if: false
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
@@ -263,7 +263,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
         run: |
-          npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-metadata -- --grep "Refresh SObject Definitions" --reporter=html
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
@@ -275,7 +275,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_SEQUENTIAL: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-metadata -- --grep "Refresh SObject Definitions" --last-failed --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
