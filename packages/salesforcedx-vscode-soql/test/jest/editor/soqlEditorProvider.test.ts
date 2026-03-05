@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+const mockRunPromise = jest.fn();
 jest.mock('../../../src/services/extensionProvider', () => ({
   AllServicesLayer: require('effect/Layer').empty,
-  getSoqlRuntime: () => ({ runFork: () => undefined })
+  getSoqlRuntime: () => ({ runFork: () => undefined, runPromise: mockRunPromise })
 }));
 
 import * as vscode from 'vscode';
@@ -110,7 +111,7 @@ describe('SOQLEditorProvider', () => {
       const mockHtml = '<html></html>';
       const mockTransformedHtml = '<html-transformed></html>';
 
-      workspaceFsReadFileMock.mockResolvedValue(Buffer.from(mockHtml));
+      mockRunPromise.mockResolvedValue(mockHtml);
       transformHtmlMock.mockReturnValue(mockTransformedHtml);
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
@@ -132,7 +133,7 @@ describe('SOQLEditorProvider', () => {
       const mockHtml = '<html></html>';
       const mockTransformedHtml = '<html-transformed></html>';
 
-      workspaceFsReadFileMock.mockResolvedValue(Buffer.from(mockHtml));
+      mockRunPromise.mockResolvedValue(mockHtml);
       transformHtmlMock.mockReturnValue(mockTransformedHtml);
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);

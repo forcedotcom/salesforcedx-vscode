@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, HTML_FILE, SOQL_BUILDER_UI_PATH } from '../constants';
 import { nls } from '../messages';
 import { channelService } from '../services/channel';
+import { getSoqlRuntime } from '../services/extensionProvider';
 import { isDefaultOrgSet } from '../services/org';
 import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
@@ -52,7 +54,12 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private async getWebViewContent(webview: vscode.Webview): Promise<string> {
     const soqlBuilderUri = getSoqlBuilderLocation(this.extensionContext);
-    const htmlContent = await readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE).fsPath);
+    const htmlContent = await getSoqlRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* getServicesApi;
+        return yield* api.services.FsService.readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE));
+      })
+    );
     return HtmlUtils.transformHtml(htmlContent, soqlBuilderUri, webview);
   }
 
