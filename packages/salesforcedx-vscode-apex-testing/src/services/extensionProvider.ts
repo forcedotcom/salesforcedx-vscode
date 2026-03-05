@@ -43,6 +43,8 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.MetadataRetrieveService.Default,
         api.services.ProjectService.Default,
         api.services.SdkLayerFor(context),
+        api.services.TemplateService.Default,
+        api.services.WorkspaceService.Default,
         channelLayer,
         errorHandlerWithChannel
       );

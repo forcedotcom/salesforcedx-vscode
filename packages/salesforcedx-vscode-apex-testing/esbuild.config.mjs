@@ -14,7 +14,7 @@ const nodeBuild = await build({
   ...nodeConfig,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
-  plugins: [...(nodeConfig.plugins ?? [])],
+  plugins: nodeConfig.plugins ?? [],
   metafile: true
 });
 
@@ -24,6 +24,7 @@ const browserBuild = await build({
   external: ['vscode'],
   entryPoints: ['./out/src/index.js'],
   outdir: './dist/web',
+  plugins: [],
   metafile: true
 });
 

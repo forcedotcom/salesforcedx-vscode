@@ -82,43 +82,7 @@ describe('Templates', () => {
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
-  // Apex Unit Test Class
-  it('Create an Apex Unit Test Class', async () => {
-    logTestStart(testSetup, 'Create an Apex Unit Test Class');
-    // Using the Command palette, run SFDX: Create Apex Unit Test Class.
-    await createCommand('Apex Unit Test Class', 'ApexUnitTestClass1', 'classes', 'cls');
-
-    // Check for expected items in the Explorer view.
-    const workbench = getWorkbench();
-
-    // Get the matching (visible) items within the tree which contains "ApexUnitTestClass1".
-    const filteredTreeViewItems = await getFilteredVisibleTreeViewItemLabels(
-      workbench,
-      projectName,
-      'ApexUnitTestClass1'
-    );
-
-    expect(filteredTreeViewItems.includes('ApexUnitTestClass1.cls')).to.equal(true);
-    expect(filteredTreeViewItems.includes('ApexUnitTestClass1.cls-meta.xml')).to.equal(true);
-  });
-
-  it('Verify the contents of the Apex Unit Test Class', async () => {
-    logTestStart(testSetup, 'Verify the contents of the Apex Unit Test Class');
-    const expectedText = [
-      '@isTest',
-      'private class ApexUnitTestClass1 {',
-      '',
-      '    @isTest',
-      '    static void myUnitTest() {',
-      '        // TO DO: implement unit test',
-      '    }',
-      '}'
-    ].join('\n');
-    const workbench = getWorkbench();
-    const textEditor = await getTextEditor(workbench, 'ApexUnitTestClass1.cls');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
-    expect(textGeneratedFromTemplate).to.contain(expectedText);
-  });
+  // Apex Unit Test Class is covered in apexTestClassCreate.headless.spec.ts
 
   // Apex Trigger
   it('Create an Apex Trigger', async () => {
