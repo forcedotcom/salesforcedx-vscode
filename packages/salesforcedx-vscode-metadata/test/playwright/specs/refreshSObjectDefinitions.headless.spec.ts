@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Page } from '@playwright/test';
 import { dreamhouseTest as test } from '../fixtures';
 import {
   setupConsoleMonitoring,
@@ -31,7 +32,7 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
 test.setTimeout(RETRIEVE_TIMEOUT);
 
 const runRefreshAndVerify = async (
-  page: import('@playwright/test').Page,
+  page: Page,
   quickPickOption: string,
   expectedOutputText: string
 ) => {
@@ -71,16 +72,19 @@ test('Refresh SObject Definitions: Custom, Standard, All via output channel', as
   });
 
   await test.step('Refresh SObject Definitions for Custom SObjects', async () => {
-    await runRefreshAndVerify(page, 'Custom SObjects', 'Custom sObjects');
+    await runRefreshAndVerify(page, packageNls.sobject_refresh_custom, packageNls.sobject_refresh_output_custom);
   });
 
   await test.step('Refresh SObject Definitions for Standard SObjects', async () => {
-    await runRefreshAndVerify(page, 'Standard SObjects', 'Standard sObjects');
+    await runRefreshAndVerify(page, packageNls.sobject_refresh_standard, packageNls.sobject_refresh_output_standard);
   });
 
   await test.step('Refresh SObject Definitions for All SObjects', async () => {
-    await runRefreshAndVerify(page, 'All SObjects', 'Standard sObjects');
-    await waitForOutputChannelText(page, { expectedText: 'Custom sObjects', timeout: 10_000 });
+    await runRefreshAndVerify(page, packageNls.sobject_refresh_all, packageNls.sobject_refresh_output_standard);
+    await waitForOutputChannelText(page, {
+      expectedText: packageNls.sobject_refresh_output_custom,
+      timeout: 10_000
+    });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
