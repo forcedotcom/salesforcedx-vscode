@@ -9,7 +9,6 @@ import { getServicesApi, sfProjectPreconditionChecker } from '@salesforce/effect
 import {
   CancelResponse,
   Column,
-  ConfigAggregatorProvider,
   ContinueResponse,
   createTable,
   LibraryCommandletExecutor,
@@ -161,7 +160,12 @@ export const dataQuery = (): void => {
 const getMaxFetch = async (): Promise<number | undefined> => {
   try {
     // Priority 1: Check SF CLI config value (org-max-query-limit)
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator = await getSoqlRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* getServicesApi;
+        return yield* api.services.ConfigService.getConfigAggregator();
+      })
+    );
     const configValue = configAggregator.getPropertyValue<string>('org-max-query-limit');
     if (configValue) {
       const parsed = parseInt(configValue, 10);
@@ -170,7 +174,7 @@ const getMaxFetch = async (): Promise<number | undefined> => {
       }
     }
   } catch {
-    // If config reading fails, fall back to environment variable
+    // If config reading fails, fall back to no limit
   }
 
   // No limit configured - return undefined to allow default amount of queries
