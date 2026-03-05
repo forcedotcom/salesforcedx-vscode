@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Connection } from '@salesforce/core';
-import { getServicesApi } from '@salesforce/effect-ext-utils';
+import { getServicesApi, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   CancelResponse,
   Column,
@@ -15,8 +15,7 @@ import {
   LibraryCommandletExecutor,
   ParametersGatherer,
   Row,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -149,7 +148,7 @@ type QueryAndApiInputs = {
 };
 
 export const dataQuery = (): void => {
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new GetQueryAndApiInputs(), new DataQueryExecutor());
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new GetQueryAndApiInputs(), new DataQueryExecutor());
   void commandlet.run();
 };
 
