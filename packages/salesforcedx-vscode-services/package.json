@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.0.2",
+  "version": "66.0.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -41,6 +41,7 @@
     "@opentelemetry/sdk-trace-web": "2.2.0",
     "@salesforce/core": "^8.23.4",
     "memfs": "^4.17.2",
+    "@salesforce/templates": "^66.3.0",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
@@ -149,7 +150,8 @@
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
-        "../../.esbuild-web-extra-settings.json"
+        "../../.esbuild-web-extra-settings.json",
+        "node_modules/@salesforce/templates/lib/**"
       ],
       "output": [
         "dist"

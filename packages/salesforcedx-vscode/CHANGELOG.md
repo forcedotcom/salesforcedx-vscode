@@ -1,4 +1,4 @@
-# 66.0.2 - March 6, 2026
+# 66.0.3 - March 4, 2026
 
 ## Added
 
@@ -30,9 +30,3 @@ Updates for the Spring 26 (v66.0) release.
 #### salesforcedx-vscode-services-types
 
 - We integrated shared org icons into the Services extension and updated the org picker to use the new icons for a more consistent experience. ([PR #6873](https://github.com/forcedotcom/salesforcedx-vscode/pull/6873))
-
-## Fixed
-
-- We fixed some issues with extension activation. ([PR #6914](https://github.com/forcedotcom/salesforcedx-vscode/pull/6914), [ISSUE #6914](https://github.com/forcedotcom/salesforcedx-vscode/issues/6914), [ISSUE #6916](https://github.com/forcedotcom/salesforcedx-vscode/issues/6916))
-
-- We fixed an issue with code coverage toggle not being visible. ([PR #6915](https://github.com/forcedotcom/salesforcedx-vscode/pull/6915), [ISSUE #6890](https://github.com/forcedotcom/salesforcedx-vscode/issues/6890))

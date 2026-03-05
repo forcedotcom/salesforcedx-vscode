@@ -26,6 +26,7 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
+import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagItemStruct, TraceFlagService } from './core/traceFlagService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
@@ -54,6 +55,8 @@ export type SalesforceVSCodeServicesApi = {
   services: {
     ApexLogService: typeof ApexLogService;
     AliasService: typeof AliasService;
+    TemplateService: typeof TemplateService;
+    TemplateType: typeof TemplateType;
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
     ComponentSetService: typeof ComponentSetService;
@@ -87,6 +90,14 @@ export type SalesforceVSCodeServicesApi = {
   };
 };
 export type { AliasService } from './core/alias';
+export {
+  TemplateService,
+  type CreateOutput,
+  type CreateParams,
+  type TemplateOptionsFor,
+  type TemplateType
+} from './core/templateService';
+export type { TemplatesRootPathNotAvailableError } from './core/templateService';
 export type {
   NonEmptyComponentSet,
   ComponentSetService,
@@ -189,10 +200,14 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     // first, before all other things, get the FS running.
     await Effect.runPromise(
       fileSystemSetup(context).pipe(
-        Effect.provide(SettingsService.Default),
-        Effect.provide(ChannelService.Default),
-        Effect.provide(IndexedDBStorageServiceShared),
-        Effect.provide(isItReadOnlyLayer),
+        Effect.provide(
+          Layer.mergeAll(
+            SettingsService.Default,
+            ChannelService.Default,
+            IndexedDBStorageServiceShared,
+            isItReadOnlyLayer
+          )
+        ),
         Scope.extend(extensionScope)
       )
     );
@@ -211,6 +226,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   /** they're global in the sense that they should be the same for all extension */
   const globalLayers = Layer.mergeAll(
     AliasService.Default,
+    TemplateService.Default,
     ExtensionContextService.Default,
     ExecuteAnonymousService.Default,
     ApexLogService.Default,
@@ -259,6 +275,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     services: {
       ApexLogService,
       AliasService,
+      TemplateService,
+      TemplateType,
       ChannelService,
       ChannelServiceLayer,
       ComponentSetService,

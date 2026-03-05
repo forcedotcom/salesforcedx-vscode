@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.0.2",
+  "version": "66.0.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,7 +35,7 @@
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
     "@salesforce/source-tracking": "^7.8.1",
-    "@salesforce/templates": "^66.2.1",
+    "@salesforce/templates": "^66.3.0",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -300,10 +300,6 @@
           "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened && sf:show_shared_commands"
         },
         {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
-        },
-        {
           "command": "sf.folder.diff",
           "when": "explorerResourceIsFolder && sf:project_opened && sf:has_target_org && sf:show_shared_commands"
         },
@@ -428,10 +424,6 @@
         {
           "command": "sf.apex.generate.class",
           "when": "sf:project_opened && sf:show_shared_commands"
-        },
-        {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "sf:project_opened"
         },
         {
           "command": "sf.analytics.generate.template",
@@ -619,10 +611,6 @@
       {
         "command": "sf.apex.generate.class",
         "title": "%apex_generate_class_text%"
-      },
-      {
-        "command": "sf.apex.generate.unit.test.class",
-        "title": "%apex_generate_unit_test_class_text%"
       },
       {
         "command": "sf.analytics.generate.template",
