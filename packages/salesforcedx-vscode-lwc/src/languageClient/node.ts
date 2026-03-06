@@ -6,6 +6,10 @@
  */
 
 import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  ApplyWorkspaceEditRequest,
+  handleApplyEditWithFs
+} from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { buildDocumentSelector, getBaseClientOptions } from './clientOptions';
 
@@ -31,5 +35,10 @@ export const createLanguageClient = (
     documentSelector: buildDocumentSelector(['file'])
   };
 
-  return new LanguageClient('lwcLanguageServer', 'LWC Language Server', serverOptions, clientOptions);
+  const client = new LanguageClient('lwcLanguageServer', 'LWC Language Server', serverOptions, clientOptions);
+
+  // Handle workspace/applyEdit by writing via workspace.fs (no IDE open);
+  client.onRequest(ApplyWorkspaceEditRequest.type, handleApplyEditWithFs);
+
+  return client;
 };
