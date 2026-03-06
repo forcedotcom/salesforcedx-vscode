@@ -513,12 +513,6 @@ export const messages = {
   lib_retrieve_message_title: 'Retrieve Warnings',
   package_id_validation_error: 'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
-  sobjects_refresh: 'SFDX: Refresh SObject Definitions',
-  sobject_refresh_all: 'All SObjects',
-  sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects',
-  sobjects_no_refresh_if_already_active_error_text:
-    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   rename_lightning_component: 'SFDX: Rename Component',
   component_input_dup_error: 'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:
