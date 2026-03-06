@@ -72,4 +72,4 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 }
 
 const getSoqlBuilderLocation = (extensionContext: vscode.ExtensionContext): URI =>
-  Utils.joinPath(extensionContext.extensionUri, SOQL_BUILDER_UI_PATH);
+  Utils.joinPath(extensionContext.extensionUri, ...SOQL_BUILDER_UI_PATH);

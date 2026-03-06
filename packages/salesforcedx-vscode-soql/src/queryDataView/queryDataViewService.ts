@@ -15,8 +15,7 @@ import { Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
-  DATA_VIEW_RESOURCE_ROOTS_PATH,
-  DATA_VIEW_UI_PATH,
+  DATA_VIEW_PATH,
   IMAGES_DIR_NAME,
   QUERY_DATA_VIEW_PANEL_TITLE,
   QUERY_DATA_VIEW_SCRIPT_FILENAME,
@@ -84,7 +83,7 @@ export class QueryDataViewService {
       vscode.ViewColumn.Two,
       {
         localResourceRoots: [
-          Utils.joinPath(extensionUri, DATA_VIEW_RESOURCE_ROOTS_PATH),
+          Utils.joinPath(extensionUri, ...DATA_VIEW_PATH),
           Utils.joinPath(extensionUri, IMAGES_DIR_NAME)
         ],
         enableScripts: true
@@ -164,19 +163,19 @@ export class QueryDataViewService {
   protected async getWebViewContent(webview: vscode.Webview): Promise<string> {
     const { extensionUri } = QueryDataViewService;
     const baseStyleUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
+      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
     );
     const tabulatorStyleUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH, TABULATOR_STYLE_FILENAME)
+      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_STYLE_FILENAME)
     );
     const viewControllerUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME)
+      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME)
     );
     const tabulatorUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH, TABULATOR_SCRIPT_FILENAME)
+      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_SCRIPT_FILENAME)
     );
     const saveIconUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME)
+      Utils.joinPath(extensionUri, ...DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME)
     );
 
     const staticAssets = {

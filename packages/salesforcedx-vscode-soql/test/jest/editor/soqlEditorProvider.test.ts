@@ -116,7 +116,7 @@ describe('SOQLEditorProvider', () => {
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
-      const expectedUri = Utils.joinPath(extensionContext.extensionUri, SOQL_BUILDER_UI_PATH);
+      const expectedUri = Utils.joinPath(extensionContext.extensionUri, ...SOQL_BUILDER_UI_PATH);
 
       expect(mockWebviewPanel.webview.options.enableScripts).toBe(true);
       expect(mockWebviewPanel.webview.options.localResourceRoots).toHaveLength(1);
