@@ -178,6 +178,7 @@
       "env": {
         "VSCODE_DESKTOP": "1"
       },
+      "cache": false,
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
