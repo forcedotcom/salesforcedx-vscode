@@ -30,11 +30,13 @@ import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
-/** Continue debug session (F5). Repeats until session ends (stopOnEntry + run-to-completion). */
+/** Continue debug session (Escape to dismiss overlays, then F5). Repeats until session ends. */
 const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void> => {
   const toolbar = page.locator('.debug-toolbar');
   for (let i = 0; i < maxContinues; i++) {
     await toolbar.waitFor({ state: 'visible', timeout: 30000 });
+    // Dismiss find widget / debug console focus so F5 reaches the debugger
+    await page.keyboard.press('Escape');
     await page.keyboard.press('F5');
     const sessionEnded = await expect(toolbar)
       .not.toBeVisible({ timeout: 45000 })
@@ -182,6 +184,10 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       .filter({ hasText: /TestScript\.apex/ })
       .waitFor({ state: 'visible', timeout: 15000 });
     await openFileByName(page, 'TestScript.apex');
+    // Click the editor to ensure it has focus (not the output panel) —
+    // editorLangId must be apex-anon for the executeDocument when clause
+    const editorArea = page.locator('.editor-instance .view-lines').first();
+    await editorArea.click({ force: true });
 
     await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
 

@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { isMacDesktop } from '../utils/helpers';
+import { isDesktop, isMacDesktop } from '../utils/helpers';
 import {
   EDITOR,
   CONTEXT_MENU,
@@ -52,8 +52,36 @@ const waitForOutputContent = async (page: Page, timeout: number): Promise<boolea
   }
 };
 
+// WORKAROUND: Output channel filter doesn't work on desktop electron for content that streams in
+// after the panel opens. Scroll through the output to find the text instead.
+// Remove this when VS Code fixes desktop output channel filtering for streamed content.
+const waitForOutputChannelTextDesktopWorkaround = async (page: Page, expectedText: string, timeout: number): Promise<void> => {
+  const codeArea = outputPanelCodeArea(page);
+  // force: true — Output actions toolbar overlays the code area and intercepts pointer events
+  await codeArea.click({ force: true });
+  const PAGE_STEPS = 50;
+  await expect(async () => {
+    // Sweep top→bottom then bottom→top so we catch text regardless of where it appears
+    await page.keyboard.press('Control+Home');
+    for (let i = 0; i < PAGE_STEPS; i++) {
+      if ((await getAllOutputText(page)).includes(expectedText)) return;
+      await page.keyboard.press('PageDown');
+    }
+    await page.keyboard.press('Control+End');
+    for (let i = 0; i < PAGE_STEPS; i++) {
+      if ((await getAllOutputText(page)).includes(expectedText)) return;
+      await page.keyboard.press('PageUp');
+    }
+    throw new Error(`Expected "${expectedText}" in output`);
+  }).toPass({ timeout });
+};
+
 /** wait for output channel to contain text. Throws if not found. Assumes output has content. */
 const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, timeout: number): Promise<void> => {
+  if (isDesktop()) {
+    await waitForOutputChannelTextDesktopWorkaround(page, expectedText, timeout);
+    return;
+  }
   const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
   try {
     await expect(async () => {

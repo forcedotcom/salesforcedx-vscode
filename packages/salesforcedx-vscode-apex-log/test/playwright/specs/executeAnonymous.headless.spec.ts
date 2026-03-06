@@ -12,7 +12,6 @@ import {
   executeCommandWithCommandPalette,
   EDITOR_WITH_URI,
   NOTIFICATION_LIST_ITEM,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -70,26 +69,8 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
 
-    // Select All via command palette (workbench click in openCommandPalette is fine here —
-    // editor.action.selectAll targets the active editor regardless of transient focus)
     await executeCommandWithCommandPalette(page, 'Select All');
-
-    // Open command palette directly with F1 — NOT executeCommandWithCommandPalette,
-    // because openCommandPalette clicks the workbench which clears the editor selection
-    await page.keyboard.press('F1');
-    const widget = page.locator(QUICK_INPUT_WIDGET);
-    await expect(widget).toBeVisible({ timeout: 5000 });
-    const input = widget.locator('input.input');
-    await input.fill(`>${packageNls['apexLog.command.executeSelection']}`);
-    const commandRow = widget
-      .locator(QUICK_INPUT_LIST_ROW)
-      .filter({ hasText: new RegExp(`^${packageNls['apexLog.command.executeSelection'].replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}`) })
-      .first();
-    await expect(commandRow).toBeAttached({ timeout: 5000 });
-    await commandRow.evaluate(el => {
-      el.scrollIntoView({ block: 'center', behavior: 'instant' });
-      (el as HTMLElement).click();
-    });
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeSelection']);
 
     await expect(page.locator(TAB).filter({ hasText: /debug\.log/ })).toBeVisible({ timeout: 60_000 });
     await saveScreenshot(page, 'exec-selection.success.png');

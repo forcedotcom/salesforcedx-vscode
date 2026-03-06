@@ -24,7 +24,8 @@ import {
   validateNoCriticalErrors,
   ensureSecondarySideBarHidden,
   QUICK_INPUT_WIDGET,
-  QUICK_INPUT_LIST_ROW
+  QUICK_INPUT_LIST_ROW,
+  WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 
@@ -42,6 +43,7 @@ const runRefreshAndVerify = async (
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
   await clearOutputChannel(page);
+  await page.locator(WORKBENCH).click();
 
   await executeCommandWithCommandPalette(page, packageNls.sobjects_refresh);
 
