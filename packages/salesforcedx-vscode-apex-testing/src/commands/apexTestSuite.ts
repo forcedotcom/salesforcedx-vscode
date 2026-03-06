@@ -6,6 +6,7 @@
  */
 
 import { TestService } from '@salesforce/apex-node';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
@@ -19,8 +20,7 @@ import {
   LibraryCommandletExecutor,
   ParametersGatherer,
   SFDX_FOLDER,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '../utils/commandletHelpers';
 import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
 import { getTestController } from '../views/testController';
@@ -125,7 +125,7 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
 
 export const apexTestSuiteAdd = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new TestSuiteBuilder(),
     new ApexLibraryTestSuiteBuilder('apex_test_suite_add_text')
   );
@@ -139,7 +139,7 @@ export const apexTestSuiteAdd = async () => {
 
 export const apexTestSuiteCreate = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new TestSuiteCreator(),
     new ApexLibraryTestSuiteBuilder('apex_test_suite_create_text')
   );
@@ -153,7 +153,7 @@ export const apexTestSuiteCreate = async () => {
 
 export const apexTestSuiteRun = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new TestSuiteSelector(),
     new ApexLibraryTestRunExecutor()
   );

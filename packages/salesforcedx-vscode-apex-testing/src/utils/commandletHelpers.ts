@@ -31,27 +31,17 @@ export type ParametersGatherer<T> = {
   gather: () => Promise<Response<T>>;
 };
 
-export type PreconditionChecker = {
+type PreconditionChecker = {
   check: () => Promise<boolean>;
 };
 
-export type CommandletExecutor<T> = {
+type CommandletExecutor<T> = {
   execute: (response: ContinueResponse<T>) => Promise<void> | void;
 };
 
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
   public async gather(): Promise<Response<{}>> {
     return { type: 'CONTINUE', data: {} };
-  }
-}
-
-export class SfWorkspaceChecker implements PreconditionChecker {
-  public async check(): Promise<boolean> {
-    if (!hasRootWorkspace()) {
-      void notificationService.showErrorMessage('No workspace folder found');
-      return false;
-    }
-    return true;
   }
 }
 
