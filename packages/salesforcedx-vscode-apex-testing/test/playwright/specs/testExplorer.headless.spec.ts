@@ -101,6 +101,8 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await testExplorerPanel.waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step.explorer-visible.png');
     await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
+    // Discovery clears and rebuilds the tree async; wait for rebuild to settle
+    await page.waitForTimeout(1000);
     await saveScreenshot(page, 'step.tests-refreshed.png');
     // Wait for discovery to populate the tree (top-level "Local Namespace" node)
     await expect(testExplorerPanel.getByText(LOCAL_NAMESPACE_LABEL)).toBeVisible({ timeout: 60_000 });

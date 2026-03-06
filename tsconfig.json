@@ -11,9 +11,6 @@
       "path": "packages/salesforcedx-apex-replay-debugger"
     },
     {
-      "path": "packages/salesforcedx-sobjects-faux-generator"
-    },
-    {
       "path": "packages/salesforcedx-utils"
     },
     {

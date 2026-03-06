@@ -6,9 +6,7 @@
     "strict": false,
     "noImplicitAny": false,
     "paths": {
-      "@salesforce/soql-model/*": [
-        "./src/soql-model/*"
-      ]
+      "@salesforce/soql-model/*": ["./src/soql-model/*"]
     }
   },
   "exclude": [
@@ -29,25 +27,28 @@
   ],
   "references": [
     {
-      "path": "../salesforcedx-sobjects-faux-generator"
+      "path": "../effect-ext-utils"
+    },
+    {
+      "path": "../salesforcedx-utils"
     },
     {
       "path": "../salesforcedx-utils-vscode"
     },
     {
-      "path": "../soql-common"
-    },
-    {
       "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../salesforcedx-utils"
     },
     {
       "path": "../salesforcedx-vscode-core"
     },
     {
       "path": "../playwright-vscode-ext"
+    },
+    {
+      "path": "../salesforcedx-vscode-services"
+    },
+    {
+      "path": "../soql-common"
     }
   ]
 }

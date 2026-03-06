@@ -65,7 +65,8 @@
       "dependencies": [
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-services:compile"
+        "../salesforcedx-vscode-services:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -245,6 +246,10 @@
     },
     "menus": {
       "commandPalette": [
+        {
+          "command": "sf.internal.refreshsobjects",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
         {
           "command": "sf.metadata.source.diff",
           "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
@@ -459,6 +464,10 @@
       {
         "command": "sf.metadata.source.diff",
         "title": "%diff_source_against_org_text%"
+      },
+      {
+        "command": "sf.internal.refreshsobjects",
+        "title": "%sobjects_refresh%"
       }
     ]
   }

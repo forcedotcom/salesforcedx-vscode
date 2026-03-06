@@ -40,6 +40,7 @@
     "@opentelemetry/sdk-trace-node": "2.2.0",
     "@opentelemetry/sdk-trace-web": "2.2.0",
     "@salesforce/core": "^8.23.4",
+    "@salesforce/templates": "^66.3.3",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
@@ -93,7 +94,8 @@
       "dependencies": [
         "build:icons",
         "generate-types",
-        "../salesforcedx-vscode-i18n:compile"
+        "../salesforcedx-vscode-i18n:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -146,7 +148,8 @@
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "out/**",
-        "../../.esbuild-web-extra-settings.json"
+        "../../.esbuild-web-extra-settings.json",
+        "node_modules/@salesforce/templates/lib/**"
       ],
       "output": [
         "dist"
@@ -270,22 +273,22 @@
           "default": false,
           "description": "%configuration.protectedOrg.description%"
         },
-        "salesforcedx-vscode-code-builder-web.instanceUrl": {
+        "salesforce-web-console.instanceUrl": {
           "type": "string",
           "default": "",
           "description": "%configuration.instanceUrl.description%"
         },
-        "salesforcedx-vscode-code-builder-web.accessToken": {
+        "salesforce-web-console.accessToken": {
           "type": "string",
           "default": "",
           "description": "%configuration.accessToken.description%"
         },
-        "salesforcedx-vscode-code-builder-web.apiVersion": {
+        "salesforce-web-console.apiVersion": {
           "type": "string",
           "default": "64.0",
           "description": "%configuration.apiVersion.description%"
         },
-        "salesforcedx-vscode-code-builder-web.retrieveOnLoad": {
+        "salesforce-web-console.retrieveOnLoad": {
           "type": "string",
           "default": "",
           "description": "%configuration.retrieveOnLoad.description%"

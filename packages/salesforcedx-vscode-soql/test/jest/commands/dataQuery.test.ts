@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-jest.mock('../../../src/sf', () => ({
-  channelService: { appendLine: jest.fn() }
+jest.mock('../../../src/services/channel', () => ({
+  channelService: { appendLine: jest.fn() },
+  OUTPUT_CHANNEL: {}
 }));
 jest.mock('../../../src/messages', () => ({
   nls: {
@@ -56,7 +57,7 @@ import {
   convertQueryResultToCSV,
   formatErrorMessage
 } from '../../../src/commands/dataQuery';
-import { channelService } from '../../../src/sf';
+import { channelService } from '../../../src/services/channel';
 
 describe('DataQuery Pure Functions', () => {
   describe('formatFieldValueForDisplay', () => {

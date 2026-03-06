@@ -27,6 +27,8 @@ jobs:
       - run: node --version
       - run: npm run compile
       - run: npm run vscode:package
+      - name: Validate VSIX OPC Part URIs
+        run: node scripts/validate-vsix-opc.mjs ./packages
       - name: Stage Artifacts
         run: |
           mkdir extensions

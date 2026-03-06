@@ -35,8 +35,8 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/core": "^8.23.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "*",
+    "@salesforce/effect-ext-utils": "*",
+    "effect": "^3.19.14",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
     "@salesforce/soql-language-server": "0.7.1",
@@ -48,6 +48,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/core": "^8.23.2",
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.3.0",
@@ -71,10 +72,12 @@
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
     "rxjs": "^7.8.2",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -98,18 +101,24 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../soql-common:compile",
-        "../salesforcedx-sobjects-faux-generator:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-core:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "../soql-common/out/**",
+        "../salesforcedx-utils-vscode/out/**",
+        "../salesforcedx-vscode-i18n/out/**",
+        "../salesforcedx-utils/out/**",
+        "../salesforcedx-vscode-core/out/**",
+        "../salesforcedx-vscode-services/out/**"
       ],
       "output": [
         "out/**",
