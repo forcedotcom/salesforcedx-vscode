@@ -381,7 +381,7 @@ jest.mock('vscode-languageserver', () => {
 describe('lwcServerNode', () => {
   // Initialize documents before running tests
   beforeAll(async () => {
-    await setupDocuments();
+    setupDocuments();
   });
 
   describe('new', () => {
@@ -442,7 +442,7 @@ describe('lwcServerNode', () => {
             }
           };
 
-          await server.onInitialize(initializeParams);
+          server.onInitialize(initializeParams);
           await setupServerForTest([jsDocument]);
 
           const doc = server.documents.get(jsUri);
@@ -474,7 +474,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         const completions = await server.onCompletion(params);
         expect(completions).toBeUndefined();
       });
@@ -488,7 +488,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await setupServerForTest([document]);
         const completions = await server.onCompletion(params);
         const labels = completions?.items.map(item => item.label) ?? [];
@@ -512,7 +512,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await setupServerForTest([document]);
         const completions = await server.onCompletion(params);
         const labels = completions?.items.map(item => item.label) ?? [];
@@ -530,7 +530,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await setupServerForTest([document]);
         const completions = await server.onCompletion(params);
         const labels = completions?.items.map(item => item.label) ?? [];
@@ -549,7 +549,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await setupServerForTest([auraDocument]);
         const completions = await server.onCompletion(params);
         const labels = completions?.items.map(item => item.label) ?? [];
@@ -569,7 +569,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await setupServerForTest([document]);
         const hover: Hover | null = await server.onHover(params);
         expect(hover).not.toBeNull();
@@ -587,7 +587,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await server.componentIndexer.init();
         const hover: Hover | null = await server.onHover(params);
         // Note: hover might be null if test_component isn't found or doesn't have the expected structure
@@ -610,7 +610,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await setupServerForTest([hoverDocument]);
         const hover: Hover | null = await server.onHover(params);
         expect(hover).not.toBeNull();
@@ -631,7 +631,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await server.componentIndexer.init();
         const locations: Location[] = server.onDefinition(params);
         const uris = locations.map(item => item.uri);
@@ -649,7 +649,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await server.componentIndexer.init();
         const [location] = server.onDefinition(params);
         expect(location.uri).toContain('todo/todo.js');
@@ -666,7 +666,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await server.componentIndexer.init();
         const [location]: Location[] = server.onDefinition(params);
         expect(location.range.start.line).toEqual(14);
@@ -682,7 +682,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await server.componentIndexer.init();
         const [location]: Location[] = server.onDefinition(params);
         expect(location.uri).toContain('todo/todo.html');
@@ -788,7 +788,7 @@ describe('lwcServerNode', () => {
       });
 
       it('skip tsconfig initialization when salesforcedx-vscode-lwc.preview.typeScriptSupport = false', async () => {
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
 
         const provider = server.fileSystemProvider;
         expect(provider.fileExists(baseTsconfigPath) ?? server.fileSystemProvider.fileExists(baseTsconfigPath)).toBe(
@@ -806,7 +806,7 @@ describe('lwcServerNode', () => {
 
         // Enable feature flag
         mockTypeScriptSupportConfig = true;
-        await testServer.onInitialize(initializeParams);
+        testServer.onInitialize(initializeParams);
         // Populate fileSystemProvider and trigger delayed initialization
         await setupServerForTest([], testServer);
 
@@ -839,7 +839,7 @@ describe('lwcServerNode', () => {
         // Enable feature flag
         mockTypeScriptSupportConfig = true;
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await setupServerForTest([], server);
 
         // Wait for the fire-and-forget promise to complete (configureProjectForTs -> updateSfdxTsConfigPath)
@@ -1336,7 +1336,7 @@ describe('lwcServerNode', () => {
     };
 
     it('Should not throw during intialization', async () => {
-      await server.onInitialize(initializeParams);
+      server.onInitialize(initializeParams);
     });
   });
 
@@ -1368,7 +1368,7 @@ describe('lwcServerNode', () => {
     };
 
     it('Should not throw during intialization', async () => {
-      await server.onInitialize(initializeParams);
+      server.onInitialize(initializeParams);
     });
   });
 });
