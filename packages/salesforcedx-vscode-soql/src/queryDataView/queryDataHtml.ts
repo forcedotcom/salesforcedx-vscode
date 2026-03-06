@@ -9,7 +9,7 @@ import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
-import { DATA_VIEW_UI_PATH, HTML_FILE } from '../constants';
+import { DATA_VIEW_PATH, HTML_FILE } from '../constants';
 import { HtmlUtils } from '../editor/htmlUtils';
 import { getSoqlRuntime } from '../services/extensionProvider';
 
@@ -20,7 +20,7 @@ export const getHtml = async (
 ): Promise<string> => {
   const { baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri } = assets;
 
-  const dataViewDistUri = Utils.joinPath(extensionUri, DATA_VIEW_UI_PATH);
+  const dataViewDistUri = Utils.joinPath(extensionUri, ...DATA_VIEW_PATH);
   let html = await getSoqlRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* getServicesApi;
