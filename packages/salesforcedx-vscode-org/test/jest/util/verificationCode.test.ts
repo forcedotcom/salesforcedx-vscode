@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { generateVerificationCode } from '../../../../src/commands/auth/orgLoginWeb';
+import { generateVerificationCode } from '../../../src/util/verificationCode';
 
 describe('generateVerificationCode', () => {
   it('should return cc0a for test_token (matches server-side test vector)', () => {

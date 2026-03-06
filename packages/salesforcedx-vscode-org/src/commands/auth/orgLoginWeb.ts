@@ -14,15 +14,12 @@ import {
   workspaceUtils,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as crypto from 'node:crypto';
 import * as vscode from 'vscode';
 import { ORG_LOGIN_WEB } from '../../constants';
 import { nls } from '../../messages';
 import { updateConfigAndStateAggregators } from '../../util/orgUtil';
+import { showVerificationCodeIfNeeded } from '../../util/verificationCode';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
-
-export const generateVerificationCode = (token: string): string =>
-  crypto.createHash('sha256').update(token).digest('hex').slice(0, 4);
 
 class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
@@ -51,13 +48,7 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
 
-    const codeBuilderState = process.env.CODE_BUILDER_STATE;
-    if (codeBuilderState) {
-      const code = generateVerificationCode(codeBuilderState);
-      void vscode.window.showInformationMessage(
-        nls.localize('org_login_web_verification_code_message', code)
-      );
-    }
+    showVerificationCodeIfNeeded();
 
     // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
