@@ -210,6 +210,7 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],

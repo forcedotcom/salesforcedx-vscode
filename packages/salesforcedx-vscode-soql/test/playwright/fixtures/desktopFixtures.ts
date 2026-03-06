@@ -9,5 +9,5 @@ import { createDesktopTest } from '@salesforce/playwright-vscode-ext';
 
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-core']
+  additionalExtensionDirs: ['salesforcedx-vscode-core', 'salesforcedx-vscode-metadata']
 });
