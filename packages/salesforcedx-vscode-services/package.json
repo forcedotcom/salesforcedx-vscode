@@ -94,7 +94,8 @@
       "dependencies": [
         "build:icons",
         "generate-types",
-        "../salesforcedx-vscode-i18n:compile"
+        "../salesforcedx-vscode-i18n:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
