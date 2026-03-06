@@ -303,7 +303,7 @@ export const writeTestResultJson = async (result: TestResult, outputDir: string 
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const outputDirUri = yield* api.services.FsService.toUri(outputDir);
       const jsonFileUri = Utils.joinPath(outputDirUri, jsonFilename);
-      yield* api.services.FsService.writeFile(jsonFileUri, jsonContent);
+      yield* api.services.FsService.safeWriteFile(jsonFileUri, jsonContent);
     }).pipe(Effect.provide(AllServicesLayer))
   );
 };

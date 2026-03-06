@@ -53,7 +53,6 @@
   "use_legacy_org_browser_description": "Use the legacy Org Browser. When disabled, uses the new Org Browser extension.",
   "use_metadata_extension_commands_description": "Use the metadata extension for deploy, retrieve, and source tracking commands instead of the core extension.",
   "show_cli_success_msg_description": "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
-  "sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "telemetry_enabled_description": "Specifies whether to enable Salesforce telemetry. Even when enabled, still abides by the overall `telemetry.enableTelemetry` vscode setting.",
   "view_all_changes_text": "SFDX: View All Changes (Local and in Default Org)",
   "view_local_changes_text": "SFDX: View Local Changes",

@@ -136,12 +136,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   source_diff_folder_title: '%s - ファイル差分',
   lib_retrieve_result_title: '取得されたソース',
   lib_retrieve_message_title: '取得警告',
-  sobjects_refresh: 'SFDX: SObject 定義を更新',
-  sobject_refresh_all: 'すべての SObject',
-  sobject_refresh_custom: 'カスタム SObject',
-  sobject_refresh_standard: '標準 SObject',
-  sobjects_no_refresh_if_already_active_error_text:
-    'sObject 定義の更新が既に進行中です。プロセスを再開する必要がある場合は、実行中のタスクをキャンセルしてください。',
   component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています',
   rename_component_input_dup_file_name_error:
     'このファイル名は現在のコンポーネントディレクトリで既に使用されています。別の名前を選択して再試行してください。',

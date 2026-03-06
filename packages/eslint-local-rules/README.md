@@ -34,6 +34,13 @@ The rule allows template literals that contain `nls.localize()` calls.
 
 Enforces that user-facing strings in `package.json` `contributes` sections use i18n placeholders (`%key%`) and that those keys exist in the sibling `package.nls.json` file.
 
+### package-json-extension-icon
+
+Validates published VS Code extensions (packages with `name` starting with `salesforcedx-vscode`):
+
+- Must have top-level `icon` field
+- Icon path must exist on disk when specified
+
 ### package-json-icon-paths
 
 Validates icon paths in `package.json` `contributes` sections:
@@ -90,6 +97,7 @@ export default [
     },
     rules: {
       'local/package-json-i18n-descriptions': 'error',
+      'local/package-json-extension-icon': 'error',
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error'
