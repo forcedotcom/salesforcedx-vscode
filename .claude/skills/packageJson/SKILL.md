@@ -53,6 +53,7 @@ The `packaging` property is legacy vsce packaging script (modifying pjson during
 there are some rules to enforce good package.json
 
 - **`package-json-i18n-descriptions`**: Requires `%key%` placeholders (not hardcoded strings) in commands, config, debuggers, views, walkthroughs. Validates keys exist in `package.nls.json`
+- **`package-json-extension-icon`**: Published VS Code extensions (salesforcedx-vscode*) must have top-level `icon`; icon path must exist when specified
 - **`package-json-icon-paths`**: Validates `commands[*].icon` and `viewsContainers.activitybar[*].icon` have both `light`/`dark` and files exist
 - **`package-json-command-refs`**: Menu commands must reference defined commands; reports orphaned commands
 - **`package-json-view-refs`**: View IDs must be referenced in menu `when` clauses or `viewsWelcome`; reports orphaned views
