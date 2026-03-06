@@ -10,7 +10,6 @@ import { SFDX_PROJECT_FILE } from '../constants';
 import { fileOrFolderExists } from '../helpers/fs';
 import { nls } from '../messages/messages';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
-import { NotificationService } from './notificationService';
 
 export type PreconditionChecker = {
   check(): Promise<boolean> | boolean;
@@ -27,14 +26,3 @@ export const isSalesforceProjectOpened = async (): Promise<
   }
   return { result: true };
 };
-
-export class SfWorkspaceChecker implements PreconditionChecker {
-  public async check(): Promise<boolean> {
-    const result = await isSalesforceProjectOpened();
-    if (!result.result) {
-      NotificationService.getInstance().showErrorMessage(result.message);
-      return false;
-    }
-    return true;
-  }
-}
