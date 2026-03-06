@@ -20,7 +20,8 @@ import {
   waitForOutputChannelText,
   isMacDesktop,
   validateNoCriticalErrors,
-  saveScreenshot
+  saveScreenshot,
+  WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
@@ -81,6 +82,8 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   if (!isMacDesktop()) {
     await test.step('deploy via editor context menu', async () => {
       await clearOutputChannel(page);
+      // Refocus editor so command palette shows deploy (when clause requires editorIsOpen)
+      await page.locator(WORKBENCH).click({ timeout: 5000 });
       await verifyCommandExists(page, packageNls.deploy_this_source_text, 120_000);
       await executeEditorContextMenuCommand(page, packageNls.deploy_this_source_text, `${className}.cls`);
       await waitForOutputChannelText(page, {
@@ -141,7 +144,8 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   if (!isMacDesktop()) {
     await test.step('retrieve via editor context menu', async () => {
       await clearOutputChannel(page);
-      // make sure the command is available, ie, context has been set after the last retrieve
+      // Refocus editor so command palette shows retrieve (when clause requires editorIsOpen)
+      await page.locator(WORKBENCH).click({ timeout: 5000 });
       await verifyCommandExists(page, packageNls.retrieve_this_source_text, 120_000);
       await executeEditorContextMenuCommand(page, packageNls.retrieve_this_source_text, `${className}.cls`);
       await waitForOutputChannelText(page, {
