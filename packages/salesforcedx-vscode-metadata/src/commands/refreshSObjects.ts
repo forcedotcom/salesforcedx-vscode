@@ -1,0 +1,133 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import type { SObjectCategory, SObjectRefreshSource } from '../sobjects/types/general';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Option from 'effect/Option';
+import * as vscode from 'vscode';
+import { CORE_EXTENSION_ID } from '../constants';
+import { nls } from '../messages';
+import { AllServicesLayer } from '../services/extensionProvider';
+import { FAILURE_CODE, SUCCESS_CODE } from '../sobjects/constants';
+import { getMinNames, getMinObjects } from '../sobjects/minObjectRetriever';
+import { streamAndWriteSobjectArtifacts, writeSobjectArtifacts } from './sobjectArtifactWriter';
+
+/** Command ID for cross-extension refresh completion notification */
+export const SOBJECT_REFRESH_COMPLETE_CMD = 'sf.internal.sobjectrefresh.complete';
+
+/**
+ * Single persistent runtime for artifact writing — built once on first refresh,
+ * reused for all subsequent invocations to avoid rebuilding TransmogrifierService
+ * and other stateful services
+ */
+const createArtifactRuntime = () => ManagedRuntime.make(AllServicesLayer);
+// eslint-disable-next-line functional/no-let
+let _artifactRuntime: ReturnType<typeof createArtifactRuntime> | undefined;
+const getArtifactRuntime = () => {
+  _artifactRuntime ??= createArtifactRuntime();
+  return _artifactRuntime;
+};
+
+const refreshSemaphore = Effect.runSync(Effect.makeSemaphore(1));
+
+const gatherCategory = () =>
+  Effect.promise(async () => {
+    const options = [
+      nls.localize('sobject_refresh_all'),
+      nls.localize('sobject_refresh_custom'),
+      nls.localize('sobject_refresh_standard')
+    ];
+    const choice = await vscode.window.showQuickPick(options);
+    if (!choice) return undefined;
+    if (choice === options[1]) return 'CUSTOM' as const;
+    if (choice === options[2]) return 'STANDARD' as const;
+    return 'ALL' as const;
+  });
+
+const executeRefresh = Effect.fn('executeRefresh')(
+  function* (category: SObjectCategory, source: SObjectRefreshSource | undefined) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const channelService = yield* api.services.ChannelService;
+
+    yield* channelService.appendToChannel(`Starting ${nls.localize('sobjects_refresh')}`);
+
+    const progressLocation =
+      source === 'manual' ? vscode.ProgressLocation.Notification : vscode.ProgressLocation.Window;
+
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+
+    const result = yield* Effect.promise(() =>
+      vscode.window.withProgress(
+        { title: nls.localize('sobjects_refresh'), location: progressLocation, cancellable: true },
+        (progress, token) => {
+          cancellationTokenSource.dispose();
+          const artifactEffect =
+            source === 'startupmin'
+              ? writeSobjectArtifacts({
+                  cancellationToken: token,
+                  sobjects: getMinObjects(),
+                  sobjectNames: getMinNames(),
+                  progress
+                })
+              : streamAndWriteSobjectArtifacts({
+                  cancellationToken: token,
+                  category,
+                  source: source ?? 'manual',
+                  progress
+                });
+          return getArtifactRuntime().runPromise(artifactEffect);
+        }
+      )
+    );
+
+    const { standardObjects = 0, customObjects = 0 } = result.data;
+    if (standardObjects > 0) {
+      yield* channelService.appendToChannel(
+        nls.localize('processed_sobjects_length_text', standardObjects, 'Standard')
+      );
+    }
+    if (customObjects > 0) {
+      yield* channelService.appendToChannel(nls.localize('processed_sobjects_length_text', customObjects, 'Custom'));
+    }
+
+    if (vscode.extensions.getExtension(CORE_EXTENSION_ID)) {
+      const exitCode = result.data.cancelled ? FAILURE_CODE : SUCCESS_CODE;
+      yield* Effect.promise(() => vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode }));
+    }
+  },
+  Effect.tapError(error =>
+    Effect.gen(function* () {
+      const msg = error instanceof Error ? error.message : String(error);
+      yield* Effect.promise(() => vscode.window.showErrorMessage(msg));
+      if (vscode.extensions.getExtension(CORE_EXTENSION_ID)) {
+        yield* Effect.promise(() =>
+          vscode.commands.executeCommand(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: FAILURE_CODE })
+        );
+      }
+    })
+  )
+);
+
+const runRefresh = Effect.fn('runRefresh')(function* (source?: SObjectRefreshSource) {
+  if (!source || source === 'manual') {
+    const picked = yield* gatherCategory();
+    if (!picked) return;
+    yield* executeRefresh(picked, source);
+  } else {
+    yield* executeRefresh('ALL', source);
+  }
+});
+
+export const refreshSObjectsCommand = Effect.fn('refreshSObjectsCommand')(function* (source?: SObjectRefreshSource) {
+  const result = yield* refreshSemaphore.withPermitsIfAvailable(1)(runRefresh(source));
+  if (Option.isNone(result)) {
+    yield* Effect.promise(() =>
+      vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'))
+    );
+  }
+});

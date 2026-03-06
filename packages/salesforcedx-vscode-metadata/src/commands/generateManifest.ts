@@ -63,8 +63,7 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
       return;
     }
 
-    // Write the manifest file (FsService.writeFile automatically creates directories)
-    yield* fsService.writeFile(manifestFileUri, packageXML);
+    yield* api.services.FsService.safeWriteFile(manifestFileUri, packageXML);
     yield* channelService.appendToChannel(`Manifest file created: ${manifestFileUri.toString()}`);
 
     yield* fsService.showTextDocument(manifestFileUri);

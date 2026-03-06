@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
+import type { Connection } from '@salesforce/core';
 import {
   CancelResponse,
   Column,
@@ -22,7 +22,8 @@ import {
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { channelService, OUTPUT_CHANNEL, workspaceContext } from '../sf';
+import { channelService, OUTPUT_CHANNEL } from '../services/channel';
+import { getConnection } from '../services/org';
 
 type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
@@ -39,8 +40,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
     const { query, api } = response.data;
 
     try {
-      // Get connection from workspace context
-      const connection = await workspaceContext.getConnection();
+      const connection = await getConnection();
 
       // Execute query using the appropriate API
       const queryResult = await runSoqlQuery(connection, query, api === 'TOOLING');

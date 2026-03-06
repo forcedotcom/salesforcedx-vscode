@@ -10,15 +10,19 @@ import { defineConfig } from '@playwright/test';
 type DesktopConfigOptions = {
   /** Test directory relative to extension root (default: './test/playwright/specs') */
   testDir?: string;
+  /** Number of parallel workers (default: unset unless E2E_SEQUENTIAL) */
+  workers?: number;
+  /** Run tests in parallel (default: !E2E_SEQUENTIAL) */
+  fullyParallel?: boolean;
 };
 
 /** Creates a standardized Playwright desktop (Electron) config for VS Code extension testing */
 export const createDesktopConfig = (options: DesktopConfigOptions = {}) =>
   defineConfig({
     testDir: options.testDir ?? './test/playwright/specs',
-    fullyParallel: !process.env.E2E_SEQUENTIAL,
+    fullyParallel: options.fullyParallel ?? !process.env.E2E_SEQUENTIAL,
     forbidOnly: !!process.env.CI,
-    ...(process.env.E2E_SEQUENTIAL ? { workers: 1 } : {}), // Sequential when E2E_SEQUENTIAL=1 (used for retry step)
+    ...(options.workers ? { workers: options.workers } : process.env.E2E_SEQUENTIAL ? { workers: 1 } : {}),
     reporter: process.env.CI
       ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit-desktop.xml' }]]
       : [['html', { open: 'never' }], ['list']],

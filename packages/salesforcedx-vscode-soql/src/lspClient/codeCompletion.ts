@@ -8,46 +8,37 @@
 // leaving assertions as is.
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SoqlItemContext } from '@salesforce/soql-language-server';
+import * as Effect from 'effect/Effect';
+import type { SObject, SObjectField } from 'salesforcedx-vscode-services';
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import type { Middleware } from 'vscode-languageclient/node';
 
+import { getSoqlRuntime } from '../services/extensionProvider';
+import { listSObjectNamesEffect } from '../services/sObjects';
 import { telemetryService } from '../telemetry';
-import { FileSystemOrgDataSource, JsforceOrgDataSource, OrgDataSource, SObject, SObjectField } from './orgMetadata';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
 export const middleware: Middleware = {
-  // The SOQL LSP server may include special completion items as "placeholders" for
-  // the client to expand with information from the users' current Salesforce Org.
-  // We do that here as middleware, transforming the server response before passing
-  // it up to VSCode.
   provideCompletionItem: async (document, position, context, token, next) => {
     const items = (await next(document, position, context, token)) as ProtocolCompletionItem[];
-
-    const dataSource: OrgDataSource = document.uri.scheme.includes('embedded')
-      ? new FileSystemOrgDataSource()
-      : new JsforceOrgDataSource();
-
-    return expandPlaceholders(await filterByContext(items, dataSource), dataSource);
+    return expandPlaceholders(await filterByContext(items));
   }
 };
 
-const filterByContext = async (
-  items: ProtocolCompletionItem[],
-  dataSource: OrgDataSource
-): Promise<ProtocolCompletionItem[]> => {
+const filterByContext = async (items: ProtocolCompletionItem[]): Promise<ProtocolCompletionItem[]> => {
   const filteredItems: ProtocolCompletionItem[] = [];
 
   for (const item of items) {
-    const labelString = isString(item.label) ? item.label : item.label.label;
     if (
-      !EXPANDABLE_ITEM_PATTERN.test(labelString) &&
+      !EXPANDABLE_ITEM_PATTERN.test(getLabelString(item)) &&
       item?.data?.soqlContext?.sobjectName &&
       item?.data?.soqlContext?.fieldName
     ) {
-      const objMetadata = await safeRetrieveSObject(dataSource, item.data.soqlContext.sobjectName);
+      const objMetadata = await safeRetrieveSObject(item.data.soqlContext.sobjectName);
       if (objMetadata) {
         const fieldMeta = objMetadata.fields.find(field => field.name === item.data.soqlContext.fieldName);
         if (fieldMeta && !objectFieldMatchesSOQLContext(fieldMeta, item.data.soqlContext)) {
@@ -62,23 +53,20 @@ const filterByContext = async (
   return filteredItems;
 };
 
-const isString = (x: any): x is string => typeof x === 'string';
+const getLabelString = (item: ProtocolCompletionItem): string =>
+  typeof item.label === 'string' ? item.label : item.label.label;
 
-const expandPlaceholders = async (
-  items: ProtocolCompletionItem[],
-  dataSource: OrgDataSource
-): Promise<ProtocolCompletionItem[]> => {
+const expandPlaceholders = async (items: ProtocolCompletionItem[]): Promise<ProtocolCompletionItem[]> => {
   const expandedItems = [...items];
 
   for (const [index, item] of items.entries()) {
-    const labelString = isString(item.label) ? item.label : item.label.label;
-    const parsedCommand = labelString.match(EXPANDABLE_ITEM_PATTERN);
+    const parsedCommand = getLabelString(item).match(EXPANDABLE_ITEM_PATTERN);
     if (parsedCommand) {
       const commandName = parsedCommand[1];
 
       const handler = expandFunctions[commandName];
       if (handler) {
-        expandedItems.splice(index, 1, ...(await handler(item?.data?.soqlContext ?? {}, dataSource)));
+        expandedItems.splice(index, 1, ...(await handler(item?.data?.soqlContext ?? {})));
       } else {
         telemetryService.sendException(
           'SOQLLanguageServerException',
@@ -92,30 +80,24 @@ const expandPlaceholders = async (
 };
 
 const expandFunctions: {
-  [key: string]: (soqlContext: SoqlItemContext, dataSource: OrgDataSource) => Promise<ProtocolCompletionItem[]>;
+  [key: string]: (soqlContext: SoqlItemContext) => Promise<ProtocolCompletionItem[]>;
 } = {
-  SOBJECTS_PLACEHOLDER: async (
-    soqlContext: SoqlItemContext,
-    dataSource: OrgDataSource
-  ): Promise<ProtocolCompletionItem[]> => {
+  SOBJECTS_PLACEHOLDER: async (): Promise<ProtocolCompletionItem[]> => {
     try {
-      const sobjectItems = (await dataSource.retrieveSObjectsList()).map(objName => {
+      const sobjectNames = await getSoqlRuntime().runPromise(listSObjectNamesEffect);
+
+      return sobjectNames.map(objName => {
         const item = new ProtocolCompletionItem(objName);
         item.kind = CompletionItemKind.Class;
         return item;
       });
-
-      return sobjectItems;
     } catch {
       return [];
     }
   },
 
-  SOBJECT_FIELDS_PLACEHOLDER: async (
-    soqlContext: SoqlItemContext,
-    dataSource: OrgDataSource
-  ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await safeRetrieveSObject(dataSource, soqlContext.sobjectName);
+  SOBJECT_FIELDS_PLACEHOLDER: async (soqlContext: SoqlItemContext): Promise<ProtocolCompletionItem[]> => {
+    const objMetadata = await safeRetrieveSObject(soqlContext.sobjectName);
     if (!objMetadata) {
       return [];
     }
@@ -129,11 +111,8 @@ const expandFunctions: {
     return sobjectFields;
   },
 
-  RELATIONSHIPS_PLACEHOLDER: async (
-    soqlContext: SoqlItemContext,
-    dataSource: OrgDataSource
-  ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await safeRetrieveSObject(dataSource, soqlContext.sobjectName);
+  RELATIONSHIPS_PLACEHOLDER: async (soqlContext: SoqlItemContext): Promise<ProtocolCompletionItem[]> => {
+    const objMetadata = await safeRetrieveSObject(soqlContext.sobjectName);
     if (!objMetadata) {
       return [];
     }
@@ -157,11 +136,8 @@ const expandFunctions: {
     return sobjectFields;
   },
 
-  RELATIONSHIP_FIELDS_PLACEHOLDER: async (
-    soqlContext: SoqlItemContext,
-    dataSource: OrgDataSource
-  ): Promise<ProtocolCompletionItem[]> => {
-    const parentObject = await safeRetrieveSObject(dataSource, soqlContext.sobjectName);
+  RELATIONSHIP_FIELDS_PLACEHOLDER: async (soqlContext: SoqlItemContext): Promise<ProtocolCompletionItem[]> => {
+    const parentObject = await safeRetrieveSObject(soqlContext.sobjectName);
     if (!parentObject) {
       return [];
     }
@@ -174,7 +150,7 @@ const expandFunctions: {
       return [];
     }
 
-    const objMetadata = await safeRetrieveSObject(dataSource, relationship?.childSObject);
+    const objMetadata = await safeRetrieveSObject(relationship?.childSObject);
     if (!objMetadata) {
       return [];
     }
@@ -188,11 +164,8 @@ const expandFunctions: {
     return sobjectFields;
   },
 
-  LITERAL_VALUES_FOR_FIELD: async (
-    soqlContext: SoqlItemContext,
-    dataSource: OrgDataSource
-  ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await safeRetrieveSObject(dataSource, soqlContext.sobjectName);
+  LITERAL_VALUES_FOR_FIELD: async (soqlContext: SoqlItemContext): Promise<ProtocolCompletionItem[]> => {
+    const objMetadata = await safeRetrieveSObject(soqlContext.sobjectName);
     if (!objMetadata || !soqlContext.fieldName) {
       return [];
     }
@@ -220,12 +193,21 @@ const expandFunctions: {
   }
 };
 
-const safeRetrieveSObject = async (dataSource: OrgDataSource, sobjectName?: string): Promise<SObject | undefined> => {
+const safeRetrieveSObject = async (sobjectName?: string): Promise<SObject | undefined> => {
   if (!sobjectName) {
     telemetryService.sendException('SOQLanguageServerException', 'Missing `sobjectName` from SOQL completion context!');
     return undefined;
   }
-  return await dataSource.retrieveSObject(sobjectName);
+  return getSoqlRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const metadataDescribeService = yield* api.services.MetadataDescribeService;
+      return yield* metadataDescribeService.describeCustomObject(sobjectName).pipe(
+        Effect.flatMap(raw => api.services.TransmogrifierService.toMinimalSObject(raw)),
+        Effect.catchAll(() => Effect.succeed<SObject | undefined>(undefined))
+      );
+    })
+  );
 };
 
 const objectFieldMatchesSOQLContext = (field: SObjectField, soqlContext: SoqlItemContext) =>
@@ -265,11 +247,11 @@ const newFieldCompletionItems = (field: SObjectField, soqlContext: SoqlItemConte
         { detail: field.type } as CompletionItem,
         isPreferredItem
           ? {
-            preselect: true,
-            // extra space prefix to make it appear first
-            sortText: ` ${field.name}`,
-            filterText: ` ${field.name}`
-          }
+              preselect: true,
+              // extra space prefix to make it appear first
+              sortText: ` ${field.name}`,
+              filterText: ` ${field.name}`
+            }
           : {}
       )
     )

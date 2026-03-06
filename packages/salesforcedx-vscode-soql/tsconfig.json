@@ -25,22 +25,25 @@
   ],
   "references": [
     {
-      "path": "../salesforcedx-sobjects-faux-generator"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../soql-common"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
+      "path": "../effect-ext-utils"
     },
     {
       "path": "../salesforcedx-utils"
     },
     {
+      "path": "../salesforcedx-utils-vscode"
+    },
+    {
+      "path": "../salesforcedx-vscode-i18n"
+    },
+    {
       "path": "../salesforcedx-vscode-core"
+    },
+    {
+      "path": "../salesforcedx-vscode-services"
+    },
+    {
+      "path": "../soql-common"
     }
   ]
 }

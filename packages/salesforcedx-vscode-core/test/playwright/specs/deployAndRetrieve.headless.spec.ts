@@ -20,7 +20,8 @@ import {
   waitForOutputChannelText,
   isMacDesktop,
   validateNoCriticalErrors,
-  saveScreenshot
+  saveScreenshot,
+  WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
@@ -45,6 +46,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
 
   await test.step('deploy via command palette (ST enabled)', async () => {
     await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.deploy_this_source_text}`,
@@ -55,6 +57,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
 
   await test.step('deploy again with no changes (ST enabled)', async () => {
     await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.deploy_this_source_text}`,
@@ -64,8 +67,9 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   });
 
   await test.step('modify and deploy (ST enabled)', async () => {
-    await clearOutputChannel(page);
     await editOpenFile(page, 'deploy modification');
+    await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.deploy_this_source_text}`,
@@ -78,6 +82,8 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   if (!isMacDesktop()) {
     await test.step('deploy via editor context menu', async () => {
       await clearOutputChannel(page);
+      // Refocus editor so command palette shows deploy (when clause requires editorIsOpen)
+      await page.locator(WORKBENCH).click({ timeout: 5000 });
       await verifyCommandExists(page, packageNls.deploy_this_source_text, 120_000);
       await executeEditorContextMenuCommand(page, packageNls.deploy_this_source_text, `${className}.cls`);
       await waitForOutputChannelText(page, {
@@ -104,6 +110,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
 
   await test.step('retrieve via command palette', async () => {
     await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.retrieve_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.retrieve_this_source_text}`,
@@ -119,6 +126,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
 
     // Retrieve should overwrite local with org version (without the marker)
     await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.retrieve_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.retrieve_this_source_text}`,
@@ -136,7 +144,8 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
   if (!isMacDesktop()) {
     await test.step('retrieve via editor context menu', async () => {
       await clearOutputChannel(page);
-      // make sure the command is available, ie, context has been set after the last retrieve
+      // Refocus editor so command palette shows retrieve (when clause requires editorIsOpen)
+      await page.locator(WORKBENCH).click({ timeout: 5000 });
       await verifyCommandExists(page, packageNls.retrieve_this_source_text, 120_000);
       await executeEditorContextMenuCommand(page, packageNls.retrieve_this_source_text, `${className}.cls`);
       await waitForOutputChannelText(page, {
@@ -170,6 +179,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
     // Wait for command to be available after setting change
     await verifyCommandExists(page, packageNls.deploy_this_source_text, 120_000);
     await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.deploy_this_source_text}`,

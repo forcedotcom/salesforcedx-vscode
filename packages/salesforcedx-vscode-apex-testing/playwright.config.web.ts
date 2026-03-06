@@ -7,4 +7,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createWebConfig();
+// Apex test runner has single execution queue per workspace — parallel workers collide ("already in execution queue")
+export default createWebConfig({ workers: 1, fullyParallel: false });

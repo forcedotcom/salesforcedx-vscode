@@ -13,5 +13,8 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 export const desktopTest = createDesktopTest({ fixturesDir: __dirname, orgAlias: MINIMAL_ORG_ALIAS });
-export const dreamhouseDesktopTest = createDesktopTest({ fixturesDir: __dirname, orgAlias: DREAMHOUSE_ORG_ALIAS });
+export const dreamhouseDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: DREAMHOUSE_ORG_ALIAS
+});
 export const nonTrackingDesktopTest = createDesktopTest({ fixturesDir: __dirname, orgAlias: NON_TRACKING_ORG_ALIAS });

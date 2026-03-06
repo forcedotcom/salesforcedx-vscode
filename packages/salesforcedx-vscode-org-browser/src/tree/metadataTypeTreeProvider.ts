@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
@@ -39,7 +39,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   // eslint-disable-next-line class-methods-use-this
   public async getChildren(element?: OrgBrowserTreeItem, refresh = false): Promise<OrgBrowserTreeItem[]> {
-    return await Effect.runPromise(getChildrenOfTreeItem(element, refresh));
+    return await getOrgBrowserRuntime().runPromise(getChildrenOfTreeItem(element, refresh));
   }
 }
 
@@ -47,40 +47,37 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, refresh:
   Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
     const api = yield* svcProvider.getServicesApi;
+    const metadataDescribeService = yield* api.services.MetadataDescribeService;
     // this could be the initial load, before the org is set.  Prevents duplication loads of root
     if (!(yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId) {
       return yield* Effect.succeed([]);
     }
     if (!element) {
-      const types = yield* api.services.MetadataDescribeService.describe(refresh);
+      const types = yield* metadataDescribeService.describe(refresh);
       return types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      return yield* api.services.MetadataDescribeService.describeCustomObject(
-        element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
-      ).pipe(
-        Effect.flatMap(result =>
-          Effect.all(
-            result.fields
-              // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
-              .filter(f => f.custom)
-              .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-              .map(createCustomFieldNode(projectComponentSet)(element)),
-            { concurrency: 'unbounded' }
-          )
-        )
+      const objectName = element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!;
+      const result = yield* metadataDescribeService.describeCustomObject(objectName);
+      return yield* Effect.all(
+        result.fields
+          // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
+          .filter(f => f.custom)
+          .toSorted((a, b) => (a.name < b.name ? -1 : 1))
+          .map(createCustomFieldNode(projectComponentSet)(element)),
+        { concurrency: 'unbounded' }
       );
     }
     if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
-      return yield* api.services.MetadataDescribeService.listMetadata(`${element.xmlName}Folder`).pipe(
-        Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element)))
-      );
+      return yield* metadataDescribeService
+        .listMetadata(`${element.xmlName}Folder`, undefined, refresh)
+        .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element))));
     }
     if (element.kind === 'type') {
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      return yield* api.services.MetadataDescribeService.listMetadata(element.xmlName).pipe(
+      return yield* metadataDescribeService.listMetadata(element.xmlName, undefined, refresh).pipe(
         Effect.flatMap(components =>
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.map(c => listMetadataToComponent(projectComponentSet)(element)(c)),
@@ -94,7 +91,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, refresh:
       const { xmlName, folderName } = element;
       if (!xmlName || !folderName) return yield* Effect.succeed([]);
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      return yield* api.services.MetadataDescribeService.listMetadata(xmlName, folderName).pipe(
+      return yield* metadataDescribeService.listMetadata(xmlName, folderName, refresh).pipe(
         Effect.flatMap(components =>
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.map(c => listMetadataToFolderItem(projectComponentSet)(element)(c)),
@@ -106,10 +103,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, refresh:
     }
 
     return yield* Effect.die(new Error(`Unsupported node kind: ${JSON.stringify(element)}`));
-  }).pipe(
-    Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName, refresh } }),
-    Effect.provide(AllServicesLayer)
-  );
+  }).pipe(Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName, refresh } }));
 
 const listMetadataToComponent =
   (projectComponentSet: ComponentSet) =>

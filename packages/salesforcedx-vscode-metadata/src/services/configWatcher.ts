@@ -11,13 +11,13 @@ import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { CORE_CONFIG_SECTION, EXTENSION_NAME } from '../constants';
+import { CORE_CONFIG_SECTION, CORE_EXTENSION_ID, EXTENSION_NAME } from '../constants';
 
 const USE_METADATA_EXTENSION_COMMANDS_KEY = 'useMetadataExtensionCommands';
 const SHOW_SHARED_COMMANDS_CONTEXT = `${EXTENSION_NAME}.showSharedCommands`;
 
 export const getShowSharedCommands = (): boolean =>
-  !vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core') ||
+  !vscode.extensions.getExtension(CORE_EXTENSION_ID) ||
   vscode.workspace.getConfiguration(CORE_CONFIG_SECTION).get<boolean>(USE_METADATA_EXTENSION_COMMANDS_KEY, false);
 
 const updateShowSharedCommandsContext = () =>

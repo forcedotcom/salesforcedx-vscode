@@ -8,11 +8,14 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
-  upsertScratchOrgAuthFieldsToSettings,
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
   createDreamhouseOrg,
+  ensureSecondarySideBarHidden,
   NOTIFICATION_LIST_ITEM,
   TAB,
-  ensureSecondarySideBarHidden
+  upsertScratchOrgAuthFieldsToSettings,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 import { RETRIEVE_TIMEOUT_MS } from '../constants';
@@ -21,6 +24,9 @@ test.setTimeout(RETRIEVE_TIMEOUT_MS);
 
 test.beforeEach(async ({ page }) => {
   const createResult = await createDreamhouseOrg();
+  await waitForVSCodeWorkbench(page);
+  await assertWelcomeTabExists(page);
+  await closeWelcomeTabs(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
   await ensureSecondarySideBarHidden(page);

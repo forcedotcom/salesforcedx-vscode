@@ -54,6 +54,7 @@ test('Delete: delete from project and org via command palette and context menus'
 
     // Execute delete command
     await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.delete_source_this_source_text);
 
     // Wait for and accept the confirmation notification

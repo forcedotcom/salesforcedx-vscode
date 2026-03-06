@@ -4,6 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+jest.mock('../../../src/services/extensionProvider', () => ({
+  AllServicesLayer: require('effect/Layer').empty,
+  getSoqlRuntime: () => ({ runFork: () => undefined })
+}));
+
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { BUILDER_VIEW_TYPE, SOQL_BUILDER_UI_PATH } from '../../../src/constants';
@@ -11,7 +16,8 @@ import { HtmlUtils } from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
 import { SOQLEditorProvider } from '../../../src/editor/soqlEditorProvider';
 import { nls } from '../../../src/messages';
-import * as sf from '../../../src/sf';
+import { channelService } from '../../../src/services/channel';
+import * as org from '../../../src/services/org';
 
 describe('SOQLEditorProvider', () => {
   let extensionContext: vscode.ExtensionContext;
@@ -36,7 +42,7 @@ describe('SOQLEditorProvider', () => {
     registerCustomEditorProviderMock = (vscode.window.registerCustomEditorProvider as jest.Mock) = jest
       .fn()
       .mockReturnValue(mockDisposable);
-    isDefaultOrgSetSpy = jest.spyOn(sf, 'isDefaultOrgSet');
+    isDefaultOrgSetSpy = jest.spyOn(org, 'isDefaultOrgSet');
     uriFileSpy = jest.spyOn(vscode.Uri, 'file').mockImplementation(pathFile => ({
       scheme: 'file',
       path: pathFile,
@@ -95,7 +101,7 @@ describe('SOQLEditorProvider', () => {
       webViewPanelSpy.mockReturnValue(mockWebviewPanel);
       workspaceFsReadFileMock = jest.spyOn(vscode.workspace.fs, 'readFile');
       transformHtmlMock = jest.spyOn(HtmlUtils, 'transformHtml');
-      appendLineMock = jest.spyOn(sf.channelService, 'appendLine').mockImplementation(jest.fn());
+      appendLineMock = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
     });
 
     it('should configure the webview options and set the HTML content', async () => {
@@ -120,7 +126,7 @@ describe('SOQLEditorProvider', () => {
     });
 
     it('should show information message if default org is not set', async () => {
-      isDefaultOrgSetSpy.mockReturnValue(false);
+      isDefaultOrgSetSpy.mockResolvedValue(false);
       const soqlEditorProvider = new SOQLEditorProvider(extensionContext);
       const mockHtml = '<html></html>';
       const mockTransformedHtml = '<html-transformed></html>';

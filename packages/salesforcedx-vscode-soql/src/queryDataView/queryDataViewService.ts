@@ -25,7 +25,7 @@ import {
   TABULATOR_STYLE_FILENAME
 } from '../constants';
 import { nls } from '../messages';
-import { channelService } from '../sf';
+import { channelService } from '../services/channel';
 import { FileFormat, QueryDataFileService as FileService } from './queryDataFileService';
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';

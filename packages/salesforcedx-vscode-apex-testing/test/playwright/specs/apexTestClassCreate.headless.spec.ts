@@ -37,7 +37,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
-    await setupMinimalOrgAndAuth(page, false);
+    await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     await closeSettingsTab(page);
     await saveScreenshot(page, 'setup.after-auth.png');

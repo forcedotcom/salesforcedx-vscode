@@ -7,7 +7,7 @@
 
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { channelService } from './sf';
+import { channelService } from './services/channel';
 import { telemetryService } from './telemetry';
 
 export const getDocumentName = (document: vscode.TextDocument): string => {

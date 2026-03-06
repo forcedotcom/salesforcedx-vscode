@@ -20,7 +20,8 @@ import {
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
-  ensureSecondarySideBarHidden
+  ensureSecondarySideBarHidden,
+  WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
@@ -62,6 +63,7 @@ test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
     await ensureOutputPanelOpen(page);
     await page.waitForTimeout(1000);
     await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+    await page.locator(WORKBENCH).click();
 
     // Execute retrieve via command palette
     await executeCommandWithCommandPalette(page, packageNls.project_retrieve_start_default_org_text);
