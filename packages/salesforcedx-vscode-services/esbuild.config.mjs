@@ -12,15 +12,19 @@ import { fileURLToPath } from 'url';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
+import { writeFile, readFile, readdir, mkdir } from 'fs/promises';
+import { existsSync } from 'fs';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import pkg from './package.json' with { type: 'json' };
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const packageDir = __dirname;
 
 // Resolve @salesforce/templates so copy works with npm workspaces (deps hoisted to repo root).
 // Relative to cwd (package dir), node_modules/@salesforce/templates often doesn't exist.
-const templatesPkgPath = dirname(
-  createRequire(import.meta.url).resolve('@salesforce/templates/package.json')
-);
+const templatesPkgPath = dirname(createRequire(import.meta.url).resolve('@salesforce/templates/package.json'));
 const templatesLibPath = join(templatesPkgPath, 'lib/templates');
 // Use forward slashes in glob so copy works on Windows CI (globby is cross-platform when pattern uses /).
 const templatesGlob = `${templatesLibPath.replace(/\\/g, '/')}/**/*`;
@@ -39,26 +43,18 @@ const copyTemplates = copy({
 // Walk the copy destination (not source) so manifest only lists files that were actually bundled.
 // Ensure dist/templates exists (esbuild-plugin-copy does not create it when the source glob matches no files).
 const generateTemplatesManifest = async () => {
-  const { readdirSync, writeFileSync, mkdirSync, existsSync } = await import('fs');
   const distTemplates = join(packageDir, 'dist/templates');
 
-  if (!existsSync(distTemplates)) {
-    mkdirSync(distTemplates, { recursive: true });
-  }
+  await mkdir(distTemplates, { recursive: true });
 
   const prefix = distTemplates.replace(/\\/g, '/') + '/';
-  const paths = readdirSync(distTemplates, { recursive: true, withFileTypes: true })
+  const paths = (await readdir(distTemplates, { recursive: true, withFileTypes: true }))
     .filter(e => e.isFile() && e.name !== 'manifest.json')
     .map(e => `${e.path.replace(/\\/g, '/')}/${e.name}`.replace(prefix, ''));
 
-  writeFileSync(join(distTemplates, 'manifest.json'), JSON.stringify(paths));
+  await writeFile(join(distTemplates, 'manifest.json'), JSON.stringify(paths));
   console.log(`[esbuild] Generated templates manifest: ${paths.length} files`);
 };
-import { writeFile, readFile } from 'fs/promises';
-import { existsSync } from 'fs';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import pkg from './package.json' with { type: 'json' };
 
 const execAsync = promisify(exec);
 const repoRoot = join(packageDir, '../..');
