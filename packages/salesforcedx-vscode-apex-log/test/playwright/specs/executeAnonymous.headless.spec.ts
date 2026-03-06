@@ -59,26 +59,29 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('hello');\nSystem.debug('selection');");
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
-    await expect(page.locator(TAB).filter({ hasText: /debug\.log/ })).toBeVisible({ timeout: 60_000 });
+    const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
+    await expect(logTab).toBeVisible({ timeout: 60_000 });
     await saveScreenshot(page, 'exec-document.success.png');
+    // Close debug.log so the .apex file is active for the next step (execute anonymous requires editorLangId apex)
+    await executeCommandWithCommandPalette(page, 'View: Close Editor');
+    await expect(logTab).not.toBeVisible({ timeout: 5000 });
   });
 
   await test.step('select first line and execute selection', async () => {
-    await page.keyboard.press('Escape');
-    await page.locator(TAB).filter({ hasText: /\.apex$/ }).click({ force: true });
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
-
     await executeCommandWithCommandPalette(page, 'Select All');
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeSelection']);
 
-    await expect(page.locator(TAB).filter({ hasText: /debug\.log/ })).toBeVisible({ timeout: 60_000 });
+    const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
+    await expect(logTab).toBeVisible({ timeout: 60_000 });
     await saveScreenshot(page, 'exec-selection.success.png');
+    // Close debug.log so the .apex file is active for the next step
+    await executeCommandWithCommandPalette(page, 'View: Close Editor');
+    await expect(logTab).not.toBeVisible({ timeout: 5000 });
   });
 
   await test.step('execute with compile error and verify error notification', async () => {
-    await page.keyboard.press('Escape');
-    await page.locator(TAB).filter({ hasText: /\.apex$/ }).click({ force: true });
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await executeCommandWithCommandPalette(page, 'Select All');
