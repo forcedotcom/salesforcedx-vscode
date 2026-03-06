@@ -25,6 +25,7 @@ export const messages = {
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
   parameter_gatherer_enter_project_name: 'Enter project name',
+  parameter_gatherer_select_lwc_type: 'Select LWC component type',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
   project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
