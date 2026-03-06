@@ -87,8 +87,6 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
   });
 
   await test.step('clear output before run-single', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
     await clearOutputChannel(page);
     await saveScreenshot(page, 'step.output-cleared.png');
   });

@@ -8,7 +8,12 @@
 import { expect, type Page } from '@playwright/test';
 import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
 import { executeCommandWithCommandPalette, verifyCommandExists } from '../pages/commands';
-import { ensureOutputPanelOpen, selectOutputChannel, waitForOutputChannelText } from '../pages/outputChannel';
+import {
+  clearOutputChannel,
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  waitForOutputChannelText
+} from '../pages/outputChannel';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import {
@@ -304,4 +309,5 @@ export const createAndDeployApexTestClass = async (page: Page, className: string
   });
 
   await saveScreenshot(page, 'setup.apex-test-class-created.png');
+  await clearOutputChannel(page);
 };
