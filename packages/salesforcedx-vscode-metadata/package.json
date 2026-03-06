@@ -28,7 +28,7 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
-    "effect": "^3.19.14",
+    "effect": "^3.19.19",
     "@salesforce/vscode-i18n": "*",
     "vscode-uri": "^3.1.0"
   },
