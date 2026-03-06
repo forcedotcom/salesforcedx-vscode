@@ -25,7 +25,7 @@ describe('SOQLEditorProvider', () => {
   let registerCustomEditorProviderMock: jest.SpyInstance;
   let isDefaultOrgSetSpy: jest.SpyInstance;
   let uriFileSpy: jest.SpyInstance;
-  const mockDisposable = new vscode.Disposable(() => {});
+  const mockDisposable = new vscode.Disposable(() => { });
 
   beforeEach(() => {
     extensionContext = {

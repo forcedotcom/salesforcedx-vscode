@@ -32,6 +32,10 @@ Local only — span export disabled in CI/GHA.
 
 See `.claude/skills/span-file-export/SKILL.md` for enable/OTLP vs file.
 
+## Running tests (AI behavior)
+
+When running Playwright tests (`npm run test:web`, `test:desktop`, etc.), never block >30s. Use `is_background: true` so tests run while the AI continues. Check terminal output or `output_file` later.
+
 ## Disable/reenable other E2E when iterating
 
 To run only your new test in CI while iterating:

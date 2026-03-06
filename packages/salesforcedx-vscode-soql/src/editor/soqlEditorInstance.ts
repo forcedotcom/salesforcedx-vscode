@@ -34,33 +34,33 @@ const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function*
 // TODO: This should be exported from soql-builder-ui
 type SoqlEditorEvent =
   | {
-      type: 'ui_activated';
-      payload: never;
-    }
+    type: 'ui_activated';
+    payload: never;
+  }
   | {
-      type: 'ui_soql_changed';
-      payload: string;
-    }
+    type: 'ui_soql_changed';
+    payload: string;
+  }
   | {
-      type: 'ui_telemetry';
-      payload: TelemetryModelJson;
-    }
+    type: 'ui_telemetry';
+    payload: TelemetryModelJson;
+  }
   | {
-      type: 'sobject_metadata_request';
-      payload: string;
-    }
+    type: 'sobject_metadata_request';
+    payload: string;
+  }
   | {
-      type: 'sobject_metadata_response';
-      payload: DescribeSObjectResult;
-    }
+    type: 'sobject_metadata_response';
+    payload: DescribeSObjectResult;
+  }
   | {
-      type: 'sobjects_request';
-      payload: never;
-    }
+    type: 'sobjects_request';
+    payload: never;
+  }
   | {
-      type: 'run_query';
-      payload: never;
-    };
+    type: 'run_query';
+    payload: never;
+  };
 
 // TODO: This should be shared with soql-builder-ui
 type MessageType =
@@ -198,6 +198,26 @@ export class SOQLEditorInstance {
             : Effect.void
         ).pipe(Effect.withSpan('SOQLEditor.ui_telemetry'));
       }
+      case 'sobject_metadata_request': {
+        getSoqlRuntime()
+          .runPromise(retrieveSObjectRawEffect(event.payload))
+          .then(sobject => sobject && this.updateSObjectMetadata(sobject))
+          .catch(() => {
+            const message = nls.localize('error_sobject_metadata_request', event.payload);
+            channelService.appendLine(message);
+          });
+        break;
+      }
+      case 'sobjects_request': {
+        getSoqlRuntime()
+          .runPromise(listSObjectNamesEffect)
+          .then(sobjectNames => sobjectNames && this.updateSObjects(sobjectNames))
+          .catch(() => {
+            const message = nls.localize('error_sobjects_request');
+            channelService.appendLine(message);
+          });
+        break;
+      }
 
       case 'sobject_metadata_request':
         return retrieveSObjectRawEffect(event.payload).pipe(
@@ -269,6 +289,22 @@ export class SOQLEditorInstance {
     return Effect.promise<boolean>(() =>
       this.webviewPanel.webview.postMessage({ type: 'run_query_done' satisfies MessageType })
     ).pipe(Effect.asVoid);
+  }
+
+  protected async handleRunQuery(): Promise<void> {
+    if (!(await isDefaultOrgSet())) {
+      const message = nls.localize('info_no_default_org');
+      channelService.appendLine(message);
+      vscode.window.showInformationMessage(message);
+      this.runQueryDone();
+      return;
+    }
+
+    const queryText = this.document.getText();
+    const conn = await getConnection();
+    const queryData = await runQuery(conn)(queryText);
+    await this.openQueryDataView(queryData);
+    this.runQueryDone();
   }
 
   protected async openQueryDataView(queryData: QueryResult<JsonMap>): Promise<void> {

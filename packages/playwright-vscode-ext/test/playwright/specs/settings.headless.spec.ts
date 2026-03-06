@@ -17,7 +17,7 @@ import {
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
-test.describe('Settings', () => {
+test.describe.serial('Settings', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
@@ -98,7 +98,10 @@ test.describe('Settings', () => {
       await page.keyboard.press('Backspace');
       await page.keyboard.type(settingKey);
 
-      const minimapCheckbox = page.locator('.settings-editor').getByRole('checkbox', { name: /minimap/i });
+      const searchResultId = `searchResultModel_${settingKey.replace(/\./, '_')}`;
+      const row = page.locator(`[data-id="${searchResultId}"]`).first();
+      await row.waitFor({ state: 'visible', timeout: 15_000 });
+      const minimapCheckbox = row.getByRole('checkbox').first();
       await expect(minimapCheckbox).not.toBeChecked();
     });
   });

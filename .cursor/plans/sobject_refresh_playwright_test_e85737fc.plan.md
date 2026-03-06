@@ -1,6 +1,6 @@
 ---
 name: SObject Refresh Playwright Test
-overview: Create a Playwright headless spec to replace the failing vscode-extension-tester sObjectsDefinitions.e2e.ts test, using the dreamhouse org's existing custom objects (Broker__c, Property__c) instead of pushing new ones.
+overview: Create a Playwright headless spec to replace the removed vscode-extension-tester sObjectsDefinitions.e2e.ts test, using the dreamhouse org's existing custom objects (Broker__c, Property__c) instead of pushing new ones.
 todos:
   - id: create-spec
     content: Create `refreshSObjectDefinitions.headless.spec.ts` with dreamhouse fixture, 3 steps (Custom/Standard/All), output channel verification
@@ -24,7 +24,7 @@ isProject: false
 
 ## Context
 
-The existing [sObjectsDefinitions.e2e.ts](packages/salesforcedx-vscode-automation-tests/test/specs/sObjectsDefinitions.e2e.ts) test is timing out in CI because it waits for a `"successfully ran"` notification that the metadata extension's `refreshSObjectsCommand` never sends. The command uses `MetadataDescribeService` (REST API calls, no CLI) and writes results to the `'Salesforce Metadata'` output channel.
+The former sObjectsDefinitions.e2e.ts test (removed) was timing out in CI because it waits for a `"successfully ran"` notification that the metadata extension's `refreshSObjectsCommand` never sends. The command uses `MetadataDescribeService` (REST API calls, no CLI) and writes results to the `'Salesforce Metadata'` output channel.
 
 ## CI Failure Analysis
 

@@ -243,11 +243,11 @@ const newFieldCompletionItems = (field: SObjectField, soqlContext: SoqlItemConte
         { detail: field.type } as CompletionItem,
         isPreferredItem
           ? {
-              preselect: true,
-              // extra space prefix to make it appear first
-              sortText: ` ${field.name}`,
-              filterText: ` ${field.name}`
-            }
+            preselect: true,
+            // extra space prefix to make it appear first
+            sortText: ` ${field.name}`,
+            filterText: ` ${field.name}`
+          }
           : {}
       )
     )

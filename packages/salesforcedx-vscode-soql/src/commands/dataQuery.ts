@@ -35,6 +35,8 @@ class DataQueryExecutor {
 
     try {
       const connection = await getConnection();
+
+      // Execute query using the appropriate API
       const queryResult = await runSoqlQuery(connection, query, api === 'TOOLING');
       displayTableResults(queryResult);
       await this.saveResultsToCSV(queryResult);
