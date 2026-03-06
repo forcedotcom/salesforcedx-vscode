@@ -30,12 +30,11 @@
     "@salesforce/core": "^8.24.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
     "@salesforce/source-tracking": "^7.8.1",
-    "@salesforce/templates": "^66.3.0",
+    "@salesforce/templates": "^66.3.3",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -93,11 +92,11 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-sobjects-faux-generator:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-services:compile"
+        "../salesforcedx-vscode-services:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -558,10 +557,6 @@
           "when": "false"
         },
         {
-          "command": "sf.internal.refreshsobjects",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
           "command": "sf.metadata.view.type.refresh",
           "when": "sf:project_opened && sf:has_target_org"
         },
@@ -767,10 +762,6 @@
           "light": "resources/light/go-to-file.svg",
           "dark": "resources/dark/go-to-file.svg"
         }
-      },
-      {
-        "command": "sf.internal.refreshsobjects",
-        "title": "%sobjects_refresh%"
       },
       {
         "command": "sf.rename.lightning.component",
