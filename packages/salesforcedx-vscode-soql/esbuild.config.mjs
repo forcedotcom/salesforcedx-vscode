@@ -6,7 +6,10 @@
  */
 import { build } from 'esbuild';
 import copy from 'esbuild-plugin-copy';
+import { createRequire } from 'node:module';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
+
+const require = createRequire(import.meta.url);
 
 const commonConfig = {
   external: ['vscode']
@@ -38,6 +41,6 @@ await build({
 await build({
   ...nodeConfig,
   ...commonConfig,
-  entryPoints: ['../../node_modules/@salesforce/soql-language-server/lib/server.js'],
+  entryPoints: [require.resolve('@salesforce/soql-language-server/lib/server.js')],
   outfile: './dist/server.js'
 });

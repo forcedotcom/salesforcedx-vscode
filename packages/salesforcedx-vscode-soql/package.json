@@ -39,7 +39,7 @@
     "effect": "^3.19.14",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
-    "@salesforce/soql-language-server": "0.7.1",
+    "@salesforce/soql-language-server": "^0.8.0",
     "@salesforce/vscode-i18n": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
