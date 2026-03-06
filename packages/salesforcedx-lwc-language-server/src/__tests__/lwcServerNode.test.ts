@@ -415,6 +415,9 @@ describe('lwcServerNode', () => {
     };
 
     describe('#onCompletion', () => {
+      // GHA can be slow; completion tests run full delayed init (component indexer + TS config)
+      const COMPLETION_TEST_TIMEOUT_MS = 15_000;
+
       beforeEach(() => {
         // Ensure file system provider is set correctly before each test
         server.fileSystemProvider = sfdxFileSystemProvider;
@@ -424,35 +427,39 @@ describe('lwcServerNode', () => {
         }
       });
 
-      it('should return a list of available completion items in a javascript file', async () => {
-        const params: CompletionParams = {
-          textDocument: { uri: jsUri },
-          position: {
-            line: 0,
-            character: 0
-          },
-          context: {
-            triggerCharacter: '.',
-            triggerKind: CompletionTriggerKind.TriggerCharacter
-          }
-        };
+      it(
+        'should return a list of available completion items in a javascript file',
+        async () => {
+          const params: CompletionParams = {
+            textDocument: { uri: jsUri },
+            position: {
+              line: 0,
+              character: 0
+            },
+            context: {
+              triggerCharacter: '.',
+              triggerKind: CompletionTriggerKind.TriggerCharacter
+            }
+          };
 
-        await server.onInitialize(initializeParams);
-        await setupServerForTest([jsDocument]);
+          await server.onInitialize(initializeParams);
+          await setupServerForTest([jsDocument]);
 
-        const doc = server.documents.get(jsUri);
-        expect(doc).toBeDefined();
-        expect((server as any).context.type).toBe('SFDX');
-        expect(server.componentIndexer.tags.size).toBeGreaterThan(0);
+          const doc = server.documents.get(jsUri);
+          expect(doc).toBeDefined();
+          expect((server as any).context.type).toBe('SFDX');
+          expect(server.componentIndexer.tags.size).toBeGreaterThan(0);
 
-        const completions = await server.onCompletion(params);
-        expect(completions).toBeDefined();
-        const labels = completions?.items.map(item => item.label) ?? [];
-        // Updated to match actual workspace structure - finding components including todo_util from utils/meta/lwc
-        expect(labels.length).toBeGreaterThanOrEqual(5);
-        expect(labels).toContain('c/todo_util');
-        expect(labels).toContain('c/todo_item');
-      });
+          const completions = await server.onCompletion(params);
+          expect(completions).toBeDefined();
+          const labels = completions?.items.map(item => item.label) ?? [];
+          // Updated to match actual workspace structure - finding components including todo_util from utils/meta/lwc
+          expect(labels.length).toBeGreaterThanOrEqual(5);
+          expect(labels).toContain('c/todo_util');
+          expect(labels).toContain('c/todo_item');
+        },
+        COMPLETION_TEST_TIMEOUT_MS
+      );
 
       it('should not return a list of completion items in a javascript file for open curly brace', async () => {
         const params: CompletionParams = {
@@ -860,7 +867,9 @@ describe('lwcServerNode', () => {
         const sfdxTsConfigContent =
           provider.getFileContent(baseTsconfigPath) ?? server.fileSystemProvider.getFileContent(baseTsconfigPath);
         expect(sfdxTsConfigContent).not.toBeUndefined();
-        const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!) as { compilerOptions?: { paths?: Record<string, unknown> } };
+        const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!) as {
+          compilerOptions?: { paths?: Record<string, unknown> };
+        };
         const pathMapping = Object.keys(sfdxTsConfig.compilerOptions?.paths ?? {});
         // Updated to match actual workspace structure - finding 12 components (10 original + todo_util + todo_utils from utils/meta/lwc)
         expect(pathMapping.length).toEqual(12);
@@ -880,7 +889,9 @@ describe('lwcServerNode', () => {
             // If tsconfig doesn't exist, return empty array for tests
             return [];
           }
-          const sfdxTsConfig = JSON.parse(sfdxTsConfigContent) as { compilerOptions?: { paths?: Record<string, unknown> } };
+          const sfdxTsConfig = JSON.parse(sfdxTsConfigContent) as {
+            compilerOptions?: { paths?: Record<string, unknown> };
+          };
           return Object.keys(sfdxTsConfig.compilerOptions?.paths ?? {});
         } catch {
           return [];
