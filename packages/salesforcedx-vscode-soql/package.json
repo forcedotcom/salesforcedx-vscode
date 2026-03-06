@@ -36,7 +36,7 @@
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/effect-ext-utils": "*",
-    "effect": "^3.19.14",
+    "effect": "^3.19.19",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
     "@salesforce/soql-language-server": "0.7.1",
