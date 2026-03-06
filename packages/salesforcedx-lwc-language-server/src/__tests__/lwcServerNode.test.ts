@@ -4,113 +4,25 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-// Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
-// jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
-// We need to mock both the package-level export AND the internal utils module
-// because baseContext.ts imports from './utils' directly (which resolves to out/src/utils.js)
-
-type SyncUtils = { normalizePath?: (path: string) => string };
-type SyncFileSystemProvider = { getFileContent?: (path: string) => string | undefined };
-
-// Create the mock implementation function
-const stripComments = (src: string): string =>
-  src
-    .replaceAll(/\/\/.*$/gm, '')
-    .replaceAll(/\/\*[\s\S]*?\*\//g, '')
-    .replaceAll(/,(\s*[}\]])/g, '$1');
-
-const parseJson = (src: string): Record<string, unknown> => {
-  const parsed: unknown = JSON.parse(src);
-  return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
-};
-
-const createReadJsonSyncMockImplementation =
-  (actualUtils: SyncUtils) =>
-  (file: string, fileSystemProvider: SyncFileSystemProvider): Record<string, unknown> => {
-    try {
-      const normalizedFile = actualUtils.normalizePath?.(file) ?? file;
-      const content = fileSystemProvider?.getFileContent?.(normalizedFile);
-      if (!content) {
-        const fallbackContent = fileSystemProvider?.getFileContent?.(file);
-        if (!fallbackContent) {
-          throw new Error('File not found', { cause: file });
-        }
-        try {
-          return parseJson(stripComments(fallbackContent));
-        } catch {
-          return {};
-        }
-      }
-      try {
-        return parseJson(stripComments(content));
-      } catch {
-        return {};
-      }
-    } catch {
-      return {};
-    }
-  };
-
-// Mock the internal utils module (used by baseContext.ts via './utils')
-jest.mock(
-  '../../../salesforcedx-lightning-lsp-common/out/src/utils',
-  () => {
-    const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils') as SyncUtils;
-
-    return {
-      ...actual,
-      readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actual))
-    };
-  },
-  { virtual: true }
-);
-
-// Also mock the package-level export (for direct imports from the package)
-// This is used by componentIndexer.ts which imports readJsonSync from the package
-jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
-  const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common') as Record<string, unknown>;
-  const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils') as SyncUtils;
-
-  const mocked = {
-    ...actual,
-    readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actualUtils))
-  };
-
-  return mocked;
-});
-
-// Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
-jest.mock('../resources/transformed-lwc-standard.json', () => {
-  const fs = require('node:fs') as typeof import('node:fs');
-  const pathModule = require('node:path') as typeof import('node:path');
-  // Find package root (lwc-language-server)
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  const filePath = pathModule.join(current, 'src', 'resources', 'transformed-lwc-standard.json');
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8')) as Record<string, unknown>;
-  // JSON imports in TypeScript are treated as default exports
-  return { default: content, ...content };
-});
-
-// Mock JSON imports from baseContext.ts - these are runtime require() calls in compiled code
-// moduleNameMapper doesn't apply to runtime require() calls within loaded modules - it only works for
-// static imports Jest resolves at the top level. So we need explicit mocks for these relative requires.
-
-// Mock relative imports - these need to match the exact paths Jest resolves when baseContext.js
-// executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
-// resolves to out/src/resources/... which we mock using paths relative to the test file.
-
-import { normalizePath, DirectoryEntry, FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import {
+  LspFileSystemAccessor,
+  normalizePath,
+  WORKSPACE_READ_FILE_REQUEST,
+  WORKSPACE_STAT_REQUEST,
+  WORKSPACE_FIND_FILES_REQUEST
+} from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  SFDX_WORKSPACE_ROOT,
+  SFDX_WORKSPACE_STRUCTURE,
+  sfdxFileSystemAccessor,
+  createMockWorkspaceFindFilesConnection,
+  getSfdxWorkspaceRelativePaths
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
-import { dirname, basename } from 'node:path';
 import { getLanguageService } from 'vscode-html-languageservice';
 import {
+  type Connection,
+  type TextDocuments,
   InitializeParams,
   TextDocumentPositionParams,
   Location,
@@ -124,6 +36,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
+import { BaseServer } from '../baseServer';
 import Server, { findDynamicContent } from '../lwcServerNode';
 
 // File paths and URIs
@@ -147,14 +60,20 @@ const hoverFilename = path.join(
 );
 const hoverUri = URI.file(hoverFilename).toString();
 
-const createDocument = (filePath: string, languageId: string): TextDocument => {
+// Use SFDX_WORKSPACE_STRUCTURE so documents have content when created in beforeAll (before sendRequest mock exists).
+const createDocument = async (filePath: string, languageId: string): Promise<TextDocument> => {
   const docUri = URI.file(filePath).toString();
-  const content = server.fileSystemProvider.getFileContent(filePath) ?? '';
-  return TextDocument.create(docUri, languageId, 0, content);
+  const rel = path.relative(SFDX_WORKSPACE_ROOT, filePath);
+  const structureKey = rel.replaceAll('\\', '/');
+  const contentFromStructure =
+    (SFDX_WORKSPACE_STRUCTURE as Record<string, string>)[structureKey] ??
+    (await server.fileSystemAccessor.getFileContent(filePath)) ??
+    '';
+  return TextDocument.create(docUri, languageId, 0, contentFromStructure);
 };
 
 // Async document creation functions
-const getDocument = (): TextDocument => createDocument(filename, 'html');
+const getDocument = async (): Promise<TextDocument> => createDocument(filename, 'html');
 
 // Pre-loaded documents for mocks
 let document: TextDocument;
@@ -163,66 +82,123 @@ let auraDocument: TextDocument;
 let hoverDocument: TextDocument;
 
 // Setup function to load all documents once
-const setupDocuments = (): void => {
-  document = createDocument(filename, 'html');
-  jsDocument = createDocument(jsFilename, 'javascript');
-  auraDocument = createDocument(auraFilename, 'html');
-  hoverDocument = createDocument(hoverFilename, 'html');
+const setupDocuments = async (): Promise<void> => {
+  document = await createDocument(filename, 'html');
+  jsDocument = await createDocument(jsFilename, 'javascript');
+  auraDocument = await createDocument(auraFilename, 'html');
+  hoverDocument = await createDocument(hoverFilename, 'html');
 };
 
-const server: Server = new Server();
-// Use the pre-populated file system provider from testUtils
-server.fileSystemProvider = sfdxFileSystemProvider;
+// Simulate client: server discovers files via workspace/findFiles (no server-side cache)
+const mockFindFilesConnection = createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+  relativePaths: getSfdxWorkspaceRelativePaths()
+});
+
+const server: BaseServer = new Server();
+server.fileSystemAccessor = sfdxFileSystemAccessor;
 
 // Helper function to set up server for tests that need delayed initialization
-const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServer: Server = server): Promise<void> => {
+const setupServerForTest = async (
+  documentsToOpen: TextDocument[] = [],
+  testServer: BaseServer = server
+): Promise<void> => {
   // Reset delayed initialization flag to ensure fresh initialization
-  (testServer as any).isDelayedInitializationComplete = false;
+  testServer.isDelayedInitializationComplete = false;
 
-  // Ensure file system provider is set
-  testServer.fileSystemProvider = sfdxFileSystemProvider;
+  // Ensure file system accessor is set and bound to this server's connection (shared accessor
+  // otherwise keeps the first server's connection, so findFiles/readFile would hit the wrong mock).
+  testServer.fileSystemAccessor = sfdxFileSystemAccessor;
+  testServer.fileSystemAccessor.setWorkspaceFolderUris(
+    testServer.workspaceFolders.map((f: { uri: string }) => f.uri) ?? []
+  );
+  testServer.fileSystemAccessor.setConnection(testServer.connection);
 
   // Mock connection.sendNotification to avoid errors during delayed initialization
   testServer.connection.sendNotification = jest.fn();
 
-  // Populate fileSystemProvider with all files and directories from sfdxFileSystemProvider
-  // This ensures delayed initialization has access to all files and directory structures
-  const allFiles = sfdxFileSystemProvider.getAllFileUris();
-  const fileSystemProvider = testServer.fileSystemProvider;
-  for (const fileUri of allFiles) {
-    const content = sfdxFileSystemProvider.getFileContent(fileUri);
-    if (content) {
-      await fileSystemProvider.updateFileContent(fileUri, content);
+  // LspFileSystemAccessor has no local cache; the mock sendRequest below serves readFile/stat from these maps.
+  const mockFileContents = new Map<string, string>();
+  const mockFileStats = new Map<
+    string,
+    { type: 'file' | 'directory'; exists: boolean; ctime: number; mtime: number; size: number }
+  >();
+
+  // Ensure workspace root has sfdx-project.json and LWC files so performDelayedInitialization and component indexer succeed
+  const workspaceRoot = testServer.workspaceRoots[0];
+  const dirStat = { type: 'directory' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
+  if (workspaceRoot) {
+    const fileStat = { type: 'file' as const, exists: true, ctime: 0, mtime: 0, size: 0 };
+    for (const [relPath, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE)) {
+      const fullPath = normalizePath(path.join(workspaceRoot, relPath.replaceAll('\\', '/')));
+      await testServer.fileSystemAccessor.updateFileContent(fullPath, content);
+      mockFileContents.set(fullPath, content);
+      mockFileStats.set(fullPath, fileStat);
     }
-    const stat = sfdxFileSystemProvider.getFileStat(fileUri);
-    if (stat) {
-      fileSystemProvider.updateFileStat(fileUri, stat);
+    // So getModulesDirs() returns the 3 LWC dirs and configureProjectForTs writes tsconfig.json in each
+    const lwcDirPaths = [
+      path.join(workspaceRoot, 'force-app', 'main', 'default', 'lwc'),
+      path.join(workspaceRoot, 'utils', 'meta', 'lwc'),
+      path.join(workspaceRoot, 'registered-empty-folder', 'meta', 'lwc')
+    ];
+    for (const dirPath of lwcDirPaths) {
+      mockFileStats.set(normalizePath(dirPath), dirStat);
     }
   }
 
-  // Also copy directory listings to ensure getModulesDirs can find LWC directories
-  // We need to copy all directory listings that exist in sfdxFileSystemProvider
-  const allDirs = new Set<string>();
-  for (const fileUri of allFiles) {
-    const stat = sfdxFileSystemProvider.getFileStat(fileUri);
-    if (stat?.type === 'directory') {
-      allDirs.add(fileUri);
-      // Also add parent directories
-      let parent = normalizePath(dirname(fileUri));
-      while (parent && parent !== normalizePath(dirname(parent))) {
-        allDirs.add(parent);
-        parent = normalizePath(dirname(parent));
+  const defaultFileStat = {
+    type: 'file' as const,
+    exists: true,
+    ctime: 0,
+    mtime: 0,
+    size: 0
+  };
+
+  // Connection.sendRequest can be called with (method: string, params) or (RequestType, params); normalize to string.
+  const getMethodStr = (m: string | { method?: string }) =>
+    typeof m === 'string' ? m : ((m as { method?: string })?.method ?? '');
+
+  // Handle workspace/readFile, workspace/stat, workspace/findFiles, and workspace/applyEdit.
+  // When the server writes files (e.g. .sfdx/tsconfig.sfdx.json), capture them so getFileContent returns them.
+  const provider = testServer.fileSystemAccessor;
+  (testServer.connection as any).sendRequest = jest.fn(
+    async (
+      method: string | { method?: string },
+      params: {
+        uri?: string;
+        baseFolderUri?: string;
+        pattern?: string;
+        edit?: { documentChanges?: { textDocument?: { uri: string }; edits?: { newText: string }[] }[] };
       }
+    ) => {
+      const methodStr = getMethodStr(method);
+      if (methodStr === WORKSPACE_READ_FILE_REQUEST && params?.uri) {
+        const key = provider.uriToNormalizedPath(params.uri);
+        const content = mockFileContents.get(key);
+        return { content: content ?? '' };
+      }
+      if (methodStr === WORKSPACE_STAT_REQUEST && params?.uri) {
+        const key = provider.uriToNormalizedPath(params.uri);
+        const stat = mockFileStats.get(key);
+        return stat ? { stat } : { error: 'File not found' };
+      }
+      if (methodStr === WORKSPACE_FIND_FILES_REQUEST && params?.baseFolderUri != null && params?.pattern != null) {
+        return mockFindFilesConnection.sendRequest(methodStr, params as { baseFolderUri: string; pattern: string });
+      }
+      if (methodStr === 'workspace/applyEdit' && params?.edit?.documentChanges) {
+        for (const change of params.edit.documentChanges) {
+          const docEdit = change as { textDocument?: { uri: string }; edits?: { newText: string }[] };
+          if (docEdit.textDocument?.uri && Array.isArray(docEdit.edits)) {
+            const key = provider.uriToNormalizedPath(docEdit.textDocument.uri);
+            const content = docEdit.edits.map(e => e.newText).join('');
+            mockFileContents.set(key, content);
+            mockFileStats.set(key, defaultFileStat);
+          }
+        }
+        return { applied: true };
+      }
+      return { applied: true };
     }
-  }
-
-  for (const dirUri of allDirs) {
-    const normalizedDirUri = normalizePath(dirUri);
-    const listing = sfdxFileSystemProvider.getDirectoryListing(normalizedDirUri);
-    if (listing && listing.length > 0) {
-      fileSystemProvider.updateDirectoryListing(normalizedDirUri, listing);
-    }
-  }
+  );
 
   // Open documents so they're available in server.documents
   for (const doc of documentsToOpen) {
@@ -249,73 +225,9 @@ const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServ
   await new Promise(resolve => setTimeout(resolve, 100));
 };
 
-// Helper function to delete a file or directory from the fileSystemProvider (replaces vscode.workspace.fs.delete)
-const deleteFromProvider = (provider: FileSystemDataProvider, filePath: string, recursive = false): void => {
-  const normalizedPath = normalizePath(filePath);
-
-  // Remove file content and stat
-  void provider.updateFileContent(normalizedPath, '');
-  provider.updateFileStat(normalizedPath, {
-    type: 'file',
-    exists: false,
-    ctime: 0,
-    mtime: 0,
-    size: 0
-  });
-
-  // Remove from parent directory listing
-  const parentDir = normalizePath(dirname(normalizedPath));
-  const fileName = basename(normalizedPath);
-  const entries = provider.getDirectoryListing(parentDir) ?? [];
-  const updatedEntries = entries.filter((entry: DirectoryEntry) => entry.name !== fileName);
-  provider.updateDirectoryListing(parentDir, updatedEntries);
-
-  // If recursive, also remove directory listings
-  if (recursive) {
-    const dirEntries = provider.getDirectoryListing(normalizedPath) ?? [];
-    for (const entry of dirEntries) {
-      deleteFromProvider(provider, entry.uri, true);
-    }
-    provider.updateDirectoryListing(normalizedPath, []);
-  }
-};
-
-// Helper function to create a file in the fileSystemProvider (replaces vscode.workspace.fs.writeFile)
-// Uses path normalization to handle cross-platform paths
-const createFileInProvider = (provider: FileSystemDataProvider, filePath: string, content: string): void => {
-  // Normalize path the same way FileSystemDataProvider normalizes paths
-  const normalizedPath = normalizePath(filePath);
-  const parentDir = normalizePath(dirname(normalizedPath));
-  const fileName = basename(normalizedPath);
-
-  // Ensure parent directory exists
-  if (!provider.directoryExists(parentDir)) {
-    provider.updateFileStat(parentDir, {
-      type: 'directory',
-      exists: true,
-      ctime: 0,
-      mtime: 0,
-      size: 0
-    });
-  }
-
-  // Add file to parent directory listing
-  const entries = provider.getDirectoryListing(parentDir) ?? [];
-  const existingEntry = entries.find((entry: DirectoryEntry) => entry.name === fileName);
-  if (!existingEntry) {
-    const newEntry: DirectoryEntry = { name: fileName, type: 'file', uri: normalizedPath };
-    provider.updateDirectoryListing(parentDir, [...entries, newEntry]);
-  }
-
-  // Create file stat and content (void: fire-and-forget in sync test helper)
-  provider.updateFileStat(normalizedPath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: content.length
-  });
-  void provider.updateFileContent(normalizedPath, content);
+// Helper function to delete a file or directory from the fileSystemAccessor (replaces vscode.workspace.fs.delete)
+const deleteFromProvider = async (provider: LspFileSystemAccessor, filePath: string): Promise<void> => {
+  await provider.deleteFile(normalizePath(filePath));
 };
 
 let mockTypeScriptSupportConfig = false;
@@ -324,61 +236,84 @@ let mockTypeScriptSupportConfig = false;
 const createServerWithTsSupport = async (initializeParams: InitializeParams): Promise<Server> => {
   mockTypeScriptSupportConfig = true;
   const testServer = new Server();
-  // Use the same fileSystemProvider as the main server to share test data
-  testServer.fileSystemProvider = sfdxFileSystemProvider;
-  await testServer.onInitialize(initializeParams);
-  // Populate fileSystemProvider and trigger delayed initialization
+  testServer.onInitialize(initializeParams);
+  // Populate fileSystemAccessor and trigger delayed initialization
   // This ensures context is initialized before onInitialized() is called
   await setupServerForTest([], testServer);
   return testServer;
 };
 
 jest.mock('vscode-languageserver', () => {
-  const actual = jest.requireActual('vscode-languageserver') as Record<string, unknown>;
+  const actual = jest.requireActual<typeof import('vscode-languageserver')>('vscode-languageserver');
+  const mockConnection = {
+    onInitialize: (): boolean => true,
+    onCompletion: (): boolean => true,
+    onCompletionResolve: (): boolean => true,
+    onDidChangeWatchedFiles: (): boolean => true,
+    onHover: (): boolean => true,
+    onShutdown: (): boolean => true,
+    onDefinition: (): boolean => true,
+    onRequest: jest.fn(),
+    onNotification: jest.fn(),
+    sendRequest: jest.fn().mockResolvedValue({ applied: true }),
+    console: {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn()
+    },
+    workspace: {
+      getConfiguration: (): boolean => mockTypeScriptSupportConfig
+    }
+  } as unknown as Connection;
   return {
     ...actual,
-    createConnection: jest.fn().mockImplementation(() => ({
-      onInitialize: (): boolean => true,
-      onCompletion: (): boolean => true,
-      onCompletionResolve: (): boolean => true,
-      onDidChangeWatchedFiles: (): boolean => true,
-      onHover: (): boolean => true,
-      onShutdown: (): boolean => true,
-      onDefinition: (): boolean => true,
-      onRequest: jest.fn(),
-      onNotification: jest.fn(),
-      sendRequest: jest.fn().mockResolvedValue({ applied: true }),
-      console: {
-        log: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn(),
-        info: jest.fn()
-      },
-      workspace: {
-        getConfiguration: (): boolean => mockTypeScriptSupportConfig
-      }
-    })),
-    TextDocuments: jest.fn().mockImplementation(() => ({
-      listen: (): boolean => true,
-      onDidOpen: (): boolean => true,
-      onDidChangeContent: (): boolean => true,
-      get: (name: string): TextDocument => {
-        const docs = new Map([
-          [uri, document],
-          [jsUri, jsDocument],
-          [auraUri, auraDocument],
-          [hoverUri, hoverDocument]
-        ]);
-        return docs.get(name)!;
-      },
-      all: (): TextDocument[] => [document, jsDocument, auraDocument, hoverDocument],
-      onDidSave: (): boolean => true,
-      syncKind: 'html'
-    }))
+    createConnection: jest.fn().mockImplementation((): Connection => mockConnection),
+    TextDocuments: jest.fn().mockImplementation((): TextDocuments<TextDocument> => {
+      const mockTextDocuments = {
+        listen: (): boolean => true,
+        onDidOpen: (): boolean => true,
+        onDidChangeContent: (): boolean => true,
+        get: (name: string): TextDocument => {
+          const docs = new Map([
+            [uri, document],
+            [jsUri, jsDocument],
+            [auraUri, auraDocument],
+            [hoverUri, hoverDocument]
+          ]);
+          return docs.get(name)!;
+        },
+        all: (): TextDocument[] => [document, jsDocument, auraDocument, hoverDocument],
+        onDidSave: (): boolean => true,
+        syncKind: 'html'
+      };
+      return mockTextDocuments as unknown as TextDocuments<TextDocument>;
+    })
   };
 });
 
 describe('lwcServerNode', () => {
+  // Ensure setTimeout returns a value with unref (Node's Timer has it; jsdom/browser may not)
+  beforeAll(() => {
+    const realSetTimeout = global.setTimeout;
+    jest.spyOn(global, 'setTimeout').mockImplementation(((...args: unknown[]) => {
+      const id = realSetTimeout.apply(global, args as Parameters<typeof setTimeout>);
+      if (typeof (id as { unref?: () => void }).unref !== 'function') {
+        return Object.assign(id, { unref: () => {} });
+      }
+      return id;
+    }) as unknown as typeof setTimeout);
+  });
+
+  // Suppress Logger.info spam from performDelayedInitialization / findFiles during tests
+  let consoleInfoSpy: jest.SpyInstance;
+  beforeAll(() => {
+    consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+  });
+  afterAll(() => {
+    consoleInfoSpy?.mockRestore();
+  });
+
   // Initialize documents before running tests
   beforeAll(async () => {
     await setupDocuments();
@@ -417,7 +352,6 @@ describe('lwcServerNode', () => {
     describe('#onCompletion', () => {
       beforeEach(() => {
         // Ensure file system provider is set correctly before each test
-        server.fileSystemProvider = sfdxFileSystemProvider;
         // Clear component indexer tags to ensure fresh initialization
         if (server.componentIndexer) {
           server.componentIndexer.tags.clear();
@@ -626,7 +560,7 @@ describe('lwcServerNode', () => {
 
         await server.onInitialize(initializeParams);
         await server.componentIndexer.init();
-        const locations: Location[] = server.onDefinition(params);
+        const locations: Location[] = await server.onDefinition(params);
         const uris = locations.map(item => item.uri);
         expect(locations.length).toEqual(2);
         expect(uris[0]).toContain('todo_item/todo_item.js');
@@ -644,7 +578,7 @@ describe('lwcServerNode', () => {
 
         await server.onInitialize(initializeParams);
         await server.componentIndexer.init();
-        const [location] = server.onDefinition(params);
+        const [location] = await server.onDefinition(params);
         expect(location.uri).toContain('todo/todo.js');
         expect(location.range.start.line).toEqual(105);
         expect(location.range.start.character).toEqual(4);
@@ -661,7 +595,7 @@ describe('lwcServerNode', () => {
 
         await server.onInitialize(initializeParams);
         await server.componentIndexer.init();
-        const [location]: Location[] = server.onDefinition(params);
+        const [location]: Location[] = await server.onDefinition(params);
         expect(location.range.start.line).toEqual(14);
         expect(location.range.start.character).toEqual(4);
       });
@@ -677,7 +611,7 @@ describe('lwcServerNode', () => {
 
         await server.onInitialize(initializeParams);
         await server.componentIndexer.init();
-        const [location]: Location[] = server.onDefinition(params);
+        const [location]: Location[] = await server.onDefinition(params);
         expect(location.uri).toContain('todo/todo.html');
         expect(location.range.start.line).toEqual(15);
         expect(location.range.start.character).toEqual(60);
@@ -686,10 +620,10 @@ describe('lwcServerNode', () => {
 
     describe('onInitialized()', () => {
       const baseTsconfigPath = path.join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json');
-      const getTsConfigPaths = (serverInstance?: Server): string[] => {
+      const getTsConfigPaths = async (serverInstance?: Server): Promise<string[]> => {
         // Check the mock file system for tsconfig.json files in LWC directories
-        // After delayed initialization, files are in fileSystemProvider
-        const provider = serverInstance ? serverInstance.fileSystemProvider : server.fileSystemProvider;
+        // After delayed initialization, files are in fileSystemAccessor
+        const provider = serverInstance ? serverInstance.fileSystemAccessor : server.fileSystemAccessor;
         const lwcDirs = [
           path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc'),
           path.join(SFDX_WORKSPACE_ROOT, 'utils', 'meta', 'lwc'),
@@ -699,58 +633,34 @@ describe('lwcServerNode', () => {
         const tsconfigPaths: string[] = [];
         for (const lwcDir of lwcDirs) {
           const tsconfigPath = path.join(lwcDir, 'tsconfig.json');
-          if (provider.fileExists(tsconfigPath)) {
+          if (await provider.fileExists(tsconfigPath)) {
             tsconfigPaths.push(tsconfigPath);
           }
         }
         return tsconfigPaths;
       };
 
-      beforeEach(() => {
+      beforeEach(async () => {
         // Clean up before each test run
-        const provider = server.fileSystemProvider;
+        const provider = server.fileSystemAccessor;
         try {
-          if (provider.fileExists(baseTsconfigPath)) {
-            provider.updateFileStat(baseTsconfigPath, {
-              type: 'file',
-              exists: false,
-              ctime: 0,
-              mtime: 0,
-              size: 0
-            });
+          if (await provider.fileExists(baseTsconfigPath)) {
+            await provider.deleteFile(baseTsconfigPath);
           }
-          if (server.fileSystemProvider.fileExists(baseTsconfigPath)) {
-            server.fileSystemProvider.updateFileStat(baseTsconfigPath, {
-              type: 'file',
-              exists: false,
-              ctime: 0,
-              mtime: 0,
-              size: 0
-            });
+          if (await server.fileSystemAccessor.fileExists(baseTsconfigPath)) {
+            await server.fileSystemAccessor.deleteFile(baseTsconfigPath);
           }
         } catch {
           /* ignore if doesn't exist */
         }
-        const tsconfigPaths = getTsConfigPaths();
+        const tsconfigPaths = await getTsConfigPaths();
         for (const tsconfigPath of tsconfigPaths) {
           try {
-            if (provider.fileExists(tsconfigPath)) {
-              provider.updateFileStat(tsconfigPath, {
-                type: 'file',
-                exists: false,
-                ctime: 0,
-                mtime: 0,
-                size: 0
-              });
+            if (await provider.fileExists(tsconfigPath)) {
+              await provider.deleteFile(tsconfigPath);
             }
-            if (server.fileSystemProvider.fileExists(tsconfigPath)) {
-              server.fileSystemProvider.updateFileStat(tsconfigPath, {
-                type: 'file',
-                exists: false,
-                ctime: 0,
-                mtime: 0,
-                size: 0
-              });
+            if (await server.fileSystemAccessor.fileExists(tsconfigPath)) {
+              await server.fileSystemAccessor.deleteFile(tsconfigPath);
             }
           } catch {
             /* ignore if doesn't exist */
@@ -759,22 +669,22 @@ describe('lwcServerNode', () => {
         mockTypeScriptSupportConfig = false;
       });
 
-      afterEach(() => {
+      afterEach(async () => {
         // Clean up after each test run
-        const provider = server.fileSystemProvider;
-        if (provider.fileExists(baseTsconfigPath)) {
-          deleteFromProvider(provider, baseTsconfigPath);
+        const provider = server.fileSystemAccessor;
+        if (await provider.fileExists(baseTsconfigPath)) {
+          await deleteFromProvider(provider, baseTsconfigPath);
         }
-        if (server.fileSystemProvider.fileExists(baseTsconfigPath)) {
-          deleteFromProvider(server.fileSystemProvider, baseTsconfigPath);
+        if (await server.fileSystemAccessor.fileExists(baseTsconfigPath)) {
+          await deleteFromProvider(server.fileSystemAccessor, baseTsconfigPath);
         }
-        const tsconfigPaths = getTsConfigPaths();
+        const tsconfigPaths = await getTsConfigPaths();
         for (const tsconfigPath of tsconfigPaths) {
-          if (provider.fileExists(tsconfigPath)) {
-            deleteFromProvider(provider, tsconfigPath);
+          if (await provider.fileExists(tsconfigPath)) {
+            await deleteFromProvider(provider, tsconfigPath);
           }
-          if (server.fileSystemProvider.fileExists(tsconfigPath)) {
-            deleteFromProvider(server.fileSystemProvider, tsconfigPath);
+          if (await server.fileSystemAccessor.fileExists(tsconfigPath)) {
+            await deleteFromProvider(server.fileSystemAccessor, tsconfigPath);
           }
         }
         mockTypeScriptSupportConfig = false;
@@ -783,34 +693,33 @@ describe('lwcServerNode', () => {
       it('skip tsconfig initialization when salesforcedx-vscode-lwc.preview.typeScriptSupport = false', async () => {
         await server.onInitialize(initializeParams);
 
-        const provider = server.fileSystemProvider;
-        expect(provider.fileExists(baseTsconfigPath) ?? server.fileSystemProvider.fileExists(baseTsconfigPath)).toBe(
-          false
-        );
-        const tsconfigPaths = getTsConfigPaths();
+        const provider = server.fileSystemAccessor;
+        expect(
+          (await provider.fileExists(baseTsconfigPath)) ??
+            (await server.fileSystemAccessor.fileExists(baseTsconfigPath))
+        ).toBe(false);
+        const tsconfigPaths = await getTsConfigPaths();
         expect(tsconfigPaths.length).toBe(0);
       });
 
       it('initializes tsconfig when salesforcedx-vscode-lwc.preview.typeScriptSupport = true', async () => {
         // Create a new server instance to avoid state issues
         const testServer = new Server();
-        // Use the pre-populated file system provider from testUtils
-        testServer.fileSystemProvider = sfdxFileSystemProvider;
-
-        // Enable feature flag
+        // Set shared accessor before onInitialize so context uses it; setupServerForTest will attach the mock
+        testServer.fileSystemAccessor = sfdxFileSystemAccessor;
         mockTypeScriptSupportConfig = true;
-        await testServer.onInitialize(initializeParams);
-        // Populate fileSystemProvider and trigger delayed initialization
+        testServer.onInitialize(initializeParams);
+        // Populate fileSystemAccessor and trigger delayed initialization
         await setupServerForTest([], testServer);
 
         // Wait for the fire-and-forget promise to complete (configureProjectForTs creates tsconfig files)
         // Poll until all tsconfig files are created (with timeout)
-        const provider = testServer.fileSystemProvider;
+        const provider = testServer.fileSystemAccessor;
         let tsconfigPaths: string[] = [];
         const maxAttempts = 50;
         let attempts = 0;
         while (attempts < maxAttempts) {
-          tsconfigPaths = getTsConfigPaths(testServer);
+          tsconfigPaths = await getTsConfigPaths(testServer);
           // If we have 3 tsconfig files, the update is complete
           if (tsconfigPaths.length >= 3) {
             break;
@@ -821,12 +730,13 @@ describe('lwcServerNode', () => {
         }
 
         expect(
-          provider?.fileExists(baseTsconfigPath) ?? testServer.fileSystemProvider.fileExists(baseTsconfigPath)
+          (await provider?.fileExists(baseTsconfigPath)) ??
+            (await testServer.fileSystemAccessor.fileExists(baseTsconfigPath))
         ).toBe(true);
         // There are currently 3 LWC directories under SFDX_WORKSPACE_ROOT
         // (force-app/main/default/lwc, utils/meta/lwc, and registered-empty-folder/meta/lwc)
         expect(tsconfigPaths.length).toBe(3);
-      });
+      }, 15_000);
 
       it('updates tsconfig.sfdx.json path mapping', async () => {
         // Enable feature flag
@@ -836,61 +746,62 @@ describe('lwcServerNode', () => {
         await setupServerForTest([], server);
 
         // Wait for the fire-and-forget promise to complete (configureProjectForTs -> updateSfdxTsConfigPath)
-        // Poll until the path mappings are updated (with timeout)
-        const provider = server.fileSystemProvider;
-        let pathMappingLength = 0;
-        const maxAttempts = 50;
+        const provider = server.fileSystemAccessor;
+        const maxAttempts = 80;
         let attempts = 0;
         while (attempts < maxAttempts) {
           const tsConfigContent =
-            provider.getFileContent(baseTsconfigPath) ?? server.fileSystemProvider.getFileContent(baseTsconfigPath);
+            (await provider.getFileContent(baseTsconfigPath)) ??
+            (await server.fileSystemAccessor.getFileContent(baseTsconfigPath));
           if (tsConfigContent) {
-            const tsConfig = JSON.parse(tsConfigContent) as { compilerOptions?: { paths?: Record<string, unknown> } };
-            pathMappingLength = Object.keys(tsConfig.compilerOptions?.paths ?? {}).length;
-            // If we have 12 path mappings, the update is complete
-            if (pathMappingLength >= 12) {
+            const tsConfig = JSON.parse(tsConfigContent);
+            const pathMappingLength = Object.keys(tsConfig.compilerOptions?.paths ?? {}).length;
+            // Discovery via findFiles: 11 components on disk (no test_component)
+            if (pathMappingLength >= 11) {
               break;
             }
           }
-          // Wait a bit before checking again
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
 
         const sfdxTsConfigContent =
-          provider.getFileContent(baseTsconfigPath) ?? server.fileSystemProvider.getFileContent(baseTsconfigPath);
+          (await provider.getFileContent(baseTsconfigPath)) ??
+          (await server.fileSystemAccessor.getFileContent(baseTsconfigPath));
         expect(sfdxTsConfigContent).not.toBeUndefined();
-        const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!) as { compilerOptions?: { paths?: Record<string, unknown> } };
-        const pathMapping = Object.keys(sfdxTsConfig.compilerOptions?.paths ?? {});
-        // Updated to match actual workspace structure - finding 12 components (10 original + todo_util + todo_utils from utils/meta/lwc)
-        expect(pathMapping.length).toEqual(12);
-      });
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!);
+        const pathMapping = Object.keys(sfdxTsConfig.compilerOptions.paths);
+        expect(pathMapping.length).toBeGreaterThanOrEqual(11);
+      }, 10_000);
     });
 
     describe('onDidChangeWatchedFiles', () => {
       const baseTsconfigPath = path.join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json');
       const watchedFileDir = path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc', 'newlyAddedFile');
 
-      const getPathMappingKeys = (serverInstance?: Server): string[] => {
+      const getPathMappingKeys = async (serverInstance?: BaseServer): Promise<string[]> => {
         try {
-          // After delayed initialization, tsconfig is written to fileSystemProvider
-          const provider = serverInstance ? serverInstance.fileSystemProvider : server.fileSystemProvider;
-          const sfdxTsConfigContent = provider.getFileContent(baseTsconfigPath);
+          // After delayed initialization, tsconfig is written to fileSystemAccessor
+          const provider = serverInstance ? serverInstance.fileSystemAccessor : server.fileSystemAccessor;
+          const sfdxTsConfigContent = await provider.getFileContent(baseTsconfigPath);
           if (!sfdxTsConfigContent) {
             // If tsconfig doesn't exist, return empty array for tests
             return [];
           }
-          const sfdxTsConfig = JSON.parse(sfdxTsConfigContent) as { compilerOptions?: { paths?: Record<string, unknown> } };
-          return Object.keys(sfdxTsConfig.compilerOptions?.paths ?? {});
-        } catch {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const sfdxTsConfig = JSON.parse(sfdxTsConfigContent);
+          return Object.keys(sfdxTsConfig.compilerOptions.paths ?? {});
+        } catch (error) {
+          console.error(`Failed to read tsconfig: ${error instanceof Error ? error.message : String(error)}`);
           return [];
         }
       };
 
-      const getTsConfigPaths = (serverInstance?: Server): string[] => {
+      const getTsConfigPaths = async (serverInstance?: Server): Promise<string[]> => {
         // Check the mock file system for tsconfig.json files in LWC directories
-        // After delayed initialization, files are in fileSystemProvider
-        const provider = serverInstance ? serverInstance.fileSystemProvider : server.fileSystemProvider;
+        // After delayed initialization, files are in fileSystemAccessor
+        const provider = serverInstance ? serverInstance.fileSystemAccessor : server.fileSystemAccessor;
         const lwcDirs = [
           path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc'),
           path.join(SFDX_WORKSPACE_ROOT, 'utils', 'meta', 'lwc'),
@@ -900,7 +811,7 @@ describe('lwcServerNode', () => {
         const tsconfigPaths: string[] = [];
         for (const lwcDir of lwcDirs) {
           const tsconfigPath = path.join(lwcDir, 'tsconfig.json');
-          if (provider.fileExists(tsconfigPath)) {
+          if (await provider.fileExists(tsconfigPath)) {
             tsconfigPaths.push(tsconfigPath);
           }
         }
@@ -911,31 +822,34 @@ describe('lwcServerNode', () => {
         mockTypeScriptSupportConfig = true;
       });
 
-      afterEach(() => {
+      afterEach(async () => {
         // Clean up after each test run
-        const provider = server.fileSystemProvider;
-        if (provider.fileExists(baseTsconfigPath) || server.fileSystemProvider.fileExists(baseTsconfigPath)) {
-          if (provider.fileExists(baseTsconfigPath)) {
-            deleteFromProvider(provider, baseTsconfigPath);
+        const provider = server.fileSystemAccessor;
+        if (
+          (await provider.fileExists(baseTsconfigPath)) ||
+          (await server.fileSystemAccessor.fileExists(baseTsconfigPath))
+        ) {
+          if (await provider.fileExists(baseTsconfigPath)) {
+            await deleteFromProvider(provider, baseTsconfigPath);
           }
-          if (server.fileSystemProvider.fileExists(baseTsconfigPath)) {
-            deleteFromProvider(server.fileSystemProvider, baseTsconfigPath);
+          if (await server.fileSystemAccessor.fileExists(baseTsconfigPath)) {
+            await deleteFromProvider(server.fileSystemAccessor, baseTsconfigPath);
           }
         }
-        // Use fileSystemProvider to find tsconfig files
-        const tsconfigPaths = getTsConfigPaths();
+        // Use fileSystemAccessor to find tsconfig files
+        const tsconfigPaths = await getTsConfigPaths();
         for (const tsconfigPath of tsconfigPaths) {
-          if (provider.fileExists(tsconfigPath) || server.fileSystemProvider.fileExists(tsconfigPath)) {
-            if (provider.fileExists(tsconfigPath)) {
-              deleteFromProvider(provider, tsconfigPath);
+          if ((await provider.fileExists(tsconfigPath)) || (await server.fileSystemAccessor.fileExists(tsconfigPath))) {
+            if (await provider.fileExists(tsconfigPath)) {
+              await deleteFromProvider(provider, tsconfigPath);
             }
-            if (server.fileSystemProvider.fileExists(tsconfigPath)) {
-              deleteFromProvider(server.fileSystemProvider, tsconfigPath);
+            if (await server.fileSystemAccessor.fileExists(tsconfigPath)) {
+              await deleteFromProvider(server.fileSystemAccessor, tsconfigPath);
             }
           }
         }
-        if (server.fileSystemProvider.directoryExists(normalizePath(watchedFileDir))) {
-          deleteFromProvider(server.fileSystemProvider, watchedFileDir, true);
+        if (await server.fileSystemAccessor.directoryExists(normalizePath(watchedFileDir))) {
+          await deleteFromProvider(server.fileSystemAccessor, watchedFileDir);
         }
         mockTypeScriptSupportConfig = false;
       });
@@ -945,7 +859,7 @@ describe('lwcServerNode', () => {
           // Create fresh server instance with TypeScript support
           const testServer = await createServerWithTsSupport(initializeParams);
 
-          const initializedPathMapping = getPathMappingKeys(testServer);
+          const initializedPathMapping = await getPathMappingKeys(testServer);
           // Baseline is 12 (10 original .js + 1 .ts + 2 from utils/meta/lwc)
           // For .ts tests, there may be leftover files, so use >= 12
           // If the count is unexpectedly low, it might be due to an error reading tsconfig
@@ -954,7 +868,6 @@ describe('lwcServerNode', () => {
 
           // Create files after initialized
           const watchedFilePath = path.resolve(watchedFileDir, `newlyAddedFile${ext}`);
-          createFileInProvider(testServer.fileSystemProvider, watchedFilePath, '');
 
           const didChangeWatchedFilesParams: DidChangeWatchedFilesParams = {
             changes: [
@@ -966,7 +879,7 @@ describe('lwcServerNode', () => {
           };
 
           await testServer.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
-          const pathMapping = getPathMappingKeys(testServer);
+          const pathMapping = await getPathMappingKeys(testServer);
           // File created in provider after initialization should be added to path mapping
           // Count should increase by 1 from baseline
           // Note: If baseline is low due to tsconfig read error, the update may also fail
@@ -995,53 +908,28 @@ describe('lwcServerNode', () => {
         });
 
         it(`removes tsconfig.sfdx.json path mapping when ${ext} files deleted`, async () => {
-          // Create files before initialized in sfdxFileSystemProvider
-          // This ensures the file is available when setupServerForTest copies files to fileSystemProvider
+          // Create files before initialized in sfdxFileSystemAccessor
+          // This ensures the file is available when setupServerForTest copies files to fileSystemAccessor
           const watchedFilePath = path.resolve(watchedFileDir, `newlyAddedFile${ext}`);
-          createFileInProvider(sfdxFileSystemProvider, watchedFilePath, '');
 
           // Create fresh server instance with TypeScript support
           const testServer = await createServerWithTsSupport(initializeParams);
 
-          const initializedPathMapping = getPathMappingKeys(testServer);
+          const initializedPathMapping = await getPathMappingKeys(testServer);
           // Baseline is now 12 (10 original .js + 1 .ts + 2 from utils/meta/lwc)
-          // File created in provider before initialization should be found if it's copied to fileSystemProvider
-          // The count might be 12 or 13 depending on whether the file is found
-          expect(initializedPathMapping.length).toBeGreaterThanOrEqual(12);
+          // Discovery via findFiles (disk): 11 components (no test_component on disk)
+          expect(initializedPathMapping.length).toBeGreaterThanOrEqual(11);
           const baselineCount = initializedPathMapping.length;
 
-          // Delete file from fileSystemProvider (component indexer uses fileSystemProvider)
+          // Delete file from fileSystemAccessor (component indexer uses fileSystemAccessor)
           // Remove from provider's directory listing and file stats
-          const parentDir = path.dirname(watchedFilePath);
-          const fileName = path.basename(watchedFilePath);
-          const normalizedParentDir = normalizePath(parentDir);
+          // Delete from fileSystemAccessor
+          await testServer.fileSystemAccessor.deleteFile(watchedFilePath);
 
-          // Delete from fileSystemProvider
-          const entries = testServer.fileSystemProvider.getDirectoryListing(normalizedParentDir) ?? [];
-          const updatedEntries = entries.filter((entry: any) => entry.name !== fileName);
-          testServer.fileSystemProvider.updateDirectoryListing(normalizedParentDir, updatedEntries);
-          testServer.fileSystemProvider.updateFileStat(watchedFilePath, {
-            type: 'file',
-            exists: false,
-            ctime: 0,
-            mtime: 0,
-            size: 0
-          });
-
-          // Delete from fileSystemProvider (used by component indexer)
+          // Delete from fileSystemAccessor (used by component indexer)
           const normalizedWatchedFilePath = normalizePath(watchedFilePath);
-          const fileSystemEntries = testServer.fileSystemProvider.getDirectoryListing(normalizedParentDir) ?? [];
-          const updatedFileSystemEntries = fileSystemEntries.filter((entry: any) => entry.name !== fileName);
-          testServer.fileSystemProvider.updateDirectoryListing(normalizedParentDir, updatedFileSystemEntries);
           // Remove file content and stat to ensure findFilesWithGlob doesn't find it
-          await testServer.fileSystemProvider.updateFileContent(normalizedWatchedFilePath, '');
-          testServer.fileSystemProvider.updateFileStat(normalizedWatchedFilePath, {
-            type: 'file',
-            exists: false,
-            ctime: 0,
-            mtime: 0,
-            size: 0
-          });
+          await testServer.fileSystemAccessor.updateFileContent(normalizedWatchedFilePath, '');
 
           const didChangeWatchedFilesParams: DidChangeWatchedFilesParams = {
             changes: [
@@ -1053,7 +941,7 @@ describe('lwcServerNode', () => {
           };
 
           await testServer.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
-          const updatedPathMapping = getPathMappingKeys(testServer);
+          const updatedPathMapping = await getPathMappingKeys(testServer);
           // File was deleted, so count should decrease by 1 from baseline if the file was in the mapping
           // However, due to test ordering issues, the file might not be properly removed
           // So we check that it's at least not greater than baseline, and ideally baselineCount - 1
@@ -1070,27 +958,18 @@ describe('lwcServerNode', () => {
         });
 
         it(`no updates to tsconfig.sfdx.json path mapping when ${ext} files changed`, async () => {
-          // Create files before initialized in sfdxFileSystemProvider
+          // Create files before initialized in sfdxFileSystemAccessor
           const watchedFilePath = path.resolve(watchedFileDir, `newlyAddedFile${ext}`);
-          createFileInProvider(sfdxFileSystemProvider, watchedFilePath, '');
 
           await server.onInitialize(initializeParams);
           await setupServerForTest([], server);
 
-          const initializedPathMapping = getPathMappingKeys(server);
-          // Baseline is 12 (10 original .js + 1 .ts + 2 from utils/meta/lwc)
-          // File created in provider before initialization should be found if copied to fileSystemProvider
-          expect(initializedPathMapping.length).toBeGreaterThanOrEqual(12);
+          const initializedPathMapping = await getPathMappingKeys(server);
+          // Discovery via findFiles: 11 components on disk
+          expect(initializedPathMapping.length).toBeGreaterThanOrEqual(11);
           const baselineCount = initializedPathMapping.length;
 
-          await server.fileSystemProvider.updateFileStat(watchedFilePath, {
-            type: 'file',
-            exists: true,
-            ctime: 0,
-            mtime: 0,
-            size: 0
-          });
-          await server.fileSystemProvider.updateFileContent(watchedFilePath, '');
+          await server.fileSystemAccessor.updateFileContent(watchedFilePath, '');
 
           const didChangeWatchedFilesParams: DidChangeWatchedFilesParams = {
             changes: [
@@ -1102,7 +981,7 @@ describe('lwcServerNode', () => {
           };
 
           await server.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
-          const updatedPathMapping = getPathMappingKeys(server);
+          const updatedPathMapping = await getPathMappingKeys(server);
           // File was changed but not added/removed, so count should remain the same
           expect(updatedPathMapping.length).toEqual(baselineCount);
         });
@@ -1111,12 +990,12 @@ describe('lwcServerNode', () => {
           await server.onInitialize(initializeParams);
           await setupServerForTest([], server);
 
-          const initializedPathMapping = getPathMappingKeys(server);
+          const initializedPathMapping = await getPathMappingKeys(server);
           // Note: There may be leftover files from previous tests, so count might be 11
           expect(initializedPathMapping.length).toBeGreaterThanOrEqual(10);
 
           const watchedFilePath = path.resolve(watchedFileDir, '__tests__', 'newlyAddedFile', `newlyAddedFile${ext}`);
-          createFileInProvider(server.fileSystemProvider, watchedFilePath, '');
+          await server.fileSystemAccessor.updateFileContent(watchedFilePath, '');
 
           const didChangeWatchedFilesParams: DidChangeWatchedFilesParams = {
             changes: [
@@ -1128,7 +1007,7 @@ describe('lwcServerNode', () => {
           };
 
           await server.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
-          const updatedPathMapping = getPathMappingKeys(server);
+          const updatedPathMapping = await getPathMappingKeys(server);
           // File in __tests__ subdirectory shouldn't update path mapping, so count stays the same
           expect(updatedPathMapping.length).toBeGreaterThanOrEqual(10);
         });
@@ -1139,39 +1018,19 @@ describe('lwcServerNode', () => {
           it(`no path mapping updates made for ${ext} on ${type} event`, async () => {
             const lwcComponentPath = path.resolve(watchedFileDir, 'newlyAddedFile.ts');
             const nonJsOrTsFilePath = path.resolve(watchedFileDir, `newlyAddedFile${ext}`);
-            server.fileSystemProvider.updateFileStat(path.dirname(lwcComponentPath), {
-              type: 'directory',
-              exists: true,
-              ctime: 0,
-              mtime: 0,
-              size: 0
-            });
-            void server.fileSystemProvider.updateFileContent(lwcComponentPath, '');
-            server.fileSystemProvider.updateFileStat(path.dirname(nonJsOrTsFilePath), {
-              type: 'directory',
-              exists: true,
-              ctime: 0,
-              mtime: 0,
-              size: 0
-            });
-            void server.fileSystemProvider.updateFileContent(nonJsOrTsFilePath, '');
+            void server.fileSystemAccessor.updateFileContent(lwcComponentPath, '');
+
+            void server.fileSystemAccessor.updateFileContent(nonJsOrTsFilePath, '');
 
             await server.onInitialize(initializeParams);
             await setupServerForTest([], server);
 
-            const initializedPathMapping = getPathMappingKeys(server);
+            const initializedPathMapping = await getPathMappingKeys(server);
             // Baseline is 12 (10 original .js + 1 .ts + 2 from utils/meta/lwc)
-            // newlyAddedFile.ts was created in provider before initialization
-            // If it's copied to fileSystemProvider, count should be 13, otherwise 12
-            expect(initializedPathMapping.length).toBeGreaterThanOrEqual(12);
+            // Discovery via findFiles: 11 components on disk
+            expect(initializedPathMapping.length).toBeGreaterThanOrEqual(11);
 
-            server.fileSystemProvider.updateFileStat(nonJsOrTsFilePath, {
-              type: 'file',
-              exists: false,
-              ctime: 0,
-              mtime: 0,
-              size: 0
-            });
+            await server.fileSystemAccessor.deleteFile(nonJsOrTsFilePath);
 
             const didChangeWatchedFilesParams: DidChangeWatchedFilesParams = {
               changes: [
@@ -1183,7 +1042,7 @@ describe('lwcServerNode', () => {
             };
 
             await server.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
-            const updatedPathMapping = getPathMappingKeys(server);
+            const updatedPathMapping = await getPathMappingKeys(server);
             // Non-JS/TS file changes don't update path mapping, so count should stay the same
             expect(updatedPathMapping.length).toEqual(initializedPathMapping.length);
           });

@@ -43,7 +43,7 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-aura-language-server/src/tern/**',
       'packages/salesforcedx-vscode-lightning/tern/**',
-      'packages/salesforcedx-vscode-lightning/extension/tern/lib/**',
+      'packages/salesforcedx-vscode-lightning/extension/tern/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
@@ -346,7 +346,7 @@ export default [
       'import/no-empty-named-blocks': 'error',
       'import/newline-after-import': 'error',
       'import/no-cycle': 'error',
-      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/scripts/**'] }],
+      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }],
       'import/order': [
         'error',
         {
@@ -590,7 +590,7 @@ export default [
       'import/no-extraneous-dependencies': [
         'error',
         {
-          devDependencies: ['**/test/**', '**/scripts/**'],
+          devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'],
           // Allow Effect and core Salesforce dependencies
           optionalDependencies: false
         }

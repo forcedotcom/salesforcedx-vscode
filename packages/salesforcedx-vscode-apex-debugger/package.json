@@ -60,11 +60,11 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-vscode-apex:compile",
         "../salesforcedx-apex-debugger:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
-        "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-apex:compile"
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
