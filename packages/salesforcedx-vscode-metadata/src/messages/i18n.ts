@@ -83,7 +83,16 @@ export const messages = {
   source_diff_all_files_match: 'All Files Match',
   missing_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.',
   overwrite_button: 'Overwrite',
-  cancel_button: 'Cancel'
+  cancel_button: 'Cancel',
+
+  // SObject refresh
+  sobjects_refresh: 'SFDX: Refresh SObject Definitions',
+  sobject_refresh_all: 'All SObjects',
+  sobject_refresh_custom: 'Custom SObjects',
+  sobject_refresh_standard: 'Standard SObjects',
+  sobjects_no_refresh_if_already_active_error_text:
+    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
+  processed_sobjects_length_text: 'Processed %d %s sObjects\n'
 } as const;
 
 export type MessageKey = keyof typeof messages;

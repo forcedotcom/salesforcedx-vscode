@@ -6,22 +6,30 @@
  */
 
 import type { QueryResult, DescribeSObjectResult } from '../types';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as debounce from 'debounce';
+import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { trackErrorWithTelemetry } from '../commonUtils';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
-import {
-  channelService,
-  isDefaultOrgSet,
-  onOrgChange,
-  retrieveSObject,
-  retrieveSObjects,
-  workspaceContext
-} from '../sf';
+import { channelService } from '../services/channel';
+import { getSoqlRuntime } from '../services/extensionProvider';
+import { getConnection, isDefaultOrgSet } from '../services/org';
+import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
 import { runQuery } from './queryRunner';
+
+const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function* (sobjectName: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const metadataDescribeService = yield* api.services.MetadataDescribeService;
+  return yield* metadataDescribeService
+    .describeCustomObject(sobjectName)
+    .pipe(Effect.catchAll(() => Effect.succeed<DescribeSObjectResult | undefined>(undefined)));
+});
 
 // TODO: This should be exported from soql-builder-ui
 type SoqlEditorEvent =
@@ -68,45 +76,10 @@ type MessageType =
   | 'connection_changed'
   | 'run_query_done';
 
-class ConnectionChangedListener {
-  protected editorInstances: SOQLEditorInstance[];
-  protected static instance: ConnectionChangedListener;
-
-  protected constructor() {
-    onOrgChange(async (_orgInfo: any) => {
-      await this.connectionChanged();
-    });
-
-    this.editorInstances = [];
-  }
-
-  public static getInstance(): ConnectionChangedListener {
-    if (!ConnectionChangedListener.instance) {
-      ConnectionChangedListener.instance = new ConnectionChangedListener();
-    }
-    return ConnectionChangedListener.instance;
-  }
-
-  public addSoqlEditor(editor: SOQLEditorInstance): void {
-    this.editorInstances.push(editor);
-  }
-
-  public removeSoqlEditor(editor: SOQLEditorInstance): void {
-    this.editorInstances = this.editorInstances.filter(instance => instance !== editor);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
-  public async connectionChanged(): Promise<void> {
-    this.editorInstances.forEach(editor => editor.onConnectionChanged());
-  }
-}
-
 export class SOQLEditorInstance {
-  // when destroyed, dispose of all event listeners.
   public subscriptions: vscode.Disposable[] = [];
   protected lastIncomingSoqlStatement = '';
 
-  // Notify soqlEditorProvider when destroyed
   protected disposedCallback: ((instance: SOQLEditorInstance) => void) | undefined;
 
   constructor(
@@ -114,16 +87,25 @@ export class SOQLEditorInstance {
     protected webviewPanel: vscode.WebviewPanel,
     protected _token: vscode.CancellationToken
   ) {
-    // Update the UI when the Text Document is changed, if its the same document.
     vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
 
-    // Update the text document when message recieved
-    webviewPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
+    webviewPanel.webview.onDidReceiveMessage(this.onDidReceiveMessageHandler, this, this.subscriptions);
 
-    // register editor with connection changed listener
-    ConnectionChangedListener.getInstance().addSoqlEditor(this);
+    const { onConnectionChanged } = this;
+    const fiber = getSoqlRuntime().runFork(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const targetOrgRef = yield* api.services.TargetOrgRef();
+        yield* targetOrgRef.changes.pipe(
+          Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${org.orgId ?? '<NOT SET>'}`))),
+          Stream.map(org => org.orgId),
+          Stream.changes,
+          Stream.runForEach(() => Effect.sync(() => onConnectionChanged()))
+        );
+      })
+    );
+    this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(fiber)) });
 
-    // Make sure we get rid of the event listeners when our editor is closed.
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
@@ -142,11 +124,6 @@ export class SOQLEditorInstance {
 
   protected updateWebview(document: vscode.TextDocument): void {
     const newSoqlStatement = document.getText();
-    // The automated onDocumentChangeHandler fires unnecessarily
-    // when we manually update the soql statement in the document
-    // this introduced a 'cache once' and muffles the unnecessary postMessage
-    // For more info, see section "From TextDocument to webviews"
-    // url: https://code.visualstudio.com/api/extension-guides/custom-editors#synchronizing-changes-with-the-textdocument
     if (this.lastIncomingSoqlStatement !== newSoqlStatement) {
       this.sendMessageToUi('text_soql_changed', newSoqlStatement);
     }
@@ -167,7 +144,7 @@ export class SOQLEditorInstance {
     }
   }
 
-  protected onDidRecieveMessageHandler(event: SoqlEditorEvent): void {
+  protected onDidReceiveMessageHandler(event: SoqlEditorEvent): void {
     switch (event.type) {
       case 'ui_activated': {
         this.updateWebview(this.document);
@@ -190,8 +167,9 @@ export class SOQLEditorInstance {
         break;
       }
       case 'sobject_metadata_request': {
-        retrieveSObject(event.payload)
-          .then(sobject => this.updateSObjectMetadata(sobject))
+        getSoqlRuntime()
+          .runPromise(retrieveSObjectRawEffect(event.payload))
+          .then(sobject => sobject && this.updateSObjectMetadata(sobject))
           .catch(() => {
             const message = nls.localize('error_sobject_metadata_request', event.payload);
             channelService.appendLine(message);
@@ -199,8 +177,9 @@ export class SOQLEditorInstance {
         break;
       }
       case 'sobjects_request': {
-        retrieveSObjects()
-          .then(sobjectNames => this.updateSObjects(sobjectNames))
+        getSoqlRuntime()
+          .runPromise(listSObjectNamesEffect)
+          .then(sobjectNames => sobjectNames && this.updateSObjects(sobjectNames))
           .catch(() => {
             const message = nls.localize('error_sobjects_request');
             channelService.appendLine(message);
@@ -233,7 +212,6 @@ export class SOQLEditorInstance {
   }
 
   protected async handleRunQuery(): Promise<void> {
-    // Check to see if a default org is set.
     if (!(await isDefaultOrgSet())) {
       const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
@@ -243,7 +221,7 @@ export class SOQLEditorInstance {
     }
 
     const queryText = this.document.getText();
-    const conn = await workspaceContext.getConnection();
+    const conn = await getConnection();
     const queryData = await runQuery(conn)(queryText);
     await this.openQueryDataView(queryData);
     this.runQueryDone();
@@ -260,17 +238,13 @@ export class SOQLEditorInstance {
     await webview.createOrShowWebView();
   }
 
-  // Write out the json to a given document. //
   protected updateTextDocument(document: vscode.TextDocument, soqlQuery: string): Thenable<boolean> {
     const edit = new vscode.WorkspaceEdit();
-
     edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), soqlQuery);
-
     return vscode.workspace.applyEdit(edit);
   }
 
   protected dispose(): void {
-    ConnectionChangedListener.getInstance().removeSoqlEditor(this);
     this.subscriptions.forEach(dispposable => dispposable.dispose());
     if (this.disposedCallback) {
       this.disposedCallback(this);
@@ -281,7 +255,7 @@ export class SOQLEditorInstance {
     this.disposedCallback = callback;
   }
 
-  public onConnectionChanged(): void {
+  public onConnectionChanged = (): void => {
     this.sendMessageToUi('connection_changed');
-  }
+  };
 }

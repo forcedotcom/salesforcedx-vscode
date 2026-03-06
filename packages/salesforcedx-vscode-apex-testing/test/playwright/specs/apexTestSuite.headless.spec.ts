@@ -7,6 +7,7 @@
 
 import type { Page } from '@playwright/test';
 import {
+  clearOutputChannel,
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
   executeCommandWithCommandPalette,
@@ -133,6 +134,9 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
 
   await test.step('create Apex Test Suite with first class', async () => {
     testSuiteName = `ApexTestSuite${Date.now()}`;
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
     await saveScreenshot(page, 'step.create-suite.before.png');
     await createApexTestSuiteViaPalette(page, testSuiteName, testClassName1);
     await saveScreenshot(page, 'step.create-suite.done.png');
@@ -140,6 +144,7 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
 
   await test.step('verify suite creation', async () => {
     await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, {
       expectedText: 'Ended SFDX: Create Apex Test Suite',
       timeout: 60_000
@@ -148,6 +153,9 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
   });
 
   await test.step('add second test class to suite', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_add_text);
     await saveScreenshot(page, 'step.add-tests.after-command.png');
     await selectSuiteInQuickPick(page, testSuiteName, { waitForListRowMs: 10_000 });
@@ -158,6 +166,7 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
 
   await test.step('verify tests were added to suite', async () => {
     await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, {
       expectedText: 'Ended SFDX: Add Tests to Apex Test Suite',
       timeout: 60_000
@@ -166,6 +175,9 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
   });
 
   await test.step('run Apex Test Suite', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_run_text);
     await saveScreenshot(page, 'step.run.after-command.png');
     await selectSuiteInQuickPick(page, testSuiteName);

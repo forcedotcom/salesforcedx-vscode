@@ -10,6 +10,7 @@ import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   editOpenFile,
+  openFileByName,
   executeCommandWithCommandPalette,
   clearOutputChannel,
   waitForOutputChannelText,
@@ -48,6 +49,7 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
     await saveScreenshot(page, 'v1.after-create.png');
 
     await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.deploy_this_source_text}`,
@@ -63,6 +65,7 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
     await saveScreenshot(page, 'v2.after-edit.png');
 
     await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.deploy_this_source_text}`,
@@ -73,6 +76,7 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
 
   await test.step('retrieve v2 and verify unchanged', async () => {
     await clearOutputChannel(page);
+    await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.retrieve_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.retrieve_this_source_text}`,
