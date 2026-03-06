@@ -9,8 +9,6 @@ import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
 import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
 
-export type { ResolvedPackageInfo } from './schemas';
-
 const PACKAGE2_MEMBER_BATCH_SIZE = 200;
 
 const packageResolutionCache: Map<string, Map<string, ResolvedPackageInfo>> = new Map();
@@ -19,7 +17,7 @@ const packageResolutionCache: Map<string, Map<string, ResolvedPackageInfo>> = ne
 const packageResolutionUnavailableOrgs = new Set<string>();
 
 /** Optional org info from defaultOrgRef (Services); when provided, avoids file read to get orgId. */
-export type PackageResolutionOrgInfo = { orgId?: string; username?: string };
+type PackageResolutionOrgInfo = { orgId?: string; username?: string };
 
 /**
  * Returns a cache key for the current org from defaultOrgRef (Services) org info.

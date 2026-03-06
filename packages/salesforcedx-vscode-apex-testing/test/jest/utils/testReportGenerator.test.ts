@@ -31,6 +31,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const Effect = jest.requireActual('effect/Effect');
   const Context = jest.requireActual('effect/Context');
   const Layer = jest.requireActual('effect/Layer');
+  const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
   const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
 
   const mockFsWrite = (pathOrUri: unknown, _content: string) =>
@@ -75,7 +76,8 @@ jest.mock('../../../src/services/extensionProvider', () => {
 
   return {
     ExtensionProviderService,
-    AllServicesLayer: MockAllServicesLayer
+    AllServicesLayer: MockAllServicesLayer,
+    getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer)
   };
 });
 
@@ -83,6 +85,7 @@ import { TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node
 import { Global } from '@salesforce/core';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../../../src/channels';
 import * as settings from '../../../src/settings';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../../../src/settings';
@@ -1036,7 +1039,7 @@ describe('testReportGenerator', () => {
   describe('writeAndOpenTestReport', () => {
     it('should write markdown report and notify without opening by default', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
       const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
 
@@ -1051,13 +1054,13 @@ describe('testReportGenerator', () => {
       expect(mockOpenTextDocument).not.toHaveBeenCalled();
       expect(mockShowTextDocument).not.toHaveBeenCalled();
       expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.md'))
       );
     });
 
     it('should open markdown preview when user selects Open Report', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
       const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
       mockShowInformationMessage.mockResolvedValueOnce('Open Report');
@@ -1072,13 +1075,13 @@ describe('testReportGenerator', () => {
       expect(mockOpenTextDocument).not.toHaveBeenCalled();
       expect(mockShowTextDocument).not.toHaveBeenCalled();
       expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.md'))
       );
     });
 
     it('should write text report and notify without opening by default', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
       const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
 
@@ -1093,13 +1096,13 @@ describe('testReportGenerator', () => {
       expect(mockOpenTextDocument).not.toHaveBeenCalled();
       expect(mockShowTextDocument).not.toHaveBeenCalled();
       expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))
+        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.txt'))
       );
     });
 
     it('should open text report when user selects Open Report', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
       const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
       mockShowInformationMessage.mockResolvedValueOnce('Open Report');
@@ -1111,13 +1114,13 @@ describe('testReportGenerator', () => {
       expect(mockExecuteCommand).not.toHaveBeenCalled();
       expect(mockShowTextDocument).toHaveBeenCalled();
       expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))
+        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.txt'))
       );
     });
 
     it('should write report path and markdown tip to output channel for markdown format', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
       const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
 
@@ -1125,7 +1128,7 @@ describe('testReportGenerator', () => {
 
       // Should write report path to output channel
       expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.md'))
       );
       // Should also write markdown preview tip for markdown format
       expect(appendLineSpy).toHaveBeenCalledWith(
@@ -1135,7 +1138,7 @@ describe('testReportGenerator', () => {
 
     it('should encode content as UTF-8', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
       await writeAndOpenTestReport(result, outputDir, 'markdown');
 
@@ -1153,7 +1156,7 @@ describe('testReportGenerator', () => {
 
     it('should use library filename format: test-result-{testRunId}.md', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
       await writeAndOpenTestReport(result, outputDir, 'markdown');
 

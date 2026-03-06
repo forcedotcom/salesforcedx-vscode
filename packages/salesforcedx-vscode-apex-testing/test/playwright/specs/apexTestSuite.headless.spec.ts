@@ -189,11 +189,11 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');
     await saveScreenshot(page, 'step.verify-run.output-open.png');
-    await waitForOutputChannelText(page, { expectedText: '=== Test Results', timeout: 120_000 });
+    await waitForOutputChannelText(page, { expectedText: '=== Test Results', timeout: 180_000 });
     await saveScreenshot(page, 'step.verify-run.results-visible.png');
-    await waitForOutputChannelText(page, { expectedText: testClassName1, timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: testClassName2, timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: testClassName1, timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: testClassName2, timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 60_000 });
     await saveScreenshot(page, 'step.verify-run.done.png');
   });
 

@@ -7,6 +7,7 @@
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 import { nls } from '../messages';
 
@@ -34,18 +35,9 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
-        api.services.ComponentSetService.Default,
-        api.services.ConfigService.Default,
-        api.services.ConnectionService.Default,
+        Layer.succeedContext(api.services.prebuiltServicesDependencies),
         api.services.ExtensionContextServiceLayer(context),
-        api.services.FileWatcherService.Default,
-        api.services.FsService.Default,
-        api.services.MetadataRegistryService.Default,
-        api.services.MetadataRetrieveService.Default,
-        api.services.ProjectService.Default,
         api.services.SdkLayerFor(context),
-        api.services.TemplateService.Default,
-        api.services.WorkspaceService.Default,
         channelLayer,
         errorHandlerWithChannel
       );
@@ -57,9 +49,21 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
  * Uses ExtensionContextService.Default (fails if getContext is called).
  * Use buildAllServicesLayer(context) to provide a working ExtensionContextService.
  */
-// eslint-disable-next-line functional/no-let
+
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;
+};
+
+/**
+ * Single persistent runtime for apex-testing Effect executions.
+ * Built once on first use to avoid rebuilding ComponentSetService and other
+ * stateful services across test discovery, runs, and code-completion calls
+ */
+const createApexTestingRuntime = () => ManagedRuntime.make(AllServicesLayer);
+let _apexTestingRuntime: ReturnType<typeof createApexTestingRuntime> | undefined;
+export const getApexTestingRuntime = () => {
+  _apexTestingRuntime ??= createApexTestingRuntime();
+  return _apexTestingRuntime;
 };

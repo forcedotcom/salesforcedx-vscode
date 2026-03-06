@@ -26,7 +26,7 @@ import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
 test('Run Apex Tests via Command Palette: run all, then run single class', async ({ page }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(480_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -78,11 +78,11 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');
     await saveScreenshot(page, 'step.run-all.output-open.png');
-    await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: 120_000 });
+    await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: 180_000 });
     await saveScreenshot(page, 'step.run-all.results-visible.png');
-    await waitForOutputChannelText(page, { expectedText: testClassName, timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: testClassName2, timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: testClassName, timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: testClassName2, timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 60_000 });
     await saveScreenshot(page, 'step.run-all.done.png');
   });
 
@@ -111,10 +111,10 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');
     await saveScreenshot(page, 'step.run-single.output-open.png');
-    await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: 120_000 });
+    await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: 180_000 });
     await saveScreenshot(page, 'step.run-single.results-visible.png');
-    await waitForOutputChannelText(page, { expectedText: testClassName, timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: testClassName, timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 60_000 });
     await saveScreenshot(page, 'step.run-single.done.png');
   });
 

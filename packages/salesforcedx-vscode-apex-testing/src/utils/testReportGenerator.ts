@@ -7,12 +7,11 @@
 import { TestResult, MarkdownTextFormatTransformer, OutputFormat, TestSortOrder } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { Utils } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../settings';
 import { NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
 
@@ -72,15 +71,19 @@ const createReportTransformer = (
   });
 };
 
-/** Generates a filename using the library's format: test-result-{testRunId}.{ext} */
-const generateReportFilename = (outputDir: string, testRunId: string | undefined, extension: string): string => {
+/** Generates report URI using the library's format: test-result-{testRunId}.{ext} */
+const generateReportUri = (
+  outputDir: URI,
+  testRunId: string | undefined,
+  extension: string
+): URI => {
   const filename = testRunId ? `test-result-${testRunId}${extension}` : `test-result${extension}`;
-  return path.join(outputDir, filename);
+  return Utils.joinPath(outputDir, filename);
 };
 /** Writes test report to file and notifies the user when it's ready */
 export const writeAndOpenTestReport = async (
   result: TestResult,
-  outputDir: string,
+  outputDir: URI,
   format: OutputFormat,
   codeCoverage: boolean = false,
   sortOrder: TestSortOrder = 'runtime'
@@ -91,17 +94,17 @@ export const writeAndOpenTestReport = async (
   // Generate filename using library's format: test-result-{testRunId}.{ext}
   const extension = format === 'markdown' ? '.md' : '.txt';
   const testRunId = result.summary?.testRunId;
-  const reportPath = generateReportFilename(outputDir, testRunId, extension);
+  const reportUri = generateReportUri(outputDir, testRunId, extension);
 
   const uint8Array = await streamToNormalizedUtf8Bytes(transformer);
   const content = new TextDecoder('utf-8').decode(uint8Array);
 
   try {
-    await Effect.runPromise(
+    await getApexTestingRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        yield* api.services.FsService.safeWriteFile(reportPath, content);
-      }).pipe(Effect.provide(AllServicesLayer))
+        yield* api.services.FsService.safeWriteFile(reportUri, content);
+      })
     );
   } catch (error) {
     console.error('Failed to write test report file:', error);
@@ -110,16 +113,16 @@ export const writeAndOpenTestReport = async (
   }
 
   // Create URI for opening the file
-  // On desktop: use URI.file() for proper file:// URI
+  // On desktop: reportUri is already file://
   // On web: construct URI relative to workspace root for correct scheme
   const uri =
     process.env.ESBUILD_PLATFORM === 'web'
-      ? Utils.joinPath(vscode.workspace.workspaceFolders![0].uri, reportPath.replace(/^\/[^/]+/, ''))
-      : vscode.Uri.file(reportPath);
+      ? Utils.joinPath(vscode.workspace.workspaceFolders![0].uri, reportUri.path.replace(/^\/[^/]+/, ''))
+      : reportUri;
 
   const openAction = nls.localize('apex_test_report_open_action');
-  const message = nls.localize('apex_test_report_ready_message', path.basename(reportPath));
-  const outputLine = nls.localize('apex_test_report_written_to_message', reportPath);
+  const message = nls.localize('apex_test_report_ready_message', Utils.basename(reportUri));
+  const outputLine = nls.localize('apex_test_report_written_to_message', reportUri.fsPath);
 
   // Always print the report location to the Apex Testing output channel so it's easy to find later.
   try {
@@ -148,17 +151,17 @@ export const writeAndOpenTestReport = async (
             // Then show the preview
             await vscode.commands.executeCommand('markdown.showPreview', uri);
           } else {
-            await Effect.runPromise(
+            await getApexTestingRuntime().runPromise(
               Effect.gen(function* () {
                 const api = yield* (yield* ExtensionProviderService).getServicesApi;
                 yield* api.services.FsService.showTextDocument(uri, { preview: false, preserveFocus: false });
-              }).pipe(Effect.provide(AllServicesLayer))
+              })
             );
           }
         } catch (error) {
-          console.error('Failed to open test report:', error, 'URI:', uri.toString(), 'Report path:', reportPath);
+          console.error('Failed to open test report:', error, 'URI:', uri.toString(), 'Report path:', reportUri.fsPath);
           await channelService.appendLine(
-            `Failed to open test report: ${String(error)} (URI: ${uri.toString()}, Path: ${reportPath})`
+            `Failed to open test report: ${String(error)} (URI: ${uri.toString()}, Path: ${reportUri.fsPath})`
           );
         }
       }
@@ -168,5 +171,5 @@ export const writeAndOpenTestReport = async (
     }
   );
 
-  return reportPath;
+  return reportUri.fsPath;
 };

@@ -7,17 +7,17 @@
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
 import { nls } from '../messages';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import { getUriPath } from '../utils/commandletHelpers';
 import { notificationService } from '../utils/notificationHelpers';
 import { getOrgApexClassProvider, openOrgApexClass } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
@@ -57,7 +57,7 @@ export class ApexTestController {
   private classItems: Map<string, vscode.TestItem> = new Map();
   private methodItems: Map<string, vscode.TestItem> = new Map();
   private suiteParentItem: vscode.TestItem | undefined;
-  private lastProcessedResultFile: string | null = null;
+  private lastProcessedResultFile: URI | null = null;
   private connection: Connection | undefined;
   private testService: TestService | undefined;
   private suiteToClasses: Map<string, Set<string>> = new Map();
@@ -85,7 +85,7 @@ export class ApexTestController {
   /**
    * Returns the Apex test class name for the given file URI, if it is a known test class in the controller.
    */
-  public getTestClassName(uri: vscode.Uri): string | undefined {
+  public getTestClassName(uri: URI): string | undefined {
     const uriStr = uri.toString();
     for (const [className, item] of this.classItems) {
       if (item.uri?.toString() === uriStr) {
@@ -157,7 +157,7 @@ export class ApexTestController {
       await this.populateSuiteItems();
 
       // Then populate test classes from org (all tests, not just local)
-      const discoveryResult = await Effect.runPromise(discoverTests());
+      const discoveryResult = await getApexTestingRuntime().runPromise(discoverTests());
 
       // Always populate whatever classes were discovered, even if discovery was partial
       if (discoveryResult.classes.length > 0) {
@@ -173,20 +173,20 @@ export class ApexTestController {
     }
   }
 
-  public async onResultFileCreate(apexTestPath: string, testResultFile: string): Promise<void> {
-    const testRunId = await readTestRunIdFile(apexTestPath);
+  public async onResultFileCreate(apexTestDir: URI, testResultUri: URI): Promise<void> {
+    const testRunId = await readTestRunIdFile(apexTestDir);
 
-    const testResultFilePath = path.join(
-      apexTestPath,
+    const expectedResultUri = Utils.joinPath(
+      apexTestDir,
       testRunId ? `test-result-${testRunId}.json` : TEST_RESULT_JSON_FILE
     );
 
-    if (testResultFile === testResultFilePath) {
-      if (this.lastProcessedResultFile === testResultFilePath) {
+    if (testResultUri.toString() === expectedResultUri.toString()) {
+      if (this.lastProcessedResultFile?.toString() === testResultUri.toString()) {
         return;
       }
-      this.lastProcessedResultFile = testResultFilePath;
-      await this.updateTestResults(testResultFile);
+      this.lastProcessedResultFile = testResultUri;
+      await this.updateTestResults(testResultUri);
     }
   }
 
@@ -644,7 +644,7 @@ export class ApexTestController {
 
   private async executeTests(
     testNames: string[],
-    outputDir: string,
+    outputDir: URI,
     codeCoverage: boolean,
     token: vscode.CancellationToken,
     run: vscode.TestRun,
@@ -740,12 +740,16 @@ export class ApexTestController {
     }
   }
 
-  private async updateTestResults(testResultFilePath: string): Promise<void> {
+  private async updateTestResults(testResultUri: URI): Promise<void> {
     try {
-      const fs = vscode.workspace.fs;
-      const resultData = await fs.readFile(URI.file(testResultFilePath));
+      const resultText = await getApexTestingRuntime().runPromise(
+        Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          return yield* api.services.FsService.readFile(testResultUri);
+        })
+      );
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const resultContent = JSON.parse(Buffer.from(resultData).toString('utf-8')) as TestResult;
+      const resultContent = JSON.parse(resultText) as TestResult;
 
       // Create a test run to update results
       const run = this.controller.createTestRun(new vscode.TestRunRequest());
@@ -770,14 +774,10 @@ export class ApexTestController {
     }
   }
 
-  private async getTempFolder(): Promise<string> {
-    if (vscode.workspace?.workspaceFolders) {
-      const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
-      // In web mode, use path instead of fsPath for virtual file systems
-      const workspacePath = getUriPath(workspaceUri);
-      const apexDir = await getTestResultsFolder(workspacePath, 'apex');
-      return apexDir;
-    } else {
+  private async getTempFolder(): Promise<URI> {
+    try {
+      return await getTestResultsFolder();
+    } catch {
       throw new Error(nls.localize('cannot_determine_workspace'));
     }
   }

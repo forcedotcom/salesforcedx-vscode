@@ -13,6 +13,7 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { CancellationToken } from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import * as settings from '../settings';
@@ -22,7 +23,7 @@ import { writeTestResultJsonFile } from '../utils/testUtils';
 
 type ApexTestRunOptions = {
   payload: AsyncTestConfiguration;
-  outputDir: string;
+  outputDir: URI;
   codeCoverage: boolean;
   concise: boolean;
   telemetryTrigger: 'quickPick' | 'codeAction' | 'testView';

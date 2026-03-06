@@ -15,12 +15,11 @@ import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
 import {
   EmptyParametersGatherer,
-  getUriPath,
   LibraryCommandletExecutor,
   SfCommandlet,
   SfWorkspaceChecker,
@@ -34,14 +33,14 @@ import { getZeroBasedRange } from './range';
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   protected cancellable: boolean = true;
   private readonly tests: string[];
-  private readonly outputDir: string;
+  private readonly outputDir: URI;
   private readonly codeCoverage: boolean;
   private readonly concise: boolean;
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-testing-errors');
 
   constructor(
     tests: string[],
-    outputDir: string,
+    outputDir: URI,
     codeCoverage = settings.retrieveTestCodeCoverage(),
     concise = settings.retrieveTestRunConcise()
   ) {
@@ -97,11 +96,11 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     }
 
     // Get project from services extension
-    const sfProject = await Effect.runPromise(
+    const sfProject = await getApexTestingRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         return yield* api.services.ProjectService.getSfProject();
-      }).pipe(Effect.provide(AllServicesLayer))
+      })
     );
 
     if (!sfProject) {
@@ -173,14 +172,10 @@ const apexTestRunCodeAction = async (tests: string[]) => {
   await commandlet.run();
 };
 
-const getTempFolder = async (): Promise<string> => {
-  if (vscode.workspace?.workspaceFolders) {
-    const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
-    // In web mode, use path instead of fsPath for virtual file systems
-    const workspacePath = getUriPath(workspaceUri);
-    const apexDir = await getTestResultsFolder(workspacePath, 'apex');
-    return apexDir;
-  } else {
+const getTempFolder = async (): Promise<URI> => {
+  try {
+    return await getTestResultsFolder();
+  } catch {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
 };
