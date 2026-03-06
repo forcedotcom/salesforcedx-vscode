@@ -15,7 +15,6 @@ import {
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   SfCommandlet,
-  SfWorkspaceChecker,
   TelemetryService,
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -222,7 +221,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     SfCommandlet,
     SfCommandletExecutor,
     salesforceCoreSettings,
-    SfWorkspaceChecker,
     WorkspaceContext,
     telemetryService,
     workspaceContextUtils,
@@ -394,7 +392,6 @@ export type SalesforceVSCodeCoreApi = {
   SfCommandlet: typeof SfCommandlet;
   SfCommandletExecutor: typeof SfCommandletExecutor;
   salesforceCoreSettings: typeof salesforceCoreSettings;
-  SfWorkspaceChecker: typeof SfWorkspaceChecker;
   WorkspaceContext: typeof WorkspaceContext;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
