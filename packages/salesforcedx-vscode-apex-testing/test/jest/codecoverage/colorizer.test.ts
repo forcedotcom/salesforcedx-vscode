@@ -5,6 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+jest.mock('../../../src/services/extensionProvider', () => ({
+  getApexTestingRuntime: () => ({
+    runPromise: jest.fn().mockResolvedValue(undefined)
+  })
+}));
+
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { CodeCoverageHandler } from '../../../src/codecoverage/colorizer';

@@ -13,6 +13,7 @@ import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_TESTSUITE_EXT } from '../constants';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
 import {
   type CancelResponse,
@@ -84,16 +85,18 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     const testService = new TestService(connection);
     const payload = await buildTestPayload(testService, response.data);
 
-    const result = await runApexTests(
-      {
-        payload,
-        outputDir: await getTestResultsFolder(),
-        codeCoverage: settings.retrieveTestCodeCoverage(),
-        concise: settings.retrieveTestRunConcise(),
-        telemetryTrigger: 'quickPick'
-      },
-      progress,
-      token
+    const result = await getApexTestingRuntime().runPromise(
+      runApexTests(
+        {
+          payload,
+          outputDir: await getTestResultsFolder(),
+          codeCoverage: settings.retrieveTestCodeCoverage(),
+          concise: settings.retrieveTestRunConcise(),
+          telemetryTrigger: 'quickPick'
+        },
+        progress,
+        token
+      )
     );
 
     return result !== undefined;

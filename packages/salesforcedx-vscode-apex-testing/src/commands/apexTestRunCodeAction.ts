@@ -67,16 +67,18 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       !this.codeCoverage // the setting enables code coverage, so we need to pass false to disable it
     );
 
-    const result = await runApexTests(
-      {
-        payload,
-        outputDir: this.outputDir,
-        codeCoverage: this.codeCoverage,
-        concise: this.concise,
-        telemetryTrigger: 'codeAction'
-      },
-      progress,
-      token
+    const result = await getApexTestingRuntime().runPromise(
+      runApexTests(
+        {
+          payload,
+          outputDir: this.outputDir,
+          codeCoverage: this.codeCoverage,
+          concise: this.concise,
+          telemetryTrigger: 'codeAction'
+        },
+        progress,
+        token
+      )
     );
 
     if (!result) {

@@ -11,7 +11,7 @@ import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { channelService, initializeOutputChannel } from './channels';
+import { initializeOutputChannel } from './channels';
 import { CodeCoverageHandler } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
@@ -58,6 +58,7 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
     const targetOrgRef = yield* api.services.TargetOrgRef();
     const connectionService = yield* api.services.ConnectionService;
 
+    const channelService = yield* api.services.ChannelService;
     // Track the last discovered org key to prevent duplicate discoveries
     const lastDiscoveredOrgRef = yield* Ref.make<string | undefined>(undefined);
 
@@ -91,10 +92,10 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
         }),
         // Log after deduplication so we only see unique org changes
         Stream.tap((org: { username?: string; orgId?: string }) =>
-          Effect.promise(() => channelService.appendLine(`Target org changed to ${JSON.stringify(org)}`))
+          channelService.appendToChannel(`Target org changed to ${JSON.stringify(org)}`)
         ),
         Stream.tap((org: { username?: string; orgId?: string }) =>
-          Effect.promise(() => channelService.appendLine(`Discovering tests for org: ${org.username ?? org.orgId}`))
+          channelService.appendToChannel(`Discovering tests for org: ${org.username ?? org.orgId}`)
         ),
         Stream.runForEach(discoverForOrg)
       )
@@ -143,63 +144,60 @@ const setupTestResultsFileWatcher = (testController: ReturnType<typeof getTestCo
   });
 
 /** Effect-based activation that provides automatic timing via span */
-const activateEffect = (context: vscode.ExtensionContext) =>
-  Effect.gen(function* () {
-    yield* Effect.log('Salesforce Apex Testing extension is activating...');
+const activateEffect = Effect.fn('apex-testing.activation')(function* (context: vscode.ExtensionContext) {
+  yield* Effect.log('Salesforce Apex Testing extension is activating...');
 
-    // Initialize the shared output channel from services API
-    yield* initializeOutputChannel;
+  // Initialize the shared output channel from services API
+  yield* initializeOutputChannel;
 
-    // Check if we're in a Salesforce project (also sets VS Code context as side effect)
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const projectService = yield* api.services.ProjectService;
-    const isSalesforceProject = yield* projectService
-      .isSalesforceProject()
-      .pipe(Effect.catchAll(() => Effect.succeed(false)));
+  // Check if we're in a Salesforce project (also sets VS Code context as side effect)
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const projectService = yield* api.services.ProjectService;
+  const isSalesforceProject = yield* projectService.isSalesforceProject();
 
-    // Only set up project-specific features if we're in a Salesforce project
-    if (isSalesforceProject) {
-      const testController = getTestController();
-      yield* Effect.log('[Apex Testing] Test controller created');
+  // Only set up project-specific features if we're in a Salesforce project
+  if (isSalesforceProject) {
+    const testController = getTestController();
+    yield* Effect.log('[Apex Testing] Test controller created');
 
-      // Set up file watcher for test result JSON files using FileWatcherService
-      yield* setupTestResultsFileWatcher(testController);
+    // Set up file watcher for test result JSON files using FileWatcherService
+    yield* setupTestResultsFileWatcher(testController);
 
-      // Initialize test discovery when an org is available, and re-discover on org changes (runs in background)
-      yield* Effect.forkDaemon(initializeTestDiscovery(testController));
+    // Initialize test discovery when an org is available, and re-discover on org changes (runs in background)
+    yield* Effect.forkDaemon(initializeTestDiscovery(testController));
 
-      // Register virtual document provider for org-only Apex classes
-      const orgApexClassProvider = getOrgApexClassProvider();
-      const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
-        'sf-org-apex',
-        orgApexClassProvider
-      );
-      context.subscriptions.push(providerRegistration);
-    }
-
-    // Always register commands (they'll be no-ops if not in a project)
-    const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
-    yield* registerCommand('sf.apex.generate.unit.test.class', (outputDir?: URI) =>
-      apexGenerateUnitTestClassCommand(undefined, outputDir)
+    // Register virtual document provider for org-only Apex classes
+    const orgApexClassProvider = getOrgApexClassProvider();
+    const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
+      'sf-org-apex',
+      orgApexClassProvider
     );
-    const commands = registerCommands();
-    context.subscriptions.push(commands);
+    context.subscriptions.push(providerRegistration);
+  }
 
-    yield* Effect.log('Salesforce Apex Testing extension is now active!');
+  // Always register commands (they'll be no-ops if not in a project)
+  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  yield* registerCommand('sf.apex.generate.unit.test.class', (outputDir?: URI) =>
+    apexGenerateUnitTestClassCommand(undefined, outputDir)
+  );
+  const commands = registerCommands();
+  context.subscriptions.push(commands);
 
-    // Export API for other extensions to consume
-    return {
-      getTestClassName: async (uri: URI): Promise<string | undefined> => {
-        try {
-          const controller = getTestController();
-          return controller.getTestClassName(uri);
-        } catch (error) {
-          console.debug('Failed to get test class name:', error);
-          return undefined;
-        }
+  yield* Effect.log('Salesforce Apex Testing extension is now active!');
+
+  // Export API for other extensions to consume
+  return {
+    getTestClassName: async (uri: URI): Promise<string | undefined> => {
+      try {
+        const controller = getTestController();
+        return controller.getTestClassName(uri);
+      } catch (error) {
+        console.debug('Failed to get test class name:', error);
+        return undefined;
       }
-    };
-  }).pipe(Effect.withSpan('apex-testing.activation'));
+    }
+  };
+});
 
 export const activate = (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context));

@@ -8,7 +8,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { getApexTestingRuntime } from '../services/extensionProvider';
 
 const CHANNEL_NAME = nls.localize('channel_name');
 
@@ -42,25 +41,3 @@ export const OUTPUT_CHANNEL: vscode.OutputChannel = new Proxy({} as vscode.Outpu
   }
 });
 
-/** Channel service using the services API's ChannelServiceLayer */
-export const channelService = {
-  appendLine: async (message: string): Promise<void> => {
-    await getApexTestingRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const svc = yield* api.services.ChannelService;
-        yield* svc.appendToChannel(message);
-      })
-    );
-  },
-  show: async (): Promise<void> => {
-    await getApexTestingRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const svc = yield* api.services.ChannelService;
-        const channel = yield* svc.getChannel;
-        channel.show();
-      })
-    );
-  }
-};

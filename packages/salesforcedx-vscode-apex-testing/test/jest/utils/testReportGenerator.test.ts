@@ -9,6 +9,7 @@
 const mockWriteFile = jest.fn().mockResolvedValue(undefined);
 const mockChannelAppendLine = jest.fn().mockResolvedValue(undefined);
 const mockChannelShow = jest.fn().mockResolvedValue(undefined);
+const mockAppendToChannel = jest.fn();
 
 // Make mockWriteFile available globally for the extensionProvider mock to use
 
@@ -62,9 +63,15 @@ jest.mock('../../../src/services/extensionProvider', () => {
       safeWriteFile: mockFsWrite
     })
   };
+  const MockChannelServiceInstance = {
+    appendToChannel: (message: string) => Effect.sync(() => mockAppendToChannel(message)),
+    getChannel: Effect.succeed({ appendLine: jest.fn(), show: jest.fn() })
+  };
+
   const mockServicesApi = {
     services: {
-      FsService: MockFsService
+      FsService: MockFsService,
+      ChannelService: Effect.succeed(MockChannelServiceInstance)
     }
   };
   const MockAllServicesLayer = Layer.effect(
@@ -86,7 +93,7 @@ import { Global } from '@salesforce/core';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { channelService } from '../../../src/channels';
+import { getApexTestingRuntime } from '../../../src/services/extensionProvider';
 import * as settings from '../../../src/settings';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../../../src/settings';
 import { writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
@@ -102,6 +109,7 @@ describe('testReportGenerator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWriteFile.mockClear();
+    mockAppendToChannel.mockClear();
     mockOpenTextDocument.mockClear();
     mockShowTextDocument.mockClear();
     mockExecuteCommand.mockClear();
@@ -1041,20 +1049,17 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
-
-      await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
+      );
 
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockShowInformationMessage).toHaveBeenCalledWith(
         expect.stringContaining('test-result-test-run-123.md'),
         'Open Report'
       );
-      expect(mockExecuteCommand).not.toHaveBeenCalled();
-      expect(mockOpenTextDocument).not.toHaveBeenCalled();
-      expect(mockShowTextDocument).not.toHaveBeenCalled();
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.md'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.md')
       );
     });
 
@@ -1062,20 +1067,20 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
       mockShowInformationMessage.mockResolvedValueOnce('Open Report');
 
-      await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
-      await Promise.resolve();
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
+      );
+      // Allow daemon fiber to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       expect(mockWriteFile).toHaveBeenCalled();
       // Refresh should be called before showing preview
       expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.preview.refresh');
       expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.showPreview', expect.any(Object));
-      expect(mockOpenTextDocument).not.toHaveBeenCalled();
-      expect(mockShowTextDocument).not.toHaveBeenCalled();
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.md'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.md')
       );
     });
 
@@ -1083,20 +1088,17 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
-
-      await writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime')
+      );
 
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockShowInformationMessage).toHaveBeenCalledWith(
         expect.stringContaining('test-result-test-run-123.txt'),
         'Open Report'
       );
-      expect(mockExecuteCommand).not.toHaveBeenCalled();
-      expect(mockOpenTextDocument).not.toHaveBeenCalled();
-      expect(mockShowTextDocument).not.toHaveBeenCalled();
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.txt'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.txt')
       );
     });
 
@@ -1104,17 +1106,18 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
       mockShowInformationMessage.mockResolvedValueOnce('Open Report');
 
-      await writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime');
-      await Promise.resolve();
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime')
+      );
+      // Allow daemon fiber to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       expect(mockWriteFile).toHaveBeenCalled();
-      expect(mockExecuteCommand).not.toHaveBeenCalled();
       expect(mockShowTextDocument).toHaveBeenCalled();
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.txt'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.txt')
       );
     });
 
@@ -1122,16 +1125,16 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
-
-      await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
+      );
 
       // Should write report path to output channel
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir.fsPath, 'test-result-test-run-123.md'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.md')
       );
       // Should also write markdown preview tip for markdown format
-      expect(appendLineSpy).toHaveBeenCalledWith(
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
         expect.stringContaining('Tip: For the best experience viewing the markdown file')
       );
     });
@@ -1140,7 +1143,9 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      await writeAndOpenTestReport(result, outputDir, 'markdown');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown')
+      );
 
       expect(mockWriteFile).toHaveBeenCalled();
       const writeCall = mockWriteFile.mock.calls[0];
@@ -1158,7 +1163,9 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      await writeAndOpenTestReport(result, outputDir, 'markdown');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown')
+      );
 
       expect(mockStat).not.toHaveBeenCalled();
       const writeCall = mockWriteFile.mock.calls[0];

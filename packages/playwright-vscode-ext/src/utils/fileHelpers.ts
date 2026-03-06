@@ -295,11 +295,12 @@ export const createAndDeployApexTestClass = async (page: Page, className: string
   if (isDesktop()) {
     await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
   }
-  // Web: wait for auto-deploy to complete by checking output channel
+  // Web: wait for auto-deploy to complete by checking output channel.
+  // Use className (unique per deploy) instead of "2 components deployed" so we don't match the previous deploy's output.
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Salesforce Metadata', DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS);
   await waitForOutputChannelText(page, {
-    expectedText: '2 components deployed',
+    expectedText: className,
     timeout: DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS
   });
 

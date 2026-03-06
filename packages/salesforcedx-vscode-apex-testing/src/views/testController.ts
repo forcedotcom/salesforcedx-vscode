@@ -692,14 +692,16 @@ export class ApexTestController {
     }
 
     // Write JSON test result file
-    await writeTestResultJsonFile(result, outputDir, codeCoverage, testService);
+    await writeTestResultJsonFile(result, outputDir, codeCoverage);
 
     // Generate and open test report
     const reportStartTime = Date.now();
     const outputFormat = settings.retrieveOutputFormat();
     const sortOrder = settings.retrieveTestSortOrder();
     try {
-      await writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder);
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder)
+      );
       const reportDurationMs = Date.now() - reportStartTime;
       telemetryService.sendEventData(
         'apexTestReportGenerated',

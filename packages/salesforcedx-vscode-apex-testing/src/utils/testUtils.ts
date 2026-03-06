@@ -6,7 +6,7 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import { TestResult, TestService } from '@salesforce/apex-node';
+import { TestResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -352,23 +352,18 @@ export const readTestRunIdFile = async (apexTestDir: URI): Promise<string | unde
     }).pipe(Effect.catchAll(() => Effect.succeed(undefined)))
   );
 
-const runFsServiceFallback = async (result: TestResult, outputDir: URI, codeCoverage: boolean): Promise<void> => {
-  await writeTestResultJson(result, outputDir);
-  await writeTestRunIdFile(result, outputDir);
-  if (codeCoverage) {
-    await writeCodeCoverageJson(result, outputDir);
-  }
-};
-
 /** Writes test result JSON file via FsService (works on web and desktop) */
 export const writeTestResultJsonFile = async (
   result: TestResult,
   outputDir: URI,
-  codeCoverage: boolean,
-  _testService: TestService
+  codeCoverage: boolean
 ): Promise<void> => {
   try {
-    await runFsServiceFallback(result, outputDir, codeCoverage);
+    await writeTestResultJson(result, outputDir);
+    await writeTestRunIdFile(result, outputDir);
+    if (codeCoverage) {
+      await writeCodeCoverageJson(result, outputDir);
+    }
   } catch (error) {
     console.error('Failed to write JSON test result file:', error);
   }
