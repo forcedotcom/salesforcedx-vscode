@@ -5,7 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { generateVerificationCode } from '../../../src/util/verificationCode';
+import * as vscode from 'vscode';
+import { generateVerificationCode, showVerificationCodeIfNeeded } from '../../../src/util/verificationCode';
+
+jest.mock('vscode', () => ({
+  window: {
+    showInformationMessage: jest.fn()
+  }
+}));
 
 describe('generateVerificationCode', () => {
   it('should return cc0a for test_token (matches server-side test vector)', () => {
@@ -22,4 +29,36 @@ describe('generateVerificationCode', () => {
     const second = generateVerificationCode('same_input');
     expect(first).toBe(second);
   });
+});
+
+describe('showVerificationCodeIfNeeded', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+  });
+
+  it('should show verification code when CODE_BUILDER_STATE is set', () => {
+    process.env.CODE_BUILDER_STATE = 'test_token';
+
+    showVerificationCodeIfNeeded();
+
+    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+      expect.stringContaining('cc0a')
+    );
+  });
+
+  it('should not show message when CODE_BUILDER_STATE is not set', () => {
+    delete process.env.CODE_BUILDER_STATE;
+
+    showVerificationCodeIfNeeded();
+
+    expect(vscode.window.showInformationMessage).not.toHaveBeenCalled();
+  });
+
 });
