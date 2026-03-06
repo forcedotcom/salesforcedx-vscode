@@ -75,7 +75,10 @@
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
         "../salesforcedx-vscode-core:compile",
-        "../salesforcedx-vscode-services:compile"
+        "../salesforcedx-vscode-services:compile",
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-metadata:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
