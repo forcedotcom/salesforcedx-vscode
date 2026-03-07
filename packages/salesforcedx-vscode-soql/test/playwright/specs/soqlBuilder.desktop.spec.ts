@@ -15,6 +15,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
+  verifyCommandExists,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
@@ -29,13 +30,15 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
+    // Wait for the SOQL extension (and its dependency chain: services → core → soql) to finish
+    // activating before proceeding. On Windows this can take significantly longer than on macOS.
+    // Polling for the contributed command to appear in the palette is the reliable signal.
+    await verifyCommandExists(page, packageNls.soql_builder_open_new, 60_000);
     await saveScreenshot(page, 'setup.complete.png');
   });
 
   await test.step('create query in SOQL Builder', async () => {
-    // On Windows, extension activation (loading the full dependency chain) takes longer
-    // than on macOS. Allow up to 45s for the command to appear in the palette.
-    await executeCommandWithCommandPalette(page, packageNls.soql_builder_open_new, undefined, 45_000);
+    await executeCommandWithCommandPalette(page, packageNls.soql_builder_open_new);
     await saveScreenshot(page, 'step1.after-command.png');
 
     // Wait for the untitled.soql tab to appear
