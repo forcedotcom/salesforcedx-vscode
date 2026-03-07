@@ -33,7 +33,9 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
   });
 
   await test.step('create query in SOQL Builder', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.soql_builder_open_new);
+    // On Windows, extension activation (loading the full dependency chain) takes longer
+    // than on macOS. Allow up to 45s for the command to appear in the palette.
+    await executeCommandWithCommandPalette(page, packageNls.soql_builder_open_new, undefined, 45_000);
     await saveScreenshot(page, 'step1.after-command.png');
 
     // Wait for the untitled.soql tab to appear

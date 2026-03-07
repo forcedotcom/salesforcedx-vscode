@@ -81,13 +81,14 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
 export const executeCommandWithCommandPalette = async (
   page: Page,
   command: string,
-  hasNotText?: string
+  hasNotText?: string,
+  timeout = 15_000
 ): Promise<void> => {
   await expect(async () => {
     await dismissAllQuickInputWidgets(page);
     await openCommandPalette(page);
     await executeCommand(page, command, hasNotText);
-  }).toPass({ timeout: 15_000 });
+  }).toPass({ timeout });
 };
 
 /** Shared helper: closes command palette */
