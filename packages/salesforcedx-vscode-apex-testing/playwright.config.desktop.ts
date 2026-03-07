@@ -8,4 +8,5 @@
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 
 // Apex test runner has single execution queue per workspace — parallel workers collide ("already in execution queue")
-export default createDesktopConfig({ workers: 1, fullyParallel: false });
+// Apex test execution + deploy can be slow; extend timeout to match web (6 min)
+export default createDesktopConfig({ workers: 1, fullyParallel: false, timeout: 360_000 });
