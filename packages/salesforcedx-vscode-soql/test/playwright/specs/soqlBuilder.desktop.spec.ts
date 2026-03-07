@@ -13,7 +13,8 @@ import {
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  waitForExtensionsActivated
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
@@ -24,6 +25,7 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
 
   await test.step('setup workbench', async () => {
     await setupMinimalOrgAndAuth(page);
+    await waitForExtensionsActivated(page);
     await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.complete.png');
   });
