@@ -9,7 +9,6 @@ import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, Tooli
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type * as Either from 'effect/Either';
-import { AllServicesLayer } from '../services/extensionProvider';
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
@@ -66,7 +65,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
           break;
         }
         // For other errors, rethrow
-        yield* Effect.fail(error);
+        return yield* Effect.fail(error);
       }
 
       if (pageResult._tag === 'Right') {
@@ -96,6 +95,5 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
       Effect.log(
         `Discovered ${result.classes.length} test classes with ${result.classes.reduce((acc, c) => acc + (c.testMethods?.length ?? 0), 0)} total methods`
       )
-    ),
-    Effect.provide(AllServicesLayer)
+    )
   );
