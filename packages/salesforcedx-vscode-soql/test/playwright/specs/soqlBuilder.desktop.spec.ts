@@ -15,7 +15,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  verifyCommandExists,
+  waitForExtensionsActivated,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
@@ -30,10 +30,10 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    // Wait for the SOQL extension (and its dependency chain: services → core → soql) to finish
-    // activating before proceeding. On Windows this can take significantly longer than on macOS.
-    // Polling for the contributed command to appear in the palette is the reliable signal.
-    await verifyCommandExists(page, packageNls.soql_builder_open_new, 60_000);
+    // Wait for all dev extensions to finish activating before proceeding.
+    // On Windows the dependency chain (services → core → metadata) takes significantly
+    // longer than on macOS. Once all visible extensions are done, SOQL is also ready.
+    await waitForExtensionsActivated(page);
     await saveScreenshot(page, 'setup.complete.png');
   });
 
