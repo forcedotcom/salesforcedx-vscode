@@ -63,6 +63,7 @@
     "@rollup/plugin-terser": "^0.4.0",
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
+    "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
@@ -87,6 +88,9 @@
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
     "test:soql-builder-ui": "wireit",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
@@ -197,6 +201,25 @@
         "package.nls.json"
       ],
       "output": []
+    },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "output": []
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:desktop"
+      ]
     },
     "vscode:package": {
       "command": "vsce package --allow-package-all-secrets",

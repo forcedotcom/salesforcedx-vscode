@@ -6,9 +6,7 @@
     "strict": false,
     "noImplicitAny": false,
     "paths": {
-      "@salesforce/soql-model/*": [
-        "./src/soql-model/*"
-      ]
+      "@salesforce/soql-model/*": ["./src/soql-model/*"]
     }
   },
   "exclude": [
@@ -21,7 +19,11 @@
     "test/jest/soql-builder-ui"
   ],
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "test/playwright/**/*.ts",
+    "playwright.config.desktop.ts",
+    "package.json",
+    "package.nls.json"
   ],
   "references": [
     {
@@ -38,6 +40,9 @@
     },
     {
       "path": "../salesforcedx-vscode-core"
+    },
+    {
+      "path": "../playwright-vscode-ext"
     },
     {
       "path": "../salesforcedx-vscode-services"
