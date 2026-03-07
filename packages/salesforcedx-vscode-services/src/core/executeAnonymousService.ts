@@ -5,83 +5,181 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { ExecuteAnonymousError } from '../errors/executeAnonymousErrors';
 import { ChannelService } from '../vscode/channelService';
-import { ApexLogService } from './apexLogService';
 import { ConnectionService } from './connectionService';
 import { unknownToErrorCause } from './shared';
-import { TraceFlagService } from './traceFlagService';
 
 export type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
 
-const SHORT_LIVED_TRACE_FLAG_DURATION = Duration.minutes(5);
 const ANON_APEX_ERRORS_COLLECTION = 'apex-anon-errors';
 const UNEXPECTED_ERROR = 'Unexpected error during anonymous Apex execution';
 
-export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousService>()('ExecuteAnonymousService', {
-  accessors: true,
-  dependencies: [ConnectionService.Default, TraceFlagService.Default, ApexLogService.Default, ChannelService.Default],
-  effect: Effect.gen(function* () {
-    const connectionService = yield* ConnectionService;
-    const traceFlagService = yield* TraceFlagService;
-    const logService = yield* ApexLogService;
-    const channelService = yield* ChannelService;
-    const diagnostics = vscode.languages.createDiagnosticCollection(ANON_APEX_ERRORS_COLLECTION);
+const XML_CHAR_MAP: Record<string, string> = {
+  '<': '&lt;',
+  '>': '&gt;',
+  '&': '&amp;',
+  '"': '&quot;',
+  "'": '&apos;'
+};
 
-    /** initiates an execute anonymous.  Returns only the json result */
-    const executeAnonymous = Effect.fn('ExecuteAnonymousService.executeAnonymous')(function* (code: string) {
-      const conn = yield* connectionService.getConnection();
-      return yield* Effect.tryPromise({
-        try: () => conn.tooling.executeAnonymous(code),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new ExecuteAnonymousError({
-            message: `Execute anonymous failed: ${cause.message}`,
-            cause: error
+const escapeXml = (data: string): string =>
+  data.replaceAll(/[<>&'"]/g, char => XML_CHAR_MAP[char] ?? char);
+
+const buildSoapBody = (accessToken: string, apexCode: string): string => {
+  const escaped = escapeXml(apexCode);
+  return `<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:cmd="http://soap.sforce.com/2006/08/apex"
+xmlns:apex="http://soap.sforce.com/2006/08/apex">
+    <env:Header>
+        <cmd:SessionHeader>
+            <cmd:sessionId>${accessToken}</cmd:sessionId>
+        </cmd:SessionHeader>
+        <apex:DebuggingHeader><apex:debugLevel>DEBUGONLY</apex:debugLevel></apex:DebuggingHeader>
+    </env:Header>
+    <env:Body>
+        <executeAnonymous xmlns="http://soap.sforce.com/2006/08/apex">
+            <apexcode>${escaped}</apexcode>
+        </executeAnonymous>
+    </env:Body>
+</env:Envelope>`;
+};
+
+export const buildSoapRequest = (
+  instanceUrl: string,
+  version: string,
+  accessToken: string,
+  apexCode: string
+) => {
+  const orgId = accessToken.split('!')[0];
+  const url = `${instanceUrl}/services/Soap/s/${version}/${orgId}`;
+  return {
+    method: 'POST' as const,
+    url,
+    body: buildSoapBody(accessToken, apexCode),
+    headers: { 'content-type': 'text/xml', soapaction: 'executeAnonymous' }
+  } as const;
+};
+
+type SoapResponseShape = {
+  'soapenv:Envelope'?: {
+    'soapenv:Header'?: { DebuggingInfo?: { debugLog?: string } };
+    'soapenv:Body'?: {
+      executeAnonymousResponse?: {
+        result?: {
+          column?: number;
+          compiled?: string;
+          compileProblem?: string | object;
+          exceptionMessage?: string | object;
+          exceptionStackTrace?: string | object;
+          line?: number;
+          success?: string;
+        };
+      };
+    };
+  };
+};
+
+const toStringOrNull = (v: string | object | undefined): string | null =>
+  typeof v === 'object' ? null : v ?? null;
+
+type ParseSoapResult =
+  | { success: true; result: ExecuteAnonymousResult; logBody: string }
+  | { success: false; error: string };
+
+const hasSoapEnvelope = (obj: unknown): obj is SoapResponseShape =>
+  obj !== null && typeof obj === 'object' && 'soapenv:Envelope' in obj;
+
+export const parseSoapResponse = (raw: unknown): ParseSoapResult => {
+  const envelope = hasSoapEnvelope(raw) ? raw['soapenv:Envelope'] : undefined;
+  const body = envelope?.['soapenv:Body'];
+  const header = envelope?.['soapenv:Header'];
+  const execResponse = body?.executeAnonymousResponse?.result;
+  if (!execResponse) {
+    return { success: false, error: 'Invalid SOAP response: missing executeAnonymousResponse.result' };
+  }
+  const logBody =
+    (typeof header?.DebuggingInfo?.debugLog === 'string' && header.DebuggingInfo.debugLog) || '';
+  const result: ExecuteAnonymousResult = {
+    compiled: execResponse.compiled === 'true',
+    success: execResponse.success === 'true',
+    line: Number(execResponse.line) ?? 1,
+    column: Number(execResponse.column) ?? 1,
+    compileProblem: toStringOrNull(execResponse.compileProblem),
+    exceptionMessage: toStringOrNull(execResponse.exceptionMessage),
+    exceptionStackTrace: toStringOrNull(execResponse.exceptionStackTrace)
+  };
+  return { success: true, result, logBody };
+};
+
+export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousService>()(
+  'ExecuteAnonymousService',
+  {
+    accessors: true,
+    dependencies: [ConnectionService.Default, ChannelService.Default],
+    effect: Effect.gen(function* () {
+      const connectionService = yield* ConnectionService;
+      const channelService = yield* ChannelService;
+      const diagnostics = vscode.languages.createDiagnosticCollection(ANON_APEX_ERRORS_COLLECTION);
+
+      /** initiates an execute anonymous and retrieves the log.  Returns the result, log body, and log id */
+      const executeAndRetrieveLog = Effect.fn(
+        'ExecuteAnonymousService.executeAndRetrieveLog'
+      )(function* (code: string) {
+        const conn = yield* connectionService.getConnection();
+        const version = conn.getApiVersion();
+        const accessToken = conn.accessToken;
+        if (!accessToken) {
+          return yield* new ExecuteAnonymousError({
+            message: 'Execute anonymous failed: no access token',
+            cause: undefined
           });
         }
-      });
-    });
-
-    /** initiates an execute anonymous and retrieves the log.  Returns the result, log body, and log id */
-    const executeAndRetrieveLog = Effect.fn('ExecuteAnonymousService.executeAndRetrieveLog')(function* (code: string) {
-      const userId = yield* traceFlagService.getUserId();
-      const { created, traceFlagId } = yield* traceFlagService.ensureTraceFlag(userId, SHORT_LIVED_TRACE_FLAG_DURATION);
-      const result = yield* executeAnonymous(code);
-      const logs = yield* logService.listLogs(5, {
-        userId,
-        operationContains: 'executeAnonymous'
-      });
-      // assumption: the user is not kicking off multiple execute anonymous operations at the same time
-      // alternative is using the SOAP API to get the log result from the transaction
-      const logId = logs[0]?.Id;
-      const logBody = logId ? yield* logService.getLogBody(logId) : '';
-      created && traceFlagId ? yield* traceFlagService.deleteTraceFlag(traceFlagId) : yield* Effect.void;
-      return { result, logBody, logId };
-    });
-
-    const outputToChannel = (result: ExecuteAnonymousResult) =>
-      Effect.gen(function* () {
-        const text = result.success
-          ? 'Compile: success / Execute: success'
-          : !result.compiled
-            ? `Error: Line ${result.line}, Column ${result.column} -- ${result.compileProblem ?? UNEXPECTED_ERROR}`
-            : `Compile: success / Error: ${result.exceptionMessage ?? UNEXPECTED_ERROR}\n${result.exceptionStackTrace ?? ''}`;
-        yield* channelService.appendToChannel(text);
+        const req = buildSoapRequest(conn.instanceUrl, version, accessToken, code);
+        const raw = yield* Effect.tryPromise({
+          try: () => conn.request(req),
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new ExecuteAnonymousError({
+              message: `Execute anonymous failed: ${cause.message}`,
+              cause: error
+            });
+          }
+        });
+        const parsed = parseSoapResponse(raw);
+        if (!parsed.success) {
+          return yield* new ExecuteAnonymousError({
+            message: parsed.error,
+            cause: undefined
+          });
+        }
+        return { result: parsed.result, logBody: parsed.logBody, logId: undefined };
       });
 
-    const setDiagnostics = (
-      result: ExecuteAnonymousResult,
-      uri: URI,
-      selectionStartLine: number | undefined
-    ): void => {
-      diagnostics.clear();
-      if (!result.success) {
+      /** initiates an execute anonymous.  Returns only the json result */
+      const outputToChannel = Effect.fn('ExecuteAnonymousService.outputToChannel')(
+        function* (result: ExecuteAnonymousResult) {
+          const text = result.success
+            ? 'Compile: success / Execute: success'
+            : !result.compiled
+              ? `Error: Line ${result.line}, Column ${result.column} -- ${result.compileProblem ?? UNEXPECTED_ERROR}`
+              : `Compile: success / Error: ${result.exceptionMessage ?? UNEXPECTED_ERROR}\n${result.exceptionStackTrace ?? ''}`;
+          yield* channelService.appendToChannel(text);
+        }
+      );
+
+      const setDiagnostics = (
+        result: ExecuteAnonymousResult,
+        documentUri: URI,
+        selectionStartLine: number | undefined
+      ): void => {
+        diagnostics.delete(documentUri);
+        if (result.success) return;
         const message =
           (result.compileProblem && result.compileProblem !== ''
             ? result.compileProblem
@@ -91,30 +189,37 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
         const line = result.line ? result.line + (selectionStartLine ?? 0) : 1;
         const column = result.column ?? 1;
         const pos = new vscode.Position(line > 0 ? line - 1 : 0, column > 0 ? column - 1 : 0);
-        diagnostics.set(vscode.Uri.parse(uri.toString()), [
+        diagnostics.set(documentUri, [
           {
             message,
             severity: vscode.DiagnosticSeverity.Error,
-            source: uri.fsPath ?? uri.path ?? uri.toString(),
+            source: documentUri.fsPath ?? documentUri.path ?? documentUri.toString(),
             range: new vscode.Range(pos, pos)
           }
         ]);
-      }
-    };
+      };
 
-    /** Report execute anonymous result via output channel and editor diagnostics. */
-    const reportExecResult = Effect.fn('ExecuteAnonymousService.reportExecResult')(
-      (
-        result: ExecuteAnonymousResult,
-        uri: URI,
-        selectionStartLine?: number
-      ) =>
-        Effect.gen(function* () {
+      const clearDiagnostics = Effect.fn('ExecuteAnonymousService.clearDiagnostics')(
+        (documentUri: URI) => Effect.sync(() => diagnostics.delete(documentUri))
+      );
+
+      /** Report execute anonymous result via output channel and editor diagnostics. */
+      const reportExecResult = Effect.fn('ExecuteAnonymousService.reportExecResult')(
+        function* (
+          result: ExecuteAnonymousResult,
+          documentUri: URI,
+          selectionStartLine?: number
+        ) {
           yield* outputToChannel(result);
-          yield* Effect.sync(() => setDiagnostics(result, uri, selectionStartLine));
-        })
-    );
+          yield* Effect.sync(() => setDiagnostics(result, documentUri, selectionStartLine));
+        }
+      );
 
-    return { executeAnonymous, executeAndRetrieveLog, reportExecResult };
-  })
-}) {}
+      return {
+        executeAndRetrieveLog,
+        reportExecResult,
+        clearDiagnostics
+      };
+    })
+  }
+) {}

@@ -10,8 +10,8 @@ import { executeCommandWithCommandPalette } from './commands';
 
 /** Problems view container (panel or sidebar). VS Code uses workbench.panel.markers for the Problems panel. */
 const PROBLEMS_VIEW = '[id="workbench.panel.markers"]';
-const PROBLEMS_LIST = `${PROBLEMS_VIEW} .monaco-list`;
-const PROBLEMS_ROW = `${PROBLEMS_LIST} .monaco-list-row`;
+/** Rows that represent actual diagnostics (have severity icon). Tree parent rows (file groups) do not. */
+const PROBLEMS_ERROR_ROW = `${PROBLEMS_VIEW} .monaco-list-row .codicon-error`;
 
 /** Opens the Problems view (idempotent). Uses command palette to focus Problems. */
 export const ensureProblemsViewOpen = async (page: Page): Promise<void> => {
@@ -23,11 +23,11 @@ export const ensureProblemsViewOpen = async (page: Page): Promise<void> => {
   await expect(view).toBeVisible({ timeout: 10_000 });
 };
 
-/** Returns the number of problem/diagnostic rows in the Problems view. Call ensureProblemsViewOpen first. */
+/** Returns the number of problem diagnostics (counts rows with error icon, not tree parent rows). Call ensureProblemsViewOpen first. */
 export const getProblemsCount = async (page: Page): Promise<number> => {
   const view = page.locator(PROBLEMS_VIEW);
   await expect(view).toBeVisible({ timeout: 5000 });
-  const rows = page.locator(PROBLEMS_ROW);
+  const rows = page.locator(PROBLEMS_ERROR_ROW);
   return rows.count();
 };
 
