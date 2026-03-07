@@ -11,11 +11,10 @@ import { URI } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 import { telemetryService } from '../telemetry';
 
-export const soqlBuilderToggle = (doc: URI): Promise<void> => {
+export const soqlBuilderToggle = async (doc: URI): Promise<void> => {
   telemetryService.sendCommandEvent('soql_builder_toggle', TimingUtils.getCurrentTime());
 
   const viewType = vscode.window.activeTextEditor ? BUILDER_VIEW_TYPE : EDITOR_VIEW_TYPE;
 
-  void vscode.commands.executeCommand(OPEN_WITH_COMMAND, doc, viewType);
-  return Promise.resolve();
+  await vscode.commands.executeCommand(OPEN_WITH_COMMAND, doc, viewType);
 };
