@@ -26,7 +26,7 @@ import { test } from '../fixtures';
 
 const LOG_POLL_INTERVAL_SETTING = 'salesforcedx-vscode-apex-log.logPollIntervalSeconds';
 
-test('Auto-collection: poll interval setting, trace flag triggers collector, disable via -1', async ({ page }) => {
+test('Auto-collection: poll interval setting, trace flag triggers collector, disable via 0', async ({ page }) => {
   test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -51,8 +51,8 @@ test('Auto-collection: poll interval setting, trace flag triggers collector, dis
     await saveScreenshot(page, 'auto-collect.trace-flag-created.png');
   });
 
-  await test.step('set logPollIntervalSeconds to -1 to disable auto-collection', async () => {
-    await upsertSettings(page, { [LOG_POLL_INTERVAL_SETTING]: '-1' });
+  await test.step('set logPollIntervalSeconds to 0 to disable auto-collection', async () => {
+    await upsertSettings(page, { [LOG_POLL_INTERVAL_SETTING]: '0' });
     await saveScreenshot(page, 'auto-collect.poll-disabled.png');
   });
 

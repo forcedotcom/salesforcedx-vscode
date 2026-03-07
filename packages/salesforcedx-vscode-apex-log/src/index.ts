@@ -18,7 +18,7 @@ import * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { createAnonymousApexScriptCommand } from './commands/createAnonymousApexScript';
-import { executeAnonymousDocumentCommand, executeAnonymousSelectionCommand } from './commands/executeAnonymous';
+import { executeAnonymousCommand } from './commands/executeAnonymous';
 import { logGetCommand } from './commands/logGet';
 import { openLogsFolderCommand } from './commands/openLogsFolder';
 import {
@@ -94,8 +94,8 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
         andThenNotifyUIOfChanges(deleteDebugLevelForIdCommand(debugLevelId))
       ),
       registerCommand('sf.create.anonymous.apex.script', createAnonymousApexScriptCommand),
-      registerCommand('sf.anon.apex.execute.document', executeAnonymousDocumentCommand),
-      registerCommand('sf.anon.apex.execute.selection', executeAnonymousSelectionCommand),
+      registerCommand('sf.anon.apex.execute.document', () => executeAnonymousCommand(false)),
+      registerCommand('sf.anon.apex.execute.selection', () => executeAnonymousCommand(true)),
 
       Effect.forkIn(createTraceFlagStatusBar(), scope).pipe(Effect.asVoid),
       Effect.forkIn(createLogAutoCollect(), scope).pipe(Effect.asVoid),
@@ -108,6 +108,17 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
 
   const { provider } = yield* TraceFlagsContentProviderService;
   context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(TRACE_FLAGS_SCHEME, provider));
+
+  const isAnonApexDoc = (doc: vscode.TextDocument) =>
+    doc.languageId === 'apex' || doc.languageId === 'apex-anon' || doc.isUntitled;
+  context.subscriptions.push(
+    vscode.workspace.onDidCloseTextDocument(doc => {
+      if (!isAnonApexDoc(doc)) return;
+      void Effect.runPromise(
+        api.services.ExecuteAnonymousService.clearDiagnostics(doc.uri).pipe(Effect.provide(AllServicesLayer))
+      );
+    })
+  );
 
   yield* Effect.all([], { concurrency: 'unbounded' });
 

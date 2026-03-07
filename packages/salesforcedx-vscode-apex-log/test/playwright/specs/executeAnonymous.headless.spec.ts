@@ -10,6 +10,7 @@ import { expect } from '@playwright/test';
 import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  expectProblemsCountAtLeast,
   EDITOR_WITH_URI,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
@@ -59,8 +60,14 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('hello');\nSystem.debug('selection');");
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
+    const successNotification = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /executed successfully/i })
+      .first();
+    await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await successNotification.getByRole('button', { name: /Open Log/i }).click();
     const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
-    await expect(logTab).toBeVisible({ timeout: 60_000 });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'exec-document.success.png');
     // Close debug.log so the .apex file is active for the next step (execute anonymous requires editorLangId apex)
     await executeCommandWithCommandPalette(page, 'View: Close Editor');
@@ -73,8 +80,14 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await executeCommandWithCommandPalette(page, 'Select All');
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeSelection']);
 
+    const successNotification = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /executed successfully/i })
+      .first();
+    await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await successNotification.getByRole('button', { name: /Open Log/i }).click();
     const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
-    await expect(logTab).toBeVisible({ timeout: 60_000 });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'exec-selection.success.png');
     // Close debug.log so the .apex file is active for the next step
     await executeCommandWithCommandPalette(page, 'View: Close Editor');
@@ -94,6 +107,22 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
       .first();
     await expect(errorNotification).toBeVisible({ timeout: 15_000 });
     await saveScreenshot(page, 'compile-error.notification.png');
+  });
+
+  await test.step('fix code, re-execute, verify diagnostics cleared', async () => {
+    await expectProblemsCountAtLeast(page, 1, { timeout: 15_000 });
+    const editor = page.locator(EDITOR_WITH_URI).first();
+    await editor.click();
+    await executeCommandWithCommandPalette(page, 'Select All');
+    await page.keyboard.press('Delete');
+    await page.keyboard.type("System.debug('fixed');");
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
+    const successNotification = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /executed successfully/i })
+      .first();
+    await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await saveScreenshot(page, 'fix-re-execute.success.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

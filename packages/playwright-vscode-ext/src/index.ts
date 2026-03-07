@@ -70,6 +70,13 @@ export {
   captureOutputChannelDetails
 } from './pages/outputChannel';
 
+export {
+  ensureProblemsViewOpen,
+  getProblemsCount,
+  expectProblemsCount,
+  expectProblemsCountAtLeast
+} from './pages/problems';
+
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
 
