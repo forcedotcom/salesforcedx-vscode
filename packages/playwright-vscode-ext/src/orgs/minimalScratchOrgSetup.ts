@@ -15,7 +15,18 @@ export const MINIMAL_ORG_ALIAS = 'minimalTestOrg';
 
 /** Create minimal scratch org without Dreamhouse for services e2e tests */
 export const createMinimalOrg = async (): Promise<OrgAuthResult> => {
-  // Fast path: use provided org if it exists
+  // CI: workflow injects credentials directly via $GITHUB_ENV after 'sf org create scratch'.
+  // Avoids calling 'sf org display' in the worker process, which can fail because sf is
+  // installed globally mid-job (after try-run) and may not be on PATH at module-load time.
+  if (process.env.SCRATCH_ORG_ACCESS_TOKEN && process.env.SCRATCH_ORG_INSTANCE_URL) {
+    return {
+      accessToken: process.env.SCRATCH_ORG_ACCESS_TOKEN,
+      instanceUrl: process.env.SCRATCH_ORG_INSTANCE_URL,
+      instanceApiVersion: process.env.SCRATCH_ORG_API_VERSION ?? '62.0'
+    };
+  }
+
+  // Local dev: reuse an existing scratch org to avoid slow creation and scratch org limit usage
   const existingOrg = await tryUseExistingOrg(MINIMAL_ORG_ALIAS);
   if (existingOrg) {
     return existingOrg;

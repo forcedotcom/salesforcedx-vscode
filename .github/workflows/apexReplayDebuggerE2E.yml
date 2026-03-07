@@ -85,7 +85,15 @@ jobs:
         if: steps.try-run.outcome == 'failure'
         shell: bash
         run: |
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+          ORG_JSON=$(sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30) || exit 1
+          echo "$ORG_JSON"
+          ACCESS_TOKEN=$(echo "$ORG_JSON" | jq -r '.result.authFields.accessToken // ""')
+          INSTANCE_URL=$(echo "$ORG_JSON" | jq -r '.result.authFields.instanceUrl // ""')
+          API_VERSION=$(echo "$ORG_JSON" | jq -r '.result.authFields.instanceApiVersion // "62.0"')
+          echo "::add-mask::$ACCESS_TOKEN"
+          printf 'SCRATCH_ORG_ACCESS_TOKEN=%s\n' "$ACCESS_TOKEN" >> "$GITHUB_ENV"
+          printf 'SCRATCH_ORG_INSTANCE_URL=%s\n' "$INSTANCE_URL" >> "$GITHUB_ENV"
+          printf 'SCRATCH_ORG_API_VERSION=%s\n' "$API_VERSION" >> "$GITHUB_ENV"
         working-directory: minimal-project
 
       - name: Run Apex Replay Debugger E2E tests (parallel)
