@@ -7,16 +7,13 @@
 
 import { expect } from '@playwright/test';
 import {
-  assertWelcomeTabExists,
-  closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   saveScreenshot,
   setupConsoleMonitoring,
+  setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
-  validateNoCriticalErrors,
-  waitForExtensionsActivated,
-  waitForVSCodeWorkbench
+  validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
@@ -26,14 +23,8 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('setup workbench', async () => {
-    await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
+    await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
-    // Wait for all dev extensions to finish activating before proceeding.
-    // On Windows the dependency chain (services → core → metadata) takes significantly
-    // longer than on macOS. Once all visible extensions are done, SOQL is also ready.
-    await waitForExtensionsActivated(page);
     await saveScreenshot(page, 'setup.complete.png');
   });
 
