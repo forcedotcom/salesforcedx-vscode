@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "hooks": {
+    "stop": [{ "command": ".cursor/hooks/verify-stop.sh" }]
+  }
+}
