@@ -18,6 +18,8 @@ jobs:
         os: [macos-latest, windows-latest]
       fail-fast: false
     env:
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
       PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
     steps:
@@ -47,14 +49,36 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-soql -- --reporter=html
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        run: npm i -g @salesforce/cli
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
+
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
         run: npx playwright install chromium --with-deps
+
+      - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: Create scratch org
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
 
       - name: Run SOQL E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'
@@ -63,6 +87,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
           npm run test:desktop -w salesforcedx-vscode-soql -- --reporter=html
 
@@ -71,6 +96,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_SEQUENTIAL: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-soql -- --last-failed --reporter=html
@@ -90,3 +116,10 @@ jobs:
           name: playwright-test-results-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-soql/test-results
           if-no-files-found: ignore
+
+      - name: Cleanup scratch org
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
