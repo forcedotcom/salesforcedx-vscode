@@ -6,9 +6,15 @@
  */
 import type { QueryResult } from '../../../src/types';
 import { JsonMap } from '@salesforce/ts-types';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { FileFormat, QueryDataFileService } from '../../../src/queryDataView/queryDataFileService';
+
+const mockRunPromise = jest.fn();
+jest.mock('../../../src/services/extensionProvider', () => ({
+  AllServicesLayer: require('effect/Layer').empty,
+  getSoqlRuntime: () => ({ runFork: () => undefined, runPromise: mockRunPromise })
+}));
 
 describe('Query Data File Service', () => {
   const queryText = 'SELECT Id, Name FROM Account';
@@ -18,26 +24,20 @@ describe('Query Data File Service', () => {
     records: [{ Id: '123' }]
   };
   const document = {
-    uri: { fsPath: '/path/to/file' }
+    uri: URI.file('/path/to/file')
   } as unknown as vscode.TextDocument;
 
   it('should save the file and return the file path', async () => {
     const format = FileFormat.JSON;
     const savedFilePath = '/test/path/to/savedFile.json';
-
     const queryDataFileService = new QueryDataFileService(queryText, queryData, format, document);
 
-    jest.spyOn(path, 'parse').mockReturnValue({ dir: '/test/' } as any);
-
-    (vscode.window.showSaveDialog as any).mockReturnValue({
-      fsPath: savedFilePath
-    });
-
-    const writeFileSpy = jest.spyOn(vscode.workspace.fs, 'writeFile');
+    (vscode.window.showSaveDialog as any).mockReturnValue(URI.file(savedFilePath));
+    mockRunPromise.mockResolvedValue('/test/workspace');
 
     const selectedFilePath = await queryDataFileService.save();
 
-    expect(writeFileSpy).toHaveBeenCalled();
+    expect(mockRunPromise).toHaveBeenCalled();
     expect(selectedFilePath).toEqual(savedFilePath);
   });
 });

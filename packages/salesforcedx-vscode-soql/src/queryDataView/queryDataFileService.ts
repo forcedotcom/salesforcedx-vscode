@@ -6,14 +6,14 @@
  */
 
 import type { QueryResult } from '../types';
-import { getRootWorkspacePath, writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
-import { homedir } from 'node:os';
-import * as path from 'node:path';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
+import { getSoqlRuntime } from '../services/extensionProvider';
 import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
 
 export enum FileFormat {
@@ -48,39 +48,37 @@ export class QueryDataFileService {
 
   public async save(): Promise<string> {
     const defaultFileName = this.dataProvider.getFileName();
-    /*
-        queryDataDefaultFilePath will be used as the default options in the save dialog
-            fileName: The name of the soqlFile viewed in the builder
-            path: the same directory as the .soql file text doc
-                  or the home directory if .soql file does not exist yet
-    */
+    const docUri = this.document.uri;
+    const defaultUri =
+      docUri.scheme === 'file' ? Utils.joinPath(Utils.dirname(docUri), defaultFileName) : undefined;
 
-    const saveDir = path.parse(this.document.uri.path).dir ?? homedir();
-    const queryDataDefaultFilePath = path.join(saveDir, defaultFileName);
-
-    const fileInfo: URI | undefined = await vscode.window.showSaveDialog({
-      defaultUri: URI.file(queryDataDefaultFilePath)
-    });
+    const fileInfo: URI | undefined = await vscode.window.showSaveDialog({ defaultUri });
 
     if (fileInfo?.fsPath) {
       // use .fsPath, not .path to account for OS.
       const selectedFileSavePath = fileInfo.fsPath;
       const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
 
-      // Save query results to disk
-      await writeFile(selectedFileSavePath, fileContentString);
-      showFileInExplorer(selectedFileSavePath);
-      showSaveSuccessMessage(path.basename(selectedFileSavePath));
+      const workspacePath = await getSoqlRuntime().runPromise(
+        Effect.gen(function* () {
+          const api = yield* getServicesApi;
+          yield* api.services.FsService.writeFile(fileInfo, fileContentString);
+          const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+          return fsPath;
+        })
+      );
+      showFileInExplorer(fileInfo, workspacePath);
+      showSaveSuccessMessage(Utils.basename(fileInfo));
       return selectedFileSavePath;
     }
     return '';
   }
 }
 
-const showFileInExplorer = (targetPath: string) => {
+const showFileInExplorer = (fileUri: URI, workspacePath: string): void => {
   // Only reveal saved file if its inside current workspace
-  if (targetPath.startsWith(getRootWorkspacePath())) {
-    vscode.commands.executeCommand('revealInExplorer', URI.file(targetPath));
+  if (fileUri.fsPath.startsWith(workspacePath)) {
+    vscode.commands.executeCommand('revealInExplorer', fileUri);
   }
 };
 
