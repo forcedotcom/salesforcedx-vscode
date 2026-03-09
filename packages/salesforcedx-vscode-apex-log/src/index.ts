@@ -101,8 +101,7 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   const { provider } = yield* TraceFlagsContentProviderService;
   context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(TRACE_FLAGS_SCHEME, provider));
 
-  const isAnonApexDoc = (doc: vscode.TextDocument) =>
-    doc.languageId === 'apex' || doc.languageId === 'apex-anon' || doc.isUntitled;
+  const isAnonApexDoc = (doc: vscode.TextDocument) => doc.languageId === 'apex' || doc.languageId === 'apex-anon';
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument(doc => {
       if (!isAnonApexDoc(doc)) return;
