@@ -55,7 +55,11 @@ const waitForOutputContent = async (page: Page, timeout: number): Promise<boolea
 // WORKAROUND: Output channel filter doesn't work on desktop electron for content that streams in
 // after the panel opens. Scroll through the output to find the text instead.
 // Remove this when VS Code fixes desktop output channel filtering for streamed content.
-const waitForOutputChannelTextDesktopWorkaround = async (page: Page, expectedText: string, timeout: number): Promise<void> => {
+const waitForOutputChannelTextDesktopWorkaround = async (
+  page: Page,
+  expectedText: string,
+  timeout: number
+): Promise<void> => {
   const codeArea = outputPanelCodeArea(page);
   // force: true — Output actions toolbar overlays the code area and intercepts pointer events
   await codeArea.click({ force: true });

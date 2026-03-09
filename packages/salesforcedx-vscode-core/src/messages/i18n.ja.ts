@@ -25,6 +25,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   parameter_gatherer_enter_file_name: 'ファイル名を入力',
   parameter_gatherer_enter_dir_name: 'フォルダを入力 (Enter で確認または Esc でキャンセル)',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
+  parameter_gatherer_select_lwc_type: 'LWC コンポーネントタイプを選択',
 
   project_retrieve_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織からソースをプル',
 
