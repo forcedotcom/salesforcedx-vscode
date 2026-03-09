@@ -5,7 +5,8 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.0.3",
+  "icon": "images/VSCodeBundle.png",
+  "version": "66.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -29,7 +30,7 @@
     "jsforce": "^3.10.2",
     "@salesforce/types": "^1.6.0",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.19.14",
+    "effect": "^3.19.19",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
@@ -63,7 +64,8 @@
       "dependencies": [
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-services:compile"
+        "../salesforcedx-vscode-services:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",

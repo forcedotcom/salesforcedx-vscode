@@ -7,4 +7,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createDesktopConfig();
+// Apex test runner has single execution queue per workspace — parallel workers collide ("already in execution queue")
+// Apex test execution + deploy can be slow; extend timeout to match web (6 min)
+export default createDesktopConfig({ workers: 1, fullyParallel: false, timeout: 360_000 });

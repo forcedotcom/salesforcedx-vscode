@@ -4,14 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'node:path';
+const mockRunPromise = jest.fn();
+jest.mock('../../../src/services/extensionProvider', () => ({
+  AllServicesLayer: require('effect/Layer').empty,
+  getSoqlRuntime: () => ({ runFork: () => undefined, runPromise: mockRunPromise })
+}));
+
 import * as vscode from 'vscode';
+import { URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, SOQL_BUILDER_UI_PATH } from '../../../src/constants';
 import { HtmlUtils } from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
 import { SOQLEditorProvider } from '../../../src/editor/soqlEditorProvider';
 import { nls } from '../../../src/messages';
-import * as sf from '../../../src/sf';
+import { channelService } from '../../../src/services/channel';
+import * as org from '../../../src/services/org';
 
 describe('SOQLEditorProvider', () => {
   let extensionContext: vscode.ExtensionContext;
@@ -24,6 +31,7 @@ describe('SOQLEditorProvider', () => {
     extensionContext = {
       /** The absolute file path of the directory containing the extension. */
       extensionPath: '/path/to/extension',
+      extensionUri: URI.file('/path/to/extension'),
       subscriptions: [],
       /** Get the absolute path of a resource contained in the extension. */
       asAbsolutePath: jest.fn((p: string) => `/path/to/extension/${p}`),
@@ -36,7 +44,7 @@ describe('SOQLEditorProvider', () => {
     registerCustomEditorProviderMock = (vscode.window.registerCustomEditorProvider as jest.Mock) = jest
       .fn()
       .mockReturnValue(mockDisposable);
-    isDefaultOrgSetSpy = jest.spyOn(sf, 'isDefaultOrgSet');
+    isDefaultOrgSetSpy = jest.spyOn(org, 'isDefaultOrgSet');
     uriFileSpy = jest.spyOn(vscode.Uri, 'file').mockImplementation(pathFile => ({
       scheme: 'file',
       path: pathFile,
@@ -95,7 +103,7 @@ describe('SOQLEditorProvider', () => {
       webViewPanelSpy.mockReturnValue(mockWebviewPanel);
       workspaceFsReadFileMock = jest.spyOn(vscode.workspace.fs, 'readFile');
       transformHtmlMock = jest.spyOn(HtmlUtils, 'transformHtml');
-      appendLineMock = jest.spyOn(sf.channelService, 'appendLine').mockImplementation(jest.fn());
+      appendLineMock = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
     });
 
     it('should configure the webview options and set the HTML content', async () => {
@@ -103,29 +111,29 @@ describe('SOQLEditorProvider', () => {
       const mockHtml = '<html></html>';
       const mockTransformedHtml = '<html-transformed></html>';
 
-      workspaceFsReadFileMock.mockResolvedValue(Buffer.from(mockHtml));
+      mockRunPromise.mockResolvedValue(mockHtml);
       transformHtmlMock.mockReturnValue(mockTransformedHtml);
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
-      const expectedPath = path.join(extensionContext.extensionPath, SOQL_BUILDER_UI_PATH);
+      const expectedUri = Utils.joinPath(extensionContext.extensionUri, ...SOQL_BUILDER_UI_PATH);
 
       expect(mockWebviewPanel.webview.options.enableScripts).toBe(true);
       expect(mockWebviewPanel.webview.options.localResourceRoots).toHaveLength(1);
       const uri = mockWebviewPanel.webview.options.localResourceRoots![0];
       expect(uri.scheme).toBe('file');
-      expect(uri.path.replaceAll('\\', '/')).toBe(expectedPath.replaceAll('\\', '/'));
-      expect(uri.fsPath.replaceAll('\\', '/')).toBe(expectedPath.replaceAll('\\', '/'));
+      expect(uri.path).toBe(expectedUri.path);
+      expect(uri.fsPath).toBe(expectedUri.fsPath);
       expect(mockWebviewPanel.webview.html).toBe(mockTransformedHtml);
     });
 
     it('should show information message if default org is not set', async () => {
-      isDefaultOrgSetSpy.mockReturnValue(false);
+      isDefaultOrgSetSpy.mockResolvedValue(false);
       const soqlEditorProvider = new SOQLEditorProvider(extensionContext);
       const mockHtml = '<html></html>';
       const mockTransformedHtml = '<html-transformed></html>';
 
-      workspaceFsReadFileMock.mockResolvedValue(Buffer.from(mockHtml));
+      mockRunPromise.mockResolvedValue(mockHtml);
       transformHtmlMock.mockReturnValue(mockTransformedHtml);
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);

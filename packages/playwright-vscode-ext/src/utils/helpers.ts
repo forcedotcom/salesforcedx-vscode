@@ -64,7 +64,8 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'marketplace.visualstudio.com',
   'vscode-unpkg.net', // VS Code extension marketplace CDN
   'scratchOrgInfo', // asking the org if it's a devhub during auth ?
-  'Package2Member' // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
+  'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
+  '.a4drules' // @salesforce/templates optional project template assets (reactb2e/reactb2x) not bundled for Apex
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
@@ -293,6 +294,8 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
   const isVisible = await auxiliaryBar.isVisible().catch(() => false);
 
   if (isVisible) {
+    // Focus workbench before opening palette (avoids F1/keystrokes going to auxiliary bar chat input)
+    await page.locator(WORKBENCH).click({ timeout: 5000 });
     // Use the explicit Hide command (not Toggle) to ensure we're hiding
     await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
 

@@ -4,58 +4,44 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
+import type { Connection } from '@salesforce/core';
+import { getServicesApi, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   CancelResponse,
   Column,
-  ConfigAggregatorProvider,
   ContinueResponse,
   createTable,
-  LibraryCommandletExecutor,
   ParametersGatherer,
   Row,
-  SfCommandlet,
-  SfWorkspaceChecker,
-  workspaceUtils,
-  writeFile
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'node:path';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { channelService, OUTPUT_CHANNEL, workspaceContext } from '../sf';
+import { channelService } from '../services/channel';
+import { getSoqlRuntime } from '../services/extensionProvider';
+import { getConnection } from '../services/org';
 
 type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
-class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
-  protected showSuccessNotifications = false;
+class DataQueryExecutor {
+  public async execute(response: ContinueResponse<QueryAndApiInputs>): Promise<void> {
+    if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
+      channelService.clear();
+    }
 
-  constructor() {
-    super(nls.localize('data_query_input_text'), 'data_soql_query_library', OUTPUT_CHANNEL);
-    // Disable automatic success notifications since we show our own custom success notification
-    // Keep failure notifications enabled for automatic error handling
-  }
-
-  public async run(response: ContinueResponse<QueryAndApiInputs>): Promise<boolean> {
     const { query, api } = response.data;
 
     try {
-      // Get connection from workspace context
-      const connection = await workspaceContext.getConnection();
-
-      // Execute query using the appropriate API
+      const connection = await getConnection();
       const queryResult = await runSoqlQuery(connection, query, api === 'TOOLING');
-
-      // Display results in table format
       displayTableResults(queryResult);
-
-      // Save results to CSV file and show notification
       await this.saveResultsToCSV(queryResult);
-
-      return true;
     } catch (error) {
-      const errorMessage = formatErrorMessage(error);
-      channelService.appendLine(errorMessage);
-      return false;
+      channelService.appendLine(formatErrorMessage(error));
+    } finally {
+      channelService.show();
     }
   }
 
@@ -64,9 +50,16 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
 
     const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
     const fileName = `soql-query-${timestamp}.csv`;
-    const outputDir = path.join(workspaceUtils.getRootWorkspacePath(), '.sfdx', 'data');
-    const filePath = path.join(outputDir, fileName);
-    await writeFile(filePath, csvContent);
+    const fileUri = await getSoqlRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* getServicesApi;
+        const { uri: workspaceUri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+        const uri = Utils.joinPath(workspaceUri, '.sfdx', 'data', fileName);
+        yield* api.services.FsService.writeFile(uri, csvContent);
+        return uri;
+      })
+    );
+    const filePath = fileUri.fsPath;
 
     // Show success message with clickable file link
     const openFileAction = nls.localize('data_query_open_file');
@@ -77,7 +70,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
       )
       .then(selection => {
         if (selection === openFileAction) {
-          vscode.workspace.openTextDocument(vscode.Uri.file(filePath)).then(doc => {
+          vscode.workspace.openTextDocument(fileUri).then(doc => {
             vscode.window.showTextDocument(doc);
           });
         }
@@ -140,10 +133,10 @@ type QueryAndApiInputs = {
   api: 'REST' | 'TOOLING';
 };
 
-export const dataQuery = (): void => {
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new GetQueryAndApiInputs(), new DataQueryExecutor());
-  void commandlet.run();
-};
+export const dataQuery = Effect.fn('sf.data.query')(function* () {
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new GetQueryAndApiInputs(), new DataQueryExecutor());
+  yield* Effect.promise(() => commandlet.run());
+});
 
 /**
  * Retrieves the maximum fetch limit from user configuration.
@@ -154,7 +147,12 @@ export const dataQuery = (): void => {
 const getMaxFetch = async (): Promise<number | undefined> => {
   try {
     // Priority 1: Check SF CLI config value (org-max-query-limit)
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator = await getSoqlRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* getServicesApi;
+        return yield* api.services.ConfigService.getConfigAggregator();
+      })
+    );
     const configValue = configAggregator.getPropertyValue<string>('org-max-query-limit');
     if (configValue) {
       const parsed = parseInt(configValue, 10);
@@ -163,7 +161,7 @@ const getMaxFetch = async (): Promise<number | undefined> => {
       }
     }
   } catch {
-    // If config reading fails, fall back to environment variable
+    // If config reading fails, fall back to no limit
   }
 
   // No limit configured - return undefined to allow default amount of queries
