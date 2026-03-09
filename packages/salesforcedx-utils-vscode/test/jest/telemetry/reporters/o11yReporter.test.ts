@@ -18,9 +18,9 @@ describe('O11yReporter', () => {
   const dummyOrgId = '00Dxx0000001gPFEAY';
 
   let sendMock: jest.Mock;
-  let uploadMock: jest.Mock;
   let forceFlushMock: jest.Mock;
   let enableAutoBatchingMock: jest.Mock;
+  let getInstanceSpy: jest.SpyInstance;
   let o11yReporter: O11yReporter;
 
   beforeEach(() => {
@@ -31,23 +31,18 @@ describe('O11yReporter', () => {
       devHubId: '00Dxx0000001gPHFAU'
     } as any);
 
-    // Mock O11yService
     sendMock = jest.fn();
-    uploadMock = jest.fn();
     forceFlushMock = jest.fn().mockResolvedValue(undefined);
-    enableAutoBatchingMock = jest.fn().mockReturnValue(() => {
-      // Return a cleanup function
-    });
+    enableAutoBatchingMock = jest.fn().mockReturnValue(() => {});
 
-    jest.spyOn(O11yService, 'getInstance').mockReturnValue({
+    const mockO11yService = {
       logEvent: sendMock,
-      upload: uploadMock,
       forceFlush: forceFlushMock,
       enableAutoBatching: enableAutoBatchingMock,
       initialize: jest.fn().mockResolvedValue(undefined)
-    } as any);
+    };
+    getInstanceSpy = jest.spyOn(O11yService, 'getInstance').mockReturnValue(mockO11yService as any);
 
-    // Mock workspace config for telemetry tag
     jest.spyOn(workspace, 'getConfiguration').mockReturnValue({
       get: jest.fn().mockReturnValue('testTelemetryTag')
     } as any);
@@ -55,24 +50,19 @@ describe('O11yReporter', () => {
     o11yReporter = new O11yReporter(fakeExtensionId, fakeExtensionVersion, fakeEndpoint, fakeUserId, 'test-webUser');
   });
 
+  beforeEach(async () => {
+    await o11yReporter.initialize('test-extension');
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   describe('initialize', () => {
-    it('should call o11yService.initialize with extensionName, endpoint, and getConnection', async () => {
-      const getConnectionMock = jest.fn().mockResolvedValue({ instanceUrl: 'https://test.salesforce.com' });
-      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
-        orgId: dummyOrgId,
-        orgShape: 'ScratchOrg',
-        devHubId: '00Dxx0000001gPHFAU',
-        getConnection: getConnectionMock
-      } as any);
-
+    it('should use O11yService.getInstance and call initialize with extensionName, endpoint, and getConnection', async () => {
       const initializeMock = jest.fn().mockResolvedValue(undefined);
-      jest.spyOn(O11yService, 'getInstance').mockReturnValue({
+      getInstanceSpy.mockReturnValue({
         logEvent: sendMock,
-        upload: uploadMock,
         forceFlush: forceFlushMock,
         enableAutoBatching: enableAutoBatchingMock,
         initialize: initializeMock
@@ -88,6 +78,7 @@ describe('O11yReporter', () => {
 
       await reporter.initialize('test-extension');
 
+      expect(O11yService.getInstance).toHaveBeenCalledWith(fakeExtensionId);
       expect(initializeMock).toHaveBeenCalledTimes(1);
       expect(initializeMock).toHaveBeenCalledWith('test-extension', fakeEndpoint, expect.any(Function));
       expect(enableAutoBatchingMock).toHaveBeenCalledWith(
@@ -179,8 +170,7 @@ describe('O11yReporter', () => {
       expect(callArg.properties).toHaveProperty('telemetryTag', 'testTelemetryTag');
     });
 
-    it('should not include telemetryTag if not set', () => {
-      // Override workspace config to return undefined for telemetryTag
+    it('should not include telemetryTag if not set', async () => {
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue({
         get: jest.fn().mockReturnValue(undefined)
       } as any);
@@ -192,6 +182,7 @@ describe('O11yReporter', () => {
         fakeUserId,
         'test-webUser'
       );
+      await reporterWithoutTag.initialize('test-extension');
       sendMock.mockClear();
 
       reporterWithoutTag.sendTelemetryEvent('eventWithoutTag');

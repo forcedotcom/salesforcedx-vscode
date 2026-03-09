@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { O11yService } from '@salesforce/o11y-reporter';
 import {
   ActivationTracker,
   ChannelService,
@@ -211,6 +212,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   const api: SalesforceVSCodeCoreApi = {
     channelService,
+    getO11yService: (extensionId: string) => O11yService.getInstance(extensionId),
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
     getUserId,
     getAuthFields,
@@ -383,6 +385,7 @@ const handleTheUnhandled = (): void => {
 
 export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
+  getO11yService: (extensionId: string) => O11yService;
   getTargetOrgOrAlias: typeof workspaceContextUtils.getTargetOrgOrAlias;
   getUserId: typeof getUserId;
   getAuthFields: typeof getAuthFields;

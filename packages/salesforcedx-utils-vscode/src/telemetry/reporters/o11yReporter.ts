@@ -18,14 +18,12 @@ const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } 
   promise: null
 };
 const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
+  type PDPModule = { pdpEventSchema: Record<string, unknown> };
   // @ts-ignore - o11y_schema has no types
-  pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(
-    (m) => m.pdpEventSchema
-  );
+  pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then((m: PDPModule) => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-const getConnection = async () =>
-  WorkspaceContextUtil.getInstance().getConnection();
+const getConnection = async () => WorkspaceContextUtil.getInstance().getConnection();
 
 export class O11yReporter
   extends Disposable
@@ -65,7 +63,18 @@ export class O11yReporter
   }
 
   public async initialize(extensionName: string): Promise<void> {
-    await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint, getConnection);
+    // O11yService from @salesforce/o11y-reporter has initialize(); narrow via guard to satisfy consistent-type-assertions
+    type O11yServiceWithInit = O11yService & {
+      initialize(name: string, endpoint: string, getConnection?: () => Promise<unknown>): Promise<void>;
+    };
+    const hasInit = (s: O11yService): s is O11yServiceWithInit => {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- runtime check only
+      const o = s as unknown as { initialize?: unknown };
+      return typeof o?.initialize === 'function';
+    };
+    if (hasInit(this.o11yService)) {
+      await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint, getConnection);
+    }
 
     // Enable automatic batching with 30-second periodic flush
     this.batchingCleanup = this.o11yService.enableAutoBatching({
