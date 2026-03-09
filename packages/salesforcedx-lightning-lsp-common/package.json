@@ -30,6 +30,11 @@
       "types": "./out/src/providers/fileSystemDataProvider.d.ts",
       "import": "./out/src/providers/fileSystemDataProvider.js",
       "require": "./out/src/providers/fileSystemDataProvider.js"
+    },
+    "./applyEditHandler": {
+      "types": "./out/src/applyEditHandler.d.ts",
+      "import": "./out/src/applyEditHandler.js",
+      "require": "./out/src/applyEditHandler.js"
     }
   },
   "license": "BSD-3-Clause",
