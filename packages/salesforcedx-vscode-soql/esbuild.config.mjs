@@ -59,9 +59,10 @@ await build({
   outfile: './dist/web/index.js'
 });
 
-// Web language server worker bundle — only available once soql-language-server is updated to v9+
-// Run `npm link @salesforce/soql-language-server` with the local repo to enable this.
-const serverWorkerPath = require.resolve('@salesforce/soql-language-server').replace('/lib/index.js', '/lib/serverWorker.js');
+// Web language server worker bundle
+const serverWorkerPath = require
+  .resolve('@salesforce/soql-language-server')
+  .replace('/lib/index.js', '/lib/serverWorker.js');
 if (existsSync(serverWorkerPath)) {
   await build({
     ...commonConfigBrowser,
@@ -70,5 +71,7 @@ if (existsSync(serverWorkerPath)) {
     outfile: './dist/serverWorker.js'
   });
 } else {
-  console.warn('⚠️  Skipping serverWorker.js bundle: @salesforce/soql-language-server does not yet export lib/serverWorker.js. npm link the local repo to build the web LSP worker.');
+  console.warn(
+    '⚠️  Skipping serverWorker.js bundle: @salesforce/soql-language-server does not yet export lib/serverWorker.js. npm link the local repo to build the web LSP worker.'
+  );
 }
