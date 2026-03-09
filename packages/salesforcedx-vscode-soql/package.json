@@ -76,7 +76,6 @@
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
@@ -88,6 +87,7 @@
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
     "test:soql-builder-ui": "wireit",
+    "run:web": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit",
@@ -165,6 +165,7 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"
@@ -172,6 +173,15 @@
       "output": [
         "dist"
       ]
+    },
+    "run:web": {
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3002 --quality stable --verbose --printServerLog",
+      "service": true,
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle"
+      ],
+      "files": []
     },
     "test": {
       "command": "jest --coverage",
@@ -246,6 +256,7 @@
     }
   },
   "main": "dist/index.js",
+  "browser": "dist/web/index.js",
   "contributes": {
     "customEditors": [
       {
