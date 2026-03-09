@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 
 /**
  * The index.html file in the dist folder of the @salesforce/soql-builder-ui
@@ -29,8 +28,8 @@ export class HtmlUtils {
    * @param pathToLwcDist
    * @param webview
    */
-  public static transformHtml(html: string, pathToLwcDist: string, webview: vscode.Webview): string {
-    return HtmlUtils.replaceCspMetaTag(HtmlUtils.transformScriptTags(html, pathToLwcDist, webview), webview);
+  public static transformHtml(html: string, lwcDistUri: URI, webview: vscode.Webview): string {
+    return HtmlUtils.replaceCspMetaTag(HtmlUtils.transformScriptTags(html, lwcDistUri, webview), webview);
   }
 
   /**
@@ -51,11 +50,11 @@ export class HtmlUtils {
    * @param pathToLwcDist
    * @param webview
    */
-  public static transformScriptTags(html: string, pathToLwcDist: string, webview: vscode.Webview): string {
+  public static transformScriptTags(html: string, lwcDistUri: URI, webview: vscode.Webview): string {
     let matches: string[] | null;
     let newScriptSrc: URI;
     while ((matches = HtmlUtils.scriptRegex.exec(html)) !== null) {
-      newScriptSrc = webview.asWebviewUri(URI.file(path.join(pathToLwcDist, matches[1])));
+      newScriptSrc = webview.asWebviewUri(Utils.joinPath(lwcDistUri, matches[1]));
       // eslint-disable-next-line no-param-reassign
       html = html.replace(`./${matches[1]}`, newScriptSrc.toString());
     }

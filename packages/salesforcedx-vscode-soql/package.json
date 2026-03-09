@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.0.3",
+  "version": "66.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -36,10 +36,10 @@
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/effect-ext-utils": "*",
-    "effect": "^3.19.14",
+    "effect": "^3.19.19",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
-    "@salesforce/soql-language-server": "0.7.1",
+    "@salesforce/soql-language-server": "^0.8.0",
     "@salesforce/vscode-i18n": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",

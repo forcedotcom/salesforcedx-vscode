@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.0.3",
+  "version": "66.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -31,7 +31,7 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/types": "1.7.1",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.19.13",
+    "effect": "^3.19.19",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
