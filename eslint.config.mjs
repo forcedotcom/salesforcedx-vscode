@@ -635,13 +635,10 @@ export default [
     }
   },
   {
-    // Relaxed rules for test files in services and org-browser packages
+    // Relaxed rules for test files
     files: [
-      'packages/salesforcedx-vscode-services/test/**/*.ts',
-      'packages/salesforcedx-vscode-org-browser/test/**/*.ts',
-      'packages/salesforcedx-vscode-metadata/test/**/*.ts',
-      'packages/salesforcedx-vscode-apex-testing/test/**/*.ts',
-      'packages/salesforcedx-vscode-apex-log/test/**/*.ts',
+      'packages/**/test/**/*.ts',
+      'packages/**/__tests__/**/*.ts',
       'packages/salesforcedx-vscode-services/playwright*.ts',
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
       'packages/salesforcedx-vscode-metadata/playwright*.ts',

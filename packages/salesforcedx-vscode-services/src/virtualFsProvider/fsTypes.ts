@@ -9,6 +9,13 @@ import * as vscode from 'vscode';
 export type FsProvider = vscode.FileSystemProvider & {
   /** does not exist in the vscode.FileSystemProvider but super handy so I added it*/
   exists: (uri: vscode.Uri) => boolean;
+  /** Find files by glob. baseUri optional via RelativePattern; when absent, uses workspace folder. */
+  findFiles: (
+    include: vscode.GlobPattern,
+    exclude?: vscode.GlobPattern | null,
+    maxResults?: number,
+    token?: vscode.CancellationToken
+  ) => Promise<vscode.Uri[]>;
 };
 
 type SerializedFile = vscode.FileStat & {

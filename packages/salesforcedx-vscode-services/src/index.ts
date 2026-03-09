@@ -31,7 +31,7 @@ import { TraceFlagItemStruct, TraceFlagService } from './core/traceFlagService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
-import { fileSystemSetup, getWorkspaceVolume } from './virtualFsProvider/fileSystemSetup';
+import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
@@ -71,7 +71,6 @@ export type SalesforceVSCodeServicesApi = {
     FileWatcherService: typeof FileWatcherService;
     FsService: typeof FsService;
     getErrorMessage: typeof getErrorMessage;
-    getWorkspaceVolume: typeof getWorkspaceVolume;
     MediaService: typeof MediaService;
     MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
@@ -291,7 +290,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       FileWatcherService,
       FsService,
       getErrorMessage,
-      getWorkspaceVolume,
       MediaService,
       MetadataDeleteService,
       MetadataDescribeService,

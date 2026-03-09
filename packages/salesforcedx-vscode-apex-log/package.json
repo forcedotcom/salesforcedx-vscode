@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/core": "^8.23.3",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.25.12",
     "salesforcedx-vscode-services": "*"
