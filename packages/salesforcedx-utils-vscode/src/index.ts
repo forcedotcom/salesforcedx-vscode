@@ -13,7 +13,6 @@ export {
   EmptyParametersGatherer,
   type FlagParameter
 } from './commands/parameterGatherers';
-export { isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigUtil } from './config/configUtil';
