@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { EOL } from 'node:os';
 import { FieldRefImpl } from '../../../../src/soql-model/model/impl/fieldRefImpl';
+import { FieldSelectionImpl } from '../../../../src/soql-model/model/impl/fieldSelectionImpl';
 import { FromImpl } from '../../../../src/soql-model/model/impl/fromImpl';
 import { HeaderCommentsImpl } from '../../../../src/soql-model/model/impl/headerCommentsImpl';
 import { QueryImpl } from '../../../../src/soql-model/model/impl/queryImpl';
@@ -15,21 +15,21 @@ import { ModelSerializer } from '../../../../src/soql-model/serialization/serial
 
 describe('ModelSerializer should', () => {
   it('transform model to SOQL syntax', () => {
-    const expected = `SELECT field${EOL}  FROM object${EOL}`;
+    const expected = 'SELECT field\n  FROM object\n';
     const actual = new ModelSerializer(
-      new QueryImpl(new SelectExprsImpl([new FieldRefImpl('field')]), new FromImpl('object'))
+      new QueryImpl(new SelectExprsImpl([new FieldSelectionImpl(new FieldRefImpl('field'))]), new FromImpl('object'))
     ).serialize();
     expect(actual).toEqual(expected);
   });
 
   it('transform model with comments to SOQL syntax', () => {
-    const expected = `// Comment 1${EOL}// Comment 2${EOL}SELECT field${EOL}  FROM object${EOL}`;
+    const expected = '// Comment 1\n// Comment 2\nSELECT field\n  FROM object\n';
 
     const query = new QueryImpl(
-      new SelectExprsImpl([new FieldRefImpl('field')]),
+      new SelectExprsImpl([new FieldSelectionImpl(new FieldRefImpl('field'))]),
       new FromImpl('object')
     );
-    query.headerComments = new HeaderCommentsImpl(`// Comment 1${EOL}// Comment 2${EOL}`);
+    query.headerComments = new HeaderCommentsImpl('// Comment 1\n// Comment 2\n');
     const actual = new ModelSerializer(query).serialize();
     expect(actual).toEqual(expected);
   });

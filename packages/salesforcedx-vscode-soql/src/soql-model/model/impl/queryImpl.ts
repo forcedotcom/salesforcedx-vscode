@@ -5,10 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Note: Cannot use 'node:os' here because this file is bundled by webpack for browser (soql-builder-ui)
-// and webpack 4 (used by lwc-services) doesn't support the node: protocol
-// eslint-disable-next-line unicorn/prefer-node-protocol
-import * as os from 'os';
 import { Bind, From, GroupBy, HeaderComments, Limit, Offset, OrderBy, Query, RecordTrackingType, Select, SyntaxOptions, Update, Where, With } from '../model';
 
 export class QueryImpl implements Query {
@@ -36,37 +32,37 @@ export class QueryImpl implements Query {
       syntax += `${this.headerComments.toSoqlSyntax(opts)}`;
     }
     if (this.select) {
-      syntax += `${this.select.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${this.select.toSoqlSyntax(opts)}\n`;
     }
     if (this.from) {
-      syntax += `${' '.repeat(opts.indent)}${this.from.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.from.toSoqlSyntax(opts)}\n`;
     }
     if (this.where) {
-      syntax += `${' '.repeat(opts.indent)}${this.where.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.where.toSoqlSyntax(opts)}\n`;
     }
     if (this.with) {
-      syntax += `${' '.repeat(opts.indent)}${this.with.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.with.toSoqlSyntax(opts)}\n`;
     }
     if (this.groupBy) {
-      syntax += `${' '.repeat(opts.indent)}${this.groupBy.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.groupBy.toSoqlSyntax(opts)}\n`;
     }
     if (this.orderBy) {
-      syntax += `${' '.repeat(opts.indent)}${this.orderBy.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.orderBy.toSoqlSyntax(opts)}\n`;
     }
     if (this.limit) {
-      syntax += `${' '.repeat(opts.indent)}${this.limit.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.limit.toSoqlSyntax(opts)}\n`;
     }
     if (this.offset) {
-      syntax += `${' '.repeat(opts.indent)}${this.offset.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.offset.toSoqlSyntax(opts)}\n`;
     }
     if (this.bind) {
-      syntax += `${' '.repeat(opts.indent)}${this.bind.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.bind.toSoqlSyntax(opts)}\n`;
     }
     if (this.recordTrackingType) {
-      syntax += `${' '.repeat(opts.indent)}${this.recordTrackingType.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.recordTrackingType.toSoqlSyntax(opts)}\n`;
     }
     if (this.update) {
-      syntax += `${' '.repeat(opts.indent)}${this.update.toSoqlSyntax(opts)}${os.EOL}`;
+      syntax += `${' '.repeat(opts.indent)}${this.update.toSoqlSyntax(opts)}\n`;
     }
     return syntax;
   }

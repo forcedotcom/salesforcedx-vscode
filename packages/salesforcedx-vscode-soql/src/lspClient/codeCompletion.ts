@@ -18,7 +18,6 @@ import type { Middleware } from 'vscode-languageclient/node';
 
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { listSObjectNamesEffect } from '../services/sObjects';
-import { telemetryService } from '../telemetry';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -68,10 +67,7 @@ const expandPlaceholders = async (items: ProtocolCompletionItem[]): Promise<Prot
       if (handler) {
         expandedItems.splice(index, 1, ...(await handler(item?.data?.soqlContext ?? {})));
       } else {
-        telemetryService.sendException(
-          'SOQLLanguageServerException',
-          `Unknown SOQL LSP completion command ${commandName}!`
-        );
+        console.error(`Unknown SOQL LSP completion command ${commandName}!`);
       }
     }
   }
@@ -195,7 +191,7 @@ const expandFunctions: {
 
 const safeRetrieveSObject = async (sobjectName?: string): Promise<SObject | undefined> => {
   if (!sobjectName) {
-    telemetryService.sendException('SOQLanguageServerException', 'Missing `sobjectName` from SOQL completion context!');
+    console.error('Missing `sobjectName` from SOQL completion context!');
     return undefined;
   }
   return getSoqlRuntime().runPromise(

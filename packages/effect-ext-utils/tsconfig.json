@@ -18,5 +18,10 @@
   "include": [
     "src/**/*.ts",
     "test/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../salesforcedx-vscode-i18n"
+    }
   ]
 }
