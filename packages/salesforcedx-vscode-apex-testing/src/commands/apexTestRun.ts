@@ -7,29 +7,26 @@
 
 import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
 import { isNotUndefined } from 'effect/Predicate';
-import { type CancellationToken, languages, window, workspace } from 'vscode';
+import { type CancellationToken, languages, window } from 'vscode';
 import { Utils } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
+import { APEX_TESTSUITE_EXT } from '../constants';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
 import {
   type CancelResponse,
   type ContinueResponse,
-  getRootWorkspacePath,
-  hasRootWorkspace,
   LibraryCommandletExecutor,
   type ParametersGatherer,
-  SFDX_FOLDER,
   SfCommandlet,
   SfWorkspaceChecker
 } from '../utils/commandletHelpers';
 import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
+import { findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
 import { runApexTests } from './apexTestRunUtils';
-
-const FILE_SEARCH_PATTERN = `{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`;
 
 /** Remove the extension from a filename */
 const removeExtension = (filename: string, ext: string): string =>
@@ -37,19 +34,22 @@ const removeExtension = (filename: string, ext: string): string =>
 
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
-    const { testSuites = [], apexClasses = [] } = Object.groupBy(
-      (await workspace.findFiles(FILE_SEARCH_PATTERN, SFDX_FOLDER)).toSorted((a, b) =>
-        a.fsPath.localeCompare(b.fsPath)
-      ),
-      file => (file.path.endsWith('.cls') ? 'apexClasses' : 'testSuites')
+    const { testSuiteUris, apexClassUris } = await findLocalApexClassAndTestSuiteUris();
+
+    const apexClassItems = await Promise.all(
+      apexClassUris.map(
+        (uri): Promise<ApexTestQuickPickItem | undefined> => getTestInfo(uri).catch((): undefined => undefined)
+      )
     );
 
     const fileItems = [
-      ...(testSuites ?? []).map((testSuite): ApexTestQuickPickItem => ({
-        label: removeExtension(Utils.basename(testSuite), APEX_TESTSUITE_EXT),
-        description: testSuite.fsPath,
-        type: 'Suite' as const
-      })),
+      ...testSuiteUris.map(
+        (testSuite): ApexTestQuickPickItem => ({
+          label: removeExtension(Utils.basename(testSuite), APEX_TESTSUITE_EXT),
+          description: testSuite.fsPath,
+          type: 'Suite' as const
+        })
+      ),
       {
         label: nls.localize('apex_test_run_all_local_test_label'),
         description: nls.localize('apex_test_run_all_local_tests_description_text'),
@@ -60,22 +60,13 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
         description: nls.localize('apex_test_run_all_tests_description_text'),
         type: 'All' as const
       },
-      ...(await Promise.all((apexClasses).map(getTestInfo))).filter(isNotUndefined)
+      ...apexClassItems.filter(isNotUndefined)
     ];
 
     const selection = await window.showQuickPick<ApexTestQuickPickItem>(fileItems);
     return selection ? { type: 'CONTINUE', data: selection } : { type: 'CANCEL' };
   }
 }
-
-const getTempFolder = async (): Promise<string> => {
-  if (hasRootWorkspace()) {
-    const apexDir = await getTestResultsFolder(getRootWorkspacePath(), 'apex');
-    return apexDir;
-  } else {
-    throw new Error(nls.localize('cannot_determine_workspace'));
-  }
-};
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTestQuickPickItem> {
   protected cancellable: boolean = true;
@@ -94,16 +85,18 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     const testService = new TestService(connection);
     const payload = await buildTestPayload(testService, response.data);
 
-    const result = await runApexTests(
-      {
-        payload,
-        outputDir: await getTempFolder(),
-        codeCoverage: settings.retrieveTestCodeCoverage(),
-        concise: settings.retrieveTestRunConcise(),
-        telemetryTrigger: 'quickPick'
-      },
-      progress,
-      token
+    const result = await getApexTestingRuntime().runPromise(
+      runApexTests(
+        {
+          payload,
+          outputDir: await getTestResultsFolder(),
+          codeCoverage: settings.retrieveTestCodeCoverage(),
+          concise: settings.retrieveTestRunConcise(),
+          telemetryTrigger: 'quickPick'
+        },
+        progress,
+        token
+      )
     );
 
     return result !== undefined;
