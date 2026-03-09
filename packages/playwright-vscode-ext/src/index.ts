@@ -19,7 +19,8 @@ export {
   isMacDesktop,
   isWindowsDesktop,
   validateNoCriticalErrors,
-  ensureSecondarySideBarHidden
+  ensureSecondarySideBarHidden,
+  waitForExtensionsActivated
 } from './utils/helpers';
 
 export {
