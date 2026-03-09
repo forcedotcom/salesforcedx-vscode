@@ -40,7 +40,7 @@
     "@opentelemetry/sdk-trace-node": "2.2.0",
     "@opentelemetry/sdk-trace-web": "2.2.0",
     "@salesforce/core": "^8.23.4",
-    "@salesforce/o11y-reporter": "1.8.2",
+    "@salesforce/o11y-reporter": "^1.8.2",
     "@salesforce/templates": "^66.3.3",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
