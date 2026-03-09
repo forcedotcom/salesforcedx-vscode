@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'node:path';
 import { ExtensionContext, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import * as codeCompletion from './codeCompletion';
@@ -15,9 +14,7 @@ let client: LanguageClient;
 export const startLanguageClient = async (extensionContext: ExtensionContext): Promise<void> => {
   // path to language server module
 
-  const module = extensionContext.asAbsolutePath(
-    path.join('dist', 'server.js') // or wherever your bundled server is
-  );
+  const module = extensionContext.asAbsolutePath('dist/server.js');
 
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
