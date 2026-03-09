@@ -33,6 +33,7 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
       "files": [
@@ -92,6 +93,7 @@
     }
   },
   "dependencies": {
+    "@salesforce/vscode-i18n": "*",
     "effect": "^3.19.19",
     "@types/vscode": "^1.90.0"
   }
