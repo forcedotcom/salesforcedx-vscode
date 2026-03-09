@@ -74,6 +74,11 @@
         "compile",
         "../salesforcedx-vscode-services:vscode:bundle"
       ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "playwright.config.desktop.ts",
+        "package*.json"
+      ],
       "output": []
     }
   }
