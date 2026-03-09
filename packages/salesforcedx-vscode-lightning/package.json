@@ -58,7 +58,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.0.2",
+  "version": "66.0.3",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -76,7 +76,7 @@
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
     "applicationinsights": "1.0.7",
-    "effect": "^3.19.14",
+    "effect": "^3.19.19",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1"
   },

@@ -21,9 +21,6 @@
       "path": "../effect-ext-utils"
     },
     {
-      "path": "../salesforcedx-sobjects-faux-generator"
-    },
-    {
       "path": "../salesforcedx-utils"
     },
     {
