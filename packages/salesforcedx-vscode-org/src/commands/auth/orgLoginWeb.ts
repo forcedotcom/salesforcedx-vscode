@@ -18,14 +18,14 @@ import * as vscode from 'vscode';
 import { ORG_LOGIN_WEB } from '../../constants';
 import { nls } from '../../messages';
 import { updateConfigAndStateAggregators } from '../../util/orgUtil';
-import { showVerificationCodeIfNeeded } from '../../util/verificationCode';
+import { getVerificationCodeDescription, showVerificationCodeIfNeeded } from '../../util/verificationCode';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 
 class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
-    const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_org_text'));
+    const command = new SfCommandBuilder().withDescription(getVerificationCodeDescription(nls.localize('org_login_web_authorize_org_text')));
 
     command
       .withArg(ORG_LOGIN_WEB)
@@ -47,8 +47,7 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-
-    showVerificationCodeIfNeeded();
+    void showVerificationCodeIfNeeded();
 
     // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
