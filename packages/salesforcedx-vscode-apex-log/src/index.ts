@@ -66,32 +66,24 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
     [
       // init the traceFlagRef
       Effect.forkIn(
-        andThenNotifyUIOfChanges(
-          api.services.TraceFlagService.getTraceFlags().pipe(
-            Effect.catchAll(() => Effect.succeed([])),
-            Effect.flatMap(flags => SubscriptionRef.set(currentTraceFlagsRef, flags))
-          )
+        api.services.TraceFlagService.getTraceFlags().pipe(
+          Effect.catchAll(() => Effect.succeed([])),
+          Effect.flatMap(flags => SubscriptionRef.set(currentTraceFlagsRef, flags))
         ),
         scope
       ).pipe(Effect.asVoid),
       registerCommand('sf.apex.log.get', logGetCommand),
       registerCommand('sf.apex.log.openFolder', openLogsFolderCommand),
-      registerCommand('sf.apex.traceFlags.open', () => andThenNotifyUIOfChanges(openTraceFlagsCommand())),
-      registerCommand('sf.apex.traceFlags.createForCurrentUser', () =>
-        andThenNotifyUIOfChanges(createTraceFlagForCurrentUserCommand())
-      ),
-      registerCommand('sf.apex.traceFlags.deleteForCurrentUser', () =>
-        andThenNotifyUIOfChanges(deleteTraceFlagForCurrentUserCommand())
-      ),
-      registerCommand('sf.apex.traceFlags.createForUser', () =>
-        andThenNotifyUIOfChanges(createTraceFlagForUserCommand())
-      ),
-      registerCommand('sf.apex.traceFlags.createLogLevel', () => andThenNotifyUIOfChanges(createLogLevelCommand())),
+      registerCommand('sf.apex.traceFlags.open', () => openTraceFlagsCommand()),
+      registerCommand('sf.apex.traceFlags.createForCurrentUser', () => createTraceFlagForCurrentUserCommand()),
+      registerCommand('sf.apex.traceFlags.deleteForCurrentUser', () => deleteTraceFlagForCurrentUserCommand()),
+      registerCommand('sf.apex.traceFlags.createForUser', () => createTraceFlagForUserCommand()),
+      registerCommand('sf.apex.traceFlags.createLogLevel', () => createLogLevelCommand()),
       registerCommand('sf.apex.traceFlags.deleteForId', (traceFlagId: string) =>
-        andThenNotifyUIOfChanges(deleteTraceFlagForIdCommand(traceFlagId))
+        deleteTraceFlagForIdCommand(traceFlagId)
       ),
       registerCommand('sf.apex.traceFlags.deleteDebugLevelForId', (debugLevelId: string) =>
-        andThenNotifyUIOfChanges(deleteDebugLevelForIdCommand(debugLevelId))
+        deleteDebugLevelForIdCommand(debugLevelId)
       ),
       registerCommand('sf.create.anonymous.apex.script', createAnonymousApexScriptCommand),
       registerCommand('sf.anon.apex.execute.document', () => executeAnonymousCommand(false)),
@@ -138,18 +130,3 @@ const deactivation = Effect.fn('deactivation')(function* () {
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} extension deactivated!`))
   );
 });
-
-/** wrap commands that need to notify the UI (statusBar, traceFlagsJson) of changes */
-const andThenNotifyUIOfChanges = <A, E, R>(eff: Effect.Effect<A, E, R>) =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const ref = yield* CurrentTraceFlags;
-    yield* eff.pipe(
-      Effect.tap(() =>
-        api.services.TraceFlagService.getTraceFlags().pipe(
-          Effect.catchAll(() => Effect.succeed([])),
-          Effect.flatMap(flags => SubscriptionRef.set(ref, flags))
-        )
-      )
-    );
-  });

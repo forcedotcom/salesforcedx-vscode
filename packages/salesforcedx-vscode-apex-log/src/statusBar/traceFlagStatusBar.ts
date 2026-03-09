@@ -66,6 +66,7 @@ export const createTraceFlagStatusBar = () =>
     statusBarItem.command = 'sf.apex.traceFlags.open';
 
     const targetOrgRef = yield* api.services.TargetOrgRef();
+    const traceFlagService = yield* api.services.TraceFlagService;
 
     // reasons to update the status bar:
     yield* Effect.fork(
@@ -83,6 +84,11 @@ export const createTraceFlagStatusBar = () =>
             ),
             Stream.as(undefined)
           ),
+          // because TraceFlagService published (any extension mutated trace flags)
+          Stream.fromPubSub(traceFlagService.traceFlagsChanged).pipe(
+            Stream.tap(flags => SubscriptionRef.set(currentTraceFlagsRef, flags)),
+            Stream.as(undefined)
+          ),
           // because the trace flags changed
           currentTraceFlagsRef.changes.pipe(Stream.as(undefined)),
           // because new logs were retrieved
@@ -96,7 +102,7 @@ export const createTraceFlagStatusBar = () =>
         Stream.runForEach(() => refresh(statusBarItem))
       )
     );
-    yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+    yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
     yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
     yield* Effect.sleep(Duration.infinity);
   });
