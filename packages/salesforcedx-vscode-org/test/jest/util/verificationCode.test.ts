@@ -32,7 +32,7 @@ describe('getVerificationCodeDescription', () => {
     process.env = { ...originalEnv };
   });
 
-  afterAll(() => {
+  afterEach(() => {
     process.env = originalEnv;
   });
 
@@ -61,7 +61,7 @@ describe('showVerificationCodeIfNeeded', () => {
     jest.clearAllMocks();
   });
 
-  afterAll(() => {
+  afterEach(() => {
     process.env = originalEnv;
   });
 
