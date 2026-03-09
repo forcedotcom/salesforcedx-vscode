@@ -35,9 +35,9 @@ describe('Query Data File Service', () => {
     (vscode.window.showSaveDialog as any).mockReturnValue(URI.file(savedFilePath));
     mockRunPromise.mockResolvedValue('/test/workspace');
 
-    const selectedFilePath = await queryDataFileService.save();
+    const savedFileUri = await queryDataFileService.save();
 
     expect(mockRunPromise).toHaveBeenCalled();
-    expect(selectedFilePath).toEqual(savedFilePath);
+    expect(savedFileUri?.fsPath).toEqual(URI.file(savedFilePath).fsPath);
   });
 });

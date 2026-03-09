@@ -46,7 +46,7 @@ export class QueryDataFileService {
     }
   }
 
-  public async save(): Promise<string> {
+  public async save(): Promise<URI | undefined> {
     const defaultFileName = this.dataProvider.getFileName();
     const docUri = this.document.uri;
     const defaultUri =
@@ -54,9 +54,7 @@ export class QueryDataFileService {
 
     const fileInfo: URI | undefined = await vscode.window.showSaveDialog({ defaultUri });
 
-    if (fileInfo?.fsPath) {
-      // use .fsPath, not .path to account for OS.
-      const selectedFileSavePath = fileInfo.fsPath;
+    if (fileInfo) {
       const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
 
       const workspacePath = await getSoqlRuntime().runPromise(
@@ -69,9 +67,9 @@ export class QueryDataFileService {
       );
       showFileInExplorer(fileInfo, workspacePath);
       showSaveSuccessMessage(Utils.basename(fileInfo));
-      return selectedFileSavePath;
+      return fileInfo;
     }
-    return '';
+    return undefined;
   }
 }
 
