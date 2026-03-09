@@ -37,9 +37,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
 
-  // Sets the sf:project_opened context key as a side effect, which controls command visibility
-  yield* (yield* api.services.ProjectService).isSalesforceProject();
-
   yield* Effect.sync(() => {
     context.subscriptions.push(SOQLEditorProvider.register(context));
     QueryDataViewService.register(context);

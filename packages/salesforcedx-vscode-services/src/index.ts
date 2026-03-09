@@ -229,6 +229,10 @@ const activationEffect = (context: vscode.ExtensionContext) =>
     // init the connection for all the consumers who might need it
     // no Connection is a possible state
     yield* Effect.fork(ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)));
+    // set sf:project_opened context before activation resolves so lazy-loaded extensions can show
+    // their commands on startup — must be blocking (not forked) so the context key is set before
+    // VS Code evaluates `when` clauses for command palette visibility
+    yield* ProjectService.isSalesforceProject().pipe(Effect.catchAll(() => Effect.void));
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
