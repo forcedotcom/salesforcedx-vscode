@@ -14,6 +14,7 @@ Guidelines for writing and iterating on Playwright tests for VS Code extensions.
 - `references/coding-playwright-tests.md` - Writing tests
 - `references/iterating-playwright-tests.md` - Iterating on tests (lines 34-37: "Things to ignore")
 - `references/analyze-e2e.md` - Analyzing E2E test results from CI
+- `references/local-setup.md` - Local scratch org setup for E2E tests
 
 # Use playwright-vscode-ext
 

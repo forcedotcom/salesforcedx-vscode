@@ -8,7 +8,6 @@ export { apexTestRun } from './apexTestRun';
 export {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
-  ApexLibraryTestRunExecutor,
   apexTestClassRunCodeAction,
   apexTestClassRunCodeActionDelegate,
   apexTestMethodRunCodeAction,

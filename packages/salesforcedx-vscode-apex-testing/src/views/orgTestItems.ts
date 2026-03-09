@@ -8,19 +8,18 @@
 import type { ResolvedPackageInfo, ToolingTestClass } from '../testDiscovery/schemas';
 import * as Array from 'effect/Array';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { LOCAL_NAMESPACE_KEY, UNPACKAGED_PACKAGE_ID, UNPACKAGED_PACKAGE_KEY } from '../constants';
 import { nls } from '../messages';
 import { createOrgApexClassUri } from '../utils/orgApexClassProvider';
 import { createClassId, createMethodId, createPackageId } from '../utils/testItemUtils';
 import { getFullClassName } from '../utils/testUtils';
 
-export type { NonEmptyArray } from 'effect/Array';
-
 /**
  * A test class grouped by full name, with one or more Tooling API entries (e.g. from multiple discovery runs).
  * entries is non-empty so entries[0] is safe.
  */
-export type ClassEntry = {
+type ClassEntry = {
   fullClassName: string;
   entries: Array.NonEmptyArray<ToolingTestClass>;
 };
@@ -29,7 +28,7 @@ export type ClassEntry = {
  * Tree of test classes: namespace key → package key → list of class entries.
  * Used to build the Test Explorer hierarchy (Namespace → Package → Class → Method).
  */
-export type NamespacePackageStructure = Map<string, Map<string, ClassEntry[]>>;
+type NamespacePackageStructure = Map<string, Map<string, ClassEntry[]>>;
 
 /**
  * Builds a map from Apex class ID to namespace prefix for the given test classes.
@@ -168,11 +167,11 @@ export const getPackageLabelAndId = (
 /**
  * Context required to create class and method TestItems. Passed to createClassAndMethodsFactory.
  */
-export interface CreateClassAndMethodsContext {
+interface CreateClassAndMethodsContext {
   controller: vscode.TestController;
   classItems: Map<string, vscode.TestItem>;
   methodItems: Map<string, vscode.TestItem>;
-  classNameToUri: Map<string, vscode.Uri>;
+  classNameToUri: Map<string, URI>;
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
 }

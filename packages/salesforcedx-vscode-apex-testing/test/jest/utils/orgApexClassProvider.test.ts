@@ -10,6 +10,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const EffectLib = jest.requireActual('effect/Effect');
   const Context = jest.requireActual('effect/Context');
   const Layer = jest.requireActual('effect/Layer');
+  const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
 
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
 
@@ -49,7 +50,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   return {
     ExtensionProviderService: MockExtensionProviderService,
     AllServicesLayer: MockAllServicesLayer,
-    // Export a function to set the mock connection
+    getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
     }
@@ -58,6 +59,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
 
 import type { Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import {
   createOrgApexClassUri,
@@ -83,7 +85,7 @@ describe('orgApexClassProvider', () => {
 
     (vscode.workspace.openTextDocument as jest.Mock) = jest.fn().mockResolvedValue({
       getText: jest.fn().mockReturnValue('class TestClass {}'),
-      uri: { scheme: 'sf-org-apex', path: 'TestClass.cls', toString: () => 'sf-org-apex:TestClass.cls' } as vscode.Uri
+      uri: { scheme: 'sf-org-apex', path: 'TestClass.cls', toString: () => 'sf-org-apex:TestClass.cls' } as URI
     });
     // openOrgApexClass uses FsService.showTextDocument; mock invokes vscode.window.showTextDocument
     (vscode.window.showTextDocument as jest.Mock) = jest.fn().mockResolvedValue({
@@ -139,7 +141,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'TestClass.cls',
         toString: () => 'sf-org-apex:TestClass.cls'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(mockConnection.tooling!.query).toHaveBeenCalledWith(
@@ -160,7 +162,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'NonExistentClass.cls',
         toString: () => 'sf-org-apex:NonExistentClass.cls'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(content).toContain("Error: Class 'NonExistentClass' not found in org");
@@ -185,7 +187,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'EmptyClass.cls',
         toString: () => 'sf-org-apex:EmptyClass.cls'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(content).toContain("Class 'EmptyClass' found but body is empty");
@@ -210,7 +212,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'ApplicationTest.cls',
         toString: () => 'sf-org-apex:ApplicationTest.cls'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(content).toContain('Source code for class');
@@ -240,7 +242,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: `${uniqueClassName}.cls`,
         toString: () => `sf-org-apex:${uniqueClassName}.cls`
-      } as vscode.Uri;
+      } as URI;
 
       // The error will be caught by Effect.catchAll and converted to an error message string
       const content = await provider.provideTextDocumentContent(uri);
@@ -269,7 +271,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'CachedClass.cls',
         toString: () => 'sf-org-apex:CachedClass.cls'
-      } as vscode.Uri;
+      } as URI;
 
       // First call
       const content1 = await provider.provideTextDocumentContent(uri);
@@ -286,7 +288,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: '',
         toString: () => 'sf-org-apex:'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(content).toContain('Error: Class name not found in URI');

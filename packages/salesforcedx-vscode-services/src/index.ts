@@ -79,6 +79,7 @@ export type SalesforceVSCodeServicesApi = {
       | SettingsService
       | SettingsWatcherService
       | SourceTrackingService
+      | TemplateService
       | TransmogrifierService
       | WorkspaceService
     >;

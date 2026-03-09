@@ -9,7 +9,6 @@ import { TestService } from '@salesforce/apex-node';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT } from '../constants';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
@@ -18,21 +17,27 @@ import {
   ContinueResponse,
   LibraryCommandletExecutor,
   ParametersGatherer,
-  SFDX_FOLDER,
   SfCommandlet,
   SfWorkspaceChecker
 } from '../utils/commandletHelpers';
 import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
+import { findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
 import { getTestController } from '../views/testController';
 import { ApexLibraryTestRunExecutor } from './apexTestRun';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
-  return (await Promise.all(apexClasses.map(getTestInfo)))
-    .filter(isNotUndefined)
-    .toSorted((a, b) => a.label.localeCompare(b.label));
+  const { apexClassUris } = await findLocalApexClassAndTestSuiteUris();
+  if (apexClassUris.length === 0) {
+    return [];
+  }
+  const items = await Promise.all(
+    apexClassUris.map(
+      (uri): Promise<ApexTestQuickPickItem | undefined> => getTestInfo(uri).catch((): undefined => undefined)
+    )
+  );
+  return items.filter(isNotUndefined).toSorted((a, b): number => a.label.localeCompare(b.label));
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
@@ -64,18 +69,18 @@ class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
     if (testSuiteName) {
       const apexClassItems = await listApexClassItems();
 
-      const apexClassSelection =
-        (await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
-          canPickMany: true
-        })) ?? [];
+      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(
+        apexClassItems,
+        { canPickMany: true }
+      );
+      if (!apexClassSelection || apexClassSelection.length === 0) {
+        return { type: 'CANCEL' };
+      }
       const apexClassNames = apexClassSelection.map(selection => selection.label);
-
-      return apexClassSelection
-        ? {
-            type: 'CONTINUE',
-            data: { suitename: testSuiteName.label, tests: apexClassNames }
-          }
-        : { type: 'CANCEL' };
+      return {
+        type: 'CONTINUE',
+        data: { suitename: testSuiteName.label, tests: apexClassNames }
+      };
     }
     return { type: 'CANCEL' };
   }
@@ -91,18 +96,18 @@ class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
     if (testSuiteName) {
       const apexClassItems = await listApexClassItems();
 
-      const apexClassSelection =
-        (await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
-          canPickMany: true
-        })) ?? [];
-      const apexClassNames = apexClassSelection?.map(selection => selection.label);
-
-      return apexClassSelection
-        ? {
-            type: 'CONTINUE',
-            data: { suitename: testSuiteName, tests: apexClassNames }
-          }
-        : { type: 'CANCEL' };
+      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(
+        apexClassItems,
+        { canPickMany: true }
+      );
+      if (!apexClassSelection || apexClassSelection.length === 0) {
+        return { type: 'CANCEL' };
+      }
+      const apexClassNames = apexClassSelection.map(selection => selection.label);
+      return {
+        type: 'CONTINUE',
+        data: { suitename: testSuiteName, tests: apexClassNames }
+      };
     }
     return { type: 'CANCEL' };
   }

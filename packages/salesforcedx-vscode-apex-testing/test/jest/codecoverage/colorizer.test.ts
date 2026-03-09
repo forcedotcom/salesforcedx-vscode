@@ -5,7 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+jest.mock('../../../src/services/extensionProvider', () => ({
+  getApexTestingRuntime: () => ({
+    runPromise: jest.fn().mockResolvedValue(undefined)
+  })
+}));
+
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { CodeCoverageHandler } from '../../../src/codecoverage/colorizer';
 import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
 
@@ -24,7 +31,7 @@ describe('CodeCoverageHandler', () => {
 
     mockEditor = {
       document: {
-        uri: vscode.Uri.file('/workspace/project/MyClass.cls'),
+        uri: URI.file('/workspace/project/MyClass.cls'),
         getText: jest.fn().mockReturnValue('public class MyClass { }'),
         lineAt: jest.fn().mockReturnValue({
           range: {
@@ -70,7 +77,7 @@ describe('CodeCoverageHandler', () => {
     it('when highlighting is disabled should turn on (and attempt to apply coverage)', async () => {
       (mockStatusBar as { isHighlightingEnabled: boolean }).isHighlightingEnabled = false;
       const workspaceFolders = [
-        { uri: vscode.Uri.file('/workspace/project'), name: 'project', index: 0 }
+        { uri: URI.file('/workspace/project'), name: 'project', index: 0 }
       ] as vscode.WorkspaceFolder[];
       Object.defineProperty(vscode.workspace, 'workspaceFolders', {
         value: workspaceFolders,

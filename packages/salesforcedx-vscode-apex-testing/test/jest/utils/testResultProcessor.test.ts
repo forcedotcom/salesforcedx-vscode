@@ -7,6 +7,7 @@
 
 import { TestResult } from '@salesforce/apex-node';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../../../src/constants';
 import { parseStackTrace, updateTestRunResults } from '../../../src/utils/testResultProcessor';
 
@@ -48,7 +49,7 @@ describe('testResultProcessor', () => {
 
     // Mock vscode.Location as a constructor for parseStackTrace tests
 
-    (vscode.Location as any) = jest.fn((uri: vscode.Uri, range: vscode.Range) => ({
+    (vscode.Location as any) = jest.fn((uri: URI, range: vscode.Range) => ({
       uri,
       range
     }));
@@ -64,7 +65,7 @@ describe('testResultProcessor', () => {
   const createMockTestItem = (
     id: string,
     label: string,
-    uri?: vscode.Uri,
+    uri?: URI,
     children?: vscode.TestItem[]
   ): vscode.TestItem => {
     // Create a plain object with label and uri as direct, enumerable properties
@@ -105,7 +106,7 @@ describe('testResultProcessor', () => {
   describe('parseStackTrace', () => {
     it('should parse valid stack trace with line number and class', () => {
       const stackTrace = 'MyTestClass.testMethod: line 42, column 1';
-      const mockUri = vscode.Uri.file('/path/to/MyTestClass.cls');
+      const mockUri = URI.file('/path/to/MyTestClass.cls');
       const classItem = createMockTestItem('class:MyTestClass', 'MyTestClass', mockUri);
       const classItems = new Map([['MyTestClass', classItem]]);
 
@@ -155,7 +156,7 @@ describe('testResultProcessor', () => {
 
     it('should handle stack trace with namespace', () => {
       const stackTrace = 'namespace.MyTestClass.testMethod: line 42, column 1';
-      const mockUri = vscode.Uri.file('/path/to/MyTestClass.cls');
+      const mockUri = URI.file('/path/to/MyTestClass.cls');
       // Class items are typically stored without namespace prefix
       const classItem = createMockTestItem('class:MyTestClass', 'MyTestClass', mockUri);
       const classItems = new Map([['MyTestClass', classItem]]);
@@ -171,7 +172,7 @@ describe('testResultProcessor', () => {
 
     it('should handle stack trace with namespace when class item has full namespace', () => {
       const stackTrace = 'namespace.MyTestClass.testMethod: line 42, column 1';
-      const mockUri = vscode.Uri.file('/path/to/MyTestClass.cls');
+      const mockUri = URI.file('/path/to/MyTestClass.cls');
       // Test case where class item is stored with full namespace
       const classItem = createMockTestItem('class:namespace.MyTestClass', 'namespace.MyTestClass', mockUri);
       const classItems = new Map([['namespace.MyTestClass', classItem]]);
@@ -187,7 +188,7 @@ describe('testResultProcessor', () => {
 
     it('should handle multiple line numbers in stack trace', () => {
       const stackTrace = 'MyTestClass.testMethod: line 42, column 1\nOtherClass.otherMethod: line 10';
-      const mockUri = vscode.Uri.file('/path/to/MyTestClass.cls');
+      const mockUri = URI.file('/path/to/MyTestClass.cls');
       const classItem = createMockTestItem('class:MyTestClass', 'MyTestClass', mockUri);
       const classItems = new Map([['MyTestClass', classItem]]);
 
@@ -285,7 +286,7 @@ describe('testResultProcessor', () => {
     it('should update failed test results with stack trace location', () => {
       const run = createMockTestRun();
       const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
-      const mockUri = vscode.Uri.file('/path/to/MyClass.cls');
+      const mockUri = URI.file('/path/to/MyClass.cls');
       const classItem = createMockTestItem('class:MyClass', 'MyClass', mockUri);
 
       const methodItems = new Map([['MyClass.testMethod', methodItem]]);

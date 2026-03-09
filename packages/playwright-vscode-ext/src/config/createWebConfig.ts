@@ -14,6 +14,8 @@ type WebConfigOptions = {
   workers?: number;
   /** Run tests in parallel (default: !E2E_SEQUENTIAL) */
   fullyParallel?: boolean;
+  /** Per-test timeout in ms (default: 360_000) */
+  timeout?: number;
 };
 
 /** Creates a standardized Playwright web config for VS Code extension testing */
@@ -44,7 +46,7 @@ export const createWebConfig = (options: WebConfigOptions = {}) =>
         ]
       }
     },
-    timeout: process.env.DEBUG_MODE ? 0 : 360 * 1000,
+    timeout: process.env.DEBUG_MODE ? 0 : options.timeout ?? 360 * 1000,
     maxFailures: process.env.CI ? 3 : 0,
     projects: [
       {

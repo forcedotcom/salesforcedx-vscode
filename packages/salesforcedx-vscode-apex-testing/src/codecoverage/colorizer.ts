@@ -6,11 +6,13 @@
  */
 
 import { CodeCoverageResult } from '@salesforce/apex-node';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import { Range, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
 import { Utils } from 'vscode-uri';
-import { channelService } from '../channels';
 import { IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
@@ -107,6 +109,20 @@ const getApexMemberName = (document: TextDocument): string => {
   return ext ? base.slice(0, -ext.length) : base;
 };
 
+/** Log coverage error to channel (if warnings disabled) or show as warning message */
+const handleCoverageException = Effect.fn('handleCoverageException')(function* (e: Error) {
+  const disableWarning = workspace
+    .getConfiguration()
+    .get<boolean>('salesforcedx-vscode-apex-testing.disable-warnings-for-missing-coverage', false);
+  if (disableWarning) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const svc = yield* api.services.ChannelService;
+    yield* svc.appendToChannel(e.message);
+  } else {
+    yield* Effect.tryPromise(() => window.showWarningMessage(e.message));
+  }
+});
+
 export class CodeCoverageHandler {
   public coveredLines: Range[] = [];
   public uncoveredLines: Range[] = [];
@@ -124,7 +140,7 @@ export class CodeCoverageHandler {
         this.uncoveredLines = coverage.uncoveredLines;
         this.setCoverageDecorators(editor);
       } catch (e) {
-        this.handleCoverageException(e);
+        void getApexTestingRuntime().runPromise(handleCoverageException(e));
       }
     }
   }
@@ -147,20 +163,9 @@ export class CodeCoverageHandler {
           this.setCoverageDecorators(editor);
         }
       } catch (e) {
-        this.handleCoverageException(e);
+        void getApexTestingRuntime().runPromise(handleCoverageException(e));
       }
       this.statusBar.toggle(true);
-    }
-  }
-
-  private handleCoverageException(e: Error) {
-    const disableWarning: boolean = workspace
-      .getConfiguration()
-      .get<boolean>('salesforcedx-vscode-apex-testing.disable-warnings-for-missing-coverage', false);
-    if (disableWarning) {
-      void channelService.appendLine(e.message);
-    } else {
-      void window.showWarningMessage(e.message);
     }
   }
 

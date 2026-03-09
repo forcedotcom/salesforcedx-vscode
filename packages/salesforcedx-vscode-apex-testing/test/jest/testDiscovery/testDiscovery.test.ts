@@ -11,6 +11,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const EffectLib = jest.requireActual('effect/Effect');
   const Context = jest.requireActual('effect/Context');
   const Layer = jest.requireActual('effect/Layer');
+  const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
 
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
 
@@ -38,6 +39,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   return {
     ExtensionProviderService: MockExtensionProviderService,
     AllServicesLayer: MockAllServicesLayer,
+    getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
     // Export a function to set the mock connection
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
@@ -45,7 +47,6 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
 });
 
-import * as Effect from 'effect/Effect';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import { discoverTests } from '../../../src/testDiscovery/testDiscovery';
 
@@ -87,7 +88,7 @@ describe('TestDiscovery', () => {
     };
     (mockConnection.request as jest.Mock).mockResolvedValueOnce(page1).mockResolvedValueOnce(page2);
 
-    const result = await Effect.runPromise(discoverTests());
+    const result = await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
 
     expect(result.classes).toHaveLength(2);
     expect(result.classes[0].name).toBe('MyTestClass');
@@ -98,18 +99,20 @@ describe('TestDiscovery', () => {
 
   it('gracefully returns empty when API returns no classes', async () => {
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
-    const result = await Effect.runPromise(discoverTests());
+    const result = await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
     expect(result.classes).toHaveLength(0);
   });
 
   it('handles API errors', async () => {
     (mockConnection.request as jest.Mock).mockRejectedValueOnce(new Error('Boom'));
-    await expect(Effect.runPromise(discoverTests())).rejects.toThrow('Failed to fetch test discovery page: Boom');
+    await expect(extensionProvider.getApexTestingRuntime().runPromise(discoverTests())).rejects.toThrow(
+      'Failed to fetch test discovery page: Boom'
+    );
   });
 
   it('uses minimum API version 65.0 and always sets showAllMethods=true', async () => {
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
-    await Effect.runPromise(discoverTests());
+    await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
     expect(mockConnection.request).toHaveBeenCalledTimes(1);
     const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
     expect(firstCallArg.method).toBe('GET');
@@ -120,7 +123,7 @@ describe('TestDiscovery', () => {
 
   it('passes namespacePrefix when provided', async () => {
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
-    await Effect.runPromise(discoverTests({ namespacePrefix: 'MyNS' }));
+    await extensionProvider.getApexTestingRuntime().runPromise(discoverTests({ namespacePrefix: 'MyNS' }));
     const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
     expect(firstCallArg.url).toContain('namespacePrefix=MyNS');
     expect(firstCallArg.url).toContain('showAllMethods=true');
@@ -129,7 +132,7 @@ describe('TestDiscovery', () => {
   it('handles unexpected response shape without throwing', async () => {
     // Missing apexTestClasses entirely
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ nextRecordsUrl: null });
-    const result = await Effect.runPromise(discoverTests());
+    const result = await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
     expect(result.classes).toEqual([]);
   });
 });
