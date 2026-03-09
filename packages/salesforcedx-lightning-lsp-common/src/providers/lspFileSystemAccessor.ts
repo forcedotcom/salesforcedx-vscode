@@ -67,10 +67,7 @@ export const uriToNormalizedPath = (uri: DocumentUri, workspaceFolderUri?: strin
         }
       }
     }
-    let filePath = parsedUri.path;
-    if (filePath.startsWith('/')) {
-      filePath = filePath.substring(1);
-    }
+    const filePath = parsedUri.path.startsWith('/') ? parsedUri.path.substring(1) : parsedUri.path;
     return normalizePath(filePath);
   } catch {
     return normalizePath(uri.replace(/^[^:]+:\/\//, ''));
