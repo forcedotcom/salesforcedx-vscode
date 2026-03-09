@@ -20,7 +20,7 @@ import { messages } from '../messages/i18n';
 import { LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
 
 const STATUS_BAR_ID = 'apex-trace-flag-status';
-const STATUS_BAR_PRIORITY = 48;
+const STATUS_BAR_PRIORITY = 46;
 
 const stopLink = (rec: TraceFlagItem) =>
   ` [${nls.localize('trace_flag_tooltip_stop')}](command:sf.apex.traceFlags.deleteForId?${encodeURIComponent(JSON.stringify([rec.id]))})`;
