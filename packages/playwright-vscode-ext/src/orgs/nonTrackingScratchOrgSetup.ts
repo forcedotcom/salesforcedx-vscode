@@ -45,7 +45,7 @@ export const createNonTrackingOrg = async (alias: string = NON_TRACKING_ORG_ALIA
   );
 
   const { stdout: createStdout } = await execAsync(
-    `sf org create scratch -d -a ${alias} --edition developer --wait 30 --no-track-source --json`,
+    `sf org create scratch -d -w 10 -a ${alias} --edition developer --no-track-source --json`,
     {
       cwd: projectDir,
       env
