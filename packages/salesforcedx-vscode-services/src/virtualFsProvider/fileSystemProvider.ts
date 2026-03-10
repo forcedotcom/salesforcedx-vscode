@@ -188,7 +188,13 @@ export class FsProvider implements vscode.FileSystemProvider {
       vscode.workspace.workspaceFolders?.[0]?.uri;
     if (!baseUri) return [];
     const excludeArr = exclude == null ? undefined : typeof exclude === 'string' ? [exclude] : [exclude.pattern];
-    const matches = await fs.promises.glob(pattern, { cwd: baseUri.path, exclude: excludeArr });
+    // Only runs on web (memfs); node:fs.glob returns AsyncIterator but we never hit that path
+    // this is fixed in higher memfs versions, but there's other conflicts there (would break sfdx-core support for node 20)
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- web-only, memfs returns Promise<string[]>
+    const matches = await (fs.promises.glob(pattern, {
+      cwd: baseUri.path,
+      exclude: excludeArr
+    }) as unknown as Promise<string[]>);
     return (
       matches
         .map(p => joinPathWithBase(baseUri, p))
