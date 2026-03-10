@@ -259,10 +259,38 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   }
 
   /**
+   * Try the alternate key form for map lookups (path vs file URI).
+   */
+  private getAlternateKey(uri: string): NormalizedPath | undefined {
+    try {
+      if (uri.startsWith('file:')) {
+        return normalizePath(URI.parse(uri).fsPath);
+      }
+      return normalizePath(URI.file(uri).toString());
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
    * Get file content
+   * Tries both normalized path and file URI key forms (see getAlternateKey).
    */
   public getFileContent(uri: string): string | undefined {
-    return this.fileContents.get(normalizePath(uri));
+    const key = normalizePath(uri);
+    const content = this.fileContents.get(key);
+    if (content !== undefined) {
+      return content;
+    }
+    const altKey = this.getAlternateKey(uri);
+    const result = altKey !== undefined ? this.fileContents.get(altKey) : undefined;
+    if (result === undefined) {
+      const allKeys = Array.from(this.fileContents.keys());
+      Logger.info(
+        `[FileSystemDataProvider.getFileContent] miss uri=${uri} key=${key} altKey=${altKey ?? 'n/a'} allKeysCount=${allKeys.length} allKeys=${JSON.stringify(allKeys)}`
+      );
+    }
+    return result;
   }
 
   /**

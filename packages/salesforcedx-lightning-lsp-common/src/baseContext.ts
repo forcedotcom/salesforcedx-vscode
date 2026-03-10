@@ -56,6 +56,14 @@ const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProv
       const hasPath = allUris.some(u => utils.normalizePath(u) === normalizedConfigPath);
       const rootPrefix = normalizedConfigPath.replace(/[^/\\]+$/, '');
       const filesUnderRoot = allUris.filter(u => utils.normalizePath(u).startsWith(rootPrefix)).length;
+      Logger.info(
+        `[readSfdxProjectConfig] allUris=${allUris.length} normalizedConfigPath=${normalizedConfigPath} rootPrefix=${rootPrefix} filesUnderRoot=${filesUnderRoot}`
+      );
+      allUris.forEach((u, i) => Logger.info(`[readSfdxProjectConfig] allUris[${i}]=${u}`));
+      const sfdxProjectUris = allUris.filter(u => u.endsWith('sfdx-project.json'));
+      Logger.info(
+        `[readSfdxProjectConfig] uris ending with sfdx-project.json (${sfdxProjectUris.length}): ${JSON.stringify(sfdxProjectUris)}`
+      );
       providerContext = ` providerFiles=${allUris.length} hasConfigPath=${hasPath} filesUnderRoot=${filesUnderRoot}`;
     } catch (e) {
       providerContext = ` getAllFileUrisError=${e instanceof Error ? e.message : String(e)}`;
