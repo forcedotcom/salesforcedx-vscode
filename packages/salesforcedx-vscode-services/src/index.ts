@@ -226,16 +226,9 @@ const activationEffect = (context: vscode.ExtensionContext) =>
         concurrency: 'unbounded'
       }
     );
-    // init the connection for all the consumers who might need it; no Connection is a possible state.
-    // In web, getConnection() only reads settings + creates in-memory objects (no network call), so it
-    // can be blocking — this ensures defaultOrgRef is populated before any dependent extension activates.
-    // On desktop it remains forked because it resolves the target org from disk/network.
-    const initConnection = ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
-    yield* process.env.ESBUILD_PLATFORM === 'web' ? initConnection : Effect.fork(initConnection);
-    // set sf:project_opened context before activation resolves so lazy-loaded extensions can show
-    // their commands on startup — must be blocking (not forked) so the context key is set before
-    // VS Code evaluates `when` clauses for command palette visibility
-    yield* ProjectService.isSalesforceProject().pipe(Effect.catchAll(() => Effect.void));
+    // init the connection for all the consumers who might need it
+    // no Connection is a possible state
+    yield* Effect.fork(ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)));
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
