@@ -258,6 +258,9 @@ const registerCommands = (): vscode.Disposable => {
       await getTestController().openOrgOnlyTest(test);
     }
   );
+  const apexTestRefreshCmd = vscode.commands.registerCommand('sf.apex.test.refresh', async () => {
+    await getTestController().refresh();
+  });
 
   return vscode.Disposable.from(
     apexToggleColorizerCmd,
@@ -274,7 +277,8 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
     apexTestSuiteAddCmd,
-    openOrgOnlyTestCmd
+    openOrgOnlyTestCmd,
+    apexTestRefreshCmd
   );
 };
 
