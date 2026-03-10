@@ -8,6 +8,7 @@
 import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Logger } from './logger';
 import { nls } from './messages';
 import { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
 import { jsconfigCore } from './resources/core/jsconfig-core';
@@ -43,10 +44,24 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 
 const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProvider): SfdxProjectConfig => {
   const configPath = getSfdxProjectFile(root);
+  const normalizedConfigPath = utils.normalizePath(configPath);
+  Logger.info(`[readSfdxProjectConfig] reading config path=${normalizedConfigPath} root=${utils.normalizePath(root)}`);
+
   const configText = fileSystemProvider.getFileContent(configPath);
 
   if (!configText) {
-    throw new Error(nls.localize('config_file_not_found_message'));
+    let providerContext = '';
+    try {
+      const allUris = fileSystemProvider.getAllFileUris();
+      const hasPath = allUris.some(u => utils.normalizePath(u) === normalizedConfigPath);
+      const rootPrefix = normalizedConfigPath.replace(/[^/\\]+$/, '');
+      const filesUnderRoot = allUris.filter(u => utils.normalizePath(u).startsWith(rootPrefix)).length;
+      providerContext = ` providerFiles=${allUris.length} hasConfigPath=${hasPath} filesUnderRoot=${filesUnderRoot}`;
+    } catch (e) {
+      providerContext = ` getAllFileUrisError=${e instanceof Error ? e.message : String(e)}`;
+    }
+    Logger.error(`[readSfdxProjectConfig] Config file not found path=${normalizedConfigPath}${providerContext}`);
+    throw new Error(`${nls.localize('config_file_not_found_message')} (${normalizedConfigPath})`);
   }
 
   try {

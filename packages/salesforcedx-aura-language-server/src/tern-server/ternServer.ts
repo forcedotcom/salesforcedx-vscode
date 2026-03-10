@@ -26,7 +26,7 @@ import {
   Definition
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import URI from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
