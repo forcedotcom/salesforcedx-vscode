@@ -18,11 +18,15 @@ export class ChannelService extends Effect.Service<ChannelService>()('ChannelSer
     return {
       /** Get the OutputChannel for this ChannelService */
       getChannel: Effect.sync(() => channel),
+      /** Clear the OutputChannel */
+      clearChannel: Effect.try(() => channel.clear()).pipe(
+        Effect.catchAll(() => Effect.void)
+      ),
       /** Append a message to this OutputChannel */
       appendToChannel: (message: string) =>
         Effect.try(() => channel.appendLine(message)).pipe(
           // channelLogging is "best effort" and will not cause a failure
-          Effect.catchAll(() => Effect.succeed(undefined))
+          Effect.catchAll(() => Effect.void)
         )
     };
   }
@@ -39,16 +43,17 @@ export const ChannelServiceLayer = (channelName: string): Layer.Layer<ChannelSer
     ChannelService,
     new ChannelService({
       getChannel: cache.get(channelName),
+      clearChannel: Effect.gen(function* () {
+        const channel = yield* cache.get(channelName);
+        return yield* Effect.try(() => channel.clear());
+      }).pipe(Effect.catchAll(() => Effect.void)),
       appendToChannel: (message: string) =>
         Effect.gen(function* () {
           const channel = yield* cache.get(channelName);
-          return yield* Effect.try({
-            try: () => channel.appendLine(message),
-            catch: e => new Error(`Failed to append to channel: ${String(e)}`)
-          });
+          return yield* Effect.try(() => channel.appendLine(message));
         }).pipe(
           // channelLogging is "best effort" and will not cause a failure
-          Effect.catchAll(() => Effect.succeed(undefined))
+          Effect.catchAll(() => Effect.void)
         )
     })
   );

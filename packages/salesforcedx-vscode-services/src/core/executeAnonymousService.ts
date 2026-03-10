@@ -121,7 +121,7 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
   'ExecuteAnonymousService',
   {
     accessors: true,
-    dependencies: [ConnectionService.Default],
+    dependencies: [ConnectionService.Default, ChannelService.Default],
     effect: Effect.gen(function* () {
       const connectionService = yield* ConnectionService;
       const diagnostics = vscode.languages.createDiagnosticCollection(ANON_APEX_ERRORS_COLLECTION);
@@ -160,12 +160,12 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
         return { result: parsed.result, logBody: parsed.logBody, logId: undefined };
       });
 
-      /** initiates an execute anonymous.  Returns only the json result */
+      /** Output result to channel; errors get full detail, success gets one line */
       const outputToChannel = Effect.fn('ExecuteAnonymousService.outputToChannel')(
         function* (result: ExecuteAnonymousResult) {
           const channelService = yield* ChannelService;
           const text = result.success
-            ? 'Compile: success / Execute: success'
+            ? 'Execute anonymous succeeded.'
             : !result.compiled
               ? `Error: Line ${result.line}, Column ${result.column} -- ${result.compileProblem ?? UNEXPECTED_ERROR}`
               : `Compile: success / Error: ${result.exceptionMessage ?? UNEXPECTED_ERROR}\n${result.exceptionStackTrace ?? ''}`;
@@ -212,10 +212,13 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
           logBody?: string
         ) {
           const channelService = yield* ChannelService;
+          yield* channelService.clearChannel;
           yield* outputToChannel(result);
           if (logBody) {
             yield* channelService.appendToChannel(logBody);
           }
+          const channel = yield* channelService.getChannel;
+          yield* Effect.sync(() => channel.show());
           yield* Effect.sync(() => setDiagnostics(result, documentUri, selectionStartLine));
         }
       );
