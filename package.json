@@ -362,18 +362,28 @@
       ],
       "output": []
     },
+    "check:lock-sync": {
+      "command": "npm ci --dry-run",
+      "files": [
+        "package.json",
+        "package-lock.json"
+      ],
+      "output": []
+    },
     "precommit": {
       "dependencies": [
         "compile",
         "lint",
         "check:peer-deps",
         "check:typescript-project-references",
-        "check:package-lock"
+        "check:package-lock",
+        "check:lock-sync"
       ]
     },
     "prepush": {
       "dependencies": [
-        "lint",
+        "precommit",
+        "vscode:bundle",
         "test"
       ]
     },
