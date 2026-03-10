@@ -72,7 +72,6 @@
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
     "rxjs": "^7.8.2",
-    "salesforcedx-vscode-core": "*",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -104,7 +103,6 @@
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-vscode-core:compile",
         "../salesforcedx-vscode-services:compile"
       ],
       "files": [
@@ -117,7 +115,6 @@
         "../salesforcedx-utils-vscode/out/**",
         "../salesforcedx-vscode-i18n/out/**",
         "../salesforcedx-utils/out/**",
-        "../salesforcedx-vscode-core/out/**",
         "../salesforcedx-vscode-services/out/**"
       ],
       "output": [
@@ -240,7 +237,6 @@
       },
       "dependencies": [
         "vscode:bundle",
-        "../salesforcedx-vscode-core:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../playwright-vscode-ext:compile"
