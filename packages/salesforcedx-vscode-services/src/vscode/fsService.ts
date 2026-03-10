@@ -9,49 +9,20 @@ import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { unknownToErrorCause } from '../core/shared';
+import { fsProviderRef } from '../virtualFsProvider/fsProviderRef';
 import { HashableUri } from './hashableUri';
 import { uriToPath } from './paths';
+import { toUri } from './uriUtils';
+
+export { toUri } from './uriUtils';
 
 export class FsServiceError extends Data.TaggedError('FsServiceError')<{
   readonly cause: Error;
   readonly function: string;
   readonly filePath: string;
 }> {}
-/**
- * Convert path string or URI to URI, handling both file:// and other schemes like memfs://
- * @param filePath - Either a URI object, URI string (e.g., "memfs:/MyProject/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
- * @returns A properly parsed VS Code URI
- */
-export const toUri = (filePath: string | URI): URI => {
-  // If it's already a URI object, return it
-  if (typeof filePath !== 'string') {
-    return filePath;
-  }
-
-  // Check if it's already a URI string (has scheme:/path format)
-  // Must have colon followed by slash, but not be a Windows drive letter (single letter + colon)
-  if (/^[a-z][\w+.-]*:/i.test(filePath) && !/^[a-z]:/i.test(filePath)) {
-    return URI.parse(filePath);
-  }
-
-  // Handle Windows UNC paths (\\server\share\file.txt) by converting to proper file URI
-  if (filePath.startsWith('\\\\')) {
-    // Convert \\server\share\file.txt to /server/share/file.txt for URI.path
-    const normalizedPath = filePath.slice(2).replaceAll('\\', '/'); // Remove leading \\, normalize separators
-    return URI.file(`/${normalizedPath}`);
-  }
-
-  // In web environment, paths without a scheme should use memfs:
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    return URI.parse(`memfs:${filePath}`);
-  }
-
-  // Otherwise treat as file path (including Windows paths like C:\)
-  const fileUri = URI.file(filePath);
-  return fileUri;
-};
 
 // capture readFile for use in readJSON
 const readFile = Effect.fn('fsService.readFile')(function* (filePath: string | URI) {
@@ -125,6 +96,25 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
       toUri: (filePath: string | URI) => Effect.succeed(toUri(filePath)),
       HashableUri,
       uriToPath: (uri: URI) => Effect.succeed(uriToPath(uri)),
+      /** Find files by glob. baseUri optional via RelativePattern; defaults to workspace folders. */
+      findFiles: (
+        include: vscode.GlobPattern,
+        exclude?: vscode.GlobPattern | null,
+        maxResults?: number,
+        token?: vscode.CancellationToken
+      ) =>
+        Effect.tryPromise({
+          try: () =>
+            process.env.ESBUILD_PLATFORM === 'web'
+              ? (fsProviderRef.current?.findFiles(include, exclude ?? undefined, maxResults) ?? Promise.resolve([]))
+              : vscode.workspace.findFiles(include, exclude ?? undefined, maxResults, token),
+          catch: e =>
+            new FsServiceError({
+              ...unknownToErrorCause(e),
+              function: 'findFiles',
+              filePath: typeof include === 'string' ? include : include.pattern
+            })
+        }),
       /** Write file to filesystem, creating directories if they don't exist */
       writeFile,
       fileOrFolderExists,

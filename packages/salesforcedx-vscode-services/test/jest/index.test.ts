@@ -279,7 +279,8 @@ describe('Extension', () => {
       stat: jest.fn(),
       readDirectory: jest.fn(),
       watch: jest.fn(),
-      onDidChangeFile: jest.fn()
+      onDidChangeFile: jest.fn(),
+      findFiles: jest.fn().mockResolvedValue([])
     };
 
     // Test that projectFiles works correctly with proper mocking
