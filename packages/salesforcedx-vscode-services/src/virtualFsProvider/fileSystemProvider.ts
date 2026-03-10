@@ -19,6 +19,7 @@ import { Buffer } from 'node:buffer';
 import type { Dirent } from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { unknownToErrorCause } from '../core/shared';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -26,7 +27,7 @@ import { emitter } from './memfsWatcher';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
 /** Convert ENOENT errors to VS Code FileSystemError.FileNotFound */
-const handleFileSystemError = (error: unknown, uri: vscode.Uri): never => {
+const handleFileSystemError = (error: unknown, uri: URI): never => {
   if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
     throw vscode.FileSystemError.FileNotFound(uri);
   }
@@ -43,7 +44,7 @@ const suffixFromPath = (fsPath: string): string | undefined => {
 };
 
 /** Effect that uses MetadataRegistryService (cached) to resolve metadata type from URI */
-export const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: vscode.Uri) {
+export const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
   if (readOnlyTypes.length === 0) return false;
   const suffix = suffixFromPath(uri.path);
   if (!suffix) return false;
@@ -65,11 +66,11 @@ export class FsProvider implements vscode.FileSystemProvider {
   public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = emitter.event;
   public readOnly: MetadataType[] = [];
 
-  public exists(uri: vscode.Uri): boolean {
+  public exists(uri: URI): boolean {
     return fs.existsSync(uri.path);
   }
 
-  public async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
+  public async stat(uri: URI): Promise<vscode.FileStat> {
     try {
       const stats = fs.statSync(uri.path);
 
@@ -87,7 +88,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     }
   }
 
-  public readDirectory(uri: vscode.Uri): [string, vscode.FileType][] {
+  public readDirectory(uri: URI): [string, vscode.FileType][] {
     try {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return (fs.readdirSync(uri.path, { withFileTypes: true }) as Dirent[]).map(dirent => [
@@ -99,12 +100,12 @@ export class FsProvider implements vscode.FileSystemProvider {
     }
   }
 
-  public async createDirectory(uri: vscode.Uri): Promise<void> {
+  public async createDirectory(uri: URI): Promise<void> {
     await fs.promises.mkdir(uri.path, { recursive: true });
     emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
   }
 
-  public readFile(uri: vscode.Uri): Uint8Array {
+  public readFile(uri: URI): Uint8Array {
     try {
       // memfs types are loose around readFileSync
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -115,7 +116,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async writeFile(
-    uri: vscode.Uri,
+    uri: URI,
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): Promise<void> {
@@ -145,7 +146,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
   }
 
-  public async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
+  public async delete(uri: URI, options: { recursive: boolean }): Promise<void> {
     if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
@@ -153,7 +154,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
   }
 
-  public async rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): Promise<void> {
+  public async rename(oldUri: URI, newUri: URI, options: { overwrite: boolean }): Promise<void> {
     if (isItReadOnlyEffect(this.readOnly, oldUri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(oldUri);
     }
@@ -168,7 +169,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     ]);
   }
 
-  public watch(_uri: vscode.Uri, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
+  public watch(_uri: URI, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
     return new vscode.Disposable(() => {});
   }
 }
