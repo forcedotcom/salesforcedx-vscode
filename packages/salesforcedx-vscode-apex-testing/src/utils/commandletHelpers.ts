@@ -57,15 +57,20 @@ export class SfCommandlet<T> {
     this.executor = executor;
   }
 
-  public async run(): Promise<void> {
-    if (await this.prechecker.check()) {
-      const inputs = await this.gatherer.gather();
-      if (inputs.type === 'CONTINUE') {
-        await this.executor.execute(inputs);
-      } else if (inputs.msg) {
-        void notificationService.showErrorMessage(inputs.msg);
-      }
+  /** Returns true if the executor ran (user continued), false if precheck failed or user cancelled. */
+  public async run(): Promise<boolean> {
+    if (!(await this.prechecker.check())) {
+      return false;
     }
+    const inputs = await this.gatherer.gather();
+    if (inputs.type === 'CONTINUE') {
+      await this.executor.execute(inputs);
+      return true;
+    }
+    if (inputs.msg) {
+      void notificationService.showErrorMessage(inputs.msg);
+    }
+    return false;
   }
 }
 

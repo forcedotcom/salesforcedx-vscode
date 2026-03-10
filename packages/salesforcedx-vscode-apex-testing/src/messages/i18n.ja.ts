@@ -15,5 +15,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_unit_test_template_description: 'サンプルテストメソッド付きテンプレート',
   basic_unit_test_template_description: '最小限のテンプレート',
   apex_test_template_prompt: 'テンプレートタイプを選択',
-  apex_generate_class_success: 'Apex クラスが正常に作成されました'
+  apex_generate_class_success: 'Apex クラスが正常に作成されました',
+  retrieving_tests_message: 'テストを取得しています…'
 };
