@@ -43,7 +43,8 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
   yield* api.services.ExecuteAnonymousService.reportExecResult(
     result,
     context.documentUri,
-    context.selectionRange?.startLine
+    context.selectionRange?.startLine,
+    logBody
   );
   const logUri = yield* saveExecResult(context.text, result, logBody, logId);
   yield* Effect.sync(() => {

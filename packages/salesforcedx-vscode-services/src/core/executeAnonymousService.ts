@@ -121,10 +121,9 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
   'ExecuteAnonymousService',
   {
     accessors: true,
-    dependencies: [ConnectionService.Default, ChannelService.Default],
+    dependencies: [ConnectionService.Default],
     effect: Effect.gen(function* () {
       const connectionService = yield* ConnectionService;
-      const channelService = yield* ChannelService;
       const diagnostics = vscode.languages.createDiagnosticCollection(ANON_APEX_ERRORS_COLLECTION);
 
       /** initiates an execute anonymous and retrieves the log.  Returns the result, log body, and log id */
@@ -164,6 +163,7 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
       /** initiates an execute anonymous.  Returns only the json result */
       const outputToChannel = Effect.fn('ExecuteAnonymousService.outputToChannel')(
         function* (result: ExecuteAnonymousResult) {
+          const channelService = yield* ChannelService;
           const text = result.success
             ? 'Compile: success / Execute: success'
             : !result.compiled
@@ -208,9 +208,14 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
         function* (
           result: ExecuteAnonymousResult,
           documentUri: URI,
-          selectionStartLine?: number
+          selectionStartLine?: number,
+          logBody?: string
         ) {
+          const channelService = yield* ChannelService;
           yield* outputToChannel(result);
+          if (logBody) {
+            yield* channelService.appendToChannel(logBody);
+          }
           yield* Effect.sync(() => setDiagnostics(result, documentUri, selectionStartLine));
         }
       );
