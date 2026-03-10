@@ -28,8 +28,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.24.0",
+    "@salesforce/o11y-reporter": "^1.8.2",
     "@salesforce/effect-ext-utils": "*",
-    "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
@@ -67,8 +67,8 @@
     "packageUpdates": {
       "main": "dist/src/index.js",
       "dependencies": {
-        "applicationinsights": "1.0.7",
-        "@salesforce/o11y-reporter": "^1.8.1"
+        "@salesforce/o11y-reporter": "^1.8.2",
+        "applicationinsights": "1.0.7"
       },
       "devDependencies": {}
     }

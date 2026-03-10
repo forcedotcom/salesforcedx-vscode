@@ -10,10 +10,37 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as vscode from 'vscode';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
+
+const SALESFORCE_VSCODE_CORE_EXTENSION_ID = 'salesforce.salesforcedx-vscode-core';
+
+/** Minimal type for O11yService (from Core API or local fallback). */
+type IO11yService = {
+  initialize: (
+    extensionName: string,
+    o11yUploadEndpoint: string,
+    getConnection?: () => Promise<unknown>,
+    options?: { dynamicO11yUploadEndpointPath?: string }
+  ) => Promise<void>;
+  logEvent: (properties?: Record<string, unknown>) => void;
+  logEventWithSchema: (properties: Record<string, unknown>, schema: unknown) => void;
+  enableAutoBatching: (options?: { flushInterval?: number; enableShutdownHook?: boolean }) => () => void;
+  forceFlush: () => Promise<void>;
+};
+
+/** Type for Core extension API that exposes getO11yService. */
+type CoreExtensionAPI = {
+  getO11yService?: (id: string) => IO11yService;
+};
+
+const isCoreExtensionAPI = (api: unknown): api is CoreExtensionAPI =>
+  typeof api === 'object' && api !== null && 'getO11yService' in api;
+const getConnection = () =>
+  Effect.runPromise(ConnectionService.getConnection().pipe(Effect.provide(ConnectionService.Default)));
 
 // o11y_schema is ESM-only; load via dynamic import() so it works when this package is required as CJS
 const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } = {
@@ -21,22 +48,18 @@ const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } 
 };
 const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   // @ts-ignore - o11y_schema has no types
-  pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(
-    (m) => m.pdpEventSchema
-  );
+  pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-const getConnection = () =>
-  Effect.runPromise(
-    ConnectionService.getConnection().pipe(Effect.provide(ConnectionService.Default))
-  );
 
 /**
- * OpenTelemetry span exporter that sends spans to O11y using @salesforce/o11y-reporter.
+ * OpenTelemetry span exporter that sends spans to O11y.
+ * Uses O11yService from the Core extension when present (desktop); otherwise creates
+ * O11yService from this extension so telemetry still works (e.g. web where Core is not present).
  * Only exports top-level spans to avoid noise.
  */
 export class O11ySpanExporter implements SpanExporter {
-  private o11yService: O11yService;
+  private o11yService: IO11yService | undefined;
   private initialized = false;
   private initPromise: Promise<void> | undefined;
 
@@ -44,9 +67,7 @@ export class O11ySpanExporter implements SpanExporter {
     private extensionName: string,
     private endpoint: string,
     private productFeatureId?: string
-  ) {
-    this.o11yService = O11yService.getInstance(extensionName);
-  }
+  ) {}
 
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) {
@@ -56,6 +77,27 @@ export class O11ySpanExporter implements SpanExporter {
       return this.initPromise;
     }
     this.initPromise = (async () => {
+      // Prefer Core extension when present (desktop: single copy in extension host).
+      const ext = vscode.extensions.getExtension(SALESFORCE_VSCODE_CORE_EXTENSION_ID);
+      if (ext) {
+        if (!ext.isActive) {
+          await ext.activate();
+        }
+        const api = ext.exports;
+        const fromCore = isCoreExtensionAPI(api) ? api.getO11yService?.(this.extensionName) : undefined;
+        if (fromCore) {
+          this.o11yService = fromCore;
+          await this.o11yService.initialize(this.extensionName, this.endpoint, getConnection);
+          this.o11yService.enableAutoBatching({ flushInterval: 30_000, enableShutdownHook: true });
+          this.initialized = true;
+          return;
+        }
+      }
+      // Fallback: Core not present (e.g. web) — create O11yService from this extension so telemetry still works.
+      const localService = O11yService.getInstance(this.extensionName);
+      // Adapter to IO11yService; runtime shape is compatible (package getConnection type is stricter).
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- O11yService implements IO11yService at runtime
+      this.o11yService = localService as IO11yService;
       await this.o11yService.initialize(this.extensionName, this.endpoint, getConnection);
       this.o11yService.enableAutoBatching({ flushInterval: 30_000, enableShutdownHook: true });
       this.initialized = true;
@@ -68,6 +110,11 @@ export class O11ySpanExporter implements SpanExporter {
       Effect.tryPromise({
         try: async () => {
           await this.ensureInitialized();
+          if (!this.o11yService) {
+            resultCallback({ code: ExportResultCode.SUCCESS });
+            return;
+          }
+          const o11yService = this.o11yService;
           const pdpEventSchema = await getPdpEventSchema();
           const { cliId, webUserId, orgId, devHubOrgId } = getDefaultOrgRef().pipe(
             Effect.flatMap(ref => SubscriptionRef.get(ref)),
@@ -90,7 +137,7 @@ export class O11ySpanExporter implements SpanExporter {
             };
 
             if (success) {
-              this.o11yService.logEvent({
+              o11yService.logEvent({
                 name: span.name,
                 properties: props,
                 measurements
@@ -98,7 +145,7 @@ export class O11ySpanExporter implements SpanExporter {
             } else {
               const error = new Error(span.status.message ?? 'Span failed');
               error.name = span.name;
-              this.o11yService.logEvent({
+              o11yService.logEvent({
                 exception: error,
                 properties: props,
                 measurements
@@ -107,7 +154,7 @@ export class O11ySpanExporter implements SpanExporter {
 
             // PFT for new extensions
             if (this.productFeatureId && typeof span.attributes['command'] === 'string') {
-              this.o11yService.logEventWithSchema(
+              o11yService.logEventWithSchema(
                 {
                   eventName: 'vscodeExtension.executed',
                   productFeatureId: this.productFeatureId,
@@ -137,6 +184,6 @@ export class O11ySpanExporter implements SpanExporter {
   }
 
   public shutdown(): Promise<void> {
-    return this.o11yService.forceFlush();
+    return this.o11yService ? this.o11yService.forceFlush() : Promise.resolve();
   }
 }
