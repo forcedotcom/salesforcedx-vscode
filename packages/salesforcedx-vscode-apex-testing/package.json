@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.0.3",
+  "version": "66.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -173,7 +173,7 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts test/playwright/specs/testExplorer.headless.spec.ts",
+      "command": "playwright test --config=playwright.config.web.ts",
       "dependencies": [
         "compile",
         "vscode:bundle",

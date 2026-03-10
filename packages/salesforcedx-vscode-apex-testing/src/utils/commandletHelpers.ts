@@ -6,22 +6,13 @@
  */
 
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { notificationService } from './notificationHelpers';
 
-export const SFDX_FOLDER = '.sfdx';
-
-export const hasRootWorkspace = (): boolean => Boolean(vscode.workspace?.workspaceFolders?.length);
+const hasRootWorkspace = (): boolean => Boolean(vscode.workspace?.workspaceFolders?.length);
 
 /** Gets the file system path from a URI, using fsPath for file:// scheme and path for other schemes (e.g., memfs://) */
-export const getUriPath = (uri: vscode.Uri): string => (uri.scheme === 'file' ? uri.fsPath : uri.path);
-
-export const getRootWorkspacePath = (): string => {
-  const folders = vscode.workspace.workspaceFolders;
-  if (folders && folders.length > 0) {
-    return getUriPath(folders[0].uri);
-  }
-  return '';
-};
+export const getUriPath = (uri: URI): string => (uri.scheme === 'file' ? uri.fsPath : uri.path);
 
 export type ContinueResponse<T> = { type: 'CONTINUE'; data: T };
 export type CancelResponse = { type: 'CANCEL'; msg?: string };
@@ -31,11 +22,11 @@ export type ParametersGatherer<T> = {
   gather: () => Promise<Response<T>>;
 };
 
-export type PreconditionChecker = {
+type PreconditionChecker = {
   check: () => Promise<boolean>;
 };
 
-export type CommandletExecutor<T> = {
+type CommandletExecutor<T> = {
   execute: (response: ContinueResponse<T>) => Promise<void> | void;
 };
 
@@ -66,15 +57,20 @@ export class SfCommandlet<T> {
     this.executor = executor;
   }
 
-  public async run(): Promise<void> {
-    if (await this.prechecker.check()) {
-      const inputs = await this.gatherer.gather();
-      if (inputs.type === 'CONTINUE') {
-        await this.executor.execute(inputs);
-      } else if (inputs.msg) {
-        void notificationService.showErrorMessage(inputs.msg);
-      }
+  /** Returns true if the executor ran (user continued), false if precheck failed or user cancelled. */
+  public async run(): Promise<boolean> {
+    if (!(await this.prechecker.check())) {
+      return false;
     }
+    const inputs = await this.gatherer.gather();
+    if (inputs.type === 'CONTINUE') {
+      await this.executor.execute(inputs);
+      return true;
+    }
+    if (inputs.msg) {
+      void notificationService.showErrorMessage(inputs.msg);
+    }
+    return false;
   }
 }
 

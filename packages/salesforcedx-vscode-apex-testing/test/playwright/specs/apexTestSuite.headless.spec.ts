@@ -24,6 +24,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+import { TEST_RUN_TIMEOUT } from '../contants';
 
 /** Run Create Apex Test Suite via command palette: type suite name, select one class, confirm. */
 const createApexTestSuiteViaPalette = async (
@@ -41,6 +42,9 @@ const createApexTestSuiteViaPalette = async (
 
   // Wait for next prompt (select test classes)
   await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+
+  // Wait for the quick pick list to populate
+  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 20_000 });
 
   // Type test class name to filter the list
   await page.keyboard.type(testClassName);
@@ -91,7 +95,7 @@ const selectTestClassInQuickPick = async (page: Page, testClassName: string): Pr
 };
 
 test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ page }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -115,6 +119,9 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await createAndDeployApexTestClass(page, testClassName1, testClassContent1);
     await saveScreenshot(page, 'setup.first-test-class-created.png');
 
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
     testClassName2 = `SuiteTestClass2${Date.now()}`;
     const testClassContent2 = [
       '@isTest',
@@ -186,11 +193,11 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');
     await saveScreenshot(page, 'step.verify-run.output-open.png');
-    await waitForOutputChannelText(page, { expectedText: '=== Test Results', timeout: 120_000 });
+    await waitForOutputChannelText(page, { expectedText: '=== Test Results', timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.verify-run.results-visible.png');
-    await waitForOutputChannelText(page, { expectedText: testClassName1, timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: testClassName2, timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: testClassName1, timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: testClassName2, timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 60_000 });
     await saveScreenshot(page, 'step.verify-run.done.png');
   });
 

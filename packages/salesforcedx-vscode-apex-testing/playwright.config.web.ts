@@ -8,4 +8,5 @@
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 
 // Apex test runner has single execution queue per workspace — parallel workers collide ("already in execution queue")
-export default createWebConfig({ workers: 1, fullyParallel: false });
+// Apex test execution + deploy can be slow; extend timeout to 8 min
+export default createWebConfig({ workers: 1, fullyParallel: false, timeout: 480_000 });

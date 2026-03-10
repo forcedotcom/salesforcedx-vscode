@@ -320,7 +320,8 @@
         "./packages/salesforcedx-vscode-apex-log:vscode:bundle:local",
         "./packages/salesforcedx-vscode-org-browser:vscode:bundle:local",
         "./packages/salesforcedx-vscode-metadata:vscode:bundle:local",
-        "./packages/salesforcedx-vscode-apex-testing:vscode:bundle:local"
+        "./packages/salesforcedx-vscode-apex-testing:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-services:spans:server"
       ],
       "files": []
     },

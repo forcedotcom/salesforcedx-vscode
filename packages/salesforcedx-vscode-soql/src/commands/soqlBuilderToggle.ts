@@ -5,17 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
-import { telemetryService } from '../telemetry';
 
-export const soqlBuilderToggle = (doc: URI): Promise<void> => {
-  telemetryService.sendCommandEvent('soql_builder_toggle', TimingUtils.getCurrentTime());
-
+export const soqlBuilderToggle = Effect.fn('soql_builder_toggle')(function* (doc: URI) {
   const viewType = vscode.window.activeTextEditor ? BUILDER_VIEW_TYPE : EDITOR_VIEW_TYPE;
-
-  void vscode.commands.executeCommand(OPEN_WITH_COMMAND, doc, viewType);
-  return Promise.resolve();
-};
+  yield* Effect.promise(() => vscode.commands.executeCommand(OPEN_WITH_COMMAND, doc, viewType));
+});

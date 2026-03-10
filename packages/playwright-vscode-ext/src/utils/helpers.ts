@@ -281,6 +281,38 @@ export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
 };
 
 /**
+ * Wait for all VS Code extensions to finish activating by watching the
+ * "Developer: Show Running Extensions" editor.  More reliable than polling
+ * the command palette, especially on slow CI runners (e.g. Windows).
+ *
+ * While an extension is activating its row contains the text "Activating".
+ * Once done the row shows "Activation: Xms" / "Startup Activation: Xms".
+ * We wait until no rows contain "Activating" any more.
+ *
+ * @param timeout - Maximum ms to wait for all extensions to activate (default 120 000).
+ */
+export const waitForExtensionsActivated = async (page: Page, timeout = 120_000): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Developer: Show Running Extensions');
+
+  // The editor container gets class "runtime-extensions-editor" via createEditor()
+  const editor = page.locator('.runtime-extensions-editor');
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+
+  // Wait for the list to populate (at least one row rendered)
+  const rows = editor.locator('.monaco-list-row');
+  await expect(rows).not.toHaveCount(0, { timeout: 30_000 });
+
+  // Wait until no row still contains "Activating" text
+  const stillActivating = rows.filter({ hasText: 'Activating' });
+  await expect(stillActivating).toHaveCount(0, { timeout });
+
+  // Close the Running Extensions tab via command palette (cross-platform, no hover needed)
+  const tab = page.getByRole('tab', { name: /Running Extensions/i });
+  await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+  await tab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+};
+
+/**
  * Ensure the secondary sidebar (auxiliary bar, typically used for Chat/Copilot) is hidden.
  * This is idempotent - only hides if currently visible, avoiding toggle state issues.
  * Useful to prevent keystrokes from going to chat input instead of editor.
