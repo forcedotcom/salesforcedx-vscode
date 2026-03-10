@@ -6,7 +6,6 @@
  */
 import { build } from 'esbuild';
 import copy from 'esbuild-plugin-copy';
-import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
@@ -60,18 +59,9 @@ await build({
 });
 
 // Web language server worker bundle
-const serverWorkerPath = require
-  .resolve('@salesforce/soql-language-server')
-  .replace('/lib/index.js', '/lib/serverWorker.js');
-if (existsSync(serverWorkerPath)) {
-  await build({
-    ...commonConfigBrowser,
-    format: 'iife', // Workers run as plain browser scripts — no module system, no `exports`
-    entryPoints: [serverWorkerPath],
-    outfile: './dist/serverWorker.js'
-  });
-} else {
-  console.warn(
-    '⚠️  Skipping serverWorker.js bundle: @salesforce/soql-language-server does not yet export lib/serverWorker.js. npm link the local repo to build the web LSP worker.'
-  );
-}
+await build({
+  ...commonConfigBrowser,
+  format: 'iife', // Workers run as plain browser scripts — no module system, no `exports`
+  entryPoints: [require.resolve('@salesforce/soql-language-server/lib/serverWorker.js')],
+  outfile: './dist/serverWorker.js'
+});
