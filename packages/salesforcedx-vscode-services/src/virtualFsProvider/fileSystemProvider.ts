@@ -59,7 +59,7 @@ export const isItReadOnly = Effect.fn('isItReadOnly')(function* (readOnlyTypes: 
   return readOnlyTypes.some(opt => opt.id === metadataType.id);
 });
 
-/** Layer required to run isItReadOnlyEffect */
+/** Layer required to run isItReadOnly*/
 export const isItReadOnlyLayer = Layer.mergeAll(MetadataRegistryService.Default, WorkspaceService.Default);
 
 export class FsProvider implements vscode.FileSystemProvider {
@@ -79,7 +79,7 @@ export class FsProvider implements vscode.FileSystemProvider {
         ctime: stats.ctimeMs,
         mtime: stats.mtimeMs,
         size: stats.size,
-        ...(isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)
+        ...(isItReadOnly(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)
           ? { permissions: vscode.FilePermission.Readonly }
           : {})
       };
@@ -120,7 +120,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): Promise<void> {
-    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnly(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
     const program = Effect.sync(() => {
@@ -147,7 +147,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async delete(uri: URI, options: { recursive: boolean }): Promise<void> {
-    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnly(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
     await fs.promises.rm(uri.path, { recursive: options.recursive, force: true });
@@ -155,7 +155,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async rename(oldUri: URI, newUri: URI, options: { overwrite: boolean }): Promise<void> {
-    if (isItReadOnlyEffect(this.readOnly, oldUri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnly(this.readOnly, oldUri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(oldUri);
     }
     if (!options.overwrite && this.exists(newUri)) {
@@ -173,7 +173,10 @@ export class FsProvider implements vscode.FileSystemProvider {
     return new vscode.Disposable(() => {});
   }
 
-  /** Find files by glob. baseUri optional: when provided (via RelativePattern), search under that URI only; otherwise use workspace folder. */
+  /**
+   * Find files by glob. baseUri optional: when provided (via RelativePattern), search under that URI only; otherwise use workspace folder.
+   * The 4 param is usually a cancellation token.  That is omitted here because there's no way to interrupt the glob operation..
+   */
   public async findFiles(
     include: vscode.GlobPattern,
     exclude?: vscode.GlobPattern | null,
