@@ -8,6 +8,7 @@
 import { expect } from '@playwright/test';
 
 import {
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   expectProblemsCountAtLeast,
@@ -15,12 +16,14 @@ import {
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   TAB,
   validateNoCriticalErrors,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -65,6 +68,10 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
       .filter({ hasText: /executed successfully/i })
       .first();
     await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Apex Log');
+    await waitForOutputChannelText(page, { expectedText: 'Execute anonymous succeeded', timeout: 10_000 });
+    await waitForOutputChannelText(page, { expectedText: 'USER_DEBUG', timeout: 5000 });
     await successNotification.getByRole('button', { name: /Open Log/i }).click();
     const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
     await expect(logTab).toBeVisible({ timeout: 10_000 });
@@ -85,6 +92,10 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
       .filter({ hasText: /executed successfully/i })
       .first();
     await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Apex Log');
+    await waitForOutputChannelText(page, { expectedText: 'Execute anonymous succeeded', timeout: 10_000 });
+    await waitForOutputChannelText(page, { expectedText: 'execute_anonymous_apex', timeout: 5000 });
     await successNotification.getByRole('button', { name: /Open Log/i }).click();
     const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
     await expect(logTab).toBeVisible({ timeout: 10_000 });
@@ -122,6 +133,10 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
       .filter({ hasText: /executed successfully/i })
       .first();
     await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Apex Log');
+    await waitForOutputChannelText(page, { expectedText: 'Execute anonymous succeeded', timeout: 10_000 });
+    await waitForOutputChannelText(page, { expectedText: 'fixed', timeout: 5000 });
     await saveScreenshot(page, 'fix-re-execute.success.png');
   });
 
