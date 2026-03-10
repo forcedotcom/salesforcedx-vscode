@@ -44,7 +44,7 @@ const suffixFromPath = (uri: URI): string | undefined => {
 };
 
 /** Effect that uses MetadataRegistryService (cached) to resolve metadata type from URI */
-export const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
+export const isItReadOnly = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
   if (readOnlyTypes.length === 0) return false;
   const suffix = suffixFromPath(uri);
   if (!suffix) return false;
