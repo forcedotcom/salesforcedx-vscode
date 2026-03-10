@@ -14,17 +14,12 @@
 
 #### docs
 
-- Testing changes with libraries ([PR #6963](https://github.com/forcedotcom/salesforcedx-vscode/pull/6963))
-
-#### salesforcedx-lightning-lsp-common
-
-- W-21384819  add applyEdit handler ([PR #6946](https://github.com/forcedotcom/salesforcedx-vscode/pull/6946))
+- Add details on how to test changes with libraries ([PR #6963](https://github.com/forcedotcom/salesforcedx-vscode/pull/6963))
 
 #### salesforcedx-lwc-language-server
-
-- Apex Testing commands on the web ([PR #6930](https://github.com/forcedotcom/salesforcedx-vscode/pull/6930))
-
 #### salesforcedx-vscode-apex-testing
+#### salesforcedx-vscode-org-browser
+#### salesforcedx-vscode-services
 
 - Apex Testing commands on the web ([PR #6930](https://github.com/forcedotcom/salesforcedx-vscode/pull/6930))
 
@@ -33,18 +28,8 @@
 - Add back missing label when running SFDX: Create Lightning Web Component ([PR #6948](https://github.com/forcedotcom/salesforcedx-vscode/pull/6948))
 
 #### salesforcedx-vscode-lightning
-
-- W-21384819  add applyEdit handler ([PR #6946](https://github.com/forcedotcom/salesforcedx-vscode/pull/6946))
-
 #### salesforcedx-vscode-lwc
+#### salesforcedx-lightning-lsp-common
 
-- W-21384819  add applyEdit handler ([PR #6946](https://github.com/forcedotcom/salesforcedx-vscode/pull/6946))
-
-#### salesforcedx-vscode-org-browser
-
-- Apex Testing commands on the web ([PR #6930](https://github.com/forcedotcom/salesforcedx-vscode/pull/6930))
-
-#### salesforcedx-vscode-services
-
-- Apex Testing commands on the web ([PR #6930](https://github.com/forcedotcom/salesforcedx-vscode/pull/6930))
+- Fixed a behavior where files written to by language server were opened in the user's IDE ([PR #6946](https://github.com/forcedotcom/salesforcedx-vscode/pull/6946))
 
