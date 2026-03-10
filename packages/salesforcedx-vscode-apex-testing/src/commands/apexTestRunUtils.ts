@@ -13,9 +13,10 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { CancellationToken } from 'vscode';
+import { CancellationToken, CancellationError } from 'vscode';
 import { URI } from 'vscode-uri';
 import * as settings from '../settings';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
@@ -69,13 +70,35 @@ export const runApexTests = Effect.fn('runApexTests')(function* (
     }
   };
 
-  // TODO: fix in apex-node W-18453221
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const result = (yield* Effect.tryPromise(() =>
-    testService.runTestAsynchronous(options.payload, options.codeCoverage, false, progressReporter, token)
-  )) as TestResult;
+  const Cancelled = { _tag: 'Cancelled' } as const;
+  type Cancelled = typeof Cancelled;
 
-  if (token?.isCancellationRequested) {
+  // TODO: fix in apex-node W-18453221
+  const result = yield* Effect.tryPromise({
+    try: () =>
+      testService.runTestAsynchronous(
+        options.payload,
+        options.codeCoverage,
+        false,
+        progressReporter,
+        token
+      ),
+    catch: (e: unknown): Cancelled | Cause.UnknownException => {
+      if (token?.isCancellationRequested) {
+        return Cancelled;
+      }
+      if (e instanceof CancellationError) {
+        return Cancelled;
+      }
+      return new Cause.UnknownException(e);
+    }
+  }).pipe(Effect.catchTag('Cancelled', () => Effect.succeed(undefined)));
+
+  if (result === undefined || token?.isCancellationRequested) {
+    return undefined;
+  }
+  // runTestAsynchronous can return TestRunIdResult on timeout; we need full TestResult to continue
+  if (!('summary' in result)) {
     return undefined;
   }
 
