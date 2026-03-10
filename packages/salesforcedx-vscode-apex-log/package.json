@@ -6,7 +6,7 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "icon": "images/VSCodeBundle.png",
-  "version": "66.1.0",
+  "version": "66.1.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
