@@ -51,9 +51,11 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
         return yield* new NoActiveEditorError({ message: 'No active text editor is currently open' });
       }
       const useSelection = selection && !editor.selection.isEmpty;
+      const documentUri = editor.document.uri;
       return {
         text: useSelection ? editor.document.getText(editor.selection) : editor.document.getText(),
-        uri: URI.parse(editor.document.uri.toString()),
+        uri: URI.parse(documentUri.toString()),
+        documentUri,
         selectionRange: useSelection
           ? { startLine: editor.selection.start.line, startCharacter: editor.selection.start.character }
           : undefined

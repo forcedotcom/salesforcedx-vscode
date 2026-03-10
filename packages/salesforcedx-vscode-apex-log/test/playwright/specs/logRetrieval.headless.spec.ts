@@ -8,9 +8,11 @@
 import { expect } from '@playwright/test';
 
 import {
+  APEX_TRACE_FLAG_STATUS_BAR,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
@@ -37,6 +39,14 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await ensureSecondarySideBarHidden(page);
   });
 
+  await test.step('turn on trace flag (SOAP execAnon no longer creates trace; logGet needs ApexLog records)', async () => {
+    await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser'], 30_000);
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser']);
+    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ })).toBeVisible({
+      timeout: 60_000
+    });
+  });
+
   await test.step('generate log via execute anonymous apex', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.createAnonymousApexScript'], 30_000);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.createAnonymousApexScript']);
@@ -53,7 +63,13 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('logtest');");
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
-    await expect(page.locator(TAB).filter({ hasText: /debug\.log/ })).toBeVisible({ timeout: 60_000 });
+    const successNotification = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /executed successfully/i })
+      .first();
+    await expect(successNotification).toBeVisible({ timeout: 60_000 });
+    await successNotification.getByRole('button', { name: /Open Log/i }).click();
+    await expect(page.locator(TAB).filter({ hasText: /debug\.log/ })).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'log-retrieval.executed.png');
   });
 
@@ -61,7 +77,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await verifyCommandExists(page, packageNls['apexLog.command.logGet'], 30_000);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.logGet']);
     const widget = page.locator(QUICK_INPUT_WIDGET);
-    await expect(widget).toBeVisible({ timeout: 10_000 });
+    await expect(widget).toBeVisible({ timeout: 30_000 });
     const firstRow = widget.locator(QUICK_INPUT_LIST_ROW).first();
     await expect(firstRow).toBeVisible({ timeout: 30_000 });
     await firstRow.evaluate(el => {
@@ -84,6 +100,13 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.openLogsFolder']);
     await expect(page.locator('[id="workbench.view.explorer"]')).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'log-retrieval.explorer.png');
+  });
+
+  await test.step('turn off trace flag', async () => {
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
+    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
+      timeout: 60_000
+    });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

@@ -10,7 +10,7 @@ Run these steps in order from the repo root. Stop at first failure. Report pass/
 
 1. **compile** — `npm run compile`
 2. **lint** — `npm run lint`
-3. **effect LS** — For each uncommitted .ts file (`git diff --name-only HEAD`), run `npx effect-language-service diagnostics --file <path>`. Skip if none.
+3. **effect LS** — Run `npx effect-language-service diagnostics --project tsconfig.json`. FAIL if any errors or warnings. FAIL if any messages on uncommitted .ts files (`git diff --name-only HEAD -- '*.ts'`); report which files and messages.
 4. **test** — `npm run test`
 5. **vscode:bundle** — `npm run vscode:bundle`
 6. **knip** — `npx -y knip`

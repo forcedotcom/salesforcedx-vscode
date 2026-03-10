@@ -102,10 +102,10 @@ class AnonApexLibraryDebugExecutor extends LibraryCommandletExecutor<ApexExecute
         Effect.gen(function* () {
           const api = yield* (yield* ExtensionProviderService).getServicesApi;
           const { result, logBody } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(code);
-          const uri = apexFilePath
+          const documentUri = apexFilePath
             ? URI.file(apexFilePath)
             : URI.parse(vscode.window.activeTextEditor!.document.uri.toString());
-          yield* api.services.ExecuteAnonymousService.reportExecResult(result, uri, selection?.start.line);
+          yield* api.services.ExecuteAnonymousService.reportExecResult(result, documentUri, selection?.start.line);
           return { result, logBody };
         }).pipe(Effect.provide(AllServicesLayer))
       );

@@ -13,6 +13,13 @@ import { LogGetNoLogsError } from '../errors/commandErrors';
 import { saveAndOpenLog } from '../logs/logStorage';
 import { nls } from '../messages';
 
+const formatLogSize = (bytes: number): string =>
+  bytes < 1024
+    ? nls.localize('log_get_size_bytes', String(bytes))
+    : bytes < 1024 * 1024
+      ? nls.localize('log_get_size_kb', (bytes / 1024).toFixed(1))
+      : nls.localize('log_get_size_mb', (bytes / (1024 * 1024)).toFixed(1));
+
 export const logGetCommand = Effect.fn('ApexLog.Command.logGet')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const logService = yield* api.services.ApexLogService;
@@ -30,6 +37,7 @@ const selectLog = (logs: ApexLogListItem[]) =>
   Effect.async<{ id: string } | undefined, never>(resume => {
     const items = logs.map(log => ({
       label: `$(file-text) ${log.LogUser?.Name ?? 'Unknown'} - ${log.Operation ?? 'Api'}`,
+      description: formatLogSize(log.LogLength),
       detail: log.StartTime ? new Date(log.StartTime).toLocaleString() : undefined,
       id: log.Id
     }));

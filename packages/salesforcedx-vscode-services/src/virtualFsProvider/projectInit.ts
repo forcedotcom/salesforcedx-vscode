@@ -7,7 +7,7 @@
 import * as Effect from 'effect/Effect';
 import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
-import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { sampleProjectName } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
 import { fsPrefix } from './constants';
@@ -32,7 +32,7 @@ const getDirsToCreate = (): string[] => [
 
 const createConfigFiles = (fsp: FsProvider): void => {
   Object.entries(TEMPLATES).forEach(([name, content]) => {
-    const uri = vscode.Uri.parse(`${sampleProjectPath}/${name}`);
+    const uri = URI.parse(`${sampleProjectPath}/${name}`);
     fsp.writeFile(uri, new Uint8Array(Buffer.from(content.join('\n'))), {
       create: true,
       overwrite: true
@@ -51,7 +51,7 @@ const createProjectStructure = (fsp: FsProvider) =>
       try: () =>
         Promise.all(
           dirsToCreate
-            .map(dir => vscode.Uri.parse(dir))
+            .map(dir => URI.parse(dir))
             .filter(uri => !fsp.exists(uri))
             .map(uri => fsp.createDirectory(uri))
         ),
@@ -66,17 +66,17 @@ const createProjectStructure = (fsp: FsProvider) =>
 const createVSCodeFiles = (fsp: FsProvider): void => {
   // Create .vscode directory and config files
   fsp.writeFile(
-    vscode.Uri.parse(`${sampleProjectPath}/.vscode/tasks.json`),
+    URI.parse(`${sampleProjectPath}/.vscode/tasks.json`),
     new Uint8Array(Buffer.from(JSON.stringify({ version: '2.0.0', tasks: [] }, null, 2))),
     { create: true, overwrite: true }
   );
   fsp.writeFile(
-    vscode.Uri.parse(`${sampleProjectPath}/.vscode/launch.json`),
+    URI.parse(`${sampleProjectPath}/.vscode/launch.json`),
     new Uint8Array(Buffer.from(JSON.stringify({ version: '0.2.0', configurations: [] }, null, 2))),
     { create: true, overwrite: true }
   );
   fsp.writeFile(
-    vscode.Uri.parse(`${sampleProjectPath}/.vscode/mcp.json`),
+    URI.parse(`${sampleProjectPath}/.vscode/mcp.json`),
     new Uint8Array(Buffer.from(JSON.stringify({}, null, 2))),
     {
       create: true,
@@ -89,10 +89,10 @@ const createVSCodeFiles = (fsp: FsProvider): void => {
 export const projectFiles = (fsp: FsProvider) =>
   Effect.gen(function* () {
     // Check if project already exists, if not create it
-    const projectExists = fsp.exists(vscode.Uri.parse(`${sampleProjectPath}/sfdx-project.json`));
+    const projectExists = fsp.exists(URI.parse(`${sampleProjectPath}/sfdx-project.json`));
     yield* Effect.annotateCurrentSpan({
       projectExists,
-      projectFiles: fsp.readDirectory(vscode.Uri.parse(`${sampleProjectPath}`))
+      projectFiles: fsp.readDirectory(URI.parse(`${sampleProjectPath}`))
     });
 
     if (!projectExists) {

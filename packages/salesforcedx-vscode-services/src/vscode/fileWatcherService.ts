@@ -8,11 +8,12 @@
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { ChannelService } from './channelService';
 
 export type FileChangeEvent = {
   readonly type: 'create' | 'change' | 'delete';
-  readonly uri: vscode.Uri;
+  readonly uri: URI;
 };
 
 /** Centralized workspace file watcher service that broadcasts all file changes via PubSub */

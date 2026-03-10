@@ -72,7 +72,7 @@ test.describe.serial('Settings', () => {
   test('should upsert multiple settings simultaneously', async ({ page }) => {
     const settings = {
       'editor.fontSize': '18',
-      'editor.minimap.enabled': 'true'
+      'editor.autoClosingBrackets': 'never'
     };
 
     await test.step('Update multiple settings and verify', async () => {
@@ -99,7 +99,7 @@ test.describe.serial('Settings', () => {
       await page.keyboard.type(settingKey);
 
       const searchResultId = `searchResultModel_${settingKey.replace(/\./, '_')}`;
-      const row = page.locator(`[data-id="${searchResultId}"]`).first();
+      const row = page.locator(`[data-id="${searchResultId}"]`).last();
       await row.waitFor({ state: 'visible', timeout: 15_000 });
       const minimapCheckbox = row.getByRole('checkbox').first();
       await expect(minimapCheckbox).not.toBeChecked();

@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
-import { Utils } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
@@ -28,7 +28,7 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   return name?.trim() ? Option.some(name.trim()) : Option.none();
 });
 
-const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (uri: vscode.Uri) {
+const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (uri: URI) {
   const fsService = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
     Effect.flatMap(api => api.services.FsService)
   );

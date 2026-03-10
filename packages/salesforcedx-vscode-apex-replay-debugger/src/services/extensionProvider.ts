@@ -35,19 +35,14 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       const channelLayer = api.services.ChannelServiceLayer(pjson.displayName ?? 'Apex Replay Debugger');
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       return Layer.mergeAll(
+        Layer.succeedContext(api.services.prebuiltServicesDependencies),
         ExtensionProviderServiceLive,
-        api.services.ConnectionService.Default,
-        api.services.ApexLogService.Default,
-        api.services.ExecuteAnonymousService.Default,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.ProjectService.Default,
         api.services.SdkLayerFor({
           extensionName: pjson.name ?? 'salesforcedx-vscode-apex-replay-debugger',
           extensionVersion,
           o11yEndpoint
         }),
-        api.services.TraceFlagService.Default,
-        api.services.WorkspaceService.Default,
         channelLayer,
         errorHandlerWithChannel
       );

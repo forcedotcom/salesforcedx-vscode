@@ -9,16 +9,24 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { type EditorService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { saveExecResultAndOpenLog } from '../logs/logStorage';
+import { URI } from 'vscode-uri';
+import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
+import { AllServicesLayer } from '../services/extensionProvider';
 
 type EditorContext = Effect.Effect.Success<ReturnType<EditorService['getActiveEditorContext']>>;
 
 const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(function* (context: EditorContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ExecuteAnonymousService.clearDiagnostics(context.documentUri);
   const { result, logBody, logId } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(context.text);
   // Compile error: skip log save, show compileProblem in error notification
   if (!result.compiled) {
+    yield* api.services.ExecuteAnonymousService.reportExecResult(
+      result,
+      context.documentUri,
+      context.selectionRange?.startLine
+    );
     yield* Effect.sync(() => {
       void vscode.window.showErrorMessage(
         nls.localize(
@@ -32,19 +40,41 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
     return result;
   }
 
-  yield* api.services.ExecuteAnonymousService.reportExecResult(result, context.uri, context.selectionRange?.startLine);
-  yield* saveExecResultAndOpenLog(context.text, result, logBody, logId);
+  yield* api.services.ExecuteAnonymousService.reportExecResult(
+    result,
+    context.documentUri,
+    context.selectionRange?.startLine,
+    logBody
+  );
+  const logUri = yield* saveExecResult(context.text, result, logBody, logId);
+  yield* Effect.sync(() => {
+    void vscode.window
+      .showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
+      .then(
+        selected =>
+          selected === nls.localize('open_log') && void vscode.window.showTextDocument(URI.parse(logUri.toString()))
+      );
+  });
   return result;
 });
 
-export const executeAnonymousDocumentCommand = Effect.fn('ApexLog.Command.executeAnonymousDocument')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const context = yield* api.services.EditorService.getActiveEditorContext(false);
-  return yield* executeAnonymous(context);
-});
+const runWithProgress = (context: EditorContext) =>
+  Effect.promise(() =>
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: nls.localize('exec_anon_progress_title'),
+        cancellable: false
+      },
+      () => Effect.runPromise(executeAnonymous(context).pipe(Effect.provide(AllServicesLayer)))
+    )
+  );
 
-export const executeAnonymousSelectionCommand = Effect.fn('ApexLog.Command.executeAnonymousSelection')(function* () {
+export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymous')(function* (
+  selectionOnly: boolean
+) {
+  yield* Effect.annotateCurrentSpan({ selectionOnly });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const context = yield* api.services.EditorService.getActiveEditorContext(true);
-  return yield* executeAnonymous(context);
+  const context = yield* api.services.EditorService.getActiveEditorContext(selectionOnly);
+  return yield* runWithProgress(context);
 });

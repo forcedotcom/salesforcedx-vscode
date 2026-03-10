@@ -10,6 +10,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { sampleProjectName } from '../constants';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { SettingsService } from '../vscode/settingsService';
@@ -54,7 +55,7 @@ export const fileSystemSetup = (context: vscode.ExtensionContext) =>
     // Replace the existing workspace with ours
     vscode.workspace.updateWorkspaceFolders(0, 0, {
       name: 'Code Builder',
-      uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
+      uri: URI.parse(`${fsPrefix}:/${sampleProjectName}`)
     });
 
     yield* startWatch();

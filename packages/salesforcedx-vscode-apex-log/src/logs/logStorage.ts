@@ -64,8 +64,8 @@ export const saveAndOpenLog = Effect.fn('LogStorage.saveAndOpenLog')(function* (
 
 type ResultWithExecutedAt = ExecuteAnonymousResult & { executedAt: string; logId?: string };
 
-/** Save execute-anonymous to a folder: result.json, script.apex, debug.log (raw Apex log format). */
-export const saveExecResultAndOpenLog = Effect.fn('LogStorage.saveExecResultAndOpenLog')(
+/** Save execute-anonymous to a folder: result.json, script.apex, debug.log (raw Apex log format). Returns logUri for caller to open on demand. */
+export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(
   function* (code: string, result: ExecuteAnonymousResult, logBody: string, logId?: string) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const dirUri = yield* getLogsDirUri();
@@ -91,7 +91,6 @@ export const saveExecResultAndOpenLog = Effect.fn('LogStorage.saveExecResultAndO
       { concurrency: 'unbounded' }
     );
 
-    const logUri = Utils.joinPath(runDirUri, 'debug.log');
-    yield* api.services.FsService.showTextDocument(logUri);
+    return Utils.joinPath(runDirUri, 'debug.log');
   }
 );

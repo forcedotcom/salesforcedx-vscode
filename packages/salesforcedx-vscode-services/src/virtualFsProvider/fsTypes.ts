@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 
 export type FsProvider = vscode.FileSystemProvider & {
   /** does not exist in the vscode.FileSystemProvider but super handy so I added it*/
-  exists: (uri: vscode.Uri) => boolean;
+  exists: (uri: URI) => boolean;
 };
 
 type SerializedFile = vscode.FileStat & {

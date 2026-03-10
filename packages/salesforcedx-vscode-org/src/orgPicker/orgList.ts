@@ -199,8 +199,8 @@ export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse
 /** Create and initialize OrgList with Effect-based TargetOrgRef watching */
 export const createOrgPicker = Effect.fn('OrgPicker.createOrgPicker')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const orgPickerStatuBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48);
-  const orgOpenStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 49);
+  const orgPickerStatuBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 47);
+  const orgOpenStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48);
 
   yield* Effect.addFinalizer(() => Effect.sync(() => orgPickerStatuBarItem.dispose()));
   yield* Effect.addFinalizer(() => Effect.sync(() => orgOpenStatusBarItem.dispose()));

@@ -76,11 +76,11 @@ const fetchTraceFlagsContent = Effect.fn('ApexLog.fetchTraceFlagsContent')(funct
  * Documents are read-only.
  */
 class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvider {
-  private readonly _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+  private readonly _onDidChange = new vscode.EventEmitter<URI>();
 
   public readonly onDidChange = this._onDidChange.event;
 
-  public async provideTextDocumentContent(uri: vscode.Uri, _token: vscode.CancellationToken): Promise<string> {
+  public async provideTextDocumentContent(uri: URI, _token: vscode.CancellationToken): Promise<string> {
     void this.onDidChange; // satisfy class-methods-use-this (interface impl)
     const orgId = extractOrgIdFromUri(uri);
     if (!orgId) return JSON.stringify({ error: 'Invalid trace flags URI: orgId missing' });
@@ -124,9 +124,9 @@ export class TraceFlagsContentProviderService extends Effect.Service<TraceFlagsC
 ) {}
 
 /** URI format: sf-traceflags:org/{orgId}/traceFlags.json */
-export const createTraceFlagsUri = (orgId: string): vscode.Uri => URI.parse(`${SCHEME}:org/${orgId}/traceFlags.json`);
+export const createTraceFlagsUri = (orgId: string): URI => URI.parse(`${SCHEME}:org/${orgId}/traceFlags.json`);
 
-const extractOrgIdFromUri = (uri: vscode.Uri): string | undefined => {
+const extractOrgIdFromUri = (uri: URI): string | undefined => {
   const match = uri.path.match(/^org\/([^/]+)\/traceFlags\.json$/);
   return match?.[1];
 };
