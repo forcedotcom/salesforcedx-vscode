@@ -6,15 +6,13 @@
  */
 
 import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
-import { isNotUndefined } from 'effect/Predicate';
 import { type CancellationToken, CancellationError, languages, ProgressLocation, window } from 'vscode';
-import { Utils } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_TESTSUITE_EXT } from '../constants';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
+import { discoverTests } from '../testDiscovery/testDiscovery';
 import {
   type CancelResponse,
   type ContinueResponse,
@@ -23,14 +21,10 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '../utils/commandletHelpers';
-import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
+import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
+import { getFullClassName, isFlowTest } from '../utils/testUtils';
 import { runApexTests } from './apexTestRunUtils';
-
-/** Remove the extension from a filename */
-const removeExtension = (filename: string, ext: string): string =>
-  filename.endsWith(ext) ? filename.slice(0, -ext.length) : filename;
 
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
@@ -43,22 +37,38 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
           cancellable: true
         },
         async (_progress, token) => {
-          const { testSuiteUris, apexClassUris } = await findLocalApexClassAndTestSuiteUris();
-
-          const apexClassItems = await Promise.all(
-            apexClassUris.map(
-              (uri): Promise<ApexTestQuickPickItem | undefined> => getTestInfo(uri).catch((): undefined => undefined)
-            )
-          );
-
-          const items = [
-            ...testSuiteUris.map(
-              (testSuite): ApexTestQuickPickItem => ({
-                label: removeExtension(Utils.basename(testSuite), APEX_TESTSUITE_EXT),
-                description: testSuite.fsPath,
+          let suiteItems: ApexTestQuickPickItem[] = [];
+          let classItems: ApexTestQuickPickItem[] = [];
+          try {
+            const connection = await getConnection();
+            const testService = new TestService(connection);
+            const [suites, discoveryResult] = await Promise.all([
+              testService.retrieveAllSuites(),
+              getApexTestingRuntime().runPromise(discoverTests())
+            ]);
+            suiteItems = suites.map(
+              (suite): ApexTestQuickPickItem => ({
+                label: suite.TestSuiteName,
+                description: suite.id,
                 type: 'Suite' as const
               })
-            ),
+            );
+            classItems = discoveryResult.classes
+              .filter(cls => !isFlowTest(cls) && (cls.testMethods?.length ?? 0) > 0)
+              .map(
+                (cls): ApexTestQuickPickItem => ({
+                  label: cls.name,
+                  description: cls.namespacePrefix ?? '',
+                  type: 'Class' as const,
+                  fullClassName: getFullClassName(cls)
+                })
+              );
+          } catch {
+            // No org or discovery failed; quick pick will only show All/AllLocal
+          }
+
+          const items = [
+            ...suiteItems,
             {
               label: nls.localize('apex_test_run_all_local_test_label'),
               description: nls.localize('apex_test_run_all_local_tests_description_text'),
@@ -69,7 +79,7 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
               description: nls.localize('apex_test_run_all_tests_description_text'),
               type: 'All' as const
             },
-            ...apexClassItems.filter(isNotUndefined)
+            ...classItems
           ];
           if (token.isCancellationRequested) {
             throw new CancellationError();
@@ -139,7 +149,7 @@ const buildTestPayload = async (
       return await testService.buildAsyncPayload(
         testLevel,
         undefined,
-        data.label,
+        data.fullClassName,
         undefined,
         undefined,
         !settings.retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
