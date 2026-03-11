@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We refactored the **SFDX:Refresh SObjects** command to use shared services for retrieving and transforming SObject metadata, improving performance and consistency across extensions. ([PR #6925](https://github.com/forcedotcom/salesforcedx-vscode/pull/6925))
+- We added a progress indicator to SFDX:Refresh SObjects command & refactored it to use shared services, improving performance and consistency. ([PR #6925](https://github.com/forcedotcom/salesforcedx-vscode/pull/6925))
 
 #### salesforcedx-vscode-org
 
