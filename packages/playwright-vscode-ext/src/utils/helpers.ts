@@ -281,21 +281,17 @@ export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
 };
 
 /**
- * Wait for VS Code extensions to finish activating by watching the
- * "Developer: Show Running Extensions" editor. More reliable than polling
+ * Wait for all VS Code extensions to finish activating by watching the
+ * "Developer: Show Running Extensions" editor.  More reliable than polling
  * the command palette, especially on slow CI runners (e.g. Windows).
  *
  * While an extension is activating its row contains the text "Activating".
  * Once done the row shows "Activation: Xms" / "Startup Activation: Xms".
+ * We wait until no rows contain "Activating" any more.
  *
- * @param extensionIds - Substrings of extension names/IDs to wait for (e.g. 'salesforcedx-vscode-services'). If omitted or empty, waits for ALL extensions to finish activating.
- * @param timeout - Maximum ms to wait per extension (default 120 000).
+ * @param timeout - Maximum ms to wait for all extensions to activate (default 120 000).
  */
-export const waitForExtensionsActivated = async (
-  page: Page,
-  extensionIds: string[] = [],
-  timeout = 120_000
-): Promise<void> => {
+export const waitForExtensionsActivated = async (page: Page, timeout = 120_000): Promise<void> => {
   await executeCommandWithCommandPalette(page, 'Developer: Show Running Extensions');
 
   // The editor container gets class "runtime-extensions-editor" via createEditor()
@@ -306,18 +302,9 @@ export const waitForExtensionsActivated = async (
   const rows = editor.locator('.monaco-list-row');
   await expect(rows).not.toHaveCount(0, { timeout: 30_000 });
 
-  if (extensionIds.length === 0) {
-    // Wait until no row still contains "Activating" text
-    const stillActivating = rows.filter({ hasText: 'Activating' });
-    await expect(stillActivating).toHaveCount(0, { timeout });
-  } else {
-    for (const extensionId of extensionIds) {
-      const extensionRow = rows.filter({ hasText: extensionId });
-      await expect(extensionRow).not.toHaveCount(0, { timeout: 30_000 });
-      const stillActivating = extensionRow.filter({ hasText: 'Activating' });
-      await expect(stillActivating).toHaveCount(0, { timeout });
-    }
-  }
+  // Wait until no row still contains "Activating" text
+  const stillActivating = rows.filter({ hasText: 'Activating' });
+  await expect(stillActivating).toHaveCount(0, { timeout });
 
   // Close the Running Extensions tab via command palette (cross-platform, no hover needed)
   const tab = page.getByRole('tab', { name: /Running Extensions/i });
