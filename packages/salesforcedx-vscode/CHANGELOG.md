@@ -25,7 +25,7 @@
 
 #### salesforcedx-vscode-core
 
-- Add back missing label when running SFDX: Create Lightning Web Component ([PR #6948](https://github.com/forcedotcom/salesforcedx-vscode/pull/6948))
+- We fixed a missing label error that was appearing when running **SFDX: Create Lightning Web Component**. ([PR #6948](https://github.com/forcedotcom/salesforcedx-vscode/pull/6948))
 
 #### salesforcedx-vscode-lightning
 #### salesforcedx-vscode-lwc
