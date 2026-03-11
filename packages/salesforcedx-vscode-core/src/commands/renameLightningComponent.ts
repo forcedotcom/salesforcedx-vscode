@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   CancelResponse,
   ContinueResponse,
@@ -12,7 +13,6 @@ import {
   notificationService,
   ParametersGatherer,
   SfCommandlet,
-  SfWorkspaceChecker,
   readDirectory,
   rename
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -54,7 +54,7 @@ export const renameLightningComponent = (sourceUri: URI): void => {
   const sourceFsPath = sourceUri.fsPath;
   if (sourceFsPath) {
     const commandlet = new SfCommandlet(
-      new SfWorkspaceChecker(),
+      sfProjectPreconditionChecker,
       new GetComponentName(sourceFsPath),
       new RenameLwcComponentExecutor(sourceFsPath),
       new LwcAuraDuplicateComponentCheckerForRename(sourceFsPath)

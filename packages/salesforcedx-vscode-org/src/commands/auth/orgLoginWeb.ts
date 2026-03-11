@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
-  SfWorkspaceChecker,
   SfCommandlet,
   SfCommandletExecutor,
   CliCommandExecutor,
@@ -64,7 +64,7 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
 export const orgLoginWeb = async (instanceUrl: string): Promise<void> => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new AuthParamsGatherer(instanceUrl),
     new OrgLoginWebExecutor()
   );
