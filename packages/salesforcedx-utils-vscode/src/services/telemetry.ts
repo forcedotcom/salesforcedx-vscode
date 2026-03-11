@@ -196,7 +196,13 @@ export class TelemetryService implements TelemetryServiceInterface {
     const userId = await UserService.getTelemetryUserId(extensionContext);
     const webUserId = await getWebTelemetryUserId(extensionContext, this.getSharedTelemetryProvider(extensionContext));
 
-    const { productFeatureId } = extensionPackageJsonSchema.parse(extensionContext.extension.packageJSON);
+    // priority: extension specific one, OR core default one, OR original one
+    const { productFeatureId: thisExtensionPftId } = extensionPackageJsonSchema.parse(
+      this.extensionContext!.extension.packageJSON
+    );
+    const { productFeatureId: coreEtensionPftId } = extensionPackageJsonSchema.parse(
+      extensionContext.extension.packageJSON
+    );
     this.reporters
       .filter(r => r instanceof AppInsights || r instanceof O11yReporter)
       .map(r => {
@@ -205,7 +211,9 @@ export class TelemetryService implements TelemetryServiceInterface {
         return r;
       })
       .filter(r => r instanceof O11yReporter)
-      .map(r => (r.productFeatureId = productFeatureId ?? r.productFeatureId));
+      // don't overwrite PFT if already set
+      .filter(r => r.productFeatureId === undefined)
+      .map(r => (r.productFeatureId = thisExtensionPftId ?? coreEtensionPftId));
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {
