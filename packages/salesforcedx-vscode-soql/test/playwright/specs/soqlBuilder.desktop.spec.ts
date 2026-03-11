@@ -25,7 +25,7 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
 
   await test.step('setup workbench', async () => {
     await setupMinimalOrgAndAuth(page);
-    await waitForExtensionsActivated(page);
+    await waitForExtensionsActivated(page, ['salesforcedx-vscode-services', 'salesforcedx-vscode-metadata']);
     await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.complete.png');
   });
