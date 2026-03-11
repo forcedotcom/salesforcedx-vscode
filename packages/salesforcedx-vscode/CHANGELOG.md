@@ -4,24 +4,24 @@
 
 #### salesforcedx-vscode-core
 
-- Sobject refresh performance and progress indicator W-21240055 ([PR #6925](https://github.com/forcedotcom/salesforcedx-vscode/pull/6925))
+- We refactored the **SFDX:Refresh SObjects** command to use shared services for retrieving and transforming SObject metadata, improving performance and consistency across extensions. ([PR #6925](https://github.com/forcedotcom/salesforcedx-vscode/pull/6925))
 
 #### salesforcedx-vscode-org
 
-- Verification code prints when user authorizes org in AFV IDE ([PR #6945](https://github.com/forcedotcom/salesforcedx-vscode/pull/6945))
+- Verification code now appear when authorizing an org or Dev Hub in the Agentforce Vibes IDE. ([PR #6945](https://github.com/forcedotcom/salesforcedx-vscode/pull/6945))
 
 ## Fixed
 
 #### docs
 
-- Add details on how to test changes with libraries ([PR #6963](https://github.com/forcedotcom/salesforcedx-vscode/pull/6963))
+- We made some changes under the hood. ([PR #6963](https://github.com/forcedotcom/salesforcedx-vscode/pull/6963))
 
 #### salesforcedx-lwc-language-server
 #### salesforcedx-vscode-apex-testing
 #### salesforcedx-vscode-org-browser
 #### salesforcedx-vscode-services
 
-- Apex Testing commands on the web ([PR #6930](https://github.com/forcedotcom/salesforcedx-vscode/pull/6930))
+- Fixed issues with Apex Testing in web-based VS Code environments (such as vscode.dev) and improved file discovery for more reliable test execution across web and desktop. ([PR #6930](https://github.com/forcedotcom/salesforcedx-vscode/pull/6930))
 
 #### salesforcedx-vscode-core
 
@@ -31,5 +31,5 @@
 #### salesforcedx-vscode-lwc
 #### salesforcedx-lightning-lsp-common
 
-- Fixed a behavior where files written to by language server were opened in the user's IDE ([PR #6946](https://github.com/forcedotcom/salesforcedx-vscode/pull/6946))
+- We fixed a behavior where files written to by language server were opened in the user's IDE ([PR #6946](https://github.com/forcedotcom/salesforcedx-vscode/pull/6946))
 
