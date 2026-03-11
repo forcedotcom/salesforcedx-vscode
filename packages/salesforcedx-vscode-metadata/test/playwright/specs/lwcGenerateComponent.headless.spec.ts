@@ -15,6 +15,8 @@ import {
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
   saveScreenshot,
+  openFileByName,
+  isDesktop,
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW,
   EDITOR_WITH_URI,
@@ -87,6 +89,24 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     const editorText = page.locator('.view-lines').first();
     await expect(editorText).toContainText('import { LightningElement }', { timeout: 100 });
     await saveScreenshot(page, 'step2.component-content-verified.png');
+
+    if (isDesktop()) {
+      await openFileByName(page, `${camelCaseName}.html`);
+      await expect(page.locator('.view-lines').first()).toContainText('<template>', { timeout: 2000 });
+
+      await openFileByName(page, `${camelCaseName}.js-meta.xml`);
+      await expect(page.locator('.view-lines').first()).toContainText('LightningComponentBundle', { timeout: 2000 });
+
+      await openFileByName(page, `${camelCaseName}.test.js`);
+      await expect(page.locator('.view-lines').first()).toContainText('describe', { timeout: 2000 });
+    } else {
+      // Web: Quick Open only indexes opened files. Assert via explorer (folder auto-expanded when .js opened).
+      await expect(page.getByRole('treeitem', { name: new RegExp(`${camelCaseName}\\.html$`, 'i') })).toBeVisible({ timeout: 2000 });
+      await expect(page.getByRole('treeitem', { name: new RegExp(`${camelCaseName}\\.js-meta\\.xml$`, 'i') })).toBeVisible({ timeout: 2000 });
+      // __tests__ folder (test file nested inside, not expanded)
+      await expect(page.getByRole('treeitem', { name: '__tests__' })).toBeVisible({ timeout: 2000 });
+    }
+    await saveScreenshot(page, 'step2.all-files-verified.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
