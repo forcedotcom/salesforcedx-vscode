@@ -7,7 +7,7 @@
 import { ApexTestResultData, TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
 import { type NamedPackageDir } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -22,7 +22,6 @@ import {
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   SfCommandlet,
-  SfWorkspaceChecker,
   type ContinueResponse
 } from '../utils/commandletHelpers';
 import { notificationService } from '../utils/notificationHelpers';
@@ -170,7 +169,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
 const apexTestRunCodeAction = async (tests: string[]) => {
   const outputDir = await getTempFolder();
   const testRunExecutor = new ApexLibraryTestRunExecutor(tests, outputDir);
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), testRunExecutor);
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), testRunExecutor);
   await commandlet.run();
 };
 

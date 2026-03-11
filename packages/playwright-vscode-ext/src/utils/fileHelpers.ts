@@ -92,7 +92,10 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await page.keyboard.press('Enter');
 
   // Wait for the editor to open with the new class (extension writes a template and opens it)
-  const editor = page.locator(EDITOR_WITH_URI).first();
+  // Target by filename: .first() can select the wrong tab when multiple editors are open (e.g. create
+  // ExampleApexClass then ExampleApexClassTest — leftmost tab stays first, so we'd paste into wrong file)
+  const fileName = `${className}.cls`;
+  const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${fileName}"]`);
   await editor.waitFor({ state: 'visible', timeout: 15_000 });
 
   // If content is provided, replace the template with it and save (so the file is on disk and deployable)

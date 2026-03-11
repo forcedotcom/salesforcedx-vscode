@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
+import { Column, createTable, ExtensionProviderService, Row, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   FlagParameter,
   ContinueResponse,
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
-  SfWorkspaceChecker,
   SfCommandlet,
   getUsername
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -122,6 +121,6 @@ export async function orgDisplay(this: FlagParameter<string>) {
   const flag = this ? this.flag : undefined;
   const parameterGatherer = flag ? new SelectUsername() : new EmptyParametersGatherer();
   const executor = new OrgDisplayExecutor(flag);
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, executor);
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, executor);
   await commandlet.run();
 }

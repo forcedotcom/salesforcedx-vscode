@@ -313,7 +313,7 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "./packages/salesforcedx-vscode-services:vscode:bundle:local",
@@ -321,6 +321,7 @@
         "./packages/salesforcedx-vscode-org-browser:vscode:bundle:local",
         "./packages/salesforcedx-vscode-metadata:vscode:bundle:local",
         "./packages/salesforcedx-vscode-apex-testing:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-soql:vscode:bundle:local",
         "./packages/salesforcedx-vscode-services:spans:server"
       ],
       "files": []
@@ -362,18 +363,28 @@
       ],
       "output": []
     },
+    "check:lock-sync": {
+      "command": "npm ci --dry-run",
+      "files": [
+        "package.json",
+        "package-lock.json"
+      ],
+      "output": []
+    },
     "precommit": {
       "dependencies": [
         "compile",
         "lint",
         "check:peer-deps",
         "check:typescript-project-references",
-        "check:package-lock"
+        "check:package-lock",
+        "check:lock-sync"
       ]
     },
     "prepush": {
       "dependencies": [
-        "lint",
+        "precommit",
+        "vscode:bundle",
         "test"
       ]
     },

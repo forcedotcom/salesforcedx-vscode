@@ -6,6 +6,7 @@
  */
 
 import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { type CancellationToken, CancellationError, languages, ProgressLocation, window } from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
@@ -18,8 +19,7 @@ import {
   type ContinueResponse,
   LibraryCommandletExecutor,
   type ParametersGatherer,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '../utils/commandletHelpers';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
@@ -135,7 +135,11 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
 }
 
 export const apexTestRun = async () => {
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new TestsSelector(), new ApexLibraryTestRunExecutor());
+  const commandlet = new SfCommandlet(
+    sfProjectPreconditionChecker,
+    new TestsSelector(),
+    new ApexLibraryTestRunExecutor()
+  );
   await commandlet.run();
 };
 

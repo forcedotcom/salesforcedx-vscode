@@ -27,6 +27,7 @@ describe('ErrorHandlerService', () => {
     // Mock ChannelService
     mockChannelService = new ChannelService({
       getChannel: Effect.sync(() => mockChannel),
+      clearChannel: Effect.succeed(undefined),
       appendToChannel: (message: string) =>
         Effect.sync(() => {
           mockChannel.appendLine(message);

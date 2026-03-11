@@ -190,11 +190,11 @@ async function run() {
 
       // Checking presence of last working extensions version
       const lastWorkingVersionRegex =
-        /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*\r\n)|(Most recent version of the extensions where this was working:\s*\S.*\r\n)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*$)|(Most recent version of the extensions where this was working:\s*\S.*$)/g;
+        /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*[\r\n]+)|(Most recent version of the extensions where this was working:\s*\S.*[\r\n]+)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*$)|(Most recent version of the extensions where this was working:\s*\S.*$)/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
       const lastWorkingVersions = bodies
-        .map(body => [...body.matchAll(lastWorkingVersionRegex)].map(match => match[1] || match[2]))
+        .map(body => [...body.matchAll(lastWorkingVersionRegex)].map(match => match[1] || match[2] || match[3] || match[4]))
         .flat();
 
       if (lastWorkingVersions.length > 0) {
