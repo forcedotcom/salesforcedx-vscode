@@ -152,7 +152,12 @@ export class SOQLEditorInstance {
     const self = this;
     const newSoqlStatement = document.getText();
     return Effect.gen(function* () {
-      if (self.lastIncomingSoqlStatement !== newSoqlStatement) {
+      // Only suppress the echo back to the UI when lastIncomingSoqlStatement is non-empty
+      // (i.e. the UI just sent this exact value). An empty lastIncomingSoqlStatement means
+      // the echo guard has already been consumed, so always propagate — this ensures that
+      // clearing the document to '' (e.g. "Don't Save") is always reflected in the UI.
+      const isEcho = self.lastIncomingSoqlStatement !== '' && self.lastIncomingSoqlStatement === newSoqlStatement;
+      if (!isEcho) {
         yield* self.sendMessageToUi('text_soql_changed', newSoqlStatement);
       }
       self.lastIncomingSoqlStatement = '';
