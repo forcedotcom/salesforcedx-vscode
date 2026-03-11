@@ -7,13 +7,13 @@
 
 import * as SfTemplates from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
 
-// eslint-disable-next-line no-restricted-imports -- memfs polyfill on web; @salesforce/templates expects fs path
-import * as nodeFs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
+import { FsService } from '../vscode/fsService';
 import { uriToPath } from '../vscode/paths';
 
 /** Re-export for consumers that don't depend on @salesforce/templates */
@@ -62,6 +62,11 @@ export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<Templ
   { message: Schema.String }
 ) {}
 
+export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()(
+  'TemplatesManifestLoadError',
+  { message: Schema.String, cause: Schema.Unknown }
+) {}
+
 const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
   const ext = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
   const extensionUri = ext?.extensionUri;
@@ -73,29 +78,32 @@ const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
 
 /** Load template files from extension assets into the polyfilled fs (memfs on web).
  * Reads manifest.json (generated at build time) to get the file list, then reads each file
- * via vscode.workspace.fs (supported on HTTPS extension URIs) and writes to memfs. */
+ * via FsService and writes to memfs. */
 const ensureTemplatesInFs = (rootUri: URI, rootFsPath: string) =>
   Effect.gen(function* () {
     if (process.env.ESBUILD_PLATFORM !== 'web') return;
-    const manifestContent = yield* Effect.tryPromise({
-      try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),
-      catch: e =>
-        new Error(
-          `Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (${e instanceof Error ? e.message : String(e)})`
-        )
-    });
-    const paths: readonly string[] = JSON.parse(Buffer.from(manifestContent).toString());
-    const results = yield* Effect.promise(() =>
-      Promise.allSettled(
-        paths.map(async relativePath => {
-          const dest = `${rootFsPath}/${relativePath}`;
-          nodeFs.mkdirSync(dest.slice(0, dest.lastIndexOf('/')), { recursive: true });
-          const content = await vscode.workspace.fs.readFile(Utils.joinPath(rootUri, relativePath));
-          nodeFs.writeFileSync(dest, Buffer.from(content));
-        })
+    const fsService = yield* FsService;
+    const manifestContent = yield* fsService.readFile(Utils.joinPath(rootUri, 'manifest.json')).pipe(
+      Effect.mapError(
+        e =>
+          new TemplatesManifestLoadError({
+            message: `Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (${e.cause.message})`,
+            cause: e
+          })
       )
     );
-    const failCount = results.filter(r => r.status === 'rejected').length;
+    const paths: readonly string[] = JSON.parse(manifestContent);
+    const results = yield* Effect.all(
+      paths.map(relativePath =>
+        Effect.gen(function* () {
+          const dest = `${rootFsPath}/${relativePath}`;
+          const content = yield* fsService.readFile(Utils.joinPath(rootUri, relativePath));
+          yield* fsService.safeWriteFile(dest, content);
+        }).pipe(Effect.exit)
+      ),
+      { concurrency: 'unbounded' }
+    );
+    const failCount = results.filter(Exit.isFailure).length;
     if (failCount > 0) {
       yield* Effect.logWarning(`${failCount}/${paths.length} template files failed to copy to memfs`);
     }

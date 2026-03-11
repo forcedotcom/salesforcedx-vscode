@@ -287,10 +287,6 @@
       ],
       "explorer/context": [
         {
-          "command": "sf.lightning.generate.lwc",
-          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
-        },
-        {
           "command": "sf.internal.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && sf:internal_dev"
         },
@@ -505,10 +501,6 @@
           "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org && sf:show_shared_commands"
         },
         {
-          "command": "sf.lightning.generate.lwc",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.internal.lightning.generate.lwc",
           "when": "false"
         },
@@ -702,10 +694,6 @@
       {
         "command": "sf.delete.source.current.file",
         "title": "%delete_source_this_source_text%"
-      },
-      {
-        "command": "sf.lightning.generate.lwc",
-        "title": "%lightning_generate_lwc_text%"
       },
       {
         "command": "sf.internal.lightning.generate.lwc",
