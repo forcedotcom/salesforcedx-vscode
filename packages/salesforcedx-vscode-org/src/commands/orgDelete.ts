@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   FlagParameter,
   CompositeParametersGatherer,
   SfCommandlet,
   SfCommandletExecutor,
-   SfWorkspaceChecker,
   CliCommandExecutor,
   TimingUtils,
   workspaceUtils,
@@ -82,6 +82,6 @@ export async function orgDelete(this: FlagParameter<string>) {
     : new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_default_org'));
 
   const executor = new OrgDeleteExecutor(flag);
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, executor);
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, executor);
   await commandlet.run();
 }

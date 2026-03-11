@@ -9,8 +9,6 @@ import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { notificationService } from './notificationHelpers';
 
-const hasRootWorkspace = (): boolean => Boolean(vscode.workspace?.workspaceFolders?.length);
-
 /** Gets the file system path from a URI, using fsPath for file:// scheme and path for other schemes (e.g., memfs://) */
 export const getUriPath = (uri: URI): string => (uri.scheme === 'file' ? uri.fsPath : uri.path);
 
@@ -33,16 +31,6 @@ type CommandletExecutor<T> = {
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
   public async gather(): Promise<Response<{}>> {
     return { type: 'CONTINUE', data: {} };
-  }
-}
-
-export class SfWorkspaceChecker implements PreconditionChecker {
-  public async check(): Promise<boolean> {
-    if (!hasRootWorkspace()) {
-      void notificationService.showErrorMessage('No workspace folder found');
-      return false;
-    }
-    return true;
   }
 }
 

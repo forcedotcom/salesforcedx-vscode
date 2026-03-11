@@ -4,23 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import {
   ActivationTracker,
   ChannelService,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
-  isSalesforceProjectOpened,
   notificationService,
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   SfCommandlet,
-  SfWorkspaceChecker,
   TelemetryService,
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -220,7 +219,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     SfCommandlet,
     SfCommandletExecutor,
     salesforceCoreSettings,
-    SfWorkspaceChecker,
     WorkspaceContext,
     telemetryService,
     workspaceContextUtils,
@@ -245,8 +243,15 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     return api;
   }
 
-  // Context
-  const salesforceProjectOpened = (await isSalesforceProjectOpened()).result;
+  // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
+  const salesforceProjectOpened = await Effect.runPromise(
+    Effect.gen(function* () {
+      const servicesApi = yield* getServicesApi;
+      return yield* servicesApi.services.ProjectService.isSalesforceProject().pipe(
+        Effect.provide(Layer.succeedContext(servicesApi.services.prebuiltServicesDependencies))
+      );
+    }).pipe(Effect.catchAllCause(() => Effect.succeed(false)))
+  );
 
   // TODO: move this and the replay debugger commands to the apex extension
   void vscode.commands.executeCommand(
@@ -254,8 +259,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     'sf:replay_debugger_extension',
     vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex-replay-debugger') !== undefined
   );
-
-  void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
 
   // Set Code Builder context
   const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
@@ -392,7 +395,6 @@ export type SalesforceVSCodeCoreApi = {
   SfCommandlet: typeof SfCommandlet;
   SfCommandletExecutor: typeof SfCommandletExecutor;
   salesforceCoreSettings: typeof salesforceCoreSettings;
-  SfWorkspaceChecker: typeof SfWorkspaceChecker;
   WorkspaceContext: typeof WorkspaceContext;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;

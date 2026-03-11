@@ -37,6 +37,7 @@ class DataQueryExecutor {
       const connection = await getConnection();
       const queryResult = await runSoqlQuery(connection, query, api === 'TOOLING');
       displayTableResults(queryResult);
+      channelService.appendLine(nls.localize('data_query_complete', queryResult.totalSize));
       await this.saveResultsToCSV(queryResult);
     } catch (error) {
       channelService.appendLine(formatErrorMessage(error));
@@ -458,8 +459,6 @@ const runSoqlQuery = async (connection: Connection, query: string, useTooling = 
       nls.localize('data_query_warning_limit', missingRecords, maxFetch, result.totalSize, maxFetch)
     );
   }
-
-  channelService.appendLine(nls.localize('data_query_complete', result.totalSize));
 
   return result;
 };
