@@ -4,13 +4,13 @@ overview: 'Update the "SFDX: Create Query in SOQL Builder" command to match the 
 todos:
   - id: update-soqlFileCreate
     content: 'Rewrite soqlFileCreate.ts: add promptForFileName, promptForOutputDir, update soqlOpenNew to write the file to disk and open it in the SOQL Builder'
-    status: pending
+    status: completed
   - id: add-messages
     content: Add i18n message keys to i18n.ts for the new prompts and validation
-    status: pending
+    status: completed
   - id: verify
     content: Run compile, lint, effect LS diagnostics, test, vscode:bundle, knip
-    status: pending
+    status: completed
 isProject: false
 ---
 
