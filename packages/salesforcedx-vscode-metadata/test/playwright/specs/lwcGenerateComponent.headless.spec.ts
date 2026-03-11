@@ -30,7 +30,7 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
 
   let componentName: string;
 
-  await test.step('setup minimal org', async () => {
+  await test.step('setup with no org', async () => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
