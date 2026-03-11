@@ -137,7 +137,10 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   yield* channelService.appendToChannel(nls.localize('lwc_generate_success'));
 
   const ext = template === 'typeScript' ? '.ts' : '.js';
-  const mainFileUri = Utils.joinPath(componentDirUri, `${componentNameOpt.value}${ext}`);
+  // @salesforce/templates uses camelCase for LWC dir and filename (lightningComponentGenerator.js:69)
+  const camelCaseName = `${componentNameOpt.value.substring(0, 1).toLowerCase()}${componentNameOpt.value.substring(1)}`;
+  const actualDirUri = Utils.joinPath(outputDirUri, camelCaseName);
+  const mainFileUri = Utils.joinPath(actualDirUri, `${camelCaseName}${ext}`);
   yield* fsService.showTextDocument(mainFileUri);
 
   return undefined;
