@@ -13,6 +13,9 @@ export const messages = {
   cancel_button: 'Cancel',
   log_get_no_logs: 'No Apex debug logs found',
   log_get_pick_log: 'Select an Apex debug log to open',
+  log_get_size_bytes: '%s B',
+  log_get_size_kb: '%s KB',
+  log_get_size_mb: '%s MB',
   trace_flag_active: 'Tracing until %s',
   trace_flag_inactive: 'No Tracing',
   trace_flags_no_org: 'No target org selected. Set a default org to manage trace flags.',
@@ -42,5 +45,8 @@ export const messages = {
   log_auto_collect_tooltip: 'Auto-collected: %s logs',
   log_auto_collect_open_folder: 'Open logs folder',
   exec_anon_compile_error: 'Line %s, Column %s: %s',
-  exec_anon_compile_unknown: 'Unknown compile error'
+  exec_anon_compile_unknown: 'Unknown compile error',
+  exec_anon_progress_title: 'Executing anonymous Apex...',
+  exec_anon_success: 'Anonymous Apex executed successfully',
+  open_log: 'Open Log'
 } as const;

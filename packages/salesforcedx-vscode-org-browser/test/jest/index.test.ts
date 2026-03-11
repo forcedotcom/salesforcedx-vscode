@@ -86,6 +86,7 @@ const MockChannelServiceLayer = (_: string): Layer.Layer<ChannelService> =>
     ChannelService,
     new ChannelService({
       getChannel: Effect.sync(() => mockOutputChannel),
+      clearChannel: Effect.succeed(undefined),
       appendToChannel: (message: string) => Effect.sync(() => mockAppendLine(message))
     })
   );

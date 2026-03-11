@@ -46,11 +46,9 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     ConfigService.Default,
     SettingsService.Default,
     WorkspaceService.Default,
-    MetadataRegistryService.Default,
-    ChannelService.Default
+    MetadataRegistryService.Default
   ],
   effect: Effect.gen(function* () {
-    const channelService = yield* ChannelService;
     const connectionService = yield* ConnectionService;
     const projectService = yield* ProjectService;
     const configService = yield* ConfigService;
@@ -132,6 +130,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       yield* Effect.annotateCurrentSpan({
         conflicts: true
       });
+      const channelService = yield* ChannelService;
       const conflictDetails = conflicts.map(c => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`);
       yield* channelService.appendToChannel(
         ['Conflicts detected', ...conflictDetails.map(detail => `  ${detail}`)].join('\n')

@@ -132,7 +132,7 @@ const showTextDocument = Effect.fn('fsService.showTextDocument')(function* (
 ) {
   const uri = toUri(filePath);
   return yield* Effect.tryPromise({
-    try: () => vscode.window.showTextDocument(vscode.Uri.parse(uri.toString()), options),
+    try: () => vscode.window.showTextDocument(uri, options),
     catch: e =>
       new FsServiceError({
         ...unknownToErrorCause(e),
