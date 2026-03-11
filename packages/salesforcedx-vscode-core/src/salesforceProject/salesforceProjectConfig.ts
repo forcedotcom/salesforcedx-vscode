@@ -5,8 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SfProject, SfProjectJson } from '@salesforce/core/project';
-import { isSalesforceProjectOpened, notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
+import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { JsonArray } from '@salesforce/ts-types';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { SFDX_PROJECT_FILE } from '../constants';
@@ -24,7 +27,15 @@ export default class SalesforceProjectConfig {
   }
 
   private static async initializeSalesforceProjectConfig() {
-    if (!SalesforceProjectConfig.instance && (await isSalesforceProjectOpened()).result) {
+    const isProject = await Effect.runPromise(
+      Effect.gen(function* () {
+        const api = yield* getServicesApi;
+        return yield* api.services.ProjectService.isSalesforceProject().pipe(
+          Effect.provide(Layer.succeedContext(api.services.prebuiltServicesDependencies))
+        );
+      }).pipe(Effect.catchAllCause(() => Effect.succeed(false)))
+    );
+    if (!SalesforceProjectConfig.instance && isProject) {
       const salesforceProjectPath = workspaceUtils.getRootWorkspacePath();
       try {
         const salesforceProject = await SfProject.resolve(salesforceProjectPath);

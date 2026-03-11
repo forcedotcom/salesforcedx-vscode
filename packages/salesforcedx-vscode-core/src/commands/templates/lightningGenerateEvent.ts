@@ -6,7 +6,8 @@
  */
 
 import type { DirFileNameSelection, LocalComponent } from '../../util/types';
-import { CompositeParametersGatherer, SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { CompositeParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningEventOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
@@ -43,7 +44,7 @@ class LibraryLightningGenerateEventExecutor extends LibraryBaseTemplateCommand<D
 export const lightningGenerateEvent = (): void => {
   const createTemplateExecutor = new LibraryLightningGenerateEventExecutor();
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new CompositeParametersGatherer<LocalComponent>(
       new MetadataTypeGatherer(AURA_TYPE),
       new SelectFileName(),

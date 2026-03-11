@@ -6,7 +6,7 @@
  */
 
 import * as utilsVscode from '@salesforce/salesforcedx-utils-vscode';
-import { CompositeParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { lightningGenerateLwc } from '../../../../src/commands/templates';
 import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import {
@@ -22,8 +22,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
   return {
     ...actual,
-    CompositeParametersGatherer: jest.fn(),
-    SfWorkspaceChecker: jest.fn()
+    CompositeParametersGatherer: jest.fn()
   };
 });
 
@@ -32,7 +31,6 @@ const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
 const selectOutputDirMocked = jest.mocked(SelectOutputDir);
 const compositeParametersGathererMocked = jest.mocked(CompositeParametersGatherer);
 const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
-const sfWorkspaceCheckerMocked = jest.mocked(SfWorkspaceChecker);
 const selectLwcComponentTypeMocked = jest.mocked(SelectLwcComponentType);
 
 describe('lightningGenerateLwc Unit Tests.', () => {
@@ -49,7 +47,6 @@ describe('lightningGenerateLwc Unit Tests.', () => {
   it('Should generate lwc scaffolding.', async () => {
     await lightningGenerateLwc();
     expect(sfCommandletMocked).toHaveBeenCalled();
-    expect(sfWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(metadataTypeGathererMocked).toHaveBeenCalled();
     expect(selectLwcComponentTypeMocked).toHaveBeenCalled();
     expect(selectFileNameMocked).toHaveBeenCalled();

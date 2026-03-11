@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   ContinueResponse,
   SfCommandlet,
-  SfWorkspaceChecker,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
@@ -54,7 +54,7 @@ export const retrieveManifest = async (explorerPath: URI): Promise<void> => {
   }
 
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new FilePathGatherer(resolved),
     new LibraryRetrieveManifestExecutor()
   );

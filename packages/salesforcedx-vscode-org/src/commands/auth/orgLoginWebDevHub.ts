@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
-  SfWorkspaceChecker,
   SfCommandlet,
   SfCommandletExecutor,
   CliCommandExecutor,
@@ -89,7 +89,7 @@ type AuthDevHubParams = {
 
 export const orgLoginWebDevHub = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new AuthDevHubParamsGatherer(),
     new OrgLoginWebDevHubExecutor()
   );

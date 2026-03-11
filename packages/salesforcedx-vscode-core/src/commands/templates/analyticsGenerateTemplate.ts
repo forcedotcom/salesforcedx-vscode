@@ -6,13 +6,13 @@
  */
 
 import type { DirFileNameSelection } from '../../util/types';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   CancelResponse,
   CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
 import * as vscode from 'vscode';
@@ -69,6 +69,6 @@ export const analyticsGenerateTemplate = (): void => {
   const outputDirGatherer = new SelectOutputDir(ANALYTICS_TEMPLATE_DIRECTORY);
   const parameterGatherer = new CompositeParametersGatherer(new SelectProjectTemplate(), outputDirGatherer);
   const createTemplateExecutor = new LibraryAnalyticsGenerateTemplateExecutor();
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, createTemplateExecutor);
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, createTemplateExecutor);
   void commandlet.run();
 };

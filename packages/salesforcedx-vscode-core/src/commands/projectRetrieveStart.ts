@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   ContinueResponse,
   EmptyParametersGatherer,
   SfCommandlet,
-  SfWorkspaceChecker,
   SourceTrackingService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -78,11 +78,10 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export const projectRetrieveStart = async (ignoreConflicts = false) => {
   const executor = new ProjectRetrieveStartExecutor(ignoreConflicts);
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, executor);
   await commandlet.run();
 };

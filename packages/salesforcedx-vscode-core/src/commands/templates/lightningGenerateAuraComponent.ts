@@ -6,7 +6,8 @@
  */
 
 import type { DirFileNameSelection, LocalComponent } from '../../util/types';
-import { CompositeParametersGatherer, SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { CompositeParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
@@ -50,7 +51,7 @@ class LibraryLightningGenerateAuraComponentExecutor extends LibraryBaseTemplateC
 export const lightningGenerateAuraComponent = (): void => {
   const createTemplateExecutor = new LibraryLightningGenerateAuraComponentExecutor();
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new CompositeParametersGatherer<LocalComponent>(
       new MetadataTypeGatherer(AURA_TYPE),
       new SelectFileName(),

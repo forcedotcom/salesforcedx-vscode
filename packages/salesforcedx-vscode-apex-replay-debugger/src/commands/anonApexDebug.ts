@@ -4,14 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   CancelResponse,
   ContinueResponse,
   LibraryCommandletExecutor,
   ParametersGatherer,
   SfCommandlet,
-  SfWorkspaceChecker,
   getYYYYMMddHHmmssDateFormat,
   hasRootWorkspace,
   projectPaths,
@@ -124,7 +123,7 @@ class AnonApexLibraryDebugExecutor extends LibraryCommandletExecutor<ApexExecute
 
 export const anonApexDebug = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new AnonApexGatherer(),
     new AnonApexLibraryDebugExecutor()
   );

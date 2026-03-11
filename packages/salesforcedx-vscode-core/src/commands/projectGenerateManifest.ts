@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   ContinueResponse,
   createDirectory,
   fileOrFolderExists,
   LibraryCommandletExecutor,
   SfCommandlet,
-  SfWorkspaceChecker,
   workspaceUtils,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -64,7 +64,7 @@ export const projectGenerateManifest = async (sourceUri: URI, uris: URI[] | unde
 
   if (sourcePaths) {
     const commandlet = new SfCommandlet(
-      new SfWorkspaceChecker(),
+      sfProjectPreconditionChecker,
       new FilePathGatherer(sourceUri),
       new GenerateManifestExecutor(sourcePaths, responseText)
     );

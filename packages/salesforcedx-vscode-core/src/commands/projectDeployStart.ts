@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   ContinueResponse,
   EmptyParametersGatherer,
   errorToString,
   SfCommandlet,
-  SfWorkspaceChecker,
   SourceTrackingService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -76,6 +76,6 @@ export const projectDeployStart = async (isDeployOnSave: boolean, ignoreConflict
   const showOutputPanel = !(isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel());
   const executor = new ProjectDeployStartExecutor(showOutputPanel, ignoreConflicts);
 
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), executor);
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), executor);
   await commandlet.run();
 };

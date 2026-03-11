@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
@@ -14,7 +15,6 @@ import {
   ProgressNotification,
   SfCommandlet,
   SfCommandletExecutor,
-  SfWorkspaceChecker,
   TimingUtils,
   notificationService,
   workspaceUtils
@@ -116,6 +116,6 @@ const getExecutor = (): SfCommandletExecutor<{}> =>
   isSFContainerMode() ? new OrgOpenContainerExecutor() : new OrgOpenExecutor();
 
 export const orgOpen = (): void => {
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), getExecutor());
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), getExecutor());
   void commandlet.run();
 };

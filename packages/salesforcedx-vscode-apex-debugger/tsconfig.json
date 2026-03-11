@@ -7,6 +7,9 @@
   "exclude": ["node_modules", ".vscode-test", "out"],
   "references": [
     {
+      "path": "../effect-ext-utils"
+    },
+    {
       "path": "../salesforcedx-apex-debugger"
     },
     {

@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { CommandBuilder, Command } from '@salesforce/salesforcedx-utils';
 import {
   EmptyParametersGatherer,
   fileExtensionsMatch,
   notificationService,
   SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
+  SfCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode';
 import { basename } from 'node:path';
 import * as vscode from 'vscode';
@@ -70,7 +70,7 @@ const getApexTestClassName = (document: vscode.TextDocument): string | undefined
 
 const launchAnonymousApexReplayDebugger = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new EmptyParametersGatherer(),
     new AnonApexLaunchReplayDebuggerExecutor()
   );

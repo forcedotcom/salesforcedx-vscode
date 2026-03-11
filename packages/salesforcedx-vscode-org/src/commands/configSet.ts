@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { OrgConfigProperties } from '@salesforce/core';
-import { createTable, Row } from '@salesforce/effect-ext-utils';
+import { createTable, Row, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   ContinueResponse,
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
@@ -74,7 +73,7 @@ const formatOutput = (input: Row): string => {
 
 export const configSet = async (usernameOrAlias: string): Promise<void> => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new EmptyParametersGatherer(),
     new ConfigSetExecutor(usernameOrAlias)
   );

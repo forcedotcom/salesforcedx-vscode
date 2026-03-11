@@ -4,11 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { EmptyParametersGatherer, SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { EmptyParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { SourceTrackingGetStatusExecutor } from './sourceTrackingGetStatusExecutor';
 
 const getCommandletFor = (executor: SourceTrackingGetStatusExecutor): SfCommandlet<{}> =>
-  new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), executor);
+  new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), executor);
 
 export const viewAllChanges = (): void => {
   viewChanges('view_all_changes_text', 'view_all_changes', true, true);
