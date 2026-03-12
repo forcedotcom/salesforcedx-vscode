@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, Config, StateAggregator, OrgConfigProperties } from '@salesforce/core';
+import { AuthRemover, Config, StateAggregator, OrgConfigProperties, type StateAggregator as StateAggregatorType } from '@salesforce/core';
 import { ConfigUtil, ConfigAggregatorProvider, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { OrgLogoutDefault } from '../../../../src/commands/auth/orgLogout';
 
@@ -47,6 +47,9 @@ describe('OrgLogoutDefault', () => {
     } as unknown as ConfigAggregatorProvider);
 
     clearInstanceSpy = jest.spyOn(StateAggregator, 'clearInstance').mockReturnValue(undefined);
+    jest.spyOn(StateAggregator, 'getInstance').mockResolvedValue({
+      aliases: { getAll: jest.fn().mockReturnValue([]), unsetAndSave: jest.fn().mockResolvedValue(undefined) }
+    } as unknown as StateAggregatorType);
 
     jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('/fake/workspace');
   });

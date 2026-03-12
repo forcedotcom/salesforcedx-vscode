@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover } from '@salesforce/core';
+import { AuthRemover, StateAggregator } from '@salesforce/core';
 import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
@@ -97,7 +97,12 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
       const shouldUnset = await isCurrentTargetOrg(response.data, this.orgAliases);
-      await (await AuthRemover.create()).removeAuth(response.data);
+      const authRemover = await AuthRemover.create();
+      await authRemover.removeAuth(response.data);
+      const sa = await StateAggregator.getInstance();
+      for (const alias of this.orgAliases) {
+        await sa.aliases.unsetAndSave(alias);
+      }
       if (shouldUnset) {
         await unsetTargetOrg();
       }

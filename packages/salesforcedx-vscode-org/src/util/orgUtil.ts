@@ -122,6 +122,7 @@ const setUsernameOrAlias = async (usernameOrAlias: string): Promise<void> => {
 
 /** Returns true if the given username/aliases match the currently configured target org */
 export const isCurrentTargetOrg = async (username: string, aliases: readonly string[]): Promise<boolean> => {
+  await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
   const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
   if (!targetOrgOrAlias) return false;
   return targetOrgOrAlias === username || aliases.includes(targetOrgOrAlias);
