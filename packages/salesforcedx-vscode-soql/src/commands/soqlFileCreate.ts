@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SfProject } from '@salesforce/core/project';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -33,22 +32,17 @@ const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function
 
 const CUSTOM_DIR_LABEL = `$(file-directory) ${nls.localize('soql_custom_output_directory')}`;
 
-const promptForOutputDir = Effect.fn('soqlFileCreate.promptForOutputDir')(function* (project: SfProject) {
+const promptForOutputDir = Effect.fn('soqlFileCreate.promptForOutputDir')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   type DirItem = { label: string; description: string | undefined; uri: URI | undefined };
 
-  const pkgItems: DirItem[] = project.getPackageDirectories().map(pkg => ({
-    label: `${pkg.path}/main/default/queries`,
-    description: pkg.default ? '(default)' : undefined,
-    uri: Utils.joinPath(workspaceInfo.uri, pkg.path, 'main', 'default', 'queries')
-  }));
-
+  const rootItem: DirItem = { label: workspaceInfo.uri.fsPath, description: '(default)', uri: workspaceInfo.uri };
   const customItem: DirItem = { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined };
 
   const selected = yield* Effect.promise(() =>
-    vscode.window.showQuickPick([...pkgItems, customItem], {
+    vscode.window.showQuickPick([rootItem, customItem], {
       placeHolder: nls.localize('soql_output_dir_prompt'),
       matchOnDescription: true
     })
@@ -107,10 +101,7 @@ export const soqlOpenNew = Effect.fn('soql_builder_open_new')(function* () {
   const fileName = yield* promptForFileName();
   if (!fileName) return;
 
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const project = yield* (yield* api.services.ProjectService).getSfProject();
-
-  const outputDir = yield* promptForOutputDir(project);
+  const outputDir = yield* promptForOutputDir();
   if (!outputDir) return;
 
   yield* createAndOpenFile(fileName, outputDir);
