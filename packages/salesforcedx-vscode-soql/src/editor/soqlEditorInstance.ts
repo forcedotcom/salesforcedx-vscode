@@ -78,7 +78,8 @@ type MessageType =
 
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
-  protected lastIncomingSoqlStatement = '';
+  /** True for exactly one debounced cycle after the webview triggered a document edit, to avoid echoing it back. */
+  protected pendingWebviewUpdate = false;
 
   protected disposedCallback: ((instance: SOQLEditorInstance) => void) | undefined;
 
@@ -150,12 +151,12 @@ export class SOQLEditorInstance {
 
   protected updateWebview(document: vscode.TextDocument): Effect.Effect<void> {
     const self = this;
-    const newSoqlStatement = document.getText();
     return Effect.gen(function* () {
-      if (self.lastIncomingSoqlStatement !== newSoqlStatement) {
-        yield* self.sendMessageToUi('text_soql_changed', newSoqlStatement);
+      if (self.pendingWebviewUpdate) {
+        self.pendingWebviewUpdate = false;
+        return;
       }
-      self.lastIncomingSoqlStatement = '';
+      yield* self.sendMessageToUi('text_soql_changed', document.getText());
     });
   }
 
@@ -181,7 +182,7 @@ export class SOQLEditorInstance {
       case 'ui_soql_changed': {
         const soql = event.payload;
         return Effect.sync(() => {
-          this.lastIncomingSoqlStatement = soql;
+          this.pendingWebviewUpdate = true;
         }).pipe(
           Effect.andThen(Effect.promise<boolean>(() => this.updateTextDocument(this.document, soql))),
           Effect.asVoid,
