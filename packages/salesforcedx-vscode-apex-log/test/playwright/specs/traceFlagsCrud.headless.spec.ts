@@ -60,8 +60,20 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await ensureSecondarySideBarHidden(page);
   });
 
-  await test.step('open trace flags and verify virtual document JSON content', async () => {
+  await test.step('cleanup stale trace flags from prior runs', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsOpen'], 30_000);
+    const removeLink = page.locator('.codelens-decoration a').filter({ hasText: /^Remove$/ }).first();
+    await expect(async () => {
+      await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsOpen']);
+      await expect(page.locator('.tab').filter({ hasText: /traceFlags\.json/ })).toBeVisible({ timeout: 10_000 });
+      if (await removeLink.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await removeLink.click();
+      }
+      await expect(removeLink).not.toBeVisible({ timeout: 5000 });
+    }).toPass({ timeout: 60_000 });
+  });
+
+  await test.step('open trace flags and verify virtual document JSON content', async () => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsOpen']);
     await expect(page.locator('.tab').filter({ hasText: /traceFlags\.json/ })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('"traceFlags": {').first()).toBeVisible({ timeout: 30_000 });
