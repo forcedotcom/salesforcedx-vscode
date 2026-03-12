@@ -56,13 +56,13 @@ The Salesforce Extension Pack installs these extensions.
   This extension supports Lightning web component bundles. It uses the HTML language server from VS Code.
 - [Aura Components](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)
   This extension (`salesforcedx-vscode-lightning`) supports Aura component bundles. It uses the HTML language server from VS Code.
-- [Org Management](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-org)
+- [Salesforce Org Management](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-org)
   This extension (`salesforcedx-vscode-org`) provides org management and switching features.
 - [Visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)
   This extension (`salesforcedx-vscode-visualforce`) supports Visualforce pages and components. It uses the Visualforce Language Server and the HTML language server from VS Code.
-- [Metadata](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-metadata)
+- [Salesforce Metadata](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-metadata)
   This extension (`salesforcedx-vscode-metadata`) provides metadata operations for Salesforce development in VS Code.
-- [Services](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-services)
+- [Salesforce Services](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-services)
   This extension (`salesforcedx-vscode-services`) provides core services used by other Salesforce extensions.
 - [SOQL](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql)
   This extension (`salesforcedx-vscode-soql`) enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
