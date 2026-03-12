@@ -56,12 +56,52 @@ Prefer specific over greedy (`*`). **Web/virtual FS:** `workspaceContains:sfdx-p
 
 **run:web script**
 
-Invokes `vscode-test-web` with `extensionDevelopmentPath` and `extensionPath`. Both load from built `dist/` (not vsix).
+Invokes `vscode-test-web` with `extensionDevelopmentPath` and `extensionPath`. Both load from built `dist/` (not vsix). Use --watch for hot reload (will restart server).
 
-- `extensionDevelopmentPath`: the one extension you're developing — gets debug, hot reload.
+- `extensionDevelopmentPath`: the one extension you're developing — gets debug.
 - `extensionPath`: extension dependencies — loaded as installed extensions. Only one dev extension; the rest go here.
 - Each package's run:web differs by which extension is dev vs path (e.g. org-browser: dev=self, path=services,metadata).
 - `vscode:bundle:local` (used by run:web): injects settings/org credentials. See [QA](./QA.md).
+
+**Adding run:web to a package**
+
+1. Add `"run:web": "wireit"` to scripts.
+2. Add wireit config. Example (org-browser developing self, services + metadata as deps):
+
+```json
+"run:web": {
+  "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+  "service": true,
+  "dependencies": [
+    "vscode:bundle:local",
+    "../salesforcedx-vscode-services:vscode:bundle:local",
+    "../salesforcedx-vscode-metadata:vscode:bundle:local"
+  ],
+  "files": []
+}
+```
+
+- `extensionDevelopmentPath .` = this package (dev). Paths relative to package dir.
+- `--extensionPath ../pkg-name` — repeat for each extension dependency. Order can matter for activation.
+- Wireit deps: `vscode:bundle:local` for self + each extension in extensionPath (enables settings/org injection).
+
+**commonConfigBrowser usage**
+
+Import and spread in esbuild config. Override entryPoints, outdir, plugins as needed:
+
+```javascript
+import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
+
+const browserBuild = await build({
+  ...commonConfigBrowser,
+  external: ['vscode'],
+  entryPoints: ['./out/src/index.js'],
+  outdir: './dist/web',
+  metafile: true // hand this file to https://esbuild.github.io/analyze/ to check your bundling
+});
+```
+
+Examples: [org-browser](../packages/salesforcedx-vscode-org-browser/esbuild.config.mjs), [services](../packages/salesforcedx-vscode-services/esbuild.config.mjs).
 
 ## Package
 
@@ -76,7 +116,8 @@ You'll need a `.vscodeignore` file (to keep unwanted code out of the package).
 **vscode:package**
 
 **Good:** `vsce package --allow-package-all-secrets`; Wireit deps run in parallel. No `packaging` stanza — package.json is not mutated at package time. Example: [soql](../packages/salesforcedx-vscode-soql/package.json).
- - downside: managing that ignore file.  An alternative might be to ignore `*` and the unignore
+
+- downside: managing that ignore file. An alternative might be to ignore `*` and the unignore
 
 **Legacy:** `ts-node scripts/vsce-bundled-extension.ts`; uses `packaging` stanza to mutate package.json (main, dependencies, devDependencies) at package time. Runs sequentially (`WIREIT_PARALLEL=1`) due to chdir usage. Example: [core](../packages/salesforcedx-vscode-core/package.json).
 
