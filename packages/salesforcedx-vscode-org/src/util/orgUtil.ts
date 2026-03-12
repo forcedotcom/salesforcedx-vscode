@@ -120,6 +120,21 @@ const setUsernameOrAlias = async (usernameOrAlias: string): Promise<void> => {
   await updateConfigAndStateAggregators();
 };
 
+/** Returns true if the given username/aliases match the currently configured target org */
+export const isCurrentTargetOrg = async (username: string, aliases: readonly string[]): Promise<boolean> => {
+  const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
+  if (!targetOrgOrAlias) return false;
+  return targetOrgOrAlias === username || aliases.includes(targetOrgOrAlias);
+};
+
+/** Unsets target-org from the local project config and refreshes aggregators */
+export const unsetTargetOrg = async (): Promise<void> => {
+  const config = await Config.create(Config.getDefaultOptions());
+  config.unset(OrgConfigProperties.TARGET_ORG);
+  await config.write();
+  await updateConfigAndStateAggregators();
+};
+
 /** Sets the target org or alias in the local config */
 export const setTargetOrgOrAlias = async (usernameOrAlias: string): Promise<void> => {
   const originalDirectory = process.cwd();

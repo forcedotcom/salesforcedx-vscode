@@ -27,7 +27,7 @@ import { OUTPUT_CHANNEL } from '../../channels';
 import { AllServicesLayer } from '../../extensionProvider';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { updateConfigAndStateAggregators } from '../../util/orgUtil';
+import { isCurrentTargetOrg, unsetTargetOrg, updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 // SimpleGatherer - need to inline this small utility
 class SimpleGatherer<T> implements ParametersGatherer<T> {
@@ -86,14 +86,21 @@ export const orgLogoutAll = async () => {
   await commandlet.run();
 };
 
-class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
-  constructor() {
+export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
+  private readonly orgAliases: readonly string[];
+
+  constructor(aliases: readonly string[] = []) {
     super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
+    this.orgAliases = aliases;
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
+      const shouldUnset = await isCurrentTargetOrg(response.data, this.orgAliases);
       await (await AuthRemover.create()).removeAuth(response.data);
+      if (shouldUnset) {
+        await unsetTargetOrg();
+      }
     } catch (e) {
       telemetryService.sendException('org_logout_default', `Error: name = ${e.name} message = ${e.message}`);
       return false;
@@ -103,7 +110,7 @@ class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 }
 
 export const orgLogoutDefault = async () => {
-  const { username, isScratch, alias } = await resolveTargetOrg().pipe(
+  const { username, isScratch, aliases } = await resolveTargetOrg().pipe(
     Effect.provide(AllServicesLayer),
     Effect.runPromise
   );
@@ -112,8 +119,8 @@ export const orgLogoutDefault = async () => {
     // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
     const logoutCommandlet = new SfCommandlet(
       sfProjectPreconditionChecker,
-      isScratch ? new ScratchOrgLogoutParamsGatherer(username, alias) : new SimpleGatherer<string>(username),
-      new OrgLogoutDefault()
+      isScratch ? new ScratchOrgLogoutParamsGatherer(username, aliases[0]) : new SimpleGatherer<string>(username),
+      new OrgLogoutDefault(aliases)
     );
     await logoutCommandlet.run();
   } else {
@@ -128,6 +135,6 @@ const resolveTargetOrg = Effect.fn('OrgLogout.resolveTargetOrg')(function* () {
   return {
     username: orgInfo.username,
     isScratch: orgInfo.isScratch ?? false,
-    alias: orgInfo.aliases?.[0]
+    aliases: orgInfo.aliases ?? []
   };
 });
