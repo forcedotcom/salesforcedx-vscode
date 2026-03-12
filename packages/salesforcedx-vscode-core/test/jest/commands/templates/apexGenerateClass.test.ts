@@ -6,7 +6,7 @@
  */
 
 import * as utilsVscode from '@salesforce/salesforcedx-utils-vscode';
-import { CompositeParametersGatherer, SfWorkspaceChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { CompositeParametersGatherer, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { apexGenerateClass } from '../../../../src/commands/templates';
@@ -33,8 +33,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
   return {
     ...actual,
-    CompositeParametersGatherer: jest.fn(),
-    SfWorkspaceChecker: jest.fn()
+    CompositeParametersGatherer: jest.fn()
   };
 });
 
@@ -46,7 +45,6 @@ const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
 const selectOutputDirMocked = jest.mocked(SelectOutputDir);
 const simpleGathererMocked = jest.mocked(SimpleGatherer);
 const libraryApexGenerateClassExecutorMocked = jest.mocked(LibraryApexGenerateClassExecutor);
-const sfWorkspaceCheckerMocked = jest.mocked(SfWorkspaceChecker);
 const compositeParametersGathererMocked = jest.mocked(CompositeParametersGatherer);
 const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
 
@@ -71,7 +69,6 @@ describe('apexGenerateClass Unit Tests.', () => {
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
     expect(libraryApexGenerateClassExecutorMocked).toHaveBeenCalled();
     expect(sfCommandletMocked).toHaveBeenCalled();
-    expect(sfWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
     expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();
@@ -88,7 +85,6 @@ describe('apexGenerateClass Unit Tests.', () => {
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
     expect(libraryApexGenerateClassExecutorMocked).toHaveBeenCalled();
     expect(sfCommandletMocked).toHaveBeenCalled();
-    expect(sfWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
     expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();
@@ -108,7 +104,6 @@ describe('apexGenerateClass Unit Tests.', () => {
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
     expect(libraryApexGenerateClassExecutorMocked).toHaveBeenCalled();
     expect(sfCommandletMocked).toHaveBeenCalled();
-    expect(sfWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
     expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();

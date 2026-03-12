@@ -8,7 +8,8 @@
 import { expect } from '@playwright/test';
 
 import {
-  closeSettingsTab,
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   EDITOR_WITH_URI,
@@ -16,7 +17,6 @@ import {
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
@@ -33,18 +33,19 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
 
   const className = `CreateTestClass${Date.now()}`;
 
-  await test.step('setup workspace (command needs sfdx-project.json)', async () => {
+  await test.step('setup with no org', async () => {
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
-    await setupMinimalOrgAndAuth(page, false);
-    await ensureSecondarySideBarHidden(page);
-    await closeSettingsTab(page);
-    await saveScreenshot(page, 'setup.after-auth.png');
+  });
+
+  await test.step('command is present', async () => {
+    await verifyCommandExists(page, packageNls.apex_generate_unit_test_class_text, 120_000);
   });
 
   await test.step('run Create Apex Unit Test Class command', async () => {
-    await verifyCommandExists(page, packageNls.apex_generate_unit_test_class_text, 30_000);
     await executeCommandWithCommandPalette(page, packageNls.apex_generate_unit_test_class_text);
     await saveScreenshot(page, 'step.command-triggered.png');
   });

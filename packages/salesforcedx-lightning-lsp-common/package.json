@@ -35,6 +35,11 @@
       "import": "./out/src/providers/lspFileSystemAccessor.js",
       "require": "./out/src/providers/lspFileSystemAccessor.js",
       "types": "./out/src/providers/lspFileSystemAccessor.d.ts"
+    },
+    "./applyEditHandler": {
+      "types": "./out/src/applyEditHandler.d.ts",
+      "import": "./out/src/applyEditHandler.js",
+      "require": "./out/src/applyEditHandler.js"
     }
   },
   "license": "BSD-3-Clause",
@@ -101,7 +106,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "ejs": "^3.1.10",
-    "effect": "^3.19.14",
+    "effect": "^3.19.19",
     "minimatch": "^9.0.5",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",

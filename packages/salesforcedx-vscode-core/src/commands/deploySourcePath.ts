@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ContinueResponse, SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { ContinueResponse, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import type { URI } from 'vscode-uri';
 import { getConflictMessagesFor } from '../conflict/messages';
@@ -71,7 +72,7 @@ export const deploySourcePaths = async (
     const showOutputPanel = !(isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel());
 
     const commandlet = new SfCommandlet<string[]>(
-      new SfWorkspaceChecker(),
+      sfProjectPreconditionChecker,
       new LibraryPathsGatherer(resolvedUris),
       new LibraryDeploySourcePathExecutor(showOutputPanel),
       new CompositePostconditionChecker(

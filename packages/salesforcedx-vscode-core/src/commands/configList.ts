@@ -4,8 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { EmptyParametersGatherer, SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { EmptyParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import { SfCommandletExecutor } from './util';
 
@@ -20,6 +21,6 @@ class ConfigList extends SfCommandletExecutor<{}> {
 }
 
 export const configList = async (): Promise<void> => {
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), new ConfigList());
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), new ConfigList());
   await commandlet.run();
 };

@@ -13,6 +13,7 @@ import {
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  NOTIFICATION_LIST_ITEM,
   openFileByName,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
@@ -22,7 +23,8 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 
 import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
@@ -30,19 +32,22 @@ import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
-/** Continue debug session (F5). Repeats until session ends (stopOnEntry + run-to-completion). */
+/** Continue debug session (dismiss hover, Escape, then F5). Repeats until session ends. */
 const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void> => {
   const toolbar = page.locator('.debug-toolbar');
   for (let i = 0; i < maxContinues; i++) {
-    await toolbar.waitFor({ state: 'visible', timeout: 30000 });
+    await toolbar.waitFor({ state: 'visible', timeout: 15_000 });
+    // Click editor area to dismiss search-bar hover that can cover debug toolbar and block F5
+    await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
+    await page.keyboard.press('Escape');
     await page.keyboard.press('F5');
     const sessionEnded = await expect(toolbar)
-      .not.toBeVisible({ timeout: 45000 })
+      .not.toBeVisible({ timeout: 30_000 })
       .then(() => true)
       .catch(() => false);
     if (sessionEnded) break;
   }
-  await expect(toolbar).not.toBeVisible({ timeout: 90000 });
+  await expect(toolbar).not.toBeVisible({ timeout: 45_000 });
 };
 
 test('Apex Replay Debugger: trace flag, exec anon, replay from log and test class', async ({ page }) => {
@@ -139,8 +144,14 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
         (el as HTMLElement).click();
       });
 
+    const successNotification = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /executed successfully/i })
+      .first();
+    await expect(successNotification).toBeVisible({ timeout: 30_000 });
+    await successNotification.getByRole('button', { name: /Open Log/i }).click();
     const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
-    await expect(logTab).toBeVisible({ timeout: 30000 });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'step.exec-anon-done.png');
   });
 
@@ -182,13 +193,21 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       .filter({ hasText: /TestScript\.apex/ })
       .waitFor({ state: 'visible', timeout: 15000 });
     await openFileByName(page, 'TestScript.apex');
+    // Click the editor to ensure it has focus (not the output panel) —
+    // editorLangId must be apex-anon for the executeDocument when clause
+    const editorArea = page.locator('.editor-instance .view-lines').first();
+    await editorArea.click({ force: true });
 
     await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
 
-    // Wait for debug.log to open before proceeding — showTextDocument is async and
-    // will steal focus from the next step's command palette if it fires late.
+    const docSuccessNotification = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /executed successfully/i })
+      .first();
+    await expect(docSuccessNotification).toBeVisible({ timeout: 30_000 });
+    await docSuccessNotification.getByRole('button', { name: /Open Log/i }).click();
     const docLogTab = page.locator('.tab').filter({ hasText: /\.log$/ });
-    await expect(docLogTab).toBeVisible({ timeout: 30000 });
+    await expect(docLogTab).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'step.exec-anon-document-done.png');
   });
 
@@ -198,7 +217,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       apexLogNls['apexLog.command.traceFlagsDeleteForCurrentUser'] as string
     );
     const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ });
-    await expect(statusBar).toBeVisible({ timeout: 60000 });
+    await expect(statusBar).toBeVisible({ timeout: 30_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

@@ -12,30 +12,54 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { CancellationToken } from 'vscode';
-import { channelService } from '../channels';
-import { getConnection } from '../coreExtensionUtils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Cause from 'effect/Cause';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
+import { CancellationToken, CancellationError } from 'vscode';
+import { URI } from 'vscode-uri';
 import * as settings from '../settings';
-import { telemetryService } from '../telemetry/telemetry';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { writeTestResultJsonFile } from '../utils/testUtils';
 
 type ApexTestRunOptions = {
   payload: AsyncTestConfiguration;
-  outputDir: string;
+  outputDir: URI;
   codeCoverage: boolean;
   concise: boolean;
   telemetryTrigger: 'quickPick' | 'codeAction' | 'testView';
 };
 
+/** Append human-formatted test output to the output channel */
+const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
+  result: TestResult,
+  codeCoverage: boolean,
+  concise: boolean
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const svc = yield* api.services.ChannelService;
+  yield* Stream.fromIterable(
+    new HumanReporter().format(result, codeCoverage, concise)?.split(/\r?\n/) ?? [
+      `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}`
+    ]
+  ).pipe(
+    Stream.tap(line => Effect.log(line)),
+    Stream.tap(line => svc.appendToChannel(line)),
+    Stream.runDrain
+  );
+});
+
 /** Runs Apex tests and writes results. Returns undefined if cancelled. */
-export const runApexTests = async (
+export const runApexTests = Effect.fn('runApexTests')(function* (
   options: ApexTestRunOptions,
   progress?: Progress<{ message?: string }>,
   token?: CancellationToken
-): Promise<TestResult | undefined> => {
+) {
+  yield* Effect.annotateCurrentSpan('trigger', options.telemetryTrigger);
   const startTime = Date.now();
-  const connection = await getConnection();
+
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const connection = yield* api.services.ConnectionService.getConnection();
   const testService = new TestService(connection);
 
   const progressReporter: Progress<ApexTestProgressValue> = {
@@ -46,67 +70,70 @@ export const runApexTests = async (
     }
   };
 
-  // TODO: fix in apex-node W-18453221
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const result = (await testService.runTestAsynchronous(
-    options.payload,
-    options.codeCoverage,
-    false,
-    progressReporter,
-    token
-  )) as TestResult;
+  const Cancelled = { _tag: 'Cancelled' } as const;
+  type Cancelled = typeof Cancelled;
 
-  if (token?.isCancellationRequested) {
+  // TODO: fix in apex-node W-18453221
+  const result = yield* Effect.tryPromise({
+    try: () =>
+      testService.runTestAsynchronous(
+        options.payload,
+        options.codeCoverage,
+        false,
+        progressReporter,
+        token
+      ),
+    catch: (e: unknown): Cancelled | Cause.UnknownException => {
+      if (token?.isCancellationRequested) {
+        return Cancelled;
+      }
+      if (e instanceof CancellationError) {
+        return Cancelled;
+      }
+      return new Cause.UnknownException(e);
+    }
+  }).pipe(Effect.catchTag('Cancelled', () => Effect.succeed(undefined)));
+
+  if (result === undefined || token?.isCancellationRequested) {
+    return undefined;
+  }
+  // runTestAsynchronous can return TestRunIdResult on timeout; we need full TestResult to continue
+  if (!('summary' in result)) {
     return undefined;
   }
 
-  // Write JSON test result file
-  await writeTestResultJsonFile(result, options.outputDir, options.codeCoverage, testService);
+  yield* Effect.tryPromise(() => writeTestResultJsonFile(result, options.outputDir, options.codeCoverage));
 
-  // Print test results to output channel
-  const humanOutput = new HumanReporter().format(result, options.codeCoverage, options.concise);
-  if (humanOutput) {
-    // Split by lines and add each line separately to preserve formatting
-    const lines = humanOutput.split('\n');
-    for (const line of lines) {
-      await channelService.appendLine(line);
-    }
-  } else {
-    // Fallback if HumanReporter returns empty - at least show summary
-    await channelService.appendLine(
-      `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}`
-    );
-  }
+  yield* appendTestOutput(result, options.codeCoverage, options.concise);
 
   // Generate and open test report
-  const reportStartTime = Date.now();
   const outputFormat = settings.retrieveOutputFormat();
   const sortOrder = settings.retrieveTestSortOrder();
-  try {
-    await writeAndOpenTestReport(result, options.outputDir, outputFormat, options.codeCoverage, sortOrder);
-    const reportDurationMs = Date.now() - reportStartTime;
-    telemetryService.sendEventData(
-      'apexTestReportGenerated',
-      { outputFormat, trigger: options.telemetryTrigger },
-      { reportDurationMs }
-    );
-  } catch (error) {
-    console.error('Failed to generate test report:', error);
-    // Continue even if report generation fails
-  }
+  yield* writeAndOpenTestReport(result, options.outputDir, outputFormat, options.codeCoverage, sortOrder).pipe(
+    Effect.tap(() =>
+      Effect.log('[Telemetry] apexTestReportGenerated').pipe(
+        Effect.annotateLogs({ outputFormat, trigger: options.telemetryTrigger }),
+        Effect.withSpan('apexTestReportGenerated', {
+          attributes: { outputFormat, trigger: options.telemetryTrigger }
+        })
+      )
+    ),
+    Effect.catchAll(error => Effect.logError(`Failed to generate test report: ${String(error)}`))
+  );
 
   const durationMs = Date.now() - startTime;
   const summary = result.summary;
-  telemetryService.sendEventData(
-    'apexTestRun',
-    { trigger: options.telemetryTrigger },
-    {
-      durationMs,
-      testsRan: Number(summary?.testsRan ?? 0),
-      testsPassed: Number(summary?.passing ?? 0),
-      testsFailed: Number(summary?.failing ?? 0)
-    }
+  const telemetryAttrs = {
+    trigger: options.telemetryTrigger,
+    durationMs,
+    testsRan: Number(summary?.testsRan ?? 0),
+    testsPassed: Number(summary?.passing ?? 0),
+    testsFailed: Number(summary?.failing ?? 0)
+  };
+  yield* Effect.log('[Telemetry] apexTestRun').pipe(
+    Effect.annotateLogs(telemetryAttrs),
+    Effect.withSpan('apexTestRun', { attributes: telemetryAttrs })
   );
 
   return result;
-};
+});

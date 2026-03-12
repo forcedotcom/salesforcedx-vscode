@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.0.3",
+  "version": "66.1.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -30,17 +30,16 @@
     "@salesforce/core": "^8.27.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
     "@salesforce/source-tracking": "^7.8.1",
-    "@salesforce/templates": "^66.3.0",
+    "@salesforce/templates": "^66.4.1",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
-    "effect": "^3.19.14",
+    "effect": "^3.19.19",
     "fast-xml-parser": "^5.4.1",
     "glob": "^11.1.0",
     "rxjs": "^7.8.2",
@@ -93,11 +92,11 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-sobjects-faux-generator:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-services:compile"
+        "../salesforcedx-vscode-services:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -287,10 +286,6 @@
         }
       ],
       "explorer/context": [
-        {
-          "command": "sf.lightning.generate.lwc",
-          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
-        },
         {
           "command": "sf.internal.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && sf:internal_dev"
@@ -506,10 +501,6 @@
           "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org && sf:show_shared_commands"
         },
         {
-          "command": "sf.lightning.generate.lwc",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.internal.lightning.generate.lwc",
           "when": "false"
         },
@@ -556,10 +547,6 @@
         {
           "command": "sf.conflict.open",
           "when": "false"
-        },
-        {
-          "command": "sf.internal.refreshsobjects",
-          "when": "sf:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.metadata.view.type.refresh",
@@ -709,10 +696,6 @@
         "title": "%delete_source_this_source_text%"
       },
       {
-        "command": "sf.lightning.generate.lwc",
-        "title": "%lightning_generate_lwc_text%"
-      },
-      {
         "command": "sf.internal.lightning.generate.lwc",
         "title": "%lightning_generate_lwc_text%"
       },
@@ -767,10 +750,6 @@
           "light": "resources/light/go-to-file.svg",
           "dark": "resources/dark/go-to-file.svg"
         }
-      },
-      {
-        "command": "sf.internal.refreshsobjects",
-        "title": "%sobjects_refresh%"
       },
       {
         "command": "sf.rename.lightning.component",

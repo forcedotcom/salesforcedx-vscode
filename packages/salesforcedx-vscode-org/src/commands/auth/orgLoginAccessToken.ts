@@ -6,11 +6,11 @@
  */
 
 import { AuthInfo, type AuthSideEffects } from '@salesforce/core';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   ContinueResponse,
   LibraryCommandletExecutor,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels';
@@ -58,7 +58,7 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
 
 export const orgLoginAccessToken = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new AccessTokenParamsGatherer(),
     new OrgLoginAccessTokenExecutor()
   );

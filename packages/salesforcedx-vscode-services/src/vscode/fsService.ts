@@ -23,6 +23,12 @@ export class FsServiceError extends Data.TaggedError('FsServiceError')<{
   readonly function: string;
   readonly filePath: string;
 }> {}
+/**
+ * Convert path string or URI to URI, handling both file:// and other schemes like memfs://
+ * @param filePath - Either a URI object, URI string (e.g., "memfs:/MyProject/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
+ * @returns A properly parsed VS Code URI
+ */
+const encoder = new TextEncoder();
 
 // capture readFile for use in readJSON
 const readFile = Effect.fn('fsService.readFile')(function* (filePath: string | URI) {
@@ -37,12 +43,36 @@ const readFile = Effect.fn('fsService.readFile')(function* (filePath: string | U
   });
 });
 
-const writeFile = Effect.fn('fsService.writeFile')(function* (filePath: string | URI, content: string) {
+/**
+ * Writes content to a file, creating the parent directory if it does not exist.
+ * Use `writeFile` instead when the directory is guaranteed to exist (e.g. bulk writes
+ * where directories are pre-created once) to avoid per-call `createDirectory` overhead.
+ */
+const safeWriteFile = Effect.fn('fsService.safeWriteFile')(function* (filePath: string | URI, content: string) {
   return yield* Effect.tryPromise({
     try: async () => {
       const uri = toUri(filePath);
       await vscode.workspace.fs.createDirectory(Utils.dirname(uri));
-      const uint8Array = new TextEncoder().encode(content);
+      await vscode.workspace.fs.writeFile(uri, encoder.encode(content));
+    },
+    catch: e =>
+      new FsServiceError({
+        ...unknownToErrorCause(e),
+        function: 'safeWriteFile',
+        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+      })
+  });
+});
+
+/**
+ * Writes content to a file. The parent directory must already exist.
+ * Call `createDirectory` or `safeWriteFile` first if the directory may not exist.
+ */
+const writeFile = Effect.fn('fsService.writeFile')(function* (filePath: string | URI, content: string) {
+  return yield* Effect.tryPromise({
+    try: async () => {
+      const uri = toUri(filePath);
+      const uint8Array = encoder.encode(content);
       await vscode.workspace.fs.writeFile(uri, uint8Array);
     },
     catch: e =>
@@ -77,7 +107,7 @@ const showTextDocument = Effect.fn('fsService.showTextDocument')(function* (
 ) {
   const uri = toUri(filePath);
   return yield* Effect.tryPromise({
-    try: () => vscode.window.showTextDocument(vscode.Uri.parse(uri.toString()), options),
+    try: () => vscode.window.showTextDocument(uri, options),
     catch: e =>
       new FsServiceError({
         ...unknownToErrorCause(e),
@@ -116,6 +146,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
             })
         }),
       /** Write file to filesystem, creating directories if they don't exist */
+      safeWriteFile,
       writeFile,
       fileOrFolderExists,
       /** Open the file at the given path in an editor tab. Options passed to vscode.window.showTextDocument (e.g. preview, viewColumn). */
@@ -129,8 +160,10 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           Effect.catchAll(() => Effect.succeed(false))
         ),
       /** create a directory.  Creates any parent directories necessary.  Safe if directory already exists. */
-      createDirectory: (dirPath: string | URI) =>
-        Effect.tryPromise({
+      createDirectory: Effect.fn('fsService.createDirectory')(function* (dirPath: string | URI) {
+        const path = UriOrStringToString(dirPath);
+        yield* Effect.annotateCurrentSpan({ filePath: path });
+        return yield* Effect.tryPromise({
           try: async () => {
             await vscode.workspace.fs.createDirectory(toUri(dirPath));
           },
@@ -138,9 +171,10 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
             new FsServiceError({
               ...unknownToErrorCause(e),
               function: 'createDirectory',
-              filePath: UriOrStringToString(dirPath)
+              filePath: path
             })
-        }),
+        }).pipe(Effect.tapError(err => Effect.annotateCurrentSpan({ 'error.message': err.cause.message })));
+      }),
       deleteFile: (filePath: string, options = {}) =>
         Effect.tryPromise({
           try: async () => {

@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/effect-ext-utils",
-  "version": "66.0.3",
+  "version": "66.1.1",
   "description": "Utility functions and helpers for Effect-based VS Code extensions",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -33,6 +33,7 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
       "files": [
@@ -92,7 +93,8 @@
     }
   },
   "dependencies": {
-    "effect": "^3.19.14",
+    "@salesforce/vscode-i18n": "*",
+    "effect": "^3.19.19",
     "@types/vscode": "^1.90.0"
   }
 }

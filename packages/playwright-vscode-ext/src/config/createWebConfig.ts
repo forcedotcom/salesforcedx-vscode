@@ -6,38 +6,31 @@
  */
 
 import { defineConfig, devices } from '@playwright/test';
-import { createServer } from 'node:net';
 
 type WebConfigOptions = {
   /** Test directory relative to extension root (default: './test/playwright/specs') */
   testDir?: string;
+  /** Number of parallel workers (default: unset unless E2E_SEQUENTIAL) */
+  workers?: number;
+  /** Run tests in parallel (default: !E2E_SEQUENTIAL) */
+  fullyParallel?: boolean;
+  /** Per-test timeout in ms (default: 360_000) */
+  timeout?: number;
 };
 
-/** Binds to port 0 to let the OS assign a free port, then closes the listener. */
-const getFreePort = (): Promise<number> =>
-  new Promise((resolve, reject) => {
-    const server = createServer();
-    server.listen(0, () => {
-      const { port } = server.address() as { port: number };
-      server.close(() => resolve(port));
-    });
-    server.on('error', reject);
-  });
-
 /** Creates a standardized Playwright web config for VS Code extension testing */
-export const createWebConfig = async (options: WebConfigOptions = {}) => {
-  const port = process.env.CI ? 3001 : await getFreePort();
-  return defineConfig({
+export const createWebConfig = (options: WebConfigOptions = {}) =>
+  defineConfig({
     testDir: options.testDir ?? './test/playwright/specs',
-    fullyParallel: !process.env.E2E_SEQUENTIAL,
+    fullyParallel: options.fullyParallel ?? !process.env.E2E_SEQUENTIAL,
     forbidOnly: !!process.env.CI,
-    ...(process.env.E2E_SEQUENTIAL ? { workers: 1 } : {}), // Sequential when E2E_SEQUENTIAL=1 (used for retry step)
+    ...(options.workers ? { workers: options.workers } : process.env.E2E_SEQUENTIAL ? { workers: 1 } : {}),
     reporter: process.env.CI
       ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit.xml' }]]
       : [['html', { open: 'never' }], ['list']],
     use: {
       viewport: { width: 1920, height: 1080 },
-      baseURL: `http://localhost:${port}`,
+      baseURL: 'http://localhost:3001',
       trace: process.env.CI ? 'on' : 'on-first-retry',
       screenshot: process.env.CI ? 'on' : 'only-on-failure',
       video: process.env.CI ? 'on' : 'retain-on-failure',
@@ -53,7 +46,7 @@ export const createWebConfig = async (options: WebConfigOptions = {}) => {
         ]
       }
     },
-    timeout: process.env.DEBUG_MODE ? 0 : 360 * 1000,
+    timeout: process.env.DEBUG_MODE ? 0 : options.timeout ?? 360 * 1000,
     maxFailures: process.env.CI ? 3 : 0,
     projects: [
       {
@@ -66,10 +59,11 @@ export const createWebConfig = async (options: WebConfigOptions = {}) => {
       }
     ],
     webServer: {
-      command: `PORT=${port} node out/test/playwright/web/headlessServer.js`,
-      url: `http://localhost:${port}`,
+      command: 'node out/test/playwright/web/headlessServer.js',
+      url: 'http://localhost:3001',
       timeout: 120 * 1000,
-      reuseExistingServer: !process.env.CI
+      // Always start fresh. Reusing run:web (port 3001) causes EPIPE/premature close when test process
+      // expects to control the server lifecycle.
+      reuseExistingServer: false
     }
   });
-};

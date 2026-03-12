@@ -39,6 +39,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'theme-defaults/themes', // VS Code theme loading failures
   'light_modern.json', // VS Code theme file loading
   'Failed to fetch', // Generic fetch failures (often for optional resources)
+  'tsserver.web.js', // TypeScript language features extension (UriError: Scheme contains illegal characters)
+  'typescript-language-features', // TS extension console/URI errors in web
   'NO_COLOR', // Node.js color env var warnings
   'Content Security Policy', // CSP violations from VS Code webviews (non-critical UI errors)
   'Applying inline style violates', // CSP inline style errors from VS Code UI
@@ -65,7 +67,8 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'vscode-unpkg.net', // VS Code extension marketplace CDN
   'scratchOrgInfo', // asking the org if it's a devhub during auth ?
   'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
-  '.a4drules' // @salesforce/templates optional project template assets (reactb2e/reactb2x) not bundled for Apex
+  '.a4drules', // @salesforce/templates optional project template assets (reactb2e/reactb2x) not bundled for Apex
+  'typescript-language-features' // TS extension 404s for package.json etc in web
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
@@ -281,6 +284,38 @@ export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
 };
 
 /**
+ * Wait for all VS Code extensions to finish activating by watching the
+ * "Developer: Show Running Extensions" editor.  More reliable than polling
+ * the command palette, especially on slow CI runners (e.g. Windows).
+ *
+ * While an extension is activating its row contains the text "Activating".
+ * Once done the row shows "Activation: Xms" / "Startup Activation: Xms".
+ * We wait until no rows contain "Activating" any more.
+ *
+ * @param timeout - Maximum ms to wait for all extensions to activate (default 120 000).
+ */
+export const waitForExtensionsActivated = async (page: Page, timeout = 120_000): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Developer: Show Running Extensions');
+
+  // The editor container gets class "runtime-extensions-editor" via createEditor()
+  const editor = page.locator('.runtime-extensions-editor');
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+
+  // Wait for the list to populate (at least one row rendered)
+  const rows = editor.locator('.monaco-list-row');
+  await expect(rows).not.toHaveCount(0, { timeout: 30_000 });
+
+  // Wait until no row still contains "Activating" text
+  const stillActivating = rows.filter({ hasText: 'Activating' });
+  await expect(stillActivating).toHaveCount(0, { timeout });
+
+  // Close the Running Extensions tab via command palette (cross-platform, no hover needed)
+  const tab = page.getByRole('tab', { name: /Running Extensions/i });
+  await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+  await tab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+};
+
+/**
  * Ensure the secondary sidebar (auxiliary bar, typically used for Chat/Copilot) is hidden.
  * This is idempotent - only hides if currently visible, avoiding toggle state issues.
  * Useful to prevent keystrokes from going to chat input instead of editor.
@@ -294,6 +329,8 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
   const isVisible = await auxiliaryBar.isVisible().catch(() => false);
 
   if (isVisible) {
+    // Focus workbench before opening palette (avoids F1/keystrokes going to auxiliary bar chat input)
+    await page.locator(WORKBENCH).click({ timeout: 5000 });
     // Use the explicit Hide command (not Toggle) to ensure we're hiding
     await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
 

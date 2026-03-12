@@ -4,6 +4,8 @@ description: Iterating on Playwright tests
 
 # Iterating Playwright Tests
 
+Scratch org setup: see `references/local-setup.md`.
+
 ## sequence
 
 1. run `web` locally (use `--retries 0`, follow debugging tips)

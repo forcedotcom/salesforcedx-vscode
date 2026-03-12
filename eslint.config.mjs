@@ -577,6 +577,7 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-vscode-uri': 'error',
 
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',
@@ -644,7 +645,9 @@ export default [
       'packages/salesforcedx-vscode-metadata/playwright*.ts',
       'packages/salesforcedx-vscode-apex-log/playwright*.ts',
       'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
-      'packages/salesforcedx-vscode-core/playwright*.ts'
+      'packages/salesforcedx-vscode-core/playwright*.ts',
+      'packages/salesforcedx-vscode-soql/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-soql/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
@@ -707,6 +710,7 @@ export default [
     rules: {
       ...jsonPlugin.configs.recommended.rules,
       'local/package-json-i18n-descriptions': 'error',
+      'local/package-json-extension-icon': 'error',
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error'

@@ -19,6 +19,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
+import { TEST_RUN_TIMEOUT } from '../contants';
 
 // Selectors for Test Explorer UI elements
 const TEST_EXPLORER_PANEL = '[id="workbench.view.extension.test"]';
@@ -68,7 +69,7 @@ const expandNamespaceAndPackage = async (panel: Locator): Promise<void> => {
 };
 
 test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -101,6 +102,8 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await testExplorerPanel.waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step.explorer-visible.png');
     await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
+    // Discovery clears and rebuilds the tree async; wait for rebuild to settle
+    await page.waitForTimeout(1000);
     await saveScreenshot(page, 'step.tests-refreshed.png');
     // Wait for discovery to populate the tree (top-level "Local Namespace" node)
     await expect(testExplorerPanel.getByText(LOCAL_NAMESPACE_LABEL)).toBeVisible({ timeout: 60_000 });
@@ -125,7 +128,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await saveScreenshot(page, 'step.test-results-tab.png');
     await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');
     await saveScreenshot(page, 'step.panel-maximized.png');
-    await expect(page.getByText(testClassName).first()).toBeVisible({ timeout: 180_000 });
+    await expect(page.getByText(testClassName).first()).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.results-visible.png');
     await expect(page.getByText(/passed|Passed/i)).toBeVisible({ timeout: 60_000 });
     await saveScreenshot(page, 'step.run-done.png');

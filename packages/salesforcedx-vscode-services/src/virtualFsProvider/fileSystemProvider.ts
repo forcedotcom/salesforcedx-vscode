@@ -18,7 +18,7 @@ import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
 import * as vscode from 'vscode';
-import { type URI, Utils } from 'vscode-uri';
+import { Utils, type URI } from 'vscode-uri';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { unknownToErrorCause } from '../core/shared';
 import { joinPathWithBase } from '../vscode/uriUtils';
@@ -44,7 +44,7 @@ const suffixFromPath = (uri: URI): string | undefined => {
 };
 
 /** Effect that uses MetadataRegistryService (cached) to resolve metadata type from URI */
-export const isItReadOnly = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
+export const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
   if (readOnlyTypes.length === 0) return false;
   const suffix = suffixFromPath(uri);
   if (!suffix) return false;
@@ -79,7 +79,7 @@ export class FsProvider implements vscode.FileSystemProvider {
         ctime: stats.ctimeMs,
         mtime: stats.mtimeMs,
         size: stats.size,
-        ...(isItReadOnly(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)
+        ...(isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)
           ? { permissions: vscode.FilePermission.Readonly }
           : {})
       };
@@ -120,7 +120,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): Promise<void> {
-    if (isItReadOnly(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
     const program = Effect.sync(() => {
@@ -147,7 +147,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async delete(uri: URI, options: { recursive: boolean }): Promise<void> {
-    if (isItReadOnly(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
     await fs.promises.rm(uri.path, { recursive: options.recursive, force: true });
@@ -155,7 +155,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async rename(oldUri: URI, newUri: URI, options: { overwrite: boolean }): Promise<void> {
-    if (isItReadOnly(this.readOnly, oldUri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnlyEffect(this.readOnly, oldUri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(oldUri);
     }
     if (!options.overwrite && this.exists(newUri)) {

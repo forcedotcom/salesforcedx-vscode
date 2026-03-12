@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   CancelResponse,
   ContinueResponse,
   notificationService,
   PostconditionChecker,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { URI } from 'vscode-uri';
@@ -98,7 +98,7 @@ export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[
   const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
 
   const commandlet = new SfCommandlet<string[]>(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new LibraryPathsGatherer(resolvedUris),
     new LibraryRetrieveSourcePathExecutor(),
     new SourcePathChecker()

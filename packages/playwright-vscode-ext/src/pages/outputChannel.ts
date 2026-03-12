@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { isMacDesktop } from '../utils/helpers';
+import { isDesktop, isMacDesktop } from '../utils/helpers';
 import {
   EDITOR,
   CONTEXT_MENU,
@@ -21,13 +21,10 @@ import { openCommandPalette } from './commands';
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
 const outputPanelCodeArea = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-lines`);
-const filterInput = (page: Page) => page.getByPlaceholder(/Filter \(e\.g\./i).first();
+// Filter input lives in "Output actions" toolbar, a sibling of [id="workbench.panel.output"] -- not inside it
+const filterInput = (page: Page) => page.getByRole('textbox', { name: /Filter \(e\.g\./ }).first();
 
 const ensureOutputFilterReady = async (page: Page, timeout: number) => {
-  const panel = outputPanel(page);
-  const outputTab = panel.getByRole('tab', { name: /Output/i }).first();
-  const tabVisible = await outputTab.isVisible().catch(() => false);
-  if (tabVisible) await outputTab.hover({ force: true });
   const input = filterInput(page);
   await expect(input, 'Output filter should be visible and usable').toBeVisible({ timeout });
   return input;
@@ -55,25 +52,56 @@ const waitForOutputContent = async (page: Page, timeout: number): Promise<boolea
   }
 };
 
+// WORKAROUND: Output channel filter doesn't work on desktop electron for content that streams in
+// after the panel opens. Scroll through the output to find the text instead.
+// Remove this when VS Code fixes desktop output channel filtering for streamed content.
+const waitForOutputChannelTextDesktopWorkaround = async (
+  page: Page,
+  expectedText: string,
+  timeout: number
+): Promise<void> => {
+  const codeArea = outputPanelCodeArea(page);
+  // force: true — Output actions toolbar overlays the code area and intercepts pointer events
+  await codeArea.click({ force: true });
+  const PAGE_STEPS = 50;
+  await expect(async () => {
+    // Sweep top→bottom then bottom→top so we catch text regardless of where it appears
+    await page.keyboard.press('Control+Home');
+    for (let i = 0; i < PAGE_STEPS; i++) {
+      if ((await getAllOutputText(page)).includes(expectedText)) return;
+      await page.keyboard.press('PageDown');
+    }
+    await page.keyboard.press('Control+End');
+    for (let i = 0; i < PAGE_STEPS; i++) {
+      if ((await getAllOutputText(page)).includes(expectedText)) return;
+      await page.keyboard.press('PageUp');
+    }
+    throw new Error(`Expected "${expectedText}" in output`);
+  }).toPass({ timeout });
+};
+
 /** wait for output channel to contain text. Throws if not found. Assumes output has content. */
 const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, timeout: number): Promise<void> => {
+  if (isDesktop()) {
+    await waitForOutputChannelTextDesktopWorkaround(page, expectedText, timeout);
+    return;
+  }
   const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
   try {
     await expect(async () => {
-      await input.click({ force: true });
-      await input.fill('', { force: true });
-      await expect(input).toHaveValue('', { timeout: 5000 });
-      await page.keyboard.press('Enter');
-      await input.fill(expectedText, { force: true });
+      await input.focus();
+      await input.fill('');
+      await input.press('Enter');
+      await input.fill(expectedText);
       await expect(input).toHaveValue(expectedText, { timeout: 5000 });
-      await page.keyboard.press('Enter');
+      await input.press('Enter');
       const combinedText = await getAllOutputText(page);
       expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
     }).toPass({ timeout });
   } finally {
-    await input.click({ force: true }).catch(() => {});
-    await input.fill('', { force: true }).catch(() => {});
-    await page.keyboard.press('Enter').catch(() => {});
+    await input.focus().catch(() => {});
+    await input.fill('').catch(() => {});
+    await input.press('Enter').catch(() => {});
   }
 };
 

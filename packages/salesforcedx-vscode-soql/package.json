@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.0.3",
+  "version": "66.1.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -36,10 +36,11 @@
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/core": "^8.27.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "*",
+    "@salesforce/effect-ext-utils": "*",
+    "effect": "^3.19.19",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
-    "@salesforce/soql-language-server": "0.7.1",
+    "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
@@ -48,6 +49,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/core": "^8.23.2",
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.3.0",
@@ -62,6 +64,7 @@
     "@rollup/plugin-terser": "^0.4.0",
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
+    "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
@@ -70,10 +73,10 @@
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
     "rxjs": "^7.8.2",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -84,6 +87,13 @@
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
     "test:soql-builder-ui": "wireit",
+    "run:web": "wireit",
+    "test:web": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:debug": "npm run test:web -- --debug",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
@@ -94,18 +104,22 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../soql-common:compile",
-        "../salesforcedx-sobjects-faux-generator:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "../soql-common/out/**",
+        "../salesforcedx-utils-vscode/out/**",
+        "../salesforcedx-vscode-i18n/out/**",
+        "../salesforcedx-utils/out/**",
+        "../salesforcedx-vscode-services/out/**"
       ],
       "output": [
         "out/**",
@@ -152,6 +166,7 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"
@@ -159,6 +174,36 @@
       "output": [
         "dist"
       ]
+    },
+    "vscode:bundle:local": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "copy:grammars",
+        "build:soql-builder-ui",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "out/**",
+        "src/soql-builder-ui/dist/**",
+        "src/soql-data-view/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "run:web": {
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "service": true,
+      "dependencies": [
+        "vscode:bundle:local",
+        "../salesforcedx-vscode-services:vscode:bundle:local",
+        "../salesforcedx-vscode-metadata:vscode:bundle:local"
+      ],
+      "files": []
     },
     "test": {
       "command": "jest --coverage",
@@ -189,6 +234,47 @@
       ],
       "output": []
     },
+    "test:web": {
+      "command": "playwright test --config=playwright.config.web.ts",
+      "dependencies": [
+        "compile",
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.web.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:web",
+        "test:desktop"
+      ]
+    },
     "vscode:package": {
       "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
@@ -209,6 +295,7 @@
     }
   },
   "main": "dist/index.js",
+  "browser": "dist/web/index.js",
   "contributes": {
     "customEditors": [
       {
