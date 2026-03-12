@@ -48,9 +48,9 @@ You would only do this once after you cloned the repository.
 1.  We develop on the `develop` branch and release from the `main` branch. At
     this point, you should do initiate a `git checkout -t origin/develop` unless
     you are working on releasing.
-1.  `npm install` to bring in all the top-level dependencies. Because of the
-    `postinstall` script, this also runs `npm run bootstrap` for you
-    automatically the first time.
+1.  `npm install` to bring in all the top-level dependencies. `postinstall` runs
+    wireit (peer-deps, ts project refs). Run `npm run bootstrap` to reinstall
+    deps if you change package.json.
 1.  Open the project in VS Code.
 
 You would usually do the following each time you close/reopen VS Code:
@@ -159,9 +159,8 @@ This run `npm run clean` on each of the package in packages.
 
 ### `npm run watch`
 
-This runs `npm run watch` on each of the package in packages. The `--parallel`
-flag tell it to run each in a separate process so that it won't block the main
-thread.
+Runs `npm run compile:watch` — tsc --build --watch for the monorepo (single
+process via project references).
 
 ### `npm run test`
 

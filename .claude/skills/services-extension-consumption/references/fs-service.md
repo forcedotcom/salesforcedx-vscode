@@ -95,11 +95,29 @@ yield* api.services.FsService.rename(oldPath, newPath);
 
 ### readJSON
 
-Read + parse JSON with schema validation. Standalone (not on FsService) due to Effect accessor limitation with generics:
+Read + parse JSON. Two options:
+
+**Without schema** — raw parse, result is `unknown`:
 
 ```typescript
-const data = yield* api.services.readJSON(filePath, schema);
+const text = yield* api.services.FsService.readFile(filePath);
+const data = JSON.parse(text) as MyType;
 ```
+
+**With Effect Schema** — validated and typed:
+
+```typescript
+import * as Schema from 'effect/Schema';
+
+const MyConfigSchema = Schema.Struct({
+  orgs: Schema.Record({ key: Schema.String, value: Schema.String })
+});
+
+const data = yield* api.services.FsService.readJSON(filePath, MyConfigSchema);
+// data is typed as { orgs: Record<string, string> }
+```
+
+Prefer the schema approach when customers might have corrupted JSON—validation fails with a clear error instead of silently returning bad data.
 
 ### toUri
 
