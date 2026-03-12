@@ -26,6 +26,7 @@
   "apex_test_template_prompt": "Select template type",
   "apex_generate_class_success": "Apex class created successfully",
   "apex_test_open_org_class_command_title": "Open in Virtual Editor",
+  "apex_test_refresh_title": "SFDX: Refresh Apex Tests",
   "apex_test_output_format_description": "Format for test result reports. Markdown provides rich formatting with tables and code blocks. Text provides plain text output for minimal environments.",
   "apex_test_output_format_markdown_description": "Markdown format with tables, code blocks, and rich formatting (default)",
   "apex_test_output_format_text_description": "Plain text format for minimal environments",
