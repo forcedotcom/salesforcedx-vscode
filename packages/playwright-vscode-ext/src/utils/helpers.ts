@@ -39,6 +39,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'theme-defaults/themes', // VS Code theme loading failures
   'light_modern.json', // VS Code theme file loading
   'Failed to fetch', // Generic fetch failures (often for optional resources)
+  'tsserver.web.js', // TypeScript language features extension (UriError: Scheme contains illegal characters)
+  'typescript-language-features', // TS extension console/URI errors in web
   'NO_COLOR', // Node.js color env var warnings
   'Content Security Policy', // CSP violations from VS Code webviews (non-critical UI errors)
   'Applying inline style violates', // CSP inline style errors from VS Code UI
@@ -65,7 +67,8 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'vscode-unpkg.net', // VS Code extension marketplace CDN
   'scratchOrgInfo', // asking the org if it's a devhub during auth ?
   'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
-  '.a4drules' // @salesforce/templates optional project template assets (reactb2e/reactb2x) not bundled for Apex
+  '.a4drules', // @salesforce/templates optional project template assets (reactb2e/reactb2x) not bundled for Apex
+  'typescript-language-features' // TS extension 404s for package.json etc in web
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
