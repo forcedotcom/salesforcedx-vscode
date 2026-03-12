@@ -36,16 +36,19 @@ const promptForOutputDir = Effect.fn('soqlFileCreate.promptForOutputDir')(functi
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
-  type DirItem = { label: string; description: string | undefined; uri: URI | undefined };
-
-  const rootItem: DirItem = { label: workspaceInfo.uri.fsPath, description: '(default)', uri: workspaceInfo.uri };
-  const customItem: DirItem = { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined };
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, 'scripts', 'soql');
 
   const selected = yield* Effect.promise(() =>
-    vscode.window.showQuickPick([rootItem, customItem], {
-      placeHolder: nls.localize('soql_output_dir_prompt'),
-      matchOnDescription: true
-    })
+    vscode.window.showQuickPick(
+      [
+        { label: defaultUri.fsPath, description: '(default)', uri: defaultUri },
+        { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined }
+      ],
+      {
+        placeHolder: nls.localize('soql_output_dir_prompt'),
+        matchOnDescription: true
+      }
+    )
   );
 
   if (!selected) return undefined;
@@ -83,10 +86,7 @@ const confirmOverwrite = Effect.fn('soqlFileCreate.confirmOverwrite')(function* 
   return choice === nls.localize('soql_overwrite_button');
 });
 
-const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(function* (
-  fileName: string,
-  outputDir: URI
-) {
+const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(function* (fileName: string, outputDir: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fileUri = Utils.joinPath(outputDir, `${fileName}.soql`);
 
