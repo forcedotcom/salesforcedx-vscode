@@ -275,6 +275,10 @@
           "when": "false"
         },
         {
+          "command": "sf.apex.test.refresh",
+          "when": "false"
+        },
+        {
           "command": "sf.apex.generate.unit.test.class",
           "when": "sf:project_opened"
         }
@@ -316,6 +320,10 @@
       {
         "command": "sf.apex.test.openOrgOnlyTest",
         "title": "%apex_test_open_org_class_command_title%"
+      },
+      {
+        "command": "sf.apex.test.refresh",
+        "title": "%apex_test_refresh_title%"
       },
       {
         "command": "sf.apex.generate.unit.test.class",
