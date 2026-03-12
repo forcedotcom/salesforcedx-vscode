@@ -310,6 +310,29 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       yield* PubSub.publish(traceFlagsChanged, flags);
     });
 
+    const changeTraceFlagDebugLevel = Effect.fn('TraceFlagService.changeTraceFlagDebugLevel')(function* (
+      traceFlagId: string,
+      newDebugLevelId: string
+    ) {
+      const conn = yield* connectionService.getConnection();
+      yield* Effect.tryPromise({
+        try: () =>
+          conn.tooling.update('TraceFlag', {
+            Id: traceFlagId,
+            DebugLevelId: newDebugLevelId
+          }),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new TraceFlagUpdateError({
+            message: `Failed to change trace flag debug level: ${cause.message}`,
+            cause: error
+          });
+        }
+      });
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
+    });
+
     const ensureTraceFlag = Effect.fn('TraceFlagService.ensureTraceFlag')(function* (
       userId: string,
       duration = Duration.minutes(30),
@@ -365,6 +388,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       createTraceFlag,
       updateTraceFlag,
       deleteTraceFlag,
+      changeTraceFlagDebugLevel,
       ensureTraceFlag,
       cleanupExpired,
       getOrCreateDebugLevel,
