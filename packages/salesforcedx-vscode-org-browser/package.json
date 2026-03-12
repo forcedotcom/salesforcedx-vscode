@@ -246,8 +246,7 @@
       "metadata": [
         {
           "id": "sfdxOrgBrowser",
-          "name": "%orgBrowser.view.name%",
-          "when": "!config.salesforcedx-vscode-core.useLegacyOrgBrowser"
+          "name": "%orgBrowser.view.name%"
         }
       ]
     },

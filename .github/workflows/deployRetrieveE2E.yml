@@ -36,11 +36,8 @@ on:
         type: string
 
 jobs:
-  orgBrowser:
-    if: ${{ inputs.orgBrowser }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'orgBrowser.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+  # orgBrowser.e2e.ts removed; new org browser has Playwright tests in org-browser package
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Legacy org browser e2e removed"

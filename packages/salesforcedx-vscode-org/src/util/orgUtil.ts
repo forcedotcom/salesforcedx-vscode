@@ -285,7 +285,7 @@ export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> =>
 };
 
 /** Determine the type of org (DevHub, Sandbox, Org, or Scratch) */
-export const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
+const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
   if (orgAuth.isDevHub) {
     return 'DevHub';
   } else if (authFields && !authFields.expirationDate) {
