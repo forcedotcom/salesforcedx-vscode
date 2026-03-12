@@ -46,9 +46,9 @@ The Salesforce Extension Pack installs these extensions.
   This extension (`salesforcedx-vscode-apex`) uses the Apex Language Server to provide features such as syntax highlighting and code completion.
 - [Apex Testing](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-testing)
   This extension (`salesforcedx-vscode-apex-testing`) provides Apex test execution and management features for VS Code.
-- [Apex OpenAPI Spec](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-oas)
+- [Apex OpenAPI Specification](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-oas)
   This extension (`salesforcedx-vscode-apex-oas`) provides OpenAPI spec support for Apex.
-- [Apex Log](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-log)
+- [Salesforce Apex Log](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-log)
   This extension (`salesforcedx-vscode-apex-log`) provides Apex debug log viewing and analysis.
 - [Apex Replay Debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)
   This extension (`salesforcedx-vscode-apex-replay-debugger`) enables VS Code to replay Apex execution from Apex debug logs.
