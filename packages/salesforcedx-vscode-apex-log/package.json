@@ -73,7 +73,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
