@@ -32,7 +32,7 @@ test.beforeEach(async ({ page }) => {
   await ensureSecondarySideBarHidden(page);
 });
 
-test('Org Browser - Foldered Report retrieval: foldered report headless: retrieve EBotR_v3 from unfiled$public', async ({
+test('Org Browser - Foldered Report retrieval: foldered report headless: retrieve flow_screen_prebuilt_report from unfiled$public', async ({
   page
 }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
@@ -69,7 +69,7 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
   await test.step('locate first report item in folder', async () => {
     const level3 = await orgBrowserPage.getMetadataItem(
       'unfiled$public',
-      'EBotR_v3',
+      'unfiled$public/flow_screen_prebuilt_report',
       3
     );
     const txt = (await level3.textContent())?.trim() ?? '';
@@ -85,7 +85,7 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
   await test.step('trigger retrieval on a single report', async () => {
     const reportItem = await orgBrowserPage.getMetadataItem(
       'unfiled$public',
-      'EBotR_v3',
+      'unfiled$public/flow_screen_prebuilt_report',
       3
     );
     const clicked = await orgBrowserPage.clickRetrieveButton(reportItem);
@@ -116,7 +116,7 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
   await test.step('override confirmation for a single report (if prompted)', async () => {
     const reportItem = await orgBrowserPage.getMetadataItem(
       'unfiled$public',
-      'EBotR_v3',
+      'unfiled$public/flow_screen_prebuilt_report',
       3
     );
     await orgBrowserPage.clickRetrieveButton(reportItem);
