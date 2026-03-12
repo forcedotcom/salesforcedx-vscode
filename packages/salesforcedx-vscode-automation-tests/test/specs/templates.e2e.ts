@@ -242,44 +242,7 @@ describe('Templates', () => {
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
-  // Lightning Web Component
-  it('Create Lightning Web Component', async () => {
-    logTestStart(testSetup, 'Create Lightning Web Component');
-    // Using the Command palette, run SFDX: Create Lightning Web Component.
-    await createCommand(
-      'Lightning Web Component',
-      'lightningWebComponent1',
-      path.join('lwc', 'lightningWebComponent1'),
-      'js'
-    );
-
-    // Check for expected items in the Explorer view.
-    const workbench = getWorkbench();
-
-    // Check for the presence of the directory, "lightningWebComponent1".
-    const filteredTreeViewItems = await getFilteredVisibleTreeViewItemLabels(
-      workbench,
-      projectName,
-      'lightningWebComponent1'
-    );
-    expect(filteredTreeViewItems.includes('lightningWebComponent1')).to.equal(true);
-    expect(filteredTreeViewItems.includes('lightningWebComponent1.html')).to.equal(true);
-    expect(filteredTreeViewItems.includes('lightningWebComponent1.js')).to.equal(true);
-    expect(filteredTreeViewItems.includes('lightningWebComponent1.js-meta.xml')).to.equal(true);
-  });
-
-  it('Verify the contents of the Lightning Web Component', async () => {
-    logTestStart(testSetup, 'Verify the contents of the Lightning Web Component');
-    const expectedText = [
-      "import { LightningElement } from 'lwc';",
-      '',
-      'export default class LightningWebComponent1 extends LightningElement {}'
-    ].join('\n');
-    const workbench = getWorkbench();
-    const textEditor = await getTextEditor(workbench, 'lightningWebComponent1.js');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
-    expect(textGeneratedFromTemplate).to.equal(expectedText);
-  });
+  // Lightning Web Component is covered in lwcGenerateComponent.headless.spec.ts
 
   // Visualforce Component
   it('Create a Visualforce Component', async () => {

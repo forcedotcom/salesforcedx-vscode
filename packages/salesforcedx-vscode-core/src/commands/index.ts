@@ -40,7 +40,6 @@ export {
   lightningGenerateAuraComponent,
   lightningGenerateEvent,
   lightningGenerateInterface,
-  lightningGenerateLwc,
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './templates';

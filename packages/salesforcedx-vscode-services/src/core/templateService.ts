@@ -111,9 +111,14 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
       const extensionUri = yield* getExtensionUri();
       const templatesRootUri = Utils.joinPath(extensionUri, 'dist', 'templates');
-      yield* ensureTemplatesInFs(templatesRootUri, templatesRootUri.fsPath);
+      // fsPath on non-file URIs returns platform-specific path (e.g. backslashes on Windows);
+      // memfs expects forward slashes. Use uri.path for http(s) extension URIs.
+      const templatesRootPath =
+        templatesRootUri.scheme === 'file' ? templatesRootUri.fsPath : templatesRootUri.path;
+      yield* ensureTemplatesInFs(templatesRootUri, templatesRootPath);
       const templateService = SfTemplates.TemplateService.getInstance(params.cwd, {
-        templatesRootPath: templatesRootUri.fsPath
+        templatesRootPath,
+        fs: nodeFs
       });
       const templateOptions = params.outputdir
         ? {
