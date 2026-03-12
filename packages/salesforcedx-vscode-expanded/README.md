@@ -11,12 +11,12 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 - **Salesforce CLI**
   Before you use Salesforce Extensions for VS Code, [set up Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup).
 - **A Salesforce DX project**
-  Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don’t work.
+  Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don't work.
   If you don't already have a Salesforce DX project, create one with the **SFDX: Create Project** command (for development against scratch orgs) or the **SFDX: Create Project with Manifest** command (for development against sandboxes or DE orgs). Or, see [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) for information about setting up a project using Salesforce CLI.
 - **Java Platform, Standard Edition Development Kit**
   Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have version 11 or higher of the JDK installed.
 
-  If you don’t already have version 11 or higher of the JDK installed, we recommend you install Java 21 from [Java 21 Downloads](https://www.oracle.com/java/technologies/downloads/#java21).
+  If you don't already have version 11 or higher of the JDK installed, we recommend you install Java 21 from [Java 21 Downloads](https://www.oracle.com/java/technologies/downloads/#java21).
 
   If you also use other versions of the JDK, set your VS Code user setting `salesforcedx-vscode-apex.java.home` to point to the location where you installed Java.
 
@@ -66,6 +66,6 @@ It also includes the following community-built extensions.
 
 ---
 
-Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](../../SHA256.md) to learn how to verify the extensions.
+Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions' Authenticity](../../SHA256.md) to learn how to verify the extensions.
 
 ---

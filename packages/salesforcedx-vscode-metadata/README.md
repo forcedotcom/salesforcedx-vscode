@@ -4,7 +4,7 @@ This extension provides metadata operations for Salesforce development in VS Cod
 
 ## Features
 
-- Metadata operations for Salesforce development (coming soon)
+- Deploy, retrieve, diff source; change tracking; Apex class generation; manifest operations
 
 ## Requirements
 

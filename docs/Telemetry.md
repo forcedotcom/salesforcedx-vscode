@@ -1,5 +1,7 @@
 # Telemetry
 
+What to track, disabling, adding: [contributing/telemetry.md](../contributing/telemetry.md).
+
 ## Old
 
 We have code to send telemetry to `o11y` (usage metrics for product use) and appInsights (metrics and raw logs for dev/support use).

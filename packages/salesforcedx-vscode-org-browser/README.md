@@ -17,8 +17,8 @@ npm install
 # Compile the extension
 npm run compile -w salesforcedx-vscode-org-browser
 
-# Run web tests (headless)
-npm run test:web:headless -w salesforcedx-vscode-org-browser
+# Run web tests (headless by default)
+npm run test:web -w salesforcedx-vscode-org-browser
 
 # Run desktop tests (Electron UI always visible)
 npm run test:desktop -w salesforcedx-vscode-org-browser
@@ -27,7 +27,7 @@ npm run test:desktop -w salesforcedx-vscode-org-browser
 npm run test:e2e -w salesforcedx-vscode-org-browser
 
 # Run web tests with headed browser for debugging
-npm run test:web -w salesforcedx-vscode-org-browser
+npm run test:web:ui -w salesforcedx-vscode-org-browser
 ```
 
 #### Environment Setup

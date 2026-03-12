@@ -29,4 +29,5 @@ Fix docs when code/config/scripts change. Run in background; fix directly; repor
 
 ## Style
 
-Apply concise skill: fragments/bullets, remove words, cut repetition. See .claude/skills/concise/SKILL.md.
+- **.claude/, .cursor/rules/, docs/, contributing/**: Apply concise skill (fragments, remove words). See .claude/skills/concise/SKILL.md.
+- **packages/**/README.md**: Customer-facing, marketplace. Use full sentences, original tone. Do NOT apply concise.
