@@ -18,7 +18,7 @@ Scratch org setup: see `references/local-setup.md`.
 After passing, clean up while keeping tests passing:
 
 1. remove fallbacks, waits, "try another way"
-2. align with `coding-playwright-tests.mdc` rules
+2. align with `coding-playwright-tests.md` rules
 3. consolidate locators, increase DRY/reuse
 4. ensure playwright-ext exports are used by other extensions
 5. verify compile/lint pass (`@.claude/skills/verification/`)
