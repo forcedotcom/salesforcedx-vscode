@@ -27,8 +27,7 @@ import {
   type WorkspaceDeleteFileResult
 } from './lspCustomRequests';
 
-const errorMessage = (e: unknown): string =>
-  e instanceof Error ? e.message : String(e);
+const errorMessage = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 const isVscodeFileStat = (x: unknown): x is vscode.FileStat =>
   typeof x === 'object' && x !== null && 'type' in x && 'ctime' in x && 'mtime' in x && 'size' in x;
@@ -53,8 +52,7 @@ const getFs = Effect.flatMap(getServicesApi, api =>
   Effect.provide(api.services.FsService, api.services.FsService.Default)
 );
 
-const logTo = (channel: vscode.OutputChannel, msg: string) =>
-  Effect.sync(() => channel.appendLine(msg));
+const logTo = (channel: vscode.OutputChannel, msg: string) => Effect.sync(() => channel.appendLine(msg));
 
 /**
  * Register the workspace/readFile LSP request handler so the language server can request
@@ -68,108 +66,95 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
   const log = vscode.window.createOutputChannel('LWC workspace (client)');
   const findFilesLog = vscode.window.createOutputChannel('LWC workspace/findFiles (client)');
 
-  const handleReadFile = Effect.fn('WorkspaceHandler.readFile')(
-    function* (params: WorkspaceReadFileParams) {
-      const { uri } = params;
-      yield* logTo(log, `[readFile] request uri=${uri}`);
-      const fs = yield* getFs;
-      const content = yield* fs.readFile(uri);
-      yield* logTo(log, '[readFile] success');
-      return { content };
-    }
+  const handleReadFile = Effect.fn('WorkspaceHandler.readFile')(function* (params: WorkspaceReadFileParams) {
+    const { uri } = params;
+    yield* logTo(log, `[readFile] request uri=${uri.toString()}`);
+    const fs = yield* getFs;
+    const content = yield* fs.readFile(uri);
+    yield* logTo(log, '[readFile] success');
+    return { content };
+  });
+
+  const handleStat = Effect.fn('WorkspaceHandler.stat')(function* (params: WorkspaceStatParams) {
+    const { uri } = params;
+    yield* logTo(log, `[stat] request uri=${uri.toString()}`);
+    const fs = yield* getFs;
+    const vstat = yield* fs.stat(uri.toString());
+    if (!isVscodeFileStat(vstat)) yield* Effect.fail(new Error('Invalid stat result'));
+    const stat = vscodeStatToFileStat(vstat);
+    yield* logTo(log, `[stat] success uri=${uri.toString()} type=${stat.type} size=${stat.size}`);
+    return { stat };
+  });
+
+  const handleReadDirectory = Effect.fn('WorkspaceHandler.readDirectory')(function* (
+    params: WorkspaceReadDirectoryParams
+  ) {
+    const { uri } = params;
+    yield* logTo(log, `[readDirectory] request uri=${uri.toString()}`);
+    const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(uri));
+    const result: DirectoryEntry[] = entries.map(([name, fileType]) => ({
+      name,
+      type: vscodeFileTypeToStatType(fileType),
+      uri: vscode.Uri.joinPath(uri, name).toString()
+    }));
+    yield* logTo(log, `[readDirectory] success uri=${uri.toString()} entries=${result.length}`);
+    return { entries: result };
+  });
+
+  const handleFindFiles = Effect.fn('WorkspaceHandler.findFiles')(function* (params: WorkspaceFindFilesParams) {
+    const { baseFolderUri, pattern } = params;
+    const baseUri = vscode.Uri.parse(baseFolderUri);
+    yield* logTo(
+      findFilesLog,
+      `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern} scheme=${baseUri.scheme}`
+    );
+    yield* logTo(log, `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern}`);
+    const fs = yield* getFs;
+    const uris = yield* fs.findFiles(new vscode.RelativePattern(baseUri, pattern));
+    const urisStr = uris.map((u: vscode.Uri) => u.toString());
+    yield* logTo(findFilesLog, `[findFiles] returned ${urisStr.length} uris`);
+    yield* logTo(log, `[findFiles] success pattern=${pattern} uris=${urisStr.length}`);
+    return { uris: urisStr };
+  });
+
+  const handleDeleteFile = Effect.fn('WorkspaceHandler.deleteFile')(function* (params: WorkspaceDeleteFileParams) {
+    const { uri } = params;
+    yield* logTo(log, `[deleteFile] request uri=${uri}`);
+    const fs = yield* getFs;
+    yield* fs.deleteFile(uri);
+    yield* logTo(log, `[deleteFile] success uri=${uri}`);
+    return {};
+  });
+
+  client.onRequest<WorkspaceReadFileParams, WorkspaceReadFileResult>(WORKSPACE_READ_FILE_REQUEST, params =>
+    handleReadFile(params).pipe(
+      Effect.catchAll(e =>
+        Effect.sync(() => {
+          log.appendLine(`[readFile] error: ${errorMessage(e)}`);
+          return { error: errorMessage(e) };
+        })
+      ),
+      Effect.runPromise
+    )
   );
 
-  const handleStat = Effect.fn('WorkspaceHandler.stat')(
-    function* (params: WorkspaceStatParams) {
-      const { uri } = params;
-      yield* logTo(log, `[stat] request uri=${uri}`);
-      const fs = yield* getFs;
-      const vstat = yield* fs.stat(uri);
-      if (!isVscodeFileStat(vstat)) yield* Effect.fail(new Error('Invalid stat result'));
-      const stat = vscodeStatToFileStat(vstat);
-      yield* logTo(log, `[stat] success uri=${uri} type=${stat.type} size=${stat.size}`);
-      return { stat };
-    }
-  );
-
-  const handleReadDirectory = Effect.fn('WorkspaceHandler.readDirectory')(
-    function* (params: WorkspaceReadDirectoryParams) {
-      const { uri: uriStr } = params;
-      yield* logTo(log, `[readDirectory] request uri=${uriStr}`);
-      const uri = vscode.Uri.parse(uriStr);
-      const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(uri));
-      const result: DirectoryEntry[] = entries.map(([name, fileType]) => ({
-        name,
-        type: vscodeFileTypeToStatType(fileType),
-        uri: vscode.Uri.joinPath(uri, name).toString()
-      }));
-      yield* logTo(log, `[readDirectory] success uri=${uriStr} entries=${result.length}`);
-      return { entries: result };
-    }
-  );
-
-  const handleFindFiles = Effect.fn('WorkspaceHandler.findFiles')(
-    function* (params: WorkspaceFindFilesParams) {
-      const { baseFolderUri, pattern } = params;
-      const baseUri = vscode.Uri.parse(baseFolderUri);
-      yield* logTo(
-        findFilesLog,
-        `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern} scheme=${baseUri.scheme}`
-      );
-      yield* logTo(log, `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern}`);
-      const fs = yield* getFs;
-      const uris = yield* fs.findFiles(new vscode.RelativePattern(baseUri, pattern));
-      const urisStr = uris.map((u: vscode.Uri) => u.toString());
-      yield* logTo(findFilesLog, `[findFiles] returned ${urisStr.length} uris`);
-      yield* logTo(log, `[findFiles] success pattern=${pattern} uris=${urisStr.length}`);
-      return { uris: urisStr };
-    }
-  );
-
-  const handleDeleteFile = Effect.fn('WorkspaceHandler.deleteFile')(
-    function* (params: WorkspaceDeleteFileParams) {
-      const { uri } = params;
-      yield* logTo(log, `[deleteFile] request uri=${uri}`);
-      const fs = yield* getFs;
-      yield* fs.deleteFile(uri);
-      yield* logTo(log, `[deleteFile] success uri=${uri}`);
-      return {};
-    }
-  );
-
-  client.onRequest<WorkspaceReadFileParams, WorkspaceReadFileResult>(
-    WORKSPACE_READ_FILE_REQUEST,
-    (params) =>
-      handleReadFile(params).pipe(
-        Effect.catchAll(e =>
-          Effect.sync(() => {
-            log.appendLine(`[readFile] error: ${errorMessage(e)}`);
-            return { error: errorMessage(e) };
-          })
-        ),
-        Effect.runPromise
-      )
-  );
-
-  client.onRequest<WorkspaceStatParams, WorkspaceStatResult>(
-    WORKSPACE_STAT_REQUEST,
-    (params) =>
-      handleStat(params).pipe(
-        Effect.catchAll(e =>
-          Effect.sync(() => {
-            log.appendLine(
-              `[stat] error uri=${params.uri}: ${errorMessage(e) || `(no message) left=${JSON.stringify(e)}`}`
-            );
-            return { error: errorMessage(e) || 'Unknown stat error' };
-          })
-        ),
-        Effect.runPromise
-      )
+  client.onRequest<WorkspaceStatParams, WorkspaceStatResult>(WORKSPACE_STAT_REQUEST, params =>
+    handleStat(params).pipe(
+      Effect.catchAll(e =>
+        Effect.sync(() => {
+          log.appendLine(
+            `[stat] error uri=${params.uri.toString()}: ${errorMessage(e) || `(no message) left=${JSON.stringify(e)}`}`
+          );
+          return { error: errorMessage(e) || 'Unknown stat error' };
+        })
+      ),
+      Effect.runPromise
+    )
   );
 
   client.onRequest<WorkspaceReadDirectoryParams, WorkspaceReadDirectoryResult>(
     WORKSPACE_READ_DIRECTORY_REQUEST,
-    (params) =>
+    params =>
       handleReadDirectory(params).pipe(
         Effect.catchAll(e =>
           Effect.sync(() => {
@@ -181,36 +166,32 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
       )
   );
 
-  client.onRequest<WorkspaceFindFilesParams, WorkspaceFindFilesResult>(
-    WORKSPACE_FIND_FILES_REQUEST,
-    (params) =>
-      handleFindFiles(params).pipe(
-        Effect.catchAll(e =>
-          Effect.sync(() => {
-            const message = errorMessage(e);
-            const stack = e instanceof Error ? e.stack : undefined;
-            findFilesLog.appendLine(`[findFiles] error: ${message}`);
-            if (stack) findFilesLog.appendLine(`[findFiles] stack: ${stack}`);
-            findFilesLog.appendLine('[findFiles] returning undefined');
-            log.appendLine(`[findFiles] error: ${message}`);
-            return { uris: undefined };
-          })
-        ),
-        Effect.runPromise
-      )
+  client.onRequest<WorkspaceFindFilesParams, WorkspaceFindFilesResult>(WORKSPACE_FIND_FILES_REQUEST, params =>
+    handleFindFiles(params).pipe(
+      Effect.catchAll(e =>
+        Effect.sync(() => {
+          const message = errorMessage(e);
+          const stack = e instanceof Error ? e.stack : undefined;
+          findFilesLog.appendLine(`[findFiles] error: ${message}`);
+          if (stack) findFilesLog.appendLine(`[findFiles] stack: ${stack}`);
+          findFilesLog.appendLine('[findFiles] returning undefined');
+          log.appendLine(`[findFiles] error: ${message}`);
+          return { uris: undefined };
+        })
+      ),
+      Effect.runPromise
+    )
   );
 
-  client.onRequest<WorkspaceDeleteFileParams, WorkspaceDeleteFileResult>(
-    WORKSPACE_DELETE_FILE_REQUEST,
-    (params) =>
-      handleDeleteFile(params).pipe(
-        Effect.catchAll(e =>
-          Effect.sync(() => {
-            log.appendLine(`[deleteFile] error: ${errorMessage(e)}`);
-            return { error: errorMessage(e) };
-          })
-        ),
-        Effect.runPromise
-      )
+  client.onRequest<WorkspaceDeleteFileParams, WorkspaceDeleteFileResult>(WORKSPACE_DELETE_FILE_REQUEST, params =>
+    handleDeleteFile(params).pipe(
+      Effect.catchAll(e =>
+        Effect.sync(() => {
+          log.appendLine(`[deleteFile] error: ${errorMessage(e)}`);
+          return { error: errorMessage(e) };
+        })
+      ),
+      Effect.runPromise
+    )
   );
 };

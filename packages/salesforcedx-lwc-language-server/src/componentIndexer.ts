@@ -100,13 +100,10 @@ const findFilesWithGlob = async (
     return [];
   }
 
-  const merged = new Set<NormalizedPath>();
-  for (const p of patterns) {
-    const uris = await fileSystemAccessor.findFilesWithGlobAsync(p, normalizedBasePath);
-    if (uris) {
-      uris.forEach(uri => merged.add(uri));
-    }
-  }
+  const uris = await Promise.all(
+    patterns?.map(async p => await fileSystemAccessor.findFilesWithGlobAsync(p, normalizedBasePath))
+  );
+  const merged = new Set<NormalizedPath>(uris?.flat().filter((uri): uri is NormalizedPath => uri !== undefined));
   const candidateUris = Array.from(merged);
 
   const basePathLower = normalizedBasePath.toLowerCase();

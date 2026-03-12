@@ -6,7 +6,7 @@
  */
 
 import type { DirectoryEntry, FileStat } from './types/fileSystemTypes';
-
+import type { URI } from 'vscode-uri';
 /**
  * Custom LSP request: client (extension) reads file via FsService and returns content.
  * Server sends this request when LspFileSystemAccessor is configured
@@ -16,7 +16,7 @@ export const WORKSPACE_READ_FILE_REQUEST = 'workspace/readFile' as const;
 
 export interface WorkspaceReadFileParams {
   /** File URI to read (file:// or memfs://). */
-  uri: string;
+  uri: URI;
 }
 
 export interface WorkspaceReadFileResult {
@@ -33,7 +33,7 @@ export const WORKSPACE_STAT_REQUEST = 'workspace/stat' as const;
 
 export interface WorkspaceStatParams {
   /** File or directory URI (file:// or memfs://). */
-  uri: string;
+  uri: URI;
 }
 
 export interface WorkspaceStatResult {
@@ -50,7 +50,7 @@ export const WORKSPACE_READ_DIRECTORY_REQUEST = 'workspace/readDirectory' as con
 
 export interface WorkspaceReadDirectoryParams {
   /** Directory URI (file:// or memfs://). */
-  uri: string;
+  uri: URI;
 }
 
 export interface WorkspaceReadDirectoryResult {

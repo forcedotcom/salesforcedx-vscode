@@ -178,7 +178,7 @@ export const getModulesDirs = async (
     }
     case 'CORE_ALL':
       // For CORE_ALL, return the modules directories for each project
-      const projects = fileSystemAccessor.getDirectoryListing(normalizedWorkspaceRoots[0]);
+      const projects = await fileSystemAccessor.getDirectoryListing(normalizedWorkspaceRoots[0]);
       for (const project of projects) {
         // Use path.join instead of path.resolve since normalizedWorkspaceRoots[0] is already absolute
         // This prevents path.resolve from potentially duplicating path segments on Windows
@@ -538,7 +538,7 @@ export abstract class BaseWorkspaceContext {
     } catch {
       // ignore
     }
-    const dirs = this.fileSystemAccessor.getDirectoryListing(
+    const dirs = await this.fileSystemAccessor.getDirectoryListing(
       utils.normalizePath(path.join(resourceTypingsDir, 'copied'))
     );
     for (const file of dirs) {

@@ -61,7 +61,7 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         return roots;
       case 'CORE_ALL':
         // optimization: search only inside project/modules/
-        const projects = this.fileSystemAccessor.getDirectoryListing(this.workspaceRoots[0]);
+        const projects = await this.fileSystemAccessor.getDirectoryListing(this.workspaceRoots[0]);
         for (const project of projects) {
           const modulesDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'modules'));
           if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', modulesDir))?.length) {
@@ -133,7 +133,7 @@ const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceCon
   const files: NormalizedPath[] = [];
 
   try {
-    const dirs = context.fileSystemAccessor.getDirectoryListing(normalizePath(namespaceRoot));
+    const dirs = await context.fileSystemAccessor.getDirectoryListing(normalizePath(namespaceRoot));
 
     for (const dir of dirs) {
       const componentDir = normalizePath(path.join(namespaceRoot, dir.name));

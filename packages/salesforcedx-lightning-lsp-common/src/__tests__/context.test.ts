@@ -78,13 +78,14 @@ const mockAccessorWithVirtualFs = (accessor: LspFileSystemAccessor, contentMap: 
       if (existing === undefined) entriesByFirst.set(name, isDir ? 'directory' : 'file');
       else if (isDir) entriesByFirst.set(name, 'directory');
     }
-    return Array.from(entriesByFirst.entries()).map(
+    const entries = Array.from(entriesByFirst.entries()).map(
       ([name, type]): DirectoryEntry => ({
         name,
         type,
         uri: `file://${path.join(key, name)}`
       })
     );
+    return Promise.resolve(entries);
   });
   jest.spyOn(accessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentMap.set(normalizePath(uri), content);

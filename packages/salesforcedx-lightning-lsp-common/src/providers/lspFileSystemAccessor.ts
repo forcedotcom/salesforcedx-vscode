@@ -21,10 +21,12 @@ import { Logger } from '../logger';
 import {
   WORKSPACE_DELETE_FILE_REQUEST,
   WORKSPACE_READ_FILE_REQUEST,
+  WORKSPACE_READ_DIRECTORY_REQUEST,
   WORKSPACE_STAT_REQUEST,
   WORKSPACE_FIND_FILES_REQUEST,
   type WorkspaceReadFileResult,
   type WorkspaceStatResult,
+  type WorkspaceReadDirectoryResult,
   type WorkspaceFindFilesParams,
   type WorkspaceFindFilesResult,
   type WorkspaceDeleteFileResult
@@ -137,8 +139,28 @@ export class LspFileSystemAccessor {
     return getFileUriForPath(filePath, this.workspaceFolderUri);
   }
 
-  public getDirectoryListing(uri: NormalizedPath): DirectoryEntry[] {
-    return getEmptyDirectoryListing(uri);
+  public async getDirectoryListing(uri: NormalizedPath): Promise<DirectoryEntry[]> {
+    if (!this.connection) {
+      return getEmptyDirectoryListing(uri);
+    }
+    try {
+      const fileUri = getFileUriForPath(uri, this.workspaceFolderUri);
+      const result = await this.connection.sendRequest<WorkspaceReadDirectoryResult>(
+        WORKSPACE_READ_DIRECTORY_REQUEST,
+        { uri: fileUri }
+      );
+      if (result?.error) {
+        Logger.error(`[LspFileSystemAccessor] workspace/readDirectory failed for ${uri}: ${result.error}`);
+        return getEmptyDirectoryListing(uri);
+      }
+      return result?.entries ?? getEmptyDirectoryListing(uri);
+    } catch (error) {
+      Logger.error(
+        `[LspFileSystemAccessor] getDirectoryListing error for ${uri}: ${error instanceof Error ? error.message : String(error)}`,
+        error
+      );
+      return getEmptyDirectoryListing(uri);
+    }
   }
 
   public async updateFileContent(uri: string, content: string, connection?: Connection): Promise<void> {
@@ -224,8 +246,9 @@ export class LspFileSystemAccessor {
       const findFilesTimeoutPromise = new Promise<WorkspaceFindFilesResult>((_, reject) => {
         findFilesTimeoutId = setTimeout(() => reject(new Error('workspace/findFiles timeout')), 8000); // 8 seconds
       });
-      await findFilesRequestPromise.finally(() => clearTimeout(findFilesTimeoutId!));
-      const result = await Promise.race([findFilesRequestPromise, findFilesTimeoutPromise]);
+      const result = await Promise.race([findFilesRequestPromise, findFilesTimeoutPromise]).finally(() =>
+        clearTimeout(findFilesTimeoutId!)
+      );
       if (result?.error || !result?.uris) {
         return undefined;
       }

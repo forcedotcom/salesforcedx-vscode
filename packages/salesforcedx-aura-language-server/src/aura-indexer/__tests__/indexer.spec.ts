@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LspFileSystemAccessor, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { LspFileSystemAccessor, NormalizedPath, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths,
@@ -73,18 +73,19 @@ describe('indexer parsing content', () => {
         return Promise.resolve(undefined);
       }
     });
-    jest.spyOn(sfdxFileSystemAccessor, 'getDirectoryListing').mockImplementation(uri => {
+    jest.spyOn(sfdxFileSystemAccessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
       const key = normalizePath(uri);
-      if (!isUnderWorkspace(key)) return [];
+      if (!isUnderWorkspace(key)) return Promise.resolve([]);
       try {
         const entries = fs.readdirSync(uri, { withFileTypes: true });
-        return entries.map(e => ({
+        const result = entries.map(e => ({
           name: e.name,
           type: (e.isDirectory() ? 'directory' : 'file') as 'directory' | 'file',
           uri: `file://${path.join(uri, e.name)}`
         }));
+        return Promise.resolve(result);
       } catch {
-        return [];
+        return Promise.resolve([]);
       }
     });
   });

@@ -50,7 +50,7 @@ const traverse = async (
   // module_root/name/name.js
   // Normalize candidate before calling getDirectoryListing to ensure path format consistency
   const normalizedCandidate = normalizePath(candidate);
-  const entries = fileSystemAccessor.getDirectoryListing(normalizedCandidate);
+  const entries = await fileSystemAccessor.getDirectoryListing(normalizedCandidate);
   const dirs = entries
     .filter(entry => entry.type === 'directory')
     .map(entry => normalizePath(path.join(normalizedCandidate, entry.name)));

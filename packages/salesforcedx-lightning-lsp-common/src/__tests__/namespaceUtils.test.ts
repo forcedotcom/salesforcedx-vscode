@@ -48,16 +48,17 @@ describe('findNamespaceRoots', () => {
     });
     jest.spyOn(fileSystemAccessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
       const key = normalizePath(uri);
-      if (!isUnderTemp(key)) return [];
+      if (!isUnderTemp(key)) return Promise.resolve([]);
       try {
         const entries = fs.readdirSync(uri, { withFileTypes: true });
-        return entries.map(e => ({
+        const result = entries.map(e => ({
           name: e.name,
           type: (e.isDirectory() ? 'directory' : 'file') as 'directory' | 'file',
           uri: `file://${path.join(uri, e.name)}`
         }));
+        return Promise.resolve(result);
       } catch {
-        return [];
+        return Promise.resolve([]);
       }
     });
   });
