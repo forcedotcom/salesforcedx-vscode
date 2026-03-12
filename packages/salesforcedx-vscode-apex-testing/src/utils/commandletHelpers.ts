@@ -9,8 +9,6 @@ import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { notificationService } from './notificationHelpers';
 
-const hasRootWorkspace = (): boolean => Boolean(vscode.workspace?.workspaceFolders?.length);
-
 /** Gets the file system path from a URI, using fsPath for file:// scheme and path for other schemes (e.g., memfs://) */
 export const getUriPath = (uri: URI): string => (uri.scheme === 'file' ? uri.fsPath : uri.path);
 
@@ -36,16 +34,6 @@ export class EmptyParametersGatherer implements ParametersGatherer<{}> {
   }
 }
 
-export class SfWorkspaceChecker implements PreconditionChecker {
-  public async check(): Promise<boolean> {
-    if (!hasRootWorkspace()) {
-      void notificationService.showErrorMessage('No workspace folder found');
-      return false;
-    }
-    return true;
-  }
-}
-
 export class SfCommandlet<T> {
   private readonly prechecker: PreconditionChecker;
   private readonly gatherer: ParametersGatherer<T>;
@@ -57,15 +45,20 @@ export class SfCommandlet<T> {
     this.executor = executor;
   }
 
-  public async run(): Promise<void> {
-    if (await this.prechecker.check()) {
-      const inputs = await this.gatherer.gather();
-      if (inputs.type === 'CONTINUE') {
-        await this.executor.execute(inputs);
-      } else if (inputs.msg) {
-        void notificationService.showErrorMessage(inputs.msg);
-      }
+  /** Returns true if the executor ran (user continued), false if precheck failed or user cancelled. */
+  public async run(): Promise<boolean> {
+    if (!(await this.prechecker.check())) {
+      return false;
     }
+    const inputs = await this.gatherer.gather();
+    if (inputs.type === 'CONTINUE') {
+      await this.executor.execute(inputs);
+      return true;
+    }
+    if (inputs.msg) {
+      void notificationService.showErrorMessage(inputs.msg);
+    }
+    return false;
   }
 }
 

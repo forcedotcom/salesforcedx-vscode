@@ -77,7 +77,7 @@ export const createSourceTrackingStatusBar = () =>
     const statusBarItem = vscode.window.createStatusBarItem(
       'source-tracking-status-bar',
       vscode.StatusBarAlignment.Left,
-      47
+      45
     );
     statusBarItem.name = 'Salesforce: Source Tracking';
     const fileWatcherService = yield* api.services.FileWatcherService;

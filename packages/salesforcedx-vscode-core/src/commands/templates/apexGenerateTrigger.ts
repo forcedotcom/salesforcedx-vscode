@@ -6,11 +6,11 @@
  */
 
 import type { LocalComponent } from '../../util/types';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   CompositeParametersGatherer,
   ParametersGatherer,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { MetadataTypeGatherer, SelectFileName, SelectOutputDir } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
@@ -40,7 +40,7 @@ export const apexGenerateTrigger = (): void => {
 
   const createTemplateExecutor = new LibraryApexGenerateTriggerExecutor();
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new CompositeParametersGatherer<LocalComponent>(
       gatherers.metadataTypeGatherer,
       gatherers.fileNameGatherer,

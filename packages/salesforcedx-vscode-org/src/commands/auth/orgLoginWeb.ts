@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
-  SfWorkspaceChecker,
   SfCommandlet,
   SfCommandletExecutor,
   CliCommandExecutor,
@@ -18,13 +18,14 @@ import * as vscode from 'vscode';
 import { ORG_LOGIN_WEB } from '../../constants';
 import { nls } from '../../messages';
 import { updateConfigAndStateAggregators } from '../../util/orgUtil';
+import { getVerificationCodeDescription, showVerificationCodeIfNeeded } from '../../util/verificationCode';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 
 class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
-    const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_org_text'));
+    const command = new SfCommandBuilder().withDescription(getVerificationCodeDescription(nls.localize('org_login_web_authorize_org_text')));
 
     command
       .withArg(ORG_LOGIN_WEB)
@@ -46,6 +47,7 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    void showVerificationCodeIfNeeded();
 
     // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -62,7 +64,7 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
 export const orgLoginWeb = async (instanceUrl: string): Promise<void> => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new AuthParamsGatherer(instanceUrl),
     new OrgLoginWebExecutor()
   );

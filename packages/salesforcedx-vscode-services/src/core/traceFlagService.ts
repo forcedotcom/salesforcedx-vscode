@@ -11,6 +11,7 @@ import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as ParseResult from 'effect/ParseResult';
 import { isString } from 'effect/Predicate';
+import * as PubSub from 'effect/PubSub';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -28,8 +29,9 @@ import {
   TraceFlagItemSchema,
   ToolingDebugLevelStruct,
   type ToolingDebugLevelRecord,
-  type TraceFlagLogType,
-  type ToolingTraceFlagRecord
+  type ToolingTraceFlagRecord,
+  type TraceFlagItem,
+  type TraceFlagLogType
 } from './schemas/traceFlagSchemas';
 import { unknownToErrorCause } from './shared';
 
@@ -74,6 +76,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
   dependencies: [ConnectionService.Default],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
+    const traceFlagsChanged = yield* PubSub.sliding<TraceFlagItem[]>(1);
 
     const getTraceFlags = Effect.fn('TraceFlagService.getTraceFlags')(function* () {
       const conn = yield* connectionService.getConnection();
@@ -242,6 +245,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
       return result.success && result.id ? result.id : undefined;
     });
 
@@ -275,7 +280,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           }
         });
       }
-      return yield* Effect.tryPromise({
+      yield* Effect.tryPromise({
         try: () => conn.tooling.update('TraceFlag', payload),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
@@ -285,11 +290,13 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
     });
 
     const deleteTraceFlag = Effect.fn('TraceFlagService.deleteTraceFlag')(function* (traceFlagId: string) {
       const conn = yield* connectionService.getConnection();
-      return yield* Effect.tryPromise({
+      yield* Effect.tryPromise({
         try: () => conn.tooling.delete('TraceFlag', traceFlagId),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
@@ -299,6 +306,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
     });
 
     const ensureTraceFlag = Effect.fn('TraceFlagService.ensureTraceFlag')(function* (
@@ -359,7 +368,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       ensureTraceFlag,
       cleanupExpired,
       getOrCreateDebugLevel,
-      getUserId
+      getUserId,
+      traceFlagsChanged
     };
   })
 }) {}

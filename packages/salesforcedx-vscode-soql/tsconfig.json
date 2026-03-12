@@ -21,6 +21,7 @@
   "include": [
     "src/**/*.ts",
     "test/playwright/**/*.ts",
+    "playwright.config.web.ts",
     "playwright.config.desktop.ts",
     "package.json",
     "package.nls.json"
@@ -37,9 +38,6 @@
     },
     {
       "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../salesforcedx-vscode-core"
     },
     {
       "path": "../playwright-vscode-ext"

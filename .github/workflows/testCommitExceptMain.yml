@@ -8,7 +8,7 @@ on:
       - 'contributing/**'
       - 'CONTRIBUTING.md'
       - 'docs/**'
-      - 'README*'
+      - '**/README*'
       - 'SECURITY*'
       - 'CODE_OF_CONDUCT*'
       - 'CHANGELOG*'

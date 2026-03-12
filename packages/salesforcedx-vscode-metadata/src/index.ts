@@ -12,6 +12,7 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { createApexClassCommand } from './commands/createApexClass';
+import { createLwcCommand } from './commands/createLwc';
 import { deleteSourcePathsCommand } from './commands/deleteSourcePath';
 import { deployManifestCommand } from './commands/deployManifest';
 import { deployActiveEditorCommand, deploySourcePathsCommand } from './commands/deploySourcePath';
@@ -58,6 +59,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     [
       svc.appendToChannel('Registering metadata commands'),
       registerCommand('sf.metadata.apex.generate.class', createApexClassCommand),
+      registerCommand('sf.metadata.lightning.generate.lwc', createLwcCommand),
       registerCommand('sf.metadata.delete.source', (sourceUri?: URI, uris?: URI[]) =>
         deleteSourcePathsCommand(sourceUri, uris)
       ),

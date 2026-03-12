@@ -6,6 +6,7 @@
  */
 
 import { TestService } from '@salesforce/apex-node';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
@@ -17,8 +18,7 @@ import {
   ContinueResponse,
   LibraryCommandletExecutor,
   ParametersGatherer,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '../utils/commandletHelpers';
 import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
 import { findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
@@ -69,10 +69,9 @@ class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
     if (testSuiteName) {
       const apexClassItems = await listApexClassItems();
 
-      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(
-        apexClassItems,
-        { canPickMany: true }
-      );
+      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
+        canPickMany: true
+      });
       if (!apexClassSelection || apexClassSelection.length === 0) {
         return { type: 'CANCEL' };
       }
@@ -94,12 +93,32 @@ class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
     const testSuiteName = await vscode.window.showInputBox(testSuiteInput);
 
     if (testSuiteName) {
-      const apexClassItems = await listApexClassItems();
+      let apexClassItems: ApexTestQuickPickItem[];
+      try {
+        apexClassItems = await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: nls.localize('retrieving_tests_message'),
+            cancellable: true
+          },
+          async (_progress, token) => {
+            const items = await listApexClassItems();
+            if (token.isCancellationRequested) {
+              throw new vscode.CancellationError();
+            }
+            return items;
+          }
+        );
+      } catch (e) {
+        if (e instanceof vscode.CancellationError) {
+          return { type: 'CANCEL' };
+        }
+        throw e;
+      }
 
-      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(
-        apexClassItems,
-        { canPickMany: true }
-      );
+      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
+        canPickMany: true
+      });
       if (!apexClassSelection || apexClassSelection.length === 0) {
         return { type: 'CANCEL' };
       }
@@ -130,35 +149,39 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
 
 export const apexTestSuiteAdd = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new TestSuiteBuilder(),
     new ApexLibraryTestSuiteBuilder('apex_test_suite_add_text')
   );
-  await commandlet.run();
-  // Clear all suite children so they re-query from org instead of using stale local files
-  const testController = getTestController();
-  testController.clearAllSuiteChildren();
-  // Refresh to update the tree with latest suite data from org
-  void testController.refresh();
+  const didRun = await commandlet.run();
+  if (didRun) {
+    // Clear all suite children so they re-query from org instead of using stale local files
+    const testController = getTestController();
+    testController.clearAllSuiteChildren();
+    // Refresh to update the tree with latest suite data from org
+    void testController.refresh();
+  }
 };
 
 export const apexTestSuiteCreate = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new TestSuiteCreator(),
     new ApexLibraryTestSuiteBuilder('apex_test_suite_create_text')
   );
-  await commandlet.run();
-  // Clear all suite children so they re-query from org instead of using stale local files
-  const testController = getTestController();
-  testController.clearAllSuiteChildren();
-  // Refresh to update the tree with the newly created suite
-  void testController.refresh();
+  const didRun = await commandlet.run();
+  if (didRun) {
+    // Clear all suite children so they re-query from org instead of using stale local files
+    const testController = getTestController();
+    testController.clearAllSuiteChildren();
+    // Refresh to update the tree with the newly created suite
+    void testController.refresh();
+  }
 };
 
 export const apexTestSuiteRun = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new TestSuiteSelector(),
     new ApexLibraryTestRunExecutor()
   );
