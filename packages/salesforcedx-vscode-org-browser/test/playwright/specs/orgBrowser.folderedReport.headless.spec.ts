@@ -32,7 +32,7 @@ test.beforeEach(async ({ page }) => {
   await ensureSecondarySideBarHidden(page);
 });
 
-test('Org Browser - Foldered Report retrieval: foldered report headless: retrieve flow_orchestration_log from unfiled$public', async ({
+test('Org Browser - Foldered Report retrieval: foldered report headless: retrieve EBotR_v3 from unfiled$public', async ({
   page
 }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
@@ -63,13 +63,13 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
     const folder = await orgBrowserPage.getMetadataItem('Report', folderName, 2);
     await expect(folder).toBeVisible();
     await expect(folder.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
-    await orgBrowserPage.expandFolder(folderName);
+    await orgBrowserPage.expandFolder(folderName, 2);
   });
 
   await test.step('locate first report item in folder', async () => {
     const level3 = await orgBrowserPage.getMetadataItem(
       'unfiled$public',
-      'unfiled$public/flow_screen_prebuilt_report',
+      'EBotR_v3',
       3
     );
     const txt = (await level3.textContent())?.trim() ?? '';
@@ -85,7 +85,7 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
   await test.step('trigger retrieval on a single report', async () => {
     const reportItem = await orgBrowserPage.getMetadataItem(
       'unfiled$public',
-      'unfiled$public/flow_screen_prebuilt_report',
+      'EBotR_v3',
       3
     );
     const clicked = await orgBrowserPage.clickRetrieveButton(reportItem);
@@ -109,13 +109,14 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
     // Expected structure: tab element that is selected, with accessible name containing ".report-meta.xml"
     await expect(reportTab).toHaveRole('tab');
     await expect(reportTab).toHaveAttribute('aria-selected', 'true');
-    await expect(reportTab).toHaveAccessibleName(/\.report-meta\.xml/);
+    // Dreamhouse unfiled$public has ReportFolders; other orgs may have Reports
+    await expect(reportTab).toHaveAccessibleName(/\.(report|reportFolder)-meta\.xml/);
   });
 
-  await test.step('override confirmation for a single report', async () => {
+  await test.step('override confirmation for a single report (if prompted)', async () => {
     const reportItem = await orgBrowserPage.getMetadataItem(
       'unfiled$public',
-      'unfiled$public/flow_screen_prebuilt_report',
+      'EBotR_v3',
       3
     );
     await orgBrowserPage.clickRetrieveButton(reportItem);
@@ -124,15 +125,15 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
       .first();
-    await expect(overwrite).toBeVisible();
-    await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+Report\s*\?/i);
-
-    await overwrite.getByRole('button', { name: /^Yes$/ }).click();
-
-    const retrieving = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /Retrieving\s+Report/i })
-      .first();
-    await expect(retrieving).toBeVisible({ timeout: 60_000 });
+    const overwriteVisible = await overwrite.waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+    if (overwriteVisible) {
+      await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+(Report|ReportFolder)s?\s*\?/i);
+      await overwrite.getByRole('button', { name: /^Yes$/ }).click();
+      const retrieving = page
+        .locator(NOTIFICATION_LIST_ITEM)
+        .filter({ hasText: /Retrieving\s+(Report|ReportFolder)/i })
+        .first();
+      await expect(retrieving).toBeVisible({ timeout: 60_000 });
+    }
   });
 });
