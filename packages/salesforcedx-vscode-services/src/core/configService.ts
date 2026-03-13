@@ -83,6 +83,13 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       yield* globalConfigCache.invalidateAll;
     });
 
+    /** Returns the current target-dev-hub value (alias or username), or undefined if not set */
+    const getTargetDevHub = Effect.fn('ConfigService.getTargetDevHub')(function* () {
+      const agg = yield* getConfigAggregator();
+      const value = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
+      return value ? String(value) : undefined;
+    });
+
     /** Returns true if the given username/aliases match the currently configured target org */
     const isCurrentTargetOrg = Effect.fn('ConfigService.isCurrentTargetOrg')(
       function* (username: string, aliases: readonly string[]) {
@@ -102,6 +109,6 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       yield* clearDefaultOrgRef();
     });
 
-    return { getConfigAggregator, invalidateConfigAggregator, isCurrentTargetOrg, unsetTargetOrg };
+    return { getConfigAggregator, invalidateConfigAggregator, getTargetDevHub, isCurrentTargetOrg, unsetTargetOrg };
   })
 }) {}
