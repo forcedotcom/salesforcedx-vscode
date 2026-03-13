@@ -31,7 +31,9 @@ jest.mock('../../../../src/parameterGatherers/selectOrgsForLogout');
 describe('OrgLogoutSelected', () => {
   let removeAuthMock: jest.Mock;
   let isCurrentTargetOrgMock: jest.Mock;
+  let isCurrentTargetDevHubMock: jest.Mock;
   let unsetTargetOrgMock: jest.Mock;
+  let unsetTargetDevHubMock: jest.Mock;
   let unsetAliasesMock: jest.Mock;
   let getAliasesFromUsernameMock: jest.Mock;
 
@@ -40,7 +42,9 @@ describe('OrgLogoutSelected', () => {
       services: {
         ConfigService: {
           isCurrentTargetOrg: isCurrentTargetOrgMock,
-          unsetTargetOrg: unsetTargetOrgMock
+          isCurrentTargetDevHub: isCurrentTargetDevHubMock,
+          unsetTargetOrg: unsetTargetOrgMock,
+          unsetTargetDevHub: unsetTargetDevHubMock
         },
         AliasService: {
           unsetAliases: unsetAliasesMock,
@@ -54,13 +58,17 @@ describe('OrgLogoutSelected', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     removeAuthMock = jest.fn().mockResolvedValue(undefined);
     jest.spyOn(AuthRemover, 'create').mockResolvedValue({
       removeAuth: removeAuthMock
     } as unknown as AuthRemover);
 
     isCurrentTargetOrgMock = jest.fn().mockReturnValue(Effect.succeed(false));
+    isCurrentTargetDevHubMock = jest.fn().mockReturnValue(Effect.succeed(false));
     unsetTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
+    unsetTargetDevHubMock = jest.fn().mockReturnValue(Effect.void);
     unsetAliasesMock = jest.fn().mockReturnValue(Effect.void);
     getAliasesFromUsernameMock = jest.fn().mockReturnValue(Effect.succeed([]));
 
@@ -101,6 +109,25 @@ describe('OrgLogoutSelected', () => {
 
     expect(result).toBe(true);
     expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+  });
+
+  it('unsets target-dev-hub when a logged-out org is the current dev hub', async () => {
+    isCurrentTargetDevHubMock.mockReturnValue(Effect.succeed(true));
+    const executor = new OrgLogoutSelected();
+    const result = await executor.run({ type: 'CONTINUE', data: { usernames: ['devhub@example.com'] } });
+
+    expect(result).toBe(true);
+    expect(unsetTargetDevHubMock).toHaveBeenCalled();
+    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+  });
+
+  it('passes aliases to isCurrentTargetOrg and isCurrentTargetDevHub checks', async () => {
+    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed(['myAlias']));
+    const executor = new OrgLogoutSelected();
+    await executor.run({ type: 'CONTINUE', data: { usernames: ['user@example.com'] } });
+
+    expect(isCurrentTargetOrgMock).toHaveBeenCalledWith('user@example.com', ['myAlias']);
+    expect(isCurrentTargetDevHubMock).toHaveBeenCalledWith('user@example.com', ['myAlias']);
   });
 
   it('returns false and does not update state when auth removal fails', async () => {

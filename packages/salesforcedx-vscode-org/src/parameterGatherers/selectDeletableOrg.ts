@@ -12,13 +12,13 @@ import { nls } from '../messages';
 import { buildOrgQuickPickItems, isOrgItem } from '../orgPicker/orgList';
 import { getDefaultOrgConfiguration, readAliasesByUsernameFromDisk } from '../util/orgUtil';
 
-export type DeletableOrgParams = { username: string; orgType: 'scratch' | 'sandbox' };
+export type OrgToDelete = { username: string; orgType: 'scratch' | 'sandbox' };
 
 const isDeletable = (org: OrgAuthorization): boolean => org.isScratchOrg === true || org.isSandbox === true;
 
-/** QuickPick filtered to scratch orgs and sandboxes — the only org types that can be destroyed. */
-export class SelectDeletableOrg implements ParametersGatherer<DeletableOrgParams> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<DeletableOrgParams>> {
+/** Multi-select QuickPick filtered to scratch orgs and sandboxes with a delete confirmation. */
+export class SelectDeletableOrg implements ParametersGatherer<{ orgs: OrgToDelete[] }> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{ orgs: OrgToDelete[] }>> {
     const [defaultConfig, authorizations, aliasesByUsername] = await Promise.all([
       getDefaultOrgConfiguration(),
       AuthInfo.listAllAuthorizations(),
@@ -30,19 +30,42 @@ export class SelectDeletableOrg implements ParametersGatherer<DeletableOrgParams
     );
 
     const items = buildOrgQuickPickItems(freshAuthorizations, defaultConfig, isDeletable);
-    const selection = await vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('org_select_text'),
+    const selections = await vscode.window.showQuickPick(items, {
+      placeHolder: nls.localize('org_delete_select_orgs_placeholder'),
+      canPickMany: true,
       matchOnDescription: true,
       matchOnDetail: true
     });
 
-    if (!selection || !isOrgItem(selection) || !selection.orgUsername) {
+    if (!selections || selections.length === 0) {
       return { type: 'CANCEL' };
     }
 
-    const selected = freshAuthorizations.find(o => o.username === selection.orgUsername);
-    const orgType = selected?.isScratchOrg ? 'scratch' : 'sandbox';
+    const targetOrgs: OrgToDelete[] = selections
+      .filter(isOrgItem)
+      .flatMap(s => {
+        if (!s.orgUsername) return [];
+        const auth = freshAuthorizations.find(o => o.username === s.orgUsername);
+        const orgType = auth?.isScratchOrg === true ? 'scratch' : 'sandbox';
+        return [{ username: s.orgUsername, orgType }];
+      });
 
-    return { type: 'CONTINUE', data: { username: selection.orgUsername, orgType } };
+    if (targetOrgs.length === 0) {
+      return { type: 'CANCEL' };
+    }
+
+    const count = String(targetOrgs.length);
+    const confirmLabel = nls.localize('org_delete_confirm_label');
+    const confirm = await vscode.window.showInformationMessage(
+      nls.localize('org_delete_confirm_prompt', count),
+      { modal: true },
+      confirmLabel
+    );
+
+    if (confirm !== confirmLabel) {
+      return { type: 'CANCEL' };
+    }
+
+    return { type: 'CONTINUE', data: { orgs: targetOrgs } };
   }
 }

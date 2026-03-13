@@ -44,20 +44,30 @@ export class OrgLogoutSelected extends LibraryCommandletExecutor<{ usernames: st
     try {
       const authRemover = await AuthRemover.create();
       for (const username of usernames) {
+        // Fetch aliases before removal so they can be used for config matching
+        const aliases = await getAliasesForUsername(username).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
         await authRemover.removeAuth(username);
         await removeOrgAliases(username).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
-        const isTarget = await checkIsCurrentTargetOrg(username, []).pipe(
+        const isTarget = await checkIsCurrentTargetOrg(username, aliases).pipe(
+          Effect.provide(AllServicesLayer),
+          Effect.runPromise
+        );
+        const isDevHub = await checkIsCurrentTargetDevHub(username, aliases).pipe(
           Effect.provide(AllServicesLayer),
           Effect.runPromise
         );
         if (isTarget) {
           await doUnsetTargetOrg().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
         }
+        if (isDevHub) {
+          await doUnsetTargetDevHub().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        }
       }
       await updateConfigAndStateAggregators();
       return true;
     } catch (e) {
-      telemetryService.sendException('org_logout_selected', `Error: name = ${e.name} message = ${e.message}`);
+      const err = e instanceof Error ? e : new Error(String(e));
+      telemetryService.sendException('org_logout_selected', `Error: name = ${err.name} message = ${err.message}`);
       return false;
     }
   }
@@ -68,10 +78,22 @@ export const orgLogoutAll = async () => {
   await commandlet.run();
 };
 
+const getAliasesForUsername = Effect.fn('OrgLogout.getAliasesForUsername')(function* (username: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.AliasService.getAliasesFromUsername(username);
+});
+
 const checkIsCurrentTargetOrg = Effect.fn('OrgLogout.checkIsCurrentTargetOrg')(
   function* (username: string, aliases: readonly string[]) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     return yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
+  }
+);
+
+const checkIsCurrentTargetDevHub = Effect.fn('OrgLogout.checkIsCurrentTargetDevHub')(
+  function* (username: string, aliases: readonly string[]) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    return yield* api.services.ConfigService.isCurrentTargetDevHub(username, aliases);
   }
 );
 
@@ -84,6 +106,11 @@ const removeOrgAliases = Effect.fn('OrgLogout.removeOrgAliases')(function* (user
 const doUnsetTargetOrg = Effect.fn('OrgLogout.doUnsetTargetOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ConfigService.unsetTargetOrg();
+});
+
+const doUnsetTargetDevHub = Effect.fn('OrgLogout.doUnsetTargetDevHub')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ConfigService.unsetTargetDevHub();
 });
 
 export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
@@ -107,7 +134,8 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
         await doUnsetTargetOrg().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
       }
     } catch (e) {
-      telemetryService.sendException('org_logout_default', `Error: name = ${e.name} message = ${e.message}`);
+      const err = e instanceof Error ? e : new Error(String(e));
+      telemetryService.sendException('org_logout_default', `Error: name = ${err.name} message = ${err.message}`);
       return false;
     }
     return true;

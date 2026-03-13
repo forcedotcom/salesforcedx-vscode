@@ -55,6 +55,9 @@ export const messages = {
   org_logout_all_text: 'SFDX: Log Out from Authorized Orgs',
   org_logout_default_text: 'SFDX: Log Out from Default Org',
   org_logout_no_default_org: 'No default org to logout from',
+  org_delete_select_orgs_placeholder: 'Select scratch orgs and sandboxes to delete',
+  org_delete_confirm_prompt: 'Permanently delete %s org(s)? This cannot be undone.',
+  org_delete_confirm_label: 'Delete',
   org_logout_scratch_logout: 'Logout',
   org_logout_scratch_prompt:
     'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
@@ -77,7 +80,7 @@ export const messages = {
   parameter_gatherer_enter_session_id_diagnostic_message: 'Enter a valid Session ID',
   parameter_gatherer_enter_session_id_placeholder: 'Session ID',
   parameter_gatherer_enter_username_name: 'Enter target username',
-  parameter_gatherer_placeholder_delete_selected_org: 'Confirm to continue deleting the selected org',
+
   parameter_gatherer_placeholder_delete_default_org: 'Confirm to continue deleting the default org',
   parameter_gatherer_placeholder_org_list_clean: 'Confirm to continue removing deleted and expired scratch orgs',
   pending_org_expiration_expires_on_message: '%s\n(expires on %s)',
