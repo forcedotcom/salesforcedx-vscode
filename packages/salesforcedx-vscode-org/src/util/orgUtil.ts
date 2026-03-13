@@ -297,7 +297,7 @@ const readAliasFileFromDisk = async (): Promise<Record<string, string>> => {
  * Reads alias.json directly from disk, bypassing the StateAggregator cache.
  * Returns the resolved username for a given alias, or the input if it is already a username.
  */
-const resolveUsernameFromAlias = async (aliasOrUsername: string): Promise<string> => {
+export const resolveUsernameFromAlias = async (aliasOrUsername: string): Promise<string> => {
   const orgs = await readAliasFileFromDisk();
   return orgs[aliasOrUsername] ?? aliasOrUsername;
 };

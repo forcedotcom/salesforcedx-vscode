@@ -33,7 +33,7 @@ const getTargetUsernameEffect = Effect.fn('getTargetUsernameEffect')(function* (
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const currentOrgInfo = yield* SubscriptionRef.get(targetOrgRef);
   if (!currentOrgInfo.username) {
-    yield* Effect.fail(new NoTargetOrgError({ message: nls.localize('error_no_target_org') }));
+    return yield* new NoTargetOrgError({ message: nls.localize('error_no_target_org') });
   }
   return currentOrgInfo.username;
 });
@@ -47,7 +47,7 @@ const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {
 
   const rows: Row[] = [
     { property: 'Access Token', value: orgInfo.accessToken },
-    { property: 'Alias', value: orgInfo.alias },
+    { property: 'Alias', value: orgInfo.aliases.join(', ') },
     { property: 'API Version', value: orgInfo.apiVersion },
     { property: 'Client Id', value: orgInfo.clientId },
     { property: 'Connected Status', value: orgInfo.connectionStatus },
