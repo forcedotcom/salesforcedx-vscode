@@ -80,7 +80,7 @@ type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x';
+export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x' | 'nativemobile';
 
 class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
   private readonly initialTemplate?: ProjectTemplate;
@@ -104,7 +104,11 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         'project_generate_react_b2e_template_display_text',
         'project_generate_react_b2e_template'
       ),
-      new ProjectTemplateItem('project_generate_react_b2x_template_display_text', 'project_generate_react_b2x_template')
+      new ProjectTemplateItem('project_generate_react_b2x_template_display_text', 'project_generate_react_b2x_template'),
+      new ProjectTemplateItem(
+        'project_generate_nativemobile_template_display_text',
+        'project_generate_nativemobile_template'
+      )
     ];
 
     const selection = await vscode.window.showQuickPick(items);
@@ -124,6 +128,9 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         break;
       case nls.localize('project_generate_react_b2x_template_display_text'):
         projectTemplate = 'reactb2x';
+        break;
+      case nls.localize('project_generate_nativemobile_template_display_text'):
+        projectTemplate = 'nativemobile';
         break;
       default:
         break;
