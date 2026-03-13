@@ -9,6 +9,7 @@ import {
   AuthFields,
   AuthInfo,
   AuthRemover,
+  Global,
   Org,
   OrgAuthorization,
   OrgConfigProperties,
@@ -18,14 +19,14 @@ import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/
 import {
   notificationService,
   workspaceUtils,
-  ConfigAggregatorProvider,
-  ConfigUtil
+  ConfigAggregatorProvider
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
 import { channelService } from '../channels';
 import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';
@@ -278,6 +279,44 @@ type DefaultOrgConfig = {
   defaultOrgUsername: string | undefined;
 };
 
+/** Read alias.json from disk, bypassing StateAggregator cache. Returns alias → username map. */
+const readAliasFileFromDisk = async (): Promise<Record<string, string>> => {
+  try {
+    const aliasUri = Utils.joinPath(vscode.Uri.file(Global.SFDX_DIR), 'alias.json');
+    const bytes = await vscode.workspace.fs.readFile(aliasUri);
+    const text = new TextDecoder().decode(bytes);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const parsed = JSON.parse(text) as { orgs?: Record<string, string> };
+    return parsed.orgs ?? {};
+  } catch {
+    return {};
+  }
+};
+
+/**
+ * Reads alias.json directly from disk, bypassing the StateAggregator cache.
+ * Returns the resolved username for a given alias, or the input if it is already a username.
+ */
+const resolveUsernameFromAlias = async (aliasOrUsername: string): Promise<string> => {
+  const orgs = await readAliasFileFromDisk();
+  return orgs[aliasOrUsername] ?? aliasOrUsername;
+};
+
+/**
+ * Reads alias.json directly from disk and returns a map of username → aliases[].
+ * Used to supplement stale StateAggregator data in the org picker.
+ */
+export const readAliasesByUsernameFromDisk = async (): Promise<Map<string, string[]>> => {
+  const orgs = await readAliasFileFromDisk();
+  const result = new Map<string, string[]>();
+  for (const [alias, username] of Object.entries(orgs)) {
+    const existing = result.get(username) ?? [];
+    existing.push(alias);
+    result.set(username, existing);
+  }
+  return result;
+};
+
 /** Get default org and devhub configuration */
 export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
   const configAggregator = await Effect.runPromise(getConfigAggregatorEffect.pipe(Effect.provide(AllServicesLayer)));
@@ -287,8 +326,8 @@ export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> =>
   return {
     defaultDevHubProperty,
     defaultOrgProperty,
-    defaultDevHubUsername: defaultDevHubProperty ? await ConfigUtil.getUsernameFor(defaultDevHubProperty) : undefined,
-    defaultOrgUsername: defaultOrgProperty ? await ConfigUtil.getUsernameFor(defaultOrgProperty) : undefined
+    defaultDevHubUsername: defaultDevHubProperty ? await resolveUsernameFromAlias(defaultDevHubProperty) : undefined,
+    defaultOrgUsername: defaultOrgProperty ? await resolveUsernameFromAlias(defaultOrgProperty) : undefined
   };
 };
 
@@ -308,16 +347,18 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
 
   // Check if this org is the default DevHub (by property value or resolved username)
   const matchesDevHubProperty =
-    defaultConfig.defaultDevHubProperty && possibleDefaults.has(String(defaultConfig.defaultDevHubProperty));
+    defaultConfig.defaultDevHubProperty != null && possibleDefaults.has(String(defaultConfig.defaultDevHubProperty));
   const matchesDevHubUsername =
-    defaultConfig.defaultDevHubUsername && orgAuth.username === defaultConfig.defaultDevHubUsername;
-  const isDefaultDevHub = orgAuth.isDevHub && (matchesDevHubProperty ?? matchesDevHubUsername);
+    defaultConfig.defaultDevHubUsername != null && orgAuth.username === defaultConfig.defaultDevHubUsername;
+  const isDefaultDevHub = orgAuth.isDevHub && (matchesDevHubProperty || matchesDevHubUsername);
 
-  // Check if this org is the default org (by property value or resolved username)
+  // Check if this org is the default org (by property value or resolved username).
+  // Uses || (not ??) because matchesOrgProperty can be false (not nullish) when aliases are stale.
   const matchesOrgProperty =
-    defaultConfig.defaultOrgProperty && possibleDefaults.has(String(defaultConfig.defaultOrgProperty));
-  const matchesOrgUsername = defaultConfig.defaultOrgUsername && orgAuth.username === defaultConfig.defaultOrgUsername;
-  const isDefaultOrg = matchesOrgProperty ?? matchesOrgUsername;
+    defaultConfig.defaultOrgProperty != null && possibleDefaults.has(String(defaultConfig.defaultOrgProperty));
+  const matchesOrgUsername =
+    defaultConfig.defaultOrgUsername != null && orgAuth.username === defaultConfig.defaultOrgUsername;
+  const isDefaultOrg = matchesOrgProperty || matchesOrgUsername;
 
   if (isDefaultDevHub && isDefaultOrg) {
     return `${ICONS.SF_DEFAULT_HUB} ${ICONS.SF_DEFAULT_ORG}`;

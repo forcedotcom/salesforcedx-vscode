@@ -16,7 +16,12 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';
-import { determineOrgMarkers, getAuthFieldsFor, getDefaultOrgConfiguration } from '../util/orgUtil';
+import {
+  determineOrgMarkers,
+  getAuthFieldsFor,
+  getDefaultOrgConfiguration,
+  readAliasesByUsernameFromDisk
+} from '../util/orgUtil';
 
 type OrgType = 'DevHub' | 'Sandbox' | 'Scratch' | 'Org';
 
@@ -159,14 +164,20 @@ export const authorizationsToQuickPickItems = (
     .map(orgAuthToQuickPickItem(defaultConfig));
 
 export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> => {
-  const [defaultConfig, authorizations] = await Promise.all([
+  const [defaultConfig, authorizations, aliasesByUsername] = await Promise.all([
     getDefaultOrgConfiguration(),
-    AuthInfo.listAllAuthorizations()
+    AuthInfo.listAllAuthorizations(),
+    readAliasesByUsernameFromDisk()
   ]);
+
+  // Supplement stale StateAggregator alias data with fresh disk data
+  const freshAuthorizations = authorizations.map(org =>
+    org.aliases?.length ? org : { ...org, aliases: aliasesByUsername.get(org.username) ?? [] }
+  );
 
   const quickPickList = [
     ...ACTION_ITEMS,
-    ...authorizationsToQuickPickItems(authorizations, defaultConfig).flatMap((item, index, array) => {
+    ...authorizationsToQuickPickItems(freshAuthorizations, defaultConfig).flatMap((item, index, array) => {
       // add a separator if the previous item is not the same type as the current item
       if (item.orgType && (index === 0 || item.orgType !== array[index - 1].orgType)) {
         return [{ kind: vscode.QuickPickItemKind?.Separator ?? 1, label: orgTypeToLabel(item.orgType) }, item];
