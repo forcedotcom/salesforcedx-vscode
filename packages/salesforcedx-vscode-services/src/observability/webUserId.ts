@@ -14,8 +14,8 @@ import { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 
 // Telemetry globalState keys (matching @salesforce/salesforcedx-utils-vscode constants)
-export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
-export const TELEMETRY_GLOBAL_WEB_USER_ID = 'telemetryWebUserId';
+const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
+const TELEMETRY_GLOBAL_WEB_USER_ID = 'telemetryWebUserId';
 export const UNAUTHENTICATED_USER = 'UNAUTHENTICATED_USER';
 
 /**

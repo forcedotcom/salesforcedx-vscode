@@ -29,7 +29,7 @@ import { getTestResultsFolder } from '../utils/pathHelpers';
 import { runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
-export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
+class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   protected cancellable: boolean = true;
   private readonly tests: string[];
   private readonly outputDir: URI;

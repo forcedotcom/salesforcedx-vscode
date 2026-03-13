@@ -12,7 +12,7 @@ import type { ExtensionContext } from 'vscode';
 // eslint-disable-next-line functional/no-let
 let extensionContext: ExtensionContext | undefined;
 
-export class ExtensionContextNotAvailableError extends Data.TaggedError('ExtensionContextNotAvailableError')<{}> {}
+class ExtensionContextNotAvailableError extends Data.TaggedError('ExtensionContextNotAvailableError')<{}> {}
 
 export const getExtensionContext = () =>
   extensionContext ? Effect.succeed(extensionContext) : Effect.fail(new ExtensionContextNotAvailableError());
