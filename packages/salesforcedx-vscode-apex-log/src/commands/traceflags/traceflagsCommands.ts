@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { DebugLevelCreateError, DebugLevelDeleteError } from '../../errors/commandErrors';
 import { nls } from '../../messages';
 import {
   pickDebugLevel,
@@ -22,14 +23,25 @@ import {
 } from '../../traceFlags/traceFlagJsonSync';
 import { createTraceFlagsUri } from '../../traceFlags/traceFlagsContentProvider';
 
-/** Open trace flags JSON for the current target org (virtual doc, read-only). */
-export const openTraceFlagsCommand = Effect.fn('ApexLog.Command.openTraceFlags')(function* () {
+const noOrgWarning = () => Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
+
+/** Resolves { api, orgId, userId? }. Shows warning and returns None when org (or userId if required) is missing. */
+const requireOrgContext = Effect.fn('ApexLog.requireOrgContext')(function* (opts?: { requireUserId?: boolean }) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const ref = yield* api.services.TargetOrgRef();
-  const { orgId } = yield* SubscriptionRef.get(ref);
-  if (!orgId) {
-    return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
+  const { orgId, userId } = yield* SubscriptionRef.get(ref);
+  if (!(orgId && (!opts?.requireUserId || userId))) {
+    yield* noOrgWarning();
+    return Option.none();
   }
+  return Option.some({ api, orgId, userId });
+});
+
+/** Open trace flags JSON for the current target org (virtual doc, read-only). */
+export const openTraceFlagsCommand = Effect.fn('ApexLog.Command.openTraceFlags')(function* () {
+  const ctx = yield* requireOrgContext();
+  if (Option.isNone(ctx)) return;
+  const { api, orgId } = ctx.value;
   const uri = createTraceFlagsUri(orgId);
   yield* api.services.FsService.showTextDocument(uri);
 });
@@ -37,15 +49,12 @@ export const openTraceFlagsCommand = Effect.fn('ApexLog.Command.openTraceFlags')
 /** Create/extends trace flag for current user using defaultDurationMinutes from config, refreshes virtual doc. */
 export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.createTraceFlagForCurrentUser')(
   function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const ref = yield* api.services.TargetOrgRef();
-    const { orgId, userId } = yield* SubscriptionRef.get(ref);
-    if (!orgId || !userId) {
-      return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
-    }
+    const ctx = yield* requireOrgContext({ requireUserId: true });
+    if (Option.isNone(ctx)) return;
+    const { api, orgId, userId } = ctx.value;
     const minutes = yield* readDefaultDurationMinutes();
     const traceFlagService = yield* api.services.TraceFlagService;
-    yield* traceFlagService.ensureTraceFlag(userId, Duration.minutes(minutes));
+    yield* traceFlagService.ensureTraceFlag(userId!, Duration.minutes(minutes));
     yield* refreshTraceFlagsView(orgId);
   }
 );
@@ -53,14 +62,11 @@ export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.c
 /** Delete trace flag for current user, refresh virtual doc. */
 export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.deleteTraceFlagForCurrentUser')(
   function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const ref = yield* api.services.TargetOrgRef();
-    const { orgId, userId } = yield* SubscriptionRef.get(ref);
-    if (!orgId || !userId) {
-      return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
-    }
+    const ctx = yield* requireOrgContext({ requireUserId: true });
+    if (Option.isNone(ctx)) return;
+    const { api, orgId, userId } = ctx.value;
     const traceFlagService = yield* api.services.TraceFlagService;
-    const existing = yield* traceFlagService.getTraceFlagForUser(userId);
+    const existing = yield* traceFlagService.getTraceFlagForUser(userId!);
     yield* Option.match(existing, {
       onNone: () => Effect.void,
       onSome: tf => traceFlagService.deleteTraceFlag(tf.id)
@@ -71,15 +77,10 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
 
 /** Create trace flag for another org user (prompted via SOSL-powered picker), refresh virtual doc. */
 export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTraceFlagForUser')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ref = yield* api.services.TargetOrgRef();
-  const { orgId, userId: currentUserId } = yield* SubscriptionRef.get(ref);
-  if (!orgId || !currentUserId) {
-    return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
-  }
-  const connectionService = yield* api.services.ConnectionService;
-  const conn = yield* connectionService.getConnection();
-  const picked = yield* pickOrgUser(conn, currentUserId);
+  const ctx = yield* requireOrgContext({ requireUserId: true });
+  if (Option.isNone(ctx)) return;
+  const { api, orgId, userId: currentUserId } = ctx.value;
+  const picked = yield* pickOrgUser(currentUserId!);
   yield* Effect.annotateCurrentSpan('createTraceFlagForUser', { attributes: { userId: picked?.userId ?? 'none' } });
   if (!picked) return;
   const traceFlagService = yield* api.services.TraceFlagService;
@@ -111,12 +112,9 @@ const DEBUG_LEVEL_CATEGORIES = [
 
 /** Create a new DebugLevel in the org via Tooling API, refresh virtual doc. */
 export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ref = yield* api.services.TargetOrgRef();
-  const { orgId } = yield* SubscriptionRef.get(ref);
-  if (!orgId) {
-    return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
-  }
+  const ctx = yield* requireOrgContext();
+  if (Option.isNone(ctx)) return;
+  const { api, orgId } = ctx.value;
   const conn = yield* api.services.ConnectionService.getConnection();
 
   const masterLabel = yield* Effect.promise(() =>
@@ -185,7 +183,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
 
   const result = yield* Effect.tryPromise({
     try: () => conn.tooling.create('DebugLevel', payload),
-    catch: e => new Error(`Failed to create debug level: ${String(e)}`)
+    catch: e => new DebugLevelCreateError({ message: `Failed to create debug level: ${String(e)}`, cause: e })
   });
   if (!result.success) {
     yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed')));
@@ -199,14 +197,25 @@ export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTrac
   traceFlagId: string
 ) {
   if (!traceFlagId) return;
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ref = yield* api.services.TargetOrgRef();
-  const { orgId } = yield* SubscriptionRef.get(ref);
-  if (!orgId) {
-    return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
-  }
+  const ctx = yield* requireOrgContext();
+  if (Option.isNone(ctx)) return;
+  const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
   yield* traceFlagService.deleteTraceFlag(traceFlagId);
+  yield* refreshTraceFlagsView(orgId);
+});
+
+/** Change trace flag debug level via QuickPick, refresh virtual doc. */
+export const changeDebugLevelCommand = Effect.fn('ApexLog.Command.changeDebugLevel')(function* (traceFlagId: string) {
+  if (!traceFlagId) return;
+  const ctx = yield* requireOrgContext();
+  if (Option.isNone(ctx)) return;
+  const { api, orgId } = ctx.value;
+  const traceFlagService = yield* api.services.TraceFlagService;
+  const debugLevels = yield* traceFlagService.getDebugLevels();
+  const pickedLevel = yield* Effect.promise(() => pickDebugLevel(debugLevels));
+  if (!pickedLevel) return;
+  yield* traceFlagService.changeTraceFlagDebugLevel(traceFlagId, pickedLevel.debugLevelId);
   yield* refreshTraceFlagsView(orgId);
 });
 
@@ -215,16 +224,13 @@ export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDeb
   debugLevelId: string
 ) {
   if (!debugLevelId) return;
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ref = yield* api.services.TargetOrgRef();
-  const { orgId } = yield* SubscriptionRef.get(ref);
-  if (!orgId) {
-    return yield* Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
-  }
+  const ctx = yield* requireOrgContext();
+  if (Option.isNone(ctx)) return;
+  const { api, orgId } = ctx.value;
   const conn = yield* api.services.ConnectionService.getConnection();
   yield* Effect.tryPromise({
     try: () => conn.tooling.delete('DebugLevel', debugLevelId),
-    catch: e => new Error(`Failed to delete debug level: ${String(e)}`)
+    catch: e => new DebugLevelDeleteError({ message: `Failed to delete debug level: ${String(e)}`, cause: e })
   });
   yield* refreshTraceFlagsView(orgId);
 });

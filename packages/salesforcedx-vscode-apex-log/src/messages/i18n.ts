@@ -41,6 +41,7 @@ export const messages = {
   trace_flag_create_log_level_title: 'Create Debug level',
   trace_flag_tooltip_add_user: 'Add trace for another user',
   trace_flag_tooltip_stop: 'Remove',
+  trace_flag_codelens_change_debug_level: 'Change',
   log_auto_collect_fetched: 'Auto-collected log %s (%s - %s)',
   log_auto_collect_tooltip: 'Auto-collected: %s logs',
   log_auto_collect_open_folder: 'Open logs folder',
