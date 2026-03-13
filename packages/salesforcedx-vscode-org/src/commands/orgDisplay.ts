@@ -11,8 +11,7 @@ import {
   ContinueResponse,
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
-  SfCommandlet,
-  getUsername
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
@@ -20,7 +19,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';
-import { SelectUsername } from '../parameterGatherers/selectUsername';
+import { SelectOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
 import { OrgInfo } from '../types/orgInfo';
 import { getOrgInfo } from '../util/orgDisplay';
 
@@ -89,10 +88,9 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       const { username } = response.data;
       const targetUsername =
         this.flag === '--target-org' && username
-          ? await getUsername(username)
+          ? username
           : await getTargetUsernameEffect().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
 
-      // Use the shared getOrgInfo function from utils
       const orgInfo = await getOrgInfo(targetUsername);
 
       // Display warning about sensitive information
@@ -119,7 +117,7 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
 
 export async function orgDisplay(this: FlagParameter<string>) {
   const flag = this ? this.flag : undefined;
-  const parameterGatherer = flag ? new SelectUsername() : new EmptyParametersGatherer();
+  const parameterGatherer = flag ? new SelectOrgForDisplay() : new EmptyParametersGatherer();
   const executor = new OrgDisplayExecutor(flag);
   const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, executor);
   await commandlet.run();

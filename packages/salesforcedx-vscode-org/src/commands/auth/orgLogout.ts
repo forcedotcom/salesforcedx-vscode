@@ -7,25 +7,19 @@
 
 import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   ContinueResponse,
-  EmptyParametersGatherer,
-  ParametersGatherer,
   LibraryCommandletExecutor,
+  ParametersGatherer,
   SfCommandlet,
-  SfCommandletExecutor,
-  notificationService,
-  CliCommandExecutor,
-  TimingUtils,
-  workspaceUtils
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { AllServicesLayer } from '../../extensionProvider';
 import { nls } from '../../messages';
+import { SelectOrgsForLogout } from '../../parameterGatherers/selectOrgsForLogout';
 import { telemetryService } from '../../telemetry';
 import { updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
@@ -40,49 +34,37 @@ class SimpleGatherer<T> implements ParametersGatherer<T> {
   }
 }
 
-export class OrgLogoutAll extends SfCommandletExecutor<{}> {
-  public static withoutShowingChannel(): OrgLogoutAll {
-    const instance = new OrgLogoutAll();
-    instance.showChannelOutput = false;
-    return instance;
+export class OrgLogoutSelected extends LibraryCommandletExecutor<{ usernames: string[] }> {
+  constructor() {
+    super(nls.localize('org_logout_all_text'), 'org_logout_selected', OUTPUT_CHANNEL);
   }
 
-  public build(_data: {}): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('org_logout_all_text'))
-      .withArg('org:logout')
-      .withArg('--all')
-      .withArg('--no-prompt')
-      .withLogName('org_logout')
-      .build();
-  }
-
-  public execute(response: ContinueResponse<{}>): void {
-    const startTime = TimingUtils.getCurrentTime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SF_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
-
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-
-    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
-      // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
-      const exitCode = Array.isArray(data) ? data[0] : data;
-      if (exitCode === 0) {
-        await updateConfigAndStateAggregators();
+  public async run(response: ContinueResponse<{ usernames: string[] }>): Promise<boolean> {
+    const { usernames } = response.data;
+    try {
+      const authRemover = await AuthRemover.create();
+      for (const username of usernames) {
+        await authRemover.removeAuth(username);
+        await removeOrgAliases(username).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        const isTarget = await checkIsCurrentTargetOrg(username, []).pipe(
+          Effect.provide(AllServicesLayer),
+          Effect.runPromise
+        );
+        if (isTarget) {
+          await doUnsetTargetOrg().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        }
       }
-    });
+      await updateConfigAndStateAggregators();
+      return true;
+    } catch (e) {
+      telemetryService.sendException('org_logout_selected', `Error: name = ${e.name} message = ${e.message}`);
+      return false;
+    }
   }
 }
 
 export const orgLogoutAll = async () => {
-  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), new OrgLogoutAll());
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new SelectOrgsForLogout(), new OrgLogoutSelected());
   await commandlet.run();
 };
 

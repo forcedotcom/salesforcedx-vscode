@@ -66,7 +66,7 @@ const getIconForOrgType = (type: OrgType): string => {
   }
 };
 /** QuickPickItem for org selection with metadata for handling */
-interface OrgQuickPickItem extends vscode.QuickPickItem {
+export interface OrgQuickPickItem extends vscode.QuickPickItem {
   orgUsername?: string;
   orgAlias?: string;
   commandId?: string;
@@ -163,6 +163,25 @@ export const authorizationsToQuickPickItems = (
     .toSorted(orgOrder())
     .map(orgAuthToQuickPickItem(defaultConfig));
 
+/** Type guard: true when a QuickPickItem has an orgUsername property (i.e. is an OrgQuickPickItem). */
+export const isOrgItem = (item: vscode.QuickPickItem): item is OrgQuickPickItem => 'orgUsername' in item;
+
+/** Build grouped QuickPick items with type separators, with optional org-type filter. */
+export const buildOrgQuickPickItems = (
+  authorizations: OrgAuthorization[],
+  defaultConfig: DefaultOrgConfig,
+  filter?: (org: OrgAuthorization) => boolean
+): vscode.QuickPickItem[] => {
+  const filtered = filter ? authorizations.filter(filter) : authorizations;
+  return authorizationsToQuickPickItems(filtered, defaultConfig).flatMap((item, index, array) => {
+    if (item.orgType && (index === 0 || item.orgType !== array[index - 1].orgType)) {
+      const separator: vscode.QuickPickItem = { kind: vscode.QuickPickItemKind.Separator, label: orgTypeToLabel(item.orgType) };
+      return [separator, item];
+    }
+    return [item];
+  });
+};
+
 export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> => {
   const [defaultConfig, authorizations, aliasesByUsername] = await Promise.all([
     getDefaultOrgConfiguration(),
@@ -177,13 +196,7 @@ export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse
 
   const quickPickList = [
     ...ACTION_ITEMS,
-    ...authorizationsToQuickPickItems(freshAuthorizations, defaultConfig).flatMap((item, index, array) => {
-      // add a separator if the previous item is not the same type as the current item
-      if (item.orgType && (index === 0 || item.orgType !== array[index - 1].orgType)) {
-        return [{ kind: vscode.QuickPickItemKind?.Separator ?? 1, label: orgTypeToLabel(item.orgType) }, item];
-      }
-      return [item];
-    })
+    ...buildOrgQuickPickItems(freshAuthorizations, defaultConfig)
   ];
 
   const selection = await vscode.window.showQuickPick(quickPickList, {

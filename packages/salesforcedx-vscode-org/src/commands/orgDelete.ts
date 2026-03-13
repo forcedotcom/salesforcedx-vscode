@@ -20,7 +20,7 @@ import {
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
-import { SelectUsername } from '../parameterGatherers/selectUsername';
+import { SelectDeletableOrg } from '../parameterGatherers/selectDeletableOrg';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
@@ -31,10 +31,11 @@ class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
     this.flag = flag;
   }
 
-  public build(data: { choice?: string; username?: string }): Command {
+  public build(data: { choice?: string; username?: string; orgType?: 'scratch' | 'sandbox' }): Command {
+    const deleteArg = data.orgType === 'sandbox' ? 'org:delete:sandbox' : 'org:delete:scratch';
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize('org_delete_default_text'))
-      .withArg('org:delete:scratch')
+      .withArg(deleteArg)
       .withArg('--no-prompt')
       .withLogName('org_delete_default');
 
@@ -47,7 +48,7 @@ class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
     return builder.build();
   }
 
-  public execute(response: ContinueResponse<{ choice?: string; username?: string }>): void {
+  public execute(response: ContinueResponse<{ choice?: string; username?: string; orgType?: 'scratch' | 'sandbox' }>): void {
     const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -76,7 +77,7 @@ export async function orgDelete(this: FlagParameter<string>) {
 
   const parameterGatherer = flag
     ? new CompositeParametersGatherer(
-        new SelectUsername(),
+        new SelectDeletableOrg(),
         new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_selected_org'))
       )
     : new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_default_org'));
