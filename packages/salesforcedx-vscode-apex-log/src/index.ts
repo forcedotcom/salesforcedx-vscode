@@ -33,7 +33,7 @@ import {
 } from './commands/traceflags/traceflagsCommands';
 import { createLogAutoCollect } from './logs/logAutoCollect';
 import { CurrentTraceFlags } from './services/apexLogState';
-import { AllServicesLayer, buildAllServicesLayer, getRuntime, setAllServicesLayer } from './services/extensionProvider';
+import { buildAllServicesLayer, getRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';
@@ -58,7 +58,7 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} extension activating`))
   );
 
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   const scope = yield* getExtensionScope();
 
   const currentTraceFlagsRef = yield* CurrentTraceFlags;

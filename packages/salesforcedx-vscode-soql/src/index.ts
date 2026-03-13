@@ -15,7 +15,12 @@ import { soqlOpenNew } from './commands/soqlFileCreate';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
-import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import {
+  AllServicesLayer,
+  buildAllServicesLayer,
+  getSoqlRuntime,
+  setAllServicesLayer
+} from './services/extensionProvider';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-soql';
 
@@ -27,12 +32,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   );
 };
 
-export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
+export const deactivate = async (): Promise<void> => getSoqlRuntime().runPromise(deactivateEffect());
 
-export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (
-  context: vscode.ExtensionContext
-) {
+export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
@@ -42,7 +44,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     QueryDataViewService.register(context);
   });
 
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getSoqlRuntime());
   yield* Effect.all(
     [
       registerCommand('soql.builder.open.new', soqlOpenNew),
