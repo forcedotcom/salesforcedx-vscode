@@ -12,6 +12,7 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
 import { AliasService } from './core/alias';
+import { AliasFileWatcherService, watchDefaultOrgAliases } from './core/aliasFileWatcher';
 import { ApexLogService } from './core/apexLogService';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
@@ -58,6 +59,7 @@ export type SalesforceVSCodeServicesApi = {
   services: {
     /** contains most of the dependencies prebuilt in the services extension */
     prebuiltServicesDependencies: Context.Context<
+      | AliasFileWatcherService
       | AliasService
       | ApexLogService
       | ChannelService
@@ -83,6 +85,7 @@ export type SalesforceVSCodeServicesApi = {
       | TransmogrifierService
       | WorkspaceService
     >;
+    AliasFileWatcherService: typeof AliasFileWatcherService;
     ApexLogService: typeof ApexLogService;
     AliasService: typeof AliasService;
     TemplateService: typeof TemplateService;
@@ -220,7 +223,9 @@ const activationEffect = (context: vscode.ExtensionContext) =>
         // watch active editor changes to update package directories context
         Effect.forkIn(watchPackageDirectoriesContext(), scope),
         // watch active editor changes to update apex test context
-        Effect.forkIn(watchApexTestContext(), scope)
+        Effect.forkIn(watchApexTestContext(), scope),
+        // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
+        Effect.forkIn(watchDefaultOrgAliases(), scope)
       ],
       {
         concurrency: 'unbounded'
@@ -276,6 +281,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   /** they're global in the sense that they should be the same for all extension */
   const globalLayers = Layer.mergeAll(
+    Layer.provide(AliasFileWatcherService.Default, FileWatcherService.Default),
     AliasService.Default,
     TemplateService.Default,
     ExtensionContextService.Default,
@@ -332,6 +338,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   return {
     services: {
       prebuiltServicesDependencies: builtContext,
+      AliasFileWatcherService,
       ApexLogService,
       AliasService,
       TemplateService,

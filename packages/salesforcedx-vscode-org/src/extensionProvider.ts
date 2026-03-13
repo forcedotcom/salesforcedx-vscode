@@ -43,6 +43,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         ExtensionProviderServiceLive,
         api.services.ExtensionContextServiceLayer(context),
         api.services.ChannelServiceLayer(extension?.packageJSON.displayName ?? 'Salesforce Org Management'),
+        api.services.AliasService.Default,
         api.services.ConfigService.Default,
         api.services.ConnectionService.Default,
         api.services.ProjectService.Default,

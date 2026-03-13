@@ -7,25 +7,19 @@
 
 import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   ContinueResponse,
-  EmptyParametersGatherer,
-  ParametersGatherer,
   LibraryCommandletExecutor,
+  ParametersGatherer,
   SfCommandlet,
-  SfCommandletExecutor,
-  notificationService,
-  CliCommandExecutor,
-  TimingUtils,
-  workspaceUtils
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { AllServicesLayer } from '../../extensionProvider';
 import { nls } from '../../messages';
+import { SelectOrgsForLogout } from '../../parameterGatherers/selectOrgsForLogout';
 import { telemetryService } from '../../telemetry';
 import { updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
@@ -40,62 +34,108 @@ class SimpleGatherer<T> implements ParametersGatherer<T> {
   }
 }
 
-export class OrgLogoutAll extends SfCommandletExecutor<{}> {
-  public static withoutShowingChannel(): OrgLogoutAll {
-    const instance = new OrgLogoutAll();
-    instance.showChannelOutput = false;
-    return instance;
+export class OrgLogoutSelected extends LibraryCommandletExecutor<{ usernames: string[] }> {
+  constructor() {
+    super(nls.localize('org_logout_all_text'), 'org_logout_selected', OUTPUT_CHANNEL);
   }
 
-  public build(_data: {}): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('org_logout_all_text'))
-      .withArg('org:logout')
-      .withArg('--all')
-      .withArg('--no-prompt')
-      .withLogName('org_logout')
-      .build();
-  }
-
-  public execute(response: ContinueResponse<{}>): void {
-    const startTime = TimingUtils.getCurrentTime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SF_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
-
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-
-    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
-      // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
-      const exitCode = Array.isArray(data) ? data[0] : data;
-      if (exitCode === 0) {
-        await updateConfigAndStateAggregators();
+  public async run(response: ContinueResponse<{ usernames: string[] }>): Promise<boolean> {
+    const { usernames } = response.data;
+    try {
+      const authRemover = await AuthRemover.create();
+      for (const username of usernames) {
+        // Fetch aliases before removal so they can be used for config matching
+        const aliases = await getAliasesForUsername(username).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        await authRemover.removeAuth(username);
+        await removeOrgAliases(username).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        const isTarget = await checkIsCurrentTargetOrg(username, aliases).pipe(
+          Effect.provide(AllServicesLayer),
+          Effect.runPromise
+        );
+        const isDevHub = await checkIsCurrentTargetDevHub(username, aliases).pipe(
+          Effect.provide(AllServicesLayer),
+          Effect.runPromise
+        );
+        if (isTarget) {
+          await doUnsetTargetOrg().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        }
+        if (isDevHub) {
+          await doUnsetTargetDevHub().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        }
       }
-    });
+      await updateConfigAndStateAggregators();
+      return true;
+    } catch (e) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      telemetryService.sendException('org_logout_selected', `Error: name = ${err.name} message = ${err.message}`);
+      return false;
+    }
   }
 }
 
 export const orgLogoutAll = async () => {
-  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), new OrgLogoutAll());
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new SelectOrgsForLogout(), new OrgLogoutSelected());
   await commandlet.run();
 };
 
-class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
-  constructor() {
+const getAliasesForUsername = Effect.fn('OrgLogout.getAliasesForUsername')(function* (username: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.AliasService.getAliasesFromUsername(username);
+});
+
+const checkIsCurrentTargetOrg = Effect.fn('OrgLogout.checkIsCurrentTargetOrg')(
+  function* (username: string, aliases: readonly string[]) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    return yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
+  }
+);
+
+const checkIsCurrentTargetDevHub = Effect.fn('OrgLogout.checkIsCurrentTargetDevHub')(
+  function* (username: string, aliases: readonly string[]) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    return yield* api.services.ConfigService.isCurrentTargetDevHub(username, aliases);
+  }
+);
+
+const removeOrgAliases = Effect.fn('OrgLogout.removeOrgAliases')(function* (username: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const allAliasesOnDisk = yield* api.services.AliasService.getAliasesFromUsername(username);
+  yield* api.services.AliasService.unsetAliases(allAliasesOnDisk);
+});
+
+const doUnsetTargetOrg = Effect.fn('OrgLogout.doUnsetTargetOrg')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ConfigService.unsetTargetOrg();
+});
+
+const doUnsetTargetDevHub = Effect.fn('OrgLogout.doUnsetTargetDevHub')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ConfigService.unsetTargetDevHub();
+});
+
+export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
+  private readonly orgAliases: readonly string[];
+
+  constructor(aliases: readonly string[] = []) {
     super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
+    this.orgAliases = aliases;
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
-      await (await AuthRemover.create()).removeAuth(response.data);
+      const shouldUnset = await checkIsCurrentTargetOrg(response.data, this.orgAliases).pipe(
+        Effect.provide(AllServicesLayer),
+        Effect.runPromise
+      );
+      const authRemover = await AuthRemover.create();
+      await authRemover.removeAuth(response.data);
+      await removeOrgAliases(response.data).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+      if (shouldUnset) {
+        await doUnsetTargetOrg().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+      }
     } catch (e) {
-      telemetryService.sendException('org_logout_default', `Error: name = ${e.name} message = ${e.message}`);
+      const err = e instanceof Error ? e : new Error(String(e));
+      telemetryService.sendException('org_logout_default', `Error: name = ${err.name} message = ${err.message}`);
       return false;
     }
     return true;
@@ -103,7 +143,7 @@ class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 }
 
 export const orgLogoutDefault = async () => {
-  const { username, isScratch, alias } = await resolveTargetOrg().pipe(
+  const { username, isScratch, aliases } = await resolveTargetOrg().pipe(
     Effect.provide(AllServicesLayer),
     Effect.runPromise
   );
@@ -112,8 +152,8 @@ export const orgLogoutDefault = async () => {
     // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
     const logoutCommandlet = new SfCommandlet(
       sfProjectPreconditionChecker,
-      isScratch ? new ScratchOrgLogoutParamsGatherer(username, alias) : new SimpleGatherer<string>(username),
-      new OrgLogoutDefault()
+      isScratch ? new ScratchOrgLogoutParamsGatherer(username, aliases[0]) : new SimpleGatherer<string>(username),
+      new OrgLogoutDefault(aliases)
     );
     await logoutCommandlet.run();
   } else {
@@ -128,6 +168,6 @@ const resolveTargetOrg = Effect.fn('OrgLogout.resolveTargetOrg')(function* () {
   return {
     username: orgInfo.username,
     isScratch: orgInfo.isScratch ?? false,
-    alias: orgInfo.aliases?.[0]
+    aliases: orgInfo.aliases ?? []
   };
 });

@@ -31,6 +31,7 @@ import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreat
 import { CompositePreconditionChecker } from '../preconditionCheckers/compositePreconditionChecker';
 import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
+import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
@@ -80,6 +81,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
           // Set workspace org type to source-tracked for newly created scratch orgs
           // Scratch orgs are always source-tracked, so set the context to true
           await vscode.commands.executeCommand('setContext', 'sf:target_org_has_change_tracking', true);
+          await updateConfigAndStateAggregators();
         } else {
           // remove when we drop CLI invocations
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
