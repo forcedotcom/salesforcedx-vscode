@@ -8,16 +8,15 @@ import {
   detectWorkspaceHelper,
   WorkspaceType,
   readJsonSync,
-  writeJsonSync,
+  writeJson,
   SfdxTsConfig,
   TsConfigPaths,
-  IFileSystemProvider,
+  LspFileSystemAccessor,
   normalizePath,
   Logger,
   NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
-import { minimatch as minimatchFn } from 'minimatch';
 import * as path from 'node:path';
 import { Connection, DocumentUri } from 'vscode-languageserver';
 
@@ -31,7 +30,7 @@ const componentPrefixRegex = new RegExp(/^(?<type>c|lightning|interop){0,1}(?<de
 
 type ComponentIndexerAttributes = {
   workspaceRoot: NormalizedPath;
-  fileSystemProvider: IFileSystemProvider;
+  fileSystemAccessor: LspFileSystemAccessor;
   workspaceType?: WorkspaceType;
 };
 
@@ -85,72 +84,60 @@ const expandBraces = (pattern: string): string[] => {
 };
 
 /**
- * Traverses directories using FileSystemDataProvider and matches files against a glob pattern
- * This replaces fast-glob for web compatibility
+ * Traverses directories using LspFileSystemAccessor and matches files against a glob pattern.
+ * Uses workspace/findFiles via findFilesWithGlobAsync when the provider has a connection;
+ * no server-side file cache – discovery is done via the client.
  */
-const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvider, basePath: string): Entry[] => {
-  const results: Entry[] = [];
-  // Normalize basePath the same way FileSystemDataProvider normalizes paths
+const findFilesWithGlob = async (
+  pattern: string,
+  fileSystemAccessor: LspFileSystemAccessor,
+  basePath: string
+): Promise<Entry[]> => {
   const normalizedBasePath = normalizePath(basePath);
-
-  // Expand brace patterns like {force-app,utils} into multiple patterns
   const patterns = expandBraces(pattern);
 
-  // Use getAllFileUris as a reliable source of all files in the provider
-  // This ensures we don't miss files even if directory listings are incomplete
-  const allFileUris = fileSystemProvider.getAllFileUris();
+  if (!fileSystemAccessor.findFilesWithGlobAsync) {
+    return [];
+  }
 
-  for (const fileUri of allFileUris) {
-    // fileUri is already normalized by FileSystemDataProvider (normalized when stored via updateFileContent/updateFileStat)
-    // Skip files outside the workspace by checking if the file path starts with the base path
-    // This is more reliable than path.posix.relative on Windows where drive letter case mismatches
-    // can cause path.posix.relative to return paths starting with ../ even for files in the workspace
-    // Use case-insensitive comparison on Windows for drive letters
-    const basePathLower = normalizedBasePath.toLowerCase();
+  const uris = await Promise.all(
+    patterns?.map(async p => await fileSystemAccessor.findFilesWithGlobAsync(p, normalizedBasePath))
+  );
+  const merged = new Set<NormalizedPath>(uris?.flat().filter((uri): uri is NormalizedPath => uri !== undefined));
+  const candidateUris = Array.from(merged);
+
+  const basePathLower = normalizedBasePath.toLowerCase();
+  const basePathWithSlash = `${basePathLower}/`;
+  const results: Entry[] = [];
+
+  for (const fileUri of candidateUris) {
     const fileUriLower = fileUri.toLowerCase();
-    const basePathWithSlash = `${basePathLower}/`;
     const startsWithCheck = fileUriLower.startsWith(basePathWithSlash) || fileUriLower === basePathLower;
-
     if (!startsWithCheck) {
       continue;
     }
 
-    // Calculate relative path - if path.posix.relative fails (returns absolute path),
-    // manually compute it by removing the base path prefix
     let relativePath = path.posix.relative(normalizedBasePath, fileUri);
     const isAbsoluteRelative = path.posix.isAbsolute(relativePath);
-
     if (isAbsoluteRelative) {
-      // path.posix.relative failed (e.g., drive letter mismatch on Windows)
-      // Since we've already verified the file is in the workspace via startsWith,
-      // manually compute the relative path by removing the base path prefix
       if (fileUriLower.startsWith(basePathWithSlash)) {
         relativePath = fileUri.substring(normalizedBasePath.length + 1);
       } else if (fileUriLower === basePathLower) {
-        // File is the workspace root itself
         relativePath = '.';
       } else {
-        // Should not happen given the startsWith check above, but skip to be safe
         continue;
       }
     }
 
-    // Check if file matches any of the patterns using minimatc
-    const matches = patterns.some(
-      p => minimatchFn(relativePath, p, { dot: true }) || minimatchFn(fileUri, p, { dot: true })
-    );
-
-    if (matches) {
-      const fileStat = fileSystemProvider.getFileStat(fileUri);
-      results.push({
-        path: fileUri,
-        stats: fileStat
-          ? {
-              mtime: new Date(fileStat.mtime)
-            }
-          : undefined
-      });
-    }
+    const fileStat = await fileSystemAccessor.getFileStat(fileUri);
+    results.push({
+      path: fileUri,
+      stats: fileStat
+        ? {
+            mtime: new Date(fileStat.mtime)
+          }
+        : undefined
+    });
   }
 
   return results;
@@ -160,23 +147,23 @@ export default class ComponentIndexer {
   public readonly workspaceRoot: NormalizedPath;
   public workspaceType: WorkspaceType = 'UNKNOWN';
   public readonly tags: Map<string, Tag> = new Map();
-  public readonly fileSystemProvider: IFileSystemProvider;
+  public readonly fileSystemAccessor: LspFileSystemAccessor;
 
   constructor(private readonly attributes: ComponentIndexerAttributes) {
     this.workspaceRoot = getWorkspaceRoot(attributes.workspaceRoot);
-    this.fileSystemProvider = attributes.fileSystemProvider;
+    this.fileSystemAccessor = attributes.fileSystemAccessor;
     // Use provided workspace type if available, otherwise will be detected in init()
     if (attributes.workspaceType) {
       this.workspaceType = attributes.workspaceType;
     }
   }
 
-  private getSfdxPackageDirsPattern(): string {
-    return getSfdxPackageDirsPattern(this.attributes.workspaceRoot, this.fileSystemProvider);
+  private async getSfdxPackageDirsPattern(): Promise<string> {
+    return getSfdxPackageDirsPattern(this.attributes.workspaceRoot, this.fileSystemAccessor);
   }
 
   // visible for testing
-  public getComponentEntries(): Entry[] {
+  public async getComponentEntries(): Promise<Entry[]> {
     const filterDirMatchesName = (item: Entry): boolean => {
       const data = path.parse(item.path);
       return data.dir.endsWith(data.name);
@@ -184,19 +171,23 @@ export default class ComponentIndexer {
 
     if (this.workspaceType === 'SFDX') {
       // workspaceRoot is already normalized by getWorkspaceRoot()
-      const packageDirsPattern = this.getSfdxPackageDirsPattern();
+      const packageDirsPattern = await this.getSfdxPackageDirsPattern();
       // If packageDirsPattern is empty, sfdx-project.json hasn't been loaded yet
       if (!packageDirsPattern) {
         return [];
       }
       // Pattern matches: {packageDir}/**/*/lwc/**/*.js
       const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
-      return findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot).filter(filterDirMatchesName);
+      return (await findFilesWithGlob(sfdxPattern, this.fileSystemAccessor, this.workspaceRoot)).filter(
+        filterDirMatchesName
+      );
     }
 
     // For CORE_ALL and CORE_PARTIAL
     const defaultPattern = '**/*/modules/**/*.js';
-    return findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot).filter(filterDirMatchesName);
+    return (await findFilesWithGlob(defaultPattern, this.fileSystemAccessor, this.workspaceRoot)).filter(
+      filterDirMatchesName
+    );
   }
 
   public getCustomData(): Tag[] {
@@ -223,7 +214,7 @@ export default class ComponentIndexer {
   }
 
   public findTagByURI(uri: DocumentUri): Tag | null {
-    const normalizedPathString = this.fileSystemProvider.uriToNormalizedPath(uri);
+    const normalizedPathString = this.fileSystemAccessor.uriToNormalizedPath(uri);
     const normalizedPath = normalizePath(normalizedPathString.replace(/\.html$/, '.js'));
 
     const found = Array.from(this.tags.values()).find(tag => {
@@ -239,8 +230,8 @@ export default class ComponentIndexer {
     try {
       const indexPath: string = path.join(this.workspaceRoot, CUSTOM_COMPONENT_INDEX_FILE);
 
-      if (this.fileSystemProvider.fileExists(indexPath)) {
-        const content = this.fileSystemProvider.getFileContent(indexPath);
+      if (await this.fileSystemAccessor.fileExists(indexPath)) {
+        const content = await this.fileSystemAccessor.getFileContent(indexPath);
         if (content) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const index: TagAttrs[] = JSON.parse(content);
@@ -260,18 +251,18 @@ export default class ComponentIndexer {
     const indexJsonString = JSON.stringify(this.getCustomData());
 
     // Store the component index data for the client to process
-    void this.fileSystemProvider.updateFileContent('lwc:componentIndex', indexJsonString);
+    void this.fileSystemAccessor.updateFileContent('lwc:componentIndex', indexJsonString);
   }
 
   public async insertSfdxTsConfigPath(filePaths: string[]): Promise<void> {
-    // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
+    // LspFileSystemAccessor.normalizePath() handles all normalization (unixify + drive letter case)
     const sfdxTsConfigPath = path.join(this.workspaceRoot, '.sfdx', 'tsconfig.sfdx.json');
 
-    const fileExists = this.fileSystemProvider.fileExists(sfdxTsConfigPath);
+    const fileExists = await this.fileSystemAccessor.fileExists(sfdxTsConfigPath);
 
     if (fileExists) {
       try {
-        const sfdxTsConfig: SfdxTsConfig = await readJsonSync(sfdxTsConfigPath, this.fileSystemProvider);
+        const sfdxTsConfig: SfdxTsConfig = await readJsonSync(sfdxTsConfigPath, this.fileSystemAccessor);
         sfdxTsConfig.compilerOptions = sfdxTsConfig.compilerOptions ?? { paths: {} };
         sfdxTsConfig.compilerOptions.paths = sfdxTsConfig.compilerOptions.paths ?? {};
         // Update TypeScript path mappings to include component file paths.
@@ -294,7 +285,7 @@ export default class ComponentIndexer {
             paths.push(componentFilePath);
           }
         }
-        writeJsonSync(sfdxTsConfigPath, sfdxTsConfig, this.fileSystemProvider);
+        await writeJson(sfdxTsConfigPath, sfdxTsConfig, this.fileSystemAccessor);
       } catch (err) {
         Logger.error(err);
       }
@@ -308,21 +299,21 @@ export default class ComponentIndexer {
   public async updateSfdxTsConfigPath(connection?: Connection): Promise<void> {
     const sfdxTsConfigPath = path.join(this.workspaceRoot, '.sfdx', 'tsconfig.sfdx.json');
 
-    const fileExists = this.fileSystemProvider.fileExists(sfdxTsConfigPath);
+    const fileExists = await this.fileSystemAccessor.fileExists(sfdxTsConfigPath);
 
     if (fileExists) {
       try {
-        const content = this.fileSystemProvider.getFileContent(sfdxTsConfigPath);
+        const content = await this.fileSystemAccessor.getFileContent(sfdxTsConfigPath);
         if (content) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const sfdxTsConfig: SfdxTsConfig = JSON.parse(content);
           // The assumption here is that sfdxTsConfig will not be modified by the user as
           // it is located in the .sfdx directory.
           sfdxTsConfig.compilerOptions = sfdxTsConfig.compilerOptions ?? { paths: {} };
-          sfdxTsConfig.compilerOptions.paths = this.getTsConfigPathMapping();
+          sfdxTsConfig.compilerOptions.paths = await this.getTsConfigPathMapping();
 
           // Update the actual tsconfig file
-          await this.fileSystemProvider.updateFileContent(
+          await this.fileSystemAccessor.updateFileContent(
             sfdxTsConfigPath,
             JSON.stringify(sfdxTsConfig, null, 2),
             connection
@@ -335,17 +326,17 @@ export default class ComponentIndexer {
   }
 
   // visible for testing
-  public getTsConfigPathMapping(): TsConfigPaths {
+  public async getTsConfigPathMapping(): Promise<TsConfigPaths> {
     const files: TsConfigPaths = {};
     if (this.workspaceType === 'SFDX') {
       // workspaceRoot is already normalized by getWorkspaceRoot()
-      const packageDirsPattern = this.getSfdxPackageDirsPattern();
+      const packageDirsPattern = await this.getSfdxPackageDirsPattern();
       // Use **/* after lwc to match any depth (e.g., utils/meta/lwc/todo_util/todo_util.js)
       // Construct glob pattern with forward slashes (path.join uses backslashes on Windows)
       // Normalize packageDirsPattern to ensure forward slashes
       const normalizedPackageDirs = normalizePath(packageDirsPattern);
       const sfdxPattern = `${normalizedPackageDirs}/**/*/lwc/**/*.{js,ts}`;
-      const filePaths = findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
+      const filePaths = await findFilesWithGlob(sfdxPattern, this.fileSystemAccessor, this.workspaceRoot);
       for (const filePath of filePaths) {
         const { dir, name: fileName } = path.parse(filePath.path);
         const folderName = path.basename(dir);
@@ -371,15 +362,15 @@ export default class ComponentIndexer {
     return files;
   }
 
-  private getUnIndexedFiles(): Entry[] {
-    const componentEntries = this.getComponentEntries();
+  private async getUnIndexedFiles(): Promise<Entry[]> {
+    const componentEntries = await this.getComponentEntries();
     const customData = this.getCustomData();
     const unIndexed = unIndexedFiles(componentEntries, customData);
     return unIndexed;
   }
 
-  public getStaleTags(): Tag[] {
-    const componentEntries = this.getComponentEntries();
+  public async getStaleTags(): Promise<Tag[]> {
+    const componentEntries = await this.getComponentEntries();
 
     return this.getCustomData().filter(tag => !componentEntries.some(entry => entry.path === tag.file));
   }
@@ -387,23 +378,23 @@ export default class ComponentIndexer {
   public async init(): Promise<void> {
     // Only detect workspace type if not already provided
     if (this.workspaceType === 'UNKNOWN' || !this.attributes.workspaceType) {
-      this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemProvider);
+      this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemAccessor);
     }
 
     // For SFDX workspaces, ensure sfdx-project.json is loaded before initializing
     if (this.workspaceType === 'SFDX') {
       const sfdxProjectPath = normalizePath(path.join(this.attributes.workspaceRoot, 'sfdx-project.json'));
-      if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+      if (!(await this.fileSystemAccessor.fileExists(sfdxProjectPath))) {
         return;
       }
     }
 
     await this.loadTagsFromIndex();
 
-    const unIndexedFilesResult = this.getUnIndexedFiles();
+    const unIndexedFilesResult = await this.getUnIndexedFiles();
 
     const promises = unIndexedFilesResult.map(async entry => {
-      const tag = await createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime);
+      const tag = await createTagFromFile(entry.path, this.fileSystemAccessor, entry.stats?.mtime);
       return tag;
     });
     const tags = await Promise.all(promises);
@@ -420,7 +411,7 @@ export default class ComponentIndexer {
       this.tags.set(tagName, tag);
     });
 
-    const staleTags = this.getStaleTags();
+    const staleTags = await this.getStaleTags();
     staleTags.forEach(tag => {
       if (tag) {
         this.tags.delete(getTagName(tag));

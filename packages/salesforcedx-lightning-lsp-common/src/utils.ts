@@ -10,7 +10,7 @@ import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { BaseWorkspaceContext } from './baseContext';
-import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 import { isPackageJson, PackageJson } from './types/packageJson';
 
 const RESOURCES_DIR = 'resources';
@@ -64,7 +64,7 @@ const unixify = (filePath: string): string => filePath.replaceAll('\\', '/');
 export type NormalizedPath = string & { readonly __brand: 'NormalizedPath' };
 
 /**
- * Normalizes a path for consistent storage and matching in FileSystemDataProvider.
+ * Normalizes a path for consistent storage and matching in LspFileSystemAccessor.
  * Converts backslashes to forward slashes (unixify) and normalizes Windows drive letters to lowercase.
  * This ensures paths match regardless of drive letter casing (Windows file system is case-insensitive,
  * but JavaScript Map keys are case-sensitive).
@@ -112,9 +112,9 @@ export const memoize = <T>(fn: () => T): (() => T) => {
   };
 };
 
-export const readJsonSync = async (file: string, fileSystemProvider: IFileSystemProvider): Promise<SfdxTsConfig> => {
+export const readJsonSync = async (file: string, fileSystemAccessor: LspFileSystemAccessor): Promise<SfdxTsConfig> => {
   try {
-    const content = fileSystemProvider.getFileContent(`${file}`);
+    const content = await fileSystemAccessor.getFileContent(`${file}`);
     if (!content) {
       return {};
     }
@@ -132,14 +132,21 @@ export const readJsonSync = async (file: string, fileSystemProvider: IFileSystem
   }
 };
 
-export const writeJsonSync = (file: string, json: SfdxTsConfig, fileSystemProvider: IFileSystemProvider): void => {
+export const writeJson = async (
+  file: string,
+  json: SfdxTsConfig,
+  fileSystemAccessor: LspFileSystemAccessor
+): Promise<void> => {
   const content = JSON.stringify(json, null, 4);
-  void fileSystemProvider.updateFileContent(`${file}`, content);
+  await fileSystemAccessor.updateFileContent(`${file}`, content);
 };
 
 /** Reads and parses the package.json at the given root directory. Returns `undefined` if not found, unparseable, or not a valid PackageJson shape. */
-export const readPackageJson = (root: string, fileSystemProvider: IFileSystemProvider): PackageJson | undefined => {
-  const content = fileSystemProvider.getFileContent(join(root, 'package.json'));
+export const readPackageJson = async (
+  root: string,
+  fileSystemAccessor: LspFileSystemAccessor
+): Promise<PackageJson | undefined> => {
+  const content = await fileSystemAccessor.getFileContent(join(root, 'package.json'));
   if (!content) {
     return undefined;
   }
