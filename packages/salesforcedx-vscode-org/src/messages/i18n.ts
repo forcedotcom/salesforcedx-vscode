@@ -52,7 +52,7 @@ export const messages = {
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
   org_login_web_verification_code_message: 'Verification Code: %s — If prompted, enter this code in your browser window.',
   org_login_web_verification_code_suffix: '(Verification Code: %s)',
-  org_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
+  org_logout_all_text: 'SFDX: Log Out from Orgs',
   org_logout_default_text: 'SFDX: Log Out from Default Org',
   org_logout_no_default_org: 'No default org to logout from',
   org_logout_scratch_logout: 'Logout',
