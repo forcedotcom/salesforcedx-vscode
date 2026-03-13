@@ -7,12 +7,13 @@
 
 import { TestService } from '@salesforce/apex-node';
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
+import { getApexTestingRuntime } from '../services/extensionProvider';
+import { discoverTests } from '../testDiscovery/testDiscovery';
 import {
   CancelResponse,
   ContinueResponse,
@@ -20,24 +21,23 @@ import {
   ParametersGatherer,
   SfCommandlet
 } from '../utils/commandletHelpers';
-import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
-import { findLocalApexClassAndTestSuiteUris } from '../utils/testUtils';
+import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { getTestController } from '../views/testController';
 import { ApexLibraryTestRunExecutor } from './apexTestRun';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const { apexClassUris } = await findLocalApexClassAndTestSuiteUris();
-  if (apexClassUris.length === 0) {
-    return [];
-  }
-  const items = await Promise.all(
-    apexClassUris.map(
-      (uri): Promise<ApexTestQuickPickItem | undefined> => getTestInfo(uri).catch((): undefined => undefined)
+  const result = await getApexTestingRuntime().runPromise(discoverTests());
+  return result.classes
+    .map(
+      (cls): ApexTestQuickPickItem => ({
+        label: cls.name,
+        description: cls.namespacePrefix ?? '',
+        type: 'Class'
+      })
     )
-  );
-  return items.filter(isNotUndefined).toSorted((a, b): number => a.label.localeCompare(b.label));
+    .toSorted((a, b): number => a.label.localeCompare(b.label));
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
