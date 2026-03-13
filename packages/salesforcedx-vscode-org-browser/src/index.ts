@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import { nls } from './messages';
-import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { AllServicesLayer, buildAllServicesLayer, getOrgBrowserRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
@@ -57,8 +57,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   // Register the tree provider
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
 
-  // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getOrgBrowserRuntime());
 
   // Register commands
   yield* Effect.all(
