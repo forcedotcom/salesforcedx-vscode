@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, StateAggregator } from '@salesforce/core';
+import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
@@ -27,7 +27,7 @@ import { OUTPUT_CHANNEL } from '../../channels';
 import { AllServicesLayer } from '../../extensionProvider';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { isCurrentTargetOrg, unsetTargetOrg, updateConfigAndStateAggregators } from '../../util/orgUtil';
+import { updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 // SimpleGatherer - need to inline this small utility
 class SimpleGatherer<T> implements ParametersGatherer<T> {
@@ -86,6 +86,24 @@ export const orgLogoutAll = async () => {
   await commandlet.run();
 };
 
+const checkIsCurrentTargetOrg = Effect.fn('OrgLogout.checkIsCurrentTargetOrg')(
+  function* (username: string, aliases: readonly string[]) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    return yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
+  }
+);
+
+const removeOrgAliases = Effect.fn('OrgLogout.removeOrgAliases')(function* (username: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const allAliasesOnDisk = yield* api.services.AliasService.getAliasesFromUsername(username);
+  yield* api.services.AliasService.unsetAliases(allAliasesOnDisk);
+});
+
+const doUnsetTargetOrg = Effect.fn('OrgLogout.doUnsetTargetOrg')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ConfigService.unsetTargetOrg();
+});
+
 export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   private readonly orgAliases: readonly string[];
 
@@ -96,15 +114,15 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
-      const shouldUnset = await isCurrentTargetOrg(response.data, this.orgAliases);
+      const shouldUnset = await checkIsCurrentTargetOrg(response.data, this.orgAliases).pipe(
+        Effect.provide(AllServicesLayer),
+        Effect.runPromise
+      );
       const authRemover = await AuthRemover.create();
       await authRemover.removeAuth(response.data);
-      const sa = await StateAggregator.getInstance();
-      for (const alias of this.orgAliases) {
-        await sa.aliases.unsetAndSave(alias);
-      }
+      await removeOrgAliases(response.data).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
       if (shouldUnset) {
-        await unsetTargetOrg();
+        await doUnsetTargetOrg().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
       }
     } catch (e) {
       telemetryService.sendException('org_logout_default', `Error: name = ${e.name} message = ${e.message}`);

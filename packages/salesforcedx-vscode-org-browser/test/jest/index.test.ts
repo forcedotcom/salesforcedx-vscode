@@ -117,7 +117,9 @@ const MockConfigServiceLayer = Layer.succeed(
   ConfigService,
   new ConfigService({
     getConfigAggregator: () => Effect.sync(() => mockConfigAggregator),
-    invalidateConfigAggregator: () => Effect.void
+    invalidateConfigAggregator: () => Effect.void,
+    isCurrentTargetOrg: () => Effect.succeed(false),
+    unsetTargetOrg: () => Effect.void
   } as const)
 );
 

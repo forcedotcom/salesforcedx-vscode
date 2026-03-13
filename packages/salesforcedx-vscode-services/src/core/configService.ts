@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Config, OrgConfigProperties } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
@@ -13,7 +14,7 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { getDefaultOrgRef } from './defaultOrgRef';
+import { clearDefaultOrgRef, getDefaultOrgRef } from './defaultOrgRef';
 import { unknownToErrorCause } from './shared';
 
 export class FailedToCreateConfigAggregatorError extends Schema.TaggedError<FailedToCreateConfigAggregatorError>()(
@@ -82,6 +83,25 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       yield* globalConfigCache.invalidateAll;
     });
 
-    return { getConfigAggregator, invalidateConfigAggregator };
+    /** Returns true if the given username/aliases match the currently configured target org */
+    const isCurrentTargetOrg = Effect.fn('ConfigService.isCurrentTargetOrg')(
+      function* (username: string, aliases: readonly string[]) {
+        const agg = yield* getConfigAggregator();
+        const targetOrgOrAlias = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
+        if (!targetOrgOrAlias) return false;
+        return targetOrgOrAlias === username || aliases.includes(targetOrgOrAlias);
+      }
+    );
+
+    /** Unsets target-org from the local project config and clears the reactive org state */
+    const unsetTargetOrg = Effect.fn('ConfigService.unsetTargetOrg')(function* () {
+      const config = yield* Effect.promise(() => Config.create(Config.getDefaultOptions()));
+      config.unset(OrgConfigProperties.TARGET_ORG);
+      yield* Effect.promise(() => config.write());
+      yield* invalidateConfigAggregator();
+      yield* clearDefaultOrgRef();
+    });
+
+    return { getConfigAggregator, invalidateConfigAggregator, isCurrentTargetOrg, unsetTargetOrg };
   })
 }) {}

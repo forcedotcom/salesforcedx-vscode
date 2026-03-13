@@ -5,9 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, Config, StateAggregator, OrgConfigProperties, type StateAggregator as StateAggregatorType } from '@salesforce/core';
-import { ConfigUtil, ConfigAggregatorProvider, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { AuthRemover } from '@salesforce/core';
+import {
+  ExtensionProviderService,
+  type ExtensionProviderService as ExtensionProviderServiceType
+} from '@salesforce/effect-ext-utils';
+import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { OrgLogoutDefault } from '../../../../src/commands/auth/orgLogout';
+import { setAllServicesLayer } from '../../../../src/extensionProvider';
 
 jest.mock('../../../../src/telemetry', () => ({
   telemetryService: { sendException: jest.fn() }
@@ -19,12 +26,28 @@ jest.mock('../../../../src/channels', () => ({
 
 describe('OrgLogoutDefault', () => {
   let removeAuthMock: jest.Mock;
-  let getTargetOrgOrAliasSpy: jest.SpyInstance;
-  let configCreateSpy: jest.SpyInstance;
-  let unsetMock: jest.Mock;
-  let writeMock: jest.Mock;
-  let reloadConfigAggregatorsMock: jest.Mock;
-  let clearInstanceSpy: jest.SpyInstance;
+  let isCurrentTargetOrgMock: jest.Mock;
+  let unsetTargetOrgMock: jest.Mock;
+  let unsetAliasesMock: jest.Mock;
+  let getAliasesFromUsernameMock: jest.Mock;
+
+  const buildLayer = () => {
+    const mockServicesApi = {
+      services: {
+        ConfigService: {
+          isCurrentTargetOrg: isCurrentTargetOrgMock,
+          unsetTargetOrg: unsetTargetOrgMock
+        },
+        AliasService: {
+          unsetAliases: unsetAliasesMock,
+          getAliasesFromUsername: getAliasesFromUsernameMock
+        }
+      }
+    } as unknown as SalesforceVSCodeServicesApi;
+    return Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
+    });
+  };
 
   beforeEach(() => {
     removeAuthMock = jest.fn().mockResolvedValue(undefined);
@@ -32,26 +55,12 @@ describe('OrgLogoutDefault', () => {
       removeAuth: removeAuthMock
     } as unknown as AuthRemover);
 
-    getTargetOrgOrAliasSpy = jest.spyOn(ConfigUtil, 'getTargetOrgOrAlias');
+    isCurrentTargetOrgMock = jest.fn().mockReturnValue(Effect.succeed(false));
+    unsetTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
+    unsetAliasesMock = jest.fn().mockReturnValue(Effect.void);
+    getAliasesFromUsernameMock = jest.fn().mockReturnValue(Effect.succeed([]));
 
-    unsetMock = jest.fn();
-    writeMock = jest.fn();
-    configCreateSpy = jest.spyOn(Config, 'create').mockResolvedValue({
-      unset: unsetMock,
-      write: writeMock
-    } as unknown as Config);
-
-    reloadConfigAggregatorsMock = jest.fn();
-    jest.spyOn(ConfigAggregatorProvider, 'getInstance').mockReturnValue({
-      reloadConfigAggregators: reloadConfigAggregatorsMock
-    } as unknown as ConfigAggregatorProvider);
-
-    clearInstanceSpy = jest.spyOn(StateAggregator, 'clearInstance').mockReturnValue(undefined);
-    jest.spyOn(StateAggregator, 'getInstance').mockResolvedValue({
-      aliases: { getAll: jest.fn().mockReturnValue([]), unsetAndSave: jest.fn().mockResolvedValue(undefined) }
-    } as unknown as StateAggregatorType);
-
-    jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('/fake/workspace');
+    setAllServicesLayer(buildLayer() as ReturnType<typeof import('../../../../src/extensionProvider').buildAllServicesLayer>);
   });
 
   afterEach(() => {
@@ -61,70 +70,85 @@ describe('OrgLogoutDefault', () => {
   it('unsets target-org when target-org matches an alias from TargetOrgRef', async () => {
     const username = 'user@example.com';
     const aliases = ['myAlias', 'otherAlias'];
-    getTargetOrgOrAliasSpy.mockResolvedValue('myAlias');
+    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(true));
+    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed(aliases));
 
     const executor = new OrgLogoutDefault(aliases);
     const result = await executor.run({ type: 'CONTINUE', data: username });
 
     expect(result).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
-    expect(unsetMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG);
-    expect(writeMock).toHaveBeenCalled();
-    expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
-    expect(clearInstanceSpy).toHaveBeenCalled();
+    expect(isCurrentTargetOrgMock).toHaveBeenCalledWith(username, aliases);
+    expect(unsetAliasesMock).toHaveBeenCalledWith(aliases);
+    expect(unsetTargetOrgMock).toHaveBeenCalled();
+  });
+
+  it('removes all aliases from disk including those added after org was set as default', async () => {
+    const username = 'user@example.com';
+    const aliasesAtSetTime = ['originalAlias'];
+    const allAliasesOnDisk = ['originalAlias', 'extraAlias'];
+    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(true));
+    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed(allAliasesOnDisk));
+
+    const executor = new OrgLogoutDefault(aliasesAtSetTime);
+    const result = await executor.run({ type: 'CONTINUE', data: username });
+
+    expect(result).toBe(true);
+    expect(unsetAliasesMock).toHaveBeenCalledWith(allAliasesOnDisk);
+    expect(unsetTargetOrgMock).toHaveBeenCalled();
   });
 
   it('unsets target-org when target-org is set directly to the username', async () => {
     const username = 'user@example.com';
-    getTargetOrgOrAliasSpy.mockResolvedValue(username);
+    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(true));
+    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed([]));
 
     const executor = new OrgLogoutDefault([]);
     const result = await executor.run({ type: 'CONTINUE', data: username });
 
     expect(result).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
-    expect(unsetMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG);
-    expect(writeMock).toHaveBeenCalled();
+    expect(unsetTargetOrgMock).toHaveBeenCalled();
   });
 
   it('does not unset target-org when the logged-out org aliases do not match', async () => {
     const username = 'other@example.com';
     const aliases = ['differentAlias'];
-    getTargetOrgOrAliasSpy.mockResolvedValue('myAlias');
+    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(false));
+    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed(aliases));
 
     const executor = new OrgLogoutDefault(aliases);
     const result = await executor.run({ type: 'CONTINUE', data: username });
 
     expect(result).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
-    expect(unsetMock).not.toHaveBeenCalled();
-    expect(writeMock).not.toHaveBeenCalled();
+    expect(unsetAliasesMock).toHaveBeenCalledWith(aliases);
+    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
   });
 
   it('does not unset target-org when auth removal fails', async () => {
     const username = 'user@example.com';
     const aliases = ['myAlias'];
-    getTargetOrgOrAliasSpy.mockResolvedValue('myAlias');
+    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(true));
     removeAuthMock.mockRejectedValue(new Error('removal failed'));
 
     const executor = new OrgLogoutDefault(aliases);
     const result = await executor.run({ type: 'CONTINUE', data: username });
 
     expect(result).toBe(false);
-    expect(unsetMock).not.toHaveBeenCalled();
-    expect(writeMock).not.toHaveBeenCalled();
+    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
   });
 
   it('does not unset target-org when no target org is configured', async () => {
     const username = 'user@example.com';
-    getTargetOrgOrAliasSpy.mockResolvedValue(undefined);
+    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(false));
+    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed([]));
 
     const executor = new OrgLogoutDefault([]);
     const result = await executor.run({ type: 'CONTINUE', data: username });
 
     expect(result).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
-    expect(configCreateSpy).not.toHaveBeenCalled();
-    expect(unsetMock).not.toHaveBeenCalled();
+    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
   });
 });
