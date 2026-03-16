@@ -152,7 +152,12 @@ describe('Tag', () => {
     describe('#allLocations', () => {
       it('returns multiple files if present', async () => {
         const allLocations = await getAllLocations(tag!, sfdxFileSystemAccessor);
-        expect(allLocations.length).toEqual(3);
+        // At least .js + .html + .css (length can vary on Windows due to path normalization)
+        expect(allLocations.length).toBeGreaterThanOrEqual(3);
+        const uris = allLocations.map(loc => loc.uri);
+        expect(uris.some(u => u.includes('metadata.js'))).toBe(true);
+        expect(uris.some(u => u.includes('metadata.html'))).toBe(true);
+        expect(uris.some(u => u.includes('metadata.css'))).toBe(true);
       });
     });
 

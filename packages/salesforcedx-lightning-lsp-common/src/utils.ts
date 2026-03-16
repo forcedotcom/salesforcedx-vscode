@@ -112,20 +112,27 @@ export const memoize = <T>(fn: () => T): (() => T) => {
   };
 };
 
+/** Parse JSONC (JSON with comments) synchronously without ESM dynamic import. Used so Jest on Windows (Node 24) does not hit ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG. */
+const parseJsoncSync = (text: string): Record<string, unknown> => {
+  let cleaned = text;
+  cleaned = cleaned.replaceAll(/\/\/.*$/gm, '');
+  cleaned = cleaned.replaceAll(/\/\*[\s\S]*?\*\//g, '');
+  cleaned = cleaned.replaceAll(/,(\s*[}\]])/g, '$1');
+  try {
+    const parsed: unknown = JSON.parse(cleaned);
+    return isRecord(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
 export const readJsonSync = async (file: string, fileSystemAccessor: LspFileSystemAccessor): Promise<SfdxTsConfig> => {
   try {
     const content = await fileSystemAccessor.getFileContent(`${file}`);
     if (!content) {
       return {};
     }
-    // Dynamically import tiny-jsonc (ES module) and parse JSONC content
-    // Comments will be lost if this object is written back to file.
-    // Individual properties should be updated directly via VS Code API to preserve comments.
-
-    const { parse } = (await import('tiny-jsonc')).default;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const parsed = parse(content);
-    return isRecord(parsed) ? parsed : {};
+    return parseJsoncSync(content);
   } catch (err) {
     console.log(`onIndexCustomComponents(LOTS): Error reading jsconfig ${file}`, err);
     return {};
