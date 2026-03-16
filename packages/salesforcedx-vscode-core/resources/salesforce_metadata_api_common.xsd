@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-03-08T13:24:33.284Z
+Generated on: 2026-03-15T13:28:53.681Z
 Total metadata types: 1540
 -->
 <xsd:schema
@@ -4487,7 +4487,7 @@ Total metadata types: 1540
      </xsd:element>
      <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The widget type.Values are: button component container filter image metric parameter text visualization</xsd:documentation>
+       <xsd:documentation>Required. The widget type.Values are: button component container filter image metric parameter text summary visualization</xsd:documentation>
        <xsd:appinfo>Type: AnalyticsWidgetType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5809,7 +5809,7 @@ Total metadata types: 1540
      </xsd:element>
      <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>The type of dynamic token. Valid values include query.</xsd:documentation>
+       <xsd:documentation>The type of dynamic token. Valid values include query and insights.</xsd:documentation>
        <xsd:appinfo>Type: AnalyticsDynamicTokenType</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -7912,7 +7912,7 @@ Total metadata types: 1540
  </xsd:complexType>
  <xsd:complexType name="AuthProvParamFwdAllowlist">
   <xsd:annotation>
-   <xsd:documentation>Represents an allowlisted URL parameter that can be forwarded from authentication provider client configuration URLs to the authorization URL. Use this type to add custom functionality to authentication providers. For example, allowlist a ui_locales parameter and use it to send a user&apos;s language preference from Salesforce to the third-party provider&apos;s login page.</xsd:documentation>
+   <xsd:documentation>Represents an allowlisted URL parameter that can be forwarded from authentication provider client configuration URLs to the authorization URL. Use this type to add custom functionality to authentication providers. For example, allowlist a ui_locales parameter and use it to send a user&apos;s language preference from Salesforce to the third-party provider&apos;s login page. You can allowlist up to 10 parameters.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_authproviders.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -21085,7 +21085,7 @@ Total metadata types: 1540
      </xsd:element>
      <xsd:element name="componentType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Dashboard component type. The valid values are: Bar BarGrouped BarStacked BarStacked100 Column ColumnGrouped ColumnLine ColumnLineGrouped ColumnLineStacked ColumnLineStacked100 ColumnStacked ColumnStacked100 Donut FlexTable Funnel Gauge Image Line lineCumulative LineGrouped lineGroupedCumulative Metric Pie PulseMetric RichText Scatter ScatterGrouped Scontrol Table VisualforcePage</xsd:documentation>
+       <xsd:documentation>Required. Dashboard component type. The valid values are: Bar BarGrouped BarStacked BarStacked100 Column ColumnGrouped ColumnLine ColumnLineGrouped ColumnLineStacked ColumnLineStacked100 ColumnStacked ColumnStacked100 Donut FlexTable Funnel Gauge Image LightningWebComponent Line LineCumulative LineGrouped LineGroupedCumulative Metric Pie PulseMetricCard RichText Scatter ScatterGrouped SControl Table VisualforcePage</xsd:documentation>
        <xsd:appinfo>Type: DashboardComponentType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -24556,9 +24556,10 @@ Total metadata types: 1540
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="omniScriptCnfgApiName" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     <xsd:element name="omniScriptCnfgApiName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The API name of the Omniscript configuration that&apos;s associated with the disclosure definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="omniScriptConfiguration" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -29730,7 +29731,7 @@ Total metadata types: 1540
  </xsd:complexType>
  <xsd:complexType name="ExperiencePropertyTypeBundle_Beta">
   <xsd:annotation>
-   <xsd:documentation>Represents a property type. When you create a custom property type for a Lightning web component, deploy this bundle to your org.</xsd:documentation>
+   <xsd:documentation>Represents a property type. Replaced in Spring ’26 by the updated LightningPropertyType. When you create a custom property type for a Lightning web component, use LightningPropertyType instead, and deploy that bundle to your org. To create a custom property type, see LightningPropertyType.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_experiencepropertytypebundle.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -33438,6 +33439,18 @@ Total metadata types: 1540
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="canceledDefaultStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The default status value when a service appointment is canceled. Available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="cannotCompleteDefaultStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The default status value when a service appointment can&apos;t be completed. Available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="canPopulateGoogleAddress" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Allows desktop and mobile to send geolocation and map data to Google and Apple. Available in API version 57.0 and later.</xsd:documentation>
@@ -33456,9 +33469,21 @@ Total metadata types: 1540
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="completedDefaultStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The default status value when a service appointment is completed. Available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="deepLinkPublicSecurityKey" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Provides a public security key for users accessing a deep link action in the Field Service mobile app. Hide the redirection warning by configuring the deep link URL with a security key. The deep link URL then processes the security check. Available in API version 54.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="dispatchedDefaultStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The default status value when a service appointment is dispatched. Available in API version 65.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -33528,6 +33553,12 @@ Total metadata types: 1540
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="inProgressDefaultStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The default status value when a service appointment is in progress. Available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="isGeoCodeSyncEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Syncs the location of a Service Resource to an Inventory object.</xsd:documentation>
@@ -33543,6 +33574,12 @@ Total metadata types: 1540
      <xsd:element name="mobileFeedbackEmails" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Stores an email address to which a feedback email is sent when users leave feedback from the Field Service mobile app. Available in API version 54.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="noneDefaultStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The default status value when a service appointment has no specific status. Available in API version 65.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -33562,6 +33599,12 @@ Total metadata types: 1540
       <xsd:annotation>
        <xsd:documentation>Allows the optimization service to access data in your Salesforce org.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="scheduledDefaultStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The default status value when a service appointment is scheduled. Available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="serviceAppointmentsDueDateOffsetOrgValue" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
@@ -51240,7 +51283,7 @@ Total metadata types: 1540
      </xsd:element>
      <xsd:element name="awsAccessSecret" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The second part of the access key used to sign programmatic requests to AWS. Use when AWS Signature Version 4 is your authentication protocol. This field is valid only when NamedCredentialType is set to Legacy. First available in API version 46.0, this field is deprecated in API version 56.0 and later.</xsd:documentation>
+       <xsd:documentation>The second part of the access key that&apos;s used to sign programmatic requests to AWS. Use when AWS Signature Version 4 is your authentication protocol. This field is valid only when NamedCredentialType is set to Legacy. First available in API version 46.0, this field is deprecated in API version 56.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -51445,7 +51488,7 @@ Total metadata types: 1540
      </xsd:element>
      <xsd:element name="parameterType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The type of the named credential parameter. Valid values are: AllowedManagedPackageNamespaces: Allows managed packages identified by specified namespaces to use the named credential and make callouts through it. Authentication: Specifies that this parameter configures authentication using the credentials specified in the external credential, referenced by the externalCredential field. ClientCertificate: Specifies that this parameter configures a client certificate, referenced by the certificate field. ConnectionStatus: Reserved for internal use. CreatedByNamespace: Reserved for internal use. CustomParameter: Reserved for internal use. HttpHeader: Allows the user to specify custom headers to be added to the callout at run time. When using HttpHeader, the parameterName field must be the header name as a string, and parameterValue must be a formula of a header value that is evaluated at run time. ManagedByComponent: Reserved for internal use. ManagedByFeature: Reserved for internal use. OutboundNetworkConnection: Specifies a lookup to an outbound network connection. When using this parameter type, the outboundNetworkConnection field is a string representing the lookup. Used when namedCredentialType is PrivateEndpoint. StandardNamedCredentialType: Reserved for internal use. Url: Specifies that this parameter configures the URL of the endpoint. Store the actual URL in the parameterValue field.</xsd:documentation>
+       <xsd:documentation>Required. The type of the named credential parameter. Valid values are: AllowedManagedPackageNamespaces: Allows managed packages identified by specified namespaces to use the named credential and make callouts through it. Authentication: Specifies that this parameter configures authentication using the credentials specified in the external credential, referenced by the externalCredential field. ClientCertificate: Specifies that this parameter configures a client certificate, referenced by the certificate field. ConnectionStatus: Reserved for internal use. CreatedByNamespace: Reserved for internal use. CustomParameter: Reserved for internal use. HttpHeader: Allows the user to specify custom headers to be added to the callout at run time. When using HttpHeader, the parameterName field must be the header name as a string, and parameterValue must be a formula of a header value that is evaluated at run time. ManagedByComponent: Reserved for internal use. ManagedByFeature: Reserved for internal use. ManagedByNamespace: Specifies the manageability capabilities for a packaged named credential. The parameterValue indicates whether the named credential uses subscriber-controlled or developer-controlled manageability. NamedCredentialOptions: Reserved for internal use. OutboundNetworkConnection: Specifies a lookup to an outbound network connection. When using this parameter type, the outboundNetworkConnection field is a string representing the lookup. Used when namedCredentialType is PrivateEndpoint. SfHttpRequestExtensionName: Reserved for internal use. StandardNamedCredentialType: Reserved for internal use. Url: Specifies that this parameter configures the URL of the endpoint. Store the actual URL in the parameterValue field.</xsd:documentation>
        <xsd:appinfo>Type: NamedCredentialParamType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
