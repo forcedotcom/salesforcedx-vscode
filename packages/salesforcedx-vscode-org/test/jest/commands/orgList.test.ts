@@ -321,20 +321,18 @@ describe('orgList command', () => {
       }
     ];
 
+    const defaultConfig = {
+      defaultDevHubProperty: undefined,
+      defaultOrgProperty: undefined,
+      defaultDevHubUsername: undefined,
+      defaultOrgUsername: undefined
+    };
+
     beforeEach(() => {
       jest.clearAllMocks();
       (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue(mockOrgAuths);
       mockGetAuthFieldsFor.mockResolvedValue({});
-
-      // Set the mock value that getConfigAggregatorEffect will return
-      mockConfigAggregatorStore.value = {
-        getPropertyValue: jest.fn().mockImplementation((key: string) => {
-          if (key === 'target-dev-hub') return 'devhub@example.com';
-          if (key === 'target-org') return 'prod@example.com';
-          return undefined;
-        })
-      };
-
+      jest.spyOn(orgUtil, 'getDefaultOrgConfiguration').mockResolvedValue(defaultConfig);
     });
 
     it('should display message when no orgs found', async () => {
