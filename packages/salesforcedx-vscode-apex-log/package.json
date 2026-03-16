@@ -82,12 +82,12 @@
       ]
     },
     "copy:grammars": {
-      "command": "shx mkdir -p syntaxes && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./syntaxes/",
+      "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./grammars/",
       "files": [
         "../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
       ],
       "output": [
-        "syntaxes/apex.tmLanguage"
+        "grammars/apex.tmLanguage"
       ]
     },
     "vscode:bundle": {
@@ -181,7 +181,8 @@
         "LICENSE.txt",
         "images/**",
         "resources/**",
-        "syntaxes/**"
+        "syntaxes/**",
+        "grammars/**"
       ],
       "output": [
         "*.vsix"
@@ -296,7 +297,7 @@
       {
         "language": "apex-anon",
         "scopeName": "source.apex",
-        "path": "./syntaxes/apex.tmLanguage"
+        "path": "./grammars/apex.tmLanguage"
       }
     ],
     "menus": {
