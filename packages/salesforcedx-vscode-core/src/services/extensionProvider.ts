@@ -9,9 +9,6 @@ import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { ExtensionContext } from 'vscode';
-import * as vscode from 'vscode';
-
-const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
 const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
@@ -30,20 +27,16 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
-      const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
-      const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
-      const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
-      const channelLayer = api.services.ChannelServiceLayer(
-        extension?.packageJSON.displayName ?? 'Salesforce CLI'
-      );
+      const displayName = context.extension.packageJSON?.displayName ?? 'Salesforce CLI';
+      const channelLayer = api.services.ChannelServiceLayer(displayName);
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.ChannelServiceLayer(extension?.packageJSON.displayName ?? 'Salesforce CLI'),
+        api.services.ChannelServiceLayer(displayName),
         api.services.FsService.Default,
         api.services.AliasService.Default,
-        api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint }),
+        api.services.SdkLayerFor(context),
         channelLayer,
         errorHandlerWithChannel
       );

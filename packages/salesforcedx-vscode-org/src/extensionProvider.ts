@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionPackageJsonSchema,
+  ExtensionProviderService,
+  type ExtensionPackageJson,
+  getServicesApi
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
-
-const EXTENSION_NAME = 'salesforcedx-vscode-org';
 
 const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
@@ -30,14 +34,11 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
-      // vscode packageJSON is untyped; assert shape for safe property access
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- vscode packageJSON is untyped */
-      const pkg = context.extension.packageJSON as
-        | { version?: string; displayName?: string; o11yUploadEndpoint?: string }
-        | undefined;
-      const extensionVersion = pkg?.version ?? 'unknown';
-      const o11yEndpoint = process.env.O11Y_ENDPOINT ?? pkg?.o11yUploadEndpoint;
-      const displayName = pkg?.displayName ?? 'Salesforce Org Management';
+      const emptyPjson: ExtensionPackageJson = {};
+      const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
+        Effect.catchAll(() => Effect.succeed(emptyPjson))
+      );
+      const displayName = pjson.displayName ?? 'Salesforce Org Management';
       // ErrorHandlerService depends on ChannelService, provide the extension's channel
       const channelLayer = api.services.ChannelServiceLayer(displayName);
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
@@ -51,7 +52,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.ConnectionService.Default,
         api.services.ProjectService.Default,
         api.services.WorkspaceService.Default,
-        api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint }),
+        api.services.SdkLayerFor(context),
         channelLayer,
         errorHandlerWithChannel
       );
