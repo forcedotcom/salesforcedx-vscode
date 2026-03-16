@@ -40,7 +40,6 @@ export const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* 
 export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(function* (
   componentSet: NonEmptyComponentSet
 ) {
-  yield* Effect.logDebug('before retrieveToCacheDirectory');
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const cacheDirUri = yield* getCacheDirectoryUri();
 
@@ -97,12 +96,11 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
       HashSet.toValues
     )
   ];
-  const pairsByLocalUri = (
-    yield* Effect.all(
-      values.map(v => createMatchedPair({ allRemotePaths, initialUri: v.initialUri, fileName: v.fileName })),
-      { concurrency: 'unbounded' }
-    )
-  ).filter(isDiffFilePair);
+  const rawPairs = yield* Effect.all(
+    values.map(v => createMatchedPair({ allRemotePaths, initialUri: v.initialUri, fileName: v.fileName })),
+    { concurrency: 'unbounded' }
+  );
+  const pairsByLocalUri = rawPairs.filter(isDiffFilePair);
 
   return HashSet.fromIterable(pairsByLocalUri);
 });

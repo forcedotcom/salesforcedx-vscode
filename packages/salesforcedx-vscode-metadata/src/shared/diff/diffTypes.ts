@@ -8,10 +8,15 @@
 import * as Data from 'effect/Data';
 import * as Schema from 'effect/Schema';
 import type { HashableUri } from 'salesforcedx-vscode-services';
-import { URI } from 'vscode-uri';
 
+/** Cross-bundle safe: HashableUri from services extension fails instanceof URI in metadata bundle. Use structural check. */
 const isHashableUri = (u: unknown): u is HashableUri =>
-  u instanceof URI && u.constructor.name === 'HashableUri';
+  u !== null &&
+  typeof u === 'object' &&
+  'path' in u &&
+  'scheme' in u &&
+  typeof Object(u)['path'] === 'string' &&
+  typeof Object(u)['scheme'] === 'string';
 
 const HashableUriSchema = Schema.declare<HashableUri>(isHashableUri);
 

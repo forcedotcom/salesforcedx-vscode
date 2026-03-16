@@ -281,8 +281,8 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         // getActions returns [] for non-Error objects
-        // String() on non-Error objects returns "[object Object]"
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('[object Object]');
+        // getBaseMessage reads message from plain objects when present
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Not an Error');
         expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
 
