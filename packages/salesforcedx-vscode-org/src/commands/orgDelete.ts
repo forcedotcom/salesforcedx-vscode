@@ -81,7 +81,7 @@ const runDeleteCli = (username: string, orgType: 'scratch' | 'sandbox'): Promise
   });
 };
 
-export class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDelete[] }> {
+class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDelete[] }> {
   constructor() {
     super(nls.localize('org_delete_username_text'), 'org_delete_selected', OUTPUT_CHANNEL);
   }

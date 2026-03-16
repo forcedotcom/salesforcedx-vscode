@@ -59,12 +59,15 @@ export class AliasService extends Effect.Service<AliasService>()('AliasService',
       );
     });
 
-    /** Remove aliases by name. */
+    /** Remove aliases by name. Idempotent: no-op if alias already removed (e.g. by Core). */
     const unsetAliases = Effect.fn('AliasService.unsetAliases')(function* (aliases: readonly string[]) {
       const sa = yield* Effect.promise(() => StateAggregator.getInstance());
-      yield* Effect.forEach(aliases, alias => Effect.promise(() => sa.aliases.unsetAndSave(alias)), {
-        discard: true
-      });
+      yield* Effect.forEach(
+        aliases,
+        alias =>
+          Effect.promise(() => sa.aliases.unsetAndSave(alias)).pipe(Effect.catchAll(() => Effect.void)),
+        { discard: true }
+      );
     });
 
     return { getAllAliases, getAliasesFromUsername, getUsernameFromAlias, unsetAliases };
