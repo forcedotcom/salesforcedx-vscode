@@ -286,7 +286,34 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     // Public service methods
     // ---------------------------------------------------------------------------
 
-    const describe = Effect.fn('MetadataDescribeService.describe')(function* (forceRefresh?: boolean) {
+    const invalidateDescribe = Effect.fn('MetadataDescribeService.invalidateDescribe')(function* () {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      if (!orgId) return;
+      const { describeCache } = yield* orgCacheRegistry.get(orgId);
+      yield* describeCache.invalidate('describe');
+    });
+
+    const invalidateListMetadata = Effect.fn('MetadataDescribeService.invalidateListMetadata')(function* (
+      type: string,
+      folder?: string
+    ) {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      if (!orgId) return;
+      const { listMetadataCache } = yield* orgCacheRegistry.get(orgId);
+      const key = yield* S.decode(ListMetadataKeySchema)({ type, folder });
+      yield* listMetadataCache.invalidate(key);
+    });
+
+    const invalidateSObjectDescribe = Effect.fn('MetadataDescribeService.invalidateSObjectDescribe')(function* (
+      objectName: string
+    ) {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      if (!orgId) return;
+      const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId);
+      yield* sobjectDescribeCache.invalidate(objectName);
+    });
+
+    const describe = Effect.fn('MetadataDescribeService.describe')(function* () {
       const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
 
       if (!orgId) {
@@ -298,9 +325,6 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       }
 
       const { describeCache } = yield* orgCacheRegistry.get(orgId);
-      if (forceRefresh) {
-        yield* describeCache.invalidate('describe');
-      }
       return yield* describeCache.get('describe');
     });
 
@@ -382,28 +406,27 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       return Stream.concat(Stream.fromIterable(hits), missStream);
     });
 
-    const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (
-      type: string,
-      folder?: string,
-      forceRefresh = false
-    ) {
+    const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (type: string, folder?: string) {
       const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
       const { listMetadataCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
       const key = yield* S.decode(ListMetadataKeySchema)({ type, folder });
-      if (forceRefresh) yield* listMetadataCache.invalidate(key);
       return yield* listMetadataCache.get(key);
     });
 
     return {
+      /** Clears the cached Metadata API describe result for the current org. */
+      invalidateDescribe,
+      /** Clears a single cached listMetadata entry (by type+folder) for the current org. */
+      invalidateListMetadata,
+      /** Clears a single cached SObject describe entry (by name) for the current org. */
+      invalidateSObjectDescribe,
       /**
        * Performs a Metadata API describe and returns the result.
-       * When forceRefresh=true, bypasses the cache and makes a fresh API call.
        */
       describe,
       /**
        * Calls the Metadata API list method for a given type and optional folder.
        * Results are cached per-org by type+folder key (TTL 5 min).
-       * When forceRefresh=true, invalidates the specific entry and re-fetches.
        */
       listMetadata,
       /**

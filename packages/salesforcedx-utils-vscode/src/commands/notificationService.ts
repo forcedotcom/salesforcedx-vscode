@@ -16,7 +16,7 @@ const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 /**
  * A centralized location for all notification functionalities.
  */
-export class NotificationService {
+class NotificationService {
   private static instance: NotificationService;
 
   public static getInstance() {

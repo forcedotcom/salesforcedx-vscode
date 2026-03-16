@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
 
-export type CreateApexClassParams = {
+type CreateApexClassParams = {
   readonly name?: string;
   readonly outputDir?: URI;
 };

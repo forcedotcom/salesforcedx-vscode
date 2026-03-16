@@ -20,12 +20,3 @@ export type FieldDeclaration = {
 export type SObjectDefinition = Pick<SObject, 'name'> & {
   fields: FieldDeclaration[];
 };
-
-export type SObjectRefreshResult = {
-  data: {
-    cancelled: boolean;
-    standardObjects?: number;
-    customObjects?: number;
-  };
-  error?: { message: string; stack?: string };
-};
