@@ -14,6 +14,7 @@
   "apexLog.command.traceFlagsDeleteForCurrentUser": "SFDX: Turn Off Trace Flag for Current User",
   "apexLog.command.traceFlagsCreateForUser": "SFDX: Create Trace Flag for Another User",
   "apexLog.command.traceFlagsDeleteForId": "SFDX: Remove Trace Flag",
+  "apexLog.command.traceFlagsChangeDebugLevel": "SFDX: Change Trace Flag Debug Level",
   "apexLog.command.traceFlagsCreateLogLevel": "SFDX: Create Debug Level",
   "apexLog.command.traceFlagsDeleteDebugLevelForId": "SFDX: Remove Debug Level"
 }
