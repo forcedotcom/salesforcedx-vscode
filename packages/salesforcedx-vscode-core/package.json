@@ -458,6 +458,10 @@
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
+          "command": "sf.nativemobile.generate.project",
+          "when": "never"
+        },
+        {
           "command": "sf.project.generate.with.manifest",
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
@@ -679,6 +683,10 @@
       {
         "command": "sf.project.generate",
         "title": "%project_generate_text%"
+      },
+      {
+        "command": "sf.nativemobile.generate.project",
+        "title": "%nativemobile_generate_project_text%"
       },
       {
         "command": "sf.project.generate.with.manifest",
