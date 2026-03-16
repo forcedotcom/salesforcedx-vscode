@@ -9,8 +9,9 @@ import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { dataQuery } from './commands/dataQuery';
+import { dataQuery, dataQueryDocument } from './commands/dataQuery';
 import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
+import { registerSoqlCodeLensProvider } from './commands/soqlCodeLensProvider';
 import { soqlOpenNew } from './commands/soqlFileCreate';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
@@ -40,6 +41,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.sync(() => {
     context.subscriptions.push(SOQLEditorProvider.register(context));
     QueryDataViewService.register(context);
+    registerSoqlCodeLensProvider(context);
   });
 
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
@@ -57,7 +59,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         )
       ),
       registerCommand('sf.data.query.input', dataQuery),
-      registerCommand('sf.data.query.selection', dataQuery)
+      registerCommand('sf.data.query.selection', dataQuery),
+      registerCommand('sf.data.query.document', dataQueryDocument)
     ],
     { concurrency: 'unbounded' }
   );

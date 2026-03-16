@@ -139,6 +139,44 @@ export const dataQuery = Effect.fn('sf.data.query')(function* () {
   yield* Effect.promise(() => commandlet.run());
 });
 
+class GetDocumentQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return { type: 'CANCEL' };
+    }
+
+    const query = editor.document.getText().replaceAll(/(\r\n|\n)/g, ' ').trim();
+    if (!query) {
+      return { type: 'CANCEL' };
+    }
+
+    const restApi = {
+      api: 'REST' as const,
+      label: nls.localize('REST_API'),
+      description: nls.localize('REST_API_description')
+    };
+
+    const toolingApi = {
+      api: 'TOOLING' as const,
+      label: nls.localize('tooling_API'),
+      description: nls.localize('tooling_API_description')
+    };
+
+    const selection = await vscode.window.showQuickPick([restApi, toolingApi]);
+    return selection ? { type: 'CONTINUE', data: { query, api: selection.api } } : { type: 'CANCEL' };
+  }
+}
+
+export const dataQueryDocument = Effect.fn('sf.data.query.document')(function* () {
+  const commandlet = new SfCommandlet(
+    sfProjectPreconditionChecker,
+    new GetDocumentQueryAndApiInputs(),
+    new DataQueryExecutor()
+  );
+  yield* Effect.promise(() => commandlet.run());
+});
+
 /**
  * Retrieves the maximum fetch limit from user configuration.
  * Checks SF CLI config first, then environment variable, then returns undefined if no limit is set.
