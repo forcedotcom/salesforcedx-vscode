@@ -6,6 +6,10 @@
  */
 
 import { DirectoryEntry, FileSystemDataProvider, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  ApplyWorkspaceEditRequest,
+  handleApplyEditWithFs
+} from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { bootstrapWorkspaceAwareness } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceLoader';
 import { detectWorkspaceType, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { Effect } from 'effect';
@@ -129,6 +133,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Create the language client and start the client.
   const client = new LanguageClient('auraLanguageServer', nls.localize('client_name'), serverOptions, clientOptions);
+  // Handle workspace/applyEdit by writing via workspace.fs (no IDE open); must register before start()
+  client.onRequest(ApplyWorkspaceEditRequest.type, handleApplyEditWithFs);
   console.log(`Server module path: ${serverModule}`);
 
   // Start the language server

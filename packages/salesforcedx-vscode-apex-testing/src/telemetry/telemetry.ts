@@ -6,17 +6,18 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 
 /** Log a telemetry event with attributes via Effect spans */
 const logEvent = (eventName: string, attributes?: Record<string, string | number | boolean>): void => {
-  Effect.runPromise(
-    Effect.log(`[Telemetry] ${eventName}`).pipe(
-      Effect.annotateLogs(attributes ?? {}),
-      Effect.withSpan(eventName, { attributes }),
-      Effect.provide(AllServicesLayer)
+  getApexTestingRuntime()
+    .runPromise(
+      Effect.log(`[Telemetry] ${eventName}`).pipe(
+        Effect.annotateLogs(attributes ?? {}),
+        Effect.withSpan(eventName, { attributes })
+      )
     )
-  ).catch(() => {
+    .catch(() => {
     // Best effort - don't fail if telemetry fails
   });
 };

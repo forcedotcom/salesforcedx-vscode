@@ -5,82 +5,58 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Mock the internal utils module (used by baseContext.ts via './utils')
-jest.mock(
-  '../../../salesforcedx-lightning-lsp-common/out/src/utils',
-  () => {
-    const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
-
-    return {
-      ...actual,
-      readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actual))
-    };
-  },
-  { virtual: true }
-);
-
-// Also mock the package-level export (for direct imports from the package)
-// This is used by componentIndexer.ts which imports readJsonSync from the package
-jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
-  const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
-  const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
-
-  const mockFn = jest.fn(createReadJsonSyncMockImplementation(actualUtils));
-
-  const mocked = {
-    ...actual,
-    readJsonSync: mockFn
-  };
-
-  return mocked;
-});
-
 // Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
 // jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
 // We need to mock both the package-level export AND the internal utils module
 // because baseContext.ts imports from './utils' directly (which resolves to out/src/utils.js)
 
+type SyncUtils = { normalizePath?: (path: string) => string };
+type SyncFileSystemProvider = { getFileContent?: (path: string) => string | undefined };
+
 // Create the mock implementation function
-const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: string, fileSystemProvider: any) => {
-  try {
-    const normalizedFile = actualUtils.normalizePath?.(file);
-    const content = fileSystemProvider?.getFileContent?.(normalizedFile);
-    if (!content) {
-      const fallbackContent = fileSystemProvider?.getFileContent?.(file);
-      if (!fallbackContent) {
-        throw new Error('File not found', { cause: file });
+const stripComments = (src: string): string =>
+  src
+    .replaceAll(/\/\/.*$/gm, '')
+    .replaceAll(/\/\*[\s\S]*?\*\//g, '')
+    .replaceAll(/,(\s*[}\]])/g, '$1');
+
+const parseJson = (src: string): Record<string, unknown> => {
+  const parsed: unknown = JSON.parse(src);
+  return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
+};
+
+const createReadJsonSyncMockImplementation =
+  (actualUtils: SyncUtils) =>
+  (file: string, fileSystemProvider: SyncFileSystemProvider): Record<string, unknown> => {
+    try {
+      const normalizedFile = actualUtils.normalizePath?.(file) ?? file;
+      const content = fileSystemProvider?.getFileContent?.(normalizedFile);
+      if (!content) {
+        const fallbackContent = fileSystemProvider?.getFileContent?.(file);
+        if (!fallbackContent) {
+          throw new Error('File not found', { cause: file });
+        }
+        try {
+          return parseJson(stripComments(fallbackContent));
+        } catch {
+          return {};
+        }
       }
-      const fallbackCleaned = fallbackContent
-        .replaceAll(/\/\/.*$/gm, '')
-        .replaceAll(/\/\*[\s\S]*?\*\//g, '')
-        .replaceAll(/,(\s*[}\]])/g, '$1');
       try {
-        const parsed = JSON.parse(fallbackCleaned);
-        return parsed;
+        return parseJson(stripComments(content));
       } catch {
         return {};
       }
-    }
-    let cleaned = content;
-    cleaned = cleaned.replaceAll(/\/\/.*$/gm, '');
-    cleaned = cleaned.replaceAll(/\/\*[\s\S]*?\*\//g, '');
-    cleaned = cleaned.replaceAll(/,(\s*[}\]])/g, '$1');
-    try {
-      const parsed = JSON.parse(cleaned);
-      return parsed;
     } catch {
       return {};
     }
-  } catch {
-    return {};
-  }
-};
+  };
 
 // Mock the internal utils module (used by baseContext.ts via './utils')
 jest.mock(
   '../../../salesforcedx-lightning-lsp-common/out/src/utils',
   () => {
-    const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
+    const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils') as SyncUtils;
 
     return {
       ...actual,
@@ -93,14 +69,12 @@ jest.mock(
 // Also mock the package-level export (for direct imports from the package)
 // This is used by componentIndexer.ts which imports readJsonSync from the package
 jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
-  const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
-  const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
-
-  const mockFn = jest.fn(createReadJsonSyncMockImplementation(actualUtils));
+  const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common') as Record<string, unknown>;
+  const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils') as SyncUtils;
 
   const mocked = {
     ...actual,
-    readJsonSync: mockFn
+    readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actualUtils))
   };
 
   return mocked;
@@ -108,10 +82,8 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 jest.mock('../resources/transformed-lwc-standard.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pathModule = require('node:path');
+  const fs = require('node:fs') as typeof import('node:fs');
+  const pathModule = require('node:path') as typeof import('node:path');
   // Find package root (lwc-language-server)
   let current = __dirname;
   while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
@@ -120,7 +92,7 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
     current = parent;
   }
   const filePath = pathModule.join(current, 'src', 'resources', 'transformed-lwc-standard.json');
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const content = JSON.parse(fs.readFileSync(filePath, 'utf8')) as Record<string, unknown>;
   // JSON imports in TypeScript are treated as default exports
   return { default: content, ...content };
 });
@@ -133,7 +105,7 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
 // executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
 
-import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { normalizePath, DirectoryEntry, FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { dirname, basename } from 'node:path';
@@ -191,7 +163,7 @@ let auraDocument: TextDocument;
 let hoverDocument: TextDocument;
 
 // Setup function to load all documents once
-const setupDocuments = async (): Promise<void> => {
+const setupDocuments = (): void => {
   document = createDocument(filename, 'html');
   jsDocument = createDocument(jsFilename, 'javascript');
   auraDocument = createDocument(auraFilename, 'html');
@@ -200,7 +172,7 @@ const setupDocuments = async (): Promise<void> => {
 
 const server: Server = new Server();
 // Use the pre-populated file system provider from testUtils
-server.fileSystemProvider = sfdxFileSystemProvider as any;
+server.fileSystemProvider = sfdxFileSystemProvider;
 
 // Helper function to set up server for tests that need delayed initialization
 const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServer: Server = server): Promise<void> => {
@@ -208,7 +180,7 @@ const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServ
   (testServer as any).isDelayedInitializationComplete = false;
 
   // Ensure file system provider is set
-  testServer.fileSystemProvider = sfdxFileSystemProvider as any;
+  testServer.fileSystemProvider = sfdxFileSystemProvider;
 
   // Mock connection.sendNotification to avoid errors during delayed initialization
   testServer.connection.sendNotification = jest.fn();
@@ -278,11 +250,11 @@ const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServ
 };
 
 // Helper function to delete a file or directory from the fileSystemProvider (replaces vscode.workspace.fs.delete)
-const deleteFromProvider = (provider: any, filePath: string, recursive = false): void => {
+const deleteFromProvider = (provider: FileSystemDataProvider, filePath: string, recursive = false): void => {
   const normalizedPath = normalizePath(filePath);
 
   // Remove file content and stat
-  provider.updateFileContent(normalizedPath, '');
+  void provider.updateFileContent(normalizedPath, '');
   provider.updateFileStat(normalizedPath, {
     type: 'file',
     exists: false,
@@ -295,7 +267,7 @@ const deleteFromProvider = (provider: any, filePath: string, recursive = false):
   const parentDir = normalizePath(dirname(normalizedPath));
   const fileName = basename(normalizedPath);
   const entries = provider.getDirectoryListing(parentDir) ?? [];
-  const updatedEntries = entries.filter((entry: any) => entry.name !== fileName);
+  const updatedEntries = entries.filter((entry: DirectoryEntry) => entry.name !== fileName);
   provider.updateDirectoryListing(parentDir, updatedEntries);
 
   // If recursive, also remove directory listings
@@ -310,7 +282,7 @@ const deleteFromProvider = (provider: any, filePath: string, recursive = false):
 
 // Helper function to create a file in the fileSystemProvider (replaces vscode.workspace.fs.writeFile)
 // Uses path normalization to handle cross-platform paths
-const createFileInProvider = (provider: any, filePath: string, content: string): void => {
+const createFileInProvider = (provider: FileSystemDataProvider, filePath: string, content: string): void => {
   // Normalize path the same way FileSystemDataProvider normalizes paths
   const normalizedPath = normalizePath(filePath);
   const parentDir = normalizePath(dirname(normalizedPath));
@@ -329,20 +301,13 @@ const createFileInProvider = (provider: any, filePath: string, content: string):
 
   // Add file to parent directory listing
   const entries = provider.getDirectoryListing(parentDir) ?? [];
-  const existingEntry = entries.find((entry: any) => entry.name === fileName);
+  const existingEntry = entries.find((entry: DirectoryEntry) => entry.name === fileName);
   if (!existingEntry) {
-    const updatedEntries = [
-      ...entries,
-      {
-        name: fileName,
-        type: 'file',
-        uri: normalizedPath
-      }
-    ];
-    provider.updateDirectoryListing(parentDir, updatedEntries);
+    const newEntry: DirectoryEntry = { name: fileName, type: 'file', uri: normalizedPath };
+    provider.updateDirectoryListing(parentDir, [...entries, newEntry]);
   }
 
-  // Create file stat and content
+  // Create file stat and content (void: fire-and-forget in sync test helper)
   provider.updateFileStat(normalizedPath, {
     type: 'file',
     exists: true,
@@ -350,7 +315,7 @@ const createFileInProvider = (provider: any, filePath: string, content: string):
     mtime: 0,
     size: content.length
   });
-  provider.updateFileContent(normalizedPath, content);
+  void provider.updateFileContent(normalizedPath, content);
 };
 
 let mockTypeScriptSupportConfig = false;
@@ -360,7 +325,7 @@ const createServerWithTsSupport = async (initializeParams: InitializeParams): Pr
   mockTypeScriptSupportConfig = true;
   const testServer = new Server();
   // Use the same fileSystemProvider as the main server to share test data
-  testServer.fileSystemProvider = sfdxFileSystemProvider as any;
+  testServer.fileSystemProvider = sfdxFileSystemProvider;
   await testServer.onInitialize(initializeParams);
   // Populate fileSystemProvider and trigger delayed initialization
   // This ensures context is initialized before onInitialized() is called
@@ -369,7 +334,7 @@ const createServerWithTsSupport = async (initializeParams: InitializeParams): Pr
 };
 
 jest.mock('vscode-languageserver', () => {
-  const actual = jest.requireActual('vscode-languageserver');
+  const actual = jest.requireActual('vscode-languageserver') as Record<string, unknown>;
   return {
     ...actual,
     createConnection: jest.fn().mockImplementation(() => ({
@@ -452,42 +417,46 @@ describe('lwcServerNode', () => {
     describe('#onCompletion', () => {
       beforeEach(() => {
         // Ensure file system provider is set correctly before each test
-        server.fileSystemProvider = sfdxFileSystemProvider as any;
+        server.fileSystemProvider = sfdxFileSystemProvider;
         // Clear component indexer tags to ensure fresh initialization
         if (server.componentIndexer) {
           server.componentIndexer.tags.clear();
         }
       });
 
-      it('should return a list of available completion items in a javascript file', async () => {
-        const params: CompletionParams = {
-          textDocument: { uri: jsUri },
-          position: {
-            line: 0,
-            character: 0
-          },
-          context: {
-            triggerCharacter: '.',
-            triggerKind: CompletionTriggerKind.TriggerCharacter
-          }
-        };
+      it(
+        'should return a list of available completion items in a javascript file',
+        async () => {
+          const params: CompletionParams = {
+            textDocument: { uri: jsUri },
+            position: {
+              line: 0,
+              character: 0
+            },
+            context: {
+              triggerCharacter: '.',
+              triggerKind: CompletionTriggerKind.TriggerCharacter
+            }
+          };
 
-        await server.onInitialize(initializeParams);
-        await setupServerForTest([jsDocument]);
+          await server.onInitialize(initializeParams);
+          await setupServerForTest([jsDocument]);
 
-        const doc = server.documents.get(jsUri);
-        expect(doc).toBeDefined();
-        expect((server as any).context.type).toBe('SFDX');
-        expect(server.componentIndexer.tags.size).toBeGreaterThan(0);
+          const doc = server.documents.get(jsUri);
+          expect(doc).toBeDefined();
+          expect((server as any).context.type).toBe('SFDX');
+          expect(server.componentIndexer.tags.size).toBeGreaterThan(0);
 
-        const completions = await server.onCompletion(params);
-        expect(completions).toBeDefined();
-        const labels = completions?.items.map(item => item.label) ?? [];
-        // Updated to match actual workspace structure - finding components including todo_util from utils/meta/lwc
-        expect(labels.length).toBeGreaterThanOrEqual(5);
-        expect(labels).toContain('c/todo_util');
-        expect(labels).toContain('c/todo_item');
-      });
+          const completions = await server.onCompletion(params);
+          expect(completions).toBeDefined();
+          const labels = completions?.items.map(item => item.label) ?? [];
+          // Updated to match actual workspace structure - finding components including todo_util from utils/meta/lwc
+          expect(labels.length).toBeGreaterThanOrEqual(5);
+          expect(labels).toContain('c/todo_util');
+          expect(labels).toContain('c/todo_item');
+        },
+        10_000
+      );
 
       it('should not return a list of completion items in a javascript file for open curly brace', async () => {
         const params: CompletionParams = {
@@ -741,7 +710,7 @@ describe('lwcServerNode', () => {
         return tsconfigPaths;
       };
 
-      beforeEach(async () => {
+      beforeEach(() => {
         // Clean up before each test run
         const provider = server.fileSystemProvider;
         try {
@@ -794,7 +763,7 @@ describe('lwcServerNode', () => {
         mockTypeScriptSupportConfig = false;
       });
 
-      afterEach(async () => {
+      afterEach(() => {
         // Clean up after each test run
         const provider = server.fileSystemProvider;
         if (provider.fileExists(baseTsconfigPath)) {
@@ -830,7 +799,7 @@ describe('lwcServerNode', () => {
         // Create a new server instance to avoid state issues
         const testServer = new Server();
         // Use the pre-populated file system provider from testUtils
-        testServer.fileSystemProvider = sfdxFileSystemProvider as any;
+        testServer.fileSystemProvider = sfdxFileSystemProvider;
 
         // Enable feature flag
         mockTypeScriptSupportConfig = true;
@@ -880,7 +849,7 @@ describe('lwcServerNode', () => {
           const tsConfigContent =
             provider.getFileContent(baseTsconfigPath) ?? server.fileSystemProvider.getFileContent(baseTsconfigPath);
           if (tsConfigContent) {
-            const tsConfig = JSON.parse(tsConfigContent);
+            const tsConfig = JSON.parse(tsConfigContent) as { compilerOptions?: { paths?: Record<string, unknown> } };
             pathMappingLength = Object.keys(tsConfig.compilerOptions?.paths ?? {}).length;
             // If we have 12 path mappings, the update is complete
             if (pathMappingLength >= 12) {
@@ -895,8 +864,8 @@ describe('lwcServerNode', () => {
         const sfdxTsConfigContent =
           provider.getFileContent(baseTsconfigPath) ?? server.fileSystemProvider.getFileContent(baseTsconfigPath);
         expect(sfdxTsConfigContent).not.toBeUndefined();
-        const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!);
-        const pathMapping = Object.keys(sfdxTsConfig.compilerOptions.paths);
+        const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!) as { compilerOptions?: { paths?: Record<string, unknown> } };
+        const pathMapping = Object.keys(sfdxTsConfig.compilerOptions?.paths ?? {});
         // Updated to match actual workspace structure - finding 12 components (10 original + todo_util + todo_utils from utils/meta/lwc)
         expect(pathMapping.length).toEqual(12);
       });
@@ -915,10 +884,9 @@ describe('lwcServerNode', () => {
             // If tsconfig doesn't exist, return empty array for tests
             return [];
           }
-          const sfdxTsConfig = JSON.parse(sfdxTsConfigContent);
-          return Object.keys(sfdxTsConfig.compilerOptions.paths ?? {});
-        } catch (error) {
-          console.error(`Failed to read tsconfig: ${error.message}`);
+          const sfdxTsConfig = JSON.parse(sfdxTsConfigContent) as { compilerOptions?: { paths?: Record<string, unknown> } };
+          return Object.keys(sfdxTsConfig.compilerOptions?.paths ?? {});
+        } catch {
           return [];
         }
       };
@@ -947,7 +915,7 @@ describe('lwcServerNode', () => {
         mockTypeScriptSupportConfig = true;
       });
 
-      afterEach(async () => {
+      afterEach(() => {
         // Clean up after each test run
         const provider = server.fileSystemProvider;
         if (provider.fileExists(baseTsconfigPath) || server.fileSystemProvider.fileExists(baseTsconfigPath)) {

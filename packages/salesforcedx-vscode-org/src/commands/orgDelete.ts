@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   FlagParameter,
   CompositeParametersGatherer,
   SfCommandlet,
   SfCommandletExecutor,
-   SfWorkspaceChecker,
   CliCommandExecutor,
   TimingUtils,
   workspaceUtils,
@@ -60,9 +60,10 @@ class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
 
     // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    execution.processExitSubject.subscribe(async exitCode => {
+    execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      // Only update state aggregators on successful completion (exit code 0)
+      // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
+      const exitCode = Array.isArray(data) ? data[0] : data;
       if (exitCode === 0) {
         await updateConfigAndStateAggregators();
       }
@@ -81,6 +82,6 @@ export async function orgDelete(this: FlagParameter<string>) {
     : new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_default_org'));
 
   const executor = new OrgDeleteExecutor(flag);
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, executor);
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, executor);
   await commandlet.run();
 }

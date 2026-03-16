@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -21,6 +21,11 @@ import {
 } from '../../../src/utils/helpers';
 import { EDITOR } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
+
+const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
+const outputPanelViewLines = (page: Page) => page.locator(OUTPUT_PANEL_ID).locator(`${EDITOR} .view-lines`);
+const outputFilterInput = (page: Page) =>
+  page.getByRole('textbox', { name: /Filter \(e\.g\./ }).first();
 
 test.describe('Output Channel', () => {
   test.beforeEach(async ({ page }) => {
@@ -83,6 +88,69 @@ test.describe('Output Channel', () => {
 
     await test.step('Check if output contains text', async () => {
       await waitForOutputChannelText(page, { expectedText: 'Salesforce', timeout: 10_000 });
+    });
+  });
+
+  test('should filter output channel content', async ({ page }) => {
+    test.setTimeout(15_000);
+    const viewLines = () => page.locator(OUTPUT_PANEL_ID).locator(`${EDITOR} .view-line`);
+
+    await test.step('open output panel and select high-volume channel', async () => {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Window');
+    });
+
+    await test.step('wait for content', async () => {
+      await expect(async () => {
+        const count = await viewLines().count();
+        expect(count, 'channel should have multiple lines').toBeGreaterThan(3);
+      }).toPass({ timeout: 5000 });
+      await saveScreenshot(page, 'filter-test-unfiltered.png', false);
+    });
+
+    await test.step('apply matching filter and verify content remains', async () => {
+      const input = outputFilterInput(page);
+      await expect(input, 'filter input should be visible').toBeVisible({ timeout: 5000 });
+      await input.focus();
+      await input.fill('Window');
+      await expect(input).toHaveValue('Window', { timeout: 2000 });
+      await input.press('Enter');
+
+      await expect(async () => {
+        const text = ((await outputPanelViewLines(page).textContent()) ?? '').replaceAll('\u00A0', ' ');
+        expect(text.toLowerCase(), 'filtered output should contain matching term').toContain('window');
+      }).toPass({ timeout: 5000 });
+      await saveScreenshot(page, 'filter-test-matching.png', false);
+    });
+
+    await test.step('apply non-existent filter and verify content disappears', async () => {
+      const input = outputFilterInput(page);
+      await input.focus();
+      await input.fill('zzz_nonexistent_term_zzz');
+      await expect(input).toHaveValue('zzz_nonexistent_term_zzz', { timeout: 2000 });
+      await input.press('Enter');
+
+      // setHiddenAreas should hide all lines; Monaco may keep one empty placeholder line
+      await expect(async () => {
+        const count = await viewLines().count();
+        expect(count, 'at most one empty line should remain with non-existent filter').toBeLessThanOrEqual(1);
+        const text = ((await outputPanelViewLines(page).textContent()) ?? '').trim();
+        expect(text.length, 'output should be empty with non-existent filter').toBe(0);
+      }).toPass({ timeout: 5000 });
+      await saveScreenshot(page, 'filter-test-empty.png', false);
+    });
+
+    await test.step('clear filter and verify content restores', async () => {
+      const input = outputFilterInput(page);
+      await input.focus();
+      await input.fill('');
+      await input.press('Enter');
+
+      await expect(async () => {
+        const count = await viewLines().count();
+        expect(count, 'lines should return after clearing filter').toBeGreaterThan(3);
+      }).toPass({ timeout: 5000 });
+      await saveScreenshot(page, 'filter-test-restored.png', false);
     });
   });
 

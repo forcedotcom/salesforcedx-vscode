@@ -6,7 +6,7 @@
  */
 
 import { AuthRemover } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   ContinueResponse,
@@ -15,7 +15,6 @@ import {
   LibraryCommandletExecutor,
   SfCommandlet,
   SfCommandletExecutor,
-  SfWorkspaceChecker,
   notificationService,
   CliCommandExecutor,
   TimingUtils,
@@ -41,7 +40,7 @@ class SimpleGatherer<T> implements ParametersGatherer<T> {
   }
 }
 
-export class OrgLogoutAll extends SfCommandletExecutor<{}> {
+class OrgLogoutAll extends SfCommandletExecutor<{}> {
   public static withoutShowingChannel(): OrgLogoutAll {
     const instance = new OrgLogoutAll();
     instance.showChannelOutput = false;
@@ -71,9 +70,10 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
 
     // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    execution.processExitSubject.subscribe(async exitCode => {
+    execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      // Only update state aggregators on successful completion (exit code 0)
+      // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
+      const exitCode = Array.isArray(data) ? data[0] : data;
       if (exitCode === 0) {
         await updateConfigAndStateAggregators();
       }
@@ -82,7 +82,7 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
 }
 
 export const orgLogoutAll = async () => {
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), new OrgLogoutAll());
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), new OrgLogoutAll());
   await commandlet.run();
 };
 
@@ -111,7 +111,7 @@ export const orgLogoutDefault = async () => {
     // confirm logout for scratch orgs due to special considerations:
     // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
     const logoutCommandlet = new SfCommandlet(
-      new SfWorkspaceChecker(),
+      sfProjectPreconditionChecker,
       isScratch ? new ScratchOrgLogoutParamsGatherer(username, alias) : new SimpleGatherer<string>(username),
       new OrgLogoutDefault()
     );

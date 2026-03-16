@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { EOL } from 'node:os';
 import { FieldCompareConditionImpl } from '../../../../../src/soql-model/model/impl/fieldCompareConditionImpl';
 import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefImpl';
 import { FromImpl } from '../../../../../src/soql-model/model/impl/fromImpl';
@@ -93,7 +92,7 @@ describe('QueryImpl should', () => {
     expect(actual).toEqual(expected);
   });
   it('return query string, one line per clause with all but SELECT clause indented for toSoqlSyntax()', () => {
-    const expected = `SELECT ${EOL}` + `  FROM songs${EOL}` + `  WHERE paint_it = 'black'${EOL}`;
+    const expected = 'SELECT \n' + '  FROM songs\n' + "  WHERE paint_it = 'black'\n";
     const actual = new QueryImpl(
       new SelectExprsImpl([]),
       new FromImpl('songs'),

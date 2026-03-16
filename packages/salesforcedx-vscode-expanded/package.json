@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.0.1",
+  "version": "66.2.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -56,6 +56,7 @@
     "salesforce.salesforcedx-vscode-visualforce",
     "salesforce.salesforcedx-vscode-lwc",
     "salesforce.salesforcedx-vscode-media",
+    "salesforce.salesforcedx-vscode-metadata",
     "salesforce.salesforcedx-vscode-soql",
     "salesforce.salesforcedx-vscode-services",
     "salesforce.salesforce-vscode-slds",

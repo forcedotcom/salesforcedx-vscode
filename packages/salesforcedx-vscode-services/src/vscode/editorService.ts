@@ -30,14 +30,14 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
       const editor = vscode.window.activeTextEditor;
       return editor
         ? URI.parse(editor.document.uri.toString())
-        : yield* Effect.fail(new NoActiveEditorError({ message: 'No active text editor is currently open' }));
+        : yield* new NoActiveEditorError({ message: 'No active text editor is currently open' });
     });
 
     /** Get text from active editor (selection if selection=true and non-empty, else full document), fails with NoActiveEditorError if none */
     const getActiveEditorText = Effect.fn('EditorService.getActiveEditorText')(function* (selection: boolean) {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        return yield* Effect.fail(new NoActiveEditorError({ message: 'No active text editor is currently open' }));
+        return yield* new NoActiveEditorError({ message: 'No active text editor is currently open' });
       }
       return selection && !editor.selection.isEmpty
         ? editor.document.getText(editor.selection)
@@ -48,12 +48,14 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
     const getActiveEditorContext = Effect.fn('EditorService.getActiveEditorContext')(function* (selection: boolean) {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        return yield* Effect.fail(new NoActiveEditorError({ message: 'No active text editor is currently open' }));
+        return yield* new NoActiveEditorError({ message: 'No active text editor is currently open' });
       }
       const useSelection = selection && !editor.selection.isEmpty;
+      const documentUri = editor.document.uri;
       return {
         text: useSelection ? editor.document.getText(editor.selection) : editor.document.getText(),
-        uri: URI.parse(editor.document.uri.toString()),
+        uri: URI.parse(documentUri.toString()),
+        documentUri,
         selectionRange: useSelection
           ? { startLine: editor.selection.start.line, startCharacter: editor.selection.start.character }
           : undefined

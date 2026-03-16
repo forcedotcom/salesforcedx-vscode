@@ -14,6 +14,7 @@ import { AnySpan } from 'effect/Tracer';
 // eslint-disable-next-line no-restricted-imports
 import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { sampleProjectName } from '../constants';
 import { ChannelService } from '../vscode/channelService';
 import { fsPrefix } from './constants';
@@ -35,7 +36,7 @@ const updateIDB = (storage: IndexedDBStorageService) => (event: FileChangeInfo<s
     yield* Effect.annotateCurrentSpan({ event });
 
     const fullPath = `/${sampleProjectName}/${event.filename}`;
-    const uri = vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}/${event.filename}`);
+    const uri = URI.parse(`${fsPrefix}:/${sampleProjectName}/${event.filename}`);
 
     if (event.eventType === 'rename') {
       if (fs.existsSync(fullPath)) {

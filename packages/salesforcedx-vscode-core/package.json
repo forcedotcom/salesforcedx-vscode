@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.0.1",
+  "version": "66.2.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -30,17 +30,16 @@
     "@salesforce/core": "^8.24.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
     "@salesforce/source-tracking": "^7.8.1",
-    "@salesforce/templates": "^66.2.1",
+    "@salesforce/templates": "^66.4.1",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
-    "effect": "^3.19.14",
+    "effect": "^3.19.19",
     "fast-xml-parser": "^5.4.1",
     "glob": "^11.1.0",
     "rxjs": "^7.8.2",
@@ -93,18 +92,19 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-sobjects-faux-generator:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-services:compile"
+        "../salesforcedx-vscode-services:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
@@ -203,11 +203,6 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "metadata",
-          "title": "%orgBrowser.activitybar.title%",
-          "icon": "resources/orgBrowserIcon.svg"
-        },
-        {
           "id": "conflicts",
           "title": "%conflict_detect_resolve_view%",
           "icon": "resources/issues.svg"
@@ -215,13 +210,6 @@
       ]
     },
     "views": {
-      "metadata": [
-        {
-          "id": "metadata",
-          "name": "%metadata_view_title_text%",
-          "when": "sf:project_opened && config.salesforcedx-vscode-core.useLegacyOrgBrowser"
-        }
-      ],
       "conflicts": [
         {
           "id": "conflicts",
@@ -231,29 +219,7 @@
       ]
     },
     "menus": {
-      "view/title": [
-        {
-          "command": "sf.metadata.view.type.refresh",
-          "when": "view == metadata",
-          "group": "navigation"
-        }
-      ],
       "view/item/context": [
-        {
-          "command": "sf.metadata.view.component.refresh",
-          "when": "view == metadata && viewItem =~ /(folder|type)/",
-          "group": "inline"
-        },
-        {
-          "command": "sf.retrieve.open.component",
-          "when": "view == metadata && viewItem == component",
-          "group": "inline"
-        },
-        {
-          "command": "sf.retrieve.component",
-          "when": "view == metadata && viewItem =~ /(type|component|folder)/",
-          "group": "inline"
-        },
         {
           "command": "sf.conflict.open",
           "when": "view == conflicts && viewItem == conflict-actions",
@@ -288,20 +254,12 @@
       ],
       "explorer/context": [
         {
-          "command": "sf.lightning.generate.lwc",
-          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
-        },
-        {
           "command": "sf.internal.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && sf:internal_dev"
         },
         {
           "command": "sf.apex.generate.class",
           "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened && sf:show_shared_commands"
-        },
-        {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
         },
         {
           "command": "sf.folder.diff",
@@ -430,10 +388,6 @@
           "when": "sf:project_opened && sf:show_shared_commands"
         },
         {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.analytics.generate.template",
           "when": "sf:project_opened"
         },
@@ -478,14 +432,6 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.retrieve.component",
-          "when": "false"
-        },
-        {
-          "command": "sf.retrieve.open.component",
-          "when": "false"
-        },
-        {
           "command": "sf.retrieve.source.path",
           "when": "false"
         },
@@ -516,10 +462,6 @@
         {
           "command": "sf.delete.source.current.file",
           "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org && sf:show_shared_commands"
-        },
-        {
-          "command": "sf.lightning.generate.lwc",
-          "when": "sf:project_opened"
         },
         {
           "command": "sf.internal.lightning.generate.lwc",
@@ -568,18 +510,6 @@
         {
           "command": "sf.conflict.open",
           "when": "false"
-        },
-        {
-          "command": "sf.internal.refreshsobjects",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
-          "command": "sf.metadata.view.type.refresh",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
-          "command": "sf.metadata.view.component.refresh",
-          "when": "sf:project_opened && sf:has_target_org"
         }
       ]
     },
@@ -623,10 +553,6 @@
       {
         "command": "sf.apex.generate.class",
         "title": "%apex_generate_class_text%"
-      },
-      {
-        "command": "sf.apex.generate.unit.test.class",
-        "title": "%apex_generate_unit_test_class_text%"
       },
       {
         "command": "sf.analytics.generate.template",
@@ -729,44 +655,8 @@
         "title": "%delete_source_this_source_text%"
       },
       {
-        "command": "sf.lightning.generate.lwc",
-        "title": "%lightning_generate_lwc_text%"
-      },
-      {
         "command": "sf.internal.lightning.generate.lwc",
         "title": "%lightning_generate_lwc_text%"
-      },
-      {
-        "command": "sf.metadata.view.type.refresh",
-        "title": "%refresh_types_text%",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
-      },
-      {
-        "command": "sf.metadata.view.component.refresh",
-        "title": "%refresh_components_text%",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
-      },
-      {
-        "command": "sf.retrieve.component",
-        "title": "%retrieve_display_text%",
-        "icon": {
-          "light": "resources/light/retrieve.svg",
-          "dark": "resources/dark/retrieve.svg"
-        }
-      },
-      {
-        "command": "sf.retrieve.open.component",
-        "title": "%retrieve_and_open_display_text%",
-        "icon": {
-          "light": "resources/light/code.svg",
-          "dark": "resources/dark/code.svg"
-        }
       },
       {
         "command": "sf.project.generate.manifest",
@@ -787,10 +677,6 @@
           "light": "resources/light/go-to-file.svg",
           "dark": "resources/dark/go-to-file.svg"
         }
-      },
-      {
-        "command": "sf.internal.refreshsobjects",
-        "title": "%sobjects_refresh%"
       },
       {
         "command": "sf.rename.lightning.component",
@@ -864,11 +750,6 @@
           "default": null,
           "description": "%telemetry_tag_description%"
         },
-        "salesforcedx-vscode-core.useLegacyOrgBrowser": {
-          "type": "boolean",
-          "default": true,
-          "description": "%use_legacy_org_browser_description%"
-        },
         "salesforcedx-vscode-core.useMetadataExtensionCommands": {
           "type": "boolean",
           "default": false,
@@ -922,43 +803,6 @@
       }
     ],
     "walkthroughs": [
-      {
-        "id": "sf.org-browser",
-        "title": "%org_browser_walkthrough_title%",
-        "description": "%org_browser_walkthrough_description%",
-        "steps": [
-          {
-            "id": "open-org-browser",
-            "title": "%org_browser_walkthrough_open_title%",
-            "description": "%org_browser_walkthrough_open_description%",
-            "media": {
-              "image": "images/walkthrough/org-browser.png",
-              "altText": "%org_browser_walkthrough_open_alt%"
-            },
-            "completionEvents": [
-              "onCommand:workbench.view.extension.metadata"
-            ]
-          },
-          {
-            "id": "browse-metadata-types",
-            "title": "%org_browser_walkthrough_browse_title%",
-            "description": "%org_browser_walkthrough_browse_description%",
-            "media": {
-              "image": "images/walkthrough/org-browser.png",
-              "altText": "%org_browser_walkthrough_browse_alt%"
-            }
-          },
-          {
-            "id": "retrieve-metadata",
-            "title": "%org_browser_walkthrough_retrieve_title%",
-            "description": "%org_browser_walkthrough_retrieve_description%",
-            "media": {
-              "image": "images/walkthrough/org-browser.png",
-              "altText": "%org_browser_walkthrough_retrieve_alt%"
-            }
-          }
-        ]
-      },
       {
         "id": "sf.connected-org",
         "title": "%connected_org_walkthrough_title%",

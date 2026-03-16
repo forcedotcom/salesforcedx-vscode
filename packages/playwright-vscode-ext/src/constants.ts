@@ -6,7 +6,7 @@
  */
 
 /** VS Code settings sections and keys - duplicated from services to avoid bundle loading issues in Node.js test infrastructure */
-export const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
+export const CODE_BUILDER_WEB_SECTION = 'salesforce-web-console';
 export const INSTANCE_URL_KEY = 'instanceUrl';
 export const ACCESS_TOKEN_KEY = 'accessToken';
 export const API_VERSION_KEY = 'apiVersion';

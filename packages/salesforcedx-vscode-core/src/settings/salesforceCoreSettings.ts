@@ -20,7 +20,6 @@ import {
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED,
   ALL_EXCEPTION_CATCHER_ENABLED,
-  USE_LEGACY_ORG_BROWSER,
   USE_METADATA_EXTENSION_COMMANDS
 } from '../constants';
 /**
@@ -101,10 +100,6 @@ export class SalesforceCoreSettings {
 
   public getSfLogLevel(): string {
     return this.getConfigValue(ENV_SF_LOG_LEVEL, process.env.SF_LOG_LEVEL ?? 'fatal');
-  }
-
-  public getUseLegacyOrgBrowser(): boolean {
-    return this.getConfigValue(USE_LEGACY_ORG_BROWSER, false);
   }
 
   public getUseMetadataExtensionCommands(): boolean {

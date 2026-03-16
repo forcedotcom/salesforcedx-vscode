@@ -5,17 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SObjectRefreshSource } from './sobjects/types/general';
 import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { createApexClassCommand } from './commands/createApexClass';
+import { createLwcCommand } from './commands/createLwc';
 import { deleteSourcePathsCommand } from './commands/deleteSourcePath';
 import { deployManifestCommand } from './commands/deployManifest';
 import { deployActiveEditorCommand, deploySourcePathsCommand } from './commands/deploySourcePath';
 import { generateManifestCommand } from './commands/generateManifest';
 import { projectDeployStartCommand } from './commands/projectDeployStart';
+import { refreshSObjectsCommand } from './commands/refreshSObjects';
 import { resetRemoteTrackingCommand } from './commands/resetRemoteTracking';
 import { retrieveManifestCommand } from './commands/retrieveManifest';
 import { retrieveSourcePathsCommand } from './commands/retrieveSourcePath';
@@ -56,6 +59,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     [
       svc.appendToChannel('Registering metadata commands'),
       registerCommand('sf.metadata.apex.generate.class', createApexClassCommand),
+      registerCommand('sf.metadata.lightning.generate.lwc', createLwcCommand),
       registerCommand('sf.metadata.delete.source', (sourceUri?: URI, uris?: URI[]) =>
         deleteSourcePathsCommand(sourceUri, uris)
       ),
@@ -83,7 +87,10 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       registerCommand('sf.metadata.source.tracking.reset.remote', () => resetRemoteTrackingCommand()),
       registerCommand('sf.metadata.view.all.changes', () => viewChangesCommand({ local: true, remote: true })),
       registerCommand('sf.metadata.view.local.changes', () => viewChangesCommand({ local: true, remote: false })),
-      registerCommand('sf.metadata.view.remote.changes', () => viewChangesCommand({ local: false, remote: true }))
+      registerCommand('sf.metadata.view.remote.changes', () => viewChangesCommand({ local: false, remote: true })),
+      registerCommand('sf.internal.refreshsobjects', (source?: SObjectRefreshSource) =>
+        refreshSObjectsCommand(source)
+      )
     ],
     { concurrency: 'unbounded' }
   );

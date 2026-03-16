@@ -11,6 +11,7 @@ import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as ParseResult from 'effect/ParseResult';
 import { isString } from 'effect/Predicate';
+import * as PubSub from 'effect/PubSub';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -28,8 +29,9 @@ import {
   TraceFlagItemSchema,
   ToolingDebugLevelStruct,
   type ToolingDebugLevelRecord,
-  type TraceFlagLogType,
-  type ToolingTraceFlagRecord
+  type ToolingTraceFlagRecord,
+  type TraceFlagItem,
+  type TraceFlagLogType
 } from './schemas/traceFlagSchemas';
 import { unknownToErrorCause } from './shared';
 
@@ -40,7 +42,7 @@ const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 
 /** DebugLevel.DeveloperName used for replay-debugger trace flags. Created on demand via getOrCreateDebugLevel. */
-export const REPLAY_DEBUGGER_LEVELS = 'ReplayDebuggerLevels';
+const REPLAY_DEBUGGER_LEVELS = 'ReplayDebuggerLevels';
 
 const toToolingCreateTraceFlag = (
   userId: string,
@@ -74,6 +76,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
   dependencies: [ConnectionService.Default],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
+    const traceFlagsChanged = yield* PubSub.sliding<TraceFlagItem[]>(1);
 
     const getTraceFlags = Effect.fn('TraceFlagService.getTraceFlags')(function* () {
       const conn = yield* connectionService.getConnection();
@@ -98,7 +101,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
       const queryIdName = (soql: string, tooling: boolean) =>
         Effect.tryPromise(() =>
-          tooling ? conn.tooling.query<{ Id: string; Name: string }>(soql) : conn.query<{ Id: string; Name: string }>(soql)
+          tooling
+            ? conn.tooling.query<{ Id: string; Name: string }>(soql)
+            : conn.query<{ Id: string; Name: string }>(soql)
         ).pipe(Effect.map(r => r.records));
       // get the names for these IDs
       const idToName = yield* Stream.fromIterable(
@@ -106,17 +111,14 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       ).pipe(
         Stream.flatMap(([prefix, ids]) =>
           Match.value(prefix).pipe(
-            Match.when(
-              '005',
-              () => queryIdName(`SELECT Id, Name FROM User WHERE Id IN (${idListToInClause(ids)})`, false)
+            Match.when('005', () =>
+              queryIdName(`SELECT Id, Name FROM User WHERE Id IN (${idListToInClause(ids)})`, false)
             ),
-            Match.when(
-              '01p',
-              () => queryIdName(`SELECT Id, Name FROM ApexClass WHERE Id IN (${idListToInClause(ids)})`, true)
+            Match.when('01p', () =>
+              queryIdName(`SELECT Id, Name FROM ApexClass WHERE Id IN (${idListToInClause(ids)})`, true)
             ),
-            Match.when(
-              '01q',
-              () => queryIdName(`SELECT Id, Name FROM ApexTrigger WHERE Id IN (${idListToInClause(ids)})`, true)
+            Match.when('01q', () =>
+              queryIdName(`SELECT Id, Name FROM ApexTrigger WHERE Id IN (${idListToInClause(ids)})`, true)
             ),
             Match.orElse(() => Effect.succeed([]))
           )
@@ -242,6 +244,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
       return result.success && result.id ? result.id : undefined;
     });
 
@@ -275,7 +279,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           }
         });
       }
-      return yield* Effect.tryPromise({
+      yield* Effect.tryPromise({
         try: () => conn.tooling.update('TraceFlag', payload),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
@@ -285,11 +289,13 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
     });
 
     const deleteTraceFlag = Effect.fn('TraceFlagService.deleteTraceFlag')(function* (traceFlagId: string) {
       const conn = yield* connectionService.getConnection();
-      return yield* Effect.tryPromise({
+      yield* Effect.tryPromise({
         try: () => conn.tooling.delete('TraceFlag', traceFlagId),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
@@ -299,6 +305,31 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
+    });
+
+    const changeTraceFlagDebugLevel = Effect.fn('TraceFlagService.changeTraceFlagDebugLevel')(function* (
+      traceFlagId: string,
+      newDebugLevelId: string
+    ) {
+      const conn = yield* connectionService.getConnection();
+      yield* Effect.tryPromise({
+        try: () =>
+          conn.tooling.update('TraceFlag', {
+            Id: traceFlagId,
+            DebugLevelId: newDebugLevelId
+          }),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new TraceFlagUpdateError({
+            message: `Failed to change trace flag debug level: ${cause.message}`,
+            cause: error
+          });
+        }
+      });
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
     });
 
     const ensureTraceFlag = Effect.fn('TraceFlagService.ensureTraceFlag')(function* (
@@ -356,10 +387,12 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       createTraceFlag,
       updateTraceFlag,
       deleteTraceFlag,
+      changeTraceFlagDebugLevel,
       ensureTraceFlag,
       cleanupExpired,
       getOrCreateDebugLevel,
-      getUserId
+      getUserId,
+      traceFlagsChanged
     };
   })
 }) {}

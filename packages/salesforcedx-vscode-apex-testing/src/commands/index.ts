@@ -8,10 +8,10 @@ export { apexTestRun } from './apexTestRun';
 export {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
-  ApexLibraryTestRunExecutor,
   apexTestClassRunCodeAction,
   apexTestClassRunCodeActionDelegate,
   apexTestMethodRunCodeAction,
   apexTestMethodRunCodeActionDelegate
 } from './apexTestRunCodeAction';
 export { apexTestSuiteAdd, apexTestSuiteCreate, apexTestSuiteRun } from './apexTestSuite';
+export { apexGenerateUnitTestClassCommand } from './apexGenerateUnitTestClass';

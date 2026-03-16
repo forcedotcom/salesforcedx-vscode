@@ -6,7 +6,7 @@
  */
 
 import * as utilsVscode from '@salesforce/salesforcedx-utils-vscode';
-import { CompositeParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { apexGenerateTrigger } from '../../../../src/commands/templates';
 import { LibraryApexGenerateTriggerExecutor } from '../../../../src/commands/templates/executors/libraryApexGenerateTriggerExecutor';
 import {
@@ -28,8 +28,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
   return {
     ...actual,
-    CompositeParametersGatherer: jest.fn(),
-    SfWorkspaceChecker: jest.fn()
+    CompositeParametersGatherer: jest.fn()
   };
 });
 
@@ -37,7 +36,6 @@ const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
 const selectOutputDirMocked = jest.mocked(SelectOutputDir);
 const libraryApexGenerateTriggerExecutorMocked = jest.mocked(LibraryApexGenerateTriggerExecutor);
-const sfWorkspaceCheckerMocked = jest.mocked(SfWorkspaceChecker);
 const compositeParametersGathererMocked = jest.mocked(CompositeParametersGatherer);
 const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
 
@@ -59,7 +57,6 @@ describe('apexGenerateTrigger Unit Tests.', () => {
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_TRIGGER_TYPE);
     expect(libraryApexGenerateTriggerExecutorMocked).toHaveBeenCalled();
     expect(sfCommandletMocked).toHaveBeenCalled();
-    expect(sfWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
     expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();

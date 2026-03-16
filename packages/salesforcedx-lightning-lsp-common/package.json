@@ -12,24 +12,29 @@
   "sideEffects": false,
   "exports": {
     ".": {
+      "types": "./out/src/index.d.ts",
       "import": "./out/src/index.js",
-      "require": "./out/src/index.js",
-      "types": "./out/src/index.d.ts"
+      "require": "./out/src/index.js"
     },
     "./workspaceLoader": {
+      "types": "./out/src/workspaceLoader.d.ts",
       "import": "./out/src/workspaceLoader.js",
-      "require": "./out/src/workspaceLoader.js",
-      "types": "./out/src/workspaceLoader.d.ts"
+      "require": "./out/src/workspaceLoader.js"
     },
     "./testUtils": {
+      "types": "./out/src/__tests__/testUtils.d.ts",
       "import": "./out/src/__tests__/testUtils.js",
-      "require": "./out/src/__tests__/testUtils.js",
-      "types": "./out/src/__tests__/testUtils.d.ts"
+      "require": "./out/src/__tests__/testUtils.js"
     },
     "./providers/fileSystemDataProvider": {
+      "types": "./out/src/providers/fileSystemDataProvider.d.ts",
       "import": "./out/src/providers/fileSystemDataProvider.js",
-      "require": "./out/src/providers/fileSystemDataProvider.js",
-      "types": "./out/src/providers/fileSystemDataProvider.d.ts"
+      "require": "./out/src/providers/fileSystemDataProvider.js"
+    },
+    "./applyEditHandler": {
+      "types": "./out/src/applyEditHandler.d.ts",
+      "import": "./out/src/applyEditHandler.js",
+      "require": "./out/src/applyEditHandler.js"
     }
   },
   "license": "BSD-3-Clause",
@@ -94,7 +99,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "ejs": "^3.1.10",
-    "effect": "^3.19.14",
+    "effect": "^3.19.19",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",

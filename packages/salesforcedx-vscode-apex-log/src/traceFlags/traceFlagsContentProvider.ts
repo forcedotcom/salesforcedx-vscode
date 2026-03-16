@@ -10,7 +10,8 @@ import * as Effect from 'effect/Effect';
 import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
+import { TraceFlagOrphanedDebugLevelError } from '../errors/commandErrors';
+import { buildExtendedTraceFlagItemStruct, buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
 import { AllServicesLayer } from '../services/allServicesLayerRef';
 
 export const SCHEME = 'sf-traceflags';
@@ -37,7 +38,8 @@ const groupByLogType = (items: TraceFlagItem[]): TraceFlagsByLogType => {
 
 const fetchTraceFlagsContent = Effect.fn('ApexLog.fetchTraceFlagsContent')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { encodeTraceFlagsConfigToJson } = buildTraceFlagsSchemas(api.services.TraceFlagItemStruct);
+  const ExtendedItemStruct = buildExtendedTraceFlagItemStruct(api.services.TraceFlagItemStruct);
+  const { encodeTraceFlagsConfigToJson } = buildTraceFlagsSchemas(ExtendedItemStruct);
   const traceFlagService = yield* api.services.TraceFlagService;
   const channelService = yield* api.services.ChannelService;
 
@@ -65,8 +67,26 @@ const fetchTraceFlagsContent = Effect.fn('ApexLog.fetchTraceFlagsContent')(funct
     { concurrency: 'unbounded' }
   );
 
+  const debugLevelMap = new Map(debugLevels.map(dl => [dl.id, dl.developerName]));
+  const enriched = yield* Effect.all(
+    traceFlags.map(tf => {
+      const name = tf.debugLevelId ? debugLevelMap.get(tf.debugLevelId) : undefined;
+      if (tf.debugLevelId && name === undefined) {
+        return Effect.fail(
+          new TraceFlagOrphanedDebugLevelError({
+            message: `Trace flag ${tf.id} references missing DebugLevel ${tf.debugLevelId}`,
+            traceFlagId: tf.id,
+            debugLevelId: tf.debugLevelId
+          })
+        );
+      }
+      return Effect.succeed({ ...tf, debugLevelName: name });
+    }),
+    { concurrency: 'unbounded' }
+  );
+
   return encodeTraceFlagsConfigToJson({
-    traceFlags: groupByLogType(traceFlags),
+    traceFlags: groupByLogType(enriched),
     debugLevels
   });
 });
@@ -76,11 +96,11 @@ const fetchTraceFlagsContent = Effect.fn('ApexLog.fetchTraceFlagsContent')(funct
  * Documents are read-only.
  */
 class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvider {
-  private readonly _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+  private readonly _onDidChange = new vscode.EventEmitter<URI>();
 
   public readonly onDidChange = this._onDidChange.event;
 
-  public async provideTextDocumentContent(uri: vscode.Uri, _token: vscode.CancellationToken): Promise<string> {
+  public async provideTextDocumentContent(uri: URI, _token: vscode.CancellationToken): Promise<string> {
     void this.onDidChange; // satisfy class-methods-use-this (interface impl)
     const orgId = extractOrgIdFromUri(uri);
     if (!orgId) return JSON.stringify({ error: 'Invalid trace flags URI: orgId missing' });
@@ -124,9 +144,9 @@ export class TraceFlagsContentProviderService extends Effect.Service<TraceFlagsC
 ) {}
 
 /** URI format: sf-traceflags:org/{orgId}/traceFlags.json */
-export const createTraceFlagsUri = (orgId: string): vscode.Uri => URI.parse(`${SCHEME}:org/${orgId}/traceFlags.json`);
+export const createTraceFlagsUri = (orgId: string): URI => URI.parse(`${SCHEME}:org/${orgId}/traceFlags.json`);
 
-const extractOrgIdFromUri = (uri: vscode.Uri): string | undefined => {
+const extractOrgIdFromUri = (uri: URI): string | undefined => {
   const match = uri.path.match(/^org\/([^/]+)\/traceFlags\.json$/);
   return match?.[1];
 };

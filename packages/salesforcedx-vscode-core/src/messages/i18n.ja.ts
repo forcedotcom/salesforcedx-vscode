@@ -25,6 +25,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   parameter_gatherer_enter_file_name: 'ファイル名を入力',
   parameter_gatherer_enter_dir_name: 'フォルダを入力 (Enter で確認または Esc でキャンセル)',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
+  parameter_gatherer_select_lwc_type: 'LWC コンポーネントタイプを選択',
 
   project_retrieve_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織からソースをプル',
 
@@ -32,7 +33,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   deploy_this_source_text: 'SFDX: このソースを組織へデプロイ',
   retrieve_this_source_text: 'SFDX: このソースを組織から取得',
-  retrieve_display_text: 'SFDX: このソースを組織から取得',
 
   delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
   delete_source_manifest_unsupported_message:
@@ -95,12 +95,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   custom_output_directory: 'ディレクトリを選択',
   lightning_generate_lwc_text: 'SFDX: Lightning Web コンポーネントを作成',
-  empty_components: '利用できるコンポーネントがありません',
-  error_auth_token: '認証トークン更新中にエラーが発生しました。',
-  error_no_org_found: '組織の認証情報が見つかりませんでした。',
-  error_fetching_metadata: '組織のメタデータ読み込み中にエラーが発生しました。',
-  error_org_browser_text: '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
-  error_org_browser_init: '組織ブラウザが初期化されませんでした。',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
 
   conflict_detect_error: '競合を検出中にエラーが発生しました。%s',
@@ -138,12 +132,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   source_diff_folder_title: '%s - ファイル差分',
   lib_retrieve_result_title: '取得されたソース',
   lib_retrieve_message_title: '取得警告',
-  sobjects_refresh: 'SFDX: SObject 定義を更新',
-  sobject_refresh_all: 'すべての SObject',
-  sobject_refresh_custom: 'カスタム SObject',
-  sobject_refresh_standard: '標準 SObject',
-  sobjects_no_refresh_if_already_active_error_text:
-    'sObject 定義の更新が既に進行中です。プロセスを再開する必要がある場合は、実行中のタスクをキャンセルしてください。',
   component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています',
   rename_component_input_dup_file_name_error:
     'このファイル名は現在のコンポーネントディレクトリで既に使用されています。別の名前を選択して再試行してください。',

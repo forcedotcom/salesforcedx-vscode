@@ -25,6 +25,7 @@ export const messages = {
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
   parameter_gatherer_enter_project_name: 'Enter project name',
+  parameter_gatherer_select_lwc_type: 'Select LWC component type',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
   project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
@@ -34,8 +35,6 @@ export const messages = {
   deploy_select_file_or_directory: 'You can run SFDX: Deploy This Source to Org only on a source file or directory.',
   deploy_select_manifest: 'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
   retrieve_this_source_text: 'SFDX: Retrieve This Source from Org',
-  retrieve_display_text: 'Retrieve This Source from Org',
-  retrieve_and_open_display_text: 'Retrieve and Open Source',
   retrieve_select_file_or_directory:
     'You can run SFDX: Retrieve This Source from Org only on a source file or directory.',
   retrieve_select_manifest: 'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
@@ -138,17 +137,10 @@ export const messages = {
     'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   custom_output_directory: 'Choose a Custom Directory',
   lightning_generate_lwc_text: 'SFDX: Create Lightning Web Component',
-  empty_components: 'No components available',
-  error_auth_token: 'Error refreshing authentication token.',
-  error_no_org_found: 'No org authorization info found.',
-  error_fetching_metadata: 'Error fetching metadata for org.',
-  error_org_browser_text: 'Run "SFDX: Authorize an Org" to authorize your org again.',
-  error_org_browser_init: 'Org Browser has not been initialized',
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_source_tracking_connection_failed: 'Failed to establish connection to the org for source tracking.',
   error_source_tracking_service_failed: 'Failed to initialize source tracking service.',
   error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s',
-  cannot_determine_workspace: 'Cannot determine workspace',
 
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
@@ -515,12 +507,6 @@ export const messages = {
   lib_retrieve_message_title: 'Retrieve Warnings',
   package_id_validation_error: 'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
-  sobjects_refresh: 'SFDX: Refresh SObject Definitions',
-  sobject_refresh_all: 'All SObjects',
-  sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects',
-  sobjects_no_refresh_if_already_active_error_text:
-    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   rename_lightning_component: 'SFDX: Rename Component',
   component_input_dup_error: 'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:

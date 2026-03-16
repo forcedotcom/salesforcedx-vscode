@@ -37,6 +37,12 @@ export const messages = {
   apex_class_output_dir_prompt: 'Select output directory',
   apex_class_already_exists: 'One or more files already exist. Do you want to overwrite them?',
   apex_generate_class_success: 'Apex class created successfully',
+  lwc_component_name_prompt: 'Enter Lightning Web Component name',
+  lwc_component_name_placeholder: 'myComponent',
+  lwc_output_dir_prompt: 'Select output directory',
+  lwc_select_component_type: 'Select component type',
+  lwc_generate_success: 'Lightning Web Component created successfully',
+  lwc_already_exists: 'Component already exists. Do you want to overwrite it?',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',
@@ -83,7 +89,16 @@ export const messages = {
   source_diff_all_files_match: 'All Files Match',
   missing_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.',
   overwrite_button: 'Overwrite',
-  cancel_button: 'Cancel'
+  cancel_button: 'Cancel',
+
+  // SObject refresh
+  sobjects_refresh: 'SFDX: Refresh SObject Definitions',
+  sobject_refresh_all: 'All SObjects',
+  sobject_refresh_custom: 'Custom SObjects',
+  sobject_refresh_standard: 'Standard SObjects',
+  sobjects_no_refresh_if_already_active_error_text:
+    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
+  processed_sobjects_length_text: 'Processed %d %s sObjects\n'
 } as const;
 
 export type MessageKey = keyof typeof messages;

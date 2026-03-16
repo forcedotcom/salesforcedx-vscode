@@ -6,15 +6,11 @@
  */
 
 import { expect, Page } from '@playwright/test';
-import { closeWelcomeTabs, dismissAllQuickInputWidgets } from '../utils/helpers';
-import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW, WORKBENCH } from '../utils/locators';
+import { dismissAllQuickInputWidgets } from '../utils/helpers';
+import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  const workbench = page.locator(WORKBENCH);
-
-  // Close welcome tabs before opening command palette
-  await closeWelcomeTabs(page);
 
   // Dismiss any existing quick input widgets
   await dismissAllQuickInputWidgets(page);
@@ -23,9 +19,6 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
   await expect(async () => {
     // Bring page to front to ensure VS Code window is active (critical on Windows)
     await page.bringToFront();
-
-    // Click workbench to ensure focus is not on walkthrough elements
-    await workbench.click({ timeout: 5000 });
 
     // Small delay to allow Windows to process focus change before F1 keypress
     // On Windows, F1 can trigger Windows Search if VS Code doesn't have focus
@@ -90,8 +83,11 @@ export const executeCommandWithCommandPalette = async (
   command: string,
   hasNotText?: string
 ): Promise<void> => {
-  await openCommandPalette(page);
-  await executeCommand(page, command, hasNotText);
+  await expect(async () => {
+    await dismissAllQuickInputWidgets(page);
+    await openCommandPalette(page);
+    await executeCommand(page, command, hasNotText);
+  }).toPass({ timeout: 15_000 });
 };
 
 /** Shared helper: closes command palette */

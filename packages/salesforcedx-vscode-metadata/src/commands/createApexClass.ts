@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
 
-export type CreateApexClassParams = {
+type CreateApexClassParams = {
   readonly name?: string;
   readonly outputDir?: URI;
 };
@@ -124,11 +124,11 @@ const createFiles = Effect.fn('createFiles')(function* (className: string, outpu
 
 }`;
 
-  // Write both files - pass URI objects directly
+  // Both files share the same parent; safeWriteFile creates the directory on each call (idempotent).
   yield* Effect.all(
     [
-      api.services.FsService.writeFile(clsUri, clsContent),
-      api.services.FsService.writeFile(metaUri, getMetaContent(apiVersion))
+      api.services.FsService.safeWriteFile(clsUri, clsContent),
+      api.services.FsService.safeWriteFile(metaUri, getMetaContent(apiVersion))
     ],
     {
       concurrency: 'unbounded'

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,
@@ -17,7 +18,6 @@ import {
   ProgressNotification,
   SfCommandlet,
   SfCommandletExecutor,
-  SfWorkspaceChecker,
   TimingUtils,
   workspaceUtils,
   errorToString
@@ -31,7 +31,6 @@ import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreat
 import { CompositePreconditionChecker } from '../preconditionCheckers/compositePreconditionChecker';
 import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
-import { setTargetOrgOrAlias } from '../util/orgUtil';
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
@@ -78,12 +77,6 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
         const createParser = new OrgCreateResultParser(stdOut);
 
         if (createParser.createIsSuccessful()) {
-          // Explicitly ensure the org change event is triggered
-          // Use the alias that was provided when creating the org
-          if (response.data.alias) {
-            await setTargetOrgOrAlias(response.data.alias);
-          }
-
           // Set workspace org type to source-tracked for newly created scratch orgs
           // Scratch orgs are always source-tracked, so set the context to true
           await vscode.commands.executeCommand('setContext', 'sf:target_org_has_change_tracking', true);
@@ -157,7 +150,7 @@ type Alias = {
 type AliasAndFileSelection = Alias & FileSelection;
 
 export const orgCreate = (): void => {
-  const preconditionChecker = new CompositePreconditionChecker(new SfWorkspaceChecker(), new DevUsernameChecker());
+  const preconditionChecker = new CompositePreconditionChecker(sfProjectPreconditionChecker, new DevUsernameChecker());
   const parameterGatherer = new CompositeParametersGatherer(
     new FileSelector(
       nls.localize('parameter_gatherer_enter_scratch_org_def_files'),
