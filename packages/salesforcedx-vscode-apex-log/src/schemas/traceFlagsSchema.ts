@@ -42,6 +42,13 @@ const DebugLevelItemStruct = Schema.Struct({
   workflow: LogCategoryLevel.pipe(Schema.annotations({ description: 'Workflow rules, flows, and process builder actions.' }))
 });
 
+const isRecord = (x: unknown): x is Record<string, unknown> =>
+  typeof x === 'object' && x !== null && !Array.isArray(x);
+
+/** TraceFlagItem + debugLevelName. Apex-log enriches from DebugLevel lookup. Kept optional for defensive parsing. */
+export const buildExtendedTraceFlagItemStruct = <A, I>(base: Schema.Schema<A, I, never>) =>
+  base.pipe(Schema.extend(Schema.Struct({ debugLevelName: Schema.optional(Schema.String) })));
+
 /** Build trace-flags JSON schemas from the shared TraceFlagItemStruct (provided by services API at runtime, or directly in build scripts). */
 export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, never>) => {
   const TraceFlagsByLogTypeSchema = Schema.Struct({
@@ -87,9 +94,45 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
     )
   }).pipe(Schema.annotations({ jsonSchema: { title: 'Trace Flags Configuration' } }));
 
+  /** Desired key order for trace flag items: debugLevelName next to debugLevelId. */
+  const TRACE_FLAG_ORDER = [
+    'id',
+    'debugLevelId',
+    'debugLevelName',
+    'tracedEntityName',
+    'tracedEntityId',
+    'logType',
+    'startDate',
+    'expirationDate',
+    'isActive'
+  ] as const;
+
+  const ORDER_SET = new Set<string>(TRACE_FLAG_ORDER);
+
+  const reorderTraceFlagItem = (obj: Record<string, unknown>): Record<string, unknown> =>
+    Object.fromEntries([
+      ...TRACE_FLAG_ORDER.filter(k => k in obj).map(k => [k, obj[k]]),
+      ...Object.keys(obj).filter(k => !ORDER_SET.has(k)).map(k => [k, obj[k]])
+    ]);
+
+  const reorderTraceFlagsInConfig = (encoded: unknown): unknown => {
+    if (!isRecord(encoded)) return encoded;
+    const traceFlags = encoded.traceFlags;
+    if (!traceFlags || !isRecord(traceFlags) || Array.isArray(traceFlags)) return encoded;
+    return {
+      ...encoded,
+      traceFlags: Object.fromEntries(
+        Object.entries(traceFlags).map(([k, arr]) => [
+          k,
+          Array.isArray(arr) ? arr.map(item => (isRecord(item) ? reorderTraceFlagItem(item) : item)) : arr
+        ])
+      )
+    };
+  };
+
   /** Encodes TraceFlagsConfig to JSON string (pretty-printed). */
   const encodeTraceFlagsConfigToJson = (config: Schema.Schema.Type<typeof TraceFlagsConfigSchema>): string =>
-    JSON.stringify(Schema.encodeSync(TraceFlagsConfigSchema)(config), undefined, 2);
+    JSON.stringify(reorderTraceFlagsInConfig(Schema.encodeSync(TraceFlagsConfigSchema)(config)), undefined, 2);
 
   /** Decodes TraceFlagsConfig from JSON string. Returns undefined on invalid JSON or schema mismatch. */
   const decodeTraceFlagsConfigFromJson = (json: string): Schema.Schema.Type<typeof TraceFlagsConfigSchema> | undefined =>

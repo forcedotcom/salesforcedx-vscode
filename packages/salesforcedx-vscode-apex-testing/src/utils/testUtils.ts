@@ -254,45 +254,6 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
   );
 };
 
-/** Get Apex class and test suite file URIs via ComponentSetService (works on web and desktop; same approach as org-browser / metadata). */
-export const findLocalApexClassAndTestSuiteUris = async (): Promise<{
-  apexClassUris: URI[];
-  testSuiteUris: URI[];
-}> => {
-  const effect = Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const componentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-    const apexClassUris: URI[] = [];
-    const testSuiteUris: URI[] = [];
-    for (const comp of componentSet.getSourceComponents()) {
-      const typeName = comp.type?.name ?? '';
-      if (typeName === 'ApexClass' && comp.content) {
-        apexClassUris.push(yield* api.services.FsService.toUri(comp.content));
-      } else if (typeName === 'ApexTestSuite') {
-        const filePath = comp.xml ?? comp.content ?? comp.walkContent?.()?.[0];
-        if (filePath) {
-          testSuiteUris.push(yield* api.services.FsService.toUri(filePath));
-        }
-      }
-    }
-    const sort = (a: URI, b: URI) => (a.fsPath ?? a.path).localeCompare(b.fsPath ?? b.path);
-    yield* Effect.annotateCurrentSpan({ apexClassUris, testSuiteUris });
-    return {
-      apexClassUris: apexClassUris.toSorted(sort),
-      testSuiteUris: testSuiteUris.toSorted(sort)
-    };
-  }).pipe(
-    Effect.withSpan('findLocalApexClassAndTestSuiteUris'),
-    Effect.catchAll(() =>
-      Effect.succeed({
-        apexClassUris: [],
-        testSuiteUris: []
-      })
-    )
-  );
-  return getApexTestingRuntime().runPromise(effect);
-};
-
 /** Writes test result JSON file using FsService (works in both desktop and web modes) */
 const writeTestResultJson = async (result: TestResult, outputDir: URI): Promise<void> => {
   const testRunId = result.summary?.testRunId;

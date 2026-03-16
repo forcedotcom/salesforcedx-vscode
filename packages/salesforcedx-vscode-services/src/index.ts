@@ -192,26 +192,15 @@ export type { IconId, MediaService } from './vscode/mediaService';
 export type { SettingsError } from './vscode/settingsService';
 
 /** Effect that runs when the extension is activated after FS setup */
-const activationEffect = (context: vscode.ExtensionContext) =>
-  Effect.gen(function* () {
-    yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
-    // do this first to prevent Connection issues.
-    yield* updateTelemetryUserIds(context);
-    const scope = yield* getExtensionScope();
+const activationEffect = Effect.fn('activationEffect')(function* (context: vscode.ExtensionContext) {
+  yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
+  // do this first to prevent Connection issues.
+  yield* updateTelemetryUserIds(context);
+  const scope = yield* getExtensionScope();
 
-    if (process.env.ESBUILD_PLATFORM === 'web') {
-      // auth settings go before other things so retrieveOnLoad can use them
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    // auth settings go before other things so retrieveOnLoad can use them
 
-      yield* Effect.all(
-        [
-          Effect.forkIn(subscribeLifecycleWarnings(), scope),
-          retrieveOnLoadEffect(),
-          Effect.forkIn(watchSettingsService(), scope)
-        ],
-        { concurrency: 'unbounded' }
-      );
-    }
-    // watch default org changes to update VS Code context variables and other services
     yield* Effect.all(
       [
         // watch default org changes to update VS Code context variables and other services
@@ -225,18 +214,36 @@ const activationEffect = (context: vscode.ExtensionContext) =>
         // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
         Effect.forkIn(watchDefaultOrgAliases(), scope)
       ],
-      {
-        concurrency: 'unbounded'
-      }
+      { concurrency: 'unbounded' }
     );
-    // init the connection for all the consumers who might need it
-    // no Connection is a possible state
-    yield* Effect.fork(ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)));
-    // set sf:project_opened context before activation resolves so lazy-loaded extensions can show
-    // their commands on startup — must be blocking (not forked) so the context key is set before
-    // VS Code evaluates `when` clauses for command palette visibility
-    yield* ProjectService.isSalesforceProject();
-  }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
+  }
+  // watch default org changes to update VS Code context variables and other services
+  yield* Effect.all(
+    [
+      // watch default org changes to update VS Code context variables and other services
+      Effect.forkIn(watchDefaultOrgContext(), scope),
+      // watch the config files for changes, which various services use to invalidate caches
+      Effect.forkIn(watchConfigFiles(), scope),
+      // watch active editor changes to update package directories context
+      Effect.forkIn(watchPackageDirectoriesContext(), scope),
+      // watch active editor changes to update apex test context
+      Effect.forkIn(watchApexTestContext(), scope)
+    ],
+    {
+      concurrency: 'unbounded'
+    }
+  );
+  // init the connection for all the consumers who might need it
+  // no Connection is a possible state
+  yield* Effect.forkIn(
+    ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)),
+    scope
+  );
+  // set sf:project_opened context before activation resolves so lazy-loaded extensions can show
+  // their commands on startup — must be blocking (not forked) so the context key is set before
+  // VS Code evaluates `when` clauses for command palette visibility
+  yield* ProjectService.isSalesforceProject();
+});
 
 /**
  * Activates the Salesforce Services extension and returns API for other extensions to consume
@@ -327,7 +334,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         })
       ),
       builtContext
-    ).pipe(Scope.extend(extensionScope))
+    ).pipe(
+      Scope.extend(extensionScope),
+      Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error)))
+    )
   );
 
   console.log('Salesforce Services extension is now active!');

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -88,7 +89,9 @@ const searchUsersEffect = (
   );
 
 /** Show a QuickPick that searches org users via SOSL as the user types (debounced). */
-export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (conn: ConnectionLike, currentUserId: string) {
+export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUserId: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const conn = yield* (yield* api.services.ConnectionService).getConnection();
   const runtime = yield* Effect.runtime();
   const run = Runtime.runFork(runtime);
 

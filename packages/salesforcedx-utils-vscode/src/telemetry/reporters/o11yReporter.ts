@@ -19,13 +19,10 @@ const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } 
 };
 const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   // @ts-ignore - o11y_schema has no types
-  pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(
-    (m) => m.pdpEventSchema
-  );
+  pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-const getConnection = async () =>
-  WorkspaceContextUtil.getInstance().getConnection();
+const getConnection = async () => WorkspaceContextUtil.getInstance().getConnection();
 
 export class O11yReporter
   extends Disposable
@@ -219,7 +216,7 @@ export class O11yReporter
   }
 }
 
-export type PftEventProperties = {
+type PftEventProperties = {
   eventName: 'vscodeExtension.executed';
   productFeatureId: string;
   /** extensionName.commandId */

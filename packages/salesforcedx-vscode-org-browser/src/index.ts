@@ -22,14 +22,6 @@ import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
-  const coreConfig = vscode.workspace.getConfiguration('salesforcedx-vscode-core');
-  const useLegacyOrgBrowser = coreConfig.get<boolean>('useLegacyOrgBrowser', false);
-
-  if (useLegacyOrgBrowser) {
-    console.log('Salesforce Org Browser extension disabled via setting (legacy org browser enabled)');
-    return;
-  }
-
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
   await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
@@ -39,7 +31,7 @@ export const deactivate = async (): Promise<void> =>
   Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
 
 // export for testing
-export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (_context: vscode.ExtensionContext) {
+export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
@@ -63,6 +55,15 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   // Register commands
   yield* Effect.all(
     [
+      registerCommand('sf.org-browser.walkthrough.open', () =>
+        Effect.promise(() =>
+          vscode.commands.executeCommand(
+            'workbench.action.openWalkthrough',
+            'salesforce.salesforcedx-vscode-org-browser#sf.org-browser',
+            false
+          )
+        )
+      ),
       registerCommand(`${TREE_VIEW_ID}.refreshType`, (node: OrgBrowserTreeItem) =>
         Effect.promise(() => treeProvider.refreshType(node))
       ),
@@ -102,6 +103,21 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   // Append completion message
   yield* svc.appendToChannel('Salesforce Org Browser activation complete.');
+
+  // Auto-open walkthrough on first run
+  const lastVersion = context.globalState.get<string>('orgBrowser.walkthroughVersion');
+  if (lastVersion === undefined) {
+    const ver = context.extension.packageJSON?.version;
+    const currentVersion = typeof ver === 'string' ? ver : '0.0.0';
+    yield* Effect.promise(() => context.globalState.update('orgBrowser.walkthroughVersion', currentVersion));
+    yield* Effect.promise(() =>
+      vscode.commands.executeCommand(
+        'workbench.action.openWalkthrough',
+        'salesforce.salesforcedx-vscode-org-browser#sf.org-browser',
+        false
+      )
+    );
+  }
 });
 
 export const deactivateEffect = Effect.fn(`deactivation:${EXTENSION_NAME}`)(function* () {

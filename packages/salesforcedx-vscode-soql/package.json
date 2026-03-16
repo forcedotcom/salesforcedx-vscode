@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.1.1",
+  "version": "66.2.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -68,7 +68,7 @@
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "immutable": "^5.1.4",
+    "immutable": "^5.1.5",
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
     "rxjs": "^7.8.2",
@@ -114,6 +114,7 @@
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
+        "package.nls*.json",
         "../soql-common/out/**",
         "../salesforcedx-utils-vscode/out/**",
         "../salesforcedx-vscode-i18n/out/**",
