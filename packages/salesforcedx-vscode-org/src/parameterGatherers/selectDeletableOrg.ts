@@ -54,10 +54,9 @@ export class SelectDeletableOrg implements ParametersGatherer<{ orgs: OrgToDelet
       return { type: 'CANCEL' };
     }
 
-    const count = String(targetOrgs.length);
     const confirmLabel = nls.localize('org_delete_confirm_label');
     const confirm = await vscode.window.showInformationMessage(
-      nls.localize('org_delete_confirm_prompt', count),
+      nls.localize('org_delete_confirm_prompt', targetOrgs.length),
       { modal: true },
       confirmLabel
     );

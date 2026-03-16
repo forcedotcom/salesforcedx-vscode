@@ -55,32 +55,30 @@ const makeAliasWatcherLayer = (pubsub: PubSub.PubSub<AliasChangeEvent>) =>
 // ---------------------------------------------------------------------------
 
 describe('AliasFileWatcherService', () => {
-  const runWithMockFileWatcher = (
+  const defaultLayer = (fileWatcherPubSub: PubSub.PubSub<FileChangeEvent>) =>
+    Layer.provide(AliasFileWatcherService.Default, makeFileWatcherLayer(fileWatcherPubSub));
+
+  const runWithDefault = (
     fileWatcherPubSub: PubSub.PubSub<FileChangeEvent>,
     test: (aliasWatcher: AliasFileWatcherService) => Effect.Effect<void, never, Scope.Scope>
-  ) => {
-    // AliasFileWatcherService.Default requires FileWatcherService externally (no baked-in Default).
-    // Layer.provide injects the mock FileWatcherService to satisfy that requirement.
-    const layer = Layer.provide(AliasFileWatcherService.Default, makeFileWatcherLayer(fileWatcherPubSub));
-    return Effect.provide(
+  ) =>
+    Effect.provide(
       Effect.gen(function* () {
         const aliasWatcher = yield* AliasFileWatcherService;
         yield* test(aliasWatcher);
       }).pipe(Effect.scoped),
-      layer
+      defaultLayer(fileWatcherPubSub)
     );
-  };
 
   it('publishes an alias-changed event when alias.json changes', async () => {
     const fileWatcherPubSub = await Effect.runPromise(PubSub.sliding<FileChangeEvent>(10));
 
     await Effect.runPromise(
-      runWithMockFileWatcher(fileWatcherPubSub, aliasWatcher =>
+      runWithDefault(fileWatcherPubSub, aliasWatcher =>
         Effect.gen(function* () {
           const subscriber = yield* PubSub.subscribe(aliasWatcher.pubsub);
 
           yield* PubSub.publish(fileWatcherPubSub, { type: 'change' as const, uri: URI.file(ALIAS_FILE_PATH) });
-          // wait for the 50ms debounce + scheduler time
           yield* Effect.sleep(200);
 
           const events: AliasChangeEvent[] = [];
@@ -97,7 +95,7 @@ describe('AliasFileWatcherService', () => {
     const fileWatcherPubSub = await Effect.runPromise(PubSub.sliding<FileChangeEvent>(10));
 
     await Effect.runPromise(
-      runWithMockFileWatcher(fileWatcherPubSub, aliasWatcher =>
+      runWithDefault(fileWatcherPubSub, aliasWatcher =>
         Effect.gen(function* () {
           const subscriber = yield* PubSub.subscribe(aliasWatcher.pubsub);
 

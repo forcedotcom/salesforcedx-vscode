@@ -17,7 +17,7 @@ import {
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { OUTPUT_CHANNEL } from '../../channels';
-import { AllServicesLayer } from '../../extensionProvider';
+import { getOrgRuntime } from '../../extensionProvider';
 import { nls } from '../../messages';
 import { SelectOrgsForLogout } from '../../parameterGatherers/selectOrgsForLogout';
 import { telemetryService } from '../../telemetry';
@@ -45,22 +45,16 @@ export class OrgLogoutSelected extends LibraryCommandletExecutor<{ usernames: st
       const authRemover = await AuthRemover.create();
       for (const username of usernames) {
         // Fetch aliases before removal so they can be used for config matching
-        const aliases = await getAliasesForUsername(username).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        const aliases = await getOrgRuntime().runPromise(getAliasesForUsername(username));
         await authRemover.removeAuth(username);
-        await removeOrgAliases(username).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
-        const isTarget = await checkIsCurrentTargetOrg(username, aliases).pipe(
-          Effect.provide(AllServicesLayer),
-          Effect.runPromise
-        );
-        const isDevHub = await checkIsCurrentTargetDevHub(username, aliases).pipe(
-          Effect.provide(AllServicesLayer),
-          Effect.runPromise
-        );
+        await getOrgRuntime().runPromise(removeOrgAliases(username));
+        const isTarget = await getOrgRuntime().runPromise(checkIsCurrentTargetOrg(username, aliases));
+        const isDevHub = await getOrgRuntime().runPromise(checkIsCurrentTargetDevHub(username, aliases));
         if (isTarget) {
-          await doUnsetTargetOrg().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+          await getOrgRuntime().runPromise(doUnsetTargetOrg());
         }
         if (isDevHub) {
-          await doUnsetTargetDevHub().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+          await getOrgRuntime().runPromise(doUnsetTargetDevHub());
         }
       }
       await updateConfigAndStateAggregators();
@@ -123,15 +117,12 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
-      const shouldUnset = await checkIsCurrentTargetOrg(response.data, this.orgAliases).pipe(
-        Effect.provide(AllServicesLayer),
-        Effect.runPromise
-      );
+      const shouldUnset = await getOrgRuntime().runPromise(checkIsCurrentTargetOrg(response.data, this.orgAliases));
       const authRemover = await AuthRemover.create();
       await authRemover.removeAuth(response.data);
-      await removeOrgAliases(response.data).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+      await getOrgRuntime().runPromise(removeOrgAliases(response.data));
       if (shouldUnset) {
-        await doUnsetTargetOrg().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        await getOrgRuntime().runPromise(doUnsetTargetOrg());
       }
     } catch (e) {
       const err = e instanceof Error ? e : new Error(String(e));
@@ -143,10 +134,7 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 }
 
 export const orgLogoutDefault = async () => {
-  const { username, isScratch, aliases } = await resolveTargetOrg().pipe(
-    Effect.provide(AllServicesLayer),
-    Effect.runPromise
-  );
+  const { username, isScratch, aliases } = await getOrgRuntime().runPromise(resolveTargetOrg());
   if (username) {
     // confirm logout for scratch orgs due to special considerations:
     // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm

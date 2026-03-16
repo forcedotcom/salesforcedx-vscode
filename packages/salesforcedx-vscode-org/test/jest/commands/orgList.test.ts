@@ -92,13 +92,17 @@ jest.mock('../../../src/util/configAggregatorEffect', () => {
   };
 });
 
-// Mock extensionProvider to provide AllServicesLayer (getConfigAggregatorEffect is fully mocked)
+// Mock extensionProvider to provide AllServicesLayer and getOrgRuntime (getConfigAggregatorEffect is fully mocked)
 jest.mock('../../../src/extensionProvider', () => {
   const Layer = require('effect/Layer');
   const Context = require('effect/Context');
+  const ManagedRuntime = require('effect/ManagedRuntime');
   const DummyService = Context.GenericTag('DummyService');
+  const AllServicesLayer = Layer.succeed(DummyService, {});
   return {
-    AllServicesLayer: Layer.succeed(DummyService, {})
+    AllServicesLayer,
+    setAllServicesLayer: jest.fn(),
+    getOrgRuntime: () => ManagedRuntime.make(AllServicesLayer)
   };
 });
 

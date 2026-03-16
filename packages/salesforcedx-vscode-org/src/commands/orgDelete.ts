@@ -21,7 +21,7 @@ import {
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { AllServicesLayer } from '../extensionProvider';
+import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
 import { OrgToDelete, SelectDeletableOrg } from '../parameterGatherers/selectDeletableOrg';
@@ -93,13 +93,13 @@ export class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDe
       let allSucceeded = true;
       for (const { username, orgType } of orgs) {
         // Fetch aliases before cleanup so they can be used for config matching
-        const aliases = await getAliasesForUsername(username).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        const aliases = await getOrgRuntime().runPromise(getAliasesForUsername(username));
         const success = await runDeleteCli(username, orgType);
         if (success) {
           await authRemover.removeAuth(username);
-          await removeOrgAliases(username).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
-          await unsetTargetOrgIfMatch(username, aliases).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
-          await unsetTargetDevHubIfMatch(username, aliases).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+          await getOrgRuntime().runPromise(removeOrgAliases(username));
+          await getOrgRuntime().runPromise(unsetTargetOrgIfMatch(username, aliases));
+          await getOrgRuntime().runPromise(unsetTargetDevHubIfMatch(username, aliases));
         } else {
           allSucceeded = false;
         }

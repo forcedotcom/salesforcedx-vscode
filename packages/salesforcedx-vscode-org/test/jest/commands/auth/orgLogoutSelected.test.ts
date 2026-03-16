@@ -14,7 +14,7 @@ import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { OrgLogoutSelected } from '../../../../src/commands/auth/orgLogout';
-import { setAllServicesLayer } from '../../../../src/extensionProvider';
+import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
 import * as orgUtil from '../../../../src/util/orgUtil';
 
 jest.mock('../../../../src/telemetry', () => ({
@@ -74,6 +74,7 @@ describe('OrgLogoutSelected', () => {
 
     jest.spyOn(orgUtil, 'updateConfigAndStateAggregators').mockResolvedValue(undefined);
 
+    resetOrgRuntimeForTesting();
     setAllServicesLayer(buildLayer() as ReturnType<typeof import('../../../../src/extensionProvider').buildAllServicesLayer>);
   });
 

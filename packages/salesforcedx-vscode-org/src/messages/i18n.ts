@@ -56,7 +56,7 @@ export const messages = {
   org_logout_default_text: 'SFDX: Log Out from Default Org',
   org_logout_no_default_org: 'No default org to logout from',
   org_delete_select_orgs_placeholder: 'Select scratch orgs and sandboxes to delete',
-  org_delete_confirm_prompt: 'Permanently delete %s org(s)? This cannot be undone.',
+  org_delete_confirm_prompt: 'Permanently delete %d org(s)? This cannot be undone.',
   org_delete_confirm_label: 'Delete',
   org_logout_scratch_logout: 'Logout',
   org_logout_scratch_prompt:

@@ -17,7 +17,7 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { AllServicesLayer } from '../extensionProvider';
+import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 import { SelectOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
 import { OrgInfo } from '../types/orgInfo';
@@ -89,7 +89,7 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       const targetUsername =
         this.flag === '--target-org' && username
           ? username
-          : await getTargetUsernameEffect().pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+          : await getOrgRuntime().runPromise(getTargetUsernameEffect());
 
       const orgInfo = await getOrgInfo(targetUsername);
 

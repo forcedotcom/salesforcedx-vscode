@@ -8,8 +8,8 @@
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
-import * as vscode from 'vscode';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-org';
 
@@ -30,19 +30,22 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
-      const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
-      const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
-      const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
+      // vscode packageJSON is untyped; assert shape for safe property access
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- vscode packageJSON is untyped */
+      const pkg = context.extension.packageJSON as
+        | { version?: string; displayName?: string; o11yUploadEndpoint?: string }
+        | undefined;
+      const extensionVersion = pkg?.version ?? 'unknown';
+      const o11yEndpoint = process.env.O11Y_ENDPOINT ?? pkg?.o11yUploadEndpoint;
+      const displayName = pkg?.displayName ?? 'Salesforce Org Management';
       // ErrorHandlerService depends on ChannelService, provide the extension's channel
-      const channelLayer = api.services.ChannelServiceLayer(
-        extension?.packageJSON.displayName ?? 'Salesforce Org Management'
-      );
+      const channelLayer = api.services.ChannelServiceLayer(displayName);
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       // Merge all the service layers from the API
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.ChannelServiceLayer(extension?.packageJSON.displayName ?? 'Salesforce Org Management'),
+        api.services.ChannelServiceLayer(displayName),
         api.services.AliasService.Default,
         api.services.ConfigService.Default,
         api.services.ConnectionService.Default,
@@ -65,4 +68,21 @@ export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;
+};
+
+/**
+ * Single persistent runtime for org extension Effect executions.
+ * Built once on first use to avoid rebuilding services across commands.
+ */
+const createOrgRuntime = () => ManagedRuntime.make(AllServicesLayer);
+
+let _orgRuntime: ReturnType<typeof createOrgRuntime> | undefined;
+export const getOrgRuntime = () => {
+  _orgRuntime ??= createOrgRuntime();
+  return _orgRuntime;
+};
+
+/** Reset cached runtime. Used by tests when AllServicesLayer changes between tests. */
+export const resetOrgRuntimeForTesting = (): void => {
+  _orgRuntime = undefined;
 };

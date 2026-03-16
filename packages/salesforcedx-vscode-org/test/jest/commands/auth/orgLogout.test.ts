@@ -14,7 +14,7 @@ import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { OrgLogoutDefault } from '../../../../src/commands/auth/orgLogout';
-import { setAllServicesLayer } from '../../../../src/extensionProvider';
+import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
 
 jest.mock('../../../../src/telemetry', () => ({
   telemetryService: { sendException: jest.fn() }
@@ -63,6 +63,7 @@ describe('OrgLogoutDefault', () => {
     unsetAliasesMock = jest.fn().mockReturnValue(Effect.void);
     getAliasesFromUsernameMock = jest.fn().mockReturnValue(Effect.succeed([]));
 
+    resetOrgRuntimeForTesting();
     setAllServicesLayer(buildLayer() as ReturnType<typeof import('../../../../src/extensionProvider').buildAllServicesLayer>);
   });
 

@@ -59,7 +59,7 @@ export class AliasService extends Effect.Service<AliasService>()('AliasService',
       );
     });
 
-    /** Remove aliases by name. Reads from disk before writing to handle same-session aliases. */
+    /** Remove aliases by name. */
     const unsetAliases = Effect.fn('AliasService.unsetAliases')(function* (aliases: readonly string[]) {
       const sa = yield* Effect.promise(() => StateAggregator.getInstance());
       yield* Effect.forEach(aliases, alias => Effect.promise(() => sa.aliases.unsetAndSave(alias)), {

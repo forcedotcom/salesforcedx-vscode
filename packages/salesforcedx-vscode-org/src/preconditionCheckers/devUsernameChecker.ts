@@ -6,28 +6,23 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { getTargetDevHubOrAlias, type PreconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { getTargetDevHubOrAlias } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import { AllServicesLayer } from '../extensionProvider';
+import { getOrgRuntime } from '../extensionProvider';
 
-const getTargetDevHub = Effect.fn('DevUsernameChecker.getTargetDevHub')(function* () {
+const getTargetDevHub = Effect.fn('checkDevHubConfigured.getTargetDevHub')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* api.services.ConfigService.getTargetDevHub();
 });
 
-/** Checks if a Dev Hub is configured */
-export class DevUsernameChecker implements PreconditionChecker {
-  public async check(): Promise<boolean> {
-    const targetDevHubOrAlias = await getTargetDevHub().pipe(
-      Effect.provide(AllServicesLayer),
-      Effect.orElse(() => Effect.promise(() => getTargetDevHubOrAlias(false))),
-      Effect.runPromise
-    );
-    if (!targetDevHubOrAlias) {
-      void getTargetDevHubOrAlias(true); // show the "no dev hub" warning to the user
-      return false;
-    }
-
-    return true;
+/** Returns true if a Dev Hub is configured. Shows "no dev hub" warning and returns false otherwise. */
+export const checkDevHubConfigured = async (): Promise<boolean> => {
+  const targetDevHubOrAlias = await getOrgRuntime().runPromise(
+    getTargetDevHub().pipe(Effect.orElse(() => Effect.promise(() => getTargetDevHubOrAlias(false))))
+  );
+  if (!targetDevHubOrAlias) {
+    void getTargetDevHubOrAlias(true); // show the "no dev hub" warning to the user
+    return false;
   }
-}
+  return true;
+};

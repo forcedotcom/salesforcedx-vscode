@@ -59,7 +59,6 @@ export type SalesforceVSCodeServicesApi = {
   services: {
     /** contains most of the dependencies prebuilt in the services extension */
     prebuiltServicesDependencies: Context.Context<
-      | AliasFileWatcherService
       | AliasService
       | ApexLogService
       | ChannelService
@@ -85,7 +84,6 @@ export type SalesforceVSCodeServicesApi = {
       | TransmogrifierService
       | WorkspaceService
     >;
-    AliasFileWatcherService: typeof AliasFileWatcherService;
     ApexLogService: typeof ApexLogService;
     AliasService: typeof AliasService;
     TemplateService: typeof TemplateService;
@@ -338,7 +336,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   return {
     services: {
       prebuiltServicesDependencies: builtContext,
-      AliasFileWatcherService,
       ApexLogService,
       AliasService,
       TemplateService,

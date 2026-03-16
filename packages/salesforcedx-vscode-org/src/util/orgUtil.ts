@@ -28,7 +28,7 @@ import { isNotUndefined, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { channelService } from '../channels';
-import { AllServicesLayer } from '../extensionProvider';
+import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 import { getConfigAggregatorEffect } from './configAggregatorEffect';
 
@@ -319,7 +319,7 @@ export const readAliasesByUsernameFromDisk = async (): Promise<Map<string, strin
 
 /** Get default org and devhub configuration */
 export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
-  const configAggregator = await Effect.runPromise(getConfigAggregatorEffect.pipe(Effect.provide(AllServicesLayer)));
+  const configAggregator = await getOrgRuntime().runPromise(getConfigAggregatorEffect);
   const defaultDevHubProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
   const defaultOrgProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
 
