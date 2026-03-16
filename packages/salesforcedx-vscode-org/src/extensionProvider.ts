@@ -47,6 +47,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         ExtensionProviderServiceLive,
         api.services.ExtensionContextServiceLayer(context),
         api.services.ChannelServiceLayer(displayName),
+        api.services.FsService.Default,
         api.services.AliasService.Default,
         api.services.ConfigService.Default,
         api.services.ConnectionService.Default,

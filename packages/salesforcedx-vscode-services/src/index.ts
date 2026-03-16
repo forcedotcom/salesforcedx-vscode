@@ -20,14 +20,12 @@ import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { getDefaultOrgRef } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
-import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
-import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagItemStruct, TraceFlagService } from './core/traceFlagService';
@@ -38,7 +36,6 @@ import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
-import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
 import { watchApexTestContext, watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
@@ -210,9 +207,7 @@ const activationEffect = Effect.fn('activationEffect')(function* (context: vscod
         // watch active editor changes to update package directories context
         Effect.forkIn(watchPackageDirectoriesContext(), scope),
         // watch active editor changes to update apex test context
-        Effect.forkIn(watchApexTestContext(), scope),
-        // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
-        Effect.forkIn(watchDefaultOrgAliases(), scope)
+        Effect.forkIn(watchApexTestContext(), scope)
       ],
       { concurrency: 'unbounded' }
     );
@@ -227,7 +222,9 @@ const activationEffect = Effect.fn('activationEffect')(function* (context: vscod
       // watch active editor changes to update package directories context
       Effect.forkIn(watchPackageDirectoriesContext(), scope),
       // watch active editor changes to update apex test context
-      Effect.forkIn(watchApexTestContext(), scope)
+      Effect.forkIn(watchApexTestContext(), scope),
+      // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
+      Effect.forkIn(watchDefaultOrgAliases(), scope)
     ],
     {
       concurrency: 'unbounded'

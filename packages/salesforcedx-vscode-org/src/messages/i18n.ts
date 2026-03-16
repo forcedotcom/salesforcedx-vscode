@@ -55,6 +55,7 @@ export const messages = {
   org_logout_all_text: 'SFDX: Log Out from Authorized Orgs',
   org_logout_default_text: 'SFDX: Log Out from Default Org',
   org_logout_no_default_org: 'No default org to logout from',
+  org_delete_failed_for_org: 'Failed to delete %s (%s). Check the output above for details.',
   org_delete_select_orgs_placeholder: 'Select scratch orgs and sandboxes to delete',
   org_delete_confirm_prompt: 'Permanently delete %d org(s)? This cannot be undone.',
   org_delete_confirm_label: 'Delete',

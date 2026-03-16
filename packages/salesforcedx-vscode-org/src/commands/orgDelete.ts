@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover } from '@salesforce/core';
+import { AuthRemover, Global } from '@salesforce/core';
 import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
@@ -19,8 +19,9 @@ import {
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
@@ -55,6 +56,15 @@ const unsetTargetDevHubIfMatch = Effect.fn('OrgDelete.unsetTargetDevHubIfMatch')
   }
 );
 
+/** Checks if the auth file exists in .sfdx or .sf; sf org delete may already remove it (idempotent). */
+const authFileExists = Effect.fn('OrgDelete.authFileExists')(function* (username: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const authFileName = `${username}.json`;
+  const inSfdx = yield* api.services.FsService.fileOrFolderExists(path.join(Global.SFDX_DIR, authFileName));
+  if (inSfdx) return true;
+  return yield* api.services.FsService.fileOrFolderExists(path.join(Global.SF_DIR, authFileName));
+});
+
 /** Runs sf org:delete:scratch or org:delete:sandbox for a single org and resolves when done. */
 const runDeleteCli = (username: string, orgType: 'scratch' | 'sandbox'): Promise<boolean> => {
   const deleteArg = orgType === 'sandbox' ? 'org:delete:sandbox' : 'org:delete:scratch';
@@ -72,6 +82,8 @@ const runDeleteCli = (username: string, orgType: 'scratch' | 'sandbox'): Promise
       cwd: workspaceUtils.getRootWorkspacePath(),
       env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationTokenSource.token);
+
+    channelService.streamCommandOutput(execution);
 
     execution.processExitSubject.subscribe(data => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -96,12 +108,19 @@ class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDelete[] 
         const aliases = await getOrgRuntime().runPromise(getAliasesForUsername(username));
         const success = await runDeleteCli(username, orgType);
         if (success) {
-          await authRemover.removeAuth(username);
+          // sf org delete scratch may already remove the auth file; only call removeAuth if file exists (idempotent)
+          const authFileExistsResult = await getOrgRuntime().runPromise(authFileExists(username));
+          if (authFileExistsResult) {
+            await authRemover.removeAuth(username);
+          }
           await getOrgRuntime().runPromise(removeOrgAliases(username));
           await getOrgRuntime().runPromise(unsetTargetOrgIfMatch(username, aliases));
           await getOrgRuntime().runPromise(unsetTargetDevHubIfMatch(username, aliases));
         } else {
           allSucceeded = false;
+          channelService.appendLine(
+            nls.localize('org_delete_failed_for_org', username, orgType === 'scratch' ? 'scratch org' : 'sandbox')
+          );
         }
       }
       await updateConfigAndStateAggregators();
@@ -109,6 +128,8 @@ class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDelete[] 
     } catch (e) {
       const err = e instanceof Error ? e : new Error(String(e));
       telemetryService.sendException('org_delete_selected', `Error: name = ${err.name} message = ${err.message}`);
+      channelService.appendLine(err.message);
+      channelService.showChannelOutput();
       return false;
     }
   }
@@ -116,6 +137,10 @@ class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDelete[] 
 
 /** Executor for deleting the default org (no picker). */
 class OrgDeleteDefaultExecutor extends SfCommandletExecutor<{}> {
+  constructor() {
+    super(OUTPUT_CHANNEL);
+  }
+
   public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_delete_default_text'))
