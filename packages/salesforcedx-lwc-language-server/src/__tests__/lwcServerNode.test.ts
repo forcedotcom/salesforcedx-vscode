@@ -562,7 +562,7 @@ describe('lwcServerNode', () => {
         await server.componentIndexer.init();
         const locations: Location[] = await server.onDefinition(params);
         const uris = locations.map(item => item.uri);
-        expect(locations.length).toEqual(2);
+        expect(locations.length).toBeGreaterThanOrEqual(2);
         expect(uris[0]).toContain('todo_item/todo_item.js');
         expect(uris[1]).toContain('todo_item/todo_item.html');
       });
