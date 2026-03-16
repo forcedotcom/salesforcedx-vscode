@@ -15,7 +15,6 @@ export { deployManifest } from './deployManifest';
 export { deploySourcePaths } from './deploySourcePath';
 export { sourceDiff, sourceFolderDiff } from './sourceDiff';
 export { retrieveManifest } from './retrieveManifest';
-export { retrieveComponent } from './retrieveMetadata';
 export { retrieveSourcePaths } from './retrieveSourcePath';
 export { openDocumentation } from './openDocumentation';
 export { projectDeployStart } from './projectDeployStart';

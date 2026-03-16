@@ -42,7 +42,7 @@ const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 
 /** DebugLevel.DeveloperName used for replay-debugger trace flags. Created on demand via getOrCreateDebugLevel. */
-export const REPLAY_DEBUGGER_LEVELS = 'ReplayDebuggerLevels';
+const REPLAY_DEBUGGER_LEVELS = 'ReplayDebuggerLevels';
 
 const toToolingCreateTraceFlag = (
   userId: string,
@@ -101,7 +101,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
       const queryIdName = (soql: string, tooling: boolean) =>
         Effect.tryPromise(() =>
-          tooling ? conn.tooling.query<{ Id: string; Name: string }>(soql) : conn.query<{ Id: string; Name: string }>(soql)
+          tooling
+            ? conn.tooling.query<{ Id: string; Name: string }>(soql)
+            : conn.query<{ Id: string; Name: string }>(soql)
         ).pipe(Effect.map(r => r.records));
       // get the names for these IDs
       const idToName = yield* Stream.fromIterable(
@@ -109,17 +111,14 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       ).pipe(
         Stream.flatMap(([prefix, ids]) =>
           Match.value(prefix).pipe(
-            Match.when(
-              '005',
-              () => queryIdName(`SELECT Id, Name FROM User WHERE Id IN (${idListToInClause(ids)})`, false)
+            Match.when('005', () =>
+              queryIdName(`SELECT Id, Name FROM User WHERE Id IN (${idListToInClause(ids)})`, false)
             ),
-            Match.when(
-              '01p',
-              () => queryIdName(`SELECT Id, Name FROM ApexClass WHERE Id IN (${idListToInClause(ids)})`, true)
+            Match.when('01p', () =>
+              queryIdName(`SELECT Id, Name FROM ApexClass WHERE Id IN (${idListToInClause(ids)})`, true)
             ),
-            Match.when(
-              '01q',
-              () => queryIdName(`SELECT Id, Name FROM ApexTrigger WHERE Id IN (${idListToInClause(ids)})`, true)
+            Match.when('01q', () =>
+              queryIdName(`SELECT Id, Name FROM ApexTrigger WHERE Id IN (${idListToInClause(ids)})`, true)
             ),
             Match.orElse(() => Effect.succeed([]))
           )
