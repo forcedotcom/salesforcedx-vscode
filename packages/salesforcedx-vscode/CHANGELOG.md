@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-services
 
-### salesforcedx-vscode-apex-testing
+#### salesforcedx-vscode-apex-testing
 
 - **SFDX: Create Apex Test Suite** and **SFDX: Run Apex Tests** command now list the tests in the org and not those in the workspace. ([PR #6980](https://github.com/forcedotcom/salesforcedx-vscode/pull/6980))
 
