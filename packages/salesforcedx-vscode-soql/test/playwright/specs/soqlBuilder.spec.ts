@@ -33,7 +33,7 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
   });
 
   await test.step('create query in SOQL Builder', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.soql_builder_open_new);
+    await executeCommandWithCommandPalette(page, packageNls.soql_open_new_builder);
     await saveScreenshot(page, 'step1.after-command.png');
 
     // Enter the file name
