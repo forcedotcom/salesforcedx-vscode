@@ -17,7 +17,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { coerceMessageKey, nls } from '../../messages';
-import { SalesforcePackageDirectories } from '../../salesforceProject';
+import { SalesforcePackageDirectories, SalesforceProjectConfig } from '../../salesforceProject';
 import { RetrieveDescriber } from '../retrieveMetadata';
 
 const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
@@ -175,20 +175,62 @@ export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplatePar
 
 export class SelectLwcComponentType implements ParametersGatherer<{ extension: string }> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{ extension: string }>> {
-    const hasTsSupport = vscode.workspace
-      .getConfiguration(SFDX_LWC_EXTENSION_NAME)
-      .get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
-    if (hasTsSupport) {
-      const lwcComponentTypes = ['TypeScript', 'JavaScript'];
-      const lwcComponentType = await this.showMenu(lwcComponentTypes, 'parameter_gatherer_select_lwc_type');
-      return lwcComponentType
-        ? {
-            type: 'CONTINUE',
-            data: { extension: lwcComponentType }
-          }
-        : { type: 'CANCEL' };
+    // Priority 1: Check if project has defaultLWCLanguage set in sfdx-project.json
+    let defaultLWCLanguage: string | undefined;
+    let hasProjectConfig = false;
+    try {
+      defaultLWCLanguage = await SalesforceProjectConfig.getValue<string>('defaultLWCLanguage');
+      hasProjectConfig = true;
+      if (defaultLWCLanguage) {
+        if (defaultLWCLanguage === 'typescript') {
+          return { type: 'CONTINUE', data: { extension: 'TypeScript' } };
+        } else if (defaultLWCLanguage === 'javascript') {
+          return { type: 'CONTINUE', data: { extension: 'JavaScript' } };
+        }
+      }
+    } catch (error) {
+      // Project config not available, continue with fallback logic
+      hasProjectConfig = false;
     }
-    return { type: 'CONTINUE', data: { extension: 'JavaScript' } };
+
+    // Priority 2: Check preview.typeScriptSupport flag
+    const previewTsSupport = vscode.workspace
+      .getConfiguration(SFDX_LWC_EXTENSION_NAME)
+      .get(LWC_PREVIEW_TYPESCRIPT_SUPPORT);
+
+    if (previewTsSupport === true) {
+      // TypeScript support is enabled, use TypeScript and write to sfdx-project.json
+      if (hasProjectConfig && !defaultLWCLanguage) {
+        await this.writeDefaultLWCLanguage('typescript');
+      }
+      return { type: 'CONTINUE', data: { extension: 'TypeScript' } };
+    }
+
+    if (previewTsSupport === false) {
+      // TypeScript support is explicitly disabled, use JavaScript
+      return { type: 'CONTINUE', data: { extension: 'JavaScript' } };
+    }
+
+    // Priority 3: Both settings are not set, prompt user to choose
+    const lwcComponentTypes = ['JavaScript', 'TypeScript'];
+    const lwcComponentType = await this.showMenu(lwcComponentTypes, 'parameter_gatherer_select_lwc_type');
+    return lwcComponentType
+      ? {
+          type: 'CONTINUE',
+          data: { extension: lwcComponentType }
+        }
+      : { type: 'CANCEL' };
+  }
+
+  private async writeDefaultLWCLanguage(language: 'typescript' | 'javascript'): Promise<void> {
+    try {
+      const projectConfig = await SalesforceProjectConfig.getInstance();
+      const contents = projectConfig.getContents();
+      contents.defaultLWCLanguage = language;
+      await projectConfig.write();
+    } catch (error) {
+      // Silently fail if we can't write to project config
+    }
   }
 
   public async showMenu(options: string[], message: string): Promise<string | undefined> {
