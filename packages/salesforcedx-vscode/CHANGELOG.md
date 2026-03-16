@@ -1,35 +1,20 @@
-# 66.1.1 - March 12, 2026
+# 66.2.0 - March 18, 2026
 
 ## Added
 
-#### salesforcedx-vscode-core
+#### salesforcedx-vscode-services
 
-- We added a progress indicator to SFDX:Refresh SObjects command & refactored it to use shared services, improving performance and consistency. ([PR #6925](https://github.com/forcedotcom/salesforcedx-vscode/pull/6925))
+- Setup vscode-languageclient/browser ([PR #6965](https://github.com/forcedotcom/salesforcedx-vscode/pull/6965))
 
-#### salesforcedx-vscode-org
+#### salesforcedx-vscode-soql
 
-- Verification code now appear when authorizing an org or Dev Hub in the Agentforce Vibes IDE. ([PR #6945](https://github.com/forcedotcom/salesforcedx-vscode/pull/6945))
+- SFDX: Create Query in SOQL Builder asks for filename before creating ([PR #6981](https://github.com/forcedotcom/salesforcedx-vscode/pull/6981))
+
+- Setup vscode-languageclient/browser ([PR #6965](https://github.com/forcedotcom/salesforcedx-vscode/pull/6965))
 
 ## Fixed
 
-#### docs
+#### salesforcedx-vscode-soql
 
-- We made some changes under the hood. ([PR #6963](https://github.com/forcedotcom/salesforcedx-vscode/pull/6963))
-
-#### salesforcedx-lwc-language-server
-#### salesforcedx-vscode-apex-testing
-#### salesforcedx-vscode-org-browser
-#### salesforcedx-vscode-services
-
-- Fixed issues with Apex Testing in web-based VS Code environments (such as vscode.dev) and improved file discovery for more reliable test execution across web and desktop. ([PR #6930](https://github.com/forcedotcom/salesforcedx-vscode/pull/6930))
-
-#### salesforcedx-vscode-core
-
-- We fixed a missing label error that was appearing when running **SFDX: Create Lightning Web Component**. ([PR #6948](https://github.com/forcedotcom/salesforcedx-vscode/pull/6948))
-
-#### salesforcedx-vscode-lightning
-#### salesforcedx-vscode-lwc
-#### salesforcedx-lightning-lsp-common
-
-- We fixed a behavior where files written to by language server were opened in the user's IDE ([PR #6946](https://github.com/forcedotcom/salesforcedx-vscode/pull/6946))
+- When executing a SOQL query, show row count at the bottom of the Output Tab instead of at the top ([PR #6975](https://github.com/forcedotcom/salesforcedx-vscode/pull/6975))
 
