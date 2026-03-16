@@ -28,12 +28,8 @@ import { channelService } from './channels';
 import {
   aliasListCommand,
   analyticsGenerateTemplate,
-  apexGenerateClass,
   apexGenerateTrigger,
   configList,
-  deleteSource,
-  deployManifest,
-  deploySourcePaths,
   initSObjectDefinitions,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
@@ -46,68 +42,27 @@ import {
   lightningGenerateInterface,
   openDocumentation,
   packageInstall,
-  projectDeployStart,
-  projectGenerateManifest,
   projectGenerateWithManifest,
-  projectRetrieveStart,
   renameLightningComponent,
-  retrieveComponent,
-  retrieveManifest,
-  retrieveSourcePaths,
   sfProjectGenerate,
-  sourceDiff,
-  sourceFolderDiff,
-  viewAllChanges,
-  viewLocalChanges,
-  viewRemoteChanges,
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './commands';
-import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
-import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { buildAllServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
-import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
+import { salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { reportExtensionPackStatus } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
-
-/** Commands shared with metadata extension */
-const registerSharedCommands = (): vscode.Disposable =>
-  vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.deploy.current.source.file', deploySourcePaths),
-    vscode.commands.registerCommand('sf.deploy.multiple.source.paths', deploySourcePaths),
-    vscode.commands.registerCommand('sf.project.deploy.start', async (isDeployOnSave: boolean) =>
-      projectDeployStart(isDeployOnSave, false)
-    ),
-    vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async (isDeployOnSave: boolean) =>
-      projectDeployStart(isDeployOnSave, true)
-    ),
-    vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart),
-    vscode.commands.registerCommand('sf.project.retrieve.start.ignore.conflicts', () => projectRetrieveStart(true)),
-    vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
-    vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
-    vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
-    vscode.commands.registerCommand('sf.apex.generate.class', apexGenerateClass),
-    vscode.commands.registerCommand('sf.delete.source', deleteSource),
-    vscode.commands.registerCommand('sf.delete.source.current.file', deleteSource),
-    vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
-    vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
-    vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
-    vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
-    vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
-    vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest)
-  );
 
 const registerEffectCommands = () =>
   Effect.gen(function* () {
@@ -120,8 +75,6 @@ const registerEffectCommands = () =>
 const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
-    vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff),
-    vscode.commands.registerCommand('sf.diff', sourceDiff),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
     vscode.commands.registerCommand('sf.visualforce.generate.component', visualforceGenerateComponent),
@@ -149,30 +102,6 @@ const registerInternalDevCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.internal.lightning.generate.interface', internalLightningGenerateInterface)
   );
 
-const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
-  const useLegacyOrgBrowser = salesforceCoreSettings.getUseLegacyOrgBrowser();
-  if (!useLegacyOrgBrowser) {
-    return;
-  }
-  await orgBrowser.init(extensionContext);
-
-  vscode.commands.registerCommand('sf.metadata.view.type.refresh', async node => {
-    await orgBrowser.refreshAndExpand(node);
-  });
-
-  vscode.commands.registerCommand('sf.metadata.view.component.refresh', async node => {
-    await orgBrowser.refreshAndExpand(node);
-  });
-
-  vscode.commands.registerCommand('sf.retrieve.component', async (trigger: RetrieveMetadataTrigger) => {
-    await retrieveComponent(trigger);
-  });
-
-  vscode.commands.registerCommand('sf.retrieve.open.component', async (trigger: RetrieveMetadataTrigger) => {
-    await retrieveComponent(trigger, true);
-  });
-};
-
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   const activationStartTime = TimingUtils.getCurrentTime();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
@@ -198,11 +127,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const internalDev = salesforceCoreSettings.getInternalDev();
   await vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
-  // Set shared commands visibility context (inverse of useMetadataExtensionCommands)
-  // Only hide shared commands if metadata extension is installed AND config is enabled
-  const metadataExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-metadata');
-  const useMetadataCommands = metadataExtension && salesforceCoreSettings.getUseMetadataExtensionCommands();
-  await vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !useMetadataCommands);
   // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();
 
@@ -273,18 +197,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   extensionContext.subscriptions.push(
     registerCommands(extensionContext),
-    registerSharedCommands(),
-    // Register configuration change listener for shared commands visibility
-    vscode.workspace.onDidChangeConfiguration(e => {
-      if (e.affectsConfiguration(`${SFDX_CORE_CONFIGURATION_NAME}.${USE_METADATA_EXTENSION_COMMANDS}`)) {
-        void vscode.commands.executeCommand(
-          'setContext',
-          'sf:show_shared_commands',
-          !metadataExtension || !salesforceCoreSettings.getUseMetadataExtensionCommands()
-        );
-      }
-    }),
-    registerConflictView(),
     CommandEventDispatcher.getInstance()
   );
 
@@ -310,17 +222,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
-  PersistentStorageService.initialize(extensionContext);
-
-  // Register file watcher for push or deploy on save
-  registerPushOrDeployOnSave();
-
   // Initialize metadata hover provider
   const metadataHoverProvider = new MetadataHoverProvider();
 
   await Promise.all([
-    setupOrgBrowser(extensionContext),
-    setupConflictView(extensionContext),
     // Initialize metadata XML support
     MetadataXmlSupport.getInstance().initializeMetadataSupport(extensionContext),
     // Initialize metadata hover provider

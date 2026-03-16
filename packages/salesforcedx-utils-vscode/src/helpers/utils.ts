@@ -197,6 +197,3 @@ const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
  * @param error
  * @returns
  */
-export const fixupError = (error: string | undefined): string =>
-  // Normalize error messages by trimming whitespace and removing redundant prefixes
-  error !== undefined ? error.replace(/\(\d+:\d+\)/, '').trim() : 'Unknown error occurred.';

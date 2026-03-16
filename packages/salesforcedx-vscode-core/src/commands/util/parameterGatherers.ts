@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { LocalComponent } from '../../util/types';
 import {
   CancelResponse,
   ContinueResponse,
@@ -15,10 +14,8 @@ import {
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { coerceMessageKey, nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
-import { RetrieveDescriber } from '../retrieveMetadata';
 
 const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
 
@@ -37,20 +34,6 @@ export type MetadataTypeParameter = {
 type ApexTestTemplateParameter = {
   template: string;
 };
-
-export class FilePathGatherer implements ParametersGatherer<string> {
-  private filePath: string;
-  constructor(uri: URI) {
-    this.filePath = uri.fsPath;
-  }
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    if (workspaceUtils.hasRootWorkspace()) {
-      return { type: 'CONTINUE', data: this.filePath };
-    }
-    return { type: 'CANCEL' };
-  }
-}
 
 export class SelectFileName implements ParametersGatherer<FileNameParameter> {
   private maxFileNameLength: number;
@@ -143,21 +126,6 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
       type: 'CONTINUE',
       data: this.input
     });
-  }
-}
-
-export class RetrieveComponentOutputGatherer implements ParametersGatherer<LocalComponent[]> {
-  private describer: RetrieveDescriber;
-
-  constructor(describer: RetrieveDescriber) {
-    this.describer = describer;
-  }
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<LocalComponent[]>> {
-    return {
-      type: 'CONTINUE',
-      data: await this.describer.gatherOutputLocations()
-    };
   }
 }
 

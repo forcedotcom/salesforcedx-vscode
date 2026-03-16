@@ -102,22 +102,8 @@ export const messages: Partial<Record<MessageKey, string>> = {
   error_org_browser_init: '組織ブラウザが初期化されませんでした。',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
 
-  conflict_detect_error: '競合を検出中にエラーが発生しました。%s',
-  conflict_detect_override_deploy: '競合を上書き',
-  conflict_detect_show_conflicts_deploy: '競合を表示',
-
-  conflict_detect_no_target_org: 'このプロジェクトにはデフォルトのユーザ名がありません',
-  conflict_detect_view_init: '競合検出ビューが初期化されていません',
-  conflict_detect_not_enabled:
-    '組織との差分を表示するために、Detect Conflicts for Deploy and Retrieve 設定を有効化してください',
-
-  conflict_detect_no_conflicts: '競合がありません',
-
-  conflict_detect_diff_command_title: 'ファイルを比較',
-
-  source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
-
-  source_diff_title: '%s//%s ↔ ローカル //%s',
+  source_diff_requires_metadata_extension:
+    'ソース差分には Salesforce Metadata 拡張機能が必要です。拡張機能ビューからインストールしてください。',
 
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
@@ -127,14 +113,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
   parameter_gatherer_file_name_max_length_validation_error_message: 'ファイル名は {0} 文字を超えることはできません',
 
-  conflict_detect_execution_name: '競合検出',
-  conflict_detect_initialization_error: 'メタデータキャッシュの初期化中に予期せぬエラーが発生しました',
-  conflict_detect_conflict_header_timestamp: '競合:\n    %d 個のファイルに競合が見つかりました:\n',
-  conflict_detect_no_differences: '差分がありません',
-  conflict_detect_remote_last_modified_date: '組織の最終更新日: %s \n',
-  conflict_detect_local_last_modified_date: 'ローカルの最終同期日: %s',
-
-  source_diff_folder_title: '%s - ファイル差分',
   lib_retrieve_result_title: '取得されたソース',
   lib_retrieve_message_title: '取得警告',
   component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています',

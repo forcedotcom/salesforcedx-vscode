@@ -81,7 +81,8 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
             output: libraryResult.rawOutput
           };
         } catch (error) {
-          telemetryService.sendException('template_create_library', error.message);
+          const message = error instanceof Error ? error.message : String(error);
+          telemetryService.sendException('template_create_library', message);
           return {
             error
           };
@@ -96,7 +97,8 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
       });
     }
     if (result.error) {
-      channelService.appendLine(result.error.message);
+      const msg = result.error instanceof Error ? result.error.message : String(result.error);
+      channelService.appendLine(msg);
       notificationService.showFailedExecution(commandName, channelService);
     }
   }

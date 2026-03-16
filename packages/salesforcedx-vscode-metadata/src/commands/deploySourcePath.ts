@@ -12,8 +12,7 @@ import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
-const deployUris = (uris: Set<URI>) =>
-  Effect.gen(function* () {
+const deployUris = Effect.fn('deploySourcePath.deployUris')(function* (uris: Set<URI>) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
     const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
@@ -25,15 +24,16 @@ const deployUris = (uris: Set<URI>) =>
 export const deployActiveEditorCommand = () =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
-    return yield* deployUris(new Set([activeEditorUri]));
-  }).pipe(
-    Effect.catchTag('NoActiveEditorError', () =>
-      Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
-        Effect.as(undefined)
+    const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri().pipe(
+      Effect.catchTag('NoActiveEditorError', () =>
+        Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
+          Effect.as(undefined)
+        )
       )
-    )
-  );
+    );
+    if (!activeEditorUri) return;
+    return yield* deployUris(new Set([activeEditorUri]));
+  });
 
 // When a single file is selected and "Deploy Source from Org" is executed,
 // sourceUri is passed, and the uris array contains a single element, the same

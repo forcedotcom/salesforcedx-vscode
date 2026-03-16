@@ -8,18 +8,21 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
+import { handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
+import { ManifestSelectionRequiredError } from './manifestErrors';
 
-/** Retrieve from the default org using a a manifest file*/
-export const retrieveManifestCommand = (manifestUri?: URI) =>
-  Effect.gen(function* () {
+/** Retrieve from the default org using a manifest file */
+export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(function* (manifestUri?: URI) {
     yield* Effect.annotateCurrentSpan({ manifestUri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const resolved =
       manifestUri ??
       (yield* api.services.EditorService.getActiveEditorUri().pipe(
-        Effect.catchTag('NoActiveEditorError', () => Effect.fail(new Error(nls.localize('retrieve_select_manifest'))))
+        Effect.catchTag('NoActiveEditorError', () =>
+        new ManifestSelectionRequiredError({ message: nls.localize('retrieve_select_manifest') })
+      )
       ));
 
     const componentSetService = yield* api.services.ComponentSetService;
@@ -27,5 +30,12 @@ export const retrieveManifestCommand = (manifestUri?: URI) =>
       yield* componentSetService.getComponentSetFromManifest(resolved)
     );
 
-    yield* retrieveComponentSet({ componentSet, ignoreConflicts: false });
+    yield* retrieveComponentSet({ componentSet }).pipe(
+      Effect.catchTag('SourceTrackingConflictError', () =>
+        handleConflictWithRetry({
+          retryOperation: retrieveComponentSet({ componentSet, ignoreConflicts: true }),
+          operationType: 'retrieve'
+        })
+      )
+    );
   });

@@ -131,10 +131,6 @@ export const messages = {
   table_title_pull_errors: 'Pull Errors',
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
-  push_conflicts_error:
-    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
-  pull_conflicts_error:
-    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   custom_output_directory: 'Choose a Custom Directory',
   lightning_generate_lwc_text: 'SFDX: Create Lightning Web Component',
   empty_components: 'No components available',
@@ -477,38 +473,9 @@ export const messages = {
   WorkflowFlowAutomation: 'Workflow Flow Automations',
   XOrgHub: 'X Org Hubs',
 
-  conflict_detect_execution_name: 'Conflict Detection',
-  conflict_detect_error: 'An error was encountered during conflict detection. %s',
-  conflict_detect_initialization_error: 'Unexpected error initializing metadata cache',
-  conflict_detect_conflicts_during_deploy: 'Conflicts were detected while deploying metadata. Choose how to proceed.',
-  conflict_detect_conflicts_during_retrieve:
-    'Conflicts are detected while retrieving metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
-  conflict_detect_override_deploy: 'Override Conflicts and Deploy',
-  conflict_detect_override_retrieve: 'Override Conflicts and Retrieve',
-  conflict_detect_show_conflicts_deploy: 'View Conflicts and Cancel Deploy',
-  conflict_detect_show_conflicts_retrieve: 'View Conflicts and Cancel Retrieve',
-  conflict_detect_conflict_header_timestamp: 'Conflicts:\n    Found %d file(s) in conflict:\n',
-  conflict_detect_command_hint_push:
-    '\nRun the following command to overwrite the conflicts:\n SFDX: Push Source to Default Org and Ignore Conflicts\n',
-  conflict_detect_command_hint_pull:
-    '\nRun the following command to overwrite the conflicts:\n SFDX: Pull Source from Default Org and Ignore Conflicts\n',
-  conflict_detect_no_target_org: 'No target org for this project',
-  conflict_detect_view_init: 'Conflict detection view has not been initialized',
-  conflict_detect_not_enabled: 'Enable the Detect Conflicts for Deploy and Retrieve setting to view org differences',
-  conflict_detect_view_root: '%s : %d file difference(s)',
-  conflict_detect_no_conflicts: 'No conflicts',
-  conflict_detect_no_differences: 'No differences',
-  conflict_detect_diff_title: '%s//%s ↔ local//%s',
-  conflict_detect_diff_command_title: 'Compare Files',
-  conflict_detect_remote_last_modified_date: 'Org last modified date: %s \n',
-  conflict_detect_local_last_modified_date: 'Local last sync date: %s',
-
-  source_diff_text: 'SFDX: Diff File Against Org',
-  source_diff_folder_text: 'SFDX: Diff Folder Against Org',
-  source_diff_components_not_in_org: 'Selected components are not available in the org',
   source_diff_unsupported_type: 'Diff for this metadata type is currently not supported',
-  source_diff_title: '%s//%s ↔ local//%s',
-  source_diff_folder_title: '%s - File Diffs',
+  source_diff_requires_metadata_extension:
+    'Source diff requires the Salesforce Metadata extension. Install it from the Extensions view.',
   lib_retrieve_no_results: 'No components retrieved',
   lib_retrieve_result_title: 'Retrieved Source',
   lib_retrieve_message_title: 'Retrieve Warnings',

@@ -29,9 +29,15 @@ const getActions = (error: unknown): string[] => {
 
 /** Get the base error message, preferring inner cause message */
 const getBaseMessage = (error: unknown): string => {
-  if (!(error instanceof Error)) return String(error);
-  const innerCause = hasCause(error) ? error.cause : undefined;
-  return innerCause instanceof Error ? getBaseMessage(innerCause) : error.message;
+  if (error instanceof Error) {
+    const innerCause = hasCause(error) ? error.cause : undefined;
+    return innerCause instanceof Error ? getBaseMessage(innerCause) : error.message;
+  }
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const msg = Reflect.get(error, 'message');
+    if (typeof msg === 'string') return msg;
+  }
+  return String(error);
 };
 
 /**

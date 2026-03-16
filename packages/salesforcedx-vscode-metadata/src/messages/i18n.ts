@@ -91,6 +91,25 @@ export const messages = {
   overwrite_button: 'Overwrite',
   cancel_button: 'Cancel',
 
+  // Conflict detection
+  conflict_detect_diff_title: '%s//%s ↔ local//%s',
+  conflict_detect_diff_command_title: 'Compare Files',
+  conflict_detect_open_file: 'Open File',
+  conflict_detect_resolve_view: 'Org Differences',
+  conflicts_view_title_text: 'Conflicts',
+  conflict_detect_conflicts_during_deploy:
+    'Conflicts were detected while deploying metadata to your org. What would you like to do?',
+  conflict_detect_conflicts_during_retrieve:
+    'Conflicts are detected while retrieving metadata from your org. What would you like to do?',
+  conflict_detect_override_deploy: 'Override Conflicts and Deploy',
+  conflict_detect_override_retrieve: 'Override Conflicts and Retrieve',
+  conflict_detect_show_conflicts_deploy: 'View Conflicts and Cancel Deploy',
+  conflict_detect_show_conflicts_retrieve: 'View Conflicts and Cancel Retrieve',
+  conflict_detect_no_conflicts: 'No conflicts',
+  conflict_detect_no_differences: 'No differences',
+  conflict_detection_enabled_description:
+    'Specifies whether to enable conflict detection for deploy and retrieve operations. When enabled, the extension will check for conflicts before deploying or retrieving and allow you to view or override them.',
+
   // SObject refresh
   sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',

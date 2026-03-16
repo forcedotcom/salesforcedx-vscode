@@ -6,27 +6,16 @@
  */
 export { aliasListCommand } from './aliasList';
 export { configList } from './configList';
-export { deleteSource } from './deleteSource';
-export { projectGenerateManifest } from './projectGenerateManifest';
 export { packageInstall } from './packageInstall';
 export { initSObjectDefinitions } from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';
-export { deployManifest } from './deployManifest';
-export { deploySourcePaths } from './deploySourcePath';
-export { sourceDiff, sourceFolderDiff } from './sourceDiff';
-export { retrieveManifest } from './retrieveManifest';
-export { retrieveComponent } from './retrieveMetadata';
-export { retrieveSourcePaths } from './retrieveSourcePath';
 export { openDocumentation } from './openDocumentation';
-export { projectDeployStart } from './projectDeployStart';
 export {
   projectGenerateWithManifest,
   ProjectGenerateArgs,
   ProjectTemplate,
   sfProjectGenerate
 } from './projectGenerate';
-export { projectRetrieveStart } from './projectRetrieveStart';
-export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/viewChanges';
 export {
   analyticsGenerateTemplate,
   apexGenerateClass,

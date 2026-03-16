@@ -47,7 +47,6 @@ export {
 } from './helpers/fs';
 export {
   fileExtensionsMatch,
-  getRelativeProjectPath,
   getTestResultsFolder,
   projectPaths,
   TOOLS
@@ -55,7 +54,6 @@ export {
 export {
   extractJson,
   fileUtils,
-  fixupError,
   getJsonCandidate,
   getMessageFromError,
   identifyJsonTypeInString,
@@ -96,7 +94,6 @@ export type { PostconditionChecker } from './commands/postconditionCheckers';
 export { getYYYYMMddHHmmssDateFormat, optionYYYYMMddHHmmss } from './date/format';
 export { Column, createTable, Row } from './output/table';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
-export { SourceTrackingType, SourceTrackingService } from './services/sourceTrackingService';
 export { UserService } from './services/userService';
 export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';

@@ -14,7 +14,6 @@ import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
 
@@ -42,7 +41,6 @@ const refresh = (statusBarItem: vscode.StatusBarItem) =>
     updateDisplay(statusBarItem)(dedupeStatus(status));
   }).pipe(
     Effect.withSpan('statusBarRefresh'),
-    Effect.provide(AllServicesLayer),
     Effect.catchAll(() => Effect.succeed(undefined)) // ignore errors in refresh
   );
 
@@ -130,4 +128,4 @@ export const createSourceTrackingStatusBar = () =>
     );
     yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
     yield* Effect.sleep(Duration.infinity); // persist the ui component until the extensionscope closes
-  }).pipe(Effect.provide(AllServicesLayer));
+  });

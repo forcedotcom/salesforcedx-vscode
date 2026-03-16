@@ -6,68 +6,60 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import { handleConflictWithRetry } from '../../conflict/conflictFlow';
 import { nls } from '../../messages';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
+import { SourceTrackingFailedError } from './retrieveErrors';
 
-// Type guard function to ensure result has expected shape
-const isApplyResult = (
-  value: unknown
-): value is { componentSetFromNonDeletes: ComponentSet; fileResponsesFromDelete: unknown[] } =>
-  value !== null &&
-  typeof value === 'object' &&
-  'componentSetFromNonDeletes' in value &&
-  'fileResponsesFromDelete' in value;
+const retrieveEffect = Effect.fn('retrieveEffect')(function* (ignoreConflicts: boolean) {
+  yield* Effect.annotateCurrentSpan({ ignoreConflicts });
+
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const [sourceTrackingService, channelService] = yield* Effect.all(
+    [api.services.SourceTrackingService, api.services.ChannelService],
+    { concurrency: 'unbounded' }
+  );
+
+  const tracking = yield* sourceTrackingService.getSourceTrackingOrThrow({ ignoreConflicts });
+  yield* Effect.all(
+    [Effect.promise(() => tracking.reReadLocalTrackingCache()), Effect.promise(() => tracking.reReadRemoteTracking())],
+    { concurrency: 'unbounded' }
+  );
+
+  if (!ignoreConflicts) {
+    // check conflicts up here to avoid deletes (since the normal conflict check is in the retrieve service)
+    yield* sourceTrackingService.checkConflicts(tracking);
+  }
+
+  const { componentSetFromNonDeletes: componentSet } = yield* Effect.tryPromise({
+    try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
+    catch: e =>
+      new SourceTrackingFailedError({
+        message: nls.localize('error_source_tracking_components_failed', e instanceof Error ? e.message : String(e)),
+        cause: e
+      })
+  }).pipe(Effect.withSpan('maybeApplyRemoteDeletesToLocal'));
+
+  yield* channelService.appendToChannel(
+    `Found ${componentSet.size} remote change${componentSet.size === 1 ? '' : 's'} to retrieve`
+  );
+
+  if (componentSet.size === 0) {
+    yield* channelService.appendToChannel('No remote changes to retrieve');
+    return;
+  }
+
+  yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
+});
 
 /** Retrieve remote changes from the default org */
 export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
-  Effect.gen(function* () {
-    yield* Effect.annotateCurrentSpan({ ignoreConflicts });
-
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const [sourceTrackingService, channelService] = yield* Effect.all(
-      [api.services.SourceTrackingService, api.services.ChannelService],
-      { concurrency: 'unbounded' }
-    );
-
-    const tracking = yield* sourceTrackingService.getSourceTrackingOrThrow({ ignoreConflicts });
-    yield* Effect.all(
-      [
-        Effect.promise(() => tracking.reReadLocalTrackingCache()),
-        Effect.promise(() => tracking.reReadRemoteTracking())
-      ],
-      { concurrency: 'unbounded' }
-    );
-
-    if (!ignoreConflicts) {
-      // check conflicts up here to avoid deletes (since the normal conflict check is in the retrieve service)
-      yield* sourceTrackingService.checkConflicts(tracking);
-    }
-
-    const result = yield* Effect.tryPromise({
-      try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
-      catch: e =>
-        new Error(nls.localize('error_source_tracking_components_failed', e instanceof Error ? e.message : String(e)))
-    }).pipe(Effect.withSpan('maybeApplyRemoteDeletesToLocal'));
-
-    if (!isApplyResult(result)) {
-      return yield* Effect.fail(
-        new Error(nls.localize('error_source_tracking_components_failed', 'Invalid result from source tracking'))
-      );
-    }
-
-    const componentSet = result.componentSetFromNonDeletes;
-
-    const changeCount = componentSet.size;
-    yield* channelService.appendToChannel(
-      `Found ${changeCount} remote change${changeCount === 1 ? '' : 's'} to retrieve`
-    );
-
-    if (componentSet.size === 0) {
-      yield* channelService.appendToChannel('No remote changes to retrieve');
-      return;
-    }
-
-    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
-  });
+  retrieveEffect(ignoreConflicts).pipe(
+    Effect.catchTag('SourceTrackingConflictError', () =>
+      handleConflictWithRetry({
+        retryOperation: retrieveEffect(true),
+        operationType: 'retrieve'
+      })
+    )
+  );

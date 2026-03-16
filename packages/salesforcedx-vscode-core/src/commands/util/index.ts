@@ -7,14 +7,9 @@
 
 export { CommandletExecutor } from './commandletExecutor';
 export { CompositePostconditionChecker } from './compositePostconditionChecker';
-export { ConflictDetectionMessages } from './conflictDetectionMessages';
-export { createComponentCount } from './createComponentCount';
 export { EmptyPreChecker } from './emptyPreChecker';
-export { formatException } from './formatException';
-export { LibraryPathsGatherer } from './libraryPathsGatherer';
 export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
 export {
-  FilePathGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,

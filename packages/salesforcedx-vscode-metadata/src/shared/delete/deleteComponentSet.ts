@@ -57,12 +57,10 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
   // I'd love to use the value but because status is a <expletive> enum (instead of a string union) you'd have to import all of SDR to get it
   // or export is as part of the services API
   if (result.response?.status.toString() !== 'Succeeded') {
-    return yield* Effect.fail(
-      new DeleteSourceFailedError({
-        cause: new Error(nls.localize('delete_source_operation_failed')),
-        result
-      })
-    );
+    return yield* new DeleteSourceFailedError({
+      cause: new Error(nls.localize('delete_source_operation_failed')),
+      result
+    });
   }
 
   // Delete local files after successful deploy

@@ -8,20 +8,12 @@
 import { SETTING_CLEAR_OUTPUT_TAB, SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import {
-  CONFLICT_DETECTION_ENABLED,
-  ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
-  INTERNAL_DEVELOPMENT_FLAG,
+  ALL_EXCEPTION_CATCHER_ENABLED,
   ENV_NODE_EXTRA_CA_CERTS,
   ENV_SF_LOG_LEVEL,
-  PREFER_DEPLOY_ON_SAVE_ENABLED,
-  PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
-  PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
-  DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL,
+  INTERNAL_DEVELOPMENT_FLAG,
   SHOW_CLI_SUCCESS_INFO_MSG,
-  TELEMETRY_ENABLED,
-  ALL_EXCEPTION_CATCHER_ENABLED,
-  USE_LEGACY_ORG_BROWSER,
-  USE_METADATA_EXTENSION_COMMANDS
+  TELEMETRY_ENABLED
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -59,36 +51,12 @@ export class SalesforceCoreSettings {
     await this.setConfigValue(SHOW_CLI_SUCCESS_INFO_MSG, value);
   }
 
-  public getPushOrDeployOnSaveEnabled(): boolean {
-    return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_ENABLED, false);
-  }
-
   public getEnableAllExceptionCatcher(): boolean {
     return this.getConfigValue<boolean>(ALL_EXCEPTION_CATCHER_ENABLED, false);
   }
 
-  public getPushOrDeployOnSaveIgnoreConflicts(): boolean {
-    return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS, false);
-  }
-
-  public getPreferDeployOnSaveEnabled(): boolean {
-    return this.getConfigValue(PREFER_DEPLOY_ON_SAVE_ENABLED, false);
-  }
-
-  public getDeployOnSaveShowOutputPanel(): boolean {
-    return this.getConfigValue(DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL, false);
-  }
-
-  public getEnableSourceTrackingForDeployAndRetrieve(): boolean {
-    return this.getConfigValue(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, true);
-  }
-
   public getInternalDev(): boolean {
     return this.getConfigValue(INTERNAL_DEVELOPMENT_FLAG, false);
-  }
-
-  public getConflictDetectionEnabled(): boolean {
-    return this.getConfigValue(CONFLICT_DETECTION_ENABLED, false);
   }
 
   public getEnableClearOutputBeforeEachCommand(): boolean {
@@ -101,14 +69,6 @@ export class SalesforceCoreSettings {
 
   public getSfLogLevel(): string {
     return this.getConfigValue(ENV_SF_LOG_LEVEL, process.env.SF_LOG_LEVEL ?? 'fatal');
-  }
-
-  public getUseLegacyOrgBrowser(): boolean {
-    return this.getConfigValue(USE_LEGACY_ORG_BROWSER, false);
-  }
-
-  public getUseMetadataExtensionCommands(): boolean {
-    return this.getConfigValue(USE_METADATA_EXTENSION_COMMANDS, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

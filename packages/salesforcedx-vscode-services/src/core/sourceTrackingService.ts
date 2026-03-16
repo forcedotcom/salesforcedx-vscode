@@ -105,7 +105,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     ) {
       const tracking = yield* getTracking(options);
       if (!tracking) {
-        return yield* Effect.fail(new SourceTrackingNotEnabledError({ message: 'Source tracking is not enabled' }));
+        return yield* new SourceTrackingNotEnabledError({ message: 'Source tracking is not enabled' });
       }
       return tracking;
     });
@@ -137,11 +137,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       );
       const channel = yield* channelService.getChannel;
       channel.show();
-      return yield* Effect.fail(
-        new SourceTrackingConflictError({
-          conflicts: conflictDetails
-        })
-      );
+      return yield* new SourceTrackingConflictError({ conflicts: conflictDetails });
     });
 
     /** safe to pass a result to.  If tracking is not enabled, this will be a no-op */

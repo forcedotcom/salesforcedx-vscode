@@ -68,7 +68,7 @@ const getUserIdOrFail = Effect.gen(function* () {
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- yield* must be in statement position
   return userId
     ? userId
-    : yield* Effect.fail(new UserIdNotFoundError({ message: 'Could not determine user ID for trace flag' }));
+    : yield* new UserIdNotFoundError({ message: 'Could not determine user ID for trace flag' });
 });
 
 export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceFlagService', {
@@ -223,7 +223,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       });
       return createResult.success && createResult.id
         ? createResult.id
-        : yield* Effect.fail(new DebugLevelCreateError({ message: 'Debug level create returned no ID' }));
+        : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
     });
 
     const createTraceFlag = Effect.fn('TraceFlagService.createTraceFlag')(function* (
@@ -347,7 +347,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
             const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
             const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
             if (!traceFlagId) {
-              return yield* Effect.fail(new TraceFlagCreateError({ message: 'Create returned no ID' }));
+              return yield* new TraceFlagCreateError({ message: 'Create returned no ID' });
             }
             return { created: true, traceFlagId };
           }),

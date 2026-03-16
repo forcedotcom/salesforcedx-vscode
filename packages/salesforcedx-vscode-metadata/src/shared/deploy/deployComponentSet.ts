@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
 import { formatDeployOutput } from './formatDeployOutput';
 
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
@@ -17,6 +18,8 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   componentSet: NonEmptyComponentSet;
 }) {
   const { componentSet } = options;
+  clearDeployDiagnostics();
+
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, componentSetService] = yield* Effect.all(
     [api.services.ChannelService, api.services.ComponentSetService],
@@ -38,7 +41,9 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
   const { isSDRFailure } = componentSetService;
-  if (result.getFileResponses().some(isSDRFailure)) {
+  const failedResponses = result.getFileResponses().filter(isSDRFailure);
+  if (failedResponses.length > 0) {
+    yield* applyDeployDiagnostics(failedResponses);
     yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
     // we don't wait for the promise to complete (showErrorMessage being dismissed by the user)
     yield* Effect.sync(() => {

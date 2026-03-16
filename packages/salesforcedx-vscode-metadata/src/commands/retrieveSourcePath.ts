@@ -9,19 +9,11 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 
-const displayErrorMessage = Effect.fn('displayErrorMessage')(function* (msg: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  yield* channelService.appendToChannel(`Retrieve failed: ${msg}`);
-  yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-  yield* Effect.promise(() => vscode.window.showErrorMessage(msg));
-});
-
 /** Retrieve source paths from the default org */
-
 // When a single file is selected and "Retrieve Source from Org" is executed,
 // sourceUri is passed, and the uris array contains a single element, the same
 // path as sourceUri.
@@ -32,8 +24,10 @@ const displayErrorMessage = Effect.fn('displayErrorMessage')(function* (msg: str
 //
 // When editing a file and "Retrieve This Source from Org" is executed,
 // sourceUri is passed, but uris is undefined.
-export const retrieveSourcePathsCommand = (sourceUri: URI | undefined, uris: URI[] | undefined) =>
-  Effect.gen(function* () {
+export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand')(function* (
+  sourceUri: URI | undefined,
+  uris: URI[] | undefined
+) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const resolvedSourceUri =
       sourceUri ??
@@ -54,9 +48,13 @@ export const retrieveSourcePathsCommand = (sourceUri: URI | undefined, uris: URI
     const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
       yield* componentSetService.getComponentSetFromUris(Array.from(resolvedUris))
     );
-    yield* retrieveComponentSet({ componentSet });
-  }).pipe(
-    Effect.catchTag('SourceTrackingConflictError', error =>
-      displayErrorMessage(nls.localize('retrieve_source_conflicts_detected', error.conflicts.join(',')))
-    )
-  );
+
+    yield* retrieveComponentSet({ componentSet }).pipe(
+      Effect.catchTag('SourceTrackingConflictError', () =>
+        handleConflictWithRetry({
+          retryOperation: retrieveComponentSet({ componentSet, ignoreConflicts: true }),
+          operationType: 'retrieve'
+        })
+      )
+    );
+  });
