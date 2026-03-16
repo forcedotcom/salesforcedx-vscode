@@ -36,50 +36,42 @@ const createConfigAggregator = (projectPath: string) =>
     }
   }).pipe(Effect.withSpan('createConfigAggregator (cache miss)', { attributes: { projectPath } }));
 
-// Global cache - created once at module level, not scoped to any consumer
-const globalConfigCache = Effect.runSync(
-  Cache.make({
-    capacity: 5, // Maximum number of cached ConfigAggregators
-    timeToLive: Duration.minutes(30),
-    lookup: createConfigAggregator // Lookup function that creates ConfigAggregator for a given projectPath
-  })
-);
-
-// when the org changes, invalidate the cache
-Effect.runSync(
-  Effect.forkDaemon(
-    getDefaultOrgRef().pipe(
-      Effect.map(ref => ref.changes),
-      Stream.runForEach(() => globalConfigCache.invalidateAll)
-    )
-  )
-);
-
 export class ConfigService extends Effect.Service<ConfigService>()('ConfigService', {
   accessors: true,
   dependencies: [WorkspaceService.Default],
   effect: Effect.gen(function* () {
     const workspaceService = yield* WorkspaceService;
 
+    const configCache = yield* Cache.make({
+      capacity: 5, // Maximum number of cached ConfigAggregators
+      timeToLive: Duration.minutes(30),
+      lookup: createConfigAggregator // Lookup function that creates ConfigAggregator for a given projectPath
+    });
+
+    // when the org changes, invalidate the cache
+    yield* Effect.forkDaemon(
+      getDefaultOrgRef().pipe(
+        Effect.map(ref => ref.changes),
+        Stream.runForEach(() => configCache.invalidateAll)
+      )
+    );
+
     /** Get a ConfigAggregator for the current workspace */
     const getConfigAggregator = Effect.fn('ConfigService.getConfigAggregator')(function* () {
       const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow();
       const projectPath = workspaceDescription.path.replace(fsPrefix, '').replace(':/', '');
-
       yield* Effect.annotateCurrentSpan({ projectPath });
-      const agg = yield* globalConfigCache.get(projectPath);
-
+      const agg = yield* configCache.get(projectPath);
       // stateless when org can change: always reload only on desktop
       const reloadedAgg = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.succeed(agg)
         : Effect.promise(() => agg.reload());
-
       yield* Effect.annotateCurrentSpan({ ...reloadedAgg.getConfig() });
       return reloadedAgg;
     });
 
     const invalidateConfigAggregator = Effect.fn('ConfigService.invalidateConfigAggregator')(function* () {
-      yield* globalConfigCache.invalidateAll;
+      yield* configCache.invalidateAll;
     });
 
     return { getConfigAggregator, invalidateConfigAggregator };

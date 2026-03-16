@@ -51,7 +51,6 @@ import {
   projectGenerateWithManifest,
   projectRetrieveStart,
   renameLightningComponent,
-  retrieveComponent,
   retrieveManifest,
   retrieveSourcePaths,
   sfProjectGenerate,
@@ -63,7 +62,6 @@ import {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './commands';
-import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
@@ -72,7 +70,6 @@ import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } fr
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { buildAllServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
@@ -148,30 +145,6 @@ const registerInternalDevCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.internal.lightning.generate.event', internalLightningGenerateEvent),
     vscode.commands.registerCommand('sf.internal.lightning.generate.interface', internalLightningGenerateInterface)
   );
-
-const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
-  const useLegacyOrgBrowser = salesforceCoreSettings.getUseLegacyOrgBrowser();
-  if (!useLegacyOrgBrowser) {
-    return;
-  }
-  await orgBrowser.init(extensionContext);
-
-  vscode.commands.registerCommand('sf.metadata.view.type.refresh', async node => {
-    await orgBrowser.refreshAndExpand(node);
-  });
-
-  vscode.commands.registerCommand('sf.metadata.view.component.refresh', async node => {
-    await orgBrowser.refreshAndExpand(node);
-  });
-
-  vscode.commands.registerCommand('sf.retrieve.component', async (trigger: RetrieveMetadataTrigger) => {
-    await retrieveComponent(trigger);
-  });
-
-  vscode.commands.registerCommand('sf.retrieve.open.component', async (trigger: RetrieveMetadataTrigger) => {
-    await retrieveComponent(trigger, true);
-  });
-};
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   const activationStartTime = TimingUtils.getCurrentTime();
@@ -319,7 +292,6 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   const metadataHoverProvider = new MetadataHoverProvider();
 
   await Promise.all([
-    setupOrgBrowser(extensionContext),
     setupConflictView(extensionContext),
     // Initialize metadata XML support
     MetadataXmlSupport.getInstance().initializeMetadataSupport(extensionContext),

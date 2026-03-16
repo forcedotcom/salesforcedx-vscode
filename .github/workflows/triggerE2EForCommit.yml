@@ -33,14 +33,7 @@ jobs:
   # core-create-project: migrated to Playwright in coreE2E.yml (createProject.headless.spec.ts)
 
   # core-sobjects-definitions: removed (sObjectsDefinitions.e2e.ts deleted)
-
-  core-org-browser:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'orgBrowser.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # core-org-browser: removed (orgBrowser.e2e.ts deleted; new org browser has Playwright tests)
 
   core-snippets:
     uses: ./.github/workflows/runE2ETest.yml

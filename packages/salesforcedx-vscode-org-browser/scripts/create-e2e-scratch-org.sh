@@ -20,7 +20,7 @@ echo "Cloning dreamhouse-lwc..."
 git clone --depth=1 "$DREAMHOUSE_REPO" "$REPO_DIR"
 
 echo "Creating scratch org (alias=$DREAMHOUSE_ORG_ALIAS)..."
-(cd "$REPO_DIR" && sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30)
+(cd "$REPO_DIR" && sf org create scratch -y 30 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30)
 
 echo "Deploying metadata..."
 (cd "$REPO_DIR" && sf project deploy start)

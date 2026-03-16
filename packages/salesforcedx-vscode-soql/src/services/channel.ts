@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-export const OUTPUT_CHANNEL = vscode.window.createOutputChannel(nls.localize('soql_channel_name'));
+const OUTPUT_CHANNEL = vscode.window.createOutputChannel(nls.localize('soql_channel_name'));
 
 export const channelService = {
   appendLine: (msg: string) => OUTPUT_CHANNEL.appendLine(msg),

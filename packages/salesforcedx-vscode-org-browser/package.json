@@ -50,6 +50,7 @@
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit",
+    "prepare:walkthrough-images": "bash scripts/prepare-walkthrough-images.sh",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -73,7 +74,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
@@ -197,6 +199,7 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -227,6 +230,54 @@
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
   "contributes": {
+    "walkthroughs": [
+      {
+        "id": "sf.org-browser",
+        "title": "%org_browser_walkthrough_title%",
+        "description": "%org_browser_walkthrough_description%",
+        "steps": [
+          {
+            "id": "open-org-browser",
+            "title": "%org_browser_walkthrough_open_title%",
+            "description": "%org_browser_walkthrough_open_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser-retrieve.png",
+              "altText": "%org_browser_walkthrough_open_alt%"
+            },
+            "completionEvents": [
+              "onCommand:workbench.view.extension.metadata"
+            ]
+          },
+          {
+            "id": "custom-object-fields",
+            "title": "%org_browser_walkthrough_custom_object_title%",
+            "description": "%org_browser_walkthrough_custom_object_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser-browse.png",
+              "altText": "%org_browser_walkthrough_custom_object_alt%"
+            }
+          },
+          {
+            "id": "retrieve-type",
+            "title": "%org_browser_walkthrough_retrieve_type_title%",
+            "description": "%org_browser_walkthrough_retrieve_type_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser.png",
+              "altText": "%org_browser_walkthrough_retrieve_type_alt%"
+            }
+          },
+          {
+            "id": "retrieve-single",
+            "title": "%org_browser_walkthrough_retrieve_single_title%",
+            "description": "%org_browser_walkthrough_retrieve_single_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser-file-opened.png",
+              "altText": "%org_browser_walkthrough_retrieve_single_alt%"
+            }
+          }
+        ]
+      }
+    ],
     "viewsWelcome": [
       {
         "view": "sfdxOrgBrowser",
@@ -247,11 +298,16 @@
         {
           "id": "sfdxOrgBrowser",
           "name": "%orgBrowser.view.name%",
-          "when": "!config.salesforcedx-vscode-core.useLegacyOrgBrowser"
+          "when": "sf:has_target_org"
         }
       ]
     },
     "commands": [
+      {
+        "command": "sf.org-browser.walkthrough.open",
+        "title": "%org_browser_walkthrough_open_command%",
+        "category": "Org Browser"
+      },
       {
         "command": "sfdxOrgBrowser.refreshType",
         "title": "%orgBrowser.command.refreshType%",
@@ -287,6 +343,12 @@
           "command": "sfdxOrgBrowser.collapseAll",
           "when": "view == sfdxOrgBrowser",
           "group": "navigation@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "sf.org-browser.walkthrough.open",
+          "when": "sf:has_target_org"
         }
       ],
       "view/item/context": [

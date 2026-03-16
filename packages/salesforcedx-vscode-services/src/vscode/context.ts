@@ -22,18 +22,17 @@ const updateContext = (orgInfo: { orgId?: string; username?: string; tracksSourc
       )
     ],
     { concurrency: 'unbounded' }
-  ).pipe(Effect.catchAll(() => Effect.void));
+  );
 
 /** Update VS Code context variables when the default org changes */
-export const watchDefaultOrgContext = () =>
-  Effect.gen(function* () {
-    const ref = yield* getDefaultOrgRef();
-    const channelService = yield* ChannelService;
-    return yield* Stream.concat(
-      Stream.fromEffect(SubscriptionRef.get(ref)), // current value
-      ref.changes // future changes
-    ).pipe(
-      Stream.tap(orgInfo => channelService.appendToChannel(`watchDefaultOrgContext: ${JSON.stringify(orgInfo)}`)),
-      Stream.runForEach(updateContext)
-    );
-  });
+export const watchDefaultOrgContext = Effect.fn('watchDefaultOrgContext')(function* () {
+  const ref = yield* getDefaultOrgRef();
+  const channelService = yield* ChannelService;
+  return yield* Stream.concat(
+    Stream.fromEffect(SubscriptionRef.get(ref)), // current value
+    ref.changes // future changes
+  ).pipe(
+    Stream.tap(orgInfo => channelService.appendToChannel(`watchDefaultOrgContext: ${JSON.stringify(orgInfo)}`)),
+    Stream.runForEach(updateContext)
+  );
+});

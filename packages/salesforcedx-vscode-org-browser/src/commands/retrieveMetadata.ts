@@ -16,48 +16,40 @@ import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
-export const retrieveEffect = (
+export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(function* (
   node: OrgBrowserTreeItem,
   treeProvider: MetadataTypeTreeProvider
-  // void since we catch all the errors and show the vscode error message
-) =>
-  Effect.gen(function* () {
-    const members = yield* getRetrieveMembers(node, treeProvider);
-    if (members.length === 0) {
-      return;
-    }
+) {
+  const members = yield* getRetrieveMembers(node, treeProvider);
+  if (members.length === 0) {
+    return Effect.void;
+  }
 
-    yield* Effect.annotateCurrentSpan({ memberCount: members.length });
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* Effect.annotateCurrentSpan({ memberCount: members.length });
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-    const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+  const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
 
-    if (!(yield* confirmOverwrite(projectComponentSet, members))) {
-      return Brand.nominal<SuccessfulCancelResult>()('User canceled');
-    }
+  if (!(yield* confirmOverwrite(projectComponentSet, members))) {
+    return Brand.nominal<SuccessfulCancelResult>()('User canceled');
+  }
 
-    // Run the retrieve operation
-    const result = yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1);
+  // Run the retrieve operation
+  const result = yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1);
 
-    if (typeof result !== 'string')
-      // Handle post-retrieve UI updates
-      yield* Effect.promise(async () => {
-        if (node.kind === 'component' || node.kind === 'customObject') {
-          node.iconPath = getIconPath(true);
-          treeProvider.fireChangeEvent(node);
-        } else {
-          await treeProvider.refreshType(node);
-        }
-      });
+  if (typeof result !== 'string')
+    // Handle post-retrieve UI updates
+    yield* Effect.promise(async () => {
+      if (node.kind === 'component' || node.kind === 'customObject') {
+        node.iconPath = getIconPath(true);
+        treeProvider.fireChangeEvent(node);
+      } else {
+        await treeProvider.refreshType(node);
+      }
+    });
 
-    return result;
-  }).pipe(
-    Effect.catchAll(error =>
-      Effect.sync(() => {
-        void vscode.window.showErrorMessage(nls.localize('retrieve_failed', String(error)));
-      })
-    )
-  );
+  return result;
+});
 
 const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataTypeTreeProvider) =>
   Match.value(node).pipe(

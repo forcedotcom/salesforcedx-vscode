@@ -5,5 +5,20 @@
   "orgBrowser.view.name": "Salesforce Org Browser",
   "orgBrowser.command.refreshType": "Refresh Type",
   "orgBrowser.command.retrieveMetadata": "Retrieve Metadata",
-  "orgBrowser.command.collapseAll": "Collapse All"
+  "orgBrowser.command.collapseAll": "Collapse All",
+  "org_browser_walkthrough_open_command": "Open Org Browser Walkthrough",
+  "org_browser_walkthrough_title": "Org Browser",
+  "org_browser_walkthrough_description": "Browse and retrieve your org's metadata types and components using the Org Browser.",
+  "org_browser_walkthrough_open_title": "Your Org's Metadata",
+  "org_browser_walkthrough_open_description": "The Org Browser shows all metadata **in your org** — not what's in your local project. Expand any type to see its components.\n\n**○ Open circle** — exists in your org, not yet downloaded locally.\n\n**✓ Check circle** — exists in your org and is present in your local project.\n\n[Open Org Browser](command:workbench.view.extension.metadata)\n\n*[Org Browser Documentation](https://developer.salesforce.com/docs/platform/sfvscode-extensions/guide/org-browser.html)*",
+  "org_browser_walkthrough_open_alt": "Org Browser sidebar showing list of metadata types with ApexClass expanded",
+  "org_browser_walkthrough_custom_object_title": "Explore Custom Object Fields",
+  "org_browser_walkthrough_custom_object_description": "Expand any **Custom Object** to see its fields with type details — field type, length, scale, precision, and relationship names are shown inline.\n\nThis lets you understand your data model directly in VS Code without opening Setup.",
+  "org_browser_walkthrough_custom_object_alt": "Broker__c custom object expanded showing fields with type details",
+  "org_browser_walkthrough_retrieve_type_title": "Retrieve All Components of a Type",
+  "org_browser_walkthrough_retrieve_type_description": "Hover over any **metadata type row** to reveal the retrieve icon. Click it to download every component of that type to your local project in one step.\n\nUse the **refresh icon** on the same row to re-fetch the component list from your org.",
+  "org_browser_walkthrough_retrieve_type_alt": "ApexClass type row with Retrieve Metadata tooltip visible",
+  "org_browser_walkthrough_retrieve_single_title": "Retrieve a Single Component",
+  "org_browser_walkthrough_retrieve_single_description": "Hover over any **individual component** to reveal its retrieve icon. Click it to download just that file.\n\nThe retrieved file opens automatically in the editor. A checkmark indicates the component now exists in your local project.",
+  "org_browser_walkthrough_retrieve_single_alt": "FileUtilities.cls open in editor with checkmark on component in Org Browser"
 }

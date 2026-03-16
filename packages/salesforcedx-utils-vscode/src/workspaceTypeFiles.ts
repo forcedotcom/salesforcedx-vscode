@@ -30,7 +30,7 @@ type WorkspaceType =
   | 'CORE_PARTIAL'
   | 'UNKNOWN';
 
-export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX_PROJECT);
+const getSfdxProjectFile = (root: string): string => path.join(root, SFDX_PROJECT);
 
 /**
  * Checks if a file exists using VS Code workspace API

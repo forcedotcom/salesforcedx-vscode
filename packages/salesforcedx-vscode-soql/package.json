@@ -114,6 +114,7 @@
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
+        "package.nls*.json",
         "../soql-common/out/**",
         "../salesforcedx-utils-vscode/out/**",
         "../salesforcedx-vscode-i18n/out/**",

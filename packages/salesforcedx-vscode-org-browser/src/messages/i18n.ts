@@ -7,7 +7,6 @@
 
 export const messages = {
   retrieve_canceled: 'Retrieve canceled',
-  retrieve_failed: 'Retrieve failed: %s',
   confirm_overwrite: 'Overwrite local files for %s %s?',
   yes_button: 'Yes',
   no_button: 'No'
