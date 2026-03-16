@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.1.1",
+  "version": "66.2.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -74,7 +74,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
@@ -275,6 +276,10 @@
           "when": "false"
         },
         {
+          "command": "sf.apex.test.refresh",
+          "when": "false"
+        },
+        {
           "command": "sf.apex.generate.unit.test.class",
           "when": "sf:project_opened"
         }
@@ -316,6 +321,10 @@
       {
         "command": "sf.apex.test.openOrgOnlyTest",
         "title": "%apex_test_open_org_class_command_title%"
+      },
+      {
+        "command": "sf.apex.test.refresh",
+        "title": "%apex_test_refresh_title%"
       },
       {
         "command": "sf.apex.generate.unit.test.class",

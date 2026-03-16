@@ -22,6 +22,7 @@ import { executeAnonymousCommand } from './commands/executeAnonymous';
 import { logGetCommand } from './commands/logGet';
 import { openLogsFolderCommand } from './commands/openLogsFolder';
 import {
+  changeDebugLevelCommand,
   createLogLevelCommand,
   createTraceFlagForCurrentUserCommand,
   createTraceFlagForUserCommand,
@@ -81,6 +82,9 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       registerCommand('sf.apex.traceFlags.createLogLevel', () => createLogLevelCommand()),
       registerCommand('sf.apex.traceFlags.deleteForId', (traceFlagId: string) =>
         deleteTraceFlagForIdCommand(traceFlagId)
+      ),
+      registerCommand('sf.apex.traceFlags.changeDebugLevel', (traceFlagId: string) =>
+        changeDebugLevelCommand(traceFlagId)
       ),
       registerCommand('sf.apex.traceFlags.deleteDebugLevelForId', (debugLevelId: string) =>
         deleteDebugLevelForIdCommand(debugLevelId)
