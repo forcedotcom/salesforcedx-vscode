@@ -193,14 +193,6 @@ const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
 };
 
 /**
- * Returns elements that are in setA but not in setB.
- * @param setA
- * @param setB
- * @returns
- */
-export const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => new Set([...setA].filter(x => !setB.has(x)));
-
-/**
  * Used to remove column/line from org Apex compilations errors.
  * @param error
  * @returns

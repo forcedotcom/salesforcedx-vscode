@@ -53,7 +53,6 @@ export {
   TOOLS
 } from './helpers/paths';
 export {
-  difference,
   extractJson,
   fileUtils,
   fixupError,
