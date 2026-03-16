@@ -466,5 +466,8 @@
         ]
       }
     ]
-  }
+  },
+  "activationEvents": [
+    "onLanguage:soql"
+  ]
 }
