@@ -4,6 +4,10 @@
 
 #### salesforcedx-vscode-services
 
+#### salesforcedx-apex-log
+
+- Modify the LogLevel on a TraceFlag for yourself or another user ([PR #6987](https://github.com/forcedotcom/salesforcedx-vscode/pull/6987))
+  
 #### salesforcedx-vscode-soql
 
 - We updated the **SFDX: Create Query in SOQL Builder** command to ask for the filename before creating instead of defaulting to the unsaved file **untitled.soql**, which users have to save manually. This makes the command consistent with all the other create commands. ([PR #6981](https://github.com/forcedotcom/salesforcedx-vscode/pull/6981))
