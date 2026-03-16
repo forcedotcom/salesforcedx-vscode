@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { BUILDER_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
+import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 import { nls } from '../messages';
 
 const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function* () {
@@ -86,23 +86,35 @@ const confirmOverwrite = Effect.fn('soqlFileCreate.confirmOverwrite')(function* 
   return choice === nls.localize('soql_overwrite_button');
 });
 
-const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(function* (fileName: string, outputDir: URI) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fileUri = Utils.joinPath(outputDir, `${fileName}.soql`);
+const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(
+  function* (fileName: string, outputDir: URI, viewType: string) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const fileUri = Utils.joinPath(outputDir, `${fileName}.soql`);
 
-  const confirmed = yield* confirmOverwrite(fileUri);
-  if (!confirmed) return;
+    const confirmed = yield* confirmOverwrite(fileUri);
+    if (!confirmed) return;
 
-  yield* api.services.FsService.safeWriteFile(fileUri, '');
-  yield* Effect.promise(() => vscode.commands.executeCommand(OPEN_WITH_COMMAND, fileUri, BUILDER_VIEW_TYPE));
-});
+    yield* api.services.FsService.safeWriteFile(fileUri, '');
+    yield* Effect.promise(() => vscode.commands.executeCommand(OPEN_WITH_COMMAND, fileUri, viewType));
+  }
+);
 
-export const soqlOpenNew = Effect.fn('soql_builder_open_new')(function* () {
+export const soqlOpenNewBuilder = Effect.fn('soql_open_new_builder')(function* () {
   const fileName = yield* promptForFileName();
   if (!fileName) return;
 
   const outputDir = yield* promptForOutputDir();
   if (!outputDir) return;
 
-  yield* createAndOpenFile(fileName, outputDir);
+  yield* createAndOpenFile(fileName, outputDir, BUILDER_VIEW_TYPE);
+});
+
+export const soqlOpenNewTextEditor = Effect.fn('soql_open_new_text_editor')(function* () {
+  const fileName = yield* promptForFileName();
+  if (!fileName) return;
+
+  const outputDir = yield* promptForOutputDir();
+  if (!outputDir) return;
+
+  yield* createAndOpenFile(fileName, outputDir, EDITOR_VIEW_TYPE);
 });

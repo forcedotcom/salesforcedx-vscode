@@ -11,7 +11,7 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { dataQuery } from './commands/dataQuery';
 import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
-import { soqlOpenNew } from './commands/soqlFileCreate';
+import { soqlOpenNewBuilder, soqlOpenNewTextEditor } from './commands/soqlFileCreate';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
@@ -45,7 +45,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* Effect.all(
     [
-      registerCommand('soql.builder.open.new', soqlOpenNew),
+      registerCommand('soql.open.new.builder', soqlOpenNewBuilder),
+      registerCommand('soql.open.new.text.editor', soqlOpenNewTextEditor),
       registerCommand('soql.builder.toggle', soqlBuilderToggle),
       registerCommand('soql.walkthrough.open', () =>
         Effect.promise(() =>
