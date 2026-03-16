@@ -80,11 +80,11 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
           return {
             output: libraryResult.rawOutput
           };
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          telemetryService.sendException('template_create_library', message);
+        } catch (error: unknown) {
+          const err = error instanceof Error ? error : new Error(String(error));
+          telemetryService.sendException('template_create_library', err.message);
           return {
-            error
+            error: err
           };
         }
       }
