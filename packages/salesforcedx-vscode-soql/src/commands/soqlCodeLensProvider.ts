@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CancellationToken, CodeLens, ExtensionContext, languages, Range, TextDocument } from 'vscode';
+import { CancellationToken, CodeLens, EventEmitter, ExtensionContext, languages, Range, TextDocument } from 'vscode';
 import { nls } from '../messages';
+import { isDefaultOrgSet, onDefaultOrgChange } from '../services/org';
 
 const SOQL_DOCUMENT_SELECTOR = { language: 'soql' };
 
-const provideRunQueryCodeLens = (document: TextDocument, _token: CancellationToken): CodeLens[] => {
-  if (document.getText().trim().length === 0) {
+const provideRunQueryCodeLens = async (document: TextDocument, _token: CancellationToken): Promise<CodeLens[]> => {
+  if (document.getText().trim().length === 0 || !(await isDefaultOrgSet())) {
     return [];
   }
   return [
@@ -24,9 +25,14 @@ const provideRunQueryCodeLens = (document: TextDocument, _token: CancellationTok
 };
 
 export const registerSoqlCodeLensProvider = (context: ExtensionContext): void => {
+  const changeEmitter = new EventEmitter<void>();
+
   context.subscriptions.push(
     languages.registerCodeLensProvider(SOQL_DOCUMENT_SELECTOR, {
+      onDidChangeCodeLenses: changeEmitter.event,
       provideCodeLenses: provideRunQueryCodeLens
-    })
+    }),
+    onDefaultOrgChange(() => changeEmitter.fire()),
+    changeEmitter
   );
 };
