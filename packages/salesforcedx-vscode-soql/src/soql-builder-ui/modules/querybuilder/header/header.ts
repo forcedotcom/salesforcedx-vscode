@@ -9,6 +9,7 @@
 import { LightningElement, api } from 'lwc';
 export default class Header extends LightningElement {
   @api public isRunning = false;
+  @api public hasNoDefaultOrg = false;
 
   public handleRunQuery(e: Event): void {
     e.preventDefault();

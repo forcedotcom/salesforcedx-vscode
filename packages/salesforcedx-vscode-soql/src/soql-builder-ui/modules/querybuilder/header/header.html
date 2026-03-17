@@ -9,11 +9,13 @@
 <template>
   <header>
     <div class="container">
-      <template if:false={isRunning}>
-        <button class="run-button" onclick={handleRunQuery}>Run Query</button>
-      </template>
-      <template if:true={isRunning}>
-        <button class="btn--disabled">Running...</button>
+      <template if:false={hasNoDefaultOrg}>
+        <template if:false={isRunning}>
+          <button class="run-button" onclick={handleRunQuery}>Run Query</button>
+        </template>
+        <template if:true={isRunning}>
+          <button class="btn--disabled">Running...</button>
+        </template>
       </template>
     </div>
   </header>
