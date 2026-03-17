@@ -2,6 +2,8 @@
 
 This extension enables Visual Studio Code to use Salesforce CLI to interact with your orgs.
 
+**TypeScript Support:** Create Lightning Web Components using TypeScript with full IntelliSense and type checking. Configure `defaultLWCLanguage` in your `sfdx-project.json` to set your preferred language. See the [TypeScript LWC Support Guide](../../docs/TYPESCRIPT_LWC_SUPPORT.md) for details.
+
 **DO NOT INSTALL THIS EXTENSION DIRECTLY. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
 ## Documentation
