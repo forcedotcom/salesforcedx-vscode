@@ -17,7 +17,17 @@
     </header>
     <article class="querybuilder-body">
       <section class="querybuilder-form">
-        <template if:false={shouldBlockQueryBuilder}>
+        <template if:true={showNoDefaultOrgNotification}>
+          <div class="info-notification">
+            <div class="info-notification__message">
+              <!-- TODO: i18n -->
+              No default org found. Set a default org to use SOQL Builder. Run
+              "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org"
+              to set one.
+            </div>
+          </div>
+        </template>
+        <template if:true={showQueryBuilderForm}>
           <querybuilder-from
             onfrom__object_selected={handleObjectChange}
             sobjects={sObjects}
@@ -63,7 +73,7 @@
             class={theme}
           ></querybuilder-limit>
         </template>
-        <template if:true={shouldBlockQueryBuilder}>
+        <template if:true={showBlockedQueryBuilder}>
           <div class="warning-notification">
             <div class="warning-notification__message">
               <template if:true={showUnsupportedNotification}>

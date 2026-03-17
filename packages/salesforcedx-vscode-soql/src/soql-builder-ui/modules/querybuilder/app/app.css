@@ -58,3 +58,16 @@ main {
 .warning-notification__dismiss {
   text-align: right;
 }
+
+.info-notification {
+  max-width: var(--soql-media-max-width);
+}
+
+.info-notification__message {
+  background-color: var(--soql-purple);
+  color: var(--soql-white);
+  font-size: small;
+  padding: 1rem;
+  border-radius: 3px;
+  margin-bottom: 1rem;
+}

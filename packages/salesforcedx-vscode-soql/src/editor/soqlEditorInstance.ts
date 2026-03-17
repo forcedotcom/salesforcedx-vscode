@@ -74,7 +74,8 @@ type MessageType =
   | 'text_soql_changed'
   | 'run_query'
   | 'connection_changed'
-  | 'run_query_done';
+  | 'run_query_done'
+  | 'no_default_org';
 
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
@@ -115,6 +116,8 @@ export class SOQLEditorInstance {
     this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(messageFiber)) });
 
     const { onConnectionChanged } = this;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
     const connectionFiber = getSoqlRuntime().runFork(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -123,7 +126,9 @@ export class SOQLEditorInstance {
           Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${org.orgId ?? '<NOT SET>'}`))),
           Stream.map(org => org.orgId),
           Stream.changes,
-          Stream.runForEach(() => onConnectionChanged())
+          Stream.runForEach(orgId =>
+            orgId ? onConnectionChanged() : self.sendMessageToUi('no_default_org')
+          )
         );
       })
     );
@@ -176,8 +181,16 @@ export class SOQLEditorInstance {
 
   private handleMessageEffect = (event: SoqlEditorEvent) => {
     switch (event.type) {
-      case 'ui_activated':
-        return this.updateWebview(this.document).pipe(Effect.withSpan('SOQLEditor.ui_activated'));
+      case 'ui_activated': {
+        const self = this;
+        return Effect.gen(function* () {
+          const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
+          if (!isOrgSet) {
+            yield* self.sendMessageToUi('no_default_org');
+          }
+          yield* self.updateWebview(self.document);
+        }).pipe(Effect.withSpan('SOQLEditor.ui_activated'));
+      }
 
       case 'ui_soql_changed': {
         const soql = event.payload;
