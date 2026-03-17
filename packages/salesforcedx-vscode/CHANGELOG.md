@@ -10,6 +10,10 @@
 
 - You the **SFDX: Change Trace Flag Debug Level** command to modify the LogLevel on `TraceFlag` for yourself or another user ([PR #6987](https://github.com/forcedotcom/salesforcedx-vscode/pull/6987))
 
+#### salesforcedx-vscode-org-browser
+
+- The new Org Browser is now the only org browser. The legacy org browser has been removed from the core extension. The sidebar item now only appears when an org is connected. ([PR #6988](https://github.com/forcedotcom/salesforcedx-vscode/pull/6988))
+
 #### salesforcedx-vscode-services
 
 #### salesforcedx-vscode-soql
