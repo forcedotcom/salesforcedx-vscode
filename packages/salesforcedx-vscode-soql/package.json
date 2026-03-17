@@ -357,6 +357,10 @@
       {
         "command": "sf.data.query.explain.selection",
         "title": "%query_plan_selection_text%"
+      },
+      {
+        "command": "sf.data.query.explain.document",
+        "title": "%query_plan_document_text%"
       }
     ],
     "menus": {
@@ -388,6 +392,10 @@
         {
           "command": "sf.data.query.explain.selection",
           "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.data.query.explain.document",
+          "when": "resourceExtname == .soql && sf:has_target_org"
         }
       ],
       "editor/title": [
@@ -466,5 +474,8 @@
         ]
       }
     ]
-  }
+  },
+  "activationEvents": [
+    "onLanguage:soql"
+  ]
 }

@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { channelService } from '../services/channel';
 import { getConnection } from '../services/org';
-import { formatErrorMessage, GetQueryAndApiInputs, QueryAndApiInputs } from './queryUtils';
+import { formatErrorMessage, GetDocumentQueryAndApiInputs, GetQueryAndApiInputs, QueryAndApiInputs } from './queryUtils';
 
 class QueryPlanExecutor {
   public async execute(response: ContinueResponse<QueryAndApiInputs>): Promise<void> {
@@ -45,5 +45,14 @@ class QueryPlanExecutor {
 
 export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
   const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new GetQueryAndApiInputs(), new QueryPlanExecutor());
+  yield* Effect.promise(() => commandlet.run());
+});
+
+export const queryPlanDocument = Effect.fn('sf.data.query.explain.document')(function* () {
+  const commandlet = new SfCommandlet(
+    sfProjectPreconditionChecker,
+    new GetDocumentQueryAndApiInputs(),
+    new QueryPlanExecutor()
+  );
   yield* Effect.promise(() => commandlet.run());
 });

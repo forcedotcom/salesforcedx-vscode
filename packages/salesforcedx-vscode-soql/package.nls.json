@@ -25,5 +25,6 @@
   "soql_walkthrough_step5_alt": "Saving and exporting SOQL query results",
   "data_query_input_text": "SFDX: Execute SOQL Query...",
   "data_query_selection_text": "SFDX: Execute SOQL Query with Currently Selected Text",
-  "query_plan_selection_text": "SFDX: Get SOQL Query Plan with Currently Selected Text"
+  "query_plan_selection_text": "SFDX: Get SOQL Query Plan with Currently Selected Text",
+  "query_plan_document_text": "SFDX: Get SOQL Query Plan with Current File"
 }

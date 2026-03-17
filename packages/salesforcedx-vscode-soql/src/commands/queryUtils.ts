@@ -63,6 +63,35 @@ export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInput
   }
 }
 
+export class GetDocumentQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return { type: 'CANCEL' };
+    }
+
+    const query = editor.document.getText().replaceAll(/(\r\n|\n)/g, ' ').trim();
+    if (!query) {
+      return { type: 'CANCEL' };
+    }
+
+    const restApi = {
+      api: 'REST' as const,
+      label: nls.localize('REST_API'),
+      description: nls.localize('REST_API_description')
+    };
+
+    const toolingApi = {
+      api: 'TOOLING' as const,
+      label: nls.localize('tooling_API'),
+      description: nls.localize('tooling_API_description')
+    };
+
+    const selection = await vscode.window.showQuickPick([restApi, toolingApi]);
+    return selection ? { type: 'CONTINUE', data: { query, api: selection.api } } : { type: 'CANCEL' };
+  }
+}
+
 /** Formats error messages for better user experience */
 export const formatErrorMessage = (error: unknown): string => {
   let errorString: string;

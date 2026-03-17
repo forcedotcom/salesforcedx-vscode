@@ -34,6 +34,8 @@ export const messages = {
     "ERROR: We can't save the file to the specified directory. Make sure you have write permissions for the directory.",
   data_query_input_text: 'SFDX: Execute SOQL Query...',
   data_query_selection_text: 'SFDX: Execute SOQL Query with Currently Selected Text',
+  soql_query_plan_codelens: 'Get Query Plan',
+  query_plan_document_text: 'SFDX: Get SOQL Query Plan with Current File',
   data_query_success_message: 'Query executed successfully. Found %d records. Results saved to: %s',
   data_query_error_message: 'Error executing query: %s',
   data_query_error_org_expired:
