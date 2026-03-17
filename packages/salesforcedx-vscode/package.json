@@ -44,6 +44,7 @@
     "Extension Packs"
   ],
   "extensionPack": [
+    "salesforce.salesforcedx-vscode-agents",
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-apex-testing",
     "salesforce.salesforcedx-vscode-apex-oas",
