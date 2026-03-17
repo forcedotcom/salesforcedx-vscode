@@ -16,7 +16,7 @@
 
 - We added a new **SFDX: Create SOQL Query** command that allows users to create a SOQL query, and open it directly in the text editor view. ([PR #6996](https://github.com/forcedotcom/salesforcedx-vscode/pull/6996))
 
-- We updated the **SFDX: Create Query in SOQL Builder** command to prompt for a filename before creating the file, instead of defaulting to an unsaved `untitled.soql` file. This aligns the experience with other create commands and removes the need to save manually.([PR #6981](https://github.com/forcedotcom/salesforcedx-vscode/pull/6981))
+- We updated the **SFDX: Create Query in SOQL Builder** command to prompt for a filename before creating the file, instead of defaulting to an unsaved `untitled.soql` file. This aligns the experience with other create commands and removes the need to save manually. ([PR #6981](https://github.com/forcedotcom/salesforcedx-vscode/pull/6981))
 
 - We made some changes under the hood. ([PR #6965](https://github.com/forcedotcom/salesforcedx-vscode/pull/6965))
 
