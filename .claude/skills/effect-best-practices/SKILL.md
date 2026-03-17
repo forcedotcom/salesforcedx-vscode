@@ -1,7 +1,7 @@
 ---
 name: effect-best-practices
 description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Effect-TS Best Practices
@@ -31,7 +31,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Error Specificity | `UserNotFoundError`, `SessionExpiredError`               | Generic `NotFoundError`, `BadRequestError`                       |
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
 | IDs               | `Schema.UUID.pipe(Schema.brand("@App/EntityId"))`        | Plain `string` for entity IDs                                    |
-| Functions         | `Effect.fn("Service.method")`                            | Anonymous generators                                             |
+| Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; `.gen` for business logic                   |
 | Params vs deps    | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params                             |
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging           | `Effect.log` with structured data                        | `console.log`                                                    |
@@ -266,9 +266,11 @@ export type CreateUserInput = Schema.Schema.Type<typeof CreateUserInput>;
 
 See `references/schema-patterns.md` for transforms and advanced patterns.
 
-## Function Pattern with Effect.fn
+## Function Pattern: Prefer Effect.fn over Effect.gen
 
-**Always use `Effect.fn`** for service methods. This provides automatic tracing with proper span names. Span name is required; enforced by `local/require-effect-fn-span-name`.
+**Prefer `Effect.fn`** for effectful code. Provides automatic tracing with proper span names. Span name required; enforced by `local/require-effect-fn-span-name`.
+
+**Use `Effect.gen` only when** you need a shared effect with common `.pipe` attached so multiple consumers don't each pipe the same things — e.g. provided dependencies, common error handlers, retries. (Less common with Runtimes.) Service definition bodies are a valid use (shared wiring).
 
 ```typescript
 // CORRECT - Effect.fn with descriptive name

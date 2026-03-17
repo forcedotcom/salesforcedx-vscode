@@ -28,7 +28,7 @@ import { sourceDiffCommand } from './commands/sourceDiff';
 import { CORE_CONFIG_SECTION, EXTENSION_NAME, DEPLOY_ON_SAVE_ENABLED } from './constants';
 import { getShowSharedCommands, watchUseMetadataExtensionCommands } from './services/configWatcher';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
-import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { AllServicesLayer, buildAllServicesLayer, getMetadataRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
@@ -52,8 +52,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     vscode.commands.executeCommand('setContext', `${EXTENSION_NAME}.showSharedCommands`, showSharedCommands)
   );
 
-  // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getMetadataRuntime());
 
   yield* Effect.all(
     [

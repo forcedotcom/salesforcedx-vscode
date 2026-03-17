@@ -28,7 +28,6 @@ import {
   apexTestSuiteRun
 } from './commands';
 import {
-  AllServicesLayer,
   buildAllServicesLayer,
   getApexTestingRuntime,
   setAllServicesLayer
@@ -176,7 +175,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   }
 
   // Always register commands (they'll be no-ops if not in a project)
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getApexTestingRuntime());
   yield* registerCommand('sf.apex.generate.unit.test.class', (outputDir?: URI) =>
     apexGenerateUnitTestClassCommand(undefined, outputDir)
   );

@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getRuntime } from '../services/runtime';
 
 type EditorContext = Effect.Effect.Success<ReturnType<EditorService['getActiveEditorContext']>>;
 
@@ -66,7 +66,7 @@ const runWithProgress = (context: EditorContext) =>
         title: nls.localize('exec_anon_progress_title'),
         cancellable: false
       },
-      () => Effect.runPromise(executeAnonymous(context).pipe(Effect.provide(AllServicesLayer)))
+      () => getRuntime().runPromise(executeAnonymous(context))
     )
   );
 

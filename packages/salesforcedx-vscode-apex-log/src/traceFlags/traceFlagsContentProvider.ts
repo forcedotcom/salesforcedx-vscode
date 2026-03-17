@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { TraceFlagOrphanedDebugLevelError } from '../errors/commandErrors';
 import { buildExtendedTraceFlagItemStruct, buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
-import { AllServicesLayer } from '../services/allServicesLayerRef';
+import { getRuntime } from '../services/runtime';
 
 export const SCHEME = 'sf-traceflags';
 
@@ -105,9 +105,8 @@ class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvid
     const orgId = extractOrgIdFromUri(uri);
     if (!orgId) return JSON.stringify({ error: 'Invalid trace flags URI: orgId missing' });
 
-    return Effect.runPromise(
+    return getRuntime().runPromise(
       fetchTraceFlagsContent().pipe(
-        Effect.provide(AllServicesLayer),
         Effect.catchAll((e: unknown) =>
           Effect.succeed(JSON.stringify({ error: `Failed to fetch trace flags: ${String(e)}` }, undefined, 2))
         )

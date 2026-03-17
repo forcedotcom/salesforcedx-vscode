@@ -12,7 +12,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { CancellationToken, CodeLens, ExtensionContext, languages, Range, TextDocument } from 'vscode';
 import { nls } from '../messages';
 import { buildExtendedTraceFlagItemStruct, buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getRuntime } from '../services/runtime';
 
 const TRACE_FLAGS_DOCUMENT_SELECTOR = { language: 'json', scheme: 'sf-traceflags' };
 
@@ -142,11 +142,11 @@ export const registerTraceFlagsCodeLensProvider = Effect.fn(
 )(function* (context: ExtensionContext) {
   const provider = {
     provideCodeLenses: (document: TextDocument, token: CancellationToken) =>
-      provideTraceFlagsCodeLens(document, token).pipe(
-        Effect.provide(AllServicesLayer),
-        Effect.tapError(e => Effect.logError(String(e))),
-        Effect.catchAll(() => Effect.succeed<CodeLens[]>([])),
-        Effect.runPromise
+      getRuntime().runPromise(
+        provideTraceFlagsCodeLens(document, token).pipe(
+          Effect.tapError(e => Effect.logError(String(e))),
+          Effect.catchAll(() => Effect.succeed<CodeLens[]>([]))
+        )
       )
   };
   context.subscriptions.push(languages.registerCodeLensProvider(TRACE_FLAGS_DOCUMENT_SELECTOR, provider));
