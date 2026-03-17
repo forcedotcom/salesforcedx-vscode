@@ -10,6 +10,7 @@ on:
 jobs:
   prepare-environment-from-main:
     name: 'Get Release Version'
+    if: github.event_name != 'release' || !startsWith(github.event.release.tag_name, 'soql-common')
     runs-on: ubuntu-latest
     environment: publish
     outputs:
