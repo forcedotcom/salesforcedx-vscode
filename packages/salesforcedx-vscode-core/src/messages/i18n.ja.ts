@@ -74,8 +74,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
   project_generate_react_b2e_template: 'React B2E のプロジェクトテンプレート',
   project_generate_react_b2x_template: 'React B2X のプロジェクトテンプレート',
-  project_generate_nativemobile_template_display_text: 'ネイティブモバイル',
-  project_generate_nativemobile_template: 'ネイティブモバイルのプロジェクトテンプレート (CAMA プレースホルダー)',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
