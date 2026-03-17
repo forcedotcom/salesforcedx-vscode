@@ -10,17 +10,12 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-
-const LWC_EXTENSION_NAME = 'salesforcedx-vscode-lwc';
-const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
+import * as vscode from 'vscode';
 
 class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
 
-const getPreviewTypeScriptSupport = (): boolean | undefined =>
-  vscode.workspace.getConfiguration(LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT);
 
 /** Prompt user to select output directory from available package directories (lwc subdir) */
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
@@ -74,8 +69,7 @@ const promptForComponentType = Effect.fn('promptForComponentType')(function* () 
 
 /** Determine component template based on priority:
  * 1. sfdx-project.json defaultLWCLanguage
- * 2. VS Code preview.typeScriptSupport flag
- * 3. Prompt user */
+ * 2. Prompt user (TypeScript always visible) */
 const determineComponentTemplate = Effect.fn('determineComponentTemplate')(function* (project: SfProject) {
   // Priority 1: Check defaultLWCLanguage in sfdx-project.json
   const projectJson = yield* Effect.try(() => project.getSfProjectJson());
@@ -89,26 +83,7 @@ const determineComponentTemplate = Effect.fn('determineComponentTemplate')(funct
     return Option.some('default' as const);
   }
 
-  // Priority 2: Check preview.typeScriptSupport flag
-  const previewTsSupport = getPreviewTypeScriptSupport();
-
-  if (previewTsSupport === true) {
-    // TypeScript support enabled, write to sfdx-project.json if not already set
-    if (!defaultLWCLanguage) {
-      yield* Effect.try(() => {
-        projectConfig.defaultLWCLanguage = 'typescript';
-        return projectJson.write();
-      }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
-    }
-    return Option.some('typeScript' as const);
-  }
-
-  if (previewTsSupport === false) {
-    // TypeScript support explicitly disabled
-    return Option.some('default' as const);
-  }
-
-  // Priority 3: Neither setting is configured, prompt user
+  // Priority 2: No default set, prompt user (TypeScript is always visible)
   return yield* promptForComponentType();
 });
 
