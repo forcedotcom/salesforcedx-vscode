@@ -95,6 +95,11 @@ export const messages = {
   project_generate_analytics_template: 'Analytics project template',
   project_generate_react_b2e_template: 'React B2E project template',
   project_generate_react_b2x_template: 'React B2X project template',
+  select_lwc_language_prompt: 'Select default Lightning Web Component language',
+  javascript_language_option: 'JavaScript',
+  javascript_language_description: 'Create LWC components using JavaScript',
+  typescript_language_option: 'TypeScript',
+  typescript_language_description: 'Create LWC components using TypeScript',
   apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
 
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
