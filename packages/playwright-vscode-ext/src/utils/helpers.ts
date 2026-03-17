@@ -64,6 +64,7 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'webPackagePaths.js',
   'workbench.web.main.nls.js',
   'marketplace.visualstudio.com',
+  'in.applicationinsights.azure.com', // Azure Application Insights telemetry (e.g. /v2/track)
   'vscode-unpkg.net', // VS Code extension marketplace CDN
   'scratchOrgInfo', // asking the org if it's a devhub during auth ?
   'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
