@@ -39,9 +39,14 @@ export const initSObjectDefinitions = async (projectPath: string, isSettingEnabl
       try {
         await vscode.commands.executeCommand('sf.internal.refreshsobjects', refreshSource);
       } catch (e) {
+        const message = extractErrorMessage(e);
+        // Command is provided by Metadata extension; when it's not installed (e.g. code-analyzer E2E), skip without failing activation
+        if (message.includes('not found') && message.includes('sf.internal.refreshsobjects')) {
+          return;
+        }
         telemetryService.sendException(
           'initSObjectDefinitionsError',
-          `Error: ${extractErrorMessage(e)} with sobjectRefreshStartup = ${isSettingEnabled}`
+          `Error: ${message} with sobjectRefreshStartup = ${isSettingEnabled}`
         );
         throw e;
       }
