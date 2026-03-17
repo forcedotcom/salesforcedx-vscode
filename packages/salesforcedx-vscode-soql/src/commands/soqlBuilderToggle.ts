@@ -9,8 +9,17 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
+import { nls } from '../messages';
+import { isDefaultOrgSet } from '../services/org';
 
 export const soqlBuilderToggle = Effect.fn('soql_builder_toggle')(function* (doc: URI) {
+  const hasOrg = yield* Effect.promise(() => isDefaultOrgSet());
+  if (!hasOrg) {
+    yield* Effect.sync(() => {
+      void vscode.window.showWarningMessage(nls.localize('info_no_default_org'));
+    });
+    return;
+  }
   const viewType = vscode.window.activeTextEditor ? BUILDER_VIEW_TYPE : EDITOR_VIEW_TYPE;
   yield* Effect.promise(() => vscode.commands.executeCommand(OPEN_WITH_COMMAND, doc, viewType));
 });
