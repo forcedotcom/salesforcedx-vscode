@@ -108,7 +108,7 @@ export const messages = {
   conflict_detect_no_conflicts: 'No conflicts',
   conflict_detect_no_differences: 'No differences',
   conflict_detection_enabled_description:
-    'Specifies whether to enable conflict detection for deploy and retrieve operations. When enabled, the extension will check for conflicts before deploying or retrieving and allow you to view or override them.',
+    'When enabled, check for conflicts before deploy/retrieve on orgs that don\'t support source tracking. Orgs with tracking always check conflicts.',
 
   // SObject refresh
   sobjects_refresh: 'SFDX: Refresh SObject Definitions',

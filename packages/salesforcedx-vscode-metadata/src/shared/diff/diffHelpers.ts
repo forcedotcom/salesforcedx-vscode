@@ -14,6 +14,18 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
 import { nls } from '../../messages';
+
+/** Convert file paths to HashableUri set. Uses FsService.toUri for correct scheme (memfs in web). */
+export const pathsToHashableUris = Effect.fn('pathsToHashableUris')(function* (paths: string[]) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fsService = yield* api.services.FsService;
+  const uris = yield* Effect.all(
+    paths.map(p => api.services.FsService.toUri(p)),
+    { concurrency: 'unbounded' }
+  );
+  return HashSet.fromIterable(uris.map(uri => fsService.HashableUri.fromUri(uri)));
+});
+
 import { MissingDefaultOrgError } from './diffErrors';
 import { createDiffFilePair, isDiffFilePair, type DiffFilePair } from './diffTypes';
 

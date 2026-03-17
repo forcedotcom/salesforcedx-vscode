@@ -216,12 +216,21 @@
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "salesforce-conflicts",
+          "title": "%conflicts_view_title_text%",
+          "icon": "resources/issues.svg"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "salesforce-conflicts": [
         {
           "id": "conflicts",
           "name": "%conflicts_view_title_text%",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && sf:has_conflicts"
         }
       ]
     },

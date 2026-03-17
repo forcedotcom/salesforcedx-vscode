@@ -11,20 +11,27 @@ import { handleConflictWithRetry } from '../conflict/conflictFlow';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const componentSet = yield* (yield* api.services.ComponentSetService).ensureNonEmptyComponentSet(
-      yield* api.services.MetadataDeployService.getComponentSetForDeploy({ ignoreConflicts })
-    );
-    yield* deployComponentSet({ componentSet });
-  });
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const componentSet = yield* (yield* api.services.ComponentSetService).ensureNonEmptyComponentSet(
+    yield* api.services.MetadataDeployService.getComponentSetForDeploy({ ignoreConflicts })
+  );
+  yield* deployComponentSet({ componentSet });
+});
 
 /** Deploy local changes to the default org */
 export const projectDeployStartCommand = (ignoreConflicts = false) =>
   deployEffect(ignoreConflicts).pipe(
     Effect.catchTag('SourceTrackingConflictError', () =>
-      handleConflictWithRetry({
-        retryOperation: deployEffect(true),
-        operationType: 'deploy'
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const componentSet = yield* (yield* api.services.ComponentSetService).ensureNonEmptyComponentSet(
+          yield* api.services.MetadataDeployService.getComponentSetForDeploy({ ignoreConflicts: true })
+        );
+        return yield* handleConflictWithRetry({
+          retryOperation: deployEffect(true),
+          operationType: 'deploy',
+          componentSet
+        });
       })
     )
   );

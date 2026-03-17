@@ -47,8 +47,9 @@ const resolveFileUri = Effect.fn('deployDiagnostics.resolveFileUri')(function* (
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fs = yield* api.services.FsService;
+  const workspacePath = yield* fs.uriToPath(workspaceUri);
   const isAbsolute =
-    filePath && (filePath.startsWith('/') || filePath.includes(workspaceUri.fsPath));
+    filePath && (filePath.startsWith('/') || filePath.includes(workspacePath));
   return isAbsolute ? yield* fs.toUri(filePath) : Utils.resolvePath(workspaceUri, filePath ?? '');
 });
 

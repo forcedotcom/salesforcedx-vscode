@@ -174,7 +174,7 @@ export default [
       'unicorn/prefer-single-call': 'error',
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
-      'unicorn/prefer-ternary': ['error', 'only-single-line'],
+      'unicorn/prefer-ternary': ['error'],
       'unicorn/filename-case': [
         'error',
         {

@@ -34,7 +34,8 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(func
       Effect.catchTag('SourceTrackingConflictError', () =>
         handleConflictWithRetry({
           retryOperation: retrieveComponentSet({ componentSet, ignoreConflicts: true }),
-          operationType: 'retrieve'
+          operationType: 'retrieve',
+          componentSet
         })
       )
     );

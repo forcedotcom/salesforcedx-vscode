@@ -6,10 +6,11 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { storeRetrieveResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
 
@@ -34,6 +35,11 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
   }
 
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(result));
+
+  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  if (orgInfo.tracksSource !== true) {
+    yield* storeRetrieveResult(result);
+  }
 
   const { isSDRFailure } = yield* api.services.ComponentSetService;
   if (result.getFileResponses().some(isSDRFailure)) {

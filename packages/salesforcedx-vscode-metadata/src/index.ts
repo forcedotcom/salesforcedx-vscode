@@ -67,11 +67,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         deleteSourcePathsCommand(sourceUri, uris)
       ),
       registerCommand('sf.metadata.delete.source.current.file', () => deleteSourcePathsCommand(undefined, undefined)),
-      registerCommand('sf.metadata.deploy.active.editor', () => deployActiveEditorCommand()),
+      registerCommand('sf.metadata.deploy.active.editor', deployActiveEditorCommand),
       registerCommand('sf.metadata.deploy.in.manifest', (manifestUri?: URI) => deployManifestCommand(manifestUri)),
-      registerCommand('sf.metadata.deploy.source.path', (sourceUri: URI, uris: URI[] = []) =>
-        deploySourcePathsCommand(sourceUri, uris)
-      ),
+      registerCommand('sf.metadata.deploy.source.path', deploySourcePathsCommand),
       registerCommand('sf.metadata.project.deploy.start', () => projectDeployStartCommand(false)),
       registerCommand('sf.metadata.project.deploy.start.ignore.conflicts', () => projectDeployStartCommand(true)),
       registerCommand('sf.metadata.project.generate.manifest', (sourceUri?: URI, uris?: URI[]) =>

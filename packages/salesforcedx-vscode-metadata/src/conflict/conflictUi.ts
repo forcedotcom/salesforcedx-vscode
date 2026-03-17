@@ -66,5 +66,10 @@ export const handleConflictsModal = Effect.fn('handleConflictsModal')(function* 
     emptyLabel
   }));
   treeProviderFire();
+  yield* Effect.sync(() => {
+    void vscode.commands.executeCommand('setContext', 'sf:has_conflicts', true);
+    void vscode.commands.executeCommand('conflicts.focus');
+  });
+  yield* Effect.sync(() => void vscode.commands.executeCommand('conflicts.focus'));
   return 'cancel' satisfies ConflictModalResult;
 });

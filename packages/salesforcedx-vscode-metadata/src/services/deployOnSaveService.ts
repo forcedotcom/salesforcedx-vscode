@@ -25,10 +25,16 @@ const ENQUEUE_DELAY_MS = 1000;
 /** File filtering - exclude files that shouldn't be deployed */
 export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
-  if (!uri.fsPath.startsWith(workspaceInfo.fsPath)) return false;
-  const basename = uri.fsPath.split(/[/\\]/).pop() ?? '';
+  const [workspaceInfo, fsService] = yield* Effect.all([
+    api.services.WorkspaceService.getWorkspaceInfoOrThrow(),
+    api.services.FsService
+  ], { concurrency: 'unbounded' });
+  const [uriPath, workspacePath] = yield* Effect.all([
+    fsService.uriToPath(uri),
+    fsService.uriToPath(workspaceInfo.uri)
+  ], { concurrency: 'unbounded' });
+  if (!uriPath.startsWith(workspacePath)) return false;
+  const basename = uriPath.split(/[/\\]/).pop() ?? '';
 
   // Exclude dot files
   if (basename.startsWith('.')) return false;
@@ -115,10 +121,18 @@ export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnS
   // Start the stream processor that batches and deploys
   yield* Stream.fromQueue(saveQueue).pipe(
     Stream.filterEffect(() => getDeployOnSaveEnabled()),
-    Stream.tap(uri => channelService.appendToChannel(`Deploy on save service received URI: ${uri.fsPath}`)),
+    Stream.tap(uri =>
+      api.services.FsService.uriToPath(uri).pipe(
+        Effect.flatMap(path => channelService.appendToChannel(`Deploy on save service received URI: ${path}`))
+      )
+    ),
     Stream.filterEffect(shouldDeploy),
     Stream.filterEffect(api.services.ProjectService.isInPackageDirectories),
-    Stream.tap(uri => channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${uri.fsPath}`)),
+    Stream.tap(uri =>
+      api.services.FsService.uriToPath(uri).pipe(
+        Effect.flatMap(path => channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${path}`))
+      )
+    ),
     Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
     Stream.runForEach(chunk =>
       deployQueuedFiles(Chunk.toReadonlyArray(chunk)).pipe(

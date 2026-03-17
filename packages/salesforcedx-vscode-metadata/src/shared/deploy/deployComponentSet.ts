@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
+import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
 import { formatDeployOutput } from './formatDeployOutput';
@@ -39,6 +40,8 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   }
 
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
+
+  yield* maybeStoreDeployResult(result);
 
   const { isSDRFailure } = componentSetService;
   const failedResponses = result.getFileResponses().filter(isSDRFailure);

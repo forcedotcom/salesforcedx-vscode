@@ -53,7 +53,8 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
       Effect.catchTag('SourceTrackingConflictError', () =>
         handleConflictWithRetry({
           retryOperation: retrieveComponentSet({ componentSet, ignoreConflicts: true }),
-          operationType: 'retrieve'
+          operationType: 'retrieve',
+          componentSet
         })
       )
     );

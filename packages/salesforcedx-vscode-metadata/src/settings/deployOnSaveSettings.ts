@@ -26,7 +26,7 @@ export const getIgnoreConflicts = (): boolean => {
   return config.get<boolean>(DEPLOY_ON_SAVE_IGNORE_CONFLICTS, false);
 };
 
-/** Check if conflict detection is enabled for deploy/retrieve (reads from core for backward compat) */
+/** Check if conflict detection is enabled for deploy/retrieve on non-tracking orgs (reads from core for backward compat). Tracking orgs always check. */
 export const getDetectConflictsForDeployAndRetrieve = (): boolean => {
   const config = vscode.workspace.getConfiguration(CORE_CONFIG_SECTION);
   return config.get<boolean>(DETECT_CONFLICTS_FOR_DEPLOY_AND_RETRIEVE, false);

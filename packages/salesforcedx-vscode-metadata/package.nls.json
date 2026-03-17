@@ -28,7 +28,7 @@
   "conflicts_view_title_text": "Conflicts",
   "conflict_detect_diff_command_title": "Compare Files",
   "conflict_detect_open_file": "Open File",
-  "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for deploy and retrieve operations. When enabled, the extension will check for conflicts before deploying or retrieving and allow you to view or override them.",
+  "conflict_detection_enabled_description": "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
   "sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "sobject_refresh_all": "All SObjects",
   "sobject_refresh_custom": "Custom SObjects",
