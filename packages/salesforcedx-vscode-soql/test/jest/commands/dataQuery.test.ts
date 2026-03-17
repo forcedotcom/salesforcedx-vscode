@@ -54,9 +54,9 @@ import {
   generateTableOutput,
   buildQueryOptions,
   displayTableResults,
-  convertQueryResultToCSV,
-  formatErrorMessage
+  convertQueryResultToCSV
 } from '../../../src/commands/dataQuery';
+import { formatErrorMessage } from '../../../src/commands/queryUtils';
 import { channelService } from '../../../src/services/channel';
 
 describe('DataQuery Pure Functions', () => {

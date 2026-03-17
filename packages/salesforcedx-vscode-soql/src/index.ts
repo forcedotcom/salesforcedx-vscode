@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { dataQuery } from './commands/dataQuery';
+import { queryPlan } from './commands/queryPlan';
 import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
 import { soqlOpenNewBuilder, soqlOpenNewTextEditor } from './commands/soqlFileCreate';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
@@ -60,7 +61,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         )
       ),
       registerCommand('sf.data.query.input', dataQuery),
-      registerCommand('sf.data.query.selection', dataQuery)
+      registerCommand('sf.data.query.selection', dataQuery),
+      registerCommand('sf.data.query.explain.selection', queryPlan)
     ],
     { concurrency: 'unbounded' }
   );

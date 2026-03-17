@@ -65,7 +65,10 @@ export const messages = {
   REST_API: 'REST API',
   REST_API_description: 'Use REST API to execute the query',
   tooling_API: 'Tooling API',
-  tooling_API_description: 'Use Tooling API to execute the query'
+  tooling_API_description: 'Use Tooling API to execute the query',
+  query_plan_selection_text: 'SFDX: Get SOQL Query Plan with Currently Selected Text',
+  query_plan_running: 'Fetching query plan...',
+  query_plan_complete: 'Query plan retrieved successfully'
 } as const;
 
 export type MessageKey = keyof typeof messages;
