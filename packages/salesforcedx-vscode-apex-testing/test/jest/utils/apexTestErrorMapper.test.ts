@@ -33,6 +33,19 @@ describe('toUserFriendlyApexTestError', () => {
     );
   });
 
+  it('should map deleted/unreachable org (HTML response, 420) to resource-not-found message', () => {
+    const resourceNotFound = nls.localize('apex_test_error_resource_not_found_message');
+    expect(
+      toUserFriendlyApexTestError(
+        new Error(
+          'Failed to populate suite items: HTTP response contains html content. Check that the org exists and can be reached. HTTP status code: 420.'
+        )
+      )
+    ).toBe(resourceNotFound);
+    expect(toUserFriendlyApexTestError(new Error('HTTP response contains html content'))).toBe(resourceNotFound);
+    expect(toUserFriendlyApexTestError(new Error('Request failed with status code 420'))).toBe(resourceNotFound);
+  });
+
   it('should return descriptive message unchanged when long enough', () => {
     const longMessage = 'A very long and descriptive error message that explains what went wrong in detail.';
     expect(toUserFriendlyApexTestError(new Error(longMessage))).toBe(longMessage);

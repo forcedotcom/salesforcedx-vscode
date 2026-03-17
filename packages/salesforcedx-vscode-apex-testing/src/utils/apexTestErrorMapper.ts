@@ -34,6 +34,12 @@ const CONNECTION_NETWORK_PATTERNS = [
   'timeout'
 ];
 const ORG_RESOURCE_PATTERNS = ['requested resource does not exist', '404', 'not found'];
+/** Org deleted or unreachable (server returns HTML error page, e.g. status 420) */
+const ORG_UNREACHABLE_PATTERNS = [
+  'http response contains html content',
+  'status code: 420',
+  'status code 420'
+];
 
 const getMessageFromObject = (obj: object): string | undefined => {
   const m = Object.getOwnPropertyDescriptor(obj, 'message')?.value;
@@ -94,6 +100,10 @@ export const toUserFriendlyApexTestError = (error: unknown): string => {
   }
 
   if (ORG_RESOURCE_PATTERNS.some(p => lower.includes(p.toLowerCase()))) {
+    return nls.localize('apex_test_error_resource_not_found_message');
+  }
+
+  if (ORG_UNREACHABLE_PATTERNS.some(p => lower.includes(p))) {
     return nls.localize('apex_test_error_resource_not_found_message');
   }
 
