@@ -19,8 +19,8 @@ const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
 
 class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
 
-const getHasTypeScriptSupport = (): boolean =>
-  vscode.workspace.getConfiguration(LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
+const getPreviewTypeScriptSupport = (): boolean | undefined =>
+  vscode.workspace.getConfiguration(LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT);
 
 /** Prompt user to select output directory from available package directories (lwc subdir) */
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
@@ -72,6 +72,46 @@ const promptForComponentType = Effect.fn('promptForComponentType')(function* () 
   return Option.fromNullable(selected?.value);
 });
 
+/** Determine component template based on priority:
+ * 1. sfdx-project.json defaultLWCLanguage
+ * 2. VS Code preview.typeScriptSupport flag
+ * 3. Prompt user */
+const determineComponentTemplate = Effect.fn('determineComponentTemplate')(function* (project: SfProject) {
+  // Priority 1: Check defaultLWCLanguage in sfdx-project.json
+  const projectJson = yield* Effect.try(() => project.getSfProjectJson());
+  const projectConfig = yield* Effect.try(() => projectJson.getContents());
+  const defaultLWCLanguage = projectConfig.defaultLWCLanguage as string | undefined;
+
+  if (defaultLWCLanguage === 'typescript') {
+    return Option.some('typeScript' as const);
+  }
+  if (defaultLWCLanguage === 'javascript') {
+    return Option.some('default' as const);
+  }
+
+  // Priority 2: Check preview.typeScriptSupport flag
+  const previewTsSupport = getPreviewTypeScriptSupport();
+
+  if (previewTsSupport === true) {
+    // TypeScript support enabled, write to sfdx-project.json if not already set
+    if (!defaultLWCLanguage) {
+      yield* Effect.try(() => {
+        projectConfig.defaultLWCLanguage = 'typescript';
+        return projectJson.write();
+      }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+    }
+    return Option.some('typeScript' as const);
+  }
+
+  if (previewTsSupport === false) {
+    // TypeScript support explicitly disabled
+    return Option.some('default' as const);
+  }
+
+  // Priority 3: Neither setting is configured, prompt user
+  return yield* promptForComponentType();
+});
+
 /** Check if component directory exists and prompt for overwrite */
 const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (componentDirUri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -103,8 +143,7 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   const outputDirUri = outputDirParam ?? (yield* promptForOutputDir(project));
   if (!outputDirUri) return undefined;
 
-  const hasTsSupport = getHasTypeScriptSupport();
-  const templateOpt = hasTsSupport ? yield* promptForComponentType() : Option.some('default' as const);
+  const templateOpt = yield* determineComponentTemplate(project);
   if (Option.isNone(templateOpt)) return undefined;
   const template = templateOpt.value;
 
