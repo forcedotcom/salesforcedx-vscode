@@ -387,7 +387,7 @@
         },
         {
           "command": "sf.data.query.document",
-          "when": "false"
+          "when": "resourceExtname == .soql && sf:has_target_org"
         }
       ],
       "editor/title": [
