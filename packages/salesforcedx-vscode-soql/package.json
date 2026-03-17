@@ -359,7 +359,7 @@
       "commandPalette": [
         {
           "command": "soql.open.new.builder",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
           "command": "soql.open.new.text.editor",
