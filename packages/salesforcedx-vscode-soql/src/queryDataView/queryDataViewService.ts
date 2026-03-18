@@ -32,6 +32,26 @@ import { FileFormat, QueryDataFileService as FileService } from './queryDataFile
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
+const getWebViewContent = async (webview: vscode.Webview, extensionUri: vscode.Uri): Promise<string> => {
+  const baseStyleUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
+  );
+  const tabulatorStyleUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_STYLE_FILENAME)
+  );
+  const viewControllerUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME)
+  );
+  const tabulatorUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_SCRIPT_FILENAME)
+  );
+  const saveIconUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME)
+  );
+
+  return getHtml({ baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri }, extensionUri, webview);
+};
+
 const saveRecordsEffect = Effect.fn('QueryDataView.save_records')(function* ({
   queryText,
   queryData,
@@ -125,7 +145,7 @@ export class QueryDataViewService {
       dark: salesforceCloudUri
     };
 
-    this.currentPanel.webview.html = await this.getWebViewContent(this.currentPanel.webview);
+    this.currentPanel.webview.html = await getWebViewContent(this.currentPanel.webview, QueryDataViewService.extensionUri);
 
     // Stream-based message handling: each message dispatched as a named OTel span
     const panel = this.currentPanel;
@@ -169,32 +189,4 @@ export class QueryDataViewService {
     }
   };
 
-  protected async getWebViewContent(webview: vscode.Webview): Promise<string> {
-    const { extensionUri } = QueryDataViewService;
-    const baseStyleUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
-    );
-    const tabulatorStyleUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_STYLE_FILENAME)
-    );
-    const viewControllerUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME)
-    );
-    const tabulatorUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_SCRIPT_FILENAME)
-    );
-    const saveIconUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME)
-    );
-
-    const staticAssets = {
-      baseStyleUri,
-      tabulatorStyleUri,
-      viewControllerUri,
-      tabulatorUri,
-      saveIconUri
-    };
-
-    return await getHtml(staticAssets, extensionUri, webview);
-  }
 }
