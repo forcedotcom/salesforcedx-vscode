@@ -263,8 +263,12 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     CommandEventDispatcher.getInstance()
   );
 
-  if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-    // Refresh SObject definitions if there aren't any faux classes
+  if (
+    metadataExtension &&
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    // Refresh SObject definitions if there aren't any faux classes (metadata ext registers the command)
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
