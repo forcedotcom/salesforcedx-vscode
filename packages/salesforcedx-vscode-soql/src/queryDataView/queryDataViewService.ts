@@ -80,7 +80,6 @@ type DataViewEvent = {
 
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
-  public readonly viewType = QUERY_DATA_VIEW_TYPE;
   public static extensionUri: vscode.Uri;
   private queryText: string;
 
@@ -119,7 +118,7 @@ export class QueryDataViewService {
   public async createOrShowWebView(): Promise<vscode.Webview> {
     const { extensionUri } = QueryDataViewService;
     this.currentPanel = vscode.window.createWebviewPanel(
-      this.viewType,
+      QUERY_DATA_VIEW_TYPE,
       QUERY_DATA_VIEW_PANEL_TITLE,
       vscode.ViewColumn.Two,
       {
