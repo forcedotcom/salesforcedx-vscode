@@ -84,9 +84,10 @@ jobs:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
 
-  trigger-web-cbw-release:
+  trigger-cbw-release:
     needs: [publish, prepare-environment-from-main]
     if: needs.publish.result == 'success'
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Code Builder Web release
