@@ -25,10 +25,10 @@ updates:
     open-pull-requests-limit: 3
     rebase-strategy: auto
     versioning-strategy: increase
-  # Daily updates for @salesforce/templates only (unique target-branch required for same directory)
+  # Daily updates for @salesforce/templates only
   - package-ecosystem: 'npm'
     directory: '/'
-    target-branch: 'main'
+    target-branch: 'develop'
     schedule:
       interval: 'daily'
       time: '06:00'
