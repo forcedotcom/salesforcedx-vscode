@@ -25,6 +25,19 @@ updates:
     open-pull-requests-limit: 3
     rebase-strategy: auto
     versioning-strategy: increase
+  # Daily updates for @salesforce/templates only
+  - package-ecosystem: 'npm'
+    directory: '/'
+    target-branch: 'develop'
+    schedule:
+      interval: 'daily'
+      time: '06:00'
+      timezone: 'America/Los_Angeles'
+    allow:
+      - dependency-name: '@salesforce/templates'
+    open-pull-requests-limit: 1
+    rebase-strategy: auto
+    versioning-strategy: increase
   # Exclude updates to doc tools
   # TODO: Enable after adding automated check(s) for doc generation
   - package-ecosystem: 'bundler'
