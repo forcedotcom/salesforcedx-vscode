@@ -83,3 +83,21 @@ jobs:
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
+
+  trigger-web-cbw-release:
+    needs: [publish, prepare-environment-from-main]
+    if: needs.publish.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Code Builder Web release
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+        run: |
+          VERSION="${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}"
+          echo "Dispatching extension-publish event to code-builder-web with version $VERSION"
+          gh api repos/forcedotcom/code-builder-web/dispatches \
+            --method POST \
+            -f event_type=extension-publish \
+            -f "client_payload[version]=$VERSION" \
+            -f "client_payload[source]=publishVSCode"
+          echo "Dispatch sent successfully"
