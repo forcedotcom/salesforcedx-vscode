@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.2.0",
+  "version": "66.2.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +34,7 @@
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.31.12",
     "@salesforce/source-tracking": "^7.8.1",
-    "@salesforce/templates": "^66.4.1",
+    "@salesforce/templates": "^66.4.2",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -412,6 +412,10 @@
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
+          "command": "sf.nativemobile.generate.project",
+          "when": "false"
+        },
+        {
           "command": "sf.project.generate.with.manifest",
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
@@ -605,6 +609,10 @@
       {
         "command": "sf.project.generate",
         "title": "%project_generate_text%"
+      },
+      {
+        "command": "sf.nativemobile.generate.project",
+        "title": "%nativemobile_generate_project_text%"
       },
       {
         "command": "sf.project.generate.with.manifest",

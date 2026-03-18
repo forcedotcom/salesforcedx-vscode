@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.2.0",
+  "version": "66.2.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -330,8 +330,12 @@
     ],
     "commands": [
       {
-        "command": "soql.builder.open.new",
-        "title": "%soql_builder_open_new%"
+        "command": "soql.open.new.builder",
+        "title": "%soql_open_new_builder%"
+      },
+      {
+        "command": "soql.open.new.text.editor",
+        "title": "%soql_open_new_text_editor%"
       },
       {
         "command": "soql.builder.toggle",
@@ -354,7 +358,11 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "soql.builder.open.new",
+          "command": "soql.open.new.builder",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "soql.open.new.text.editor",
           "when": "sf:project_opened"
         },
         {
@@ -417,7 +425,7 @@
               "altText": "%soql_walkthrough_step2_alt%"
             },
             "completionEvents": [
-              "onCommand:soql.builder.open.new"
+              "onCommand:soql.open.new.builder"
             ]
           },
           {

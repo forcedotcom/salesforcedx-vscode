@@ -230,38 +230,60 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
 };
 
 /**
- * Gets all possible flattened field names by examining all records
- * Preserves the original field order from the query
+ * Gets all possible flattened field names by examining all records.
+ * Preserves the original SELECT column order, including fields whose value is null
+ * in early records (e.g. AnnualRevenue = null).
+ *
+ * Pass 1: build a stable base key order from all records (including null-valued fields)
+ * and identify which keys are relationship objects in any record.
+ * Pass 2: for each base key, expand relationship keys into dot-notation sub-fields
+ * or emit plain keys as-is.
  */
 const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => {
-  const fieldOrder: string[] = [];
-  const seenFields = new Set<string>();
+  // Pass 1: stable key order + relationship detection
+  const baseOrder: string[] = [];
+  const seenBase = new Set<string>();
+  const relationshipKeys = new Set<string>();
 
-  // First pass: collect all possible fields while preserving order
   for (const record of records) {
     for (const [key, value] of Object.entries(record)) {
       if (key === 'attributes') {
         continue;
       }
-
+      if (!seenBase.has(key)) {
+        baseOrder.push(key);
+        seenBase.add(key);
+      }
       if (isRecord(value)) {
-        // Add nested fields with dot notation
-        for (const nestedKey of Object.keys(value)) {
-          if (nestedKey !== 'attributes') {
-            const fieldName = `${key}.${nestedKey}`;
-            if (!seenFields.has(fieldName)) {
-              fieldOrder.push(fieldName);
-              seenFields.add(fieldName);
+        relationshipKeys.add(key);
+      }
+    }
+  }
+
+  // Pass 2: expand relationship keys; emit plain keys as-is
+  const fieldOrder: string[] = [];
+  const seenFields = new Set<string>();
+
+  for (const key of baseOrder) {
+    if (relationshipKeys.has(key)) {
+      for (const record of records) {
+        const value = record[key];
+        if (isRecord(value)) {
+          for (const nestedKey of Object.keys(value)) {
+            if (nestedKey !== 'attributes') {
+              const fieldName = `${key}.${nestedKey}`;
+              if (!seenFields.has(fieldName)) {
+                fieldOrder.push(fieldName);
+                seenFields.add(fieldName);
+              }
             }
           }
         }
-      } else if (value !== null) {
-        // Only add primitive fields that are not null
-        // (null relationship objects shouldn't create columns)
-        if (!seenFields.has(key)) {
-          fieldOrder.push(key);
-          seenFields.add(key);
-        }
+      }
+    } else {
+      if (!seenFields.has(key)) {
+        fieldOrder.push(key);
+        seenFields.add(key);
       }
     }
   }
