@@ -14,6 +14,7 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
 
 const ExtensionProviderServiceLive = Layer.effect(
