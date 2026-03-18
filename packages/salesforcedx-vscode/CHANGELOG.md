@@ -1,6 +1,10 @@
-# 66.2.1 - March 19, 2026
+# 66.2.2 - March 20, 2026
 
 ## Added
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #7000](https://github.com/forcedotcom/salesforcedx-vscode/pull/7000))
 
 #### salesforcedx-vscode-apex-testing
 
@@ -8,7 +12,7 @@
 
 #### salesforcedx-apex-log
 
-- You the **SFDX: Change Trace Flag Debug Level** command to modify the LogLevel on `TraceFlag` for yourself or another user ([PR #6987](https://github.com/forcedotcom/salesforcedx-vscode/pull/6987))
+- You can now use the **SFDX: Change Trace Flag Debug Level** command to modify the LogLevel on `TraceFlag` for yourself or another user ([PR #6987](https://github.com/forcedotcom/salesforcedx-vscode/pull/6987))
 
 #### salesforcedx-vscode-org-browser
 
