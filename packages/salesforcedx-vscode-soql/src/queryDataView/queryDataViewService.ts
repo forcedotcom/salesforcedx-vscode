@@ -55,7 +55,7 @@ export class QueryDataViewService {
     QueryDataViewService.extensionUri = extensionContext.extensionUri;
   }
 
-  private updateWebviewWith(queryData: QueryResult<JsonMap>): Effect.Effect<void> {
+  private updateWebviewWith(queryData: QueryResult<JsonMap>) {
     return Effect.promise(
       () =>
         this.currentPanel?.webview.postMessage({
@@ -132,7 +132,7 @@ export class QueryDataViewService {
     return this.currentPanel.webview;
   }
 
-  private handleMessageEffect = (message: DataViewEvent): Effect.Effect<void> => {
+  private handleMessageEffect = (message: DataViewEvent) => {
     const { type, format } = message;
     switch (type) {
       case 'activate':
@@ -148,14 +148,16 @@ export class QueryDataViewService {
     }
   };
 
-  private handleSaveRecordsEffect = (format: FileFormat): Effect.Effect<void> => {
+  private handleSaveRecordsEffect = (format: FileFormat) => {
     const self = this;
     return Effect.gen(function* () {
       const fileService = new FileService(self.queryText, self.queryData, format, self.document);
       yield* Effect.promise(() => fileService.save());
     }).pipe(
       Effect.catchAllCause(() =>
-        Effect.sync(() => vscode.window.showErrorMessage(nls.localize('error_data_view_save')))
+        Effect.sync(() => {
+          vscode.window.showErrorMessage(nls.localize('error_data_view_save'));
+        })
       )
     );
   };
