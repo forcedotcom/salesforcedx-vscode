@@ -61,6 +61,7 @@ export const messages = {
   retrieve_select_manifest: 'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
   retrieve_completed_with_errors_message: 'Retrieve completed with errors. Check output for details.',
   retrieve_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before retrieving. \n Conflicts: %s',
+  deploy_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before deploying. \n Conflicts: %s',
   error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s',
   delete_source_text: 'SFDX: Delete from Project and Org',
   delete_source_select_file_or_directory:

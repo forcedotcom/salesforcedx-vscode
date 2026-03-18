@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -67,17 +68,35 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
   if (!ignoreConflicts) {
     const tracking = yield* sourceTrackingService.getSourceTracking({ ignoreConflicts: false });
     if (tracking) {
-      yield* sourceTrackingService.checkConflicts(tracking);
+      yield* Effect.all(
+        [
+          Effect.promise(() => tracking.reReadLocalTrackingCache()),
+          Effect.promise(() => tracking.reReadRemoteTracking())
+        ],
+        { concurrency: 'unbounded' }
+      );
+      const conflicts = yield* Effect.tryPromise(() => tracking.getConflicts()).pipe(
+        Effect.withSpan('STL.GetConflicts')
+      );
+      const deployedMembers = new Set(
+        componentSet.getSourceComponents().toArray().map(c => `${c.type.name}:${c.fullName}`)
+      );
+      const relevant = conflicts.filter(c => c.type && c.name && deployedMembers.has(`${c.type}:${c.name}`));
+      if (relevant.length > 0) {
+        return yield* handleDeployConflict(componentSet);
+      }
     }
   }
 
   return yield* deployComponentSet({ componentSet });
 });
 
-/** Handle SourceTrackingConflictError: populate conflict view when detect enabled */
-const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(function* () {
+/** Handle deploy conflicts: populate conflict view scoped to the deployed component set */
+const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(function* (
+  componentSet?: ComponentSet
+) {
   yield* ensureConflictView();
-  const pairs = yield* detectConflictsFromTracking();
+  const pairs = yield* detectConflictsFromTracking(componentSet);
   const mode: 'conflicts' | 'diffs' = 'conflicts';
   yield* SubscriptionRef.update(getConflictStateRef(), () => ({
     title: `${pairs.length} file difference${pairs.length === 1 ? '' : 's'}`,
@@ -88,7 +107,7 @@ const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(func
   conflictTreeProvider.fireChange();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
-  const msg = nls.localize('retrieve_source_conflicts_detected', [...pairs].map(p => p.fileName).join(', '));
+  const msg = nls.localize('deploy_source_conflicts_detected', [...pairs].map(p => p.fileName).join(', '));
   yield* channelService.appendToChannel(msg);
   yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
   void vscode.window.showErrorMessage(msg);
@@ -136,7 +155,6 @@ export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnS
     Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
     Stream.runForEach(chunk =>
       deployQueuedFiles(Chunk.toReadonlyArray(chunk)).pipe(
-        Effect.catchTag('SourceTrackingConflictError', () => handleDeployConflict()),
         Effect.catchAll(error => handleDeployError(error)),
         Effect.catchAll(() => Effect.void)
       )

@@ -51,7 +51,10 @@ export const handleConflictWithRetry = Effect.fn('handleConflictWithRetry')(func
   const pairs = yield* detectConflicts(options.componentSet, options.operationType);
   if (pairs.length === 0) {
     return yield* new ConflictsDetectedError({
-      message: nls.localize('retrieve_source_conflicts_detected', 'Could not load conflict details')
+      message: nls.localize(
+        options.operationType === 'deploy' ? 'deploy_source_conflicts_detected' : 'retrieve_source_conflicts_detected',
+        'Could not load conflict details'
+      )
     });
   }
 
