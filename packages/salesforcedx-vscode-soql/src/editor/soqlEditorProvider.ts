@@ -14,7 +14,7 @@ import { nls } from '../messages';
 import { channelService } from '../services/channel';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { isDefaultOrgSet } from '../services/org';
-import { HtmlUtils } from './htmlUtils';
+import { transformHtml } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
@@ -60,7 +60,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
         return yield* api.services.FsService.readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE));
       })
     );
-    return HtmlUtils.transformHtml(htmlContent, soqlBuilderUri, webview);
+    return transformHtml(htmlContent, soqlBuilderUri, webview);
   }
 
   private disposeInstance(instance: SOQLEditorInstance) {

@@ -13,7 +13,7 @@ jest.mock('../../../src/services/extensionProvider', () => ({
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, SOQL_BUILDER_UI_PATH } from '../../../src/constants';
-import { HtmlUtils } from '../../../src/editor/htmlUtils';
+import * as HtmlUtils from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
 import { SOQLEditorProvider } from '../../../src/editor/soqlEditorProvider';
 import { nls } from '../../../src/messages';
