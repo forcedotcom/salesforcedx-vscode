@@ -32,6 +32,27 @@ import { FileFormat, QueryDataFileService as FileService } from './queryDataFile
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
+const saveRecordsEffect = Effect.fn('QueryDataView.save_records')(function* ({
+  queryText,
+  queryData,
+  format,
+  document
+}: {
+  queryText: string;
+  queryData: QueryResult<JsonMap>;
+  format: FileFormat;
+  document: vscode.TextDocument;
+}) {
+  const fileService = new FileService(queryText, queryData, format, document);
+  yield* Effect.promise(() => fileService.save()).pipe(
+    Effect.catchAllCause(() =>
+      Effect.sync(() => {
+        vscode.window.showErrorMessage(nls.localize('error_data_view_save'));
+      })
+    )
+  );
+});
+
 type DataViewEvent = {
   type: string;
   format?: FileFormat;
@@ -139,27 +160,13 @@ export class QueryDataViewService {
         return this.updateWebviewWith(this.queryData).pipe(Effect.withSpan('QueryDataView.activate'));
 
       case 'save_records':
-        return this.handleSaveRecordsEffect(format).pipe(Effect.withSpan('QueryDataView.save_records'));
+        return saveRecordsEffect({ queryText: this.queryText, queryData: this.queryData, format: format!, document: this.document });
 
       default:
         return Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', type))).pipe(
           Effect.withSpan('QueryDataView.unknown_message', { attributes: { messageType: type } })
         );
     }
-  };
-
-  private handleSaveRecordsEffect = (format: FileFormat) => {
-    const self = this;
-    return Effect.gen(function* () {
-      const fileService = new FileService(self.queryText, self.queryData, format, self.document);
-      yield* Effect.promise(() => fileService.save());
-    }).pipe(
-      Effect.catchAllCause(() =>
-        Effect.sync(() => {
-          vscode.window.showErrorMessage(nls.localize('error_data_view_save'));
-        })
-      )
-    );
   };
 
   protected async getWebViewContent(webview: vscode.Webview): Promise<string> {
