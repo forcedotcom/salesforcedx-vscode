@@ -16,7 +16,7 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 1. If branch name contains `W-XXXXX`, confirm it exists in GUS, resembles the work done on the branch, and use that
 2. Else ask: "Do you have a Gus work item (W-XXXXX) for this PR?"
 3. If yes → try to find it using [gus-cli/SKILL.md](../gus-cli/SKILL.md). Confirm with the user that you got it right, or ask them to choose if several could be right.
-4. If no → offer to create via Gus. Follow [gus-cli/SKILL.md](../gus-cli/SKILL.md). **Before creating:** show user Subject, Epic, Details, assignee. Ask: "Create this work item?" Do not run `sf data create record` until user says yes.
+4. If no → offer to create via Gus. Follow [gus-cli/SKILL.md](../gus-cli/SKILL.md). **Before creating:** show user Subject, Epic, Details, assignee. Ask: "Create this work item?" Do not run `sf data create record` until user says yes. If user declines creation and still wants to proceed with the PR, include `[skip-validate-pr]` in the PR body.
 5. Before creating PR: push current branch to remote if it doesn't already exist (`git push -u origin $(git branch --show-current)` or equivalent). Never push to `develop`/`main`
 6. After PR created: update work item `Details__c` with PR link. Query current `Details__c`, append `"\nPR: <url>"` (or prepend if empty). **Before updating:** show user the new Details\_\_c. Ask: "Update work item with PR link?" Do not run `sf data update record` until user says yes.
 7. After PR created: offer Ready for Review. Ask: "Put WI in Ready for Review? Who should review?" Choices:
@@ -43,6 +43,7 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 - Write body content per [concise/SKILL.md](../concise/SKILL.md)
 - Include `@W-XXXXX@` in "What issues does this PR fix or reference?" per [.github/PULL_REQUEST_TEMPLATE.md](../../../.github/PULL_REQUEST_TEMPLATE.md):
 - Delete the before/after section if you have nothing to say there
+- **User declined WI:** Only when user explicitly declines to create a work item and still wants the PR, include `[skip-validate-pr]` in the PR body (e.g. at end of body)
 
 ```
 ### What issues does this PR fix or reference?
