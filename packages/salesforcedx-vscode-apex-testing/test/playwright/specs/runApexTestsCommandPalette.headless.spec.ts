@@ -98,6 +98,10 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await saveScreenshot(page, 'step.run-single.done.png');
   });
 
+  await test.step('clear output before running all tests', async () => {
+    await clearOutputChannel(page);
+  });
+
   await test.step('run all Apex tests via command palette', async () => {
     await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
     await saveScreenshot(page, 'step.run-all.after-command.png');
