@@ -1,3 +1,12 @@
+## [8.4.13](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.12...8.4.13) (2026-03-19)
+
+
+### Bug Fixes
+
+* **tests:** namespace-aware getApexClassIds for buildSuite W-21655085 ([#625](https://github.com/forcedotcom/salesforcedx-apex/issues/625)) ([872cb8d](https://github.com/forcedotcom/salesforcedx-apex/commit/872cb8d03dfe7be5f1e3aee6a78e2c78e4988406))
+
+
+
 ## [8.4.12](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.11...8.4.12) (2026-03-15)
 
 
