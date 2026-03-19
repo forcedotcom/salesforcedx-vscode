@@ -11,6 +11,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  waitForWorkspaceReady,
   closeWelcomeTabs,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
@@ -35,6 +36,7 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
+    await waitForWorkspaceReady(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
   });
 
@@ -89,8 +91,12 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await saveScreenshot(page, 'step2.component-content-verified.png');
 
     // Explorer: folder auto-expanded when .js opened. Same on web and desktop.
-    await expect(page.getByRole('treeitem', { name: new RegExp(`${camelCaseName}\\.html$`, 'i') })).toBeVisible({ timeout: 2000 });
-    await expect(page.getByRole('treeitem', { name: new RegExp(`${camelCaseName}\\.js-meta\\.xml$`, 'i') })).toBeVisible({ timeout: 2000 });
+    await expect(page.getByRole('treeitem', { name: new RegExp(`${camelCaseName}\\.html$`, 'i') })).toBeVisible({
+      timeout: 2000
+    });
+    await expect(
+      page.getByRole('treeitem', { name: new RegExp(`${camelCaseName}\\.js-meta\\.xml$`, 'i') })
+    ).toBeVisible({ timeout: 2000 });
     await expect(page.getByRole('treeitem', { name: '__tests__' })).toBeVisible({ timeout: 2000 });
     await saveScreenshot(page, 'step2.all-files-verified.png');
   });
