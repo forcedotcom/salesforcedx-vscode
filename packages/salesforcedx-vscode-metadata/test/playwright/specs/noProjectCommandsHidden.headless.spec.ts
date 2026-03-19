@@ -13,7 +13,6 @@ import {
   assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
-  waitForEmptyWorkspaceReady,
   verifyCommandDoesNotExist,
   validateNoCriticalErrors,
   isDesktop
@@ -31,7 +30,6 @@ import packageNls from '../../../package.nls.json';
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
       await ensureSecondarySideBarHidden(page);
-      await waitForEmptyWorkspaceReady(page);
     });
 
     await emptyWorkspaceDesktopTest.step('verify LWC and Create Apex Class do not exist', async () => {
