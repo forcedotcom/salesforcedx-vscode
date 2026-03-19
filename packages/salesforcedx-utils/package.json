@@ -59,7 +59,7 @@
     }
   },
   "dependencies": {
-    "@salesforce/core": "^8.23.3"
+    "@salesforce/core": "^8.27.0"
   },
   "devDependencies": {
     "rxjs": "^7.8.2"
