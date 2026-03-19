@@ -23,7 +23,8 @@ import {
   executeQuickPick,
   findQuickPickItem,
   getStatusBarItemWhichIncludes,
-  getWorkbench
+  getWorkbench,
+  reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, InputBox, after } from 'vscode-extension-tester';
@@ -136,6 +137,10 @@ describe('Authentication', () => {
 
   it('Run SFDX: Set the Scratch Org As the Default Org', async () => {
     logTestStart(testSetup, 'Running SFDX: Set the Scratch Org As the Default Org');
+
+    // Reload window to get the new scratch org to appear in the list of orgs.
+    await reloadWindow(Duration.seconds(20));
+
     const inputBox = await executeQuickPick('SFDX: Set a Default Org', Duration.seconds(10));
 
     const scratchOrgQuickPickItemWasFound = await findQuickPickItem(inputBox, scratchOrgAliasName, false, true);
