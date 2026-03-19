@@ -18,6 +18,7 @@ import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
+import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { notificationService } from '../utils/notificationHelpers';
 import { getOrgApexClassProvider, openOrgApexClass } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
@@ -165,10 +166,11 @@ export class ApexTestController {
       }
     } catch (error) {
       console.debug('Failed to discover tests:', error);
-      // Try to show a user-friendly error message
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
-        void notificationService.showWarningMessage(nls.localize('apex_test_discovery_partial_warning'));
+      const friendlyMessage = toUserFriendlyApexTestError(error);
+      if (friendlyMessage === nls.localize('apex_test_discovery_partial_warning')) {
+        void notificationService.showWarningMessage(friendlyMessage);
+      } else {
+        void notificationService.showErrorMessage(friendlyMessage);
       }
     }
   }
@@ -317,7 +319,8 @@ export class ApexTestController {
       // Add the parent item first so it appears at the top
       this.controller.items.add(this.suiteParentItem);
     } catch (error) {
-      throw new Error(nls.localize('apex_test_populate_suite_items_failed_message', String(error)));
+      const friendlyMessage = toUserFriendlyApexTestError(error);
+      throw new Error(nls.localize('apex_test_populate_suite_items_failed_message', friendlyMessage));
     }
   }
 
@@ -440,7 +443,8 @@ export class ApexTestController {
         suiteItem.children.add(classItem);
       }
     } catch (error) {
-      throw new Error(nls.localize('apex_test_resolve_suite_children_failed_message', suiteName, String(error)));
+      const friendlyMessage = toUserFriendlyApexTestError(error);
+      throw new Error(nls.localize('apex_test_resolve_suite_children_failed_message', suiteName, friendlyMessage));
     }
   }
 
@@ -562,8 +566,9 @@ export class ApexTestController {
         }
       );
     } catch (error) {
+      const friendlyMessage = toUserFriendlyApexTestError(error);
       for (const test of testsToRun) {
-        run.errored(test, new vscode.TestMessage(String(error)));
+        run.errored(test, new vscode.TestMessage(friendlyMessage));
       }
     } finally {
       run.end();
@@ -621,7 +626,8 @@ export class ApexTestController {
           run.errored(test, new vscode.TestMessage(nls.localize('apex_test_suite_debug_not_supported_message')));
         }
       } catch (error) {
-        run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', String(error))));
+        const friendlyMessage = toUserFriendlyApexTestError(error);
+        run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
       }
     }
 
@@ -630,12 +636,12 @@ export class ApexTestController {
       try {
         await vscode.commands.executeCommand('sf.test.view.debugTests', { name: className });
       } catch (error) {
-        // Find all tests from this class and mark them as errored
+        const friendlyMessage = toUserFriendlyApexTestError(error);
         for (const test of testsToDebug) {
           if (isClass(test.id) && getTestName(test) === className) {
-            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', String(error))));
+            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
           } else if (isMethod(test.id) && extractClassName(test.id) === className) {
-            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', String(error))));
+            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
           }
         }
       }
@@ -772,7 +778,8 @@ export class ApexTestController {
 
       run.end();
     } catch (error) {
-      throw new Error(nls.localize('apex_test_update_results_failed_message', String(error)));
+      const friendlyMessage = toUserFriendlyApexTestError(error);
+      throw new Error(nls.localize('apex_test_update_results_failed_message', friendlyMessage));
     }
   }
 
