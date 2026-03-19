@@ -282,6 +282,10 @@
         {
           "command": "sf.apex.generate.unit.test.class",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.apex.testing.walkthrough.open",
+          "when": "sf:project_opened"
         }
       ]
     },
@@ -329,6 +333,69 @@
       {
         "command": "sf.apex.generate.unit.test.class",
         "title": "%apex_generate_unit_test_class_text%"
+      },
+      {
+        "command": "sf.apex.testing.walkthrough.open",
+        "title": "%apex_testing_walkthrough_open_command%",
+        "category": "%apex_testing_walkthrough_category%"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "sf.apex.testing.explorer",
+        "title": "%apex_testing_walkthrough_title%",
+        "description": "%apex_testing_walkthrough_description%",
+        "when": "sf:project_opened",
+        "steps": [
+          {
+            "id": "discover-org-tests",
+            "title": "%apex_testing_walkthrough_step1_title%",
+            "description": "%apex_testing_walkthrough_step1_description%",
+            "media": {
+              "image": "images/walkthrough/view-tests.png",
+              "altText": "%apex_testing_walkthrough_step1_alt%"
+            },
+            "completionEvents": [
+              "onCommand:workbench.view.extension.test"
+            ]
+          },
+          {
+            "id": "run-class-method",
+            "title": "%apex_testing_walkthrough_step2_title%",
+            "description": "%apex_testing_walkthrough_step2_description%",
+            "media": {
+              "image": "images/walkthrough/run-tests.gif",
+              "altText": "%apex_testing_walkthrough_step2_alt%"
+            }
+          },
+          {
+            "id": "test-suites",
+            "title": "%apex_testing_walkthrough_step3_title%",
+            "description": "%apex_testing_walkthrough_step3_description%",
+            "media": {
+              "image": "images/walkthrough/view-test-suites.png",
+              "altText": "%apex_testing_walkthrough_step3_alt%"
+            }
+          },
+          {
+            "id": "filter-tests",
+            "title": "%apex_testing_walkthrough_step4_title%",
+            "description": "%apex_testing_walkthrough_step4_description%",
+            "media": {
+              "image": "images/walkthrough/filter-tests.gif",
+              "altText": "%apex_testing_walkthrough_step4_alt%"
+            }
+          },
+          {
+            "id": "test-results",
+            "title": "%apex_testing_walkthrough_step5_title%",
+            "description": "%apex_testing_walkthrough_step5_description%",
+            "media": {
+              "image": "images/walkthrough/view-test-results.png",
+              "altText": "%apex_testing_walkthrough_step5_alt%"
+            }
+          }
+        ]
       }
     ],
     "configuration": {
