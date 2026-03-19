@@ -285,8 +285,8 @@
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.metadata.apex.generate.class",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands"
+          "command": "sf.apex.generate.class",
+          "when": "sf:project_opened"
         },
         {
           "command": "sf.metadata.apex.generate.trigger",
@@ -403,6 +403,10 @@
         {
           "command": "sf.metadata.apex.generate.trigger",
           "when": "explorerResourceIsFolder && resourceFilename == triggers && sf:project_opened"
+        },
+        {
+          "command": "sf.apex.generate.class",
+          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
         }
       ]
     },
@@ -436,7 +440,7 @@
         "title": "%reset_remote_tracking_text%"
       },
       {
-        "command": "sf.metadata.apex.generate.class",
+        "command": "sf.apex.generate.class",
         "title": "%apex_generate_class_text%"
       },
       {

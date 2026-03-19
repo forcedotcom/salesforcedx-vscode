@@ -41,7 +41,7 @@ const promptForOutputDir = Effect.fn('soqlFileCreate.promptForOutputDir')(functi
   const selected = yield* Effect.promise(() =>
     vscode.window.showQuickPick(
       [
-        { label: defaultUri.fsPath, description: '(default)', uri: defaultUri },
+        { label: defaultUri.fsPath, description: nls.localize('soql_output_dir_default_description'), uri: defaultUri },
         { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined }
       ],
       {

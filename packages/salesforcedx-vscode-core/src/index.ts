@@ -28,7 +28,6 @@ import { channelService } from './channels';
 import {
   aliasListCommand,
   analyticsGenerateTemplate,
-  apexGenerateClass,
   configList,
   deleteSource,
   deployManifest,
@@ -95,7 +94,6 @@ const registerSharedCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
     vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
     vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
-    vscode.commands.registerCommand('sf.apex.generate.class', apexGenerateClass),
     vscode.commands.registerCommand('sf.delete.source', deleteSource),
     vscode.commands.registerCommand('sf.delete.source.current.file', deleteSource),
     vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
@@ -261,17 +259,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     CommandEventDispatcher.getInstance()
   );
 
-  if (
-    metadataExtension &&
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (metadataExtension && workspaceFolders?.length) {
     // Refresh SObject definitions if there aren't any faux classes (metadata ext registers the command)
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
-    await initSObjectDefinitions(vscode.workspace.workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
+    await initSObjectDefinitions(workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
   }
 
   void activateTracker.markActivationStop();

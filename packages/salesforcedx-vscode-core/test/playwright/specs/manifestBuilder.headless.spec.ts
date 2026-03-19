@@ -10,6 +10,7 @@ import * as path from 'node:path';
 import { test } from '../fixtures';
 import {
   setupConsoleMonitoring,
+  createApexClass,
   openFileByName,
   executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
@@ -23,7 +24,6 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
-import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
 const MANIFEST_XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -43,7 +43,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     await setupWorkbenchSettingsAndOutputChannel(page);
 
     // Create an apex class to include in the manifest
-    await createApexClassCore(page, `ManifestTest${Date.now()}`);
+    await createApexClass(page, `ManifestTest${Date.now()}`);
     await saveScreenshot(page, 'setup.class-created.png');
   });
 

@@ -49,9 +49,9 @@ const promptForComponentName = Effect.fn('promptForComponentName')(function* () 
       prompt: nls.localize('lwc_component_name_prompt'),
       placeHolder: nls.localize('lwc_component_name_placeholder'),
       validateInput: (value: string) => {
-        if (!value || value.trim().length === 0) return 'Component name cannot be empty';
+        if (!value || value.trim().length === 0) return nls.localize('lwc_component_name_empty_error');
         if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value))
-          return 'Component name must start with a letter and contain only alphanumeric characters and underscores';
+          return nls.localize('lwc_component_name_format_error');
         return undefined;
       }
     })

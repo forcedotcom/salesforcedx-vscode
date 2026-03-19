@@ -55,32 +55,7 @@ describe('Templates', () => {
     projectName = testSetup.tempProjectName;
   });
 
-  // Apex Class
-  it('Create an Apex Class', async () => {
-    logTestStart(testSetup, 'Create an Apex Class');
-    // Using the Command palette, run SFDX: Create Apex Class.
-    await createCommand('Apex Class', 'ApexClass1', 'classes', 'cls');
-
-    // Check for expected items in the Explorer view.
-    const workbench = getWorkbench();
-
-    // Get the matching (visible) items within the tree which contains "ApexClass1".
-    const filteredTreeViewItems = await getFilteredVisibleTreeViewItemLabels(workbench, projectName, 'ApexClass1');
-
-    expect(filteredTreeViewItems.includes('ApexClass1.cls')).to.equal(true);
-    expect(filteredTreeViewItems.includes('ApexClass1.cls-meta.xml')).to.equal(true);
-  });
-
-  it('Verify the contents of the Apex Class', async () => {
-    logTestStart(testSetup, 'Verify the contents of the Apex Class');
-    const expectedText = ['public with sharing class ApexClass1 {', '    public ApexClass1() {', '', '    }', '}'].join(
-      '\n'
-    );
-    const workbench = getWorkbench();
-    const textEditor = await getTextEditor(workbench, 'ApexClass1.cls');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
-    expect(textGeneratedFromTemplate).to.equal(expectedText);
-  });
+  // Apex Class is covered in apexGenerateClass.headless.spec.ts (salesforcedx-vscode-metadata)
 
   // Apex Unit Test Class is covered in apexTestClassCreate.headless.spec.ts
   // Apex Trigger creation is covered in salesforcedx-vscode-metadata createApexTrigger.headless.spec.ts

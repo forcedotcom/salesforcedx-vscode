@@ -21,15 +21,12 @@ export { projectDeployStart } from './projectDeployStart';
 export {
   nativemobileProjectGenerate,
   projectGenerateWithManifest,
-  ProjectGenerateArgs,
-  ProjectTemplate,
   sfProjectGenerate
 } from './projectGenerate';
 export { projectRetrieveStart } from './projectRetrieveStart';
 export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/viewChanges';
 export {
   analyticsGenerateTemplate,
-  apexGenerateClass,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,

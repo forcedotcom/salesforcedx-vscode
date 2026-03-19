@@ -20,7 +20,7 @@ import {
 import packageNls from '../../../package.nls.json';
 
 (isDesktop() ? emptyWorkspaceDesktopTest : emptyWorkspaceDesktopTest.skip.bind(emptyWorkspaceDesktopTest))(
-  'No project: LWC create and deploy/retrieve/delete commands hidden',
+  'No project: LWC/Apex create and deploy/retrieve/delete commands hidden',
   async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
@@ -32,8 +32,9 @@ import packageNls from '../../../package.nls.json';
       await ensureSecondarySideBarHidden(page);
     });
 
-    await emptyWorkspaceDesktopTest.step('verify LWC create and Apex trigger create do not exist', async () => {
+    await emptyWorkspaceDesktopTest.step('verify tempaltes commands do not exist', async () => {
       await verifyCommandDoesNotExist(page, packageNls.lightning_generate_lwc_text);
+      await verifyCommandDoesNotExist(page, packageNls.apex_generate_class_text);
       await verifyCommandDoesNotExist(page, packageNls.apex_generate_trigger_text);
     });
 

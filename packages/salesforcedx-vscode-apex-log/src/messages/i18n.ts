@@ -6,6 +6,9 @@
  */
 
 export const messages = {
+  create_script_name_empty_error: 'Script name cannot be empty',
+  create_script_name_format_error:
+    'Name must start with a letter and contain only letters, numbers, and underscores',
   create_script_name_prompt: 'Enter script name',
   create_script_name_placeholder: 'Anonymous',
   create_script_already_exists: 'File already exists. Overwrite?',

@@ -29,7 +29,12 @@ import { sourceDiffCommand } from './commands/sourceDiff';
 import { CORE_CONFIG_SECTION, EXTENSION_NAME, DEPLOY_ON_SAVE_ENABLED } from './constants';
 import { getShowSharedCommands, watchUseMetadataExtensionCommands } from './services/configWatcher';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
-import { AllServicesLayer, buildAllServicesLayer, getMetadataRuntime, setAllServicesLayer } from './services/extensionProvider';
+import {
+  AllServicesLayer,
+  buildAllServicesLayer,
+  getMetadataRuntime,
+  setAllServicesLayer
+} from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
@@ -58,7 +63,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.all(
     [
       svc.appendToChannel('Registering metadata commands'),
-      registerCommand('sf.metadata.apex.generate.class', createApexClassCommand),
+      registerCommand('sf.apex.generate.class', createApexClassCommand),
       registerCommand('sf.metadata.apex.generate.trigger', createApexTriggerCommand),
       registerCommand('sf.metadata.lightning.generate.lwc', createLwcCommand),
       registerCommand('sf.metadata.delete.source', (sourceUri?: URI, uris?: URI[]) =>
@@ -89,9 +94,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       registerCommand('sf.metadata.view.all.changes', () => viewChangesCommand({ local: true, remote: true })),
       registerCommand('sf.metadata.view.local.changes', () => viewChangesCommand({ local: true, remote: false })),
       registerCommand('sf.metadata.view.remote.changes', () => viewChangesCommand({ local: false, remote: true })),
-      registerCommand('sf.internal.refreshsobjects', (source?: SObjectRefreshSource) =>
-        refreshSObjectsCommand(source)
-      )
+      registerCommand('sf.internal.refreshsobjects', (source?: SObjectRefreshSource) => refreshSObjectsCommand(source))
     ],
     { concurrency: 'unbounded' }
   );

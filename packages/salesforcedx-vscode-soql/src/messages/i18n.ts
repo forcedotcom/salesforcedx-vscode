@@ -57,6 +57,7 @@ export const messages = {
   data_query_table_title: 'Query Results',
   soql_file_name_prompt: 'Enter a name for the new SOQL file',
   soql_file_name_invalid: 'File name must start with a letter or underscore and contain only alphanumeric characters, underscores, or hyphens',
+  soql_output_dir_default_description: '(default)',
   soql_output_dir_prompt: 'Select the target directory',
   soql_custom_output_directory: 'Choose a Custom Directory',
   soql_file_already_exists: 'A file with that name already exists. Overwrite?',
