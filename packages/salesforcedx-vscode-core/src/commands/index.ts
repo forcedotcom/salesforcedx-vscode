@@ -21,8 +21,6 @@ export { projectDeployStart } from './projectDeployStart';
 export {
   nativemobileProjectGenerate,
   projectGenerateWithManifest,
-  ProjectGenerateArgs,
-  ProjectTemplate,
   sfProjectGenerate
 } from './projectGenerate';
 export { projectRetrieveStart } from './projectRetrieveStart';
