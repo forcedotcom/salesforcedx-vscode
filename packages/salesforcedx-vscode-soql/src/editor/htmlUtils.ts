@@ -9,65 +9,47 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 
 /**
- * The index.html file in the dist folder of the @salesforce/soql-builder-ui
- * is built by webpack to be displayed in a normal web context.  however, vscode
- * uses a custom protocol ( vscode-webview-resource instead of http ) to load resources
- * so the html needs to be manipulated dynamcially to run inside of vscode.
+ * Matches webpack-generated script tags like:
+ * <script defer="defer" src="./0.app.js"></script>
+ * Captures the filename as group[1].
  */
-export class HtmlUtils {
-  /**
-   * This regex will match tags in a string like this
-   * <script defer="defer" src="./0.app.js"></script><script defer="defer" src="./app.js"></script>
-   * And store just the filename section of the script tag as group[1]
-   */
-  protected static readonly scriptRegex = /script defer="defer"\ssrc="\.\/(?<app>[^"]*app.js)"/g;
+const scriptRegex = /script defer="defer"\ssrc="\.\/(?<app>[^"]*app.js)"/g;
 
-  /**
-   *
-   * @param html
-   * @param pathToLwcDist
-   * @param webview
-   */
-  public static transformHtml(html: string, lwcDistUri: URI, webview: vscode.Webview): string {
-    return HtmlUtils.replaceCspMetaTag(HtmlUtils.transformScriptTags(html, lwcDistUri, webview), webview);
+/**
+ * Transforms index.html from @salesforce/soql-builder-ui (built for normal web context)
+ * to work inside VS Code, which uses vscode-webview-resource instead of http to load resources.
+ */
+export const transformHtml = (html: string, lwcDistUri: URI, webview: vscode.Webview): string =>
+  replaceCspMetaTag(transformScriptTags(html, lwcDistUri, webview), webview);
+
+/**
+ * Replaces relative webpack script paths with vscode-webview-resource URIs.
+ *
+ * Initial html script tags look like this
+ * <script defer="defer" src="./0.app.js"></script><script defer="defer" src="./app.js"></script>
+ *
+ * Each matched script tag gets transformed into a vscode specific url
+ * <script src="vscode-webview-resource:0.app.js"><script src="vscode-webview-resource:app.js">
+ *
+ * Since we don't know how many bundles webpack will produce in the dist directory, we regex match and
+ * replace them in a while loop.
+ */
+const transformScriptTags = (html: string, lwcDistUri: URI, webview: vscode.Webview): string => {
+  let matches: string[] | null;
+  let newScriptSrc: URI;
+  while ((matches = scriptRegex.exec(html)) !== null) {
+    newScriptSrc = webview.asWebviewUri(Utils.joinPath(lwcDistUri, matches[1]));
+    // eslint-disable-next-line no-param-reassign
+    html = html.replace(`./${matches[1]}`, newScriptSrc.toString());
   }
+  return html;
+};
 
-  /**
-   * This section replaces the relative file paths that are produced by
-   * webpack in the build in the dist folder with the protocol that
-   * vscode uses internally.
-   *
-   * Initial html script tags look like this
-   * <script defer="defer" src="./0.app.js"></script><script defer="defer" src="./app.js"></script>
-   *
-   * Each matched script tag gets transformed into into a vscode specific url
-   * <script src="vscode-webview-resource:0.app.js"><script src="vscode-webview-resource:app.js">
-   *
-   * Since we don't know how many bundles webpack will produce in the dist directory, we regex match and
-   * replace them in a while loop.
-   *
-   * @param html
-   * @param pathToLwcDist
-   * @param webview
-   */
-  public static transformScriptTags(html: string, lwcDistUri: URI, webview: vscode.Webview): string {
-    let matches: string[] | null;
-    let newScriptSrc: URI;
-    while ((matches = HtmlUtils.scriptRegex.exec(html)) !== null) {
-      newScriptSrc = webview.asWebviewUri(Utils.joinPath(lwcDistUri, matches[1]));
-      // eslint-disable-next-line no-param-reassign
-      html = html.replace(`./${matches[1]}`, newScriptSrc.toString());
-    }
-    return html;
-  }
-
-  /**
-   * This method adds stricter CSP for displaying this webview inside of VSCode
-   * @param html
-   * @param webview
-   */
-  public static replaceCspMetaTag(html: string, webview: vscode.Webview): string {
-    const cspMetaTag = `<meta
+/**
+ * Adds stricter CSP for displaying this webview inside of VSCode.
+ */
+export const replaceCspMetaTag = (html: string, webview: vscode.Webview): string => {
+  const cspMetaTag = `<meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self';
       img-src ${webview.cspSource};
@@ -75,6 +57,5 @@ export class HtmlUtils {
       style-src 'unsafe-inline' ${webview.cspSource};"
     />`;
 
-    return html.replace('<!-- CSP TAG -->', cspMetaTag);
-  }
-}
+  return html.replace('<!-- CSP TAG -->', cspMetaTag);
+};
