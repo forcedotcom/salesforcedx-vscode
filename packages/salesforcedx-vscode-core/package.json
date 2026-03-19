@@ -32,7 +32,7 @@
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/source-deploy-retrieve": "^12.31.12",
+    "@salesforce/source-deploy-retrieve": "^12.31.22",
     "@salesforce/source-tracking": "^7.8.1",
     "@salesforce/templates": "^66.4.2",
     "@salesforce/ts-types": "2.0.12",

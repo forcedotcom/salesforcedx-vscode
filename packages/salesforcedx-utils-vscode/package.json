@@ -28,7 +28,7 @@
     "zod": "^4.3.2"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve": "^12.31.12"
+    "@salesforce/source-deploy-retrieve": "^12.31.22"
   },
   "engines": {
     "vscode": "^1.90.0"
