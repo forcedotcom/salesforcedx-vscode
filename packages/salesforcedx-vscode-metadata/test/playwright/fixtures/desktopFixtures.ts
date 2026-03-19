@@ -18,3 +18,4 @@ export const dreamhouseDesktopTest = createDesktopTest({
   orgAlias: DREAMHOUSE_ORG_ALIAS
 });
 export const nonTrackingDesktopTest = createDesktopTest({ fixturesDir: __dirname, orgAlias: NON_TRACKING_ORG_ALIAS });
+export const emptyWorkspaceDesktopTest = createDesktopTest({ fixturesDir: __dirname, emptyWorkspace: true });

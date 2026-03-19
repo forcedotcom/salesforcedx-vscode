@@ -15,7 +15,7 @@ import * as path from 'node:path';
 
 import { filterErrors } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
-import { createTestWorkspace } from './desktopWorkspace';
+import { createEmptyTestWorkspace, createTestWorkspace } from './desktopWorkspace';
 
 /** Close timeout before force-kill (non-macOS-CI path). */
 const CLOSE_TIMEOUT_MS = 5000;
@@ -40,6 +40,8 @@ type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
   orgAlias?: string;
+  /** When true, use empty workspace (no sfdx-project.json). Default false. */
+  emptyWorkspace?: boolean;
   /** Additional extension directory names to load (ex: ['salesforcedx-vscode-metadata'] for apex-testing "SFDX: Create Apex Class") */
   additionalExtensionDirs?: string[];
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
@@ -50,7 +52,14 @@ type CreateDesktopTestOptions = {
 
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
 export const createDesktopTest = (options: CreateDesktopTestOptions) => {
-  const { fixturesDir, orgAlias, additionalExtensionDirs = [], disableOtherExtensions = true, userSettings } = options;
+  const {
+    fixturesDir,
+    orgAlias,
+    emptyWorkspace = false,
+    additionalExtensionDirs = [],
+    disableOtherExtensions = true,
+    userSettings
+  } = options;
 
   const test = base.extend<TestFixtures, WorkerFixtures>({
     // Download VS Code once per worker (cached at repo root .vscode-test/)
@@ -67,7 +76,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
 
     // Create workspace directory (shared with electronApp so tests can access path)
     workspaceDir: async ({}, use): Promise<void> => {
-      const dir = await createTestWorkspace(orgAlias);
+      const dir = emptyWorkspace ? await createEmptyTestWorkspace() : await createTestWorkspace(orgAlias);
       await use(dir);
     },
 
