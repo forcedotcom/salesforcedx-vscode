@@ -63,7 +63,7 @@ export const messages = {
   data_query_error_tooling_not_found:
     "The requested metadata was not found. This may be because it doesn't exist or you don't have access to it.",
   data_query_open_file: 'Open File',
-  data_query_running_query: 'Running query...',
+  data_query_running_query: 'Running query with %s...',
   data_query_warning_limit:
     'Warning: The query result is missing %d records due to a %d record limit. Increase the number of records returned by setting the config value "org-max-query-limit" or the environment variable "SF_ORG_MAX_QUERY_LIMIT" to %d or greater than %d.',
   data_query_complete: 'Query complete with %d records returned',
@@ -81,7 +81,7 @@ export const messages = {
   tooling_API: 'Tooling API',
   tooling_API_description: 'Use Tooling API to execute the query',
   query_plan_selection_text: 'SFDX: Get SOQL Query Plan with Currently Selected Text',
-  query_plan_running: 'Fetching query plan...',
+  query_plan_running: 'Fetching query plan with %s...',
   query_plan_complete: 'Query plan retrieved successfully'
 } as const;
 

@@ -11,7 +11,12 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { channelService } from '../services/channel';
 import { getConnection } from '../services/org';
-import { formatErrorMessage, GetDocumentQueryAndApiInputs, GetQueryAndApiInputs, QueryAndApiInputs } from './queryUtils';
+import {
+  formatErrorMessage,
+  GetDocumentQueryInputsForPlan,
+  GetQueryInputsForPlan,
+  QueryInputs
+} from './queryUtils';
 
 type QueryPlanNote = {
   description: string;
@@ -33,7 +38,7 @@ type QueryPlanResponse = {
   plans: QueryPlanEntry[];
 };
 
-export const formatQueryPlanResults = (response: QueryPlanResponse): string => {
+const formatQueryPlanResults = (response: QueryPlanResponse): string => {
   const { plans } = response;
 
   if (!plans?.length) {
@@ -61,14 +66,16 @@ export const formatQueryPlanResults = (response: QueryPlanResponse): string => {
   const table = createTable(rows, columns, nls.localize('query_plan_table_title'));
 
   const seenNotes = new Set<string>();
-  const allNotes = plans.flatMap(plan => plan.notes ?? []).filter(note => {
-    const key = `${note.description}|${note.tableEnumOrId}|${note.fields.join(',')}`;
-    if (seenNotes.has(key)) {
-      return false;
-    }
-    seenNotes.add(key);
-    return true;
-  });
+  const allNotes = plans
+    .flatMap(plan => plan.notes ?? [])
+    .filter(note => {
+      const key = `${note.description}|${note.tableEnumOrId}|${note.fields.join(',')}`;
+      if (seenNotes.has(key)) {
+        return false;
+      }
+      seenNotes.add(key);
+      return true;
+    });
   if (allNotes.length === 0) {
     return table;
   }
@@ -81,23 +88,20 @@ export const formatQueryPlanResults = (response: QueryPlanResponse): string => {
 };
 
 class QueryPlanExecutor {
-  public async execute(response: ContinueResponse<QueryAndApiInputs>): Promise<void> {
+  public async execute(response: ContinueResponse<QueryInputs>): Promise<void> {
     if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
       channelService.clear();
     }
 
-    const { query, api } = response.data;
+    const { query } = response.data;
 
     try {
       const connection = await getConnection();
-      channelService.appendLine(nls.localize('query_plan_running'));
+      channelService.appendLine(nls.localize('query_plan_running', nls.localize('REST_API')));
 
       const apiVersion = connection.getApiVersion();
       const encodedQuery = encodeURIComponent(query);
-      const path =
-        api === 'TOOLING'
-          ? `/services/data/v${apiVersion}/tooling/query?explain=${encodedQuery}`
-          : `/services/data/v${apiVersion}/query?explain=${encodedQuery}`;
+      const path = `/services/data/v${apiVersion}/query?explain=${encodedQuery}`;
 
       const result = await connection.request<QueryPlanResponse>(path);
       channelService.appendLine(`\n${formatQueryPlanResults(result)}\n`);
@@ -111,14 +115,18 @@ class QueryPlanExecutor {
 }
 
 export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
-  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new GetQueryAndApiInputs(), new QueryPlanExecutor());
+  const commandlet = new SfCommandlet(
+    sfProjectPreconditionChecker,
+    new GetQueryInputsForPlan(),
+    new QueryPlanExecutor()
+  );
   yield* Effect.promise(() => commandlet.run());
 });
 
 export const queryPlanDocument = Effect.fn('sf.data.query.explain.document')(function* () {
   const commandlet = new SfCommandlet(
     sfProjectPreconditionChecker,
-    new GetDocumentQueryAndApiInputs(),
+    new GetDocumentQueryInputsForPlan(),
     new QueryPlanExecutor()
   );
   yield* Effect.promise(() => commandlet.run());

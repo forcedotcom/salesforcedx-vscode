@@ -13,53 +13,39 @@ export type QueryAndApiInputs = {
   api: 'REST' | 'TOOLING';
 };
 
+export type QueryInputs = { query: string };
+
+const API_ITEMS = [
+  { api: 'REST' as const, label: nls.localize('REST_API'), description: nls.localize('REST_API_description') },
+  { api: 'TOOLING' as const, label: nls.localize('tooling_API'), description: nls.localize('tooling_API_description') }
+];
+
+const INPUT_BOX_OPTIONS: vscode.InputBoxOptions = {
+  prompt: nls.localize('parameter_gatherer_enter_soql_query')
+};
+
+const normalizeQuery = (q: string): string =>
+  q.replace('[', '').replace(']', '').replaceAll(/(\r\n|\n)/g, ' ').trim();
+
+const pickApiForQuery = async (
+  query: string
+): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> => {
+  const selection = await vscode.window.showQuickPick(API_ITEMS);
+  return selection ? { type: 'CONTINUE', data: { query, api: selection.api } } : { type: 'CANCEL' };
+};
+
 export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
     const editor = vscode.window.activeTextEditor;
-
-    let query;
-
-    if (!editor) {
-      const userInputOptions: vscode.InputBoxOptions = {
-        prompt: nls.localize('parameter_gatherer_enter_soql_query')
-      };
-      query = await vscode.window.showInputBox(userInputOptions);
-    } else {
-      const document = editor.document;
-      if (editor.selection.isEmpty) {
-        const userInputOptions: vscode.InputBoxOptions = {
-          prompt: nls.localize('parameter_gatherer_enter_soql_query')
-        };
-        query = await vscode.window.showInputBox(userInputOptions);
-      } else {
-        query = document.getText(editor.selection);
-      }
-    }
+    const query = !editor
+      ? await vscode.window.showInputBox(INPUT_BOX_OPTIONS)
+      : editor.selection.isEmpty
+        ? await vscode.window.showInputBox(INPUT_BOX_OPTIONS)
+        : editor.document.getText(editor.selection);
     if (!query) {
       return { type: 'CANCEL' };
     }
-
-    query = query
-      .replace('[', '')
-      .replace(']', '')
-      .replaceAll(/(\r\n|\n)/g, ' ');
-
-    const restApi = {
-      api: 'REST' as const,
-      label: nls.localize('REST_API'),
-      description: nls.localize('REST_API_description')
-    };
-
-    const toolingApi = {
-      api: 'TOOLING' as const,
-      label: nls.localize('tooling_API'),
-      description: nls.localize('tooling_API_description')
-    };
-
-    const apiItems = [restApi, toolingApi];
-    const selection = await vscode.window.showQuickPick(apiItems);
-
-    return selection ? { type: 'CONTINUE', data: { query, api: selection.api } } : { type: 'CANCEL' };
+    return pickApiForQuery(normalizeQuery(query));
   }
 }
 
@@ -69,75 +55,54 @@ export class GetDocumentQueryAndApiInputs implements ParametersGatherer<QueryAnd
     if (!editor) {
       return { type: 'CANCEL' };
     }
-
-    const query = editor.document.getText().replaceAll(/(\r\n|\n)/g, ' ').trim();
-    if (!query) {
-      return { type: 'CANCEL' };
-    }
-
-    const restApi = {
-      api: 'REST' as const,
-      label: nls.localize('REST_API'),
-      description: nls.localize('REST_API_description')
-    };
-
-    const toolingApi = {
-      api: 'TOOLING' as const,
-      label: nls.localize('tooling_API'),
-      description: nls.localize('tooling_API_description')
-    };
-
-    const selection = await vscode.window.showQuickPick([restApi, toolingApi]);
-    return selection ? { type: 'CONTINUE', data: { query, api: selection.api } } : { type: 'CANCEL' };
+    const query = normalizeQuery(editor.document.getText());
+    return query ? pickApiForQuery(query) : { type: 'CANCEL' };
   }
 }
 
+export class GetQueryInputsForPlan implements ParametersGatherer<QueryInputs> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<QueryInputs>> {
+    const editor = vscode.window.activeTextEditor;
+    const query = !editor
+      ? await vscode.window.showInputBox(INPUT_BOX_OPTIONS)
+      : editor.selection.isEmpty
+        ? await vscode.window.showInputBox(INPUT_BOX_OPTIONS)
+        : editor.document.getText(editor.selection);
+    return query ? { type: 'CONTINUE', data: { query: normalizeQuery(query) } } : { type: 'CANCEL' };
+  }
+}
+
+export class GetDocumentQueryInputsForPlan implements ParametersGatherer<QueryInputs> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<QueryInputs>> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return { type: 'CANCEL' };
+    }
+    const query = normalizeQuery(editor.document.getText());
+    return query ? { type: 'CONTINUE', data: { query } } : { type: 'CANCEL' };
+  }
+}
+
+const ERROR_PATTERNS = [
+  { match: (s: string) => s.includes('HTTP response contains html content'), key: 'data_query_error_org_expired' },
+  { match: (s: string) => s.includes('INVALID_SESSION_ID'), key: 'data_query_error_session_expired' },
+  { match: (s: string) => s.includes('INVALID_LOGIN'), key: 'data_query_error_invalid_login' },
+  { match: (s: string) => s.includes('INSUFFICIENT_ACCESS'), key: 'data_query_error_insufficient_access' },
+  { match: (s: string) => s.includes('MALFORMED_QUERY'), key: 'data_query_error_malformed_query' },
+  { match: (s: string) => s.includes('INVALID_FIELD'), key: 'data_query_error_invalid_field' },
+  { match: (s: string) => s.includes('INVALID_TYPE'), key: 'data_query_error_invalid_type' },
+  { match: (s: string) => s.includes('connection') || s.includes('network'), key: 'data_query_error_connection' },
+  { match: (s: string) => s.includes('tooling') && s.includes('not found'), key: 'data_query_error_tooling_not_found' }
+] as const;
+
 /** Formats error messages for better user experience */
 export const formatErrorMessage = (error: unknown): string => {
-  let errorString: string;
-  if (error instanceof Error) {
-    errorString = error.message;
-  } else if (error && typeof error === 'object' && 'message' in error) {
-    errorString = String(error.message);
-  } else {
-    errorString = String(error);
-  }
-
-  if (errorString.includes('HTTP response contains html content')) {
-    return nls.localize('data_query_error_org_expired');
-  }
-
-  if (errorString.includes('INVALID_SESSION_ID')) {
-    return nls.localize('data_query_error_session_expired');
-  }
-
-  if (errorString.includes('INVALID_LOGIN')) {
-    return nls.localize('data_query_error_invalid_login');
-  }
-
-  if (errorString.includes('INSUFFICIENT_ACCESS')) {
-    return nls.localize('data_query_error_insufficient_access');
-  }
-
-  if (errorString.includes('MALFORMED_QUERY')) {
-    return nls.localize('data_query_error_malformed_query');
-  }
-
-  if (errorString.includes('INVALID_FIELD')) {
-    return nls.localize('data_query_error_invalid_field');
-  }
-
-  if (errorString.includes('INVALID_TYPE')) {
-    return nls.localize('data_query_error_invalid_type');
-  }
-
-  if (errorString.includes('connection') || errorString.includes('network')) {
-    return nls.localize('data_query_error_connection');
-  }
-
-  if (errorString.includes('tooling') && errorString.includes('not found')) {
-    return nls.localize('data_query_error_tooling_not_found');
-  }
-
-  return nls.localize('data_query_error_message', errorString);
+  const errorString =
+    error instanceof Error
+      ? error.message
+      : error && typeof error === 'object' && 'message' in error
+        ? String(error.message)
+        : String(error);
+  const matched = ERROR_PATTERNS.find(({ match }) => match(errorString));
+  return matched ? nls.localize(matched.key) : nls.localize('data_query_error_message', errorString);
 };
