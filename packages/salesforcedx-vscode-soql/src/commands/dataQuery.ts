@@ -161,12 +161,11 @@ export const generateTableOutput = (records: QueryResult['records'], title: stri
     label: field
   }));
 
-  const rows: Row[] = records.filter(isRecord).map(record => {
-    const flattenedRecord = flattenRecord(record);
-    return Object.fromEntries(
-      flattenedFields.map(field => [field, formatFieldValueForDisplay(flattenedRecord[field])])
-    );
-  });
+  const rows: Row[] = records.filter(isRecord).flatMap(record =>
+    flattenRecord(record).map(flattenedRecord =>
+      Object.fromEntries(flattenedFields.map(field => [field, formatFieldValueForDisplay(flattenedRecord[field])]))
+    )
+  );
 
   return createTable(rows, columns, title);
 };
@@ -174,29 +173,79 @@ export const generateTableOutput = (records: QueryResult['records'], title: stri
 const isRecord = (record: unknown): record is Record<string, unknown> =>
   Boolean(record) && typeof record === 'object' && !Array.isArray(record);
 
-/** Flattens a record by converting nested objects to dot notation field names */
-const flattenRecord = (record: Record<string, unknown>): Record<string, unknown> => {
-  const flattened: Record<string, unknown> = {};
+/** Checks if a value is a Salesforce sub-query result (e.g. SELECT … FROM Contacts) */
+const isSubQueryResult = (
+  value: unknown
+): value is { totalSize: number; done: boolean; records: unknown[] } => {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    typeof value.totalSize === 'number' &&
+    typeof value.done === 'boolean' &&
+    Array.isArray(value.records)
+  );
+};
+
+/**
+ * Flattens a record into one or more rows.
+ * Sub-query results are expanded: each sub-record produces a separate output row
+ * that repeats the parent fields (denormalized, like a JOIN).
+ * When a sub-query has no records the parent row is still emitted with empty sub-columns.
+ */
+const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>[] => {
+  const baseRow: Record<string, unknown> = {};
+  const subQueryExpansions: Record<string, unknown>[][] = [];
 
   for (const [key, value] of Object.entries(record)) {
     if (key === 'attributes') {
-      continue; // Skip attributes field
+      continue;
     }
 
-    if (isRecord(value)) {
-      // Flatten nested object
+    if (isSubQueryResult(value)) {
+      if (value.records.length > 0) {
+        const expandedRows = value.records.filter(isRecord).map(subRecord => {
+          const row: Record<string, unknown> = {};
+          for (const [subKey, subValue] of Object.entries(subRecord)) {
+            if (subKey !== 'attributes') {
+              row[`${key}.${subKey}`] = subValue;
+            }
+          }
+          return row;
+        });
+        subQueryExpansions.push(expandedRows);
+      }
+      // When totalSize === 0 no expansion is pushed; the parent row is emitted as-is
+      // with undefined sub-columns, which display as empty strings.
+    } else if (isRecord(value)) {
+      // Flatten relationship objects into dot-notation columns
       for (const [nestedKey, nestedValue] of Object.entries(value)) {
         if (nestedKey !== 'attributes') {
-          flattened[`${key}.${nestedKey}`] = nestedValue;
+          baseRow[`${key}.${nestedKey}`] = nestedValue;
         }
       }
     } else {
-      // Keep primitive values as-is
-      flattened[key] = value;
+      baseRow[key] = value;
     }
   }
 
-  return flattened;
+  if (subQueryExpansions.length === 0) {
+    return [baseRow];
+  }
+
+  // Cross-product of all sub-query expansions merged with the base row.
+  // Multiple sub-queries in a single SELECT are rare but handled correctly.
+  let rows: Record<string, unknown>[] = [baseRow];
+  for (const expansion of subQueryExpansions) {
+    const next: Record<string, unknown>[] = [];
+    for (const existing of rows) {
+      for (const expanded of expansion) {
+        next.push({ ...existing, ...expanded });
+      }
+    }
+    rows = next;
+  }
+  return rows;
 };
 
 /**
@@ -204,16 +253,17 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
  * Preserves the original SELECT column order, including fields whose value is null
  * in early records (e.g. AnnualRevenue = null).
  *
- * Pass 1: build a stable base key order from all records (including null-valued fields)
- * and identify which keys are relationship objects in any record.
- * Pass 2: for each base key, expand relationship keys into dot-notation sub-fields
- * or emit plain keys as-is.
+ * Pass 1: build a stable base key order from all records and identify which keys
+ * are relationship objects or sub-query results.
+ * Pass 2: for each base key, expand relationship/sub-query keys into dot-notation
+ * sub-fields, or emit plain keys as-is.
  */
 const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => {
-  // Pass 1: stable key order + relationship detection
+  // Pass 1: stable key order + relationship/sub-query detection
   const baseOrder: string[] = [];
   const seenBase = new Set<string>();
   const relationshipKeys = new Set<string>();
+  const subQueryKeys = new Set<string>();
 
   for (const record of records) {
     for (const [key, value] of Object.entries(record)) {
@@ -224,37 +274,55 @@ const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => 
         baseOrder.push(key);
         seenBase.add(key);
       }
-      if (isRecord(value)) {
+      if (isSubQueryResult(value)) {
+        subQueryKeys.add(key);
+      } else if (isRecord(value)) {
         relationshipKeys.add(key);
       }
     }
   }
 
-  // Pass 2: expand relationship keys; emit plain keys as-is
+  // Pass 2: expand relationship/sub-query keys; emit plain keys as-is
   const fieldOrder: string[] = [];
   const seenFields = new Set<string>();
 
+  const addField = (name: string): void => {
+    if (!seenFields.has(name)) {
+      fieldOrder.push(name);
+      seenFields.add(name);
+    }
+  };
+
   for (const key of baseOrder) {
-    if (relationshipKeys.has(key)) {
+    if (subQueryKeys.has(key)) {
+      // Expand sub-record fields from every sub-query result for this key
       for (const record of records) {
         const value = record[key];
-        if (isRecord(value)) {
-          for (const nestedKey of Object.keys(value)) {
-            if (nestedKey !== 'attributes') {
-              const fieldName = `${key}.${nestedKey}`;
-              if (!seenFields.has(fieldName)) {
-                fieldOrder.push(fieldName);
-                seenFields.add(fieldName);
+        if (isSubQueryResult(value)) {
+          for (const subRecord of value.records) {
+            if (isRecord(subRecord)) {
+              for (const subKey of Object.keys(subRecord)) {
+                if (subKey !== 'attributes') {
+                  addField(`${key}.${subKey}`);
+                }
               }
             }
           }
         }
       }
-    } else {
-      if (!seenFields.has(key)) {
-        fieldOrder.push(key);
-        seenFields.add(key);
+    } else if (relationshipKeys.has(key)) {
+      for (const record of records) {
+        const value = record[key];
+        if (isRecord(value)) {
+          for (const nestedKey of Object.keys(value)) {
+            if (nestedKey !== 'attributes') {
+              addField(`${key}.${nestedKey}`);
+            }
+          }
+        }
       }
+    } else {
+      addField(key);
     }
   }
 

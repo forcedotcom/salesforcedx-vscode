@@ -453,6 +453,55 @@ describe('DataQuery Pure Functions', () => {
       expect(output).not.toContain('EmptyRelation'); // Empty objects should not create columns
     });
 
+    it('should expand sub-query records into separate rows with prefixed columns', () => {
+      const records = [
+        {
+          Id: '001Rt00001iD52NIAS',
+          Name: 'Account10001',
+          Contacts: { totalSize: 2, done: true, records: [{ Id: '003a', Name: 'Con1' }, { Id: '003b', Name: 'Con2' }] }
+        }
+      ];
+      const output = generateTableOutput(records, 'Test Table');
+
+      // Column headers
+      expect(output).toContain('Contacts.Id');
+      expect(output).toContain('Contacts.Name');
+      // Both sub-records appear as separate rows
+      expect(output).toContain('003a');
+      expect(output).toContain('Con1');
+      expect(output).toContain('003b');
+      expect(output).toContain('Con2');
+      // Parent fields repeat on each row
+      expect(output.match(/001Rt00001iD52NIAS/g)?.length).toBe(2);
+      // No leftover internal sub-query fields
+      expect(output).not.toContain('Contacts.totalSize');
+      expect(output).not.toContain('Contacts.done');
+      expect(output).not.toContain('Contacts.records');
+      expect(output).not.toContain('[object Object]');
+    });
+
+    it('should emit the parent row with empty sub-columns when a sub-query has no records', () => {
+      const records = [
+        { Id: '001a', Name: 'No Contacts', Contacts: { totalSize: 0, done: true, records: [] } },
+        {
+          Id: '001b',
+          Name: 'Has Contacts',
+          Contacts: { totalSize: 1, done: true, records: [{ Id: '003a', Name: 'Con1' }] }
+        }
+      ];
+      const output = generateTableOutput(records, 'Test Table');
+
+      expect(output).toContain('Contacts.Id');
+      expect(output).toContain('Contacts.Name');
+      expect(output).toContain('No Contacts'); // parent row still appears
+      expect(output).toContain('003a');
+      expect(output).toContain('Con1');
+      expect(output).not.toContain('Contacts.totalSize');
+      expect(output).not.toContain('Contacts.done');
+      expect(output).not.toContain('Contacts.records');
+      expect(output).not.toContain('[object Object]');
+    });
+
     it('should handle deeply nested objects', () => {
       const records = [
         {
