@@ -75,17 +75,19 @@ describe('Authentication', () => {
     );
     // In the drop down menu that appears, verify the SFDX auth org commands are present...
     const expectedSfdxCommands = [
-      ' SFDX: Authorize an Org',
-      ' SFDX: Authorize a Dev Hub',
-      ' SFDX: Create a Default Scratch Org...',
-      ' SFDX: Authorize an Org using Session ID',
-      ' SFDX: Remove Deleted and Expired Orgs'
+      'SFDX: Authorize an Org',
+      'SFDX: Authorize a Dev Hub',
+      'SFDX: Create a Default Scratch Org...',
+      'SFDX: Authorize an Org using Session ID',
+      'SFDX: Remove Deleted and Expired Orgs'
     ];
     const foundSfdxCommands: string[] = [];
     for (const quickPick of orgPickerOptions) {
-      const label = (await quickPick.getAttribute('aria-label')).slice(5);
-      if (expectedSfdxCommands.includes(label)) {
-        foundSfdxCommands.push(label);
+      const ariaLabel = await quickPick.getAttribute('aria-label');
+      for (const expectedCommand of expectedSfdxCommands) {
+        if (ariaLabel.includes(expectedCommand) && !foundSfdxCommands.includes(expectedCommand)) {
+          foundSfdxCommands.push(expectedCommand);
+        }
       }
     }
 
@@ -96,12 +98,12 @@ describe('Authentication', () => {
       });
     }
 
-    // In the drop down menu that appears, select "vscodeOrg - user_name".
+    // In the drop down menu that appears, select the dev hub org by alias.
     const environmentSettings = EnvironmentSettings.getInstance();
     const devHubAliasName = environmentSettings.devHubAliasName;
-    const devHubUserName = environmentSettings.devHubUserName;
     const inputBox = await InputBox.create();
-    await inputBox.selectQuickPick(`${devHubAliasName} - ${devHubUserName}`);
+    const orgWasFound = await findQuickPickItem(inputBox, devHubAliasName, false, true);
+    expect(orgWasFound).to.equal(true);
 
     // Need to pause here for the "set a default org" command to finish.
     await pause(Duration.seconds(5));
@@ -116,10 +118,9 @@ describe('Authentication', () => {
     );
     expect(expectedOutputWasFound).to.not.be.undefined;
 
-    // Look for "vscodeOrg" in the status bar.
-    const statusBar = workbench.getStatusBar();
-    const vscodeOrgItem = await statusBar.getItem(`plug  ${devHubAliasName}, Change Default Org`);
-    expect(vscodeOrgItem).to.not.be.undefined;
+    // Look for the dev hub alias in the status bar.
+    const devHubStatusBarItem = await getStatusBarItemWhichIncludes(devHubAliasName);
+    expect(devHubStatusBarItem).to.not.be.undefined;
   });
 
   it('Run SFDX: Create a Default Scratch Org', async () => {
