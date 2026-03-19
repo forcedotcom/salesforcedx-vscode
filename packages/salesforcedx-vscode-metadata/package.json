@@ -288,10 +288,6 @@
           "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
-          "command": "sf.metadata.lightning.generate.lwc",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands"
-        },
-        {
           "command": "sf.metadata.delete.source",
           "when": "never"
         },
@@ -393,7 +389,7 @@
         },
         {
           "command": "sf.metadata.lightning.generate.lwc",
-          "when": "explorerResourceIsFolder && resourceFilename == lwc && salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
         }
       ]
     },
