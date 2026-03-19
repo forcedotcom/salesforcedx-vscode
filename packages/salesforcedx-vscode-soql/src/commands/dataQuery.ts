@@ -350,7 +350,9 @@ export const convertQueryResultToCSV = (queryResult: QueryResult): string => {
  * @returns Promise resolving to query results with records and metadata
  */
 const runSoqlQuery = async (connection: Connection, query: string, useTooling = false): Promise<QueryResult> => {
-  channelService.appendLine(nls.localize('data_query_running_query'));
+  channelService.appendLine(
+    nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
+  );
 
   // Get user-configured query limit (if any)
   const maxFetch = await getMaxFetch();
