@@ -85,12 +85,23 @@ const getCoverageData = async (): Promise<CoverageItem[] | CodeCoverageResult[]>
     throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
   }
   const testResultOutput = await readFileUri(testResultUri);
-  const testResult = JSON.parse(testResultOutput);
+  type TestResultWithCoverage = {
+    codecoverage?: CodeCoverageResult[];
+    coverage?: { coverage: CodeCoverageResult[] };
+  };
+  // JSON.parse returns any; shape is validated before use
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
+  const testResult = JSON.parse(testResultOutput) as TestResultWithCoverage;
   if (testResult.coverage === undefined && testResult.codecoverage === undefined) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
   }
-
-  return testResult.codecoverage ?? testResult.coverage.coverage;
+  if (testResult.codecoverage !== undefined) {
+    return testResult.codecoverage;
+  }
+  if (testResult.coverage !== undefined) {
+    return testResult.coverage.coverage;
+  }
+  throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
 };
 
 /** Use document.uri.path for Web/Desktop compatibility (fsPath may be empty in Web for some schemes). */
@@ -140,7 +151,8 @@ export class CodeCoverageHandler {
         this.uncoveredLines = coverage.uncoveredLines;
         this.setCoverageDecorators(editor);
       } catch (e) {
-        void getApexTestingRuntime().runPromise(handleCoverageException(e));
+        const err = e instanceof Error ? e : new Error(String(e));
+        void getApexTestingRuntime().runPromise(handleCoverageException(err));
       }
     }
   }
@@ -163,7 +175,8 @@ export class CodeCoverageHandler {
           this.setCoverageDecorators(editor);
         }
       } catch (e) {
-        void getApexTestingRuntime().runPromise(handleCoverageException(e));
+        const err = e instanceof Error ? e : new Error(String(e));
+        void getApexTestingRuntime().runPromise(handleCoverageException(err));
       }
       this.statusBar.toggle(true);
     }

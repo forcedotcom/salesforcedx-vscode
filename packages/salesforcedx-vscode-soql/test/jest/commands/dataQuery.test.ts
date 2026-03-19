@@ -16,7 +16,6 @@ import {
   formatFieldValue,
   formatFieldValueForDisplay,
   generateTableOutput,
-  buildQueryOptions,
   displayTableResults,
   convertQueryResultToCSV
 } from '../../../src/commands/dataQuery';
@@ -477,15 +476,6 @@ describe('DataQuery Pure Functions', () => {
         expect(output).toContain('001');
         expect(output).toContain('002');
       });
-    });
-  });
-
-  describe('buildQueryOptions', () => {
-    it('should return base options when maxFetch is undefined', () => {
-      expect(buildQueryOptions()).toEqual({ autoFetch: true, scanAll: false });
-    });
-    it('should include maxFetch when provided', () => {
-      expect(buildQueryOptions(100)).toEqual({ autoFetch: true, scanAll: false, maxFetch: 100 });
     });
   });
 

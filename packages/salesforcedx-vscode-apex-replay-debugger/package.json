@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.2.1",
+  "version": "66.2.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,7 +27,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.10",
+    "@salesforce/apex-node": "^8.4.13",
     "salesforcedx-vscode-apex-log": "*",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",

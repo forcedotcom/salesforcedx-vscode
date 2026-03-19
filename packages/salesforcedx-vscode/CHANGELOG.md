@@ -1,6 +1,10 @@
-# 66.2.1 - March 19, 2026
+# 66.2.3 - March 21, 2026
 
 ## Added
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #7000](https://github.com/forcedotcom/salesforcedx-vscode/pull/7000))
 
 #### salesforcedx-vscode-apex-testing
 
@@ -8,7 +12,7 @@
 
 #### salesforcedx-apex-log
 
-- You the **SFDX: Change Trace Flag Debug Level** command to modify the LogLevel on `TraceFlag` for yourself or another user ([PR #6987](https://github.com/forcedotcom/salesforcedx-vscode/pull/6987))
+- You can now use the **SFDX: Change Trace Flag Debug Level** command to modify the LogLevel on `TraceFlag` for yourself or another user. ([PR #6987](https://github.com/forcedotcom/salesforcedx-vscode/pull/6987))
 
 #### salesforcedx-vscode-org-browser
 
@@ -31,3 +35,7 @@
 - We fixed a bug in the display of the SOQL query execution results table that was causing columns in the Output tab to be displayed out of order when the first entries had null value. ([PR #6995](https://github.com/forcedotcom/salesforcedx-vscode/pull/6995))
 
 - When executing a SOQL query, the row count is now shown at the bottom of the Output Tab instead of at the top. Thank you [@cnaccio](https://github.com/cnaccio) for pointing it out. ([PR #6975](https://github.com/forcedotcom/salesforcedx-vscode/pull/6975))
+
+#### salesforcedx-vscode-metadata
+
+- We made some changes under the hood. ([PR #7014](https://github.com/forcedotcom/salesforcedx-vscode/pull/7014))
