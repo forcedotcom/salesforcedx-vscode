@@ -63,12 +63,11 @@ export class GetDocumentQueryAndApiInputs implements ParametersGatherer<QueryAnd
 export class GetQueryInputsForPlan implements ParametersGatherer<QueryInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryInputs>> {
     const editor = vscode.window.activeTextEditor;
-    const query = !editor
-      ? await vscode.window.showInputBox(INPUT_BOX_OPTIONS)
-      : editor.selection.isEmpty
-        ? await vscode.window.showInputBox(INPUT_BOX_OPTIONS)
-        : editor.document.getText(editor.selection);
-    return query ? { type: 'CONTINUE', data: { query: normalizeQuery(query) } } : { type: 'CANCEL' };
+    if (!editor || editor.selection.isEmpty) {
+      return { type: 'CANCEL' };
+    }
+    const query = normalizeQuery(editor.document.getText(editor.selection));
+    return query ? { type: 'CONTINUE', data: { query } } : { type: 'CANCEL' };
   }
 }
 
