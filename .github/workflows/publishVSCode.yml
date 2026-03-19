@@ -84,9 +84,11 @@ jobs:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
 
+  # Set repo variable CBW_TRIGGER_ENABLED=false to disable dispatch to code-builder-web.
+  # Default (unset): dispatch after publish. Use when publishing without CBW promotion.
   trigger-cbw-release:
     needs: [publish, prepare-environment-from-main]
-    if: needs.publish.result == 'success'
+    if: needs.publish.result == 'success' && vars.CBW_TRIGGER_ENABLED != 'false'
     continue-on-error: true
     runs-on: ubuntu-latest
     steps:
