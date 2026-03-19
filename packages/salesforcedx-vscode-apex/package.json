@@ -27,7 +27,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.10",
+    "@salesforce/apex-node": "^8.4.13",
     "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -37,7 +37,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.23.2",
+    "@salesforce/core": "^8.27.0",
     "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
