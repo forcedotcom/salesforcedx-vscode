@@ -58,7 +58,10 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
       '**/.vscode-test-web/**',
       '**/.vscode-test/**',
-      '**/playwright-report/**'
+      '**/playwright-report/**',
+      '**/playwright-report/',
+      '**/test-results/**',
+      '**/test-results/'
     ]
   },
   {

@@ -28,7 +28,6 @@ import { channelService } from './channels';
 import {
   aliasListCommand,
   analyticsGenerateTemplate,
-  apexGenerateClass,
   apexGenerateTrigger,
   configList,
   deleteSource,
@@ -96,7 +95,6 @@ const registerSharedCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
     vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
     vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
-    vscode.commands.registerCommand('sf.apex.generate.class', apexGenerateClass),
     vscode.commands.registerCommand('sf.delete.source', deleteSource),
     vscode.commands.registerCommand('sf.delete.source.current.file', deleteSource),
     vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),

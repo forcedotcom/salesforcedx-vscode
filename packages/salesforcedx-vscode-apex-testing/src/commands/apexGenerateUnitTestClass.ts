@@ -9,6 +9,7 @@ import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@sal
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
+import { APEX_CLASS_NAME_MAX_LENGTH } from '../constants';
 import { nls } from '../messages';
 
 type SfProject = Effect.Effect.Success<
@@ -58,6 +59,8 @@ const promptForClassName = (): Promise<string | undefined> =>
           if (!value || value.trim().length === 0) return 'Class name cannot be empty';
           if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value))
             return 'Class name must start with a letter and contain only alphanumeric characters and underscores';
+          if (value.length > APEX_CLASS_NAME_MAX_LENGTH)
+            return nls.localize('apex_test_class_name_max_length_error', APEX_CLASS_NAME_MAX_LENGTH);
           return undefined;
         }
       })
