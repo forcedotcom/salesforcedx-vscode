@@ -19,9 +19,9 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
       placeHolder: nls.localize('create_script_name_placeholder'),
       validateInput: (value: string) =>
         !value?.trim()
-          ? 'Script name cannot be empty'
+          ? nls.localize('create_script_name_empty_error')
           : !/^[A-Za-z][A-Za-z0-9_]*$/.test(value)
-            ? 'Name must start with a letter and contain only letters, numbers, and underscores'
+            ? nls.localize('create_script_name_format_error')
             : undefined
     })
   );

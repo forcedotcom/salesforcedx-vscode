@@ -56,9 +56,10 @@ const promptForClassName = (): Promise<string | undefined> =>
         prompt: nls.localize('apex_test_class_name_prompt'),
         placeHolder: nls.localize('apex_test_class_name_placeholder'),
         validateInput: (value: string) => {
-          if (!value || value.trim().length === 0) return 'Class name cannot be empty';
+          if (!value || value.trim().length === 0) return nls.localize('apex_test_class_name_empty_error');
+          if (value.toLowerCase() === 'default') return nls.localize('apex_test_class_name_cannot_be_default');
           if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value))
-            return 'Class name must start with a letter and contain only alphanumeric characters and underscores';
+            return nls.localize('apex_test_class_name_format_error');
           if (value.length > APEX_CLASS_NAME_MAX_LENGTH)
             return nls.localize('apex_test_class_name_max_length_error', APEX_CLASS_NAME_MAX_LENGTH);
           return undefined;
