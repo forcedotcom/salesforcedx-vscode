@@ -38,4 +38,4 @@
 
 #### salesforcedx-vscode-metadata
 
-- Always show lwc command, improve message output in push/pull ([PR #7014](https://github.com/forcedotcom/salesforcedx-vscode/pull/7014))
+- We made some changes under the hood. ([PR #7014](https://github.com/forcedotcom/salesforcedx-vscode/pull/7014))
