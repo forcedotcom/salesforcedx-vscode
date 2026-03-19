@@ -326,6 +326,10 @@
         {
           "command": "sf.metadata.project.generate.manifest",
           "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "sf:project_opened"
         }
       ],
       "editor/context": [
