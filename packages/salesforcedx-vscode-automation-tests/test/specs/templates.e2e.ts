@@ -83,31 +83,7 @@ describe('Templates', () => {
   });
 
   // Apex Unit Test Class is covered in apexTestClassCreate.headless.spec.ts
-
-  // Apex Trigger
-  it('Create an Apex Trigger', async () => {
-    logTestStart(testSetup, 'Create an Apex Trigger');
-    // Using the Command palette, run "SFDX: Create Apex Trigger".
-    await createCommand('Apex Trigger', 'ApexTrigger1', 'triggers', 'trigger');
-
-    // Check for expected items in the Explorer view.
-    const workbench = getWorkbench();
-
-    // Get the matching (visible) items within the tree which contains "ApexTrigger1".
-    const filteredTreeViewItems = await getFilteredVisibleTreeViewItemLabels(workbench, projectName, 'ApexTrigger1');
-    expect(filteredTreeViewItems.includes('ApexTrigger1.trigger')).to.equal(true);
-    expect(filteredTreeViewItems.includes('ApexTrigger1.trigger-meta.xml')).to.equal(true);
-  });
-
-  it('Verify the contents of the Apex Trigger', async () => {
-    logTestStart(testSetup, 'Verify the contents of the Apex Trigger');
-    // Verify the default trigger.
-    const expectedText = ['trigger ApexTrigger1 on SOBJECT (before insert) {', '', '}'].join('\n');
-    const workbench = getWorkbench();
-    const textEditor = await getTextEditor(workbench, 'ApexTrigger1.trigger');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
-    expect(textGeneratedFromTemplate).to.equal(expectedText);
-  });
+  // Apex Trigger creation is covered in salesforcedx-vscode-metadata createApexTrigger.headless.spec.ts
 
   // Aura App
   it('Create an Aura App', async () => {

@@ -130,8 +130,6 @@ describe('An Initial Suite', () => {
       expect(commands).to.include('SFDX: Authorize an Org using Session ID');
       expect(commands).to.include('SFDX: Create a Default Scratch Org...');
       expect(commands).to.include('SFDX: Create and Set Up Project for ISV Debugging');
-      expect(commands).to.include('SFDX: Create Apex Class');
-      expect(commands).to.include('SFDX: Create Apex Trigger');
       // There are more, but just look for the first few commands.
 
       // Escape out of the pick list.

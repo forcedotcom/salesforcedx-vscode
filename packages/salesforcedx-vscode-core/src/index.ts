@@ -29,7 +29,6 @@ import {
   aliasListCommand,
   analyticsGenerateTemplate,
   apexGenerateClass,
-  apexGenerateTrigger,
   configList,
   deleteSource,
   deployManifest,
@@ -133,7 +132,6 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.nativemobile.generate.project', nativemobileProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
-    vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger),
     registerGetTelemetryServiceCommand()
   );
 const registerInternalDevCommands = (): vscode.Disposable =>

@@ -93,7 +93,6 @@ export const messages = {
   project_generate_analytics_template: 'Analytics project template',
   project_generate_react_b2e_template: 'React B2E project template',
   project_generate_react_b2x_template: 'React B2X project template',
-  apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
 
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',

@@ -30,7 +30,6 @@ export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/vi
 export {
   analyticsGenerateTemplate,
   apexGenerateClass,
-  apexGenerateTrigger,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,

@@ -310,10 +310,6 @@
           "when": "explorerResourceIsFolder && sf:internal_dev"
         },
         {
-          "command": "sf.apex.generate.trigger",
-          "when": "explorerResourceIsFolder && resourceFilename == triggers && sf:project_opened"
-        },
-        {
           "command": "sf.diff",
           "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
@@ -426,10 +422,6 @@
         {
           "command": "sf.rename.lightning.component",
           "when": "false"
-        },
-        {
-          "command": "sf.apex.generate.trigger",
-          "when": "sf:project_opened"
         },
         {
           "command": "sf.retrieve.source.path",
@@ -617,10 +609,6 @@
       {
         "command": "sf.project.generate.with.manifest",
         "title": "%project_generate_with_manifest_text%"
-      },
-      {
-        "command": "sf.apex.generate.trigger",
-        "title": "%apex_generate_trigger_text%"
       },
       {
         "command": "sf.retrieve.source.path",
