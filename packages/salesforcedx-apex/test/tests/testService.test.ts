@@ -41,7 +41,7 @@ describe('Apex Test Suites', async () => {
     sandboxStub.restore();
   });
 
-  it('should retrieve apex class ids for a singular class', async () => {
+  it('should retrieve apex class id for non-namespaced class', async () => {
     toolingQueryStub.resolves({ records: [{ Id: 'xxxxxxx243' }] });
 
     const testService = new TestService(mockConnection);
@@ -49,6 +49,25 @@ describe('Apex Test Suites', async () => {
 
     expect(ids).to.deep.equal(['xxxxxxx243']);
     expect(toolingQueryStub.calledOnce).to.be.true;
+    expect(toolingQueryStub.firstCall.args[0]).to.include(
+      "Name = 'firstTestClass'"
+    );
+    expect(toolingQueryStub.firstCall.args[0]).to.include(
+      'NamespacePrefix = null'
+    );
+  });
+
+  it('should retrieve apex class id for namespaced class (ns.ShortName)', async () => {
+    toolingQueryStub.resolves({ records: [{ Id: 'pkgClassId' }] });
+
+    const testService = new TestService(mockConnection);
+    const ids = await testService.getApexClassIds(['myns.FooTest']);
+
+    expect(ids).to.deep.equal(['pkgClassId']);
+    expect(toolingQueryStub.firstCall.args[0]).to.include("Name = 'FooTest'");
+    expect(toolingQueryStub.firstCall.args[0]).to.include(
+      "NamespacePrefix = 'myns'"
+    );
   });
 
   it('should retrieve apex class ids for multiple classes', async () => {
