@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { DATA_VIEW_PATH, HTML_FILE } from '../constants';
-import { HtmlUtils } from '../editor/htmlUtils';
+import { replaceCspMetaTag } from '../editor/htmlUtils';
 import { getSoqlRuntime } from '../services/extensionProvider';
 
 export const getHtml = async (
@@ -31,7 +31,7 @@ export const getHtml = async (
   We need to replace the hrefs with webviewUris,
   this will need to change once we need a standalone data view.
    */
-  html = HtmlUtils.replaceCspMetaTag(html, webview);
+  html = replaceCspMetaTag(html, webview);
   html = html.replace('${tabulatorStyleUri}', tabulatorStyleUri.toString());
   html = html.replace('${baseStyleUri}', baseStyleUri.toString());
   html = html.replace('${tabulatorUri}', tabulatorUri.toString());

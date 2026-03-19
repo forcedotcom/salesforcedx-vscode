@@ -6,7 +6,7 @@
  */
 
 import { SObjectFieldType } from '../../../../src/soql-model/model/model';
-import { ValidatorFactory } from '../../../../src/soql-model/validators/validatorFactory';
+import * as ValidatorFactory from '../../../../src/soql-model/validators/validatorFactory';
 
 describe('ValidatorFactory should', () => {
   it('return validators based on field type', () => {

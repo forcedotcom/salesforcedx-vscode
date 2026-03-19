@@ -14,43 +14,31 @@ import { PicklistValidator } from './picklistValidator';
 import { StringValidator } from './stringValidator';
 import { DefaultValidator, MultipleInputValidator, OperatorValidator, ValidateOptions, Validator } from './validator';
 
-export class ValidatorFactory {
-  public static getFieldInputValidator(options: ValidateOptions): Validator {
-    switch (options.type) {
-      case SObjectFieldType.Boolean: {
-        return new BooleanValidator(options);
-      }
-      case SObjectFieldType.Currency: {
-        return new CurrencyValidator(options);
-      }
-      case SObjectFieldType.Date:
-      case SObjectFieldType.DateTime: {
-        return new DateValidator(options);
-      }
-      case SObjectFieldType.Double: {
-        return new FloatValidator(options);
-      }
-      case SObjectFieldType.Integer:
-      case SObjectFieldType.Long: {
-        return new IntegerValidator(options);
-      }
-      case SObjectFieldType.Picklist:
-      case SObjectFieldType.MultiPicklist: {
-        return new PicklistValidator(options);
-      }
-      case SObjectFieldType.String:
-      case SObjectFieldType.Id: {
-        return new StringValidator(options);
-      }
-    }
-    return new DefaultValidator(options);
+export const getFieldInputValidator = (options: ValidateOptions): Validator => {
+  switch (options.type) {
+    case SObjectFieldType.Boolean:
+      return new BooleanValidator(options);
+    case SObjectFieldType.Currency:
+      return new CurrencyValidator(options);
+    case SObjectFieldType.Date:
+    case SObjectFieldType.DateTime:
+      return new DateValidator(options);
+    case SObjectFieldType.Double:
+      return new FloatValidator(options);
+    case SObjectFieldType.Integer:
+    case SObjectFieldType.Long:
+      return new IntegerValidator(options);
+    case SObjectFieldType.Picklist:
+    case SObjectFieldType.MultiPicklist:
+      return new PicklistValidator(options);
+    case SObjectFieldType.String:
+    case SObjectFieldType.Id:
+      return new StringValidator(options);
   }
+  return new DefaultValidator(options);
+};
 
-  public static getOperatorValidator(options: ValidateOptions): Validator {
-    return new OperatorValidator(options);
-  }
+export const getOperatorValidator = (options: ValidateOptions): Validator => new OperatorValidator(options);
 
-  public static getFieldMultipleInputValidator(options: ValidateOptions): MultipleInputValidator {
-    return new MultipleInputValidator(options, this.getFieldInputValidator(options));
-  }
-}
+export const getFieldMultipleInputValidator = (options: ValidateOptions): MultipleInputValidator =>
+  new MultipleInputValidator(options, getFieldInputValidator(options));

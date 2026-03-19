@@ -14,7 +14,7 @@
 import { api, LightningElement, track } from 'lwc';
 import debounce from 'debounce';
 import { ConditionOperator, LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
-import { ValidatorFactory } from '@salesforce/soql-model/validators/validatorFactory';
+import { getFieldInputValidator, getFieldMultipleInputValidator, getOperatorValidator } from '@salesforce/soql-model/validators/validatorFactory';
 import { splitMultiInputValues } from '@salesforce/soql-model/validators/inputUtils';
 import { JsonMap } from '@salesforce/types';
 import { OperatorOption, operatorOptions } from '../services/model';
@@ -309,8 +309,8 @@ export default class WhereModifierGroup extends LightningElement {
       const isMultiInput = this.isMultipleValueOperator(this._currentOperatorValue);
 
       const inputValidator = isMultiInput
-        ? ValidatorFactory.getFieldMultipleInputValidator(validateOptions)
-        : ValidatorFactory.getFieldInputValidator(validateOptions);
+        ? getFieldMultipleInputValidator(validateOptions)
+        : getFieldInputValidator(validateOptions);
       let result = inputValidator.validate(normalizedInput);
       if (!result.isValid) {
         this.errorMessage = this.criteriaErrorMessage = result.message;
@@ -318,7 +318,7 @@ export default class WhereModifierGroup extends LightningElement {
         return false;
       }
 
-      const operatorValidator = ValidatorFactory.getOperatorValidator(validateOptions);
+      const operatorValidator = getOperatorValidator(validateOptions);
       result = operatorValidator.validate(op);
       if (!result.isValid) {
         this.errorMessage = this.operatorErrorMessage = result.message;
