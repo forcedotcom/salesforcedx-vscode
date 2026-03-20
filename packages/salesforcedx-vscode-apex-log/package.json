@@ -6,7 +6,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.2.0",
+  "version": "66.2.3",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/core": "^8.23.3",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.25.12",
     "salesforcedx-vscode-services": "*"

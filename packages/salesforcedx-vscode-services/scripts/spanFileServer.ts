@@ -83,3 +83,10 @@ server.on('error', err => {
   console.error('Server error:', err);
   process.exit(1);
 });
+
+const shutdown = (): void => {
+  server.close(() => process.exit(0));
+};
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

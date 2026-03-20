@@ -46,7 +46,7 @@ import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope'
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
-import { registerCommandWithLayer } from './vscode/registerCommand';
+import { registerCommandWithLayer, registerCommandWithRuntime } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherService } from './vscode/settingsWatcherService';
@@ -91,6 +91,7 @@ export type SalesforceVSCodeServicesApi = {
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
     registerCommandWithLayer: typeof registerCommandWithLayer;
+    registerCommandWithRuntime: typeof registerCommandWithRuntime;
     ExecuteAnonymousService: typeof ExecuteAnonymousService;
     EditorService: typeof EditorService;
     ErrorHandlerService: typeof ErrorHandlerService;
@@ -354,6 +355,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ConnectionService,
       ExecuteAnonymousService,
       registerCommandWithLayer,
+      registerCommandWithRuntime,
       EditorService,
       ErrorHandlerService,
       ExtensionContextService,

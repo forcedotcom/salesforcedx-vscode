@@ -8,11 +8,12 @@
 import {
   ExtensionPackageJsonSchema,
   ExtensionProviderService,
-  type ExtensionPackageJson,
-  getServicesApi
+  getServicesApi,
+  type ExtensionPackageJson
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
 
@@ -63,4 +64,16 @@ export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;
+};
+
+/**
+ * Single persistent runtime for metadata extension Effect executions.
+ * Built once on first use to avoid rebuilding services across command invocations.
+ */
+const createMetadataRuntime = () => ManagedRuntime.make(AllServicesLayer);
+// eslint-disable-next-line functional/no-let
+let _metadataRuntime: ReturnType<typeof createMetadataRuntime> | undefined;
+export const getMetadataRuntime = () => {
+  _metadataRuntime ??= createMetadataRuntime();
+  return _metadataRuntime;
 };

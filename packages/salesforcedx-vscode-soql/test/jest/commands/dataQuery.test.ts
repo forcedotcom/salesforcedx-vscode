@@ -52,7 +52,6 @@ import {
   formatFieldValue,
   formatFieldValueForDisplay,
   generateTableOutput,
-  buildQueryOptions,
   displayTableResults,
   convertQueryResultToCSV,
   formatErrorMessage
@@ -514,15 +513,6 @@ describe('DataQuery Pure Functions', () => {
     });
   });
 
-  describe('buildQueryOptions', () => {
-    it('should return base options when maxFetch is undefined', () => {
-      expect(buildQueryOptions()).toEqual({ autoFetch: true, scanAll: false });
-    });
-    it('should include maxFetch when provided', () => {
-      expect(buildQueryOptions(100)).toEqual({ autoFetch: true, scanAll: false, maxFetch: 100 });
-    });
-  });
-
   describe('convertQueryResultToCSV', () => {
     it('should return no records message if records are empty', () => {
       const result = convertQueryResultToCSV({ records: [], totalSize: 0, done: true });
@@ -690,7 +680,9 @@ describe('DataQuery Pure Functions', () => {
         expect(aFieldIndex).toBeLessThan(bFieldIndex);
       });
 
-      it('should skip null values when determining fields', () => {
+      it('should expand null relationship fields when a later record shows them as objects', () => {
+        // NullField is null in record 1 but a relationship object in record 2.
+        // It should be expanded to NullField.Name, not emitted as a plain column.
         const records = [
           { Id: '001', NullField: null },
           { Id: '002', NullField: { Name: 'Not Null' } }
@@ -699,7 +691,25 @@ describe('DataQuery Pure Functions', () => {
 
         expect(output).toContain('Id');
         expect(output).toContain('NullField.Name');
-        expect(output).not.toContain('NullField  '); // Should not have empty NullField column
+        expect(output).not.toContain('NullField  '); // Should not have a bare NullField column
+      });
+
+      it('should preserve SELECT column order when a primitive field is null in early records', () => {
+        // AnnualRevenue is null in record 1 but non-null in record 2.
+        // It must appear in its original position (3rd), not at the end.
+        const records = [
+          { Id: '001', Name: 'Acme', AnnualRevenue: null, CreatedDate: '2024-01-01' },
+          { Id: '002', Name: 'Edge', AnnualRevenue: 1_500_000, CreatedDate: '2024-02-01' }
+        ];
+        const output = generateTableOutput(records, 'Test');
+
+        const annualRevenueIndex = output.indexOf('AnnualRevenue');
+        const createdDateIndex = output.indexOf('CreatedDate');
+
+        expect(annualRevenueIndex).toBeGreaterThan(-1);
+        expect(createdDateIndex).toBeGreaterThan(-1);
+        // AnnualRevenue (3rd in SELECT) must appear before CreatedDate (4th)
+        expect(annualRevenueIndex).toBeLessThan(createdDateIndex);
       });
     });
   });

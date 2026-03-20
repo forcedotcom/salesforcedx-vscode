@@ -11,6 +11,10 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { DREAMHOUSE_ORG_ALIAS } from '../orgs/dreamhouseScratchOrgSetup';
 
+/** Create a temporary empty workspace directory (no sfdx-project.json) for desktop tests */
+export const createEmptyTestWorkspace = async (): Promise<string> =>
+  fs.mkdtemp(path.join(os.tmpdir(), 'vscode-e2e-empty-'));
+
 /** Create a temporary workspace directory with sfdx-project.json for desktop tests */
 export const createTestWorkspace = async (orgAlias = DREAMHOUSE_ORG_ALIAS): Promise<string> => {
   const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-e2e-test-'));
