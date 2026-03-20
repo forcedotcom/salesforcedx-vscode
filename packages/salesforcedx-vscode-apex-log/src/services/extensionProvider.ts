@@ -62,3 +62,4 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
   );
 
 export { AllServicesLayer, setAllServicesLayer } from './allServicesLayerRef';
+export { getRuntime } from './runtime';

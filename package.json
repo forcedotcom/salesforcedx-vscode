@@ -136,6 +136,7 @@
     "capture:results": "shx mkdir -p ./test-results && npm run junit:report && npm run coverage:report",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
+    "check:branch": "wireit",
     "precommit": "wireit",
     "prepush": "wireit",
     "vscode:bundle": "wireit",
@@ -372,8 +373,12 @@
       ],
       "output": []
     },
+    "check:branch": {
+      "command": "node scripts/check-branch.js"
+    },
     "precommit": {
       "dependencies": [
+        "check:branch",
         "compile",
         "lint",
         "check:peer-deps",

@@ -139,36 +139,6 @@ export const dataQuery = Effect.fn('sf.data.query')(function* () {
   yield* Effect.promise(() => commandlet.run());
 });
 
-/**
- * Retrieves the maximum fetch limit from user configuration.
- * Checks SF CLI config first, then environment variable, then returns undefined if no limit is set.
- *
- * @returns Promise resolving to the configured limit number, or undefined if no limit is set.
- */
-const getMaxFetch = async (): Promise<number | undefined> => {
-  try {
-    // Priority 1: Check SF CLI config value (org-max-query-limit)
-    const configAggregator = await getSoqlRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* getServicesApi;
-        return yield* api.services.ConfigService.getConfigAggregator();
-      })
-    );
-    const configValue = configAggregator.getPropertyValue<string>('org-max-query-limit');
-    if (configValue) {
-      const parsed = parseInt(configValue, 10);
-      if (!isNaN(parsed) && parsed > 0) {
-        return parsed;
-      }
-    }
-  } catch {
-    // If config reading fails, fall back to no limit
-  }
-
-  // No limit configured - return undefined to allow default amount of queries
-  return undefined;
-};
-
 /** Generates table output from query records */
 export const generateTableOutput = (records: QueryResult['records'], title: string): string => {
   // Ensure the first record exists and is an object
@@ -230,38 +200,60 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
 };
 
 /**
- * Gets all possible flattened field names by examining all records
- * Preserves the original field order from the query
+ * Gets all possible flattened field names by examining all records.
+ * Preserves the original SELECT column order, including fields whose value is null
+ * in early records (e.g. AnnualRevenue = null).
+ *
+ * Pass 1: build a stable base key order from all records (including null-valued fields)
+ * and identify which keys are relationship objects in any record.
+ * Pass 2: for each base key, expand relationship keys into dot-notation sub-fields
+ * or emit plain keys as-is.
  */
 const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => {
-  const fieldOrder: string[] = [];
-  const seenFields = new Set<string>();
+  // Pass 1: stable key order + relationship detection
+  const baseOrder: string[] = [];
+  const seenBase = new Set<string>();
+  const relationshipKeys = new Set<string>();
 
-  // First pass: collect all possible fields while preserving order
   for (const record of records) {
     for (const [key, value] of Object.entries(record)) {
       if (key === 'attributes') {
         continue;
       }
-
+      if (!seenBase.has(key)) {
+        baseOrder.push(key);
+        seenBase.add(key);
+      }
       if (isRecord(value)) {
-        // Add nested fields with dot notation
-        for (const nestedKey of Object.keys(value)) {
-          if (nestedKey !== 'attributes') {
-            const fieldName = `${key}.${nestedKey}`;
-            if (!seenFields.has(fieldName)) {
-              fieldOrder.push(fieldName);
-              seenFields.add(fieldName);
+        relationshipKeys.add(key);
+      }
+    }
+  }
+
+  // Pass 2: expand relationship keys; emit plain keys as-is
+  const fieldOrder: string[] = [];
+  const seenFields = new Set<string>();
+
+  for (const key of baseOrder) {
+    if (relationshipKeys.has(key)) {
+      for (const record of records) {
+        const value = record[key];
+        if (isRecord(value)) {
+          for (const nestedKey of Object.keys(value)) {
+            if (nestedKey !== 'attributes') {
+              const fieldName = `${key}.${nestedKey}`;
+              if (!seenFields.has(fieldName)) {
+                fieldOrder.push(fieldName);
+                seenFields.add(fieldName);
+              }
             }
           }
         }
-      } else if (value !== null) {
-        // Only add primitive fields that are not null
-        // (null relationship objects shouldn't create columns)
-        if (!seenFields.has(key)) {
-          fieldOrder.push(key);
-          seenFields.add(key);
-        }
+      }
+    } else {
+      if (!seenFields.has(key)) {
+        fieldOrder.push(key);
+        seenFields.add(key);
       }
     }
   }
@@ -344,23 +336,6 @@ export const formatFieldValueForDisplay = (value: unknown): string => {
   return stringValue.length > 50 ? `${stringValue.substring(0, 47)}...` : stringValue;
 };
 
-/**
- * Builds query options for the Salesforce connection query method.
- * Supports optional maxFetch limit when user has configured query limits.
- *
- * @param maxFetch - Optional maximum number of records to fetch. If undefined, no limit is applied.
- * @returns Query options object with autoFetch and scanAll settings, plus maxFetch if specified.
- */
-export const buildQueryOptions = (maxFetch?: number) => {
-  const baseOptions = {
-    autoFetch: true,
-    scanAll: false
-  };
-
-  // Conditionally add maxFetch if user has configured a limit (including 0)
-  return maxFetch !== undefined ? { ...baseOptions, maxFetch } : baseOptions;
-};
-
 /** Displays query results in table format */
 export const displayTableResults = (queryResult: QueryResult): void => {
   if (!queryResult.records?.length) {
@@ -436,29 +411,14 @@ export const formatErrorMessage = (error: unknown): string => {
 };
 
 /**
- * Executes a SOQL query using the provided connection (REST or Tooling API).
- * Applies user-configured query limits if set, otherwise allows results under Salesforce limits.
+ * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
+ * `org-max-query-limit` (default 10,000). Emits a lifecycle warning if results are truncated.
  *
- * @param connection - Salesforce connection (REST or Tooling API)
+ * @param connection - Salesforce connection
  * @param query - SOQL query string to execute
- * @returns Promise resolving to query results with records and metadata
+ * @param useTooling - Whether to use the Tooling API instead of REST
  */
 const runSoqlQuery = async (connection: Connection, query: string, useTooling = false): Promise<QueryResult> => {
   channelService.appendLine(nls.localize('data_query_running_query'));
-
-  // Get user-configured query limit (if any)
-  const maxFetch = await getMaxFetch();
-
-  // Execute query with appropriate options (with or without maxFetch limit)
-  const result = await (useTooling ? connection.tooling : connection).query(query, buildQueryOptions(maxFetch));
-
-  // Show warning if user-configured limit caused records to be truncated
-  if (maxFetch !== undefined && result.records.length > 0 && result.totalSize > result.records.length) {
-    const missingRecords = result.totalSize - result.records.length;
-    channelService.appendLine(
-      nls.localize('data_query_warning_limit', missingRecords, maxFetch, result.totalSize, maxFetch)
-    );
-  }
-
-  return result;
+  return connection.autoFetchQuery(query, { tooling: useTooling });
 };

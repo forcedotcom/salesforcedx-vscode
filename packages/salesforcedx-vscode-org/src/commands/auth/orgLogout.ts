@@ -40,7 +40,7 @@ class SimpleGatherer<T> implements ParametersGatherer<T> {
   }
 }
 
-export class OrgLogoutAll extends SfCommandletExecutor<{}> {
+class OrgLogoutAll extends SfCommandletExecutor<{}> {
   public static withoutShowingChannel(): OrgLogoutAll {
     const instance = new OrgLogoutAll();
     instance.showChannelOutput = false;

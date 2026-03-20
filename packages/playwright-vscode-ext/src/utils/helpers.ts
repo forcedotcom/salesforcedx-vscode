@@ -69,7 +69,7 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
   '.a4drules', // @salesforce/templates optional project template assets (reactb2e/reactb2x) not bundled for Apex
   'typescript-language-features', // TS extension 404s for package.json etc in web
-  'applicationinsights.azure.com' // VS Code/extension telemetry; 439 etc. in CI are non-critical
+  'applicationinsights.azure.com' // Azure Application Insights telemetry (e.g. HTTP 439 throttling) — not critical to extension behavior
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {

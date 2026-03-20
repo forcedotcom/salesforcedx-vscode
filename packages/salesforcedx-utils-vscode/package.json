@@ -14,7 +14,7 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/source-tracking": "^7.8.0",
+    "@salesforce/source-tracking": "^7.8.6",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@vscode/extension-telemetry": "^1.0.0",
@@ -28,7 +28,7 @@
     "zod": "^4.3.2"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve": "^12.31.12"
+    "@salesforce/source-deploy-retrieve": "^12.31.22"
   },
   "engines": {
     "vscode": "^1.90.0"

@@ -44,6 +44,8 @@ import {
   lightningGenerateAuraComponent,
   lightningGenerateEvent,
   lightningGenerateInterface,
+  agentProjectGenerate,
+  nativemobileProjectGenerate,
   openDocumentation,
   packageInstall,
   projectDeployStart,
@@ -51,7 +53,6 @@ import {
   projectGenerateWithManifest,
   projectRetrieveStart,
   renameLightningComponent,
-  retrieveComponent,
   retrieveManifest,
   retrieveSourcePaths,
   sfProjectGenerate,
@@ -63,7 +64,6 @@ import {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './commands';
-import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
@@ -72,7 +72,6 @@ import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } fr
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { buildAllServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
@@ -132,6 +131,8 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.lightning.generate.interface', lightningGenerateInterface),
     vscode.commands.registerCommand('sf.config.list', configList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
+    vscode.commands.registerCommand('sf.agent.generate.project', agentProjectGenerate),
+    vscode.commands.registerCommand('sf.nativemobile.generate.project', nativemobileProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
     vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger),
@@ -148,30 +149,6 @@ const registerInternalDevCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.internal.lightning.generate.event', internalLightningGenerateEvent),
     vscode.commands.registerCommand('sf.internal.lightning.generate.interface', internalLightningGenerateInterface)
   );
-
-const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
-  const useLegacyOrgBrowser = salesforceCoreSettings.getUseLegacyOrgBrowser();
-  if (!useLegacyOrgBrowser) {
-    return;
-  }
-  await orgBrowser.init(extensionContext);
-
-  vscode.commands.registerCommand('sf.metadata.view.type.refresh', async node => {
-    await orgBrowser.refreshAndExpand(node);
-  });
-
-  vscode.commands.registerCommand('sf.metadata.view.component.refresh', async node => {
-    await orgBrowser.refreshAndExpand(node);
-  });
-
-  vscode.commands.registerCommand('sf.retrieve.component', async (trigger: RetrieveMetadataTrigger) => {
-    await retrieveComponent(trigger);
-  });
-
-  vscode.commands.registerCommand('sf.retrieve.open.component', async (trigger: RetrieveMetadataTrigger) => {
-    await retrieveComponent(trigger, true);
-  });
-};
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   const activationStartTime = TimingUtils.getCurrentTime();
@@ -288,8 +265,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     CommandEventDispatcher.getInstance()
   );
 
-  if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-    // Refresh SObject definitions if there aren't any faux classes
+  if (metadataExtension && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    // Refresh SObject definitions if there aren't any faux classes (metadata ext registers the command)
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
@@ -319,7 +296,6 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   const metadataHoverProvider = new MetadataHoverProvider();
 
   await Promise.all([
-    setupOrgBrowser(extensionContext),
     setupConflictView(extensionContext),
     // Initialize metadata XML support
     MetadataXmlSupport.getInstance().initializeMetadataSupport(extensionContext),

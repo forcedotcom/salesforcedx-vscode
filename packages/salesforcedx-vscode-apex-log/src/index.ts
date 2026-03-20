@@ -22,6 +22,7 @@ import { executeAnonymousCommand } from './commands/executeAnonymous';
 import { logGetCommand } from './commands/logGet';
 import { openLogsFolderCommand } from './commands/openLogsFolder';
 import {
+  changeDebugLevelCommand,
   createLogLevelCommand,
   createTraceFlagForCurrentUserCommand,
   createTraceFlagForUserCommand,
@@ -32,7 +33,7 @@ import {
 } from './commands/traceflags/traceflagsCommands';
 import { createLogAutoCollect } from './logs/logAutoCollect';
 import { CurrentTraceFlags } from './services/apexLogState';
-import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { buildAllServicesLayer, getRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';
@@ -41,11 +42,10 @@ import { SCHEME as TRACE_FLAGS_SCHEME, TraceFlagsContentProviderService } from '
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
-  await Effect.runPromise(activation(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
+  await getRuntime().runPromise(activation(context).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(deactivation().pipe(Effect.provide(AllServicesLayer)));
+export const deactivate = async (): Promise<void> => getRuntime().runPromise(deactivation());
 
 const activation = Effect.fn('activation')(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -58,7 +58,7 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} extension activating`))
   );
 
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   const scope = yield* getExtensionScope();
 
   const currentTraceFlagsRef = yield* CurrentTraceFlags;
@@ -81,6 +81,9 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       registerCommand('sf.apex.traceFlags.createLogLevel', () => createLogLevelCommand()),
       registerCommand('sf.apex.traceFlags.deleteForId', (traceFlagId: string) =>
         deleteTraceFlagForIdCommand(traceFlagId)
+      ),
+      registerCommand('sf.apex.traceFlags.changeDebugLevel', (traceFlagId: string) =>
+        changeDebugLevelCommand(traceFlagId)
       ),
       registerCommand('sf.apex.traceFlags.deleteDebugLevelForId', (debugLevelId: string) =>
         deleteDebugLevelForIdCommand(debugLevelId)
@@ -105,9 +108,7 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument(doc => {
       if (!isAnonApexDoc(doc)) return;
-      void Effect.runPromise(
-        api.services.ExecuteAnonymousService.clearDiagnostics(doc.uri).pipe(Effect.provide(AllServicesLayer))
-      );
+      void getRuntime().runPromise(api.services.ExecuteAnonymousService.clearDiagnostics(doc.uri));
     })
   );
 
