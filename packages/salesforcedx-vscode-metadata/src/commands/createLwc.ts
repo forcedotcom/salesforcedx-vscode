@@ -47,7 +47,6 @@ const promptForComponentName = Effect.fn('promptForComponentName')(function* () 
   const raw = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('lwc_component_name_prompt'),
-      placeHolder: nls.localize('lwc_component_name_placeholder'),
       validateInput: (value: string) => {
         if (!value || value.trim().length === 0) return nls.localize('lwc_component_name_empty_error');
         if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value))

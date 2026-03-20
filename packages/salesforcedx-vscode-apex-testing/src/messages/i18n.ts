@@ -80,7 +80,6 @@ export const messages = {
     'Class name must start with a letter and contain only alphanumeric characters and underscores',
   apex_test_class_name_max_length_error: 'Class name cannot exceed %d characters',
   apex_test_class_name_prompt: 'Enter Apex test class name',
-  apex_test_class_name_placeholder: 'MyTest',
   apex_unit_test_template_description: 'Template with sample test method',
   basic_unit_test_template_description: 'Minimal template',
   apex_test_template_prompt: 'Select template type',

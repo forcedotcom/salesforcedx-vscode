@@ -74,7 +74,6 @@ const promptForClassName = (): Promise<string | undefined> =>
     vscode.window
       .showInputBox({
         prompt: nls.localize('apex_class_name_prompt'),
-        placeHolder: nls.localize('apex_class_name_placeholder'),
         validateInput: (value: string) => {
           if (!value || value.trim().length === 0) return nls.localize('apex_class_name_empty_error');
           if (value.toLowerCase() === 'default') return nls.localize('apex_class_name_cannot_be_default');
