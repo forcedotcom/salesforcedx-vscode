@@ -7,11 +7,5 @@
 
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
-import { channelService } from './services/channel';
 
-export const getDocumentName = (document: vscode.TextDocument): string =>
-  Utils.basename(document.uri) || '';
-
-export const trackErrorWithTelemetry = (problemId: string, error: string): void => {
-  channelService.appendLine(`soql_error_${problemId.toLocaleLowerCase()}: ${error}`);
-};
+export const getDocumentName = (document: vscode.TextDocument): string => Utils.basename(document.uri) || '';

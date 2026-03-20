@@ -8,7 +8,9 @@
 import type { Connection } from '@salesforce/core';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as vscode from 'vscode';
 import { getSoqlRuntime } from './extensionProvider';
 
 /** TargetOrgRef (getDefaultOrgRef) has no requirements */
@@ -22,6 +24,23 @@ export const isDefaultOrgSet = (): Promise<boolean> =>
       );
     })
   );
+
+/**
+ * Calls `listener` whenever the default org changes. Returns a `Disposable` for cleanup.
+ * Skips the initial current value — only fires on subsequent changes.
+ */
+export const onDefaultOrgChange = (listener: () => void): vscode.Disposable => {
+  const abortController = new AbortController();
+  void getSoqlRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* getServicesApi;
+      const ref = yield* api.services.TargetOrgRef();
+      yield* ref.changes.pipe(Stream.runForEach(() => Effect.sync(listener)));
+    }),
+    { signal: abortController.signal }
+  );
+  return new vscode.Disposable(() => abortController.abort());
+};
 
 export const getConnection = (): Promise<Connection> =>
   getSoqlRuntime().runPromise(
