@@ -20,12 +20,14 @@ import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { getDefaultOrgRef } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
+import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagItemStruct, TraceFlagService } from './core/traceFlagService';
@@ -36,6 +38,7 @@ import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
 import { watchApexTestContext, watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
@@ -201,14 +204,9 @@ const activationEffect = Effect.fn('activationEffect')(function* (context: vscod
 
     yield* Effect.all(
       [
-        // watch default org changes to update VS Code context variables and other services
-        Effect.forkIn(watchDefaultOrgContext(), scope),
-        // watch the config files for changes, which various services use to invalidate caches
-        Effect.forkIn(watchConfigFiles(), scope),
-        // watch active editor changes to update package directories context
-        Effect.forkIn(watchPackageDirectoriesContext(), scope),
-        // watch active editor changes to update apex test context
-        Effect.forkIn(watchApexTestContext(), scope)
+        Effect.forkIn(subscribeLifecycleWarnings(), scope),
+        retrieveOnLoadEffect(),
+        Effect.forkIn(watchSettingsService(), scope)
       ],
       { concurrency: 'unbounded' }
     );
@@ -233,10 +231,7 @@ const activationEffect = Effect.fn('activationEffect')(function* (context: vscod
   );
   // init the connection for all the consumers who might need it
   // no Connection is a possible state
-  yield* Effect.forkIn(
-    ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)),
-    scope
-  );
+  yield* Effect.forkIn(ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)), scope);
   // set sf:project_opened context before activation resolves so lazy-loaded extensions can show
   // their commands on startup — must be blocking (not forked) so the context key is set before
   // VS Code evaluates `when` clauses for command palette visibility
