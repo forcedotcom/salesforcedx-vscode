@@ -11,6 +11,12 @@ import type { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
+const hasMessage = (obj: unknown): obj is { message: unknown } =>
+  typeof obj === 'object' && obj !== null && 'message' in obj;
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : hasMessage(error) ? String(error.message) : String(error);
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type QueryResult<T> = Awaited<ReturnType<Connection['query']>>;
 
@@ -27,8 +33,8 @@ export const runQuery =
       };
     } catch (error) {
       if (options.showErrors) {
-        const message = nls.localize('error_run_soql_query', error.message);
-        vscode.window.showErrorMessage(message);
+        const errorMsg = getErrorMessage(error);
+        vscode.window.showErrorMessage(nls.localize('error_run_soql_query', errorMsg));
       }
       throw error;
     }
