@@ -44,6 +44,7 @@ import {
   lightningGenerateAuraComponent,
   lightningGenerateEvent,
   lightningGenerateInterface,
+  agentProjectGenerate,
   nativemobileProjectGenerate,
   openDocumentation,
   packageInstall,
@@ -130,6 +131,7 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.lightning.generate.interface', lightningGenerateInterface),
     vscode.commands.registerCommand('sf.config.list', configList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
+    vscode.commands.registerCommand('sf.agent.generate.project', agentProjectGenerate),
     vscode.commands.registerCommand('sf.nativemobile.generate.project', nativemobileProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
@@ -263,11 +265,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     CommandEventDispatcher.getInstance()
   );
 
-  if (
-    metadataExtension &&
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
+  if (metadataExtension && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
     // Refresh SObject definitions if there aren't any faux classes (metadata ext registers the command)
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
