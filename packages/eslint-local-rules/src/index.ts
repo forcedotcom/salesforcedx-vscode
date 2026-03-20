@@ -17,7 +17,7 @@ import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
 import { noVscodeQuickpickDescriptionLiterals } from './noVscodeQuickpickDescriptionLiterals';
 import { noVscodeUri } from './noVscodeUri';
-import { noVscodeValidateinputLiterals } from './noVscodeValidateinputLiterals';
+import { noVscodeValidateInputLiterals } from './noVscodeValidateInputLiterals';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
 import { packageJsonExtensionIcon } from './packageJsonExtensionIcon';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
@@ -40,7 +40,7 @@ const plugin = {
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
     'no-vscode-quickpick-description-literals': noVscodeQuickpickDescriptionLiterals,
     'no-vscode-uri': noVscodeUri,
-    'no-vscode-validateinput-literals': noVscodeValidateinputLiterals,
+    'no-vscode-validateinput-literals': noVscodeValidateInputLiterals,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,
     'package-json-extension-icon': packageJsonExtensionIcon,
     'package-json-icon-paths': packageJsonIconPaths,

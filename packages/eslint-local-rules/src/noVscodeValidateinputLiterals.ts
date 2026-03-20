@@ -127,7 +127,7 @@ const checkValidateInputFunction = (
   }
 };
 
-export const noVscodeValidateinputLiterals = RuleCreator.withoutDocs({
+export const noVscodeValidateInputLiterals = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
     docs: {
