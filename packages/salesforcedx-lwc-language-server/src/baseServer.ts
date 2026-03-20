@@ -488,17 +488,17 @@ export abstract class BaseServer {
     }
   }
 
-  public onShutdown(): void {
+  public async onShutdown(): Promise<void> {
     // Persist custom components for faster startup on next session
     if (this.componentIndexer) {
-      this.componentIndexer.persistCustomComponents();
+      await this.componentIndexer.persistCustomComponents();
     }
   }
 
-  public onExit(): void {
+  public async onExit(): Promise<void> {
     // Persist custom components for faster startup on next session
     if (this.componentIndexer) {
-      this.componentIndexer.persistCustomComponents();
+      await this.componentIndexer.persistCustomComponents();
     }
   }
 

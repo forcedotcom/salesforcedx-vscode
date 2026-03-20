@@ -245,11 +245,14 @@ export default class ComponentIndexer {
     }
   }
 
-  public persistCustomComponents(): void {
+  public async persistCustomComponents(): Promise<void> {
     const indexJsonString = JSON.stringify(this.getCustomData());
 
     // Store the component index data for the client to process
-    void this.fileSystemAccessor.updateFileContent('lwc:componentIndex', indexJsonString);
+    await this.fileSystemAccessor.updateFileContent(
+      path.join(this.workspaceRoot, CUSTOM_COMPONENT_INDEX_FILE),
+      indexJsonString
+    );
   }
 
   public async insertSfdxTsConfigPath(filePaths: string[]): Promise<void> {
@@ -400,6 +403,6 @@ export default class ComponentIndexer {
 
     (await this.getStaleTags()).forEach(tag => this.tags.delete(getTagName(tag)));
 
-    this.persistCustomComponents();
+    await this.persistCustomComponents();
   }
 }
