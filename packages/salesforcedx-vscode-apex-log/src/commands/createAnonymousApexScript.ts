@@ -16,7 +16,6 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   const name = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('create_script_name_prompt'),
-      placeHolder: nls.localize('create_script_name_placeholder'),
       validateInput: (value: string) =>
         !value?.trim()
           ? nls.localize('create_script_name_empty_error')

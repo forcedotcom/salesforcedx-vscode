@@ -78,16 +78,16 @@ const validateApexTypeName = (
 
 type PromptForApexTypeNameParams = {
   prompt: string;
-  placeHolder: string;
   messages: ApexTypeNameMessages;
   forbidLowercaseDefault?: boolean;
 };
 
-export const promptForApexTypeName = Effect.fn('promptForApexTypeName')(function* (params: PromptForApexTypeNameParams) {
+export const promptForApexTypeName = Effect.fn('promptForApexTypeName')(function* (
+  params: PromptForApexTypeNameParams
+) {
   const raw = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: params.prompt,
-      placeHolder: params.placeHolder,
       validateInput: (value: string) =>
         validateApexTypeName(value, params.messages, {
           forbidLowercaseDefault: params.forbidLowercaseDefault,

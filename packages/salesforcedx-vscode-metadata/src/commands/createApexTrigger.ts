@@ -26,7 +26,6 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
 
   const nameOpt = yield* promptForApexTypeName({
     prompt: nls.localize('apex_trigger_name_prompt'),
-    placeHolder: nls.localize('apex_trigger_name_placeholder'),
     messages: {
       empty: nls.localize('apex_trigger_name_empty_validation'),
       invalidFormat: nls.localize('apex_trigger_name_invalid_validation'),
@@ -37,7 +36,8 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
   const triggerName = nameOpt.value;
 
   const outputDirUri =
-    outputDirParam ?? (yield* promptForPackageMetadataSubdir(project, 'triggers', nls.localize('apex_trigger_output_dir_prompt')));
+    outputDirParam ??
+    (yield* promptForPackageMetadataSubdir(project, 'triggers', nls.localize('apex_trigger_output_dir_prompt')));
   if (!outputDirUri) return undefined;
 
   const apiVersion = yield* getApiVersion(project);

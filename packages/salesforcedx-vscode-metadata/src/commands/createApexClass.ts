@@ -77,7 +77,6 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
     Option.getOrUndefined(
       yield* promptForApexTypeName({
         prompt: nls.localize('apex_class_name_prompt'),
-        placeHolder: nls.localize('apex_class_name_placeholder'),
         forbidLowercaseDefault: true,
         messages: {
           empty: nls.localize('apex_class_name_empty_error'),
@@ -101,9 +100,10 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
 
   const clsUri = Utils.joinPath(outputDirUri, `${className}.cls`);
   const clsMetaUri = Utils.joinPath(outputDirUri, `${className}.cls-meta.xml`);
-  const overwriteOk = yield* checkAndPromptOverwriteUris([clsUri, clsMetaUri], nls.localize('apex_class_already_exists')).pipe(
-    Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(false))
-  );
+  const overwriteOk = yield* checkAndPromptOverwriteUris(
+    [clsUri, clsMetaUri],
+    nls.localize('apex_class_already_exists')
+  ).pipe(Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(false)));
   if (!overwriteOk) return undefined;
 
   const apiVersion = yield* getApiVersion(project);

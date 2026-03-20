@@ -38,7 +38,6 @@ export const messages = {
     'Class name must start with a letter and contain only alphanumeric characters and underscores',
   apex_class_name_max_length_error: 'Class name cannot exceed %d characters',
   apex_class_name_prompt: 'Enter Apex class name',
-  apex_class_name_placeholder: 'MyApexClass',
   apex_class_output_dir_prompt: 'Select output directory',
   apex_class_template_prompt: 'Select template type',
   apex_class_default_template_description: 'Standard Apex class with constructor',
@@ -59,7 +58,6 @@ export const messages = {
   lwc_component_name_format_error:
     'Component name must start with a letter and contain only alphanumeric characters and underscores',
   lwc_component_name_prompt: 'Enter Lightning Web Component name',
-  lwc_component_name_placeholder: 'myComponent',
   lwc_output_dir_prompt: 'Select output directory',
   lwc_select_component_type: 'Select component type',
   lwc_generate_success: 'Lightning Web Component created successfully',
