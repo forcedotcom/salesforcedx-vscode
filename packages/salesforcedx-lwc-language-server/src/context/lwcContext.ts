@@ -96,9 +96,9 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           ...new Set(
             pathsUnderLwc
               .map(p => {
-                const segments = p.split(path.sep);
+                const segments = normalizePath(p).split('/');
                 const i = segments.lastIndexOf('lwc');
-                return i === -1 ? null : normalizePath(segments.slice(0, i + 1).join(path.sep));
+                return i === -1 ? null : normalizePath(segments.slice(0, i + 1).join('/'));
               })
               .filter((root): root is NormalizedPath => root != null)
           )
@@ -119,9 +119,9 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
             pathsUnderModulesLwc
               .flatMap(paths => paths ?? [])
               .map(p => {
-                const segments = p.split(path.sep);
+                const segments = normalizePath(p).split('/');
                 const i = segments.lastIndexOf('lwc');
-                return i === -1 ? null : normalizePath(segments.slice(0, i + 1).join(path.sep));
+                return i === -1 ? null : normalizePath(segments.slice(0, i + 1).join('/'));
               })
               .filter((r): r is NormalizedPath => r != null)
           )
@@ -141,10 +141,10 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           ...new Set(
             pathsUnderLwc
               .map(p => {
-                const segments = p.split(path.sep);
+                const segments = normalizePath(p).split('/');
                 const i = segments.lastIndexOf('lwc');
                 if (i === -1) return null;
-                const rootPath = normalizePath(segments.slice(0, i + 1).join(path.sep));
+                const rootPath = normalizePath(segments.slice(0, i + 1).join('/'));
                 const hasIgnored = segments.slice(0, i + 1).some(seg => IGNORED_DIRS.has(seg));
                 return hasIgnored ? null : rootPath;
               })
@@ -193,7 +193,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
     try {
       const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
-      await this.fileSystemAccessor.updateFileContent(baseTsConfigPath, baseTsConfig, this.connection);
+      await this.fileSystemAccessor.updateFileContent(baseTsConfigPath, baseTsConfig);
     } catch (error) {
       Logger.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
       throw error;
@@ -212,7 +212,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       const tsConfigPath = path.join(modulesDir, 'tsconfig.json');
       const relativeWorkspaceRoot = relativePath(path.dirname(tsConfigPath), this.workspaceRoots[0]);
       const tsConfigContent = ejs.render(tsConfigTemplate, { project_root: relativeWorkspaceRoot });
-      await this.fileSystemAccessor.updateFileContent(tsConfigPath, tsConfigContent, this.connection);
+      await this.fileSystemAccessor.updateFileContent(tsConfigPath, tsConfigContent);
       await updateForceIgnoreFile(forceignore, true, this.fileSystemAccessor);
     }
   }

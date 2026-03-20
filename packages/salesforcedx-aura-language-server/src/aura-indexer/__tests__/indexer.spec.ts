@@ -88,6 +88,7 @@ describe('indexer parsing content', () => {
         return Promise.resolve([]);
       }
     });
+    jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockResolvedValue(undefined);
   });
 
   it('aura indexer', async () => {

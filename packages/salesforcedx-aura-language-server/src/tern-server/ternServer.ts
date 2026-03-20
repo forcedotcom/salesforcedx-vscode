@@ -90,12 +90,8 @@ const auraInstanceLastSort = (a: string, b: string): number =>
  * Collects all .js file paths under dirPath via workspace/findFiles (findFilesWithGlobAsync).
  * Returns an empty array when async find is not available.
  */
-const getJsFilesRecursively = async (dirPath: string, fileSystemAccessor: LspFileSystemAccessor): Promise<string[]> => {
-  if (!fileSystemAccessor.findFilesWithGlobAsync) {
-    return [];
-  }
-  return (await fileSystemAccessor.findFilesWithGlobAsync('**/*.js', normalizePath(dirPath))) ?? [];
-};
+const getJsFilesRecursively = async (dirPath: string, fileSystemAccessor: LspFileSystemAccessor): Promise<string[]> =>
+  (await fileSystemAccessor.findFilesWithGlobAsync('**/*.js', normalizePath(dirPath))) ?? [];
 
 const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: true }> => {
   // Use require() to load plugins from file system (they're not bundled)

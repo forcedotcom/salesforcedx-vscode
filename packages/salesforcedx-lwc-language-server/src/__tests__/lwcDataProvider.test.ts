@@ -67,6 +67,10 @@ beforeAll(() => {
     const key = normalizePath(uri);
     return Promise.resolve(contentByPath[key]);
   });
+  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
+    contentByPath[normalizePath(uri)] = content;
+    return Promise.resolve();
+  });
 });
 
 const componentIndexer: ComponentIndexer = new ComponentIndexer({

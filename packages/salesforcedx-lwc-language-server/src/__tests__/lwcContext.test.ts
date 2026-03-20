@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { normalizePath, NormalizedPath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   buildSfdxContentMap,
   createMockWorkspaceFindFilesConnection,
@@ -19,6 +19,7 @@ import {
   sfdxFileSystemAccessor,
   UTILS_ROOT
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { minimatch } from 'minimatch';
 import { join, resolve } from 'node:path';
 import { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
@@ -54,6 +55,22 @@ beforeAll(() => {
     contentMap.delete(normalizePath(pathOrUri));
     return Promise.resolve();
   });
+  jest
+    .spyOn(sfdxFileSystemAccessor, 'findFilesWithGlobAsync')
+    .mockImplementation((pattern: string, basePath: NormalizedPath) => {
+      const base = normalizePath(basePath);
+      const prefix = `${base}/`;
+      const results: NormalizedPath[] = [];
+      for (const key of contentMap.keys()) {
+        if (key.startsWith(prefix)) {
+          const relative = key.slice(prefix.length);
+          if (minimatch(relative, pattern)) {
+            results.push(key as NormalizedPath);
+          }
+        }
+      }
+      return Promise.resolve(results);
+    });
 });
 
 describe('LWCWorkspaceContext', () => {

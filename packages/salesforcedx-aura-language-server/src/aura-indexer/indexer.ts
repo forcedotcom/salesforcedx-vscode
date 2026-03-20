@@ -22,11 +22,11 @@ import { AuraWorkspaceContext } from '../context/auraContext';
 import * as auraStandardImport from '../resources/aura-standard.json';
 import * as transformedAuraSystemImport from '../resources/transformed-aura-system.json';
 
-// line-column ships no .d.ts; wrap the CJS/ESM default export in a typed factory so all
-// call sites get { line, col } | false without any unsafe-call or unsafe-assignment lint hits.
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-const makeLineColumnFinder = (str: string): { fromIndex(idx: number): { line: number; col: number } | false } =>
-  new (LineColumnFinderModule.default ?? LineColumnFinderModule)(str);
+// Handle both ES module (default export) and CommonJS (namespace export) module resolution.
+// This is needed because Jest resolves modules differently than TypeScript's runtime,
+// and line-column may export differently depending on the module system.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+const LineColumnFinder = LineColumnFinderModule.default ?? LineColumnFinderModule;
 
 export default class AuraIndexer implements Indexer {
   public readonly eventEmitter = new EventsEmitter();
@@ -111,8 +111,8 @@ export default class AuraIndexer implements Indexer {
         const documentation = this.trimQuotes(attributes.description ?? '');
         const jsName = this.trimQuotes(attributes.name ?? '');
         const type = this.trimQuotes(attributes.type ?? '');
-        const startColumn = makeLineColumnFinder(markup).fromIndex(node.start) || { line: 0, col: 0 };
-        const endColumn = makeLineColumnFinder(markup).fromIndex(node.end - 1) || { line: 0, col: 0 };
+        const startColumn = new LineColumnFinder(markup).fromIndex(node.start);
+        const endColumn = new LineColumnFinder(markup).fromIndex(node.end - 1);
 
         const location: Location = {
           uri: URI.file(file).toString(),
@@ -299,8 +299,8 @@ export default class AuraIndexer implements Indexer {
     const attributes = node.attributes ?? {};
     const documentation = this.trimQuotes(attributes.description ?? '');
 
-    const startColumn = makeLineColumnFinder(contents).fromIndex(node.start) || { line: 0, col: 0 };
-    const endColumn = makeLineColumnFinder(contents).fromIndex(node.end - 1) || { line: 0, col: 0 };
+    const startColumn = new LineColumnFinder(contents).fromIndex(node.start);
+    const endColumn = new LineColumnFinder(contents).fromIndex(node.end - 1);
 
     const location: Location = {
       uri: URI.file(file).toString(),

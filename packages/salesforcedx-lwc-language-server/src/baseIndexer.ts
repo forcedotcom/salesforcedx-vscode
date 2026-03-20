@@ -94,6 +94,5 @@ export const getSfdxPackageDirsPattern = async (
     return '';
   }
 
-  const result = paths.length === 1 ? paths[0] : `{${paths.join(',')}}`;
-  return result;
+  return paths.length === 1 ? paths[0] : `{${paths.join(',')}}`;
 };

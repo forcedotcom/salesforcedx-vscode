@@ -692,8 +692,6 @@ export abstract class BaseServer {
     }
   }
 
-  protected isInitializing = false;
-
   /**
    * Performs delayed initialization of context and component indexer
    * Files are loaded into fileSystemAccessor via onDidOpen events
@@ -702,25 +700,11 @@ export abstract class BaseServer {
     try {
       this.context.initialize(this.workspaceType);
       const basePath = this.workspaceRoots[0];
-      const findFilesTimeoutMs = 8000;
-      const findFilesPromise = Promise.all([
+      const [html, js, ts] = await Promise.all([
         this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.html', basePath),
         this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.js', basePath),
         this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
       ]);
-      let findFilesTimeoutId: ReturnType<typeof setTimeout>;
-      const findFilesTimeoutPromise = new Promise<[NormalizedPath[], NormalizedPath[], NormalizedPath[]]>(
-        (_, reject) => {
-          findFilesTimeoutId = setTimeout(() => reject(new Error('findFiles timeout')), findFilesTimeoutMs);
-        }
-      );
-      await findFilesPromise.finally(() => clearTimeout(findFilesTimeoutId!));
-      const [html, js, ts] = await Promise.race([findFilesPromise, findFilesTimeoutPromise]).catch(err => {
-        Logger.info(
-          `[LWC] performDelayedInitialization: findFiles timed out or failed (${err instanceof Error ? err.message : String(err)}), continuing with hasLwcFiles=false`
-        );
-        return [[], [], []];
-      });
       const hasLwcFiles = html.length > 0 || js.length > 0 || ts.length > 0;
       Logger.info(
         `[LWC] performDelayedInitialization: findFiles result html=${html.length} js=${js.length} ts=${ts.length} hasLwcFiles=${hasLwcFiles}`
@@ -738,7 +722,6 @@ export abstract class BaseServer {
           Logger.info(
             `[LWC] performDelayedInitialization: SFDX workspace but sfdx-project.json not found at ${sfdxProjectPath}, exiting early`
           );
-          this.isInitializing = false;
           return;
         }
       }

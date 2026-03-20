@@ -58,7 +58,7 @@ const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> =
     const content = getDeclaration(typing);
 
     // Use updateFileContent with connection to create file via LSP
-    await indexer.fileSystemAccessor.updateFileContent(uri, content, indexer.connection);
+    await indexer.fileSystemAccessor.updateFileContent(uri, content);
   }
 };
 
@@ -75,7 +75,7 @@ const deleteStaleMetaTypings = async (indexer: TypingIndexerData): Promise<void>
   }
 
   for (const pathToDelete of filesToDelete) {
-    await indexer.fileSystemAccessor.deleteFile(pathToDelete, indexer.connection);
+    await indexer.fileSystemAccessor.deleteFile(pathToDelete);
   }
 };
 
@@ -101,13 +101,16 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
     const customLabelTypingsPath = normalizePath(
       path.join(indexer.workspaceRoot, '.sfdx', 'typings', 'lwc', 'customlabels.d.ts')
     );
-    await indexer.fileSystemAccessor.updateFileContent(customLabelTypingsPath, fileContent, indexer.connection);
+    await indexer.fileSystemAccessor.updateFileContent(customLabelTypingsPath, fileContent);
   }
 };
 
 // Utility function to get meta files
 const getMetaFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
-  const packageDirsPattern = await getSfdxPackageDirsPattern(indexer.workspaceRoot, indexer.fileSystemAccessor);
+  const packageDirsPattern = await getSfdxPackageDirsPattern(
+    indexer.workspaceRoot,
+    indexer.fileSystemAccessor
+  );
   const found = await indexer.fileSystemAccessor.findFilesWithGlobAsync(
     `${packageDirsPattern}/**/{staticresources,contentassets,messageChannels}/*.{resource,asset,messageChannel}-meta.xml`,
     indexer.workspaceRoot

@@ -103,7 +103,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
     const client = await createLanguageClient(serverModule, { workspaceType });
 
     // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
-    registerWorkspaceReadFileHandler(client);
+    registerWorkspaceReadFileHandler(client, channelService);
 
     try {
       await client.start();

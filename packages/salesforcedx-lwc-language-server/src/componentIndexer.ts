@@ -96,10 +96,6 @@ const findFilesWithGlob = async (
   const normalizedBasePath = normalizePath(basePath);
   const patterns = expandBraces(pattern);
 
-  if (!fileSystemAccessor.findFilesWithGlobAsync) {
-    return [];
-  }
-
   const uris = await Promise.all(
     patterns?.map(async p => await fileSystemAccessor.findFilesWithGlobAsync(p, normalizedBasePath))
   );
@@ -298,7 +294,7 @@ export default class ComponentIndexer {
   // It is intended to update the path mapping in the .sfdx/tsconfig.sfdx.json file.
   // TODO: Once the LWC custom module resolution plugin has been developed in the language server
   // this can be removed.
-  public async updateSfdxTsConfigPath(connection?: Connection): Promise<void> {
+  public async updateSfdxTsConfigPath(_connection?: Connection): Promise<void> {
     const sfdxTsConfigPath = path.join(this.workspaceRoot, '.sfdx', 'tsconfig.sfdx.json');
 
     const fileExists = await this.fileSystemAccessor.fileExists(sfdxTsConfigPath);
@@ -315,11 +311,7 @@ export default class ComponentIndexer {
           sfdxTsConfig.compilerOptions.paths = await this.getTsConfigPathMapping();
 
           // Update the actual tsconfig file
-          await this.fileSystemAccessor.updateFileContent(
-            sfdxTsConfigPath,
-            JSON.stringify(sfdxTsConfig, null, 2),
-            connection
-          );
+          await this.fileSystemAccessor.updateFileContent(sfdxTsConfigPath, JSON.stringify(sfdxTsConfig, null, 2));
         }
       } catch (err) {
         Logger.error(err);

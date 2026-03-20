@@ -44,7 +44,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 /** Default config when sfdx-project.json is missing or unreadable (e.g. workspace/readFile not yet handled by client). */
 const DEFAULT_SFDX_PROJECT_CONFIG: SfdxProjectConfig = {
   packageDirectories: [],
-  sfdxPackageDirsPattern: '{}'
+  sfdxPackageDirsPattern: ''
 };
 
 const readSfdxProjectConfig = async (
@@ -204,11 +204,23 @@ export abstract class BaseWorkspaceContext {
   public initSfdxProjectConfigCache: () => Promise<SfdxProjectConfig>;
   public fileSystemAccessor: LspFileSystemAccessor;
   private readonly sfdxTypingsDir?: string;
-  public connection?: Connection;
+  private _connection?: Connection;
+
+  /** The LSP connection. Setting this also propagates to the fileSystemAccessor. */
+  public get connection(): Connection | undefined {
+    return this._connection;
+  }
+  public set connection(conn: Connection | undefined) {
+    this._connection = conn;
+    if (conn) {
+      this.fileSystemAccessor.setConnection(conn);
+    }
+  }
 
   /**
    * @param workspaceRoots
    * @param fileSystemAccessor
+   * @param connection
    * @param options Optional. Pass sfdxTypingsDir for typings copy (web-safe; avoids __dirname).
    */
   constructor(
@@ -222,8 +234,8 @@ export abstract class BaseWorkspaceContext {
 
     this.findNamespaceRootsUsingTypeCache = utils.memoize(() => this.findNamespaceRootsUsingType());
     this.initSfdxProjectConfigCache = utils.memoize(async () => this.initSfdxProject());
-    this.connection = connection;
     this.fileSystemAccessor = fileSystemAccessor;
+    this.connection = connection;
     this.sfdxTypingsDir = options?.sfdxTypingsDir;
   }
 
@@ -480,7 +492,7 @@ export abstract class BaseWorkspaceContext {
       const destPath = path.join(typingsDir, 'lds.d.ts');
       const content = await this.fileSystemAccessor.getFileContent(sourcePath);
       if (content) {
-        await this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
+        await this.fileSystemAccessor.updateFileContent(destPath, content);
       }
     } catch {
       // ignore
@@ -490,7 +502,7 @@ export abstract class BaseWorkspaceContext {
       const destPath = path.join(typingsDir, 'messageservice.d.ts');
       const content = await this.fileSystemAccessor.getFileContent(sourcePath);
       if (content) {
-        await this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
+        await this.fileSystemAccessor.updateFileContent(destPath, content);
       }
     } catch {
       // ignore
@@ -504,7 +516,7 @@ export abstract class BaseWorkspaceContext {
         const destPath = path.join(typingsDir, file.name);
         const content = await this.fileSystemAccessor.getFileContent(sourcePath);
         if (content) {
-          await this.fileSystemAccessor.updateFileContent(destPath, content, this.connection);
+          await this.fileSystemAccessor.updateFileContent(destPath, content);
         }
       } catch {
         // ignore

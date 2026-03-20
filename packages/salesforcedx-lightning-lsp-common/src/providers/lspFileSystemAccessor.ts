@@ -162,9 +162,9 @@ export class LspFileSystemAccessor {
     }
   }
 
-  public async updateFileContent(uri: string, content: string, connection?: Connection): Promise<void> {
+  public async updateFileContent(uri: string, content: string): Promise<void> {
     const normalizedUri = normalizePath(uri);
-    if (connection) {
+    if (this.connection) {
       const fileUri = getFileUriForPath(normalizedUri, this.workspaceFolderUri);
       const edit: WorkspaceEdit = {
         documentChanges: [
@@ -173,7 +173,7 @@ export class LspFileSystemAccessor {
         ]
       };
       try {
-        const result = await connection.sendRequest(ApplyWorkspaceEditRequest.type, {
+        const result = await this.connection.sendRequest(ApplyWorkspaceEditRequest.type, {
           label: `Create ${path.basename(normalizedUri)}`,
           edit
         });
@@ -254,16 +254,17 @@ export class LspFileSystemAccessor {
     }
   }
 
-  public async deleteFile(pathOrUri: string, connection?: Connection): Promise<void> {
-    if (!connection) return;
-    const key = normalizePath(pathOrUri);
-    const fileUri = key.includes('://') ? key : getFileUriForPath(key, this.workspaceFolderUri);
-    const result = await connection.sendRequest<WorkspaceDeleteFileResult>(WORKSPACE_DELETE_FILE_REQUEST, {
-      uri: fileUri
-    });
-    if (result?.error) {
-      Logger.error(`[LspFileSystemAccessor] workspace/deleteFile failed for ${fileUri}: ${result.error}`);
-      throw new Error(result.error);
+  public async deleteFile(pathOrUri: string): Promise<void> {
+    if (this.connection) {
+      const key = normalizePath(pathOrUri);
+      const fileUri = key.includes('://') ? key : getFileUriForPath(key, this.workspaceFolderUri);
+      const result = await this.connection.sendRequest<WorkspaceDeleteFileResult>(WORKSPACE_DELETE_FILE_REQUEST, {
+        uri: fileUri
+      });
+      if (result?.error) {
+        Logger.error(`[LspFileSystemAccessor] workspace/deleteFile failed for ${fileUri}: ${result.error}`);
+        throw new Error(result.error);
+      }
     }
   }
 }

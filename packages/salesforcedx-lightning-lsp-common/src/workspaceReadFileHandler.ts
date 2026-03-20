@@ -52,7 +52,8 @@ const getFs = Effect.flatMap(getServicesApi, api =>
   Effect.provide(api.services.FsService, api.services.FsService.Default)
 );
 
-const logTo = (channel: vscode.OutputChannel, msg: string) => Effect.sync(() => channel.appendLine(msg));
+const logTo = (channel: Pick<vscode.OutputChannel, 'appendLine'>, msg: string) =>
+  Effect.sync(() => channel.appendLine(msg));
 
 /**
  * Register the workspace/readFile LSP request handler so the language server can request
@@ -61,10 +62,16 @@ const logTo = (channel: vscode.OutputChannel, msg: string) => Effect.sync(() => 
  *
  * Call this from the extension after the language client has started. Only extensions that
  * have salesforcedx-vscode-services as an extensionDependency should use this.
+ *
+ * @param outputChannel Optional channel to log handler activity. Pass the extension's existing
+ * output channel (e.g. channelService) so logs appear there rather than in a new dedicated channel.
+ * When omitted, handler activity is not logged.
  */
-export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient): void => {
-  const log = vscode.window.createOutputChannel('LWC workspace (client)');
-  const findFilesLog = vscode.window.createOutputChannel('LWC workspace/findFiles (client)');
+export const registerWorkspaceReadFileHandler = (
+  client: WorkspaceReadFileClient,
+  outputChannel?: Pick<vscode.OutputChannel, 'appendLine'>
+): void => {
+  const log = outputChannel ?? { appendLine: () => {} };
 
   const handleReadFile = Effect.fn('WorkspaceHandler.readFile')(function* (params: WorkspaceReadFileParams) {
     const { uri } = params;
@@ -104,15 +111,10 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
   const handleFindFiles = Effect.fn('WorkspaceHandler.findFiles')(function* (params: WorkspaceFindFilesParams) {
     const { baseFolderUri, pattern } = params;
     const baseUri = vscode.Uri.parse(baseFolderUri);
-    yield* logTo(
-      findFilesLog,
-      `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern} scheme=${baseUri.scheme}`
-    );
-    yield* logTo(log, `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern}`);
+    yield* logTo(log, `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern} scheme=${baseUri.scheme}`);
     const fs = yield* getFs;
     const uris = yield* fs.findFiles(new vscode.RelativePattern(baseUri, pattern));
     const urisStr = uris.map((u: vscode.Uri) => u.toString());
-    yield* logTo(findFilesLog, `[findFiles] returned ${urisStr.length} uris`);
     yield* logTo(log, `[findFiles] success pattern=${pattern} uris=${urisStr.length}`);
     return { uris: urisStr };
   });
@@ -172,10 +174,8 @@ export const registerWorkspaceReadFileHandler = (client: WorkspaceReadFileClient
         Effect.sync(() => {
           const message = errorMessage(e);
           const stack = e instanceof Error ? e.stack : undefined;
-          findFilesLog.appendLine(`[findFiles] error: ${message}`);
-          if (stack) findFilesLog.appendLine(`[findFiles] stack: ${stack}`);
-          findFilesLog.appendLine('[findFiles] returning undefined');
           log.appendLine(`[findFiles] error: ${message}`);
+          if (stack) log.appendLine(`[findFiles] stack: ${stack}`);
           return { uris: undefined };
         })
       ),
