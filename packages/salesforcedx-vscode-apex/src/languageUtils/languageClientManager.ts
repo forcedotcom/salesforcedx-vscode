@@ -381,21 +381,9 @@ export class LanguageClientManager {
       ? 'powershell.exe -command "Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"'
       : 'ps -e -o pid,ppid,command';
 
-    const stdout = execSync(cmd).toString();
-    return stdout
-      .trim()
-      .split(/\r?\n/g)
-      .map((line: string) => {
-        const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
-        const pid = parseInt(pidStr, 10);
-        const ppid = parseInt(ppidStr, 10);
-        const command = commandParts.join(' ');
-        return { pid, ppid, command, orphaned: false };
-      })
-      .filter(
-        (processInfo: ProcessDetail) => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c))
-      )
-      .filter((processInfo: ProcessDetail) => processInfo.command.includes('apex-jorje-lsp.jar'))
+    const entries = this.parseApexLspPsOutput(execSync(cmd).toString());
+    return entries
+      .map(p => ({ ...p, orphaned: false }))
       .map(processInfo => {
         const checkOrphanedCmd = isWindows
           ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${processInfo.ppid}'"`
@@ -423,6 +411,30 @@ export class LanguageClientManager {
   }
 
   /**
+   * Parse ps/PowerShell stdout into Apex LS process entries.
+   * Expects "pid ppid command" format (Unix ps -e -o pid,ppid,command).
+   * Also handles Win32_Process output with ProcessId, ParentProcessId, CommandLine.
+   */
+  private parseApexLspPsOutput(stdout: string): { pid: number; ppid: number; command: string }[] {
+    const skipCommands = ['ps', 'grep', 'Get-CimInstance'];
+    const apexJar = 'apex-jorje-lsp.jar';
+    return stdout
+      .trim()
+      .split(/\r?\n/g)
+      .map(line => {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < 3) return null;
+        const pid = parseInt(parts[0], 10);
+        const ppid = parseInt(parts[1], 10);
+        const command = parts.slice(2).join(' ');
+        if (Number.isNaN(pid) || Number.isNaN(ppid)) return null;
+        return { pid, ppid, command };
+      })
+      .filter((p): p is NonNullable<typeof p> => p !== null)
+      .filter(p => !skipCommands.some(c => p.command.includes(c)) && p.command.includes(apexJar));
+  }
+
+  /**
    * Find and SIGKILL Apex LS processes that are direct children of the current process.
    * Used when LSP shutdown times out so the extension host can exit (child's stdio pipes close).
    */
@@ -432,24 +444,34 @@ export class LanguageClientManager {
       return;
     }
     const parentPid = process.pid;
-    const cmd = isWindows
-      ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process | Where-Object { $_.ParentProcessId -eq ${parentPid} } | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"`
-      : 'ps -e -o pid,ppid,command';
     try {
-      const stdout = execSync(cmd).toString();
-      const lines = stdout.trim().split(/\r?\n/g);
-      for (const line of lines) {
-        const parts = line.trim().split(/\s+/);
-        if (parts.length < 3) continue;
-        const pid = parseInt(parts[0], 10);
-        const ppid = parseInt(parts[1], 10);
-        const command = parts.slice(2).join(' ');
-        if (Number.isNaN(pid) || Number.isNaN(ppid)) continue;
-        if (ppid === parentPid && command.includes('apex-jorje-lsp.jar')) {
-          try {
-            this.terminateProcess(pid);
-          } catch {
-            // Process may already be gone
+      if (isWindows) {
+        const cmd = `powershell.exe -command "Get-CimInstance -ClassName Win32_Process | Where-Object { $_.ParentProcessId -eq ${parentPid} } | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"`;
+        const stdout = execSync(cmd).toString();
+        const lines = stdout.trim().split(/\r?\n/g);
+        for (const line of lines) {
+          const parts = line.trim().split(/\s+/);
+          if (parts.length < 2) continue;
+          const pid = parseInt(parts[0], 10);
+          const command = parts.slice(1).join(' ');
+          if (Number.isNaN(pid)) continue;
+          if (command.includes('apex-jorje-lsp.jar')) {
+            try {
+              this.terminateProcess(pid);
+            } catch {
+              // Process may already be gone
+            }
+          }
+        }
+      } else {
+        const stdout = execSync('ps -e -o pid,ppid,command').toString();
+        for (const p of this.parseApexLspPsOutput(stdout)) {
+          if (p.ppid === parentPid) {
+            try {
+              this.terminateProcess(p.pid);
+            } catch {
+              // Process may already be gone
+            }
           }
         }
       }
