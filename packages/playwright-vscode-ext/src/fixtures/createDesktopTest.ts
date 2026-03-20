@@ -39,6 +39,7 @@ const forceKillProcessGroup = (proc: ChildProcess): void => {
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
+  /** Scratch alias for workspace `.sfdx/config.json` `target-org`. Omit or `undefined` → no `config.json` (no org). */
   orgAlias?: string;
   /** When true, use empty workspace (no sfdx-project.json). Default false. */
   emptyWorkspace?: boolean;
