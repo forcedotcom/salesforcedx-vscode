@@ -6,11 +6,11 @@
  */
 
 import { RuleTester } from '@typescript-eslint/rule-tester';
-import { noVscodeValidateinputLiterals } from '../src/noVscodeValidateinputLiterals';
+import { noVscodeValidateInputLiterals } from '../src/noVscodeValidateInputLiterals';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-vscode-validateinput-literals', noVscodeValidateinputLiterals, {
+ruleTester.run('no-vscode-validateinput-literals', noVscodeValidateInputLiterals, {
   valid: [
     {
       code: `vscode.window.showInputBox({
