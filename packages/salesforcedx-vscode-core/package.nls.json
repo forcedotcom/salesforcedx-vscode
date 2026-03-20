@@ -31,6 +31,7 @@
   "project_deploy_start_ignore_conflicts_default_org_text": "SFDX: Push Source to Default Org and Ignore Conflicts",
   "project_generate_manifest": "SFDX: Generate Manifest File",
   "project_generate_text": "SFDX: Create Project",
+  "agent_generate_project_text": "SFDX: Create Agent Project",
   "nativemobile_generate_project_text": "SFDX: Create Native Mobile Project",
   "project_generate_with_manifest_text": "SFDX: Create Project with Manifest",
   "project_retrieve_start_default_org_text": "SFDX: Pull Source from Default Org",
