@@ -322,8 +322,7 @@ export class LanguageClientManager {
           activationTime: startTime
         });
         await this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
-        // Do NOT push client to subscriptions - cleanup is handled only in deactivate() with timeout + force-kill.
-        // Pushing to subscriptions causes client.dispose() to run on shutdown, which can block if LS doesn't exit.
+        extensionContext.subscriptions.push(this.getClientInstance()!);
       } else {
         const errorMessage = nls.localize('unknown');
         this.setStatus(ClientStatus.Error, `${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);

@@ -251,11 +251,9 @@ describe('index tests', () => {
       stopSpy = jest.fn();
       telemetryServiceMock = new MockTelemetryService();
       (getTelemetryService as jest.Mock).mockReturnValue(telemetryServiceMock);
-      jest.spyOn(languageClientManager, 'getClientInstance').mockReturnValue({
-        stop: stopSpy,
-        dispose: jest.fn(),
-        outputChannel: { dispose: jest.fn() }
-      } as unknown as ApexLanguageClient);
+      jest
+        .spyOn(languageClientManager, 'getClientInstance')
+        .mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);
     });
 
     it('should call stop on the language client', async () => {
