@@ -121,7 +121,7 @@ const findFilesRecursively = (dirPath: string, basePath: string, files: Record<s
       if (entry.isDirectory()) {
         findFilesRecursively(fullPath, basePath, files);
       } else if (entry.isFile()) {
-        const relativePath = fullPath.substring(basePath.length + 1);
+        const relativePath = fullPath.substring(basePath.length + 1).replaceAll('\\', '/');
         const content = readFileContent(fullPath);
         if (content) {
           files[relativePath] = content;

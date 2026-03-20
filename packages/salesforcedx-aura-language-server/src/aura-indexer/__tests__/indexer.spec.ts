@@ -88,7 +88,6 @@ describe('indexer parsing content', () => {
         return Promise.resolve([]);
       }
     });
-
   });
 
   it('aura indexer', async () => {
