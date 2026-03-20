@@ -1,0 +1,15 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
+
+/** Salesforce project workspace (sfdx-project.json) so org ext activates and `sf:project_opened` is set */
+export const orgDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: MINIMAL_ORG_ALIAS,
+  additionalExtensionDirs: ['salesforcedx-vscode-core']
+});
