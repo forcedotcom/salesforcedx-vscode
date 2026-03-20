@@ -80,6 +80,8 @@ find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {
 
 After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" and "Publish in Open VSX Registry" to allow the extensions to be uploaded and complete the release process.
 
+**Code Builder Web promotion:** After publishing to the MS Marketplace, the workflow dispatches to `code-builder-web` to trigger a CBW release and auto-promote to production. Set repo variable `CBW_TRIGGER_ENABLED=false` (Settings → Secrets and variables → Actions → Variables) to publish without triggering CBW. Default (unset) enables the trigger.
+
 ## Troubleshooting
 
 - 401 errors on publish? You probably need to update the VSCE PAT. https://salesforce.quip.com/E8GWA5TuI8jp
