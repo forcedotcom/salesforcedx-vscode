@@ -180,7 +180,7 @@ export class SelectLwcComponentType implements ParametersGatherer<{ extension: s
       } else if (defaultLWCLanguage === 'javascript') {
         return { type: 'CONTINUE', data: { extension: 'JavaScript' } };
       }
-    } catch (error) {
+    } catch {
       // Project config not available, continue to prompt
     }
 

@@ -68,7 +68,7 @@ class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectN
     };
     this.telemetryProperties = {
       projectTemplate: data.projectTemplate,
-      lwcLanguage: data.lwcLanguage || 'not_specified'
+      lwcLanguage: data.lwcLanguage ?? 'not_specified'
     };
     return templateOptions;
   }
@@ -257,9 +257,9 @@ export type ProjectGenerateArgs = {
 const buildParameterGatherer = (args?: ProjectGenerateArgs) =>
   new CompositeParametersGatherer<ProjectNameAndPathAndTemplate>(
     new SelectProjectTemplate(args?.projectTemplate),
+    new SelectLwcLanguage(args?.lwcLanguage),
     new SelectProjectName(undefined, args?.projectName),
-    new SelectProjectFolder(args?.projectUri),
-    new SelectLwcLanguage(args?.lwcLanguage)
+    new SelectProjectFolder(args?.projectUri)
   );
 
 export const sfProjectGenerate = async (args?: ProjectGenerateArgs): Promise<void> => {

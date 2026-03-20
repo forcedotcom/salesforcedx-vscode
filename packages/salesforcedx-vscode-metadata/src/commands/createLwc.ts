@@ -10,9 +10,9 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import * as vscode from 'vscode';
 
 class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
 
@@ -74,7 +74,7 @@ const determineComponentTemplate = Effect.fn('determineComponentTemplate')(funct
   // Priority 1: Check defaultLWCLanguage in sfdx-project.json
   const projectJson = yield* Effect.try(() => project.getSfProjectJson());
   const projectConfig = yield* Effect.try(() => projectJson.getContents());
-  const defaultLWCLanguage = projectConfig.defaultLWCLanguage as string | undefined;
+  const defaultLWCLanguage = projectConfig.defaultLWCLanguage;
 
   if (defaultLWCLanguage === 'typescript') {
     return Option.some('typeScript' as const);
