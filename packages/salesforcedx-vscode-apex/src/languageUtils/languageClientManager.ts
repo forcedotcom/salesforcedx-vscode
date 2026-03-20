@@ -322,7 +322,8 @@ export class LanguageClientManager {
           activationTime: startTime
         });
         await this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
-        extensionContext.subscriptions.push(this.getClientInstance()!);
+        // Do NOT push client to subscriptions - cleanup is handled only in deactivate() with timeout + force-kill.
+        // Pushing to subscriptions causes client.dispose() to run on shutdown, which can block if LS doesn't exit.
       } else {
         const errorMessage = nls.localize('unknown');
         this.setStatus(ClientStatus.Error, `${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
@@ -420,6 +421,42 @@ export class LanguageClientManager {
 
   public terminateProcess(pid: number): void {
     process.kill(pid, 'SIGKILL');
+  }
+
+  /**
+   * Find and SIGKILL Apex LS processes that are direct children of the current process.
+   * Used when LSP shutdown times out so the extension host can exit (child's stdio pipes close).
+   */
+  public killChildApexProcesses(): void {
+    const isWindows = process.platform === 'win32';
+    if (!this.canRunCheck(isWindows)) {
+      return;
+    }
+    const parentPid = process.pid;
+    const cmd = isWindows
+      ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process | Where-Object { $_.ParentProcessId -eq ${parentPid} } | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"`
+      : 'ps -e -o pid,ppid,command';
+    try {
+      const stdout = execSync(cmd).toString();
+      const lines = stdout.trim().split(/\r?\n/g);
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < 3) continue;
+        const pid = parseInt(parts[0], 10);
+        const ppid = parseInt(parts[1], 10);
+        const command = parts.slice(2).join(' ');
+        if (Number.isNaN(pid) || Number.isNaN(ppid)) continue;
+        if (ppid === parentPid && command.includes('apex-jorje-lsp.jar')) {
+          try {
+            this.terminateProcess(pid);
+          } catch {
+            // Process may already be gone
+          }
+        }
+      }
+    } catch {
+      // Ignore ps/exec errors
+    }
   }
 
   public canRunCheck(isWindows: boolean): boolean {
