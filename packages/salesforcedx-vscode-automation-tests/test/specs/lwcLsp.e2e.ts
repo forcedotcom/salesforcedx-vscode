@@ -7,26 +7,27 @@
 import { retryOperation, verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src';
 import {
   Duration,
-  pause,
-  log,
   ProjectShapeOption,
-  TestReqConfig
+  TestReqConfig,
+  log,
+  openFile,
+  pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
+  closeAllEditors,
   executeQuickPick,
-  getWorkbench,
   getTextEditor,
-  reloadWindow,
+  getWorkbench,
   moveCursorWithFallback,
-  closeAllEditors
+  reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-// import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('LWC LSP', () => {
@@ -70,6 +71,7 @@ describe('LWC LSP', () => {
   it('Go to Definition (JavaScript)', async () => {
     logTestStart(testSetup, 'Go to Definition (Javascript)');
     // Get open text editor
+    await openFile(path.join(lwcFolderPath, 'lwc1.js'));
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.js');
 
