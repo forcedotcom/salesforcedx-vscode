@@ -5,43 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SfProject } from '@salesforce/core/project';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
+import { promptForPackageMetadataSubdir } from '../templates-shared/sfTemplateProjectHelpers';
+import { checkAndPromptOverwriteUris } from '../templates-shared/templateOverwrite';
 
 const LWC_EXTENSION_NAME = 'salesforcedx-vscode-lwc';
 const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
 
-class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
-
 const getHasTypeScriptSupport = (): boolean =>
   vscode.workspace.getConfiguration(LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
-
-/** Prompt user to select output directory from available package directories (lwc subdir) */
-const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
-  const items = project.getPackageDirectories().map(pkg => ({
-    label: `${pkg.path}/main/default/lwc`,
-    description: pkg.default ? '(default)' : undefined,
-    uri: Utils.joinPath(workspaceInfo.uri, pkg.path, 'main', 'default', 'lwc')
-  }));
-
-  const selected = yield* Effect.promise(() =>
-    vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('lwc_output_dir_prompt') ?? 'Select output directory',
-      matchOnDescription: true
-    })
-  );
-
-  return selected?.uri;
-});
 
 const promptForComponentName = Effect.fn('promptForComponentName')(function* () {
   const raw = yield* Effect.promise(() =>
@@ -72,24 +49,6 @@ const promptForComponentType = Effect.fn('promptForComponentType')(function* () 
   return Option.fromNullable(selected?.value);
 });
 
-/** Check if component directory exists and prompt for overwrite */
-const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (componentDirUri: URI) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const exists = yield* api.services.FsService.fileOrFolderExists(componentDirUri);
-  if (!exists) return true;
-
-  const choice = yield* Effect.promise(() =>
-    vscode.window.showWarningMessage(
-      nls.localize('lwc_already_exists') ?? 'Component already exists. Do you want to overwrite it?',
-      { modal: true },
-      nls.localize('overwrite_button'),
-      nls.localize('cancel_button')
-    )
-  );
-
-  return choice === nls.localize('overwrite_button') ? true : yield* new UserCancelledOverwriteError();
-});
-
 /** Create LWC via TemplateService from services extension.
  * outputDir: when invoked from explorer context (right-click lwc folder), VS Code passes the folder URI */
 export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputDirParam?: URI) {
@@ -100,7 +59,13 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   const componentNameOpt = yield* promptForComponentName();
   if (Option.isNone(componentNameOpt)) return undefined;
 
-  const outputDirUri = outputDirParam ?? (yield* promptForOutputDir(project));
+  const outputDirUri =
+    outputDirParam ??
+    (yield* promptForPackageMetadataSubdir(
+      project,
+      'lwc',
+      nls.localize('lwc_output_dir_prompt') ?? 'Select output directory'
+    ));
   if (!outputDirUri) return undefined;
 
   const hasTsSupport = getHasTypeScriptSupport();
@@ -115,9 +80,10 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   });
 
   const componentDirUri = Utils.joinPath(outputDirUri, componentNameOpt.value);
-  const overwriteOk = yield* checkAndPromptOverwrite(componentDirUri).pipe(
-    Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(false))
-  );
+  const overwriteOk = yield* checkAndPromptOverwriteUris(
+    [componentDirUri],
+    nls.localize('lwc_already_exists') ?? 'Component already exists. Do you want to overwrite it?'
+  ).pipe(Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(false)));
   if (!overwriteOk) return undefined;
   const fsService = yield* api.services.FsService;
 

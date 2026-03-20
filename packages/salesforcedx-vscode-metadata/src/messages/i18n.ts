@@ -45,6 +45,7 @@ export const messages = {
   apex_class_exception_template_description: 'Custom exception class',
   apex_class_inbound_email_template_description: 'Inbound email service handler',
   apex_generate_class_success: 'Apex class created successfully',
+  apex_class_already_exists: 'One or more files already exist. Do you want to overwrite them?',
   apex_trigger_name_prompt: 'Enter Apex trigger name',
   apex_trigger_name_placeholder: 'MyApexTrigger',
   apex_trigger_name_empty_validation: 'Trigger name cannot be empty',

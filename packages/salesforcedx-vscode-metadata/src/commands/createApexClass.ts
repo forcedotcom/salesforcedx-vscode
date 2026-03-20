@@ -5,14 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SfProject } from '@salesforce/core/project';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { APEX_CLASS_NAME_MAX_LENGTH } from '../constants';
 import { nls } from '../messages';
+import {
+  getApiVersion,
+  promptForApexTypeName,
+  promptForPackageMetadataSubdir
+} from '../templates-shared/sfTemplateProjectHelpers';
+import { checkAndPromptOverwriteUris } from '../templates-shared/templateOverwrite';
 
 const ApexClassTemplate = Schema.Literal('DefaultApexClass', 'ApexException', 'InboundEmailService');
 type ApexClassTemplate = Schema.Schema.Type<typeof ApexClassTemplate>;
@@ -25,68 +31,6 @@ const CreateApexClassParams = Schema.Struct({
   template: Schema.optional(ApexClassTemplate)
 });
 type CreateApexClassParams = Schema.Schema.Type<typeof CreateApexClassParams>;
-
-const getApiVersionFromProject = Effect.fn('getApiVersion.fromProject')(function* (project: SfProject) {
-  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return String(projectJson.get<string>('sourceApiVersion'));
-});
-
-const getApiVersionFromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
-  const connectionService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ConnectionService;
-  const connection = yield* connectionService.getConnection();
-  return connection.version;
-});
-
-/** Get API version using waterfall: sfdx-project.json -> connection -> fallback */
-const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) {
-  return yield* getApiVersionFromProject(project).pipe(
-    Effect.orElse(() => getApiVersionFromConnection()),
-    Effect.catchAll(() => Effect.succeed('65.0'))
-  );
-});
-
-/** Prompt user to select output directory from available package directories */
-const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
-  // Build Quick Pick items for each package directory
-  const items = project.getPackageDirectories().map(pkg => ({
-    label: `${pkg.path}/main/default/classes`,
-    description: pkg.default ? '(default)' : undefined,
-    uri: Utils.joinPath(workspaceInfo.uri, pkg.path, 'main', 'default', 'classes')
-  }));
-
-  // Show Quick Pick - VS Code will automatically highlight the first item by default
-  const selected = yield* Effect.promise(() =>
-    vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('apex_class_output_dir_prompt') || 'Select output directory',
-      matchOnDescription: true
-    })
-  );
-
-  return selected?.uri;
-});
-
-/** Prompt user for class name */
-const promptForClassName = (): Promise<string | undefined> =>
-  Promise.resolve(
-    vscode.window
-      .showInputBox({
-        prompt: nls.localize('apex_class_name_prompt'),
-        placeHolder: nls.localize('apex_class_name_placeholder'),
-        validateInput: (value: string) => {
-          if (!value || value.trim().length === 0) return nls.localize('apex_class_name_empty_error');
-          if (value.toLowerCase() === 'default') return nls.localize('apex_class_name_cannot_be_default');
-          if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value))
-            return nls.localize('apex_class_name_format_error');
-          if (value.length > APEX_CLASS_NAME_MAX_LENGTH)
-            return nls.localize('apex_class_name_max_length_error', APEX_CLASS_NAME_MAX_LENGTH);
-          return undefined;
-        }
-      })
-      .then(n => n?.trim())
-  );
 
 /** Prompt user to select template */
 const promptForTemplate = (): Promise<ApexClassTemplate | undefined> =>
@@ -128,11 +72,39 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   const template = params?.template ?? (yield* Effect.promise(promptForTemplate));
   if (!template) return undefined;
 
-  const className = params?.name ?? (yield* Effect.promise(promptForClassName));
+  const className =
+    params?.name ??
+    Option.getOrUndefined(
+      yield* promptForApexTypeName({
+        prompt: nls.localize('apex_class_name_prompt'),
+        placeHolder: nls.localize('apex_class_name_placeholder'),
+        forbidLowercaseDefault: true,
+        messages: {
+          empty: nls.localize('apex_class_name_empty_error'),
+          invalidFormat: nls.localize('apex_class_name_format_error'),
+          maxLength: nls.localize('apex_class_name_max_length_error', APEX_CLASS_NAME_MAX_LENGTH),
+          reservedDefault: nls.localize('apex_class_name_cannot_be_default')
+        }
+      })
+    );
   if (!className) return undefined;
 
-  const outputDirUri = params?.outputDir ?? outputDirFromContext ?? (yield* promptForOutputDir(project));
+  const outputDirUri =
+    params?.outputDir ??
+    outputDirFromContext ??
+    (yield* promptForPackageMetadataSubdir(
+      project,
+      'classes',
+      nls.localize('apex_class_output_dir_prompt') || 'Select output directory'
+    ));
   if (!outputDirUri) return undefined;
+
+  const clsUri = Utils.joinPath(outputDirUri, `${className}.cls`);
+  const clsMetaUri = Utils.joinPath(outputDirUri, `${className}.cls-meta.xml`);
+  const overwriteOk = yield* checkAndPromptOverwriteUris([clsUri, clsMetaUri], nls.localize('apex_class_already_exists')).pipe(
+    Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(false))
+  );
+  if (!overwriteOk) return undefined;
 
   const apiVersion = yield* getApiVersion(project);
   const fsService = yield* api.services.FsService;
@@ -148,7 +120,6 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
 
-  const clsUri = Utils.joinPath(outputDirUri, `${className}.cls`);
   yield* fsService.showTextDocument(clsUri);
 
   return undefined;

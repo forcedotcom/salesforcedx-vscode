@@ -17,6 +17,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_trigger_output_dir_prompt: 'フォルダを入力 (Enter で確認または Esc でキャンセル)',
   apex_trigger_already_exists: 'ファイルが既に存在します。上書きしてもよろしいですか？',
   apex_generate_trigger_success: 'Apex トリガが作成されました',
+  apex_class_already_exists: 'ファイルが既に存在します。上書きしてもよろしいですか？',
   overwrite_button: '上書き',
   cancel_button: 'キャンセル'
 };
