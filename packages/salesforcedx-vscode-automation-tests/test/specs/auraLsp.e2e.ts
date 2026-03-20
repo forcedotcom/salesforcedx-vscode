@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Duration, TestReqConfig, ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { log, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
+import { Duration, ProjectShapeOption, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { log, openFile, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
 import {
   retryOperation,
   verifyNotificationWithRetry
@@ -20,6 +20,7 @@ import {
   reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
@@ -63,6 +64,7 @@ describe('Aura LSP', () => {
   it('Go to Definition', async () => {
     logTestStart(testSetup, 'Go to Definition');
     // Get open text editor
+    await openFile(path.join(auraFolderPath, 'aura1.cmp'));
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'aura1.cmp');
 

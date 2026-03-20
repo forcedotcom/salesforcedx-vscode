@@ -310,6 +310,10 @@ describe('Templates', () => {
   // Sample Analytics Template
   it('Create a Sample Analytics Template', async () => {
     logTestStart(testSetup, 'Create a Sample Analytics Template');
+
+    // Collapse all folders in the Explorer view.
+    await executeQuickPick('Collapse Folders in Explorer', Duration.seconds(1));
+
     // Clear the output panel, then use the Command palette to run, "SFDX: Create Sample Analytics Template".
     const workbench = getWorkbench();
     await clearOutputView();
