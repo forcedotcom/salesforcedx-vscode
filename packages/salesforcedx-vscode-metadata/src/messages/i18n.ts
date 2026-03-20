@@ -51,7 +51,6 @@ export const messages = {
   lwc_output_dir_prompt: 'Select output directory',
   lwc_select_component_type: 'Select component type',
   lwc_generate_success: 'Lightning Web Component created successfully',
-  lwc_already_exists: 'Component already exists. Do you want to overwrite it?',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',
@@ -86,7 +85,6 @@ export const messages = {
   delete_failed: 'Failed to delete: %s',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
   manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
-  manifest_overwrite_confirmation: 'Manifest file "%s" already exists. Do you want to overwrite it?',
   project_generate_manifest_text: 'SFDX: Generate Manifest File',
   generate_manifest_select_file_or_directory:
     'You can run SFDX: Generate Manifest File only on a source file or directory.',
@@ -99,8 +97,6 @@ export const messages = {
   source_diff_no_matching_files: 'No matching files found to diff',
   source_diff_all_files_match: 'All Files Match',
   missing_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.',
-  overwrite_button: 'Overwrite',
-  cancel_button: 'Cancel',
 
   // SObject refresh
   sobjects_refresh: 'SFDX: Refresh SObject Definitions',

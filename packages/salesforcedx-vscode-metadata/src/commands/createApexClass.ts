@@ -32,7 +32,8 @@ const getApiVersionFromProject = Effect.fn('getApiVersion.fromProject')(function
 });
 
 const getApiVersionFromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
-  const connectionService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ConnectionService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const connectionService = yield* api.services.ConnectionService;
   const connection = yield* connectionService.getConnection();
   return connection.version;
 });
@@ -48,6 +49,7 @@ const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) 
 /** Prompt user to select output directory from available package directories */
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   // Build Quick Pick items for each package directory
@@ -58,58 +60,63 @@ const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: S
   }));
 
   // Show Quick Pick - VS Code will automatically highlight the first item by default
-  const selected = yield* Effect.promise(() =>
+  return yield* Effect.promise(() =>
     vscode.window.showQuickPick(items, {
       placeHolder: nls.localize('apex_class_output_dir_prompt') || 'Select output directory',
       matchOnDescription: true
     })
-  );
-
-  return selected?.uri;
+  ).pipe(Effect.flatMap(selected => promptService.ensureValueOrThrow(selected?.uri)));
 });
 
 /** Prompt user for class name */
-const promptForClassName = (): Promise<string | undefined> =>
-  Promise.resolve(
-    vscode.window
-      .showInputBox({
-        prompt: nls.localize('apex_class_name_prompt'),
-        validateInput: (value: string) => {
-          if (!value || value.trim().length === 0) return nls.localize('apex_class_name_empty_error');
-          if (value.toLowerCase() === 'default') return nls.localize('apex_class_name_cannot_be_default');
-          if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value))
-            return nls.localize('apex_class_name_format_error');
-          if (value.length > APEX_CLASS_NAME_MAX_LENGTH)
-            return nls.localize('apex_class_name_max_length_error', APEX_CLASS_NAME_MAX_LENGTH);
-          return undefined;
-        }
-      })
-      .then(n => n?.trim())
+const promptForClassName = Effect.fn('promptForClassName')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showInputBox({
+      prompt: nls.localize('apex_class_name_prompt'),
+      validateInput: (value: string) => {
+        if (!value || value.trim().length === 0) return nls.localize('apex_class_name_empty_error');
+        if (value.toLowerCase() === 'default') return nls.localize('apex_class_name_cannot_be_default');
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value)) return nls.localize('apex_class_name_format_error');
+        if (value.length > APEX_CLASS_NAME_MAX_LENGTH)
+          return nls.localize('apex_class_name_max_length_error', APEX_CLASS_NAME_MAX_LENGTH);
+        return undefined;
+      }
+    })
+  ).pipe(
+    Effect.map(n => n?.trim()),
+    Effect.flatMap(raw => promptService.ensureValueOrThrow(raw))
   );
+});
 
 /** Prompt user to select template */
-const promptForTemplate = (): Promise<ApexClassTemplate | undefined> =>
-  Promise.resolve(
-    vscode.window
-      .showQuickPick(
-        [
-          {
-            label: 'DefaultApexClass' satisfies ApexClassTemplate,
-            description: nls.localize('apex_class_default_template_description')
-          },
-          {
-            label: 'ApexException' satisfies ApexClassTemplate,
-            description: nls.localize('apex_class_exception_template_description')
-          },
-          {
-            label: 'InboundEmailService' satisfies ApexClassTemplate,
-            description: nls.localize('apex_class_inbound_email_template_description')
-          }
-        ],
-        { placeHolder: nls.localize('apex_class_template_prompt') }
-      )
-      .then(sel => (sel?.label && Schema.is(ApexClassTemplate)(sel.label) ? sel.label : undefined))
+const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<{ label: ApexClassTemplate; description: string }>(
+      [
+        {
+          label: 'DefaultApexClass',
+          description: nls.localize('apex_class_default_template_description')
+        },
+        {
+          label: 'ApexException',
+          description: nls.localize('apex_class_exception_template_description')
+        },
+        {
+          label: 'InboundEmailService',
+          description: nls.localize('apex_class_inbound_email_template_description')
+        }
+      ],
+      { placeHolder: nls.localize('apex_class_template_prompt') }
+    )
+  ).pipe(
+    Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)),
+    Effect.map(s => s?.label)
   );
+});
 
 /** Create Apex class via TemplateService from services extension.
  * arg: when invoked from explorer context (right-click classes folder), VS Code passes the folder URI.
@@ -118,24 +125,25 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   arg?: URI | CreateApexClassParams
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   const project = yield* api.services.ProjectService.getSfProject();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   const outputDirFromContext = URI.isUri(arg) ? arg : undefined;
   const params = Schema.is(CreateApexClassParams)(arg) ? arg : undefined;
 
-  const template = params?.template ?? (yield* Effect.promise(promptForTemplate));
-  if (!template) return undefined;
+  const template = params?.template ?? (yield* promptForTemplate());
 
-  const className = params?.name ?? (yield* Effect.promise(promptForClassName));
-  if (!className) return undefined;
+  const className = params?.name ?? (yield* promptForClassName());
 
   const outputDirUri = params?.outputDir ?? outputDirFromContext ?? (yield* promptForOutputDir(project));
-  if (!outputDirUri) return undefined;
 
   const apiVersion = yield* getApiVersion(project);
+  const cwd = workspaceInfo.uri.fsPath;
+  const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   const fsService = yield* api.services.FsService;
-  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
+  const channelService = yield* api.services.ChannelService;
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
   yield* api.services.TemplateService.create({
     cwd,
@@ -144,11 +152,9 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
     options: { template, classname: className, apiversion: apiVersion }
   });
 
-  const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
 
-  const clsUri = Utils.joinPath(outputDirUri, `${className}.cls`);
-  yield* fsService.showTextDocument(clsUri);
+  yield* fsService.showTextDocument(uris[0]);
 
   return undefined;
 });
