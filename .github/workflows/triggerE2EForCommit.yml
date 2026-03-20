@@ -12,14 +12,8 @@ on:
         type: string
 
 jobs:
-  # 🚀 Setup & Initialization
-  setup-initial-suite:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'anInitialSuite.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # anInitialSuite.e2e.ts removed — empty-workspace / no-org palette coverage is Playwright (coreE2E.yml:
+  # emptyWorkspaceSfdxCommands.desktop.spec.ts, createProject.headless.spec.ts; org: orgCommands.desktop.spec.ts)
 
   # 🔧 Core Features
   core-authentication:

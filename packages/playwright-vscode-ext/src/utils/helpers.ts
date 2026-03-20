@@ -341,3 +341,24 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
     });
   }
 };
+
+/**
+ * Runs `Workspaces: Close Workspace` so no folder is open (empty VS Code window).
+ * Call after {@link waitForVSCodeWorkbench} / {@link closeWelcomeTabs} / {@link ensureSecondarySideBarHidden} if needed.
+ */
+export const closeWorkspaceToEmptyWindow = async (page: Page): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Workspaces: Close Workspace');
+  await waitForVSCodeWorkbench(page);
+};
+
+/**
+ * From a desktop fixture that opened a workspace folder: prepare UI, then close the workspace so **no folder** is open.
+ * Use when asserting palette commands with **no folder open**. Contrast: `createDesktopTest({ emptyWorkspace: true })` — a folder **is** open but has no `sfdx-project.json`.
+ */
+export const prepareNoFolderOpenForPaletteTests = async (page: Page): Promise<void> => {
+  await waitForVSCodeWorkbench(page);
+  await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
+  await closeWorkspaceToEmptyWindow(page);
+  await closeWelcomeTabs(page);
+};

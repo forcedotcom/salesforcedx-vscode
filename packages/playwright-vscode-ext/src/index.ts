@@ -20,7 +20,9 @@ export {
   isWindowsDesktop,
   validateNoCriticalErrors,
   ensureSecondarySideBarHidden,
-  waitForExtensionsActivated
+  waitForExtensionsActivated,
+  closeWorkspaceToEmptyWindow,
+  prepareNoFolderOpenForPaletteTests
 } from './utils/helpers';
 
 export {
@@ -82,7 +84,7 @@ export {
 export { saveScreenshot } from './shared/screenshotUtils';
 
 // Fixtures
-export { createTestWorkspace } from './fixtures/desktopWorkspace';
+export { createEmptyTestWorkspace, createTestWorkspace } from './fixtures/desktopWorkspace';
 export { createDesktopTest } from './fixtures/createDesktopTest';
 export type { WorkerFixtures, TestFixtures } from './fixtures/desktopFixtureTypes';
 

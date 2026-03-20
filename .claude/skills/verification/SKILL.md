@@ -14,7 +14,7 @@ Do each of these steps, in order. Do not move to a step unless all previous are 
 5. `npm run vscode:bundle` to ensure the extensions still bundle
 
 6. If working in packages with `test:web`/`test:desktop` scripts:
-   - Package-level only (not in root): `salesforcedx-vscode-core`, `salesforcedx-vscode-services` (web), `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata`, `salesforcedx-vscode-apex-testing`, `salesforcedx-vscode-apex-log`, `playwright-vscode-ext`
+   - Package-level only (not in root): `salesforcedx-vscode-core`, `salesforcedx-vscode-org`, `salesforcedx-vscode-services` (web), `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata`, `salesforcedx-vscode-apex-testing`, `salesforcedx-vscode-apex-log`, `playwright-vscode-ext`
    - Run from root: `npm run test:web -w <package-name> -- --retries 0` / `npm run test:desktop -w <package-name> -- --retries 0` (use `--` to forward params to the underlying command)
    - Skip if not in these packages
 
