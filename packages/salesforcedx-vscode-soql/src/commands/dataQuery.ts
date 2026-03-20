@@ -189,8 +189,9 @@ const isSubQueryResult = (
 
 /**
  * Flattens a record into one or more rows.
- * Sub-query results are expanded: each sub-record produces a separate output row
- * that repeats the parent fields (denormalized, like a JOIN).
+ * Sub-query results are expanded: each sub-record produces a separate output row.
+ * Parent fields are shown only on the first child row; subsequent rows leave them blank,
+ * matching the Salesforce CLI display style.
  * When a sub-query has no records the parent row is still emitted with empty sub-columns.
  */
 const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>[] => {
@@ -245,7 +246,20 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
     }
     rows = next;
   }
-  return rows;
+
+  // Blank out parent fields on all rows after the first, matching the Salesforce CLI
+  // display style where repeated parent values are omitted for readability.
+  const baseKeys = Object.keys(baseRow);
+  return rows.map((row, i) => {
+    if (i === 0 || baseKeys.length === 0) {
+      return row;
+    }
+    const blanked = { ...row };
+    for (const key of baseKeys) {
+      blanked[key] = '';
+    }
+    return blanked;
+  });
 };
 
 /**

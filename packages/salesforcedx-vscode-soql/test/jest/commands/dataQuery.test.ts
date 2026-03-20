@@ -471,8 +471,8 @@ describe('DataQuery Pure Functions', () => {
       expect(output).toContain('Con1');
       expect(output).toContain('003b');
       expect(output).toContain('Con2');
-      // Parent fields repeat on each row
-      expect(output.match(/001Rt00001iD52NIAS/g)?.length).toBe(2);
+      // Parent fields appear only on the first child row
+      expect(output.match(/001Rt00001iD52NIAS/g)?.length).toBe(1);
       // No leftover internal sub-query fields
       expect(output).not.toContain('Contacts.totalSize');
       expect(output).not.toContain('Contacts.done');
