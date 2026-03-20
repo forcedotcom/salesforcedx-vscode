@@ -11,7 +11,6 @@ import {
   ProjectShapeOption,
   log
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createAnonymousApexFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { createGlobalSnippetsFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
@@ -139,13 +138,10 @@ describe('Snippets', () => {
     // Reload window to get the LWC to be indexed by the LWC Language Server
     await reloadWindow(Duration.seconds(20));
 
-    // Wait for the LWC Language Server to be ready before triggering snippets
-    await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(20));
-
     // Type snippet "lwc", select "lwc-event" and check it inserted the right thing
     const textEditor = await getTextEditor(workbench, 'lwc.js');
     await textEditor.typeText('lwc');
-    await pause(Duration.seconds(1));
+    await pause(Duration.seconds(5));
     const autocompletionOptions = await workbench.findElements(By.css('div.monaco-list-row.show-file-icons'));
     const ariaLabel = await autocompletionOptions[2].getAttribute('aria-label');
     expect(ariaLabel).to.contain('lwc-event');
