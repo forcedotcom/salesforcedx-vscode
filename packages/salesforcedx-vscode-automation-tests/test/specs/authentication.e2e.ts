@@ -139,7 +139,7 @@ describe('Authentication', () => {
     logTestStart(testSetup, 'Running SFDX: Set the Scratch Org As the Default Org');
 
     // Reload window to get the new scratch org to appear in the list of orgs.
-    await reloadWindow(Duration.seconds(20));
+    await reloadWindow(Duration.seconds(30));
 
     const inputBox = await executeQuickPick('SFDX: Set a Default Org', Duration.seconds(10));
 
