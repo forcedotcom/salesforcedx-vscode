@@ -6,7 +6,6 @@
  */
 import {
   detectWorkspaceHelper,
-  Logger,
   WorkspaceType,
   LspFileSystemAccessor,
   normalizePath,
@@ -14,7 +13,7 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
-import { getWorkspaceRoot } from './baseIndexer';
+import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 import { fromMeta, declarationsFromCustomLabels, getDeclaration } from './typing';
 
 const basenameRegex = new RegExp(/(?<name>[\w-_]+)\.[^/]+$/);
@@ -76,14 +75,7 @@ const deleteStaleMetaTypings = async (indexer: TypingIndexerData): Promise<void>
   }
 
   for (const pathToDelete of filesToDelete) {
-    try {
-      await indexer.fileSystemAccessor.deleteFile(pathToDelete, indexer.connection);
-    } catch (err) {
-      Logger.error(
-        `[deleteStaleMetaTypings] Failed to delete ${pathToDelete}: ${err instanceof Error ? err.message : String(err)}`,
-        err
-      );
-    }
+    await indexer.fileSystemAccessor.deleteFile(pathToDelete, indexer.connection);
   }
 };
 
@@ -115,52 +107,22 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
 
 // Utility function to get meta files
 const getMetaFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
-  // For mock file system, check for specific meta files that should exist
-  const metaFiles: string[] = [];
-  const possibleMetaFiles = [
-    'force-app/main/default/contentassets/logo.asset-meta.xml',
-    'force-app/main/default/messageChannels/Channel1.messageChannel-meta.xml',
-    'force-app/main/default/messageChannels/Channel2.messageChannel-meta.xml',
-    'force-app/main/default/staticresources/bike_assets.resource-meta.xml',
-    'force-app/main/default/staticresources/todocss.resource-meta.xml',
-    'force-app/main/default/staticresources/logo.resource-meta.xml',
-    'utils/meta/staticresources/todoutil.resource-meta.xml'
-  ];
-
-  for (const metaFile of possibleMetaFiles) {
-    const filePath = normalizePath(path.join(indexer.workspaceRoot, metaFile));
-    if (await indexer.fileSystemAccessor.fileExists(filePath)) {
-      metaFiles.push(filePath);
-    }
-  }
-
-  return metaFiles;
+  const packageDirsPattern = await getSfdxPackageDirsPattern(indexer.workspaceRoot, indexer.fileSystemAccessor);
+  const found = await indexer.fileSystemAccessor.findFilesWithGlobAsync(
+    `${packageDirsPattern}/**/{staticresources,contentassets,messageChannels}/*.{resource,asset,messageChannel}-meta.xml`,
+    indexer.workspaceRoot
+  );
+  return found ?? [];
 };
 
 // Utility function to get meta typings
 // visible for testing
 export const getMetaTypings = async (indexer: TypingIndexerData): Promise<string[]> => {
-  // For mock file system, we need to check what files actually exist
-  // instead of using glob.sync which searches the real file system
-  const typingsBaseDir = indexer.typingsBaseDir;
-  const metaTypings: string[] = [];
-
-  // Check for common meta typing files that might exist
-  const possibleFiles = [
-    'Channel1.messageChannel.d.ts',
-    'bike_assets.resource.d.ts',
-    'logo.asset.d.ts',
-    'todocss.resource.d.ts'
-  ];
-
-  for (const filename of possibleFiles) {
-    const filePath = path.join(typingsBaseDir, filename);
-    if (await indexer.fileSystemAccessor.fileExists(normalizePath(filePath))) {
-      metaTypings.push(path.resolve(filePath));
-    }
-  }
-
-  return metaTypings;
+  const found = await indexer.fileSystemAccessor.findFilesWithGlobAsync(
+    '*.{messageChannel,resource,asset}.d.ts',
+    indexer.typingsBaseDir
+  );
+  return (found ?? []).map(p => path.resolve(p));
 };
 
 // Utility function to get custom label files

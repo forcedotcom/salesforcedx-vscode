@@ -59,13 +59,13 @@ const fileStat = {
 };
 
 beforeAll(() => {
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
-    return key in contentByPath ? fileStat : undefined;
+    return Promise.resolve(key in contentByPath ? fileStat : undefined);
   });
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation(async (uri: string) => {
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
-    return contentByPath[key];
+    return Promise.resolve(contentByPath[key]);
   });
 });
 

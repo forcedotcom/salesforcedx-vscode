@@ -66,10 +66,7 @@ const methodDoc = (method: ClassMember): string => {
 };
 
 // Utility function to create Tag
-export const createTag = async (
-  attributes: TagAttrs,
-  fileSystemAccessor?: LspFileSystemAccessor
-): Promise<Tag> => {
+export const createTag = async (attributes: TagAttrs, fileSystemAccessor?: LspFileSystemAccessor): Promise<Tag> => {
   const file = attributes.file!;
   const metadata = attributes.metadata ?? { decorators: [], exports: [] };
 
@@ -178,7 +175,7 @@ export const getTagRange = (tag: Tag): Range =>
     : Range.create(Position.create(0, 0), Position.create(0, 0));
 
 // Utility function to get tag location
-export const getTagLocation = (tag: Tag, fileSystemAccessor?: LspFileSystemAccessor): Location =>
+export const getTagLocation = (tag: Tag, fileSystemAccessor: LspFileSystemAccessor): Location =>
   Location.create(getTagUri(tag, fileSystemAccessor), getTagRange(tag));
 
 /** Escape glob special characters in a string so it matches literally */

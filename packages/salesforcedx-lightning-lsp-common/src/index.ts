@@ -46,7 +46,7 @@ export { AttributeInfo, DecoratorType, MemberType } from './indexer/attributeInf
 
 // Re-export from other modules
 export { Logger } from './logger';
-export { findNamespaceRoots } from './namespaceUtils';
+export { findLwcNamespaceRoots } from './namespaceUtils';
 
 // Re-export from decorators
 export {

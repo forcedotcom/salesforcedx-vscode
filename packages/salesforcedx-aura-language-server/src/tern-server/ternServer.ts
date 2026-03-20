@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // @ts-nocheck as this is a third party library
-import { extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { extractJsonFromImport, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { LspFileSystemAccessor } from '@salesforce/salesforcedx-lightning-lsp-common/providers/lspFileSystemAccessor';
 import LineColumnFinder from 'line-column';
 import * as path from 'node:path';
@@ -90,14 +90,11 @@ const auraInstanceLastSort = (a: string, b: string): number =>
  * Collects all .js file paths under dirPath via workspace/findFiles (findFilesWithGlobAsync).
  * Returns an empty array when async find is not available.
  */
-const getJsFilesRecursively = async (
-  dirPath: string,
-  fileSystemAccessor: LspFileSystemAccessor
-): Promise<string[]> => {
+const getJsFilesRecursively = async (dirPath: string, fileSystemAccessor: LspFileSystemAccessor): Promise<string[]> => {
   if (!fileSystemAccessor.findFilesWithGlobAsync) {
     return [];
   }
-  return (await fileSystemAccessor.findFilesWithGlobAsync('**/*.js', dirPath)) ?? [];
+  return (await fileSystemAccessor.findFilesWithGlobAsync('**/*.js', normalizePath(dirPath))) ?? [];
 };
 
 const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: true }> => {
@@ -138,7 +135,8 @@ const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: 
 
 /**
  * Recursively search upward from the starting directory for resources/aura.
- * Uses fileSystemAccessor.getFileStat (workspace/stat) for web compatibility.
+ * Uses fileSystemAccessor.getFileStat (workspace/stat) to locate the extension-bundled
+ * resources directory via the VS Code file system API, which supports both file:// and memfs://.
  * Handles monorepo, packaged, and bundled layouts.
  */
 const searchAuraResourcesPath = async (dir: string, fileSystemAccessor: LspFileSystemAccessor): Promise<string> => {

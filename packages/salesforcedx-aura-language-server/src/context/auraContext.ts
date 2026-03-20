@@ -9,7 +9,7 @@ import {
   BaseWorkspaceContext,
   Indexer,
   AURA_EXTENSIONS,
-  findNamespaceRoots,
+  findLwcNamespaceRoots,
   Logger,
   normalizePath,
   NormalizedPath
@@ -65,8 +65,7 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         for (const project of projects) {
           const modulesDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'modules'));
           if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', modulesDir))?.length) {
-            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemAccessor, 2);
-            roots.lwc.push(...subroots.lwc);
+            roots.lwc.push(...(await findLwcNamespaceRoots(modulesDir, this.fileSystemAccessor, 2)));
           }
           const auraDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'components'));
           if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', auraDir))?.length) {
@@ -81,8 +80,7 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         for (const ws of this.workspaceRoots) {
           const modulesDir = normalizePath(path.join(ws, 'modules'));
           if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', modulesDir))?.length) {
-            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemAccessor, 2);
-            roots.lwc.push(...subroots.lwc);
+            roots.lwc.push(...(await findLwcNamespaceRoots(modulesDir, this.fileSystemAccessor, 2)));
           }
           const auraDir = normalizePath(path.join(ws, 'components'));
           if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', auraDir))?.length) {
@@ -97,8 +95,8 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
       case 'MONOREPO':
       case 'UNKNOWN': {
         const depth = this.type === 'MONOREPO' ? 8 : 6;
-        const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemAccessor, depth);
-        roots.lwc.push(...unknownroots.lwc);
+        const unknownroots = await findLwcNamespaceRoots(this.workspaceRoots[0], this.fileSystemAccessor, depth);
+        roots.lwc.push(...unknownroots);
         return roots;
       }
     }
@@ -130,28 +128,24 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
 }
 
 const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceContext): Promise<NormalizedPath[]> => {
-  const files: NormalizedPath[] = [];
-
+  const root = normalizePath(namespaceRoot);
   try {
-    const dirs = await context.fileSystemAccessor.getDirectoryListing(normalizePath(namespaceRoot));
-
-    for (const dir of dirs) {
-      const componentDir = normalizePath(path.join(namespaceRoot, dir.name));
-      const isDir = (await context.fileSystemAccessor.findFilesWithGlobAsync('**', componentDir))?.length;
-
-      if (isDir) {
-        for (const ext of AURA_EXTENSIONS) {
-          // Construct path using namespaceRoot and dir.name to preserve original casing
-          const markupFile = normalizePath(path.join(namespaceRoot, dir.name, dir.name + ext));
-          if (await context.fileSystemAccessor.fileExists(markupFile)) {
-            files.push(markupFile);
-          }
-        }
-      }
+    // One glob per extension: <componentDir>/<name>.<ext>, then filter by Aura convention (file name = parent dir + ext)
+    const allFound: NormalizedPath[] = [];
+    for (const ext of AURA_EXTENSIONS) {
+      const pattern = `*/*${ext}`;
+      const found = await context.fileSystemAccessor.findFilesWithGlobAsync(pattern, root);
+      if (found?.length) allFound.push(...found);
     }
+    if (allFound.length === 0) return [];
+    return allFound.filter(p => {
+      const dirName = path.basename(path.dirname(p));
+      const base = path.basename(p);
+      const ext = path.extname(p);
+      return base === dirName + ext;
+    });
   } catch (error) {
     Logger.error(`findAuraMarkupIn: Error accessing ${namespaceRoot}:`, error);
+    return [];
   }
-
-  return files;
 };

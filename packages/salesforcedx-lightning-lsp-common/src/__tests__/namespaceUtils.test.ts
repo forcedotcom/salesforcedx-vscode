@@ -11,7 +11,7 @@ import * as fsPromises from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { findNamespaceRoots } from '../namespaceUtils';
+import { findLwcNamespaceRoots } from '../namespaceUtils';
 import { LspFileSystemAccessor } from '../providers/lspFileSystemAccessor';
 import { normalizePath, type NormalizedPath } from '../utils';
 
@@ -74,15 +74,15 @@ describe('findNamespaceRoots', () => {
 
   describe('when directory does not exist', () => {
     it('should return empty arrays', async () => {
-      const result = await findNamespaceRoots('/non/existent/path', fileSystemAccessor);
-      expect(result).toEqual({ lwc: [] });
+      const result = await findLwcNamespaceRoots('/non/existent/path', fileSystemAccessor);
+      expect(result).toEqual([]);
     });
   });
 
   describe('when directory is empty', () => {
     it('should return empty arrays', async () => {
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result).toEqual({ lwc: [] });
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toEqual([]);
     });
   });
 
@@ -92,8 +92,8 @@ describe('findNamespaceRoots', () => {
       fs.mkdirSync(componentDir, { recursive: true });
       fs.writeFileSync(path.join(componentDir, 'myComponent.js'), 'import { LightningElement } from "lwc";');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toContain(normalizePath(path.resolve(tempDir)));
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toContain(normalizePath(path.resolve(tempDir)));
     });
 
     it('should find multiple LWC module roots', async () => {
@@ -104,8 +104,8 @@ describe('findNamespaceRoots', () => {
       fs.writeFileSync(path.join(component1Dir, 'component1.js'), 'import { LightningElement } from "lwc";');
       fs.writeFileSync(path.join(component2Dir, 'component2.js'), 'import { LightningElement } from "lwc";');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toContain(normalizePath(path.resolve(tempDir)));
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toContain(normalizePath(path.resolve(tempDir)));
     });
 
     it('should find LWC roots in nested directories', async () => {
@@ -115,8 +115,8 @@ describe('findNamespaceRoots', () => {
       fs.mkdirSync(componentDir, { recursive: true });
       fs.writeFileSync(path.join(componentDir, 'myComponent.js'), 'import { LightningElement } from "lwc";');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor, 3);
-      expect(result.lwc).toContain(normalizePath(path.resolve(lwcDir)));
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor, 3);
+      expect(result).toContain(normalizePath(path.resolve(lwcDir)));
     });
   });
 
@@ -125,8 +125,8 @@ describe('findNamespaceRoots', () => {
       const lwcDir = path.join(tempDir, 'lwc');
       fs.mkdirSync(lwcDir, { recursive: true });
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toContain(normalizePath(path.resolve(lwcDir)));
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toContain(normalizePath(path.resolve(lwcDir)));
     });
   });
 
@@ -137,8 +137,8 @@ describe('findNamespaceRoots', () => {
       fs.mkdirSync(componentDir, { recursive: true });
       fs.writeFileSync(path.join(componentDir, 'someComponent.js'), 'import { LightningElement } from "lwc";');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toEqual([]);
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toEqual([]);
     });
 
     it('should skip bin, target, jest-modules, repository, git folders', async () => {
@@ -150,8 +150,8 @@ describe('findNamespaceRoots', () => {
         fs.writeFileSync(path.join(componentDir, 'someComponent.js'), 'import { LightningElement } from "lwc";');
       }
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toEqual([]);
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toEqual([]);
     });
   });
 
@@ -165,8 +165,8 @@ describe('findNamespaceRoots', () => {
       fs.mkdirSync(componentDir, { recursive: true });
       fs.writeFileSync(path.join(componentDir, 'myComponent.js'), 'import { LightningElement } from "lwc";');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toEqual([]);
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toEqual([]);
     });
 
     it('should find components within maxDepth', async () => {
@@ -175,8 +175,8 @@ describe('findNamespaceRoots', () => {
       fs.mkdirSync(componentDir, { recursive: true });
       fs.writeFileSync(path.join(componentDir, 'myComponent.js'), 'import { LightningElement } from "lwc";');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor, 5);
-      expect(result.lwc).toContain(normalizePath(path.resolve(currentPath)));
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor, 5);
+      expect(result).toContain(normalizePath(path.resolve(currentPath)));
     });
   });
 
@@ -186,8 +186,8 @@ describe('findNamespaceRoots', () => {
       fs.mkdirSync(componentDir, { recursive: true });
       fs.writeFileSync(path.join(componentDir, 'other.js'), 'console.log("not a module");');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toEqual([]);
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toEqual([]);
     });
 
     it('should not treat directories with only non-JS files as module roots', async () => {
@@ -196,8 +196,8 @@ describe('findNamespaceRoots', () => {
       fs.writeFileSync(path.join(componentDir, 'myComponent.html'), '<template></template>');
       fs.writeFileSync(path.join(componentDir, 'myComponent.css'), '.my-component {}');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toEqual([]);
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toEqual([]);
     });
   });
 
@@ -209,11 +209,11 @@ describe('findNamespaceRoots', () => {
       fs.mkdirSync(componentDir, { recursive: true });
       fs.writeFileSync(path.join(componentDir, 'myComponent.js'), 'import { LightningElement } from "lwc";');
 
-      const result1 = await findNamespaceRoots(tempDir, fileSystemAccessor, 1);
-      expect(result1.lwc).toEqual([]);
+      const result1 = await findLwcNamespaceRoots(tempDir, fileSystemAccessor, 1);
+      expect(result1).toEqual([]);
 
-      const result2 = await findNamespaceRoots(tempDir, fileSystemAccessor, 3);
-      expect(result2.lwc).toContain(normalizePath(path.resolve(level2Dir)));
+      const result2 = await findLwcNamespaceRoots(tempDir, fileSystemAccessor, 3);
+      expect(result2).toContain(normalizePath(path.resolve(level2Dir)));
     });
   });
 
@@ -223,13 +223,13 @@ describe('findNamespaceRoots', () => {
       fs.mkdirSync(componentDir, { recursive: true });
       fs.writeFileSync(path.join(componentDir, 'my-component_123.js'), 'import { LightningElement } from "lwc";');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toContain(normalizePath(path.resolve(tempDir)));
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toContain(normalizePath(path.resolve(tempDir)));
     });
 
     it('should handle empty subdirectories', async () => {
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toEqual([]);
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toEqual([]);
     });
 
     it('should handle symlinks gracefully', async () => {
@@ -237,8 +237,8 @@ describe('findNamespaceRoots', () => {
       fs.mkdirSync(realDir, { recursive: true });
       fs.writeFileSync(path.join(realDir, 'real.js'), 'import { LightningElement } from "lwc";');
 
-      const result = await findNamespaceRoots(tempDir, fileSystemAccessor);
-      expect(result.lwc).toContain(normalizePath(path.resolve(tempDir)));
+      const result = await findLwcNamespaceRoots(tempDir, fileSystemAccessor);
+      expect(result).toContain(normalizePath(path.resolve(tempDir)));
     });
   });
 });

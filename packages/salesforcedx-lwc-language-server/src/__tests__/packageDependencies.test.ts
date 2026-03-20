@@ -26,7 +26,7 @@ const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknow
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(fileContent);
   } catch (e) {
-    throw new Error(`Error reading json file from ${jsonFilePath}: ${e}`);
+    throw new Error(`Error reading json file from ${jsonFilePath}: ${String(e)}`);
   }
 };
 
@@ -64,7 +64,7 @@ const setupPackageData = async (): Promise<void> => {
           const peerPackageJsonPath = path.join(monorepoRootPath, match, 'package.json');
           const peerPackageJson = await readJsonFile(peerPackageJsonPath);
           if (peerPackageJson.name !== packageJson.name) {
-            checkedPackagePatterns.push(new RegExp(`^${peerPackageJson.name}`, 'i'));
+            checkedPackagePatterns.push(new RegExp(`^${String(peerPackageJson.name)}`, 'i'));
           }
         }
       }
@@ -105,7 +105,7 @@ describe('package.json dependencies', () => {
 
     if (!testMatchFound) {
       console.log(
-        `no dependencies matching expected patterns ${checkedPackagePatterns} for package ${packageJson.name}`
+        `no dependencies matching expected patterns ${checkedPackagePatterns.map(r => r.toString()).join(', ')} for package ${packageJson.name}`
       );
     }
   });

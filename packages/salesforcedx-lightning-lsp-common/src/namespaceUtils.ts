@@ -12,10 +12,7 @@ import { normalizePath } from './utils';
 /**
  * Check if a directory contains module roots
  */
-const isModuleRoot = async (
-  subdirs: string[],
-  fileSystemAccessor: LspFileSystemAccessor
-): Promise<boolean> => {
+const isModuleRoot = async (subdirs: string[], fileSystemAccessor: LspFileSystemAccessor): Promise<boolean> => {
   for (const subdir of subdirs) {
     // Is a root if any subdir matches a name/name.js with name.js being a module
     const basename = path.basename(subdir);
@@ -34,7 +31,7 @@ const isModuleRoot = async (
 const traverse = async (
   candidate: string,
   depth: number,
-  roots: { lwc: string[] },
+  roots: string[],
   fileSystemAccessor: LspFileSystemAccessor
 ): Promise<void> => {
   if (depth - 1 < 0) {
@@ -56,12 +53,12 @@ const traverse = async (
     .map(entry => normalizePath(path.join(normalizedCandidate, entry.name)));
 
   // Is a root if we have a folder called lwc
-  const isDirLWC =
-    (await isModuleRoot(dirs, fileSystemAccessor)) ||
-    (!path.parse(normalizedCandidate).ext && path.parse(normalizedCandidate).name === 'lwc');
-  if (isDirLWC) {
+  if (
+    (!path.parse(normalizedCandidate).ext && path.parse(normalizedCandidate).name === 'lwc') ||
+    (await isModuleRoot(dirs, fileSystemAccessor))
+  ) {
     // normalizedCandidate is already normalized and absolute, so we can use it directly
-    roots.lwc.push(normalizedCandidate);
+    roots.push(normalizedCandidate);
   } else {
     for (const subdir of dirs) {
       await traverse(subdir, depth - 1, roots, fileSystemAccessor);
@@ -82,36 +79,35 @@ const traverse = async (
  * @param root - The root directory to search within
  * @param fileSystemAccessor - The file system provider to use for file operations
  * @param maxDepth - Maximum depth to traverse (default: 5)
- * @returns Object with `lwc` array containing normalized absolute paths to namespace roots.
+ * @returns Array of normalized absolute paths to namespace roots.
  *
  * @example
  * // Structure: /workspace/myComponent/myComponent.js
- * // Returns: { lwc: ['/workspace'] }
+ * // Returns: ['/workspace']
  *
  * @example
  * // Structure: /workspace/modules/lwc/myComponent/myComponent.js
- * // Returns: { lwc: ['/workspace/modules/lwc'] }
+ * // Returns: ['/workspace/modules/lwc']
  *
  * @example
  * // Structure: /workspace/component1/component1.js, component2/component2.js
- * // Returns: { lwc: ['/workspace'] }
+ * // Returns: ['/workspace']
  *
  * @example
  * // Structure: /workspace/node_modules/someComponent/someComponent.js
- * // Returns: { lwc: [] } (node_modules is ignored)
+ * // Returns: [] (node_modules is ignored)
  *
  * @example
  * // Structure: /workspace/myComponent/other.js (name mismatch)
- * // Returns: { lwc: [] } (not a valid module root)
+ * // Returns: [] (not a valid module root)
  */
-export const findNamespaceRoots = async (
+export const findLwcNamespaceRoots = async (
   root: string,
   fileSystemAccessor: LspFileSystemAccessor,
   maxDepth = 5
-): Promise<{ lwc: string[] }> => {
-  const roots: { lwc: string[] } = {
-    lwc: []
-  };
+): Promise<string[]> => {
+  // Return array of LWC roots
+  const roots: string[] = [];
 
   // Normalize root path before calling getFileStat to ensure path format consistency
   const normalizedRoot = normalizePath(root);

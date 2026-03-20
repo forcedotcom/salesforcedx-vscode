@@ -48,30 +48,41 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
     };
     switch (this.type) {
       case 'SFDX': {
-        // For SFDX workspaces, discover lwc and aura roots via findFilesWithGlobAsync.
-        // Call via provider so 'this' is bound when findFilesWithGlobAsync runs.
-        const provider = this.fileSystemAccessor;
+        // Discover lwc/aura roots within each registered package directory from sfdx-project.json.
+        // Scoping the search per package prevents picking up unregistered folders that happen to
+        // contain an lwc/ directory.
+        const config = await this.initSfdxProjectConfigCache();
         for (const root of this.workspaceRoots) {
-          const normalizedRoot = normalizePath(root);
-          const forceAppPath = normalizePath(path.join(root, 'force-app', 'main', 'default'));
-          const lwcPath = normalizePath(path.join(forceAppPath, 'lwc'));
-          const auraPath = normalizePath(path.join(forceAppPath, 'aura'));
-          const utilsLwcPath = normalizePath(path.join(root, 'utils', 'meta', 'lwc'));
-          const registeredLwcPath = normalizePath(path.join(root, 'registered-empty-folder', 'meta', 'lwc'));
+          for (const pkg of config.packageDirectories) {
+            const pkgRoot = normalizePath(path.join(root, pkg.path));
 
-          if ((await provider.findFilesWithGlobAsync?.('force-app/main/default/lwc/**', normalizedRoot))?.length) {
-            roots.lwc.push(lwcPath);
-          }
-          if ((await provider.findFilesWithGlobAsync?.('utils/meta/lwc/**', normalizedRoot))?.length) {
-            roots.lwc.push(utilsLwcPath);
-          }
-          if (
-            (await provider.findFilesWithGlobAsync?.('registered-empty-folder/meta/lwc/**', normalizedRoot))?.length
-          ) {
-            roots.lwc.push(registeredLwcPath);
-          }
-          if ((await provider.findFilesWithGlobAsync?.('force-app/main/default/aura/**', normalizedRoot))?.length) {
-            roots.aura.push(auraPath);
+            const lwcFiles = (await this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**', pkgRoot)) ?? [];
+            const lwcDirs = [
+              ...new Set(
+                lwcFiles
+                  .map(p => {
+                    const parts = normalizePath(p).split('/');
+                    const i = parts.lastIndexOf('lwc');
+                    return i === -1 ? null : normalizePath(parts.slice(0, i + 1).join('/'));
+                  })
+                  .filter((d): d is NormalizedPath => d !== null)
+              )
+            ];
+            roots.lwc.push(...lwcDirs);
+
+            const auraFiles = (await this.fileSystemAccessor.findFilesWithGlobAsync('**/aura/**', pkgRoot)) ?? [];
+            const auraDirs = [
+              ...new Set(
+                auraFiles
+                  .map(p => {
+                    const parts = normalizePath(p).split('/');
+                    const i = parts.lastIndexOf('aura');
+                    return i === -1 ? null : normalizePath(parts.slice(0, i + 1).join('/'));
+                  })
+                  .filter((d): d is NormalizedPath => d !== null)
+              )
+            ];
+            roots.aura.push(...auraDirs);
           }
         }
         return roots;

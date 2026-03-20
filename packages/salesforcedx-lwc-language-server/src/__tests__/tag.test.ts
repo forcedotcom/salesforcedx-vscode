@@ -49,18 +49,18 @@ beforeAll(() => {
     }) as Connection
   );
 
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
-    if (contentMap.has(key)) return FILE_STAT;
+    if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
     const prefix = `${key}/`;
     for (const k of contentMap.keys()) {
-      if (k.startsWith(prefix)) return DIR_STAT;
+      if (k.startsWith(prefix)) return Promise.resolve(DIR_STAT);
     }
-    return undefined;
+    return Promise.resolve(undefined);
   });
   jest
     .spyOn(sfdxFileSystemAccessor, 'getFileContent')
-    .mockImplementation(async (uri: string) => contentMap.get(normalizePath(uri)));
+    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
 });
 
 describe('Tag', () => {
@@ -143,9 +143,9 @@ describe('Tag', () => {
       it('returns a location for the component', () => {
         const location = {
           range: getTagRange(tag!),
-          uri: getTagUri(tag!)
+          uri: getTagUri(tag!, sfdxFileSystemAccessor)
         };
-        expect(getTagLocation(tag!)).toEqual(location);
+        expect(getTagLocation(tag!, sfdxFileSystemAccessor)).toEqual(location);
       });
     });
 

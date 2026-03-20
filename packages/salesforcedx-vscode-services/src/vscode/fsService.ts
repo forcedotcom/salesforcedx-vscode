@@ -16,8 +16,6 @@ import { HashableUri } from './hashableUri';
 import { uriToPath } from './paths';
 import { toUri } from './uriUtils';
 
-export { toUri } from './uriUtils';
-
 export class FsServiceError extends Data.TaggedError('FsServiceError')<{
   readonly cause: Error;
   readonly function: string;

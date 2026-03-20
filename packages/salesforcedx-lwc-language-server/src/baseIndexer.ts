@@ -65,19 +65,17 @@ const getSfdxConfig = async (
 ): Promise<SfdxProjectConfig> => {
   const filename = normalizePath(path.join(root, 'sfdx-project.json'));
 
-  if (fileSystemAccessor) {
-    const content = await fileSystemAccessor.getFileContent(filename);
+  const content = await fileSystemAccessor.getFileContent(filename);
 
-    if (content) {
-      try {
-        const parsed: unknown = JSON.parse(content);
-        return isSfdxProjectConfig(parsed) ? parsed : {};
-      } catch (error) {
-        Logger.error(
-          `[getSfdxConfig] Error parsing JSON: ${error instanceof Error ? error.message : String(error)}`,
-          error
-        );
-      }
+  if (content) {
+    try {
+      const parsed: unknown = JSON.parse(content);
+      return isSfdxProjectConfig(parsed) ? parsed : {};
+    } catch (error) {
+      Logger.error(
+        `[getSfdxConfig] Error parsing JSON: ${error instanceof Error ? error.message : String(error)}`,
+        error
+      );
     }
   }
   return {};

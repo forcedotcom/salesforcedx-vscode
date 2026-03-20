@@ -13,6 +13,7 @@ import {
   SFDX_WORKSPACE_STRUCTURE,
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { Minimatch } from 'minimatch';
 import * as path from 'node:path';
 import { getSfdxPackageDirsPattern } from '../baseIndexer';
 import * as typingIndexerModule from '../typingIndexer';
@@ -53,6 +54,19 @@ describe('TypingIndexer', () => {
       normalizePath(path.join(root, 'force-app/main/default/labels/CustomLabels.labels-meta.xml')),
       CUSTOM_LABELS_XML
     );
+
+    jest
+      .spyOn(sfdxFileSystemAccessor, 'findFilesWithGlobAsync')
+      .mockImplementation((pattern: string, folder: string) => {
+        const basePath = normalizePath(folder);
+        const mm = new Minimatch(pattern, { dot: true });
+        const prefix = `${basePath}/`;
+        const matching = [...contentMap.keys()].filter(absPath => {
+          if (!absPath.startsWith(prefix)) return false;
+          return mm.match(absPath.slice(prefix.length));
+        });
+        return Promise.resolve(matching.map(normalizePath));
+      });
 
     jest
       .spyOn(sfdxFileSystemAccessor, 'getFileContent')

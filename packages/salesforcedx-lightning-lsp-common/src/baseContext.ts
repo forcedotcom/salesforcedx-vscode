@@ -79,12 +79,6 @@ const readSfdxProjectConfig = async (
   }
 };
 
-const updateConfigFile =
-  (fileSystemAccessor: LspFileSystemAccessor) =>
-  async (filePath: string, content: string): Promise<void> => {
-    await fileSystemAccessor.updateFileContent(filePath, content);
-  };
-
 const getCoreSettings = (workspaceRoots: string[]): Record<string, unknown> =>
   // Merge template settings with provided settings
   ({
@@ -141,90 +135,53 @@ export const getModulesDirs = async (
   workspaceType: WorkspaceType,
   workspaceRoots: string[],
   fileSystemAccessor: LspFileSystemAccessor,
-  getSfdxProjectConfig: () => SfdxProjectConfig | Promise<SfdxProjectConfig>
+  getSfdxProjectConfig: () => Promise<SfdxProjectConfig>
 ): Promise<NormalizedPath[]> => {
   // Normalize workspaceRoots at the start to ensure consistent path format
   // This ensures all path operations use normalized paths
   const normalizedWorkspaceRoots = workspaceRoots.map(root => utils.normalizePath(root));
-  const modulesDirs: NormalizedPath[] = [];
   switch (workspaceType) {
     case 'SFDX': {
-      const config = await Promise.resolve(getSfdxProjectConfig());
+      const config = await getSfdxProjectConfig();
       const { packageDirectories } = config;
+      const lwcDirs = new Set<string>();
       for (const pkg of packageDirectories) {
-        // Check both new SFDX structure (main/default) and old structure (meta)
-        const newPkgDir = path.join(normalizedWorkspaceRoots[0], pkg.path, 'main', 'default');
-        const oldPkgDir = path.join(normalizedWorkspaceRoots[0], pkg.path, 'meta');
+        const pkgRoot = utils.normalizePath(path.join(normalizedWorkspaceRoots[0], pkg.path));
 
-        // Check for LWC components in new structure
-        const newLwcDir = utils.normalizePath(path.join(newPkgDir, 'lwc'));
-        const newLwcDirStat = await fileSystemAccessor.getFileStat(newLwcDir);
-        if (newLwcDirStat?.type === 'directory') {
-          // Add the LWC directory itself, not individual components
-          modulesDirs.push(newLwcDir);
-        } else {
-          // New structure doesn't exist, check for LWC components in old structure
-          const oldLwcDir = utils.normalizePath(path.join(oldPkgDir, 'lwc'));
-          const oldLwcDirStat = await fileSystemAccessor.getFileStat(oldLwcDir);
-          if (oldLwcDirStat?.type === 'directory') {
-            modulesDirs.push(oldLwcDir);
+        // Discover lwc directories under the package root dynamically via glob rather than
+        // hardcoding a specific layout (e.g. main/default/lwc).
+        const found = await fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**', pkgRoot);
+        if (found?.length) {
+          for (const filePath of found) {
+            // NormalizedPath uses forward slashes; extract the deepest .../lwc segment
+            const match = filePath.match(/^(.*\/lwc)\//);
+            if (match?.[1]) {
+              lwcDirs.add(match[1]);
+            }
           }
         }
-
-        // Note: Aura directories are not included in modulesDirs as they don't typically use TypeScript
-        // and this method is primarily used for TypeScript configuration
       }
-      break;
+      return Array.from(lwcDirs).map(dir => utils.normalizePath(dir));
     }
-    case 'CORE_ALL':
-      // For CORE_ALL, return the modules directories for each project
+    case 'CORE_ALL': {
+      // For CORE_ALL, return the modules directories for each project subdirectory
       const projects = await fileSystemAccessor.getDirectoryListing(normalizedWorkspaceRoots[0]);
-      for (const project of projects) {
-        // Use path.join instead of path.resolve since normalizedWorkspaceRoots[0] is already absolute
-        // This prevents path.resolve from potentially duplicating path segments on Windows
-        const modulesDir = path.join(normalizedWorkspaceRoots[0], project.name, 'modules');
-        let pathExists = false;
-        try {
-          const fileStat = await fileSystemAccessor.getFileStat(modulesDir);
-          if (fileStat?.type === 'directory') {
-            pathExists = true;
-          }
-        } catch {
-          // path doesn't exist, skip
-        }
-        if (pathExists) {
-          // Normalize path to ensure consistent format (especially Windows drive letter casing)
-          modulesDirs.push(utils.normalizePath(modulesDir));
-        }
-      }
-      break;
-    case 'CORE_PARTIAL':
+      const candidates = projects
+        .filter(p => p.type === 'directory')
+        .map(p => utils.normalizePath(path.join(normalizedWorkspaceRoots[0], p.name, 'modules')));
+
+      const stats = await Promise.all(candidates.map(d => fileSystemAccessor.getFileStat(d)));
+      return candidates.filter((_, i) => stats[i]?.type === 'directory');
+    }
+    case 'CORE_PARTIAL': {
       // For CORE_PARTIAL, return the modules directory for each workspace root
-      for (const ws of normalizedWorkspaceRoots) {
-        const modulesDir = path.join(ws, 'modules');
-        let pathExists = false;
-        try {
-          const fileStat = await fileSystemAccessor.getFileStat(modulesDir);
-          if (fileStat?.type === 'directory') {
-            pathExists = true;
-          }
-        } catch {
-          // path doesn't exist, skip
-        }
-        if (pathExists) {
-          // Normalize path to ensure consistent format (especially Windows drive letter casing)
-          modulesDirs.push(utils.normalizePath(modulesDir));
-        }
-      }
-      break;
-    case 'STANDARD':
-    case 'STANDARD_LWC':
-    case 'MONOREPO':
-    case 'UNKNOWN':
-      // For standard workspaces, return empty array as they don't have modules directories
-      break;
+      const candidates = normalizedWorkspaceRoots.map(ws => utils.normalizePath(path.join(ws, 'modules')));
+      const stats = await Promise.all(candidates.map(d => fileSystemAccessor.getFileStat(d)));
+      return candidates.filter((_, i) => stats[i]?.type === 'directory');
+    }
+    default:
+      return [];
   }
-  return modulesDirs;
 };
 
 /**
@@ -336,13 +293,13 @@ export abstract class BaseWorkspaceContext {
   private async writeSettingsJson(): Promise<void> {
     const settingsPath = path.join(this.workspaceRoots[0], '.vscode', 'settings.json');
     const settings = getCoreSettings(this.workspaceRoots);
-    await updateConfigFile(this.fileSystemAccessor)(settingsPath, JSON.stringify(settings, null, 2));
+    await this.fileSystemAccessor.updateFileContent(settingsPath, JSON.stringify(settings, null, 2));
   }
 
   private async writeCodeWorkspace(): Promise<void> {
     const workspacePath = path.join(this.workspaceRoots[0], 'core.code-workspace');
     const workspace = getCodeWorkspace(this.workspaceRoots);
-    await updateConfigFile(this.fileSystemAccessor)(workspacePath, JSON.stringify(workspace, null, 2));
+    await this.fileSystemAccessor.updateFileContent(workspacePath, JSON.stringify(workspace, null, 2));
   }
 
   private async writeJsconfigJson(): Promise<void> {
@@ -462,7 +419,7 @@ export abstract class BaseWorkspaceContext {
           jsconfigContent = JSON.stringify(config, null, 2);
         }
 
-        await updateConfigFile(this.fileSystemAccessor)(jsconfigPath, jsconfigContent);
+        await this.fileSystemAccessor.updateFileContent(jsconfigPath, jsconfigContent);
       } catch (error) {
         console.error(
           `writeSfdxJsconfig: Error reading/writing jsconfig: ${error instanceof Error ? error.message : String(error)}`
@@ -502,7 +459,7 @@ export abstract class BaseWorkspaceContext {
             include: [...jsconfigCore.include, typingsInclude]
           };
           const jsconfigContent = JSON.stringify(config, null, 2);
-          await updateConfigFile(this.fileSystemAccessor)(jsconfigPath, jsconfigContent);
+          await this.fileSystemAccessor.updateFileContent(jsconfigPath, jsconfigContent);
         } catch (error) {
           console.error('writeCoreJsconfig: Error reading/writing jsconfig:', error);
           throw error;

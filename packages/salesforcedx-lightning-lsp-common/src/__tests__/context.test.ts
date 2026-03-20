@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { DirectoryEntry } from '../types/fileSystemTypes';
+import { Minimatch } from 'minimatch';
 import * as path from 'node:path';
 import { getModulesDirs } from '../baseContext';
 
@@ -90,6 +91,15 @@ const mockAccessorWithVirtualFs = (accessor: LspFileSystemAccessor, contentMap: 
   jest.spyOn(accessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentMap.set(normalizePath(uri), content);
     return Promise.resolve();
+  });
+  jest.spyOn(accessor, 'findFilesWithGlobAsync').mockImplementation((pattern: string, basePath: NormalizedPath) => {
+    const base = normalizePath(basePath);
+    const prefix = `${base}/`;
+    const mm = new Minimatch(pattern, { matchBase: true });
+    const results = [...contentMap.keys()]
+      .filter(k => k.startsWith(prefix))
+      .filter(k => mm.match(k.slice(prefix.length)));
+    return Promise.resolve(results.length > 0 ? (results as NormalizedPath[]) : []);
   });
 };
 

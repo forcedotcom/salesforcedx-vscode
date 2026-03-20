@@ -82,9 +82,14 @@ export const createMockWorkspaceFindFilesConnection = (
       const normalizedPattern = toForwardSlashes(pattern);
       let files: string[];
       if (options.relativePaths && options.relativePaths.length > 0) {
+        // relativePaths are relative to workspace root; resolve with workspace root and filter to paths under basePath
+        const workspaceRoot = path.resolve(_workspaceRoot);
         files = options.relativePaths
-          .filter(rel => matchPattern(rel, normalizedPattern))
-          .map(rel => path.resolve(basePath, rel));
+          .map(rel => path.resolve(workspaceRoot, rel))
+          .filter(fullPath => {
+            const relFromBase = path.relative(basePath, fullPath);
+            return !relFromBase.startsWith('..') && !path.isAbsolute(relFromBase) && matchPattern(relFromBase, normalizedPattern);
+          });
       } else {
         files = findFilesOnDisk(basePath, basePath, pattern);
       }

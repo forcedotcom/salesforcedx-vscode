@@ -25,6 +25,16 @@ const isUnderWorkspace = (p: string): boolean => {
   return key === normRoot || key.startsWith(`${normRoot}/`);
 };
 
+const matchGlob = (relativePath: string, pattern: string): boolean => {
+  const rel = relativePath.replaceAll('\\', '/');
+  if (pattern === '**') return true;
+  if (pattern.startsWith('*/*.')) {
+    const ext = pattern.slice(4);
+    return /^[^/]+\/[^/]+$/.test(rel) && rel.endsWith(ext);
+  }
+  return false;
+};
+
 // Normalize paths for cross-platform test consistency
 // Converts absolute paths to relative paths from the workspace root
 const normalize = (start: string, p: string): string => {
@@ -88,6 +98,21 @@ describe('indexer parsing content', () => {
         return Promise.resolve([]);
       }
     });
+
+    jest
+      .spyOn(sfdxFileSystemAccessor, 'findFilesWithGlobAsync')
+      .mockImplementation((pattern: string, basePath: NormalizedPath) => {
+        const normalizedBase = normalizePath(basePath);
+        const relativePaths = getSfdxWorkspaceRelativePaths();
+        const results: NormalizedPath[] = [];
+        for (const rel of relativePaths) {
+          const fullPath = normalizePath(path.join(SFDX_WORKSPACE_ROOT, rel));
+          if (fullPath !== normalizedBase && !fullPath.startsWith(`${normalizedBase}/`)) continue;
+          const relToBase = normalizePath(path.relative(normalizedBase, fullPath)).replaceAll('\\', '/');
+          if (matchGlob(relToBase, pattern)) results.push(fullPath);
+        }
+        return Promise.resolve(results.length > 0 ? results : []);
+      });
   });
 
   it('aura indexer', async () => {

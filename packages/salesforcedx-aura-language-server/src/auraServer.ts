@@ -52,6 +52,8 @@ import { nls } from './messages';
 import {
   addFile,
   delFile,
+  init,
+  startServer,
   onCompletion,
   onHover,
   onDefinition,
@@ -105,6 +107,9 @@ export default class Server {
     );
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
+    // Wire up the LSP connection so workspace/stat, workspace/findFiles, etc. can be sent
+    this.fileSystemAccessor.setConnection(this.connection);
+    this.fileSystemAccessor.setWorkspaceFolderUris((workspaceFolders ?? []).map(f => f.uri));
     try {
       if (this.workspaceRoots.length === 0) {
         Logger.warn(nls.localize('no_workspace_found_message'));
@@ -489,6 +494,15 @@ export default class Server {
         this.context = new AuraWorkspaceContext(this.workspaceRoots, this.fileSystemAccessor, this.connection);
         this.context.initialize(this.workspaceType);
       }
+
+      // Initialize Tern server before registering handlers that depend on it
+      if (this.context.type === 'CORE_PARTIAL') {
+        const corePartialRoot = normalizePath(path.join(this.workspaceRoots[0], '..'));
+        await startServer(corePartialRoot, corePartialRoot, this.fileSystemAccessor);
+      } else {
+        await startServer(this.workspaceRoots[0], this.workspaceRoots[0], this.fileSystemAccessor);
+      }
+      await init(this.fileSystemAccessor);
 
       // Register event handlers
       this.connection.onReferences(reference => this.onReferences(reference));

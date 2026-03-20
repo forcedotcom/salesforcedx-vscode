@@ -145,10 +145,9 @@ export class LspFileSystemAccessor {
     }
     try {
       const fileUri = getFileUriForPath(uri, this.workspaceFolderUri);
-      const result = await this.connection.sendRequest<WorkspaceReadDirectoryResult>(
-        WORKSPACE_READ_DIRECTORY_REQUEST,
-        { uri: fileUri }
-      );
+      const result = await this.connection.sendRequest<WorkspaceReadDirectoryResult>(WORKSPACE_READ_DIRECTORY_REQUEST, {
+        uri: fileUri
+      });
       if (result?.error) {
         Logger.error(`[LspFileSystemAccessor] workspace/readDirectory failed for ${uri}: ${result.error}`);
         return getEmptyDirectoryListing(uri);
@@ -230,11 +229,8 @@ export class LspFileSystemAccessor {
     return (stat?.exists && stat.type === 'directory') ?? false;
   }
 
-  public async findFilesWithGlobAsync(
-    pattern: string,
-    basePath: NormalizedPath
-  ): Promise<NormalizedPath[] | undefined> {
-    if (!this.connection) return undefined;
+  public async findFilesWithGlobAsync(pattern: string, basePath: NormalizedPath): Promise<NormalizedPath[]> {
+    if (!this.connection) return [];
     try {
       const baseFolderUri = getFileUriForPath(basePath, this.workspaceFolderUri);
       const params: WorkspaceFindFilesParams = { baseFolderUri, pattern };
@@ -250,11 +246,11 @@ export class LspFileSystemAccessor {
         clearTimeout(findFilesTimeoutId!)
       );
       if (result?.error || !result?.uris) {
-        return undefined;
+        return [];
       }
       return result.uris.map(u => uriToNormalizedPath(u, this.workspaceFolderUri));
     } catch {
-      return undefined;
+      return [];
     }
   }
 

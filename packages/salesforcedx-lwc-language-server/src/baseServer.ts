@@ -504,7 +504,7 @@ export abstract class BaseServer {
 
   public async onDefinition(params: TextDocumentPositionParams): Promise<Location[]> {
     try {
-      const cursorInfo: CursorInfo | null = this.cursorInfo(params);
+      const cursorInfo: CursorInfo | undefined = this.cursorInfo(params);
 
       if (!cursorInfo) {
         return [];
@@ -581,15 +581,15 @@ export abstract class BaseServer {
   public cursorInfo(
     { textDocument: { uri }, position }: TextDocumentPositionParams,
     document?: TextDocument
-  ): CursorInfo | null {
+  ): CursorInfo | undefined {
     if (!this.languageService) {
-      return null;
+      return;
     }
     const doc = document ?? this.documents.get(uri);
     const offset = doc?.offsetAt(position);
     const scanner = doc ? this.languageService.createScanner(doc.getText()) : null;
     if (!scanner || !offset || !doc) {
-      return null;
+      return;
     }
     let token: TokenType;
     let tag: string | undefined;
@@ -671,8 +671,6 @@ export abstract class BaseServer {
         }
       }
     }
-
-    return null;
   }
 
   public listen(): void {
@@ -703,10 +701,6 @@ export abstract class BaseServer {
   protected async performDelayedInitialization(): Promise<void> {
     try {
       this.context.initialize(this.workspaceType);
-      let hasLwcFiles = false;
-      let htmlCount = 0;
-      let jsCount = 0;
-      let tsCount = 0;
       const basePath = this.workspaceRoots[0];
       const findFilesTimeoutMs = 8000;
       const findFilesPromise = Promise.all([
@@ -715,23 +709,21 @@ export abstract class BaseServer {
         this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**/*.ts', basePath)
       ]);
       let findFilesTimeoutId: ReturnType<typeof setTimeout>;
-      const findFilesTimeoutPromise = new Promise<[undefined, undefined, undefined]>((_, reject) => {
-        findFilesTimeoutId = setTimeout(() => reject(new Error('findFiles timeout')), findFilesTimeoutMs);
-      });
+      const findFilesTimeoutPromise = new Promise<[NormalizedPath[], NormalizedPath[], NormalizedPath[]]>(
+        (_, reject) => {
+          findFilesTimeoutId = setTimeout(() => reject(new Error('findFiles timeout')), findFilesTimeoutMs);
+        }
+      );
       await findFilesPromise.finally(() => clearTimeout(findFilesTimeoutId!));
-      const findFilesWithTimeout = Promise.race([findFilesPromise, findFilesTimeoutPromise]).catch(err => {
+      const [html, js, ts] = await Promise.race([findFilesPromise, findFilesTimeoutPromise]).catch(err => {
         Logger.info(
           `[LWC] performDelayedInitialization: findFiles timed out or failed (${err instanceof Error ? err.message : String(err)}), continuing with hasLwcFiles=false`
         );
-        return [undefined, undefined, undefined];
+        return [[], [], []];
       });
-      const [html, js, ts] = await findFilesWithTimeout;
-      htmlCount = html?.length ?? 0;
-      jsCount = js?.length ?? 0;
-      tsCount = ts?.length ?? 0;
-      hasLwcFiles = htmlCount > 0 || jsCount > 0 || tsCount > 0;
+      const hasLwcFiles = html.length > 0 || js.length > 0 || ts.length > 0;
       Logger.info(
-        `[LWC] performDelayedInitialization: findFiles result html=${htmlCount} js=${jsCount} ts=${tsCount} hasLwcFiles=${hasLwcFiles}`
+        `[LWC] performDelayedInitialization: findFiles result html=${html.length} js=${js.length} ts=${ts.length} hasLwcFiles=${hasLwcFiles}`
       );
 
       if (hasLwcFiles) {

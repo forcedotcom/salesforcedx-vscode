@@ -316,7 +316,6 @@
       "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-lwc --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
-        "./packages/salesforcedx-vscode-services:spans:server",
         "./packages/salesforcedx-vscode-services:vscode:bundle:local",
         "./packages/salesforcedx-vscode-apex-log:vscode:bundle:local",
         "./packages/salesforcedx-vscode-org-browser:vscode:bundle:local",

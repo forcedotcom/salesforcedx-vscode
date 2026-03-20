@@ -117,14 +117,21 @@ const findFilesWithGlob = async (
       continue;
     }
 
+    // Calculate relative path - if path.posix.relative fails (returns absolute path),
+    // manually compute it by removing the base path prefix
     let relativePath = path.posix.relative(normalizedBasePath, fileUri);
     const isAbsoluteRelative = path.posix.isAbsolute(relativePath);
     if (isAbsoluteRelative) {
+      // path.posix.relative failed (e.g., drive letter mismatch on Windows)
+      // Since we've already verified the file is in the workspace via startsWith,
+      // manually compute the relative path by removing the base path prefix
       if (fileUriLower.startsWith(basePathWithSlash)) {
         relativePath = fileUri.substring(normalizedBasePath.length + 1);
       } else if (fileUriLower === basePathLower) {
+        // File is the workspace root itself
         relativePath = '.';
       } else {
+        // Should not happen given the startsWith check above, but skip to be safe
         continue;
       }
     }
@@ -158,10 +165,6 @@ export default class ComponentIndexer {
     }
   }
 
-  private async getSfdxPackageDirsPattern(): Promise<string> {
-    return getSfdxPackageDirsPattern(this.attributes.workspaceRoot, this.fileSystemAccessor);
-  }
-
   // visible for testing
   public async getComponentEntries(): Promise<Entry[]> {
     const filterDirMatchesName = (item: Entry): boolean => {
@@ -171,11 +174,10 @@ export default class ComponentIndexer {
 
     if (this.workspaceType === 'SFDX') {
       // workspaceRoot is already normalized by getWorkspaceRoot()
-      const packageDirsPattern = await this.getSfdxPackageDirsPattern();
-      // If packageDirsPattern is empty, sfdx-project.json hasn't been loaded yet
-      if (!packageDirsPattern) {
-        return [];
-      }
+      const packageDirsPattern = await getSfdxPackageDirsPattern(
+        this.attributes.workspaceRoot,
+        this.fileSystemAccessor
+      );
       // Pattern matches: {packageDir}/**/*/lwc/**/*.js
       const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
       return (await findFilesWithGlob(sfdxPattern, this.fileSystemAccessor, this.workspaceRoot)).filter(
@@ -330,7 +332,10 @@ export default class ComponentIndexer {
     const files: TsConfigPaths = {};
     if (this.workspaceType === 'SFDX') {
       // workspaceRoot is already normalized by getWorkspaceRoot()
-      const packageDirsPattern = await this.getSfdxPackageDirsPattern();
+      const packageDirsPattern = await getSfdxPackageDirsPattern(
+        this.attributes.workspaceRoot,
+        this.fileSystemAccessor
+      );
       // Use **/* after lwc to match any depth (e.g., utils/meta/lwc/todo_util/todo_util.js)
       // Construct glob pattern with forward slashes (path.join uses backslashes on Windows)
       // Normalize packageDirsPattern to ensure forward slashes
@@ -397,26 +402,11 @@ export default class ComponentIndexer {
       const tag = await createTagFromFile(entry.path, this.fileSystemAccessor, entry.stats?.mtime);
       return tag;
     });
-    const tags = await Promise.all(promises);
+    (await Promise.all(promises))
+      .filter((tag): tag is Tag => tag !== null)
+      .forEach(tag => this.tags.set(getTagName(tag), tag));
 
-    const validTags: Tag[] = [];
-    tags.forEach(tag => {
-      if (tag) {
-        validTags.push(tag);
-      }
-    });
-
-    validTags.forEach(tag => {
-      const tagName = getTagName(tag);
-      this.tags.set(tagName, tag);
-    });
-
-    const staleTags = await this.getStaleTags();
-    staleTags.forEach(tag => {
-      if (tag) {
-        this.tags.delete(getTagName(tag));
-      }
-    });
+    (await this.getStaleTags()).forEach(tag => this.tags.delete(getTagName(tag)));
 
     this.persistCustomComponents();
   }
