@@ -16,6 +16,7 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
+  verifyCommandExists,
   waitForExtensionsActivated
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
@@ -30,6 +31,7 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
     await waitForExtensionsActivated(page);
     await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.complete.png');
+    await verifyCommandExists(page, packageNls.soql_open_new_builder);
   });
 
   await test.step('create query in SOQL Builder', async () => {
