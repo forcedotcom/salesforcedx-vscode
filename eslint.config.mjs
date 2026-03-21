@@ -654,6 +654,8 @@ export default [
       'packages/salesforcedx-vscode-apex-log/playwright*.ts',
       'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-core/playwright*.ts',
+      'packages/salesforcedx-vscode-org/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-org/playwright*.ts',
       'packages/salesforcedx-vscode-soql/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-soql/playwright*.ts'
     ],
