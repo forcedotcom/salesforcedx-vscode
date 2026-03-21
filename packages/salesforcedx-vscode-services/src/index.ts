@@ -48,6 +48,7 @@ import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope'
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
+import { PromptService, UserCancellationError } from './vscode/prompts/metadataOverwrite';
 import { registerCommandWithLayer, registerCommandWithRuntime } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsService } from './vscode/settingsService';
@@ -72,6 +73,7 @@ export type SalesforceVSCodeServicesApi = {
       | MetadataDeleteService
       | MetadataDeployService
       | MetadataDescribeService
+      | PromptService
       | MetadataRegistryService
       | MetadataRetrieveService
       | ProjectService
@@ -106,6 +108,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
+    PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     ProjectService: typeof ProjectService;
@@ -118,6 +121,7 @@ export type SalesforceVSCodeServicesApi = {
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
     TraceFlagService: typeof TraceFlagService;
     WorkspaceService: typeof WorkspaceService;
+    UserCancellationError: typeof UserCancellationError;
   };
 };
 export type { AliasService } from './core/alias';
@@ -128,7 +132,7 @@ export {
   type TemplateOptionsFor,
   type TemplateType
 } from './core/templateService';
-export type { TemplatesRootPathNotAvailableError } from './core/templateService';
+export type { TemplatesManifestLoadError, TemplatesRootPathNotAvailableError } from './core/templateService';
 export type {
   NonEmptyComponentSet,
   ComponentSetService,
@@ -228,10 +232,7 @@ const activationEffect = Effect.fn('activationEffect')(function* (context: vscod
   );
   // init the connection for all the consumers who might need it
   // no Connection is a possible state
-  yield* Effect.forkIn(
-    ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)),
-    scope
-  );
+  yield* Effect.forkIn(ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)), scope);
   // set sf:project_opened context before activation resolves so lazy-loaded extensions can show
   // their commands on startup — must be blocking (not forked) so the context key is set before
   // VS Code evaluates `when` clauses for command palette visibility
@@ -294,6 +295,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     MetadataDescribeService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,
+    PromptService.Default,
     MetadataRegistryService.Default,
     MetadataRetrieveService.Default,
     ProjectService.Default,
@@ -372,7 +374,9 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       TransmogrifierService,
       TraceFlagItemStruct,
       TraceFlagService,
-      WorkspaceService
+      WorkspaceService,
+      PromptService,
+      UserCancellationError
     }
   };
 };
@@ -423,3 +427,4 @@ export { type SettingsService } from './vscode/settingsService';
 export { type SettingsWatcherService } from './vscode/settingsWatcherService';
 export { type DebugLevelItem, type TraceFlagItem, type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
+export type { UserCancellationError } from './vscode/prompts/metadataOverwrite';

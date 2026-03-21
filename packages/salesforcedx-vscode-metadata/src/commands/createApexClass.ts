@@ -7,18 +7,15 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
-import { APEX_CLASS_NAME_MAX_LENGTH } from '../constants';
 import { nls } from '../messages';
 import {
   getApiVersion,
   promptForApexTypeName,
   promptForPackageMetadataSubdir
 } from '../templates-shared/sfTemplateProjectHelpers';
-import { checkAndPromptOverwriteUris } from '../templates-shared/templateOverwrite';
 
 const ApexClassTemplate = Schema.Literal('DefaultApexClass', 'ApexException', 'InboundEmailService');
 type ApexClassTemplate = Schema.Schema.Type<typeof ApexClassTemplate>;
@@ -33,28 +30,32 @@ const CreateApexClassParams = Schema.Struct({
 type CreateApexClassParams = Schema.Schema.Type<typeof CreateApexClassParams>;
 
 /** Prompt user to select template */
-const promptForTemplate = (): Promise<ApexClassTemplate | undefined> =>
-  Promise.resolve(
-    vscode.window
-      .showQuickPick(
-        [
-          {
-            label: 'DefaultApexClass' satisfies ApexClassTemplate,
-            description: nls.localize('apex_class_default_template_description')
-          },
-          {
-            label: 'ApexException' satisfies ApexClassTemplate,
-            description: nls.localize('apex_class_exception_template_description')
-          },
-          {
-            label: 'InboundEmailService' satisfies ApexClassTemplate,
-            description: nls.localize('apex_class_inbound_email_template_description')
-          }
-        ],
-        { placeHolder: nls.localize('apex_class_template_prompt') }
-      )
-      .then(sel => (sel?.label && Schema.is(ApexClassTemplate)(sel.label) ? sel.label : undefined))
+const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<{ label: ApexClassTemplate; description: string }>(
+      [
+        {
+          label: 'DefaultApexClass',
+          description: nls.localize('apex_class_default_template_description')
+        },
+        {
+          label: 'ApexException',
+          description: nls.localize('apex_class_exception_template_description')
+        },
+        {
+          label: 'InboundEmailService',
+          description: nls.localize('apex_class_inbound_email_template_description')
+        }
+      ],
+      { placeHolder: nls.localize('apex_class_template_prompt') }
+    )
+  ).pipe(
+    Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)),
+    Effect.map(s => s.label)
   );
+});
 
 /** Create Apex class via TemplateService from services extension.
  * arg: when invoked from explorer context (right-click classes folder), VS Code passes the folder URI.
@@ -63,30 +64,20 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   arg?: URI | CreateApexClassParams
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   const project = yield* api.services.ProjectService.getSfProject();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   const outputDirFromContext = URI.isUri(arg) ? arg : undefined;
   const params = Schema.is(CreateApexClassParams)(arg) ? arg : undefined;
 
-  const template = params?.template ?? (yield* Effect.promise(promptForTemplate));
-  if (!template) return undefined;
+  const template = params?.template ?? (yield* promptForTemplate());
 
   const className =
     params?.name ??
-    Option.getOrUndefined(
-      yield* promptForApexTypeName({
-        prompt: nls.localize('apex_class_name_prompt'),
-        forbidLowercaseDefault: true,
-        messages: {
-          empty: nls.localize('apex_class_name_empty_error'),
-          invalidFormat: nls.localize('apex_class_name_format_error'),
-          maxLength: nls.localize('apex_class_name_max_length_error', APEX_CLASS_NAME_MAX_LENGTH),
-          reservedDefault: nls.localize('apex_class_name_cannot_be_default')
-        }
-      })
-    );
-  if (!className) return undefined;
+    (yield* promptForApexTypeName({
+      prompt: nls.localize('apex_class_name_prompt')
+    }));
 
   const outputDirUri =
     params?.outputDir ??
@@ -96,19 +87,14 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
       'classes',
       nls.localize('apex_class_output_dir_prompt') || 'Select output directory'
     ));
-  if (!outputDirUri) return undefined;
-
-  const clsUri = Utils.joinPath(outputDirUri, `${className}.cls`);
-  const clsMetaUri = Utils.joinPath(outputDirUri, `${className}.cls-meta.xml`);
-  const overwriteOk = yield* checkAndPromptOverwriteUris(
-    [clsUri, clsMetaUri],
-    nls.localize('apex_class_already_exists')
-  ).pipe(Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(false)));
-  if (!overwriteOk) return undefined;
 
   const apiVersion = yield* getApiVersion(project);
+  const cwd = workspaceInfo.uri.fsPath;
+  const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   const fsService = yield* api.services.FsService;
-  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
+  const channelService = yield* api.services.ChannelService;
+
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
   yield* api.services.TemplateService.create({
     cwd,
@@ -117,10 +103,8 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
     options: { template, classname: className, apiversion: apiVersion }
   });
 
-  const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
-
-  yield* fsService.showTextDocument(clsUri);
+  yield* fsService.showTextDocument(uris[0]);
 
   return undefined;
 });

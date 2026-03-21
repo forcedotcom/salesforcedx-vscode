@@ -32,11 +32,10 @@ export const messages = {
   source_tracking_status_bar_click_to_retrieve: '💡 Click to retrieve these changes from the org',
   source_tracking_status_bar_click_to_view_details: '💡 Click to view full details in the output channel',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
-  apex_class_name_cannot_be_default: 'Class name cannot be "default"',
-  apex_class_name_empty_error: 'Class name cannot be empty',
-  apex_class_name_format_error:
-    'Class name must start with a letter and contain only alphanumeric characters and underscores',
-  apex_class_name_max_length_error: 'Class name cannot exceed %d characters',
+  apex_class_name_max_length_error: 'Name cannot exceed %d characters',
+  apex_name_cannot_be_default: 'Name cannot be "default"',
+  apex_name_empty_error: 'Name cannot be empty',
+  apex_name_format_error: 'Name must start with a letter and contain only alphanumeric characters and underscores',
   apex_class_name_prompt: 'Enter Apex class name',
   apex_class_output_dir_prompt: 'Select output directory',
   apex_class_template_prompt: 'Select template type',
@@ -44,15 +43,8 @@ export const messages = {
   apex_class_exception_template_description: 'Custom exception class',
   apex_class_inbound_email_template_description: 'Inbound email service handler',
   apex_generate_class_success: 'Apex class created successfully',
-  apex_class_already_exists: 'One or more files already exist. Do you want to overwrite them?',
   apex_trigger_name_prompt: 'Enter Apex trigger name',
-  apex_trigger_name_placeholder: 'MyApexTrigger',
-  apex_trigger_name_empty_validation: 'Trigger name cannot be empty',
-  apex_trigger_name_invalid_validation:
-    'Trigger name must start with a letter and contain only alphanumeric characters and underscores',
-  apex_trigger_name_max_length_validation: 'Trigger name cannot exceed %s characters',
   apex_trigger_output_dir_prompt: 'Select output directory',
-  apex_trigger_already_exists: 'One or more files already exist. Do you want to overwrite them?',
   apex_generate_trigger_success: 'Apex trigger created successfully',
   lwc_component_name_empty_error: 'Component name cannot be empty',
   lwc_component_name_format_error:
@@ -61,7 +53,7 @@ export const messages = {
   lwc_output_dir_prompt: 'Select output directory',
   lwc_select_component_type: 'Select component type',
   lwc_generate_success: 'Lightning Web Component created successfully',
-  lwc_already_exists: 'Component already exists. Do you want to overwrite it?',
+  lwc_component_name_lowercase_error: 'Component name must start with a lowercase letter',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',
@@ -96,7 +88,6 @@ export const messages = {
   delete_failed: 'Failed to delete: %s',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
   manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
-  manifest_overwrite_confirmation: 'Manifest file "%s" already exists. Do you want to overwrite it?',
   project_generate_manifest_text: 'SFDX: Generate Manifest File',
   generate_manifest_select_file_or_directory:
     'You can run SFDX: Generate Manifest File only on a source file or directory.',
@@ -109,8 +100,6 @@ export const messages = {
   source_diff_no_matching_files: 'No matching files found to diff',
   source_diff_all_files_match: 'All Files Match',
   missing_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.',
-  overwrite_button: 'Overwrite',
-  cancel_button: 'Cancel',
 
   // SObject refresh
   sobjects_refresh: 'SFDX: Refresh SObject Definitions',
@@ -119,7 +108,9 @@ export const messages = {
   sobject_refresh_standard: 'Standard SObjects',
   sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
-  processed_sobjects_length_text: 'Processed %d %s sObjects\n'
+  processed_sobjects_length_text: 'Processed %d %s sObjects\n',
+  overwrite_button: 'Overwrite',
+  cancel_button: 'Cancel'
 } as const;
 
 export type MessageKey = keyof typeof messages;

@@ -74,8 +74,6 @@ export const messages = {
   soql_output_dir_default_description: '(default)',
   soql_output_dir_prompt: 'Select the target directory',
   soql_custom_output_directory: 'Choose a Custom Directory',
-  soql_file_already_exists: 'A file with that name already exists. Overwrite?',
-  soql_overwrite_button: 'Overwrite',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   REST_API: 'REST API',
   REST_API_description: 'Use REST API to execute the query',
