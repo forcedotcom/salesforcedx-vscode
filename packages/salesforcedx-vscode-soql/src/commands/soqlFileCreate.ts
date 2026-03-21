@@ -30,7 +30,7 @@ const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function
     })
   ).pipe(
     Effect.map(n => n?.trim()),
-    Effect.flatMap(raw => promptService.ensureValueOrThrow(raw))
+    Effect.flatMap(promptService.ensureValueOrThrow)
   );
 });
 
