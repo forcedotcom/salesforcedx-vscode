@@ -46,7 +46,11 @@ const promptForOutputDir = Effect.fn('soqlFileCreate.promptForOutputDir')(functi
   const selected = yield* Effect.promise(() =>
     vscode.window.showQuickPick(
       [
-        { label: defaultUri.fsPath, description: nls.localize('soql_output_dir_default_description'), uri: defaultUri },
+        {
+          label: defaultUri.fsPath,
+          description: nls.localize('soql_output_dir_default_description'),
+          uri: defaultUri
+        },
         { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined }
       ],
       {
@@ -54,9 +58,9 @@ const promptForOutputDir = Effect.fn('soqlFileCreate.promptForOutputDir')(functi
         matchOnDescription: true
       }
     )
-  ).pipe(Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)));
+  );
 
-  if (selected.label === CUSTOM_DIR_LABEL) {
+  if (selected?.label === CUSTOM_DIR_LABEL) {
     const folders = yield* Effect.promise(() =>
       vscode.window.showOpenDialog({
         canSelectFiles: false,
@@ -65,11 +69,11 @@ const promptForOutputDir = Effect.fn('soqlFileCreate.promptForOutputDir')(functi
         defaultUri: workspaceInfo.uri,
         openLabel: 'Select'
       })
-    );
-    return folders?.[0];
+    ).pipe(Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)));
+    return folders[0];
   }
 
-  return selected.uri;
+  return yield* Effect.succeed(selected?.uri).pipe(Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)));
 });
 
 const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(function* (
@@ -89,16 +93,12 @@ const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(function
 
 export const soqlOpenNewBuilder = Effect.fn('soql_open_new_builder')(function* () {
   const fileName = yield* promptForFileName();
-
   const outputDir = yield* promptForOutputDir();
-
   yield* createAndOpenFile(fileName, outputDir, BUILDER_VIEW_TYPE);
 });
 
 export const soqlOpenNewTextEditor = Effect.fn('soql_open_new_text_editor')(function* () {
   const fileName = yield* promptForFileName();
-
   const outputDir = yield* promptForOutputDir();
-
   yield* createAndOpenFile(fileName, outputDir, EDITOR_VIEW_TYPE);
 });

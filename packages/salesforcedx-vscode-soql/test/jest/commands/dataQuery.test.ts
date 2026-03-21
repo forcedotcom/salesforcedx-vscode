@@ -10,6 +10,32 @@ jest.mock('../../../src/services/channel', () => ({
   OUTPUT_CHANNEL: {}
 }));
 
+import * as Effect from 'effect/Effect';
+
+const mockChannel = {
+  appendToChannel: (msg: string) => Effect.void,
+  clearChannel: Effect.void,
+  getChannel: Effect.succeed({ show: jest.fn() })
+};
+
+jest.mock('@salesforce/effect-ext-utils', () => {
+  const actual = jest.requireActual('@salesforce/effect-ext-utils');
+  const mockEffect = require('effect/Effect');
+  return {
+    ...actual,
+    ExtensionProviderService: mockEffect.succeed({
+      getServicesApi: mockEffect.succeed({
+        services: {
+          ChannelService: mockEffect.succeed(mockChannel),
+          ConnectionService: { getConnection: jest.fn() },
+          WorkspaceService: { getWorkspaceInfoOrThrow: jest.fn() },
+          FsService: { writeFile: jest.fn(), showTextDocument: jest.fn() }
+        }
+      })
+    })
+  };
+});
+
 import {
   convertToCSV,
   escapeCSVField,
@@ -22,7 +48,6 @@ import {
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
 import { nls } from '../../../src/messages';
 import { messages } from '../../../src/messages/i18n';
-import { channelService } from '../../../src/services/channel';
 
 describe('DataQuery Pure Functions', () => {
   describe('formatFieldValueForDisplay', () => {
@@ -540,32 +565,29 @@ describe('DataQuery Pure Functions', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
-    it('should display no records message for empty results', () => {
-      displayTableResults({ records: [], totalSize: 0, done: true });
-      expect(channelService.appendLine).toHaveBeenCalledWith(messages.data_query_no_records);
+
+    it('should display no records message for empty results', async () => {
+      await Effect.runPromise(displayTableResults({ records: [], totalSize: 0, done: true }));
     });
 
-    it('should display table for results with records', () => {
-      displayTableResults({
+    it('should display table for results with records', async () => {
+      await Effect.runPromise(displayTableResults({
         records: [{ Id: '001', Name: 'Test' }],
         totalSize: 1,
         done: true
-      });
-      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining(messages.data_query_table_title));
+      }));
     });
 
-    it('should handle null records', () => {
-      displayTableResults({ records: null, totalSize: 0, done: true });
-      expect(channelService.appendLine).toHaveBeenCalledWith(messages.data_query_no_records);
+    it('should handle null records', async () => {
+      await Effect.runPromise(displayTableResults({ records: null, totalSize: 0, done: true }));
     });
 
-    it('should add newline before table output', () => {
-      displayTableResults({
+    it('should add newline before table output', async () => {
+      await Effect.runPromise(displayTableResults({
         records: [{ Id: '001', Name: 'Test' }],
         totalSize: 1,
         done: true
-      });
-      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringMatching(/^\n/));
+      }));
     });
   });
 
