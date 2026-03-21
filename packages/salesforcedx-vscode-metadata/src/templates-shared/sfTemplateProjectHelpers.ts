@@ -53,7 +53,7 @@ export const promptForPackageMetadataSubdir = Effect.fn('promptForPackageMetadat
       matchOnDescription: true
     })
   ).pipe(
-    Effect.flatMap(selected => promptService.ensureValueOrThrow(selected)),
+    Effect.flatMap(selected => promptService.considerUndefinedAsCancellation(selected)),
     Effect.map(selected => selected.uri)
   );
 });
@@ -105,6 +105,6 @@ export const promptForApexTypeName = Effect.fn('promptForApexTypeName')(function
     })
   ).pipe(
     Effect.map(raw => raw?.trim()),
-    Effect.flatMap(promptService.ensureValueOrThrow)
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 });

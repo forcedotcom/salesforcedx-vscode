@@ -36,7 +36,7 @@ const promptForComponentName = Effect.fn('promptForComponentName')(function* () 
     })
   ).pipe(
     Effect.map(n => n?.trim()),
-    Effect.flatMap(promptService.ensureValueOrThrow)
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 });
 
@@ -52,7 +52,7 @@ const promptForComponentType = Effect.fn('promptForComponentType')(function* () 
       { placeHolder: nls.localize('lwc_select_component_type') ?? 'Select component type' }
     )
   ).pipe(
-    Effect.flatMap(selected => promptService.ensureValueOrThrow(selected)),
+    Effect.flatMap(selected => promptService.considerUndefinedAsCancellation(selected)),
     Effect.map(selected => selected.value)
   );
 });

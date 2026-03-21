@@ -30,7 +30,7 @@ const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function
     })
   ).pipe(
     Effect.map(n => n?.trim()),
-    Effect.flatMap(promptService.ensureValueOrThrow)
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 });
 
@@ -69,11 +69,11 @@ const promptForOutputDir = Effect.fn('soqlFileCreate.promptForOutputDir')(functi
         defaultUri: workspaceInfo.uri,
         openLabel: 'Select'
       })
-    ).pipe(Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)));
+    ).pipe(Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)));
     return folders[0];
   }
 
-  return yield* Effect.succeed(selected?.uri).pipe(Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)));
+  return yield* Effect.succeed(selected?.uri).pipe(Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)));
 });
 
 const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(function* (

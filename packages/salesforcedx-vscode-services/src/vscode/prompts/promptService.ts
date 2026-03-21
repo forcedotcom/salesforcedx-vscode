@@ -64,6 +64,6 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
         ? Effect.fail(new UserCancellationError())
         : Effect.succeed(value);
 
-    return { ensureMetadataOverwriteOrThrow, ensureValueOrThrow: considerUndefinedAsCancellation };
+    return { ensureMetadataOverwriteOrThrow, considerUndefinedAsCancellation };
   })
 }) {}

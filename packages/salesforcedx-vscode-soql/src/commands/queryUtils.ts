@@ -34,7 +34,7 @@ export const getQueryAndApiInputs = Effect.fn('getQueryAndApiInputs')(function* 
   const editorService = yield* servicesApi.services.EditorService;
 
   const query = yield* editorService.getActiveEditorText(true).pipe(
-    Effect.flatMap(promptService.ensureValueOrThrow),
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
     // if not text, we'll prompt the user for it
     Effect.catchAll(() => Effect.void),
     Effect.flatMap(q =>
@@ -44,13 +44,13 @@ export const getQueryAndApiInputs = Effect.fn('getQueryAndApiInputs')(function* 
             vscode.window.showInputBox({
               prompt: nls.localize('parameter_gatherer_enter_soql_query')
             })
-          ).pipe(Effect.flatMap(promptService.ensureValueOrThrow))
+          ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation))
     ),
     Effect.map(normalizeQuery)
   );
 
   const api = yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
-    Effect.flatMap(s => promptService.ensureValueOrThrow(s)),
+    Effect.flatMap(s => promptService.considerUndefinedAsCancellation(s)),
     Effect.map(s => s.api)
   );
 
@@ -60,7 +60,7 @@ export const getQueryAndApiInputs = Effect.fn('getQueryAndApiInputs')(function* 
 const ensureTextAndNormalize = Effect.fn('ensureTextAndNormalize')(function* (text: string) {
   const servicesApi = yield* getServicesApi;
   const promptService = yield* servicesApi.services.PromptService;
-  return yield* Effect.succeed(text).pipe(Effect.map(normalizeQuery), Effect.flatMap(promptService.ensureValueOrThrow));
+  return yield* Effect.succeed(text).pipe(Effect.map(normalizeQuery), Effect.flatMap(promptService.considerUndefinedAsCancellation));
 });
 
 export const getQueryInputsForPlan = Effect.fn('getQueryInputsForPlan')(function* () {
