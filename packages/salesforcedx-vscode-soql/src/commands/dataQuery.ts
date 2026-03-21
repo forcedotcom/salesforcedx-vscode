@@ -45,15 +45,20 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
 
   // Show success message with clickable file link
   const openFileAction = nls.localize('data_query_open_file');
-  const selection = yield* Effect.promise(() =>
-    vscode.window.showInformationMessage(
-      nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath),
-      openFileAction
-    )
+  yield* Effect.promise(() =>
+    vscode.window
+      .showInformationMessage(
+        nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath),
+        openFileAction
+      )
+      .then(selection => {
+        if (selection === openFileAction) {
+          vscode.workspace.openTextDocument(fileUri).then(doc => {
+            vscode.window.showTextDocument(doc);
+          });
+        }
+      })
   );
-  if (selection === openFileAction) {
-    yield* api.services.FsService.showTextDocument(fileUri);
-  }
 });
 
 export const dataQuery = Effect.fn('sf.data.query')(function* () {
@@ -65,20 +70,21 @@ export const dataQuery = Effect.fn('sf.data.query')(function* () {
     yield* channelService.clearChannel;
   }
 
+  const vscChannel = yield* channelService.getChannel;
+
   try {
     const queryResult = yield* runSoqlQuery(query, queryApi === 'TOOLING');
     yield* Effect.all(
       [
         displayTableResults(queryResult),
         channelService.appendToChannel(nls.localize('data_query_complete', queryResult.totalSize)),
-        saveResultsToCSV(queryResult)
+        saveResultsToCSV(queryResult),
+        Effect.sync(() => vscChannel.show())
       ],
       { concurrency: 'unbounded' }
     );
   } catch (error) {
     yield* channelService.appendToChannel(formatErrorMessage(error));
-  } finally {
-    const vscChannel = yield* channelService.getChannel;
     vscChannel.show();
   }
 });
