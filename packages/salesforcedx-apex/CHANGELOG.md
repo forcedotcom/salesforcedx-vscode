@@ -1,3 +1,12 @@
+## [8.4.14](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.13...8.4.14) (2026-03-21)
+
+
+### Bug Fixes
+
+* **deps:** bump flatted from 3.3.3 to 3.4.2 ([c1b66da](https://github.com/forcedotcom/salesforcedx-apex/commit/c1b66da9eb342876dfc381bf8c5d0e776f395b1d))
+
+
+
 ## [8.4.13](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.12...8.4.13) (2026-03-19)
 
 
