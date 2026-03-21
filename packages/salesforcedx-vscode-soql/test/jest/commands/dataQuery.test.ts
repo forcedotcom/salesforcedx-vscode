@@ -446,6 +446,54 @@ describe('DataQuery Pure Functions', () => {
       expect(output).not.toContain('[object Object]');
     });
 
+    it('should stack multiple sub-queries independently (not cross-product)', () => {
+      // 2 Contacts + 3 Assets → 4 rows, not 6
+      const records = [
+        {
+          Id: '001Rt00001iD52NIAS',
+          Contacts: {
+            totalSize: 2,
+            done: true,
+            records: [{ Id: '003a' }, { Id: '003b' }]
+          },
+          Assets: {
+            totalSize: 3,
+            done: true,
+            records: [{ Id: '02i1' }, { Id: '02i2' }, { Id: '02i3' }]
+          }
+        }
+      ];
+      const output = generateTableOutput(records, 'Test Table');
+
+      // Correct columns
+      expect(output).toContain('Contacts.Id');
+      expect(output).toContain('Assets.Id');
+
+      // All sub-records present
+      expect(output).toContain('003a');
+      expect(output).toContain('003b');
+      expect(output).toContain('02i1');
+      expect(output).toContain('02i2');
+      expect(output).toContain('02i3');
+
+      // Parent Id appears exactly once (row 0 only)
+      expect(output.match(/001Rt00001iD52NIAS/g)?.length).toBe(1);
+
+      // No cross-product duplication: each sub-record Id appears exactly once
+      expect(output.match(/003a/g)?.length).toBe(1);
+      expect(output.match(/003b/g)?.length).toBe(1);
+      expect(output.match(/02i1/g)?.length).toBe(1);
+      expect(output.match(/02i2/g)?.length).toBe(1);
+      expect(output.match(/02i3/g)?.length).toBe(1);
+
+      // Exactly 4 data rows: 1 (shared first) + 1 (Contact overflow) + 2 (Asset overflow)
+      // Data rows follow the ─── separator line; count non-empty lines after it.
+      const lines = output.split('\n');
+      const sepIdx = lines.findIndex(line => line.trim().startsWith('─'));
+      const dataLines = lines.slice(sepIdx + 1).filter(line => line.trim().length > 0);
+      expect(dataLines).toHaveLength(4);
+    });
+
     it('should emit the parent row with empty sub-columns when a sub-query has no records', () => {
       const records = [
         { Id: '001a', Name: 'No Contacts', Contacts: { totalSize: 0, done: true, records: [] } },

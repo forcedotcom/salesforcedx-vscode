@@ -126,10 +126,11 @@ const isSubQueryResult = (
 };
 
 /**
- * Flattens a record into one or more rows.
- * Sub-query results are expanded: each sub-record produces a separate output row.
- * Parent fields are shown only on the first child row; subsequent rows leave them blank,
- * matching the Salesforce CLI display style.
+ * Flattens a record into one or more rows, matching the Salesforce CLI display style.
+ * Each sub-query's first element shares row 0 with the parent fields and other
+ * sub-queries' first elements. Remaining elements ("overflow") are stacked in
+ * subsequent rows in sub-query order, with all other columns blank on those rows.
+ * Total rows = 1 + sum(len - 1) for each sub-query — never a cross-product.
  * When a sub-query has no records the parent row is still emitted with empty sub-columns.
  */
 const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>[] => {
@@ -172,32 +173,25 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
     return [baseRow];
   }
 
-  // Cross-product of all sub-query expansions merged with the base row.
-  // Multiple sub-queries in a single SELECT are rare but handled correctly.
-  let rows: Record<string, unknown>[] = [baseRow];
+  // Total rows = 1 + sum of (each sub-query's overflow = length - 1)
+  const totalRows = subQueryExpansions.reduce((sum, exp) => sum + exp.length - 1, 1);
+
+  // Allocate the grid. Row 0 starts with the parent fields.
+  const grid: Record<string, unknown>[] = Array.from({ length: totalRows }, () => ({}));
+  Object.assign(grid[0], baseRow);
+
+  // Place each sub-query: element[0] → row 0, overflow elements → consecutive rows
+  // starting immediately after all previous sub-queries' overflow rows.
+  let overflowStart = 1;
   for (const expansion of subQueryExpansions) {
-    const next: Record<string, unknown>[] = [];
-    for (const existing of rows) {
-      for (const expanded of expansion) {
-        next.push({ ...existing, ...expanded });
-      }
+    Object.assign(grid[0], expansion[0]);
+    for (let j = 1; j < expansion.length; j++) {
+      Object.assign(grid[overflowStart + j - 1], expansion[j]);
     }
-    rows = next;
+    overflowStart += expansion.length - 1;
   }
 
-  // Blank out parent fields on all rows after the first, matching the Salesforce CLI
-  // display style where repeated parent values are omitted for readability.
-  const baseKeys = Object.keys(baseRow);
-  return rows.map((row, i) => {
-    if (i === 0 || baseKeys.length === 0) {
-      return row;
-    }
-    const blanked = { ...row };
-    for (const key of baseKeys) {
-      blanked[key] = '';
-    }
-    return blanked;
-  });
+  return grid;
 };
 
 /**
