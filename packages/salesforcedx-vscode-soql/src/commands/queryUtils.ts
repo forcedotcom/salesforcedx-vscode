@@ -34,6 +34,15 @@ const pickApiForQuery = async (
   return selection ? { type: 'CONTINUE', data: { query, api: selection.api } } : { type: 'CANCEL' };
 };
 
+const getQuery = (useSelection: boolean): string | undefined => {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor || (useSelection && editor.selection.isEmpty)) {
+    return undefined;
+  }
+  const text = useSelection ? editor.document.getText(editor.selection) : editor.document.getText();
+  return normalizeQuery(text) || undefined;
+};
+
 export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
     const editor = vscode.window.activeTextEditor;
@@ -50,33 +59,21 @@ export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInput
 
 export class GetDocumentQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      return { type: 'CANCEL' };
-    }
-    const query = normalizeQuery(editor.document.getText());
+    const query = getQuery(false);
     return query ? pickApiForQuery(query) : { type: 'CANCEL' };
   }
 }
 
 export class GetQueryInputsForPlan implements ParametersGatherer<QueryInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryInputs>> {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor || editor.selection.isEmpty) {
-      return { type: 'CANCEL' };
-    }
-    const query = normalizeQuery(editor.document.getText(editor.selection));
+    const query = getQuery(true);
     return query ? { type: 'CONTINUE', data: { query } } : { type: 'CANCEL' };
   }
 }
 
 export class GetDocumentQueryInputsForPlan implements ParametersGatherer<QueryInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryInputs>> {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      return { type: 'CANCEL' };
-    }
-    const query = normalizeQuery(editor.document.getText());
+    const query = getQuery(false);
     return query ? { type: 'CONTINUE', data: { query } } : { type: 'CANCEL' };
   }
 }
