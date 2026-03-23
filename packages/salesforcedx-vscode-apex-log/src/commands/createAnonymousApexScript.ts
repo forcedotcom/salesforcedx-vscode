@@ -27,15 +27,57 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   return name?.trim() ? Option.some(name.trim()) : Option.none();
 });
 
+const CUSTOM_DIR_LABEL = `$(file-directory) ${nls.localize('create_script_custom_output_directory')}`;
+
+const promptForOutputDir = Effect.fn('promptForOutputDir')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, 'scripts', 'apex');
+
+  const selected = yield* Effect.promise(() =>
+    vscode.window.showQuickPick(
+      [
+        { label: defaultUri.fsPath, description: nls.localize('create_script_output_dir_default_description'), uri: defaultUri },
+        { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined }
+      ],
+      {
+        placeHolder: nls.localize('create_script_output_dir_prompt'),
+        matchOnDescription: true
+      }
+    )
+  ).pipe(Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)));
+
+  if (selected.label === CUSTOM_DIR_LABEL) {
+    const folders = yield* Effect.promise(() =>
+      vscode.window.showOpenDialog({
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        defaultUri: workspaceInfo.uri,
+        openLabel: 'Select'
+      })
+    );
+    return folders?.[0];
+  }
+
+  return selected.uri;
+});
+
 export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.createAnonymousApexScript')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { uri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
   const promptService = yield* api.services.PromptService;
+
   const scriptNameOpt = yield* promptForScriptName();
   if (Option.isNone(scriptNameOpt)) return;
   const scriptName = scriptNameOpt.value;
-  const targetUri = Utils.joinPath(Utils.joinPath(uri, 'scripts'), `${scriptName}.apex`);
+
+  const outputDir = yield* promptForOutputDir();
+  if (!outputDir) return;
+
+  const targetUri = Utils.joinPath(outputDir, `${scriptName}.apex`);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [targetUri] });
   yield* fsService.writeFile(targetUri, "System.debug('hello, world');\n");
   yield* fsService.showTextDocument(targetUri);
