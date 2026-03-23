@@ -40,10 +40,12 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 
 ## Body format
 
-- Write body content per [concise/SKILL.md](../concise/SKILL.md)
+- Base body on branch commits only
+- Ignore plans/conversation history (may be stale)
+- Write content per [concise/SKILL.md](../concise/SKILL.md)
 - Include `@W-XXXXX@` in "What issues does this PR fix or reference?" per [.github/PULL_REQUEST_TEMPLATE.md](../../../.github/PULL_REQUEST_TEMPLATE.md):
-- Delete the before/after section if you have nothing to say there
-- **User declined WI:** Only when user explicitly declines to create a work item and still wants the PR, include `[skip-validate-pr]` in the PR body (e.g. at end of body)
+- Delete before/after section if empty
+- **User declined WI:** If user explicitly declines WI but wants PR, include `[skip-validate-pr]` in body (e.g. at end)
 
 ```
 ### What issues does this PR fix or reference?
