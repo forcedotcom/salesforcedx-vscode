@@ -37,9 +37,8 @@ const pickApiForQuery = async (
 export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
     const editor = vscode.window.activeTextEditor;
-    const query = !editor
-      ? await vscode.window.showInputBox(INPUT_BOX_OPTIONS)
-      : editor.selection.isEmpty
+    const query =
+      !editor || editor.selection.isEmpty
         ? await vscode.window.showInputBox(INPUT_BOX_OPTIONS)
         : editor.document.getText(editor.selection);
     if (!query) {
