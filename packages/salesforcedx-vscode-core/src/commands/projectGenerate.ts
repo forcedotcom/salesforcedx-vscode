@@ -104,7 +104,11 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         'project_generate_react_b2e_template_display_text',
         'project_generate_react_b2e_template'
       ),
-      new ProjectTemplateItem('project_generate_react_b2x_template_display_text', 'project_generate_react_b2x_template')
+      new ProjectTemplateItem(
+        'project_generate_react_b2x_template_display_text',
+        'project_generate_react_b2x_template'
+      ),
+      new ProjectTemplateItem('project_generate_agent_template_display_text', 'project_generate_agent_template')
     ];
 
     const selection = await vscode.window.showQuickPick(items);
@@ -124,6 +128,9 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         break;
       case nls.localize('project_generate_react_b2x_template_display_text'):
         projectTemplate = 'reactb2x';
+        break;
+      case nls.localize('project_generate_agent_template_display_text'):
+        projectTemplate = 'agent';
         break;
       default:
         break;
