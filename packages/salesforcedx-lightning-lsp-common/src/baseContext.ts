@@ -184,12 +184,14 @@ export const getModulesDirs = async (
   }
 };
 
-/**
- * Options for BaseWorkspaceContext. Use these to pass web-safe paths (e.g. from import.meta.url)
- * instead of relying on __dirname, which is not available in web bundles.
- */
 export interface BaseWorkspaceContextOptions {
-  /** Path to the SFDX typings resource dir (resources/sfdx/typings). When set, writeTypings() copies from here. Omit on web if typings are not available. */
+  /**
+   * URI of the extension's typings resource directory (e.g.
+   * `vscode.Uri.joinPath(context.extensionUri, 'resources', 'sfdx', 'typings').toString()`).
+   * When set, writeTypings() reads lds.d.ts and messageservice.d.ts from this URI via LSP
+   * and copies them into the workspace's .sfdx/typings/lwc/ directory.
+   * Works in both desktop (file://) and web (vscode-extension://) VS Code.
+   */
   sfdxTypingsDir?: string;
 }
 
@@ -217,12 +219,6 @@ export abstract class BaseWorkspaceContext {
     }
   }
 
-  /**
-   * @param workspaceRoots
-   * @param fileSystemAccessor
-   * @param connection
-   * @param options Optional. Pass sfdxTypingsDir for typings copy (web-safe; avoids __dirname).
-   */
   constructor(
     workspaceRoots: NormalizedPath[] | NormalizedPath,
     fileSystemAccessor: LspFileSystemAccessor,
@@ -485,36 +481,12 @@ export abstract class BaseWorkspaceContext {
     if (!typingsDir || !this.sfdxTypingsDir) {
       return;
     }
-    // sfdxTypingsDir is injected by the host (Node or web) so we don't rely on __dirname (not available in web).
-    const resourceTypingsDir = this.sfdxTypingsDir;
-    try {
-      const sourcePath = path.join(resourceTypingsDir, 'lds.d.ts');
-      const destPath = path.join(typingsDir, 'lds.d.ts');
-      const content = await this.fileSystemAccessor.getFileContent(sourcePath);
-      if (content) {
-        await this.fileSystemAccessor.updateFileContent(destPath, content);
-      }
-    } catch {
-      // ignore
-    }
-    try {
-      const sourcePath = path.join(resourceTypingsDir, 'messageservice.d.ts');
-      const destPath = path.join(typingsDir, 'messageservice.d.ts');
-      const content = await this.fileSystemAccessor.getFileContent(sourcePath);
-      if (content) {
-        await this.fileSystemAccessor.updateFileContent(destPath, content);
-      }
-    } catch {
-      // ignore
-    }
-    const dirs = await this.fileSystemAccessor.getDirectoryListing(
-      utils.normalizePath(path.join(resourceTypingsDir, 'copied'))
-    );
-    for (const file of dirs) {
+    const base = this.sfdxTypingsDir.replace(/\/$/, '');
+    for (const name of ['lds.d.ts', 'messageservice.d.ts', 'apex.d.ts', 'engine.d.ts', 'schema.d.ts']) {
       try {
-        const sourcePath = path.join(resourceTypingsDir, 'copied', file.name);
-        const destPath = path.join(typingsDir, file.name);
-        const content = await this.fileSystemAccessor.getFileContent(sourcePath);
+        const sourceUri = `${base}/${name}`;
+        const destPath = path.join(typingsDir, name);
+        const content = await this.fileSystemAccessor.getFileContent(sourceUri);
         if (content) {
           await this.fileSystemAccessor.updateFileContent(destPath, content);
         }

@@ -158,6 +158,8 @@ export abstract class BaseServer {
     this.workspaceFolders = params.workspaceFolders ?? [];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const sfdxTypingsDir: string | undefined = params.initializationOptions?.sfdxTypingsDir;
 
     // Set workspace folder URIs first so the provider can convert paths to the client's scheme (e.g. memfs:// in browser).
     // Without this, fileExists/getFileStat send file:// URIs and the client cannot find files in memfs.
@@ -175,7 +177,9 @@ export abstract class BaseServer {
     this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
     // Create context but don't initialize yet - wait for files to be loaded via onDidOpen
-    this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemAccessor, this.connection);
+    this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemAccessor, this.connection, {
+      sfdxTypingsDir
+    });
 
     // Return capabilities immediately so the client sends the Initialize response and attaches
     // workspace/readFile and workspace/stat handlers. Defer performDelayedInitialization to the next tick
@@ -743,6 +747,7 @@ export abstract class BaseServer {
         useDefaultDataProvider: false
       });
 
+      await this.context.configureProject();
       await this.configureTypeScriptSupport();
       void this.connection.sendNotification(ShowMessageNotification.type, {
         type: MessageType.Info,

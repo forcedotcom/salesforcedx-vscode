@@ -191,9 +191,11 @@ export class LspFileSystemAccessor {
   }
 
   public async getFileContent(uri: string): Promise<string | undefined> {
-    const key = normalizePath(uri);
     if (this.connection) {
-      const fileUri = getFileUriForPath(key, this.workspaceFolderUri);
+      // If the caller already provides a full URI (e.g. an extension resource URI), use it as-is.
+      // Otherwise convert the filesystem path to the correct URI for the current workspace scheme.
+      const fileUri = uri.includes('://') ? uri : getFileUriForPath(normalizePath(uri), this.workspaceFolderUri);
+      const key = uri.includes('://') ? uri : normalizePath(uri);
       const result = await this.connection.sendRequest<WorkspaceReadFileResult>(WORKSPACE_READ_FILE_REQUEST, {
         uri: fileUri
       });

@@ -100,7 +100,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
   }
 
   try {
-    const client = await createLanguageClient(serverModule, { workspaceType });
+    const sfdxTypingsDir = Utils.joinPath(URI.from(extensionContext.extensionUri), 'resources', 'sfdx', 'typings').toString();
+    const client = await createLanguageClient(serverModule, { workspaceType, sfdxTypingsDir });
 
     // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
     registerWorkspaceReadFileHandler(client, channelService);
