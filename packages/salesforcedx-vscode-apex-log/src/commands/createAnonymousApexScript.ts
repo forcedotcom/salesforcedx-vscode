@@ -33,11 +33,21 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
 
 export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.createAnonymousApexScript')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { uri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
   const promptService = yield* api.services.PromptService;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+
   const scriptName = yield* promptForScriptName();
-  const targetUri = Utils.joinPath(Utils.joinPath(uri, 'scripts'), `${scriptName}.apex`);
+
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, 'scripts', 'apex');
+  const outputDir = yield* promptService.promptForOutputDir({
+    defaultUri,
+    description: nls.localize('create_script_output_dir_default_description'),
+    pickerPlaceHolder: nls.localize('create_script_output_dir_prompt')
+  });
+  if (!outputDir) return;
+
+  const targetUri = Utils.joinPath(outputDir, `${scriptName}.apex`);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [targetUri] });
   yield* fsService.writeFile(targetUri, "System.debug('hello, world');\n");
   yield* fsService.showTextDocument(targetUri);

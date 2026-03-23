@@ -118,14 +118,7 @@ jobs:
 
   # 🔍 SOQL Features - migrated to Playwright in soqlE2E.yml
 
-  # 📋 Templates
-  templates-tests:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'templates.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # 📋 Templates - migrated to Playwright in coreE2E.yml (auraTemplates, visualforceTemplates, analyticsTemplates)
 
   # Commenting out since it's broken
   # # 📚 OpenAPI Documentation

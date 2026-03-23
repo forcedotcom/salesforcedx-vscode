@@ -48,5 +48,8 @@ export const messages = {
   exec_anon_compile_unknown: 'Unknown compile error',
   exec_anon_progress_title: 'Executing anonymous Apex...',
   exec_anon_success: 'Anonymous Apex executed successfully',
-  open_log: 'Open Log'
+  open_log: 'Open Log',
+  create_script_output_dir_prompt: 'Select the target directory',
+  create_script_output_dir_default_description: '(default)',
+  create_script_custom_output_directory: 'Choose a Custom Directory'
 } as const;

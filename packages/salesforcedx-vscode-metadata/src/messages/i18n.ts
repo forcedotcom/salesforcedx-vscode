@@ -108,9 +108,7 @@ export const messages = {
   sobject_refresh_standard: 'Standard SObjects',
   sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
-  processed_sobjects_length_text: 'Processed %d %s sObjects\n',
-  overwrite_button: 'Overwrite',
-  cancel_button: 'Cancel'
+  processed_sobjects_length_text: 'Processed %d %s sObjects\n'
 } as const;
 
 export type MessageKey = keyof typeof messages;

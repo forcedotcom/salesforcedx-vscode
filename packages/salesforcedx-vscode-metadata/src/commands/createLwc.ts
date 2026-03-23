@@ -10,7 +10,6 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { promptForPackageMetadataSubdir } from '../templates-shared/sfTemplateProjectHelpers';
 
 const LWC_EXTENSION_NAME = 'salesforcedx-vscode-lwc';
 const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
@@ -67,13 +66,14 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
 
   const componentName = yield* promptForComponentName();
 
+  const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'lwc');
   const outputDirUri =
     outputDirParam ??
-    (yield* promptForPackageMetadataSubdir(
-      project,
-      'lwc',
-      nls.localize('lwc_output_dir_prompt') ?? 'Select output directory'
-    ));
+    (yield* promptService.promptForOutputDir({
+      defaultUri,
+      pickerPlaceHolder: nls.localize('lwc_output_dir_prompt')
+    }));
 
   const template = getHasTypeScriptSupport() ? yield* promptForComponentType() : ('default' as const);
 

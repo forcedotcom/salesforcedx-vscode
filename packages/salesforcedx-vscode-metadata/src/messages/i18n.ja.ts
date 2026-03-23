@@ -16,6 +16,5 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_class_name_max_length_error: 'ファイル名は %s 文字を超えることはできません',
   apex_trigger_output_dir_prompt: 'フォルダを入力 (Enter で確認または Esc でキャンセル)',
   apex_generate_trigger_success: 'Apex トリガが作成されました',
-  overwrite_button: '上書き',
-  cancel_button: 'キャンセル'
+  // NOTE: Japanese overrides are partial; missing keys fall back to the base bundle.
 };

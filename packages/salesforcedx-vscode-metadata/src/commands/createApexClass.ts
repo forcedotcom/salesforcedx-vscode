@@ -11,11 +11,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import {
-  getApiVersion,
-  promptForApexTypeName,
-  promptForPackageMetadataSubdir
-} from '../templates-shared/sfTemplateProjectHelpers';
+import { getApiVersion, promptForApexTypeName } from '../templates-shared/sfTemplateProjectHelpers';
 
 const ApexClassTemplate = Schema.Literal('DefaultApexClass', 'ApexException', 'InboundEmailService');
 type ApexClassTemplate = Schema.Schema.Type<typeof ApexClassTemplate>;
@@ -72,24 +68,19 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   const params = Schema.is(CreateApexClassParams)(arg) ? arg : undefined;
 
   const template = params?.template ?? (yield* promptForTemplate());
+  const className = params?.name ?? (yield* promptForApexTypeName({ prompt: nls.localize('apex_class_name_prompt') }));
 
-  const className =
-    params?.name ??
-    (yield* promptForApexTypeName({
-      prompt: nls.localize('apex_class_name_prompt')
-    }));
-
+  const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
   const outputDirUri =
     params?.outputDir ??
     outputDirFromContext ??
-    (yield* promptForPackageMetadataSubdir(
-      project,
-      'classes',
-      nls.localize('apex_class_output_dir_prompt') || 'Select output directory'
-    ));
+    (yield* promptService.promptForOutputDir({
+      defaultUri,
+      pickerPlaceHolder: nls.localize('apex_class_output_dir_prompt')
+    }));
 
   const apiVersion = yield* getApiVersion(project);
-  const cwd = workspaceInfo.uri.fsPath;
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   const fsService = yield* api.services.FsService;
   const channelService = yield* api.services.ChannelService;
@@ -97,7 +88,7 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
   yield* api.services.TemplateService.create({
-    cwd,
+    cwd: workspaceInfo.uri.fsPath,
     templateType: api.services.TemplateType.ApexClass,
     outputdir: outputDirUri,
     options: { template, classname: className, apiversion: apiVersion }
