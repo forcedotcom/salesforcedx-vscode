@@ -4,6 +4,8 @@ description: Writing style for AI-consumed docs. Proactively apply when creating
 disable-model-invocation: false
 ---
 
+**Excluded**: packages/\*\*/README.md — customer-facing, marketplace; use full sentences.
+
 # Concise
 
 Save tokens and preserve context window.

@@ -106,7 +106,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "ejs": "^3.1.10",
-    "effect": "^3.19.19",
+    "effect": "^3.20.0",
     "minimatch": "^9.0.5",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",

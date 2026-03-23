@@ -41,7 +41,8 @@ import {
 } from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 
-const JDWP_DEBUG_PORT = 2739;
+/** Use 0 for dynamic JDWP port to avoid "address in use" when previous LS orphaned (e.g. Extension Host not shut down cleanly). */
+const JDWP_DEBUG_PORT = 0;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP = process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
 const LANGUAGE_SERVER_LOG_LEVEL = process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
