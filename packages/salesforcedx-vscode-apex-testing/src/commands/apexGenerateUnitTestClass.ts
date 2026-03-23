@@ -46,11 +46,18 @@ const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) 
   );
 });
 
-const getDefaultOutputDir = Effect.fn('getDefaultOutputDir')(function* (project: SfProject) {
+const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+
   const defaultPkg = project.getDefaultPackage();
-  return Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
+
+  return yield* promptService.promptForOutputDir({
+    defaultUri,
+    pickerPlaceHolder: nls.localize('apex_test_class_output_dir_prompt')
+  });
 });
 
 const promptForClassName = Effect.fn('promptForClassName')(function* () {
@@ -105,14 +112,15 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const project = yield* api.services.ProjectService.getSfProject();
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   const className = params?.name ?? (yield* promptForClassName());
 
-  const outputDirUri = params?.outputDir ?? outputDirectory ?? (yield* getDefaultOutputDir(project));
+  const outputDirUri =
+    params?.outputDir ?? outputDirectory ?? (yield* promptForOutputDir(project));
 
   const template = params?.template ?? (yield* promptForTemplate());
 
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const apiVersion = yield* getApiVersion(project);
   const cwd = workspaceInfo.uri.fsPath;
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
