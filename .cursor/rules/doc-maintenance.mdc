@@ -1,16 +1,16 @@
 ---
 description: Delegate to doc-maintenance subagent when code/config/scripts change; catches code→doc drift
 globs:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/package.json"
-  - "**/esbuild.config.*"
-  - "scripts/**"
-  - "**/.vscodeignore"
-  - "**/.vscode/**"
-  - "**/tsconfig*.json"
-  - ".esbuild-web-extra-settings.json"
-  - ".github/**"
+  - '**/*.ts'
+  - '**/*.tsx'
+  - '**/package.json'
+  - '**/esbuild.config.*'
+  - 'scripts/**'
+  - '**/.vscodeignore'
+  - '**/.vscode/**'
+  - '**/tsconfig*.json'
+  - '.esbuild-web-extra-settings.json'
+  - '.github/**'
 alwaysApply: false
 ---
 

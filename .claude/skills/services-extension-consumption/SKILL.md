@@ -33,13 +33,13 @@ Shares singleton instances (caches, watchers) across extensions; avoids re-build
 
 Per-extension layers (must build yourself):
 
-| Layer | Why |
-|---|---|
-| `ChannelServiceLayer(displayName)` | Own output channel |
-| `ErrorHandlerService.Default` | Depends on own ChannelService |
-| `ExtensionContextServiceLayer(context)` | Own `ExtensionContext` |
-| `SdkLayerFor(context)` | Own tracer (extension name/version in resource attributes) |
-| `ExtensionProviderServiceLive` | Local singleton |
+| Layer                                   | Why                                                        |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `ChannelServiceLayer(displayName)`      | Own output channel                                         |
+| `ErrorHandlerService.Default`           | Depends on own ChannelService                              |
+| `ExtensionContextServiceLayer(context)` | Own `ExtensionContext`                                     |
+| `SdkLayerFor(context)`                  | Own tracer (extension name/version in resource attributes) |
+| `ExtensionProviderServiceLive`          | Local singleton                                            |
 
 ## ExtensionContext Setup
 

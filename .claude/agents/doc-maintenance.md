@@ -1,7 +1,7 @@
 ---
 name: doc-maintenance
 description: AI-powered doc maintenance. Invoked when code changes may have left docs stale. Fixes docs directly; runs in background.
-model: cursor-composer-1.5
+model: fast
 ---
 
 Fix docs when code/config/scripts change. Run in background; fix directly; report what was fixed.
