@@ -97,15 +97,14 @@ export const registerWorkspaceReadFileHandler = (
     params: WorkspaceReadDirectoryParams
   ) {
     const { uri } = params;
-    const vUri = vscode.Uri.parse(uri.toString());
-    yield* logTo(log, `[readDirectory] request uri=${vUri.toString()}`);
-    const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(vUri));
+    yield* logTo(log, `[readDirectory] request uri=${uri.toString()}`);
+    const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(uri));
     const result: DirectoryEntry[] = entries.map(([name, fileType]) => ({
       name,
       type: vscodeFileTypeToStatType(fileType),
-      uri: vscode.Uri.joinPath(vUri, name).toString()
+      uri: vscode.Uri.joinPath(uri, name).toString()
     }));
-    yield* logTo(log, `[readDirectory] success uri=${vUri.toString()} entries=${result.length}`);
+    yield* logTo(log, `[readDirectory] success uri=${uri.toString()} entries=${result.length}`);
     return { entries: result };
   });
 

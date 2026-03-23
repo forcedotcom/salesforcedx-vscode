@@ -192,7 +192,7 @@ const findFilesInDirectory = async (
   const normalizedDirPath = normalizePath(dirPath);
 
   const globPattern = `${escapeGlob(baseName)}.{html,css}`;
-  return (await fileSystemAccessor.findFilesWithGlobAsync(globPattern, normalizedDirPath)) ?? [];
+  return await fileSystemAccessor.findFilesWithGlobAsync(globPattern, normalizedDirPath);
 };
 
 // Utility function to get all locations

@@ -56,7 +56,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           for (const pkg of config.packageDirectories) {
             const pkgRoot = normalizePath(path.join(root, pkg.path));
 
-            const lwcFiles = (await this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**', pkgRoot)) ?? [];
+            const lwcFiles = await this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**', pkgRoot);
             const lwcDirs = [
               ...new Set(
                 lwcFiles
@@ -70,7 +70,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
             ];
             roots.lwc.push(...lwcDirs);
 
-            const auraFiles = (await this.fileSystemAccessor.findFilesWithGlobAsync('**/aura/**', pkgRoot)) ?? [];
+            const auraFiles = await this.fileSystemAccessor.findFilesWithGlobAsync('**/aura/**', pkgRoot);
             const auraDirs = [
               ...new Set(
                 auraFiles
@@ -90,8 +90,10 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       case 'CORE_ALL': {
         // optimization: discover LWC roots under project/modules/ via findFilesWithGlobAsync
         const workspaceRoot = normalizePath(this.workspaceRoots[0]);
-        const pathsUnderLwc =
-          (await this.fileSystemAccessor.findFilesWithGlobAsync('*/modules/**/lwc/**', workspaceRoot)) ?? [];
+        const pathsUnderLwc = await this.fileSystemAccessor.findFilesWithGlobAsync(
+          '*/modules/**/lwc/**',
+          workspaceRoot
+        );
         const lwcRootDirs = [
           ...new Set(
             pathsUnderLwc
@@ -108,12 +110,11 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       }
       case 'CORE_PARTIAL': {
         // optimization: discover LWC roots under modules/ via findFilesWithGlobAsync
-        const pathsUnderModulesLwc =
-          (await Promise.all(
-            this.workspaceRoots.map(ws =>
-              this.fileSystemAccessor.findFilesWithGlobAsync('modules/**/lwc/**', normalizePath(ws))
-            )
-          )) ?? [];
+        const pathsUnderModulesLwc = await Promise.all(
+          this.workspaceRoots.map(ws =>
+            this.fileSystemAccessor.findFilesWithGlobAsync('modules/**/lwc/**', normalizePath(ws))
+          )
+        );
         const lwcRootDirs = [
           ...new Set(
             pathsUnderModulesLwc
@@ -135,7 +136,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       case 'UNKNOWN': {
         // discover all LWC roots via findFilesWithGlobAsync (same dirs findNamespaceRoots would find)
         const workspaceRoot = normalizePath(this.workspaceRoots[0]);
-        const pathsUnderLwc = (await this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**', workspaceRoot)) ?? [];
+        const pathsUnderLwc = await this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**', workspaceRoot);
         const IGNORED_DIRS = new Set(['node_modules', 'bin', 'target', 'jest-modules', 'repository', 'git']);
         const lwcRootDirs = [
           ...new Set(

@@ -107,35 +107,27 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
 
 // Utility function to get meta files
 const getMetaFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
-  const packageDirsPattern = await getSfdxPackageDirsPattern(
-    indexer.workspaceRoot,
-    indexer.fileSystemAccessor
-  );
-  const found = await indexer.fileSystemAccessor.findFilesWithGlobAsync(
+  const packageDirsPattern = await getSfdxPackageDirsPattern(indexer.workspaceRoot, indexer.fileSystemAccessor);
+  return await indexer.fileSystemAccessor.findFilesWithGlobAsync(
     `${packageDirsPattern}/**/{staticresources,contentassets,messageChannels}/*.{resource,asset,messageChannel}-meta.xml`,
     indexer.workspaceRoot
   );
-  return found ?? [];
 };
 
 // Utility function to get meta typings
 // visible for testing
-export const getMetaTypings = async (indexer: TypingIndexerData): Promise<string[]> => {
-  const found = await indexer.fileSystemAccessor.findFilesWithGlobAsync(
-    '*.{messageChannel,resource,asset}.d.ts',
-    indexer.typingsBaseDir
-  );
-  return (found ?? []).map(p => path.resolve(p));
-};
+export const getMetaTypings = async (indexer: TypingIndexerData): Promise<string[]> =>
+  await indexer.fileSystemAccessor
+    .findFilesWithGlobAsync('*.{messageChannel,resource,asset}.d.ts', indexer.typingsBaseDir)
+    .then(paths => paths.map(p => path.resolve(p)));
 
 // Utility function to get custom label files
 const getCustomLabelFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
   const packageDirsPattern = await getSfdxPackageDirsPattern(indexer.workspaceRoot, indexer.fileSystemAccessor);
-  const found = await indexer.fileSystemAccessor.findFilesWithGlobAsync(
+  return await indexer.fileSystemAccessor.findFilesWithGlobAsync(
     `${packageDirsPattern}/**/labels/CustomLabels.labels-meta.xml`,
     indexer.workspaceRoot
   );
-  return found ?? [];
 };
 
 // Legacy class for backward compatibility (deprecated)

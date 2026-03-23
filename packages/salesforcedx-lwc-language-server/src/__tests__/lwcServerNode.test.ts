@@ -97,6 +97,11 @@ const mockFindFilesConnection = createMockWorkspaceFindFilesConnection(SFDX_WORK
 const server: BaseServer = new Server();
 server.fileSystemAccessor = sfdxFileSystemAccessor;
 
+const directoryExists = async (fileUri: string): Promise<boolean> => {
+  const stat = await server.fileSystemAccessor.getFileStat(fileUri);
+  return (stat?.exists && stat.type === 'directory') ?? false;
+};
+
 // Helper function to set up server for tests that need delayed initialization
 const setupServerForTest = async (
   documentsToOpen: TextDocument[] = [],
@@ -848,7 +853,7 @@ describe('lwcServerNode', () => {
             }
           }
         }
-        if (await server.fileSystemAccessor.directoryExists(normalizePath(watchedFileDir))) {
+        if (await directoryExists(watchedFileDir)) {
           await deleteFromProvider(server.fileSystemAccessor, watchedFileDir);
         }
         mockTypeScriptSupportConfig = false;

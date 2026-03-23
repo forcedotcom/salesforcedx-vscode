@@ -226,11 +226,6 @@ export class LspFileSystemAccessor {
     return stat?.exists ?? false;
   }
 
-  public async directoryExists(uri: NormalizedPath): Promise<boolean> {
-    const stat = await this.getFileStat(uri);
-    return (stat?.exists && stat.type === 'directory') ?? false;
-  }
-
   public async findFilesWithGlobAsync(pattern: string, basePath: NormalizedPath): Promise<NormalizedPath[]> {
     if (!this.connection) return [];
     try {
