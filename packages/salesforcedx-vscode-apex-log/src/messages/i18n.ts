@@ -10,9 +10,6 @@ export const messages = {
   create_script_name_format_error:
     'Name must start with a letter and contain only letters, numbers, and underscores',
   create_script_name_prompt: 'Enter script name',
-  create_script_already_exists: 'File already exists. Overwrite?',
-  overwrite_button: 'Overwrite',
-  cancel_button: 'Cancel',
   log_get_no_logs: 'No Apex debug logs found',
   log_get_pick_log: 'Select an Apex debug log to open',
   log_get_size_bytes: '%s B',

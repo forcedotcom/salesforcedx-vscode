@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
@@ -27,33 +27,16 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   return name?.trim() ? Option.some(name.trim()) : Option.none();
 });
 
-const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (uri: URI) {
-  const fsService = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.FsService)
-  );
-  const exists = yield* fsService.fileOrFolderExists(uri);
-  if (!exists) return Option.some(true);
-  const choice = yield* Effect.promise(() =>
-    vscode.window.showWarningMessage(
-      nls.localize('create_script_already_exists'),
-      { modal: true },
-      nls.localize('overwrite_button'),
-      nls.localize('cancel_button')
-    )
-  );
-  return choice === nls.localize('overwrite_button') ? Option.some(true) : Option.none();
-});
-
 export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.createAnonymousApexScript')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const { uri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
+  const promptService = yield* api.services.PromptService;
   const scriptNameOpt = yield* promptForScriptName();
   if (Option.isNone(scriptNameOpt)) return;
   const scriptName = scriptNameOpt.value;
   const targetUri = Utils.joinPath(Utils.joinPath(uri, 'scripts'), `${scriptName}.apex`);
-  const overwriteOpt = yield* checkAndPromptOverwrite(targetUri);
-  if (Option.isNone(overwriteOpt)) return;
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [targetUri] });
   yield* fsService.writeFile(targetUri, "System.debug('hello, world');\n");
   yield* fsService.showTextDocument(targetUri);
 });
