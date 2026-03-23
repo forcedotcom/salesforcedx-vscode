@@ -78,7 +78,8 @@ type MessageType =
 
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
-  protected lastIncomingSoqlStatement = '';
+  /** True for exactly one debounced cycle after the webview triggered a document edit, to avoid echoing it back. */
+  protected pendingWebviewUpdate = false;
 
   protected disposedCallback: ((instance: SOQLEditorInstance) => void) | undefined;
 
@@ -134,7 +135,7 @@ export class SOQLEditorInstance {
   protected sendMessageToUi(
     type: MessageType,
     payload?: string | string[] | DescribeSObjectResult
-  ): Effect.Effect<void> {
+  ) {
     return Effect.promise<boolean>(
       () => this.webviewPanel.webview.postMessage({ type, payload })
     ).pipe(
@@ -148,22 +149,22 @@ export class SOQLEditorInstance {
     );
   }
 
-  protected updateWebview(document: vscode.TextDocument): Effect.Effect<void> {
+  protected updateWebview(document: vscode.TextDocument) {
     const self = this;
-    const newSoqlStatement = document.getText();
     return Effect.gen(function* () {
-      if (self.lastIncomingSoqlStatement !== newSoqlStatement) {
-        yield* self.sendMessageToUi('text_soql_changed', newSoqlStatement);
+      if (self.pendingWebviewUpdate) {
+        self.pendingWebviewUpdate = false;
+        return;
       }
-      self.lastIncomingSoqlStatement = '';
+      yield* self.sendMessageToUi('text_soql_changed', document.getText());
     });
   }
 
-  protected updateSObjects(sobjectNames: string[]): Effect.Effect<void> {
+  protected updateSObjects(sobjectNames: string[]) {
     return this.sendMessageToUi('sobjects_response', sobjectNames);
   }
 
-  protected updateSObjectMetadata(sobject: DescribeSObjectResult): Effect.Effect<void> {
+  protected updateSObjectMetadata(sobject: DescribeSObjectResult) {
     return this.sendMessageToUi('sobject_metadata_response', sobject);
   }
 
@@ -181,7 +182,7 @@ export class SOQLEditorInstance {
       case 'ui_soql_changed': {
         const soql = event.payload;
         return Effect.sync(() => {
-          this.lastIncomingSoqlStatement = soql;
+          this.pendingWebviewUpdate = true;
         }).pipe(
           Effect.andThen(Effect.promise<boolean>(() => this.updateTextDocument(this.document, soql))),
           Effect.asVoid,
@@ -265,7 +266,7 @@ export class SOQLEditorInstance {
     }
   };
 
-  protected runQueryDone(): Effect.Effect<void> {
+  protected runQueryDone() {
     return Effect.promise<boolean>(() =>
       this.webviewPanel.webview.postMessage({ type: 'run_query_done' satisfies MessageType })
     ).pipe(Effect.asVoid);
@@ -293,5 +294,5 @@ export class SOQLEditorInstance {
     this.disposedCallback = callback;
   }
 
-  public onConnectionChanged = (): Effect.Effect<void> => this.sendMessageToUi('connection_changed');
+  public onConnectionChanged = () => this.sendMessageToUi('connection_changed');
 }

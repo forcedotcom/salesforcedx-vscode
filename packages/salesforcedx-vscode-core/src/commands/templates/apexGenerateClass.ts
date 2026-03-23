@@ -36,7 +36,7 @@ let outputDirGatherer: ParametersGatherer<OutputDirParameter> | undefined;
 let metadataTypeGatherer: ParametersGatherer<MetadataTypeParameter> | undefined;
 let templateGatherer: ParametersGatherer<any> | undefined;
 
-export const getParamGatherers = () => {
+const getParamGatherers = () => {
   fileNameGatherer ??= new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
   outputDirGatherer ??= new SelectOutputDir(APEX_CLASS_DIRECTORY);
   metadataTypeGatherer ??= new MetadataTypeGatherer(APEX_CLASS_TYPE);

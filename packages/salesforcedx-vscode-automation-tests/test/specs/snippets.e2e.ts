@@ -17,13 +17,13 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import {
   getWorkbench,
   getTextEditor,
-  executeQuickPick
+  executeQuickPick,
+  reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Snippets', () => {
@@ -41,9 +41,6 @@ describe('Snippets', () => {
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
-
-    // Hide copilot
-    await tryToHideCopilot();
   });
 
   it.skip('Use out-of-the-box Apex Snippets', async () => {
@@ -138,10 +135,13 @@ describe('Snippets', () => {
     await inputBox.confirm();
     await inputBox.confirm();
 
+    // Reload window to get the LWC to be indexed by the LWC Language Server
+    await reloadWindow(Duration.seconds(20));
+
     // Type snippet "lwc", select "lwc-event" and check it inserted the right thing
     const textEditor = await getTextEditor(workbench, 'lwc.js');
     await textEditor.typeText('lwc');
-    await pause(Duration.seconds(1));
+    await pause(Duration.seconds(5));
     const autocompletionOptions = await workbench.findElements(By.css('div.monaco-list-row.show-file-icons'));
     const ariaLabel = await autocompletionOptions[2].getAttribute('aria-label');
     expect(ariaLabel).to.contain('lwc-event');

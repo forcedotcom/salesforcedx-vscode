@@ -6,15 +6,7 @@
  */
 import type { Connection } from '@salesforce/core';
 import { getServicesApi, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import {
-  CancelResponse,
-  Column,
-  ContinueResponse,
-  createTable,
-  ParametersGatherer,
-  Row,
-  SfCommandlet
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Column, ContinueResponse, createTable, Row, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
@@ -22,6 +14,7 @@ import { nls } from '../messages';
 import { channelService } from '../services/channel';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection } from '../services/org';
+import { formatErrorMessage, GetQueryAndApiInputs, QueryAndApiInputs } from './queryUtils';
 
 type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
@@ -79,95 +72,10 @@ class DataQueryExecutor {
   }
 }
 
-class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
-    const editor = vscode.window.activeTextEditor;
-
-    let query;
-
-    if (!editor) {
-      const userInputOptions: vscode.InputBoxOptions = {
-        prompt: nls.localize('parameter_gatherer_enter_soql_query')
-      };
-      query = await vscode.window.showInputBox(userInputOptions);
-    } else {
-      const document = editor.document;
-      if (editor.selection.isEmpty) {
-        const userInputOptions: vscode.InputBoxOptions = {
-          prompt: nls.localize('parameter_gatherer_enter_soql_query')
-        };
-        query = await vscode.window.showInputBox(userInputOptions);
-      } else {
-        query = document.getText(editor.selection);
-      }
-    }
-    if (!query) {
-      return { type: 'CANCEL' };
-    }
-
-    query = query
-      .replace('[', '')
-      .replace(']', '')
-      .replaceAll(/(\r\n|\n)/g, ' ');
-
-    const restApi = {
-      api: 'REST' as const,
-      label: nls.localize('REST_API'),
-      description: nls.localize('REST_API_description')
-    };
-
-    const toolingApi = {
-      api: 'TOOLING' as const,
-      label: nls.localize('tooling_API'),
-      description: nls.localize('tooling_API_description')
-    };
-
-    const apiItems = [restApi, toolingApi];
-    const selection = await vscode.window.showQuickPick(apiItems);
-
-    return selection ? { type: 'CONTINUE', data: { query, api: selection.api } } : { type: 'CANCEL' };
-  }
-}
-
-type QueryAndApiInputs = {
-  query: string;
-  api: 'REST' | 'TOOLING';
-};
-
 export const dataQuery = Effect.fn('sf.data.query')(function* () {
   const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new GetQueryAndApiInputs(), new DataQueryExecutor());
   yield* Effect.promise(() => commandlet.run());
 });
-
-/**
- * Retrieves the maximum fetch limit from user configuration.
- * Checks SF CLI config first, then environment variable, then returns undefined if no limit is set.
- *
- * @returns Promise resolving to the configured limit number, or undefined if no limit is set.
- */
-const getMaxFetch = async (): Promise<number | undefined> => {
-  try {
-    // Priority 1: Check SF CLI config value (org-max-query-limit)
-    const configAggregator = await getSoqlRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* getServicesApi;
-        return yield* api.services.ConfigService.getConfigAggregator();
-      })
-    );
-    const configValue = configAggregator.getPropertyValue<string>('org-max-query-limit');
-    if (configValue) {
-      const parsed = parseInt(configValue, 10);
-      if (!isNaN(parsed) && parsed > 0) {
-        return parsed;
-      }
-    }
-  } catch {
-    // If config reading fails, fall back to no limit
-  }
-
-  // No limit configured - return undefined to allow default amount of queries
-  return undefined;
-};
 
 /** Generates table output from query records */
 export const generateTableOutput = (records: QueryResult['records'], title: string): string => {
@@ -230,38 +138,60 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
 };
 
 /**
- * Gets all possible flattened field names by examining all records
- * Preserves the original field order from the query
+ * Gets all possible flattened field names by examining all records.
+ * Preserves the original SELECT column order, including fields whose value is null
+ * in early records (e.g. AnnualRevenue = null).
+ *
+ * Pass 1: build a stable base key order from all records (including null-valued fields)
+ * and identify which keys are relationship objects in any record.
+ * Pass 2: for each base key, expand relationship keys into dot-notation sub-fields
+ * or emit plain keys as-is.
  */
 const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => {
-  const fieldOrder: string[] = [];
-  const seenFields = new Set<string>();
+  // Pass 1: stable key order + relationship detection
+  const baseOrder: string[] = [];
+  const seenBase = new Set<string>();
+  const relationshipKeys = new Set<string>();
 
-  // First pass: collect all possible fields while preserving order
   for (const record of records) {
     for (const [key, value] of Object.entries(record)) {
       if (key === 'attributes') {
         continue;
       }
-
+      if (!seenBase.has(key)) {
+        baseOrder.push(key);
+        seenBase.add(key);
+      }
       if (isRecord(value)) {
-        // Add nested fields with dot notation
-        for (const nestedKey of Object.keys(value)) {
-          if (nestedKey !== 'attributes') {
-            const fieldName = `${key}.${nestedKey}`;
-            if (!seenFields.has(fieldName)) {
-              fieldOrder.push(fieldName);
-              seenFields.add(fieldName);
+        relationshipKeys.add(key);
+      }
+    }
+  }
+
+  // Pass 2: expand relationship keys; emit plain keys as-is
+  const fieldOrder: string[] = [];
+  const seenFields = new Set<string>();
+
+  for (const key of baseOrder) {
+    if (relationshipKeys.has(key)) {
+      for (const record of records) {
+        const value = record[key];
+        if (isRecord(value)) {
+          for (const nestedKey of Object.keys(value)) {
+            if (nestedKey !== 'attributes') {
+              const fieldName = `${key}.${nestedKey}`;
+              if (!seenFields.has(fieldName)) {
+                fieldOrder.push(fieldName);
+                seenFields.add(fieldName);
+              }
             }
           }
         }
-      } else if (value !== null) {
-        // Only add primitive fields that are not null
-        // (null relationship objects shouldn't create columns)
-        if (!seenFields.has(key)) {
-          fieldOrder.push(key);
-          seenFields.add(key);
-        }
+      }
+    } else {
+      if (!seenFields.has(key)) {
+        fieldOrder.push(key);
+        seenFields.add(key);
       }
     }
   }
@@ -344,23 +274,6 @@ export const formatFieldValueForDisplay = (value: unknown): string => {
   return stringValue.length > 50 ? `${stringValue.substring(0, 47)}...` : stringValue;
 };
 
-/**
- * Builds query options for the Salesforce connection query method.
- * Supports optional maxFetch limit when user has configured query limits.
- *
- * @param maxFetch - Optional maximum number of records to fetch. If undefined, no limit is applied.
- * @returns Query options object with autoFetch and scanAll settings, plus maxFetch if specified.
- */
-export const buildQueryOptions = (maxFetch?: number) => {
-  const baseOptions = {
-    autoFetch: true,
-    scanAll: false
-  };
-
-  // Conditionally add maxFetch if user has configured a limit (including 0)
-  return maxFetch !== undefined ? { ...baseOptions, maxFetch } : baseOptions;
-};
-
 /** Displays query results in table format */
 export const displayTableResults = (queryResult: QueryResult): void => {
   if (!queryResult.records?.length) {
@@ -381,84 +294,24 @@ export const convertQueryResultToCSV = (queryResult: QueryResult): string => {
   return convertToCSV(queryResult.records);
 };
 
-/** Formats error messages for better user experience */
-export const formatErrorMessage = (error: unknown): string => {
-  // Handle different error formats
-  let errorString: string;
-  if (error instanceof Error) {
-    errorString = error.message;
-  } else if (error && typeof error === 'object' && 'message' in error) {
-    errorString = String(error.message);
-  } else {
-    errorString = String(error);
-  }
-
-  // Check for common error patterns and provide better messages
-  if (errorString.includes('HTTP response contains html content')) {
-    return nls.localize('data_query_error_org_expired');
-  }
-
-  if (errorString.includes('INVALID_SESSION_ID')) {
-    return nls.localize('data_query_error_session_expired');
-  }
-
-  if (errorString.includes('INVALID_LOGIN')) {
-    return nls.localize('data_query_error_invalid_login');
-  }
-
-  if (errorString.includes('INSUFFICIENT_ACCESS')) {
-    return nls.localize('data_query_error_insufficient_access');
-  }
-
-  if (errorString.includes('MALFORMED_QUERY')) {
-    return nls.localize('data_query_error_malformed_query');
-  }
-
-  if (errorString.includes('INVALID_FIELD')) {
-    return nls.localize('data_query_error_invalid_field');
-  }
-
-  if (errorString.includes('INVALID_TYPE')) {
-    return nls.localize('data_query_error_invalid_type');
-  }
-
-  if (errorString.includes('connection') || errorString.includes('network')) {
-    return nls.localize('data_query_error_connection');
-  }
-
-  // For tooling API specific errors
-  if (errorString.includes('tooling') && errorString.includes('not found')) {
-    return nls.localize('data_query_error_tooling_not_found');
-  }
-
-  // Default error message
-  return nls.localize('data_query_error_message', errorString);
-};
-
 /**
- * Executes a SOQL query using the provided connection (REST or Tooling API).
- * Applies user-configured query limits if set, otherwise allows results under Salesforce limits.
+ * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
+ * `org-max-query-limit` (default 10,000). Emits a lifecycle warning if results are truncated.
  *
- * @param connection - Salesforce connection (REST or Tooling API)
+ * @param connection - Salesforce connection
  * @param query - SOQL query string to execute
- * @returns Promise resolving to query results with records and metadata
+ * @param useTooling - Whether to use the Tooling API instead of REST
  */
 const runSoqlQuery = async (connection: Connection, query: string, useTooling = false): Promise<QueryResult> => {
-  channelService.appendLine(nls.localize('data_query_running_query'));
-
-  // Get user-configured query limit (if any)
-  const maxFetch = await getMaxFetch();
-
-  // Execute query with appropriate options (with or without maxFetch limit)
-  const result = await (useTooling ? connection.tooling : connection).query(query, buildQueryOptions(maxFetch));
-
-  // Show warning if user-configured limit caused records to be truncated
-  if (maxFetch !== undefined && result.records.length > 0 && result.totalSize > result.records.length) {
+  channelService.appendLine(
+    nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
+  );
+  const result = await connection.autoFetchQuery(query, { tooling: useTooling });
+  if (result.records.length > 0 && result.totalSize > result.records.length) {
     const missingRecords = result.totalSize - result.records.length;
     channelService.appendLine(
-      nls.localize('data_query_warning_limit', missingRecords, maxFetch, result.totalSize, maxFetch)
+      nls.localize('data_query_warning_limit', missingRecords, result.records.length, result.totalSize, result.records.length)
     );
   }
-
   return result;
 };

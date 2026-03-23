@@ -28,7 +28,6 @@ import {
   apexTestSuiteRun
 } from './commands';
 import {
-  AllServicesLayer,
   buildAllServicesLayer,
   getApexTestingRuntime,
   setAllServicesLayer
@@ -176,7 +175,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   }
 
   // Always register commands (they'll be no-ops if not in a project)
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getApexTestingRuntime());
   yield* registerCommand('sf.apex.generate.unit.test.class', (outputDir?: URI) =>
     apexGenerateUnitTestClassCommand(undefined, outputDir)
   );
@@ -258,6 +257,16 @@ const registerCommands = (): vscode.Disposable => {
       await getTestController().openOrgOnlyTest(test);
     }
   );
+  const apexTestRefreshCmd = vscode.commands.registerCommand('sf.apex.test.refresh', async () => {
+    await getTestController().refresh();
+  });
+  const apexTestingWalkthroughOpenCmd = vscode.commands.registerCommand('sf.apex.testing.walkthrough.open', () =>
+    vscode.commands.executeCommand(
+      'workbench.action.openWalkthrough',
+      'salesforce.salesforcedx-vscode-apex-testing#sf.apex.testing.explorer',
+      false
+    )
+  );
 
   return vscode.Disposable.from(
     apexToggleColorizerCmd,
@@ -274,7 +283,9 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
     apexTestSuiteAddCmd,
-    openOrgOnlyTestCmd
+    openOrgOnlyTestCmd,
+    apexTestRefreshCmd,
+    apexTestingWalkthroughOpenCmd
   );
 };
 

@@ -23,6 +23,7 @@ This extension provides Apex test execution and management features for VS Code.
 - `sf.apex.test.suite.create` - Create Apex Test Suite
 - `sf.apex.test.suite.add` - Add Tests to Apex Test Suite
 - `sf.apex.generate.unit.test.class` - Generate Apex Unit Test Class
+- `sf.apex.testing.walkthrough.open` - Open Apex Test Explorer Walkthrough (Getting Started)
 
 ## Requirements
 
@@ -37,3 +38,8 @@ This extension provides Apex test execution and management features for VS Code.
 - `salesforcedx-vscode-apex-testing.testCoverageThresholdPercent`: Coverage threshold
 - `salesforcedx-vscode-apex-testing.retrieve-test-code-coverage`: Retrieve code coverage
 - `salesforcedx-vscode-apex-testing.disable-warnings-for-missing-coverage`: Disable coverage warnings
+
+## User guide
+
+- **Walkthrough:** Command Palette → **SFDX: Open Apex Test Explorer Walkthrough** (Getting Started when a Salesforce project is open)
+- [Apex Test Explorer walkthrough (markdown)](docs/ApexTestExplorerWalkthrough.md) — same topics as the in-product walkthrough

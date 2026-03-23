@@ -2,11 +2,11 @@
   "name": "salesforcedx-vscode-apex-log",
   "displayName": "Salesforce Apex Log",
   "description": "Execute anonymous Apex, retrieve Apex logs, and manage trace flags",
+  "icon": "images/VSCodeBundle.png",
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "icon": "images/VSCodeBundle.png",
-  "version": "66.1.1",
+  "version": "66.2.3",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -30,12 +30,12 @@
     "jsforce": "^3.10.2",
     "@salesforce/types": "^1.6.0",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.19.19",
+    "effect": "^3.19.14",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/core": "^8.23.3",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.25.12",
     "salesforcedx-vscode-services": "*"
@@ -64,8 +64,7 @@
       "dependencies": [
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-services:compile",
-        "../playwright-vscode-ext:compile"
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -73,7 +72,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",

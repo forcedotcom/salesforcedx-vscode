@@ -58,7 +58,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.1.1",
+  "version": "66.2.3",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -150,7 +150,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",

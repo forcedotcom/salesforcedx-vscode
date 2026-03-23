@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.1.1",
+  "version": "66.2.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,7 +27,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.19.1",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -37,6 +37,7 @@
     "vscode-uri": "^3.0.8"
   },
   "devDependencies": {
+    "@salesforce/playwright-vscode-ext": "*",
     "jest-junit": "14.0.1"
   },
   "extensionDependencies": [
@@ -51,6 +52,7 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "test": "wireit",
+    "test:desktop": "wireit",
     "check:circular-deps": "wireit"
   },
   "wireit": {
@@ -62,14 +64,16 @@
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
-        "../salesforcedx-vscode-services-types:compile"
+        "../salesforcedx-vscode-services-types:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
@@ -130,7 +134,27 @@
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json",
-        "package.nls.json"
+        "package.nls.json",
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts"
+      ],
+      "output": []
+    },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
       ],
       "output": []
     },

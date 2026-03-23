@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.1.1",
+  "version": "66.2.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -33,8 +33,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve": "^12.31.12",
-    "@salesforce/source-tracking": "^7.8.1",
+    "@salesforce/source-deploy-retrieve": "^12.31.22",
+    "@salesforce/source-tracking": "^7.8.6",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -73,7 +73,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
@@ -325,6 +326,10 @@
         {
           "command": "sf.metadata.project.generate.manifest",
           "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "sf:project_opened"
         }
       ],
       "editor/context": [
@@ -385,6 +390,10 @@
         {
           "command": "sf.metadata.source.diff",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
         }
       ]
     },
@@ -420,6 +429,10 @@
       {
         "command": "sf.metadata.apex.generate.class",
         "title": "%apex_generate_class_text%"
+      },
+      {
+        "command": "sf.metadata.lightning.generate.lwc",
+        "title": "%lightning_generate_lwc_text%"
       },
       {
         "command": "sf.metadata.delete.source",

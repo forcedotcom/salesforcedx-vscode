@@ -25,6 +25,7 @@ import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import { isNotUndefined, isString } from 'effect/Predicate';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { AllServicesLayer } from '../extensionProvider';
 import { nls } from '../messages';
@@ -103,6 +104,13 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // Also force the StateAggregator to reload to have the latest
   // authorization info.
   StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
+
+  // Trigger Apex Test Controller to discover tests after org auth/set-default. Delay so config
+  // and TargetOrgRef can propagate before refresh runs.
+  const REFRESH_DELAY_MS = 800;
+  setTimeout(() => {
+    void vscode.commands.executeCommand('sf.apex.test.refresh');
+  }, REFRESH_DELAY_MS);
 };
 
 const setUsernameOrAlias = async (usernameOrAlias: string): Promise<void> => {
@@ -285,7 +293,7 @@ export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> =>
 };
 
 /** Determine the type of org (DevHub, Sandbox, Org, or Scratch) */
-export const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
+const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
   if (orgAuth.isDevHub) {
     return 'DevHub';
   } else if (authFields && !authFields.expirationDate) {

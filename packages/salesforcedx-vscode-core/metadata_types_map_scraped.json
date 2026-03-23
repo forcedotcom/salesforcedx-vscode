@@ -3696,7 +3696,7 @@
         "Field Type": "AnalyticsTextWidgetDef[]"
       },
       {
-        "Description": "Required. The widget type.Values are: button component container filter image metric parameter text visualization",
+        "Description": "Required. The widget type.Values are: button component container filter image metric parameter text summary visualization",
         "Field Name": "type",
         "Field Type": "AnalyticsWidgetType (enumeration of type string)"
       },
@@ -3804,7 +3804,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "The type of dynamic token. Valid values include query.",
+        "Description": "The type of dynamic token. Valid values include query and insights.",
         "Field Name": "type",
         "Field Type": "AnalyticsDynamicTokenType"
       }
@@ -5919,7 +5919,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents an allowlisted URL parameter that can be forwarded from authentication provider client configuration URLs to the authorization URL. Use this type to add custom functionality to authentication providers. For example, allowlist a ui_locales parameter and use it to send a user's language preference from Salesforce to the third-party provider's login page.",
+    "short_description": "Represents an allowlisted URL parameter that can be forwarded from authentication provider client configuration URLs to the authorization URL. Use this type to add custom functionality to authentication providers. For example, allowlist a ui_locales parameter and use it to send a user's language preference from Salesforce to the third-party provider's login page. You can allowlist up to 10 parameters.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_authproviders.htm",
     "parent": "Metadata"
   },
@@ -15409,7 +15409,7 @@
         "Field Type": "ChartSummary"
       },
       {
-        "Description": "Required. Dashboard component type. The valid values are: Bar BarGrouped BarStacked BarStacked100 Column ColumnGrouped ColumnLine ColumnLineGrouped ColumnLineStacked ColumnLineStacked100 ColumnStacked ColumnStacked100 Donut FlexTable Funnel Gauge Image Line lineCumulative LineGrouped lineGroupedCumulative Metric Pie PulseMetric RichText Scatter ScatterGrouped Scontrol Table VisualforcePage",
+        "Description": "Required. Dashboard component type. The valid values are: Bar BarGrouped BarStacked BarStacked100 Column ColumnGrouped ColumnLine ColumnLineGrouped ColumnLineStacked ColumnLineStacked100 ColumnStacked ColumnStacked100 Donut FlexTable Funnel Gauge Image LightningWebComponent Line LineCumulative LineGrouped LineGroupedCumulative Metric Pie PulseMetricCard RichText Scatter ScatterGrouped SControl Table VisualforcePage",
         "Field Name": "componentType",
         "Field Type": "DashboardComponentType (enumeration of type string)"
       },
@@ -16724,7 +16724,7 @@
       {
         "Description": "The API name of the Omniscript configuration that's associated with the disclosure definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.",
         "Field Name": "omniScriptCnfgApiName",
-        "Field Type": ""
+        "Field Type": "string"
       },
       {
         "Description": "The ID of the Omniscript configuration record.The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.",
@@ -19893,7 +19893,7 @@
         "Field Type": "ExperiencePropertyTypeBundleResource[]"
       }
     ],
-    "short_description": "Represents a property type. When you create a custom property type for a Lightning web component, deploy this bundle to your org.",
+    "short_description": "Represents a property type. Replaced in Spring ’26 by the updated LightningPropertyType. When you create a custom property type for a Lightning web component, use LightningPropertyType instead, and deploy that bundle to your org. To create a custom property type, see LightningPropertyType.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_experiencepropertytypebundle.htm",
     "parent": "Metadata"
   },
@@ -31980,7 +31980,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "The second part of the access key used to sign programmatic requests to AWS. Use when AWS Signature Version 4 is your authentication protocol. This field is valid only when NamedCredentialType is set to Legacy. First available in API version 46.0, this field is deprecated in API version 56.0 and later.",
+        "Description": "The second part of the access key that's used to sign programmatic requests to AWS. Use when AWS Signature Version 4 is your authentication protocol. This field is valid only when NamedCredentialType is set to Legacy. First available in API version 46.0, this field is deprecated in API version 56.0 and later.",
         "Field Name": "awsAccessSecret",
         "Field Type": "string"
       },
@@ -32147,7 +32147,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The type of the named credential parameter. Valid values are: AllowedManagedPackageNamespaces: Allows managed packages identified by specified namespaces to use the named credential and make callouts through it. Authentication: Specifies that this parameter configures authentication using the credentials specified in the external credential, referenced by the externalCredential field. ClientCertificate: Specifies that this parameter configures a client certificate, referenced by the certificate field. ConnectionStatus: Reserved for internal use. CreatedByNamespace: Reserved for internal use. CustomParameter: Reserved for internal use. HttpHeader: Allows the user to specify custom headers to be added to the callout at run time. When using HttpHeader, the parameterName field must be the header name as a string, and parameterValue must be a formula of a header value that is evaluated at run time. ManagedByComponent: Reserved for internal use. ManagedByFeature: Reserved for internal use. OutboundNetworkConnection: Specifies a lookup to an outbound network connection. When using this parameter type, the outboundNetworkConnection field is a string representing the lookup. Used when namedCredentialType is PrivateEndpoint. StandardNamedCredentialType: Reserved for internal use. Url: Specifies that this parameter configures the URL of the endpoint. Store the actual URL in the parameterValue field.",
+        "Description": "Required. The type of the named credential parameter. Valid values are: AllowedManagedPackageNamespaces: Allows managed packages identified by specified namespaces to use the named credential and make callouts through it. Authentication: Specifies that this parameter configures authentication using the credentials specified in the external credential, referenced by the externalCredential field. ClientCertificate: Specifies that this parameter configures a client certificate, referenced by the certificate field. ConnectionStatus: Reserved for internal use. CreatedByNamespace: Reserved for internal use. CustomParameter: Reserved for internal use. HttpHeader: Allows the user to specify custom headers to be added to the callout at run time. When using HttpHeader, the parameterName field must be the header name as a string, and parameterValue must be a formula of a header value that is evaluated at run time. ManagedByComponent: Reserved for internal use. ManagedByFeature: Reserved for internal use. ManagedByNamespace: Specifies the manageability capabilities for a packaged named credential. The parameterValue indicates whether the named credential uses subscriber-controlled or developer-controlled manageability. NamedCredentialOptions: Reserved for internal use. OutboundNetworkConnection: Specifies a lookup to an outbound network connection. When using this parameter type, the outboundNetworkConnection field is a string representing the lookup. Used when namedCredentialType is PrivateEndpoint. SfHttpRequestExtensionName: Reserved for internal use. StandardNamedCredentialType: Reserved for internal use. Url: Specifies that this parameter configures the URL of the endpoint. Store the actual URL in the parameterValue field.",
         "Field Name": "parameterType",
         "Field Type": "NamedCredentialParamType (enumeration of type string)"
       },
@@ -43429,6 +43429,16 @@
         "Field Type": "string"
       },
       {
+        "Description": "The default status value when a service appointment is canceled. Available in API version 65.0 and later.",
+        "Field Name": "canceledDefaultStatus",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The default status value when a service appointment can't be completed. Available in API version 65.0 and later.",
+        "Field Name": "cannotCompleteDefaultStatus",
+        "Field Type": "string"
+      },
+      {
         "Description": "Allows desktop and mobile to send geolocation and map data to Google and Apple. Available in API version 57.0 and later.",
         "Field Name": "canPopulateGoogleAddress",
         "Field Type": "boolean"
@@ -43444,8 +43454,18 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "The default status value when a service appointment is completed. Available in API version 65.0 and later.",
+        "Field Name": "completedDefaultStatus",
+        "Field Type": "string"
+      },
+      {
         "Description": "Provides a public security key for users accessing a deep link action in the Field Service mobile app. Hide the redirection warning by configuring the deep link URL with a security key. The deep link URL then processes the security check. Available in API version 54.0 and later.",
         "Field Name": "deepLinkPublicSecurityKey",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The default status value when a service appointment is dispatched. Available in API version 65.0 and later.",
+        "Field Name": "dispatchedDefaultStatus",
         "Field Type": "string"
       },
       {
@@ -43504,6 +43524,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "The default status value when a service appointment is in progress. Available in API version 65.0 and later.",
+        "Field Name": "inProgressDefaultStatus",
+        "Field Type": "string"
+      },
+      {
         "Description": "Syncs the location of a Service Resource to an Inventory object.",
         "Field Name": "isGeoCodeSyncEnabled",
         "Field Type": "boolean"
@@ -43516,6 +43541,11 @@
       {
         "Description": "Stores an email address to which a feedback email is sent when users leave feedback from the Field Service mobile app. Available in API version 54.0 and later.",
         "Field Name": "mobileFeedbackEmails",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The default status value when a service appointment has no specific status. Available in API version 65.0 and later.",
+        "Field Name": "noneDefaultStatus",
         "Field Type": "string"
       },
       {
@@ -43532,6 +43562,11 @@
         "Description": "Allows the optimization service to access data in your Salesforce org.",
         "Field Name": "optimizationServiceAccess",
         "Field Type": "boolean"
+      },
+      {
+        "Description": "The default status value when a service appointment is scheduled. Available in API version 65.0 and later.",
+        "Field Name": "scheduledDefaultStatus",
+        "Field Type": "string"
       },
       {
         "Description": "Indicates the number of days past the Created Date that the Due Date on auto-created service appointments should fall. Work types include an option to automatically add a service appointment to new work orders or work order line items using the work type.",

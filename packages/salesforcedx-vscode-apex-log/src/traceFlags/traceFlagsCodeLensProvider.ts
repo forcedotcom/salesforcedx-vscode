@@ -11,8 +11,8 @@ import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { CancellationToken, CodeLens, ExtensionContext, languages, Range, TextDocument } from 'vscode';
 import { nls } from '../messages';
-import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { buildExtendedTraceFlagItemStruct, buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
+import { getRuntime } from '../services/runtime';
 
 const TRACE_FLAGS_DOCUMENT_SELECTOR = { language: 'json', scheme: 'sf-traceflags' };
 
@@ -30,25 +30,43 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
   _token: CancellationToken
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas(api.services.TraceFlagItemStruct);
+  const ExtendedItemStruct = buildExtendedTraceFlagItemStruct(api.services.TraceFlagItemStruct);
+  const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas(ExtendedItemStruct);
   const parsed = decodeTraceFlagsConfigFromJson(document.getText());
   const text = document.getText();
-  const deleteLenses = Object.values(parsed?.traceFlags ?? {})
-    .flat()
-    .filter(item => item.isActive)
-    .flatMap(item => {
-      const idx = text.indexOf(`"id": "${item.id}"`);
-      if (idx < 0) return [];
-      const pos = document.positionAt(idx);
-      return [
-        new CodeLens(new Range(pos.line, 0, pos.line, 0), {
-          command: 'sf.apex.traceFlags.deleteForId',
-          title: nls.localize('trace_flag_tooltip_stop') ?? 'Remove',
-          tooltip: nls.localize('trace_flag_tooltip_stop') ?? 'Remove',
-          arguments: [item.id]
-        })
-      ];
-    });
+  const allActiveItems = Object.values(parsed?.traceFlags ?? {}).flat().filter(item => item.isActive);
+  const deleteLenses = allActiveItems.flatMap(item => {
+    const idx = text.indexOf(`"id": "${item.id}"`);
+    if (idx < 0) return [];
+    const pos = document.positionAt(idx);
+    return [
+      new CodeLens(new Range(pos.line, 0, pos.line, 0), {
+        command: 'sf.apex.traceFlags.deleteForId',
+        title: nls.localize('trace_flag_tooltip_stop') ?? 'Remove',
+        tooltip: nls.localize('trace_flag_tooltip_stop') ?? 'Remove',
+        arguments: [item.id]
+      })
+    ];
+  });
+  const itemsWithDebugLevel = allActiveItems.filter(
+    (item): item is typeof item & { debugLevelName: string } =>
+      typeof item.debugLevelName === 'string'
+  );
+  const changeDebugLevelLenses = itemsWithDebugLevel.flatMap(item => {
+    const idIdx = text.indexOf(`"id": "${item.id}"`);
+    if (idIdx < 0) return [];
+    const debugLevelNameIdx = text.indexOf('"debugLevelName"', idIdx);
+    if (debugLevelNameIdx < 0) return [];
+    const pos = document.positionAt(debugLevelNameIdx);
+    return [
+      new CodeLens(new Range(pos.line, 0, pos.line, 0), {
+        command: 'sf.apex.traceFlags.changeDebugLevel',
+        title: nls.localize('trace_flag_codelens_change_debug_level') ?? 'Change',
+        tooltip: nls.localize('trace_flag_codelens_change_debug_level') ?? 'Change',
+        arguments: [item.id]
+      })
+    ];
+  });
 
   const hasActive = yield* hasActiveTraceFlagEffect().pipe(
     Effect.tapError(e => Effect.logWarning(String(e))),
@@ -109,7 +127,14 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
             })
           ];
         })();
-  return [...deleteLenses, ...createLenses, ...userDebugLenses, ...deleteDebugLevelLenses, ...createDebugLevelLenses];
+  return [
+    ...deleteLenses,
+    ...changeDebugLevelLenses,
+    ...createLenses,
+    ...userDebugLenses,
+    ...deleteDebugLevelLenses,
+    ...createDebugLevelLenses
+  ];
 });
 
 export const registerTraceFlagsCodeLensProvider = Effect.fn(
@@ -117,11 +142,11 @@ export const registerTraceFlagsCodeLensProvider = Effect.fn(
 )(function* (context: ExtensionContext) {
   const provider = {
     provideCodeLenses: (document: TextDocument, token: CancellationToken) =>
-      provideTraceFlagsCodeLens(document, token).pipe(
-        Effect.provide(AllServicesLayer),
-        Effect.tapError(e => Effect.logError(String(e))),
-        Effect.catchAll(() => Effect.succeed<CodeLens[]>([])),
-        Effect.runPromise
+      getRuntime().runPromise(
+        provideTraceFlagsCodeLens(document, token).pipe(
+          Effect.tapError(e => Effect.logError(String(e))),
+          Effect.catchAll(() => Effect.succeed<CodeLens[]>([]))
+        )
       )
   };
   context.subscriptions.push(languages.registerCodeLensProvider(TRACE_FLAGS_DOCUMENT_SELECTOR, provider));

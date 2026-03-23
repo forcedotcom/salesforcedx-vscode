@@ -39,6 +39,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'theme-defaults/themes', // VS Code theme loading failures
   'light_modern.json', // VS Code theme file loading
   'Failed to fetch', // Generic fetch failures (often for optional resources)
+  'tsserver.web.js', // TypeScript language features extension (UriError: Scheme contains illegal characters)
+  'typescript-language-features', // TS extension console/URI errors in web
   'NO_COLOR', // Node.js color env var warnings
   'Content Security Policy', // CSP violations from VS Code webviews (non-critical UI errors)
   'Applying inline style violates', // CSP inline style errors from VS Code UI
@@ -65,7 +67,9 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'vscode-unpkg.net', // VS Code extension marketplace CDN
   'scratchOrgInfo', // asking the org if it's a devhub during auth ?
   'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
-  '.a4drules' // @salesforce/templates optional project template assets (reactb2e/reactb2x) not bundled for Apex
+  '.a4drules', // @salesforce/templates optional project template assets (reactb2e/reactb2x) not bundled for Apex
+  'typescript-language-features', // TS extension 404s for package.json etc in web
+  'applicationinsights.azure.com' // Azure Application Insights telemetry (e.g. HTTP 439 throttling) — not critical to extension behavior
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
@@ -336,4 +340,25 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
       // Ignore error - may have been already hidden or command not available
     });
   }
+};
+
+/**
+ * Runs `Workspaces: Close Workspace` so no folder is open (empty VS Code window).
+ * Call after {@link waitForVSCodeWorkbench} / {@link closeWelcomeTabs} / {@link ensureSecondarySideBarHidden} if needed.
+ */
+export const closeWorkspaceToEmptyWindow = async (page: Page): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Workspaces: Close Workspace');
+  await waitForVSCodeWorkbench(page);
+};
+
+/**
+ * From a desktop fixture that opened a workspace folder: prepare UI, then close the workspace so **no folder** is open.
+ * Use when asserting palette commands with **no folder open**. Contrast: `createDesktopTest({ emptyWorkspace: true })` — a folder **is** open but has no `sfdx-project.json`.
+ */
+export const prepareNoFolderOpenForPaletteTests = async (page: Page): Promise<void> => {
+  await waitForVSCodeWorkbench(page);
+  await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
+  await closeWorkspaceToEmptyWindow(page);
+  await closeWelcomeTabs(page);
 };

@@ -80,7 +80,7 @@ type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x';
+export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x' | 'nativemobile' | 'agent';
 
 class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
   private readonly initialTemplate?: ProjectTemplate;
@@ -222,6 +222,14 @@ export const sfProjectGenerate = async (args?: ProjectGenerateArgs): Promise<voi
     pathExistsChecker
   );
   await sfProjectGenerateCommandlet.run();
+};
+
+export const nativemobileProjectGenerate = async (): Promise<void> => {
+  await sfProjectGenerate({ projectTemplate: 'nativemobile' });
+};
+
+export const agentProjectGenerate = async (): Promise<void> => {
+  await sfProjectGenerate({ projectTemplate: 'agent' });
 };
 
 export const projectGenerateWithManifest = async (args?: ProjectGenerateArgs): Promise<void> => {

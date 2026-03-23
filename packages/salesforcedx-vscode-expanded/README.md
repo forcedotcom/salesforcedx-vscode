@@ -41,6 +41,8 @@ The Salesforce Extension Pack (Expanded) installs these Salesforce-developed ext
 
 - [Salesforce CLI](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)
   This extension (`salesforcedx-vscode-core`) interacts with Salesforce CLI to provide core functionality.
+- [Agentforce DX](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-agents)
+  This extension (`salesforcedx-vscode-agents`) provides tools for developing Agentforce agents, including syntax highlighting.
 - [Apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)
   This extension (`salesforcedx-vscode-apex`) uses the Apex Language Server to provide features such as syntax highlighting and code completion.
 - [Apex Testing](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-testing)
@@ -65,6 +67,8 @@ The Salesforce Extension Pack (Expanded) installs these Salesforce-developed ext
   This extension (`salesforcedx-vscode-services`) provides core services used by other Salesforce extensions.
 - [SOQL](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql)
   This extension (`salesforcedx-vscode-soql`) enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
+- [Salesforce Org Browser](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-org-browser)
+  This extension (`salesforcedx-vscode-org-browser`) lets you view and retrieve metadata from your Salesforce org.
 - [Salesforce Lightning Design System (SLDS) Validator](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds)
   This extension (`salesforce-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting, and validation with recommended tokens and utility classes.
 - [Agentforce Vibes](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt)

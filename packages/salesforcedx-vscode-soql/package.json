@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.1.1",
+  "version": "66.2.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -48,7 +48,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.23.2",
+    "@salesforce/core": "^8.27.0",
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.3.0",
@@ -68,7 +68,7 @@
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "immutable": "^5.1.4",
+    "immutable": "^5.1.5",
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
     "rxjs": "^7.8.2",
@@ -87,6 +87,9 @@
     "test": "wireit",
     "test:soql-builder-ui": "wireit",
     "run:web": "wireit",
+    "test:web": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:debug": "npm run test:web -- --debug",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit",
@@ -111,6 +114,7 @@
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
+        "package.nls*.json",
         "../soql-common/out/**",
         "../salesforcedx-utils-vscode/out/**",
         "../salesforcedx-vscode-i18n/out/**",
@@ -230,6 +234,23 @@
       ],
       "output": []
     },
+    "test:web": {
+      "command": "playwright test --config=playwright.config.web.ts",
+      "dependencies": [
+        "compile",
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.web.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
@@ -250,6 +271,7 @@
     },
     "test:e2e": {
       "dependencies": [
+        "test:web",
         "test:desktop"
       ]
     },
@@ -308,8 +330,12 @@
     ],
     "commands": [
       {
-        "command": "soql.builder.open.new",
-        "title": "%soql_builder_open_new%"
+        "command": "soql.open.new.builder",
+        "title": "%soql_open_new_builder%"
+      },
+      {
+        "command": "soql.open.new.text.editor",
+        "title": "%soql_open_new_text_editor%"
       },
       {
         "command": "soql.builder.toggle",
@@ -327,12 +353,24 @@
       {
         "command": "sf.data.query.selection",
         "title": "%data_query_selection_text%"
+      },
+      {
+        "command": "sf.data.query.explain.selection",
+        "title": "%query_plan_selection_text%"
+      },
+      {
+        "command": "sf.data.query.explain.document",
+        "title": "%query_plan_document_text%"
       }
     ],
     "menus": {
       "commandPalette": [
         {
-          "command": "soql.builder.open.new",
+          "command": "soql.open.new.builder",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "soql.open.new.text.editor",
           "when": "sf:project_opened"
         },
         {
@@ -350,6 +388,14 @@
         {
           "command": "sf.data.query.selection",
           "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.data.query.explain.selection",
+          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.data.query.explain.document",
+          "when": "resourceExtname == .soql && sf:has_target_org"
         }
       ],
       "editor/title": [
@@ -395,7 +441,7 @@
               "altText": "%soql_walkthrough_step2_alt%"
             },
             "completionEvents": [
-              "onCommand:soql.builder.open.new"
+              "onCommand:soql.open.new.builder"
             ]
           },
           {
@@ -428,5 +474,8 @@
         ]
       }
     ]
-  }
+  },
+  "activationEvents": [
+    "onLanguage:soql"
+  ]
 }
