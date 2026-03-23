@@ -10,7 +10,7 @@ Do each of these steps, in order. Do not move to a step unless all previous are 
 1. `npm run compile` — [references/compile.md](references/compile.md) (TS4023: [ts4023-effect-errors](../ts4023-effect-errors/SKILL.md), TS1261: [ts1261-filename-casing](../ts1261-filename-casing/SKILL.md))
 2. `npm run lint` - fix any new errors or warnings
 3. Effect code: `npx effect-language-service diagnostics --project tsconfig.json` (or `--file <path>`) — fix reported issues; `read_lints` does not surface Effect LS
-4. `npm run test` - See [references/unit-tests.md]
+4. `npm run test` - See [references/unit-tests.md](references/unit-tests.md)
 5. `npm run vscode:bundle` to ensure the extensions still bundle
 
 6. If working in packages with `test:web`/`test:desktop` scripts:

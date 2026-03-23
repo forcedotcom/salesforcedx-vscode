@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.2.3",
+  "version": "66.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -33,7 +33,7 @@
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "applicationinsights": "1.0.7",
-    "effect": "^3.19.19",
+    "effect": "^3.20.0",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
     "strip-ansi": "^5.2.0",
