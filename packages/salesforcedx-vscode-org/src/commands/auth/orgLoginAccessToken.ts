@@ -45,7 +45,7 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
       // Refresh state aggregators after config is updated
       await updateConfigAndStateAggregators();
     } catch (error) {
-      if (error.message?.includes('Bad_OAuth_Token')) {
+      if (error instanceof Error && error.message.includes('Bad_OAuth_Token')) {
         // Provide a user-friendly message for invalid / expired session ID
         channelService.appendLine(nls.localize('org_login_access_token_bad_oauth_token_message'));
       }

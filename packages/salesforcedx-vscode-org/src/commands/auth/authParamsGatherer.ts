@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { AllServicesLayer } from '../../extensionProvider';
+import { getOrgRuntime } from '../../extensionProvider';
 import { nls } from '../../messages';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
@@ -96,7 +96,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
     // allow passing in the instance url programmatically instead of via quick pick
     if (!this.instanceUrl) {
       const orgTypes = buildOrgTypes(
-        await getProjectLoginUrl.pipe(Effect.provide(AllServicesLayer), Effect.runPromise)
+        await getOrgRuntime().runPromise(getProjectLoginUrl)
       );
       const selection = await vscode.window.showQuickPick(Object.values(orgTypes));
       if (!selection) {
@@ -115,7 +115,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
           return { type: 'CANCEL' };
         }
       } else if (orgType === orgTypes.project?.label) {
-        this.instanceUrl = await getProjectLoginUrl.pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+        this.instanceUrl = await getOrgRuntime().runPromise(getProjectLoginUrl);
       } else {
         this.instanceUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
       }

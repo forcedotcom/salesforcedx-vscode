@@ -39,8 +39,6 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
         Effect.catchAll(() => Effect.succeed(emptyPjson))
       );
-      const extensionVersion = pjson.version ?? 'unknown';
-      const o11yEndpoint = process.env.O11Y_ENDPOINT ?? pjson.o11yUploadEndpoint;
       const channelLayer = api.services.ChannelServiceLayer(pjson.displayName ?? 'Salesforce Apex Log');
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       return Layer.mergeAll(
@@ -50,11 +48,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         Layer.succeed(CurrentTraceFlags, traceFlagRefreshSubscriptionRef),
         Layer.succeed(LogCollectorStateRef, logCollectorStateRef),
         api.services.ExtensionContextServiceLayer(context),
-        api.services.SdkLayerFor({
-          extensionName: pjson.name ?? 'salesforcedx-vscode-apex-log',
-          extensionVersion,
-          o11yEndpoint
-        }),
+        api.services.SdkLayerFor(context),
         channelLayer,
         errorHandlerWithChannel
       );

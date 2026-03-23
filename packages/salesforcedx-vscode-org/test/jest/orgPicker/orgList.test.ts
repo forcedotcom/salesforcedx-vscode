@@ -92,7 +92,6 @@ describe('OrgList tests', () => {
       let executeCommandMock: jest.SpyInstance;
       let listAllAuthorizationsMock: jest.SpyInstance;
       let getDefaultOrgConfigurationMock: jest.SpyInstance;
-
       const defaultConfig = {
         defaultDevHubProperty: undefined,
         defaultOrgProperty: undefined,
@@ -105,6 +104,7 @@ describe('OrgList tests', () => {
         executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
         listAllAuthorizationsMock = jest.spyOn(AuthInfo, 'listAllAuthorizations');
         getDefaultOrgConfigurationMock = jest.spyOn(orgUtil, 'getDefaultOrgConfiguration');
+        jest.spyOn(orgUtil, 'readAliasesByUsernameFromDisk').mockResolvedValue(new Map());
         listAllAuthorizationsMock.mockResolvedValue([]);
         getDefaultOrgConfigurationMock.mockResolvedValue(defaultConfig);
       });

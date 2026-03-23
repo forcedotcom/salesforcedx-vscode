@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo, Connection, Org, StateAggregator, OrgConfigProperties } from '@salesforce/core';
+import { AuthFields, AuthInfo, Connection, Org, OrgConfigProperties } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { AllServicesLayer } from '../extensionProvider';
 import { OrgInfo } from '../types/orgInfo';
 import { getConfigAggregatorEffect } from './configAggregatorEffect';
-import { getConnectionStatusFromError } from './orgUtil';
+import { getConnectionStatusFromError, readAliasesByUsernameFromDisk, resolveUsernameFromAlias } from './orgUtil';
 
 type OrgQueryResult = {
   Id: string;
@@ -59,15 +59,7 @@ const resolveUsername = async (username: string | undefined): Promise<string> =>
     throw new Error(messages.no_username_provided);
   }
 
-  // Resolve alias to actual username if needed
-  try {
-    const stateAggregator = await StateAggregator.getInstance();
-    const actualUsername = stateAggregator.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
-    return actualUsername;
-  } catch {
-    // If we can't resolve, return what we have
-    return usernameOrAlias;
-  }
+  return resolveUsernameFromAlias(usernameOrAlias);
 };
 
 export const getOrgInfo = async (username?: string): Promise<OrgInfo> => {
@@ -89,7 +81,7 @@ export const getOrgInfo = async (username?: string): Promise<OrgInfo> => {
 const createOrgInfo = (
   username: string,
   authFields: AuthFields | undefined,
-  alias: string | undefined,
+  aliases: string[],
   connectionStatus: string,
   overrides: Partial<OrgInfo> = {}
 ): OrgInfo => ({
@@ -105,7 +97,7 @@ const createOrgInfo = (
   instanceUrl: authFields?.instanceUrl ?? '',
   clientId: authFields?.clientId ?? '',
   apiVersion: authFields?.instanceApiVersion ?? '',
-  alias: alias ?? '',
+  aliases,
   connectionStatus,
   password: '',
   status: connectionStatus,
@@ -120,7 +112,7 @@ const getOrgInfoFromConnection = async (
   username: string
 ): Promise<OrgInfo> => {
   const authFields = authInfo.getFields(true);
-  const alias = await getFirstAlias(username);
+  const aliases = await getAllAliases(username);
 
   // Check if this is a scratch org
   const isScratchOrg = Boolean(authFields.devHubUsername);
@@ -140,7 +132,7 @@ const getOrgInfoFromConnection = async (
   const connectionStatus = await getConnectionStatus(connection, username);
 
   // scratch org query results, when present, are preferred over org query results
-  return createOrgInfo(username, authFields, alias, connectionStatus, {
+  return createOrgInfo(username, authFields, aliases, connectionStatus, {
     id: authFields.orgId ?? orgQuery.Id,
     createdBy: scratchOrgQuery?.CreatedBy.Username ?? orgQuery.CreatedBy.Username,
     createdDate: scratchOrgQuery?.CreatedDate ?? orgQuery.CreatedDate,
@@ -188,19 +180,18 @@ const getOrgInfoWithError = async (username: string, error: any): Promise<OrgInf
   // Try to get basic auth info without creating a connection
 
   try {
-    const [authInfo, alias] = await Promise.all([AuthInfo.create({ username }), getFirstAlias(username)]);
+    const [authInfo, aliases] = await Promise.all([AuthInfo.create({ username }), getAllAliases(username)]);
 
-    // Get alias using StateAggregator
-    return createOrgInfo(username, authInfo.getFields(true), alias, connectionStatus);
+    return createOrgInfo(username, authInfo.getFields(true), aliases, connectionStatus);
   } catch {
     // If we can't even get auth info, use minimal info
     // Return basic org info with error status
-    return createOrgInfo(username, undefined, '', connectionStatus);
+    return createOrgInfo(username, undefined, [], connectionStatus);
   }
 };
 
-const getFirstAlias = async (username: string): Promise<string | undefined> =>
-  (await StateAggregator.getInstance()).aliases.getAll(username)?.[0];
+const getAllAliases = async (username: string): Promise<string[]> =>
+  (await readAliasesByUsernameFromDisk()).get(username) ?? [];
 
 /** Test connection to determine status */
 const getConnectionStatus = async (conn: Connection, username: string): Promise<string> => {

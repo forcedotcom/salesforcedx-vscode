@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Org, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, Org } from '@salesforce/core';
 import { getOrgInfo } from '../../../src/util/orgDisplay';
+import * as orgUtil from '../../../src/util/orgUtil';
 
 // Mock the Salesforce Core classes
 jest.mock('@salesforce/core', () => ({
@@ -18,9 +19,6 @@ jest.mock('@salesforce/core', () => ({
   },
   Org: {
     create: jest.fn()
-  },
-  StateAggregator: {
-    getInstance: jest.fn()
   },
   OrgConfigProperties: {
     TARGET_ORG: 'target-org'
@@ -59,13 +57,16 @@ describe('OrgDisplay unit tests.', () => {
   let mockAuthInfo: any;
   let mockConnection: any;
   let mockOrg: any;
-  let mockStateAggregator: any;
   let mockConfigAggregator: any;
 
   beforeEach(() => {
-
     // Reset all mocks
     jest.clearAllMocks();
+
+    // Default: alias resolution falls back to input (not an alias)
+    jest.spyOn(orgUtil, 'resolveUsernameFromAlias').mockImplementation(a => Promise.resolve(a));
+    // Default: no aliases for any username
+    jest.spyOn(orgUtil, 'readAliasesByUsernameFromDisk').mockResolvedValue(new Map());
 
     // Setup mock AuthInfo
     mockAuthInfo = {
@@ -98,14 +99,6 @@ describe('OrgDisplay unit tests.', () => {
       getDevHubOrg: jest.fn()
     };
 
-    // Setup mock StateAggregator
-    mockStateAggregator = {
-      aliases: {
-        getAll: jest.fn().mockReturnValue([]),
-        getUsername: jest.fn().mockImplementation(usernameOrAlias => usernameOrAlias)
-      }
-    };
-
     // Setup mock ConfigAggregator
     mockConfigAggregator = {
       getPropertyValue: jest.fn().mockReturnValue(undefined)
@@ -117,7 +110,6 @@ describe('OrgDisplay unit tests.', () => {
     jest.mocked(AuthInfo).create.mockResolvedValue(mockAuthInfo);
     jest.mocked(Connection).create.mockResolvedValue(mockConnection);
     jest.mocked(Org).create.mockResolvedValue(mockOrg);
-    jest.mocked(StateAggregator).getInstance.mockResolvedValue(mockStateAggregator);
   });
 
   it('Should be able to successfully get org info with username provided.', async () => {
@@ -138,7 +130,7 @@ describe('OrgDisplay unit tests.', () => {
       instanceUrl: 'https://test.salesforce.com',
       clientId: 'test-client-id',
       apiVersion: '',
-      alias: '',
+      aliases: [],
       connectionStatus: 'Connected',
       password: ''
     });
@@ -154,8 +146,8 @@ describe('OrgDisplay unit tests.', () => {
   it('Should get username from config and resolve alias when alias is provided.', async () => {
     // Mock ConfigAggregator to return an alias
     mockConfigAggregator.getPropertyValue.mockReturnValue('test-alias');
-    // Mock StateAggregator to resolve alias to username
-    mockStateAggregator.aliases.getUsername.mockReturnValue('test@example.com');
+    // Mock disk-based alias resolution: test-alias → test@example.com
+    jest.spyOn(orgUtil, 'resolveUsernameFromAlias').mockResolvedValue('test@example.com');
 
     const result = await getOrgInfo();
     expect(result.username).toBe('test@example.com');
@@ -218,22 +210,22 @@ describe('OrgDisplay unit tests.', () => {
     expect(result.edition).toBe('Sandbox');
   });
 
-  it('Should retrieve alias when available.', async () => {
-    // Mock state aggregator to return aliases
-    mockStateAggregator.aliases.getAll.mockReturnValue(['test-alias']);
+  it('Should retrieve all aliases when available.', async () => {
+    // Mock disk-based alias lookup: test@example.com → ['alias1', 'alias2']
+    jest.spyOn(orgUtil, 'readAliasesByUsernameFromDisk').mockResolvedValue(
+      new Map([['test@example.com', ['alias1', 'alias2']]])
+    );
 
     const result = await getOrgInfo('test@example.com');
 
-    expect(result.alias).toBe('test-alias');
+    expect(result.aliases).toEqual(['alias1', 'alias2']);
   });
 
-  it('Should return empty string when no alias is available.', async () => {
-    // Mock state aggregator to return empty array
-    mockStateAggregator.aliases.getAll.mockReturnValue([]);
-
+  it('Should return empty array when no aliases are available.', async () => {
+    // Default mock already returns empty Map
     const result = await getOrgInfo('test@example.com');
 
-    expect(result.alias).toBe('');
+    expect(result.aliases).toEqual([]);
   });
 
   it('Should handle authentication errors gracefully and show error in status field.', async () => {

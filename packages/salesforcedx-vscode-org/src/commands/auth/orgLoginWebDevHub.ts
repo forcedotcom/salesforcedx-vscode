@@ -55,6 +55,7 @@ class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
       // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const exitCode = Array.isArray(data) ? data[0] : data;
       if (exitCode === 0) {
         await updateConfigAndStateAggregators();
