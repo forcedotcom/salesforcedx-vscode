@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SfProject } from '@salesforce/core/project';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -17,26 +16,6 @@ const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
 
 const getHasTypeScriptSupport = (): boolean =>
   vscode.workspace.getConfiguration(LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
-
-/** Prompt user to select output directory from available package directories (lwc subdir) */
-const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
-  const items = project.getPackageDirectories().map(pkg => ({
-    label: `${pkg.path}/main/default/lwc`,
-    description: pkg.default ? '(default)' : undefined,
-    uri: Utils.joinPath(workspaceInfo.uri, pkg.path, 'main', 'default', 'lwc')
-  }));
-
-  return yield* Effect.promise(() =>
-    vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('lwc_output_dir_prompt') ?? 'Select output directory',
-      matchOnDescription: true
-    })
-  ).pipe(Effect.flatMap(selected => promptService.ensureValueOrThrow(selected)));
-});
 
 const promptForComponentName = Effect.fn('promptForComponentName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -83,7 +62,14 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
 
   const componentName = yield* promptForComponentName();
 
-  const outputDirUri = outputDirParam ?? (yield* promptForOutputDir(project)).uri;
+  const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'lwc');
+  const outputDirUri =
+    outputDirParam ??
+    (yield* promptService.promptForOutputDir({
+      defaultUri,
+      pickerPlaceHolder: nls.localize('lwc_output_dir_prompt')
+    }));
 
   const hasTsSupport = getHasTypeScriptSupport();
   const template = hasTsSupport ? yield* promptForComponentType() : ('default' as const);

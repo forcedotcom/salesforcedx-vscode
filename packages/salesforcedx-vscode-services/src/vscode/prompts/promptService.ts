@@ -63,6 +63,47 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
         ? Effect.fail(new UserCancellationError())
         : Effect.succeed(value);
 
-    return { ensureMetadataOverwriteOrThrow, ensureValueOrThrow: considerUndefinedAsCancellation };
+    /** Prompt user to select output directory from available package directories, or choose a custom one. */
+    const promptForOutputDir = Effect.fn('PromptService.promptForOutputDir')(function* (params: {
+      readonly defaultUri: URI;
+      readonly description?: string;
+      readonly pickerPlaceHolder?: string;
+    }) {
+      const CUSTOM_DIR_LABEL = `$(file-directory) ${nls.localize('choose_different_folder')}`;
+
+      const selected = yield* Effect.promise(() =>
+        vscode.window.showQuickPick(
+          [
+            { label: params.defaultUri.fsPath, description: params.description, uri: params.defaultUri },
+            { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined }
+          ],
+          {
+            placeHolder: params.pickerPlaceHolder,
+            matchOnDescription: true
+          }
+        )
+      ).pipe(Effect.flatMap(considerUndefinedAsCancellation));
+
+      if (selected.label === CUSTOM_DIR_LABEL) {
+        const folders = yield* Effect.promise(() =>
+          vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            defaultUri: params.defaultUri,
+            openLabel: nls.localize('select_folder')
+          })
+        );
+        return yield* considerUndefinedAsCancellation(folders?.[0]);
+      }
+
+      return selected.uri!;
+    });
+
+    return {
+      ensureMetadataOverwriteOrThrow,
+      ensureValueOrThrow: considerUndefinedAsCancellation,
+      promptForOutputDir
+    };
   })
 }) {}

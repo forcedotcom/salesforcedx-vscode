@@ -46,28 +46,6 @@ const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) 
   );
 });
 
-/** Prompt user to select output directory from available package directories */
-const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
-  // Build Quick Pick items for each package directory
-  const items = project.getPackageDirectories().map(pkg => ({
-    label: `${pkg.path}/main/default/classes`,
-    description: pkg.default ? '(default)' : undefined,
-    uri: Utils.joinPath(workspaceInfo.uri, pkg.path, 'main', 'default', 'classes')
-  }));
-
-  // Show Quick Pick - VS Code will automatically highlight the first item by default
-  return yield* Effect.promise(() =>
-    vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('apex_class_output_dir_prompt') || 'Select output directory',
-      matchOnDescription: true
-    })
-  ).pipe(Effect.flatMap(selected => promptService.ensureValueOrThrow(selected?.uri)));
-});
-
 /** Prompt user for class name */
 const promptForClassName = Effect.fn('promptForClassName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -136,7 +114,15 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
 
   const className = params?.name ?? (yield* promptForClassName());
 
-  const outputDirUri = params?.outputDir ?? outputDirFromContext ?? (yield* promptForOutputDir(project));
+  const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
+  const outputDirUri =
+    params?.outputDir ??
+    outputDirFromContext ??
+    (yield* promptService.promptForOutputDir({
+      defaultUri,
+      pickerPlaceHolder: nls.localize('apex_class_output_dir_prompt')
+    }));
 
   const apiVersion = yield* getApiVersion(project);
   const cwd = workspaceInfo.uri.fsPath;

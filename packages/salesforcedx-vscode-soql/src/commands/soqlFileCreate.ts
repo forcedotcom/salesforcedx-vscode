@@ -34,44 +34,6 @@ const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function
   );
 });
 
-const CUSTOM_DIR_LABEL = `$(file-directory) ${nls.localize('soql_custom_output_directory')}`;
-
-const promptForOutputDir = Effect.fn('soqlFileCreate.promptForOutputDir')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
-  const defaultUri = Utils.joinPath(workspaceInfo.uri, 'scripts', 'soql');
-
-  const selected = yield* Effect.promise(() =>
-    vscode.window.showQuickPick(
-      [
-        { label: defaultUri.fsPath, description: nls.localize('soql_output_dir_default_description'), uri: defaultUri },
-        { label: CUSTOM_DIR_LABEL, description: undefined, uri: undefined }
-      ],
-      {
-        placeHolder: nls.localize('soql_output_dir_prompt'),
-        matchOnDescription: true
-      }
-    )
-  ).pipe(Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)));
-
-  if (selected.label === CUSTOM_DIR_LABEL) {
-    const folders = yield* Effect.promise(() =>
-      vscode.window.showOpenDialog({
-        canSelectFiles: false,
-        canSelectFolders: true,
-        canSelectMany: false,
-        defaultUri: workspaceInfo.uri,
-        openLabel: 'Select'
-      })
-    );
-    return folders?.[0];
-  }
-
-  return selected.uri;
-});
-
 const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(function* (
   fileName: string,
   outputDir: URI,
@@ -88,17 +50,35 @@ const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(function
 });
 
 export const soqlOpenNewBuilder = Effect.fn('soql_open_new_builder')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+
   const fileName = yield* promptForFileName();
 
-  const outputDir = yield* promptForOutputDir();
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, 'scripts', 'soql');
+  const outputDir = yield* promptService.promptForOutputDir({
+    defaultUri,
+    description: nls.localize('soql_output_dir_default_description'),
+    pickerPlaceHolder: nls.localize('soql_output_dir_prompt')
+  });
 
   yield* createAndOpenFile(fileName, outputDir, BUILDER_VIEW_TYPE);
 });
 
 export const soqlOpenNewTextEditor = Effect.fn('soql_open_new_text_editor')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+
   const fileName = yield* promptForFileName();
 
-  const outputDir = yield* promptForOutputDir();
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, 'scripts', 'soql');
+  const outputDir = yield* promptService.promptForOutputDir({
+    defaultUri,
+    description: nls.localize('soql_output_dir_default_description'),
+    pickerPlaceHolder: nls.localize('soql_output_dir_prompt')
+  });
 
   yield* createAndOpenFile(fileName, outputDir, EDITOR_VIEW_TYPE);
 });

@@ -73,7 +73,6 @@ export const messages = {
   soql_file_name_invalid: 'File name must start with a letter or underscore and contain only alphanumeric characters, underscores, or hyphens',
   soql_output_dir_default_description: '(default)',
   soql_output_dir_prompt: 'Select the target directory',
-  soql_custom_output_directory: 'Choose a Custom Directory',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   REST_API: 'REST API',
   REST_API_description: 'Use REST API to execute the query',

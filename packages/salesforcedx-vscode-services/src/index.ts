@@ -48,7 +48,7 @@ import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope'
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
-import { PromptService, UserCancellationError } from './vscode/prompts/metadataOverwrite';
+import { PromptService, UserCancellationError } from './vscode/prompts/promptService';
 import { registerCommandWithLayer, registerCommandWithRuntime } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsService } from './vscode/settingsService';
@@ -427,4 +427,4 @@ export { type SettingsService } from './vscode/settingsService';
 export { type SettingsWatcherService } from './vscode/settingsWatcherService';
 export { type DebugLevelItem, type TraceFlagItem, type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
-export type { UserCancellationError } from './vscode/prompts/metadataOverwrite';
+export type { UserCancellationError } from './vscode/prompts/promptService';
