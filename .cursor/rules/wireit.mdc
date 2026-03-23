@@ -1,0 +1,7 @@
+---
+description: Wireit build system usage and authoring
+globs: **/package.json
+alwaysApply: false
+---
+
+Before answering questions about wireit, npm scripts, or build pipelines, read `.claude/skills/wireit/SKILL.md`.
