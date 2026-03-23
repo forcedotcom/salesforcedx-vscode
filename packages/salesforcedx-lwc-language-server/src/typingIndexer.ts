@@ -130,15 +130,12 @@ export const getMetaTypings = async (indexer: TypingIndexerData): Promise<string
 
 // Utility function to get custom label files
 const getCustomLabelFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
-  // For mock file system, check for the specific custom labels file
-  const customLabelsPath = path.join(
-    indexer.workspaceRoot,
-    'force-app/main/default/labels/CustomLabels.labels-meta.xml'
+  const packageDirsPattern = await getSfdxPackageDirsPattern(indexer.workspaceRoot, indexer.fileSystemAccessor);
+  const found = await indexer.fileSystemAccessor.findFilesWithGlobAsync(
+    `${packageDirsPattern}/**/labels/CustomLabels.labels-meta.xml`,
+    indexer.workspaceRoot
   );
-  if (await indexer.fileSystemAccessor.fileExists(normalizePath(customLabelsPath))) {
-    return [customLabelsPath];
-  }
-  return [];
+  return found ?? [];
 };
 
 // Legacy class for backward compatibility (deprecated)
