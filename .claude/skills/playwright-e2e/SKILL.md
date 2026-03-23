@@ -15,7 +15,6 @@ Guidelines for writing and iterating on Playwright tests for VS Code extensions.
 - `references/local-setup.md` - Scratch org setup (Dreamhouse, minimal, non-tracking)
 - `references/iterating-playwright-tests.md` - Iterating on tests ("Things to ignore" for failure analysis)
 - `references/analyze-e2e.md` - Analyzing E2E test results from CI
-- `references/local-setup.md` - Local scratch org setup for E2E tests
 
 # Use playwright-vscode-ext
 

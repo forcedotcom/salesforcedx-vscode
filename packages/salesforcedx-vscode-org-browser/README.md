@@ -17,8 +17,8 @@ npm install
 # Compile the extension
 npm run compile -w salesforcedx-vscode-org-browser
 
-# Run web tests (headless)
-npm run test:web:headless -w salesforcedx-vscode-org-browser
+# Run web tests (headless by default)
+npm run test:web -w salesforcedx-vscode-org-browser
 
 # Run desktop tests (Electron UI always visible)
 npm run test:desktop -w salesforcedx-vscode-org-browser
@@ -27,7 +27,7 @@ npm run test:desktop -w salesforcedx-vscode-org-browser
 npm run test:e2e -w salesforcedx-vscode-org-browser
 
 # Run web tests with headed browser for debugging
-npm run test:web -w salesforcedx-vscode-org-browser
+npm run test:web:ui -w salesforcedx-vscode-org-browser
 ```
 
 #### Environment Setup
@@ -46,27 +46,13 @@ In CI, the org is created automatically. For local development, reuse an existin
 
 #### Manual Testing for Debugging
 
-For interactive debugging and reproducing issues:
-
 ```bash
-# Start VS Code web with real Chrome browser + debugging tools LLMs can't use this, ever
 npm run run:web
-
-# This opens:
-# - Real Chrome browser (not headless)
-# - VS Code web at http://localhost:3000
-# - Chrome DevTools automatically opened
-# - Remote debugging enabled on port 9222
-# - Web security disabled for CORS testing
-# - Both Org Browser and Services extensions loaded
 ```
 
-**Manual test workflow:**
+Opens VS Code web in Chrome with DevTools. For org credentials and settings injection, see [docs/QA.md](../../docs/QA.md).
 
-1. Click Explorer tab to verify file tree loads
-2. Click Org Browser tab to test extension switching
-3. Check browser console for any errors (especially `removeAllListeners` errors)
-4. Verify authentication and org tree data loading
+**Manual test workflow:** Explorer tab → Org Browser tab → check console for errors.
 
 #### Automated Testing Architecture
 
@@ -113,66 +99,15 @@ playwright.config.desktop.ts   # Desktop test configuration
 - Desktop uses worker-scoped VS Code download (cached)
 - Each test gets fresh Electron instance with isolated workspace
 
-#### Test Environment Details
+#### Troubleshooting
 
-- `vscode-test-web` serves VS Code with extensions loaded
-- Real Chromium browser with debugging enabled (`--remote-debugging-port=9222`)
-- Web security disabled for CORS testing (`--disable-web-security`)
-- Services extension dependency explicitly loaded
-- EventEmitter polyfills for Node.js → browser compatibility
+**"No tests found":** `npm run test:web -- --list` or `--grep "should verify org browser"`
 
-#### Common Issues & Solutions
+**Extension not activating:** Check Services extension activated first; verify bundle compiled.
 
-**Port conflicts:** Clean up processes before testing:
+**Port conflicts, polyfills, auth:** See [docs/QA.md](../../docs/QA.md), [docs/Build.md](../../docs/Build.md), [contributing/developing.md](../../contributing/developing.md).
 
-```bash
-pkill -f "vscode-test-web|chrome.*9222" || true
-```
-
-**Extension dependencies:** Org Browser requires Services extension:
-
-- Both extensions bundled with esbuild for browser compatibility
-- EventEmitter polyfills applied for jsforce compatibility
-- Process and stream polyfills for Node.js APIs
-
-**Console error testing:** Tests specifically check for:
-
-- `removeAllListeners is not a function` errors
-- Authentication failures
-- Tree loading errors
-- Network/CORS issues
-
-#### Troubleshooting Web Tests
-
-**"No tests found" error:**
-
-```bash
-# List available tests
-npm run test:web -- --list
-
-# Run specific test
-npm run test:web -- --grep "should verify org browser"
-```
-
-**Extension not activating:**
-
-- Check Services extension activated first (look for workspace creation logs)
-- Verify `activationEvents: ["*"]` in Services package.json
-- Check for bundle compilation errors
-
-**EventEmitter/polyfill issues:**
-
-- Rebuild extensions after polyfill changes: `npm run vscode:bundle`
-- Check esbuild alias configuration in `scripts/bundling/web.mjs`
-- Verify `events` module properly aliased for jsforce compatibility
-
-**Authentication/CORS errors:**
-
-- Expected in test environment (isolated browser context)
-- Use manual testing with `npm run run:web` for real auth testing
-- CDP tests connect to real browser for more realistic auth context
-
-Based on the [VS Code web extensions guide](https://code.visualstudio.com/api/extension-guides/web-extensions)
+Based on the [VS Code web extensions guide](https://code.visualstudio.com/api/extension-guides/web-extensions).
 
 This extension provides org browsing capabilities for Salesforce development in VS Code.
 

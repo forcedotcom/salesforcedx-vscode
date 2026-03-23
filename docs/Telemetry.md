@@ -1,5 +1,7 @@
 # Telemetry
 
+What to track, disabling, adding: [contributing/telemetry.md](../contributing/telemetry.md).
+
 ## Old
 
 We have code to send telemetry to `o11y` (usage metrics for product use) and appInsights (metrics and raw logs for dev/support use).
@@ -30,7 +32,7 @@ await telemetryService.initializeService(context);
 setTelemetryService(telemetryService);
 ```
 
-AppInsights telemetry is not available for web clients, but `o11y` **should** work (not tried yet).
+AppInsights via the vscode-core TelemetryService is not available for web clients (core extension isn't loaded). Use OTEL/Effect — see [Observability README](../packages/salesforcedx-vscode-services/src/observability/README.md) — for web; it supports App Insights and o11y.
 
 ### access to AppInsights
 

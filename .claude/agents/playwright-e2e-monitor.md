@@ -1,7 +1,7 @@
 ---
 name: playwright-e2e-monitor
 description: Monitor and analyze Playwright E2E test results from GitHub Actions. Use when users ask for playwright analysis on github actions or /analyze-e2e
-model: composer-2
+model: fast
 ---
 
 Monitor running e2e playwright tests, download artifacts on failure, provide analysis.

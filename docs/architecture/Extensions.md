@@ -55,7 +55,7 @@ extensions **can** run on the web. It's not easy, so if you don't have that as a
 - polyfills for node api and other dependencies
 - avoiding node fs-apis and handling virtual filesystem stuff (you **should** be using the vscode fs API and not the local filesystem to keep your code portable!)
 
-If you do need to run on the web, refer to the org-browser extension for guidance and scripts. It represents our most up-to-date thinking
+If you do need to run on the web, see [Build](../Build.md) (Bundling, package.json, Package sections), [Observability README](../../packages/salesforcedx-vscode-services/src/observability/README.md) (telemetry for web), and the org-browser extension for guidance and scripts.
 
 The main environment difference is the lack of a terminal. You can polyfill some node APIs (ex: path, os) but all of `child_process` is not available to you.
 

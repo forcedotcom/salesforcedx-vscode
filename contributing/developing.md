@@ -48,9 +48,9 @@ You would only do this once after you cloned the repository.
 1.  We develop on the `develop` branch and release from the `main` branch. At
     this point, you should do initiate a `git checkout -t origin/develop` unless
     you are working on releasing.
-1.  `npm install` to bring in all the top-level dependencies. Because of the
-    `postinstall` script, this also runs `npm run bootstrap` for you
-    automatically the first time.
+1.  `npm install` to bring in all the top-level dependencies. `postinstall` runs
+    wireit (peer-deps, ts project refs). Run `npm run bootstrap` to reinstall
+    deps if you change package.json.
 1.  Open the project in VS Code.
 
 You would usually do the following each time you close/reopen VS Code:
@@ -159,9 +159,8 @@ This run `npm run clean` on each of the package in packages.
 
 ### `npm run watch`
 
-This runs `npm run watch` on each of the package in packages. The `--parallel`
-flag tell it to run each in a separate process so that it won't block the main
-thread.
+Runs `npm run compile:watch` — tsc --build --watch for the monorepo (single
+process via project references).
 
 ### `npm run test`
 
@@ -237,60 +236,4 @@ With the following environment variables present, VS Code will log telemetry eve
 
 ## Web Extension Testing
 
-Some extensions support VS Code web environments and include browser-based testing:
-
-### Org Browser Web Tests
-
-The `salesforcedx-vscode-org-browser` package includes comprehensive Playwright tests for web extension functionality:
-
-```bash
-# Navigate to the org browser package
-cd packages/salesforcedx-vscode-org-browser
-
-# Run web extension tests
-npm run test:web
-
-# Start manual browser testing
-npm run run:web
-```
-
-### Manual Web Testing Workflow
-
-For debugging and interactive testing:
-
-1. **Start the browser environment:**
-
-   ```bash
-   npm run run:web
-   ```
-
-   This opens VS Code web in Chrome with debugging enabled
-
-2. **Test extension interaction:**
-   - Click Explorer tab to verify file tree loads (Services extension working)
-   - Click Org Browser tab to test extension switching
-   - Monitor browser console for errors (especially EventEmitter issues)
-
-3. **Check for specific issues:**
-   - Authentication flows in browser environment
-   - EventEmitter polyfill compatibility
-   - CORS and network issues
-   - Extension dependency loading
-
-### Common Web Testing Issues
-
-**Extension bundling:** Web extensions require Node.js polyfills:
-
-- Built using esbuild with browser polyfills
-- EventEmitter polyfills for jsforce compatibility
-- Process/stream polyfills for Node.js APIs
-
-**Port conflicts:** Clean up processes:
-
-```bash
-pkill -f "vscode-test-web|chrome.*9222" || true
-```
-
-**Authentication:** Expected to fail in test environments due to CORS and isolated contexts.
-
-For detailed web testing documentation, see `packages/salesforcedx-vscode-org-browser/README.md`.
+Some extensions support VS Code web environments. For manual workflow, common issues (port conflicts, auth, polyfills), org credentials, and org-browser tests, see [docs/QA.md](../docs/QA.md).

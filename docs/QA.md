@@ -2,7 +2,27 @@
 
 Vscode doesn't offer a way to prepulate locally running web extensions settings. If you just run them, you'll have to supply auth credentials and any configurations you want to set. That's painful for `--watch` as you edit the extension.
 
-Use the `run:web` command from an extension that supports it. This command uses `vscode:bundle:local` which automatically enables local development mode.
+Use the `run:web` command from an extension that supports it. This command uses `vscode:bundle:local` which automatically enables local development mode. See [Build](./Build.md) for run:web and package.json details.
+
+## Manual Web Testing Workflow
+
+1. **Start the browser environment:** `npm run run:web` — opens VS Code web in Chrome with debugging enabled.
+2. **Test extension interaction:** Explorer tab (file tree), Org Browser tab (extension switching), browser console (EventEmitter issues).
+3. **Check for:** auth flows, EventEmitter polyfill compatibility, CORS/network issues, extension dependency loading.
+
+## Common Web Testing Issues
+
+**Extension bundling:** Web extensions require Node.js polyfills (esbuild + browser polyfills, EventEmitter for jsforce, process/stream polyfills). See [Build](./Build.md).
+
+**Port conflicts:**
+
+```bash
+pkill -f "vscode-test-web|chrome.*9222" || true
+```
+
+**Authentication:** Expected to fail in test environments due to CORS and isolated contexts. Use `ESBUILD_WEB_ORG_ALIAS` to inject org credentials at build time (below).
+
+**Org Browser:** See [packages/salesforcedx-vscode-org-browser/README.md](../packages/salesforcedx-vscode-org-browser/README.md) for package-specific web tests and `npm run test:web`.
 
 ## Environment Variables and Configuration
 

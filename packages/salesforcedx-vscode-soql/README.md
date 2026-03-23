@@ -2,7 +2,7 @@
 
 SOQL Builder enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
 
-![GIF showing SOQL query builder, viewing query results, and saving results to csv](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-soql/images/SOQL_Builder_50.16.0.gif)
+![GIF showing SOQL query builder, viewing query results, and saving results to csv](images/SOQL_Builder_50.16.0.gif)
 
 ## Documentation
 
@@ -20,6 +20,6 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 
 ---
 
-Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](../../SHA256.md) to learn how to verify the extensions.
+Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions' Authenticity](../../SHA256.md) to learn how to verify the extensions.
 
 ---

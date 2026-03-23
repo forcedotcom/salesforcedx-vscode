@@ -18,25 +18,25 @@ Export ALL error types that appear in any Effect's error channel - including non
 ### 1. Find ALL TaggedError classes (not just exported ones)
 
 ```bash
-# Find ALL TaggedError classes, including non-exported ones
-rg "class \w+Error extends Data\.TaggedError" packages/salesforcedx-vscode-services/src
+# Find Data.TaggedError and Schema.TaggedError (both used in codebase)
+rg "class \w+Error extends (Data|Schema)\.TaggedError" packages/salesforcedx-vscode-services/src
 ```
 
 **Critical**: Include classes WITHOUT `export` keyword. Example:
 
 ```typescript
 // This ALSO needs to be exported if used in any Effect's error channel
-class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{...}> {}
+class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()('EmptyComponentSetError', {...}) {}
 ```
 
 ### 2. For non-exported errors, add export to source file first
 
 ```typescript
 // Before
-class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{...}> {}
+class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()('EmptyComponentSetError', {...}) {}
 
 // After
-export class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{...}> {}
+export class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()('EmptyComponentSetError', {...}) {}
 ```
 
 ### 3. Then export from index.ts

@@ -9,7 +9,7 @@ File ops (desktop + web). Accessor pattern: call methods directly.
 Read file as string:
 
 ```typescript
-const content = yield* api.services.FsService.readFile(filePath);
+const content = yield * api.services.FsService.readFile(filePath);
 ```
 
 ### writeFile
@@ -17,7 +17,7 @@ const content = yield* api.services.FsService.readFile(filePath);
 Write file, creates dirs if needed:
 
 ```typescript
-yield* api.services.FsService.writeFile(filePath, content);
+yield * api.services.FsService.writeFile(filePath, content);
 ```
 
 ### fileOrFolderExists
@@ -25,7 +25,7 @@ yield* api.services.FsService.writeFile(filePath, content);
 Check if exists:
 
 ```typescript
-const exists = yield* api.services.FsService.fileOrFolderExists(filePath);
+const exists = yield * api.services.FsService.fileOrFolderExists(filePath);
 ```
 
 ### isDirectory
@@ -33,7 +33,7 @@ const exists = yield* api.services.FsService.fileOrFolderExists(filePath);
 Check if directory:
 
 ```typescript
-const isDir = yield* api.services.FsService.isDirectory(path);
+const isDir = yield * api.services.FsService.isDirectory(path);
 ```
 
 ### isFile
@@ -41,7 +41,7 @@ const isDir = yield* api.services.FsService.isDirectory(path);
 Check if file:
 
 ```typescript
-const isFile = yield* api.services.FsService.isFile(path);
+const isFile = yield * api.services.FsService.isFile(path);
 ```
 
 ### createDirectory
@@ -49,7 +49,7 @@ const isFile = yield* api.services.FsService.isFile(path);
 Create directory:
 
 ```typescript
-yield* api.services.FsService.createDirectory(dirPath);
+yield * api.services.FsService.createDirectory(dirPath);
 ```
 
 ### deleteFile
@@ -57,7 +57,7 @@ yield* api.services.FsService.createDirectory(dirPath);
 Delete file:
 
 ```typescript
-yield* api.services.FsService.deleteFile(filePath, options);
+yield * api.services.FsService.deleteFile(filePath, options);
 ```
 
 ### readDirectory
@@ -65,7 +65,7 @@ yield* api.services.FsService.deleteFile(filePath, options);
 Read dir contents:
 
 ```typescript
-const uris = yield* api.services.FsService.readDirectory(dirPath);
+const uris = yield * api.services.FsService.readDirectory(dirPath);
 // Returns: URI[]
 ```
 
@@ -74,7 +74,7 @@ const uris = yield* api.services.FsService.readDirectory(dirPath);
 Get file stats:
 
 ```typescript
-const stats = yield* api.services.FsService.stat(filePath);
+const stats = yield * api.services.FsService.stat(filePath);
 ```
 
 ### safeDelete
@@ -82,7 +82,7 @@ const stats = yield* api.services.FsService.stat(filePath);
 Delete ignoring errors:
 
 ```typescript
-yield* api.services.FsService.safeDelete(filePath, options);
+yield * api.services.FsService.safeDelete(filePath, options);
 ```
 
 ### rename
@@ -90,23 +90,41 @@ yield* api.services.FsService.safeDelete(filePath, options);
 Rename file/folder:
 
 ```typescript
-yield* api.services.FsService.rename(oldPath, newPath);
+yield * api.services.FsService.rename(oldPath, newPath);
 ```
 
 ### readJSON
 
-Read + parse JSON with schema validation. Standalone (not on FsService) due to Effect accessor limitation with generics:
+Read + parse JSON. Two options:
+
+**Without schema** — raw parse, result is `unknown`:
 
 ```typescript
-const data = yield* api.services.readJSON(filePath, schema);
+const text = yield * api.services.FsService.readFile(filePath);
+const data = JSON.parse(text) as MyType;
 ```
+
+**With Effect Schema** — validated and typed:
+
+```typescript
+import * as Schema from 'effect/Schema';
+
+const MyConfigSchema = Schema.Struct({
+  orgs: Schema.Record({ key: Schema.String, value: Schema.String })
+});
+
+const data = yield * api.services.FsService.readJSON(filePath, MyConfigSchema);
+// data is typed as { orgs: Record<string, string> }
+```
+
+Prefer the schema approach when customers might have corrupted JSON—validation fails with a clear error instead of silently returning bad data.
 
 ### toUri
 
 Convert path to URI:
 
 ```typescript
-const uri = yield* api.services.FsService.toUri(filePath);
+const uri = yield * api.services.FsService.toUri(filePath);
 ```
 
 ### uriToPath
@@ -114,7 +132,7 @@ const uri = yield* api.services.FsService.toUri(filePath);
 Convert URI to path:
 
 ```typescript
-const path = yield* api.services.FsService.uriToPath(uri);
+const path = yield * api.services.FsService.uriToPath(uri);
 ```
 
 ## Errors
@@ -126,13 +144,13 @@ const path = yield* api.services.FsService.uriToPath(uri);
 From `salesforcedx-vscode-metadata`:
 
 ```typescript
-const exists = yield* api.services.FsService.fileOrFolderExists(manifestFileUri);
+const exists = yield * api.services.FsService.fileOrFolderExists(manifestFileUri);
 if (!exists) {
-  yield* api.services.FsService.writeFile(manifestFileUri, packageXML);
+  yield * api.services.FsService.writeFile(manifestFileUri, packageXML);
 }
 
-const childUris = yield* api.services.FsService.readDirectory(uri);
-yield* api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
+const childUris = yield * api.services.FsService.readDirectory(uri);
+yield * api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
 ```
 
 ## Notes
