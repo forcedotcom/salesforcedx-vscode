@@ -1,0 +1,28 @@
+/* Two top-level subqueries (Opportunities + Contacts) plus nested Cases on each Contact.
+   Expect: CLI-style row stacking for outer subqueries; inner Cases as a single column (JSON/serialized). */
+SELECT
+  Id,
+  Name,
+  (
+    SELECT Id, Name
+    FROM Opportunities
+    ORDER BY Name
+    LIMIT 10
+  ),
+  (
+    SELECT
+      Id,
+      FirstName,
+      LastName,
+      (
+        SELECT Id, Subject, Status
+        FROM Cases
+        ORDER BY Subject
+        LIMIT 20
+      )
+    FROM Contacts
+    ORDER BY LastName
+    LIMIT 50
+  )
+FROM Account
+WHERE Name = 'VSE_NestedSub_Root'
