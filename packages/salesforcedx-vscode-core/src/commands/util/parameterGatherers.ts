@@ -180,11 +180,30 @@ export class SelectLwcComponentType implements ParametersGatherer<{ extension: s
       } else if (defaultLWCLanguage === 'javascript') {
         return { type: 'CONTINUE', data: { extension: 'JavaScript' } };
       }
-    } catch {
-      // Project config not available, continue to prompt
+    } catch (error) {
+      // Project config not available, continue to fallback mechanisms
+      console.warn('Could not read defaultLWCLanguage from sfdx-project.json:', error);
     }
 
-    // Priority 2: No default set, prompt user to choose (TypeScript is always visible)
+    // Priority 2: Check legacy preview.typeScriptSupport flag for backward compatibility
+    try {
+      const legacyFlag = vscode.workspace
+        .getConfiguration('salesforcedx-vscode-lwc')
+        .get<boolean>('preview.typeScriptSupport', false);
+
+      if (legacyFlag) {
+        // Show deprecation warning
+        void vscode.window.showInformationMessage(
+          nls.localize('typescript_legacy_flag_deprecation') ??
+          'The "preview.typeScriptSupport" setting is deprecated. Please set "defaultLWCLanguage": "typescript" in your sfdx-project.json instead.'
+        );
+        return { type: 'CONTINUE', data: { extension: 'TypeScript' } };
+      }
+    } catch (error) {
+      console.warn('Could not read legacy preview.typeScriptSupport flag:', error);
+    }
+
+    // Priority 3: No default set, prompt user to choose (TypeScript is always visible)
     const lwcComponentTypes = ['JavaScript', 'TypeScript'];
     const lwcComponentType = await this.showMenu(lwcComponentTypes, 'parameter_gatherer_select_lwc_type');
     return lwcComponentType

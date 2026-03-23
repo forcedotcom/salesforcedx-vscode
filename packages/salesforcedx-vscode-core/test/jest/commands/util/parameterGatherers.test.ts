@@ -8,6 +8,7 @@
 import * as vscode from 'vscode';
 import { SelectFileName, SelectLwcComponentType } from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
+import { SalesforceProjectConfig } from '../../../../src/salesforceProject';
 
 describe('ParameterGatherers Unit Tests.', () => {
   describe('SelectFileName', () => {
@@ -94,21 +95,41 @@ describe('ParameterGatherers Unit Tests.', () => {
   });
 
   describe('SelectLwcComponentType', () => {
-    let typeScriptSupportSetting = true;
-    let workspaceConfigurationSpy: jest.SpyInstance;
-    const mockConfig = {
-      get: () => typeScriptSupportSetting
-    };
+    let getValueSpy: jest.SpyInstance;
+    let getConfigSpy: jest.SpyInstance;
+    let showInfoMessageSpy: jest.SpyInstance;
+
     beforeEach(() => {
-      typeScriptSupportSetting = true;
-      workspaceConfigurationSpy = jest.spyOn(vscode.workspace, 'getConfiguration');
+      getValueSpy = jest.spyOn(SalesforceProjectConfig, 'getValue');
+      getConfigSpy = jest.spyOn(vscode.workspace, 'getConfiguration');
+      showInfoMessageSpy = jest.spyOn(vscode.window, 'showInformationMessage');
     });
-    it('Should return JavaScript option when no config value', async () => {
-      typeScriptSupportSetting = false;
-      workspaceConfigurationSpy.mockReturnValue(mockConfig);
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('Should return TypeScript when defaultLWCLanguage is typescript', async () => {
+      getValueSpy.mockResolvedValue('typescript');
       const selectLwcComponentTypeInstance = new SelectLwcComponentType();
-      const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu').mockImplementation(jest.fn());
+      const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu');
+
       const result = await selectLwcComponentTypeInstance.gather();
+
+      expect(result).toEqual({
+        type: 'CONTINUE',
+        data: { extension: 'TypeScript' }
+      });
+      expect(showMenuSpy).not.toHaveBeenCalled();
+    });
+
+    it('Should return JavaScript when defaultLWCLanguage is javascript', async () => {
+      getValueSpy.mockResolvedValue('javascript');
+      const selectLwcComponentTypeInstance = new SelectLwcComponentType();
+      const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu');
+
+      const result = await selectLwcComponentTypeInstance.gather();
+
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { extension: 'JavaScript' }
@@ -116,13 +137,18 @@ describe('ParameterGatherers Unit Tests.', () => {
       expect(showMenuSpy).not.toHaveBeenCalled();
     });
 
-    it('Should return TypeScript when selected from menu', async () => {
-      workspaceConfigurationSpy.mockReturnValue(mockConfig);
+    it('Should prompt user when defaultLWCLanguage is undefined', async () => {
+      getValueSpy.mockResolvedValue(undefined);
+      const mockConfig = { get: jest.fn().mockReturnValue(false) };
+      getConfigSpy.mockReturnValue(mockConfig);
+
       const selectLwcComponentTypeInstance = new SelectLwcComponentType();
       const showMenuSpy = jest
         .spyOn(selectLwcComponentTypeInstance, 'showMenu')
-        .mockImplementation(jest.fn().mockReturnValueOnce('TypeScript'));
+        .mockResolvedValue('TypeScript');
+
       const result = await selectLwcComponentTypeInstance.gather();
+
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { extension: 'TypeScript' }
@@ -130,27 +156,75 @@ describe('ParameterGatherers Unit Tests.', () => {
       expect(showMenuSpy).toHaveBeenCalled();
     });
 
-    it('Should return JavaScript when selected from menu', async () => {
-      workspaceConfigurationSpy.mockReturnValue(mockConfig);
+    it('Should fall back to legacy flag when defaultLWCLanguage throws error', async () => {
+      getValueSpy.mockRejectedValue(new Error('Config not available'));
+      const mockConfig = { get: jest.fn().mockReturnValue(true) };
+      getConfigSpy.mockReturnValue(mockConfig);
+      showInfoMessageSpy.mockResolvedValue(undefined);
+
+      const selectLwcComponentTypeInstance = new SelectLwcComponentType();
+      const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu');
+
+      const result = await selectLwcComponentTypeInstance.gather();
+
+      expect(result).toEqual({
+        type: 'CONTINUE',
+        data: { extension: 'TypeScript' }
+      });
+      expect(showInfoMessageSpy).toHaveBeenCalled();
+      expect(showMenuSpy).not.toHaveBeenCalled();
+    });
+
+    it('Should show deprecation warning for legacy flag', async () => {
+      getValueSpy.mockResolvedValue(undefined);
+      const mockConfig = { get: jest.fn().mockReturnValue(true) };
+      getConfigSpy.mockReturnValue(mockConfig);
+      showInfoMessageSpy.mockResolvedValue(undefined);
+
+      const selectLwcComponentTypeInstance = new SelectLwcComponentType();
+
+      const result = await selectLwcComponentTypeInstance.gather();
+
+      expect(result).toEqual({
+        type: 'CONTINUE',
+        data: { extension: 'TypeScript' }
+      });
+      expect(showInfoMessageSpy).toHaveBeenCalledWith(
+        expect.stringContaining('deprecated')
+      );
+    });
+
+    it('Should prompt user when both configs are not set', async () => {
+      getValueSpy.mockResolvedValue(undefined);
+      const mockConfig = { get: jest.fn().mockReturnValue(false) };
+      getConfigSpy.mockReturnValue(mockConfig);
+
       const selectLwcComponentTypeInstance = new SelectLwcComponentType();
       const showMenuSpy = jest
         .spyOn(selectLwcComponentTypeInstance, 'showMenu')
-        .mockImplementation(jest.fn().mockReturnValueOnce('JavaScript'));
+        .mockResolvedValue('JavaScript');
+
       const result = await selectLwcComponentTypeInstance.gather();
+
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { extension: 'JavaScript' }
       });
-      expect(showMenuSpy).toHaveBeenCalled();
+      expect(showMenuSpy).toHaveBeenCalledWith(['JavaScript', 'TypeScript'], 'parameter_gatherer_select_lwc_type');
     });
 
-    it('Should cancel when selected from menu', async () => {
-      workspaceConfigurationSpy.mockReturnValue(mockConfig);
+    it('Should return CANCEL when user cancels prompt', async () => {
+      getValueSpy.mockResolvedValue(undefined);
+      const mockConfig = { get: jest.fn().mockReturnValue(false) };
+      getConfigSpy.mockReturnValue(mockConfig);
+
       const selectLwcComponentTypeInstance = new SelectLwcComponentType();
       const showMenuSpy = jest
         .spyOn(selectLwcComponentTypeInstance, 'showMenu')
-        .mockImplementation(jest.fn().mockReturnValueOnce(null));
+        .mockResolvedValue(undefined);
+
       const result = await selectLwcComponentTypeInstance.gather();
+
       expect(result).toEqual({
         type: 'CANCEL'
       });

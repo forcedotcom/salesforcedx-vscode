@@ -118,7 +118,10 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   const outputDirUri = outputDirParam ?? (yield* promptForOutputDir(project));
   if (!outputDirUri) return undefined;
 
-  const templateOpt = yield* determineComponentTemplate(project);
+  // Determine template with error recovery - if project config fails, prompt user
+  const templateOpt = yield* determineComponentTemplate(project).pipe(
+    Effect.catchAll(() => promptForComponentType())
+  );
   if (Option.isNone(templateOpt)) return undefined;
   const template = templateOpt.value;
 
