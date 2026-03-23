@@ -6,6 +6,9 @@
  */
 
 import { open } from '@vscode/test-web';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Schedule from 'effect/Schedule';
 import * as path from 'node:path';
 import { resolveRepoRoot } from '../utils/repoRoot';
 
@@ -20,50 +23,75 @@ type HeadlessServerOptions = {
 
 /** Creates and starts a headless VS Code web server for testing an extension with services */
 export const createHeadlessServer = async (options: HeadlessServerOptions): Promise<void> => {
-  try {
-    // callerDirname is '<pkg>/out/test/playwright/web' -> go up four levels to '<pkg>'
-    const extensionDevelopmentPath = path.resolve(options.callerDirname, '..', '..', '..', '..');
+  // callerDirname is '<pkg>/out/test/playwright/web' -> go up four levels to '<pkg>'
+  const extensionDevelopmentPath = path.resolve(options.callerDirname, '..', '..', '..', '..');
 
-    // Collect all extension paths: services + any additional
-    const extensionPaths = (options.additionalExtensionDirs ?? [])
-      .concat(['salesforcedx-vscode-services'])
-      .map(dir => path.resolve(extensionDevelopmentPath, '..', dir));
-    console.log(`🌐 Starting VS Code Web (headless) for ${options.extensionName} tests...`);
-    console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
-    console.log(`📦 Extension paths: ${extensionPaths.join(', ')}`);
+  // Collect all extension paths: services + any additional
+  const extensionPaths = (options.additionalExtensionDirs ?? [])
+    .concat(['salesforcedx-vscode-services'])
+    .map(dir => path.resolve(extensionDevelopmentPath, '..', dir));
 
-    const repoRoot = resolveRepoRoot(options.callerDirname);
-    const testRunnerDataDir = path.join(repoRoot, '.vscode-test-web');
+  const repoRoot = resolveRepoRoot(options.callerDirname);
+  const testRunnerDataDir = path.join(repoRoot, '.vscode-test-web');
 
-    await open({
-      browserType: 'chromium',
-      headless: true,
-      quality: 'stable',
-      port: Number(process.env.PORT) || 3001,
-      printServerLog: true,
-      verbose: true,
+  const openTask = Effect.fn('createHeadlessServer.open')(function* () {
+    yield* Effect.log(`🌐 Starting VS Code Web (headless) for ${options.extensionName} tests...`, {
       extensionDevelopmentPath,
       extensionPaths,
-      testRunnerDataDir,
-      browserOptions: [
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--disable-features=IsolateOrigins,site-per-process',
-        ...(process.env.CI
-          ? [
-              '--no-sandbox',
-              '--disable-dev-shm-usage',
-              '--disable-background-timer-throttling',
-              '--disable-backgrounding-occluded-windows',
-              '--disable-renderer-backgrounding'
-            ]
-          : [])
-      ]
+      testRunnerDataDir
     });
-  } catch (error) {
-    console.error('❌ Failed to start headless server:', error);
-    process.exit(1);
-  }
+
+    return yield* Effect.tryPromise({
+      try: () =>
+        open({
+          browserType: 'chromium',
+          headless: true,
+          quality: 'stable',
+          port: Number(process.env.PORT) || 3001,
+          printServerLog: true,
+          verbose: true,
+          extensionDevelopmentPath,
+          extensionPaths,
+          testRunnerDataDir,
+          browserOptions: [
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--disable-features=IsolateOrigins,site-per-process',
+            ...(process.env.CI
+              ? [
+                  '--no-sandbox',
+                  '--disable-dev-shm-usage',
+                  '--disable-background-timer-throttling',
+                  '--disable-backgrounding-occluded-windows',
+                  '--disable-renderer-backgrounding'
+                ]
+              : [])
+          ]
+        }),
+      catch: error => error instanceof Error ? error : new Error(String(error))
+    });
+  });
+
+  const program = openTask().pipe(
+    Effect.retry(
+      Schedule.exponential(Duration.seconds(5)).pipe(
+        Schedule.compose(Schedule.recurs(2)),
+        Schedule.tapOutput(attempt =>
+          Effect.logWarning(`⚠️ Headless server start attempt ${attempt + 1} failed, retrying...`)
+        )
+      )
+    ),
+    Effect.catchAll(error =>
+      Effect.logError('❌ Failed to start headless server after 3 attempts', {
+        error: error.message
+      }).pipe(
+        Effect.andThen(() => process.exit(1)),
+        Effect.asVoid
+      )
+    )
+  );
+
+  await Effect.runPromise(program as Effect.Effect<void, Error, never>);
 };
 
 /** Sets up signal handlers for graceful shutdown */

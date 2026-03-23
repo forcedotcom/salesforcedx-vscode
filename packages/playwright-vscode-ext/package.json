@@ -9,7 +9,8 @@
   "dependencies": {
     "@playwright/test": "^1.57.0",
     "@vscode/test-electron": "2.5.2",
-    "@vscode/test-web": "^0.0.78"
+    "@vscode/test-web": "^0.0.78",
+    "effect": "^3.20.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.27.0"

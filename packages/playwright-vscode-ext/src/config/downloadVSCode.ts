@@ -6,6 +6,9 @@
  */
 
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Schedule from 'effect/Schedule';
 import * as path from 'node:path';
 import { resolveRepoRoot } from '../utils/repoRoot';
 
@@ -17,5 +20,22 @@ export default async (): Promise<void> => {
   const repoRoot = resolveRepoRoot(__dirname);
   const cachePath = path.join(repoRoot, '.vscode-test');
   const version = process.env.PLAYWRIGHT_DESKTOP_VSCODE_VERSION ?? undefined;
-  await downloadAndUnzipVSCode({ version, cachePath });
+
+  const download = Effect.fn('downloadVSCode')(function* () {
+    return yield* Effect.tryPromise({
+      try: () => downloadAndUnzipVSCode({ version, cachePath }),
+      catch: error => (error instanceof Error ? error : new Error(String(error)))
+    }).pipe(
+      Effect.retry(
+        Schedule.exponential(Duration.seconds(5)).pipe(
+          Schedule.compose(Schedule.recurs(2)),
+          Schedule.tapOutput(attempt =>
+            Effect.logWarning(`⚠️ VS Code download attempt ${attempt + 1} failed, retrying...`)
+          )
+        )
+      )
+    );
+  });
+
+  await Effect.runPromise(download());
 };
