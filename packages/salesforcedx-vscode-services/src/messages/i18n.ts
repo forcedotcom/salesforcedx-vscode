@@ -32,8 +32,7 @@ export const messages = {
   icon_browser: 'Open Org in Browser',
   icon_warning: 'Expired',
   metadata_overwrite_confirmation: '"%s" already exists. Do you want to overwrite it?',
-  overwrite_button: 'Overwrite',
-  cancel_button: 'Cancel'
+  overwrite_button: 'Overwrite'
 } as const;
 
 export type MessageKey = keyof typeof messages;

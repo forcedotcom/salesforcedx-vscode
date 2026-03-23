@@ -7,13 +7,15 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
-  const name = yield* Effect.promise(() =>
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('create_script_name_prompt'),
       validateInput: (value: string) =>
@@ -23,8 +25,10 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
             ? nls.localize('create_script_name_format_error')
             : undefined
     })
+  ).pipe(
+    Effect.map(raw => raw?.trim()),
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
-  return name?.trim() ? Option.some(name.trim()) : Option.none();
 });
 
 export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.createAnonymousApexScript')(function* () {
@@ -32,9 +36,7 @@ export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.creat
   const { uri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
   const promptService = yield* api.services.PromptService;
-  const scriptNameOpt = yield* promptForScriptName();
-  if (Option.isNone(scriptNameOpt)) return;
-  const scriptName = scriptNameOpt.value;
+  const scriptName = yield* promptForScriptName();
   const targetUri = Utils.joinPath(Utils.joinPath(uri, 'scripts'), `${scriptName}.apex`);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [targetUri] });
   yield* fsService.writeFile(targetUri, "System.debug('hello, world');\n");
