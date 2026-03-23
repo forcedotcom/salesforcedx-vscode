@@ -125,14 +125,13 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
     }));
 
   const apiVersion = yield* getApiVersion(project);
-  const cwd = workspaceInfo.uri.fsPath;
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   const fsService = yield* api.services.FsService;
   const channelService = yield* api.services.ChannelService;
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
   yield* api.services.TemplateService.create({
-    cwd,
+    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexClass,
     outputdir: outputDirUri,
     options: { template, classname: className, apiversion: apiVersion }

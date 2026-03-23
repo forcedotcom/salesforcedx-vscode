@@ -111,23 +111,22 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const fsService = yield* api.services.FsService;
   const project = yield* api.services.ProjectService.getSfProject();
 
   const className = params?.name ?? (yield* promptForClassName());
 
-  const outputDirUri =
-    params?.outputDir ?? outputDirectory ?? (yield* promptForOutputDir(project));
+  const outputDirUri = params?.outputDir ?? outputDirectory ?? (yield* promptForOutputDir(project));
 
   const template = params?.template ?? (yield* promptForTemplate());
 
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const apiVersion = yield* getApiVersion(project);
-  const cwd = workspaceInfo.uri.fsPath;
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
   const result = yield* api.services.TemplateService.create({
-    cwd,
+    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexClass,
     outputdir: outputDirUri,
     options: { template, classname: className, apiversion: apiVersion }
