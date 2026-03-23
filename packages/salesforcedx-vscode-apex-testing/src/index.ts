@@ -260,6 +260,13 @@ const registerCommands = (): vscode.Disposable => {
   const apexTestRefreshCmd = vscode.commands.registerCommand('sf.apex.test.refresh', async () => {
     await getTestController().refresh();
   });
+  const apexTestingWalkthroughOpenCmd = vscode.commands.registerCommand('sf.apex.testing.walkthrough.open', () =>
+    vscode.commands.executeCommand(
+      'workbench.action.openWalkthrough',
+      'salesforce.salesforcedx-vscode-apex-testing#sf.apex.testing.explorer',
+      false
+    )
+  );
 
   return vscode.Disposable.from(
     apexToggleColorizerCmd,
@@ -277,7 +284,8 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteRunCmd,
     apexTestSuiteAddCmd,
     openOrgOnlyTestCmd,
-    apexTestRefreshCmd
+    apexTestRefreshCmd,
+    apexTestingWalkthroughOpenCmd
   );
 };
 
