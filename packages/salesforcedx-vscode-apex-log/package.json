@@ -190,7 +190,7 @@
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
       "env": {
-        "E2E_SEQUENTIAL": "1"
+        "PLAYWRIGHT_WORKERS": "1"
       },
       "dependencies": [
         "vscode:bundle",
@@ -210,7 +210,7 @@
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
-        "E2E_SEQUENTIAL": "1"
+        "PLAYWRIGHT_WORKERS": "1"
       },
       "dependencies": [
         "vscode:bundle",
