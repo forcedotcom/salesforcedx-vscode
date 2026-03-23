@@ -88,7 +88,7 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
   yield* api.services.TemplateService.create({
-    cwd: workspaceInfo.uri.fsPath,
+    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexClass,
     outputdir: outputDirUri,
     options: { template, classname: className, apiversion: apiVersion }
