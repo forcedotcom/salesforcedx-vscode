@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Global } from '@salesforce/core';
+import { Global, StateAggregator } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
@@ -59,6 +59,17 @@ export class AliasService extends Effect.Service<AliasService>()('AliasService',
       );
     });
 
-    return { getAllAliases, getAliasesFromUsername, getUsernameFromAlias };
+    /** Remove aliases by name. Idempotent: no-op if alias already removed (e.g. by Core). */
+    const unsetAliases = Effect.fn('AliasService.unsetAliases')(function* (aliases: readonly string[]) {
+      const sa = yield* Effect.promise(() => StateAggregator.getInstance());
+      yield* Effect.forEach(
+        aliases,
+        alias =>
+          Effect.promise(() => sa.aliases.unsetAndSave(alias)).pipe(Effect.catchAll(() => Effect.void)),
+        { discard: true }
+      );
+    });
+
+    return { getAllAliases, getAliasesFromUsername, getUsernameFromAlias, unsetAliases };
   })
 }) {}
