@@ -11,9 +11,9 @@ module.exports = {
     '^vscode$': '<rootDir>/../../scripts/setup-jest.ts',
     '^o11y_schema/sf_pdp$': '<rootDir>/../../config/__mocks__/o11y_schema_sf_pdp.js'
   },
-  // Ignore .vscode-test directories to prevent Haste module map conflicts
-  modulePathIgnorePatterns: ['/.vscode-test/'],
-  testPathIgnorePatterns: ['/.vscode-test/']
+  // Ignore .vscode-test and out directories to prevent Haste module map conflicts
+  modulePathIgnorePatterns: ['/.vscode-test/', '<rootDir>/out/'],
+  testPathIgnorePatterns: ['/.vscode-test/', '<rootDir>/out/']
   // Note: isolatedModules: true would speed up tests significantly (~4-7x faster)
   // but breaks dynamic imports (await import(...)) used in orgUtil.ts and elsewhere
   // This collectCoverageFrom will show coverage for all files in a projects, but slows down calculating coverage results.

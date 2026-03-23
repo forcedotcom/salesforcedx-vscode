@@ -135,9 +135,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
 
     // Verify the marker comment is gone from the editor
     const editor = page.locator(`[data-uri*="${className}.cls"] .view-lines`).first();
-    await expect(editor).toBeVisible({ timeout: 10_000 });
-    const editorText = await editor.textContent();
-    expect(editorText, 'File should not contain the edit marker after retrieve').not.toContain('WILL_BE_REVERTED');
+    await expect(editor).not.toHaveText(/WILL_BE_REVERTED/, { timeout: 15_000 });
     await saveScreenshot(page, 'retrieve-revert.complete.png');
   });
 

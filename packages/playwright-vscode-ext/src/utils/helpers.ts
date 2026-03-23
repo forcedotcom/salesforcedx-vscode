@@ -323,11 +323,11 @@ export const waitForExtensionsActivated = async (page: Page, timeout = 120_000):
  */
 export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> => {
   // VS Code's secondary sidebar is in the .part.auxiliarybar element
-  // Check if it's visible (has the 'visible' class or is not 'display: none')
   const auxiliaryBar = page.locator('.part.auxiliarybar');
 
   // Check if sidebar exists and is visible
-  const isVisible = await auxiliaryBar.isVisible().catch(() => false);
+  // Use a short timeout to avoid hanging if it's not there
+  const isVisible = await auxiliaryBar.isVisible({ timeout: 1000 }).catch(() => false);
 
   if (isVisible) {
     // Focus workbench before opening palette (avoids F1/keystrokes going to auxiliary bar chat input)
