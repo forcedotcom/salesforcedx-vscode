@@ -104,7 +104,7 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // Also force the StateAggregator to reload to have the latest
   // authorization info. Called without args to clear ALL cached instances,
   // including the default one used by AuthInfo.listAllAuthorizations().
-  StateAggregator.clearInstance();
+  await StateAggregator.clearInstanceAsync();
 
   // Trigger Apex Test Controller to discover tests after org auth/set-default. Delay so config
   // and TargetOrgRef can propagate before refresh runs.

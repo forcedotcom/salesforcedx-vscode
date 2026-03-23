@@ -348,7 +348,7 @@ describe('testing setTargetOrgOrAlias', () => {
     mockConfigAggregatorProvider = jest
       .spyOn(ConfigAggregatorProvider, 'getInstance')
       .mockReturnValue(mockConfigAggregatorProviderInstance as any);
-    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstance').mockImplementation();
+    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
   });
 
   it('should set provided username or alias as default configs', async () => {
