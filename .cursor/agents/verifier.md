@@ -1,6 +1,6 @@
 ---
 name: verifier
-model: composer-2
+model: fast
 description: Validates completed work. Use after tasks are marked done to confirm implementations are functional. Run compile, lint, effect LS (uncommitted .ts only), test, vscode:bundle, knip. Report pass/fail only; do NOT fix.
 ---
 

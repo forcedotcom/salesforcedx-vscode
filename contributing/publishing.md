@@ -28,7 +28,7 @@ If any code changes are made between the time the release branch is automaticall
 
 ## Compare Changes in the Release
 
-When verifying the release, verify that it contains changes. One can see the changes in GitHub using an URL to diff the changes between releases, with an URl in the format of https://github.com/forcedotcom/salesforcedx-vscode/compare/release/v57.7.0...release/v57.8.0.
+When verifying the release, verify that it contains changes. One can see the changes in GitHub using a URL to diff the changes between releases, e.g. `https://github.com/forcedotcom/salesforcedx-vscode/compare/release/vX.Y.Z...release/vX.Y.(Z+1)`.
 
 If no changes were made the previous week, then the release can be skipped (no actions beyond this point)
 
@@ -139,8 +139,8 @@ To manually install vsix files you can use the `code` or `code-insiders` cli.
 
 Due to [vscode-vsce#191](https://github.com/Microsoft/vscode-vsce/issues/191)
 the .vsix are neither signed nor verified. To ensure that they have not been
-tampered with, we generate a SHA256 of the contents and publish that to
-https://developer.salesforce.com/media/vscode/SHA256
+tampered with, we generate a SHA256 of the contents and publish that to the
+Salesforce developer site (see `vscode:sha256` script).
 
 ### Steps
 
@@ -215,11 +215,9 @@ from Atlassian on the flow. These steps are manual because you might encounter m
       their `url` attributes set.
       For `bugs` the url is `https://github.com/forcedotcom/salesforcedx-vscode/issues`
       For `repository` the url is `https://github.com/forcedotcom/salesforcedx-vscode`
-   3. In the extension's package.json, under `scripts` the following attributes need
-      to be defined:
-      `"vscode:prepublish": "npm prune --production"`
-      `"vscode:package": "vsce package"`
-      `"vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"`
-      `"vscode:publish": "node ../../scripts/publish-vsix.js"`
+   3. Scripts: modern packages use wireit; see [Build](../docs/Build.md) and
+      [vsce-direct-use](./decisions/vsce-direct-use.md). Legacy packages need
+      `vscode:prepublish`, `vscode:package:legacy`. All need `vscode:sha256` and
+      `vscode:publish`.
 
 [publish_vscode_ext]: https://code.visualstudio.com/docs/extensions/publish-extension
