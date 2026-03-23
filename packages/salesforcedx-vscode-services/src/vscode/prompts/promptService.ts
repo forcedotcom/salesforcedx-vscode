@@ -101,8 +101,13 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
     });
 
     return {
+      /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
+       * This is shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
       ensureMetadataOverwriteOrThrow,
-      ensureValueOrThrow: considerUndefinedAsCancellation,
+      /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
+       * Otherwise, return `value` with `undefined` removed from its type. */
+      considerUndefinedAsCancellation,
+      /** Prompt user to select output directory from available package directories, or choose a custom one. */
       promptForOutputDir
     };
   })

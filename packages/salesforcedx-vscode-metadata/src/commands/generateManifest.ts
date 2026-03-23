@@ -26,7 +26,7 @@ const promptForFileName = Effect.fn('promptForFileName')(function* () {
   };
   return yield* Effect.promise(() => vscode.window.showInputBox(inputOptions)).pipe(
     Effect.map(s => (s ? appendExtension(s) : undefined)),
-    Effect.flatMap(promptService.ensureValueOrThrow)
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 });
 

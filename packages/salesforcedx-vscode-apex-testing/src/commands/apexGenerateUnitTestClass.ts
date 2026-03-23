@@ -70,7 +70,7 @@ const promptForClassName = Effect.fn('promptForClassName')(function* () {
     })
   ).pipe(
     Effect.map(n => n?.trim()),
-    Effect.flatMap(promptService.ensureValueOrThrow)
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 });
 
@@ -92,7 +92,7 @@ const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
       { placeHolder: nls.localize('apex_test_template_prompt') }
     )
   ).pipe(
-    Effect.flatMap(selected => promptService.ensureValueOrThrow(selected)),
+    Effect.flatMap(selected => promptService.considerUndefinedAsCancellation(selected)),
     Effect.map(s => s?.label)
   );
 });

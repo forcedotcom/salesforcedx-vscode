@@ -47,7 +47,7 @@ const promptForOutputDir = Effect.fn('promptForOutputDir')(function* () {
         matchOnDescription: true
       }
     )
-  ).pipe(Effect.flatMap(choice => promptService.ensureValueOrThrow(choice)));
+  ).pipe(Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)));
 
   if (selected.label === CUSTOM_DIR_LABEL) {
     const folders = yield* Effect.promise(() =>
