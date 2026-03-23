@@ -18,7 +18,6 @@ import { MessageKey } from './i18n';
  * If omitted, we will assume _message.
  */
 export const messages: Partial<Record<MessageKey, string>> = {
-  data_query_input_text: 'SFDX: SOQL クエリを実行...',
   data_query_selection_text: 'SFDX: 現在選択されているテキストで SOQL クエリを実行',
   data_query_document_text: 'SFDX: 現在のファイルで SOQL クエリを実行',
   soql_run_query_codelens: 'クエリを実行'

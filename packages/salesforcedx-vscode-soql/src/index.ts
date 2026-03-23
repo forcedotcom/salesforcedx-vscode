@@ -62,7 +62,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           )
         )
       ),
-      registerCommand('sf.data.query.input', dataQuery),
       registerCommand('sf.data.query.selection', dataQuery),
       registerCommand('sf.data.query.document', dataQueryDocument),
       registerCommand('sf.data.query.explain.selection', queryPlan),

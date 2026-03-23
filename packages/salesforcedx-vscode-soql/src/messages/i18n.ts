@@ -32,7 +32,6 @@ export const messages = {
     'ERROR: %s. Unknown error. Open an issue and provide the error message details: https://github.com/forcedotcom/soql-tooling/issues/new/choose.',
   error_data_view_save:
     "ERROR: We can't save the file to the specified directory. Make sure you have write permissions for the directory.",
-  data_query_input_text: 'SFDX: Execute SOQL Query...',
   data_query_selection_text: 'SFDX: Execute SOQL Query with Currently Selected Text',
   data_query_document_text: 'SFDX: Execute SOQL Query with Current File',
   soql_run_query_codelens: 'Run Query',
@@ -77,7 +76,6 @@ export const messages = {
   soql_custom_output_directory: 'Choose a Custom Directory',
   soql_file_already_exists: 'A file with that name already exists. Overwrite?',
   soql_overwrite_button: 'Overwrite',
-  parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   REST_API: 'REST API',
   REST_API_description: 'Use REST API to execute the query',
   tooling_API: 'Tooling API',

@@ -20,10 +20,6 @@ const API_ITEMS = [
   { api: 'TOOLING' as const, label: nls.localize('tooling_API'), description: nls.localize('tooling_API_description') }
 ];
 
-const INPUT_BOX_OPTIONS: vscode.InputBoxOptions = {
-  prompt: nls.localize('parameter_gatherer_enter_soql_query')
-};
-
 const normalizeQuery = (q: string): string =>
   q.replace('[', '').replace(']', '').replaceAll(/(\r\n|\n)/g, ' ').trim();
 
@@ -45,15 +41,8 @@ const getQuery = (useSelection: boolean): string | undefined => {
 
 export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
-    const editor = vscode.window.activeTextEditor;
-    const query =
-      !editor || editor.selection.isEmpty
-        ? await vscode.window.showInputBox(INPUT_BOX_OPTIONS)
-        : editor.document.getText(editor.selection);
-    if (!query) {
-      return { type: 'CANCEL' };
-    }
-    return pickApiForQuery(normalizeQuery(query));
+    const query = getQuery(true);
+    return query ? pickApiForQuery(query) : { type: 'CANCEL' };
   }
 }
 

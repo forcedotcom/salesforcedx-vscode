@@ -347,10 +347,6 @@
         "title": "%soql_walkthrough_open%"
       },
       {
-        "command": "sf.data.query.input",
-        "title": "%data_query_input_text%"
-      },
-      {
         "command": "sf.data.query.selection",
         "title": "%data_query_selection_text%"
       },
@@ -384,10 +380,6 @@
         {
           "command": "soql.walkthrough.open",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.data.query.input",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
         },
         {
           "command": "sf.data.query.selection",
