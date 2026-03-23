@@ -15,7 +15,7 @@ version: 1.1.0
 | Return Values    | Handle `Thenable<string \| undefined>` or `Thenable<MessageItem \| undefined>` | Ignore return values                             |
 | Button Actions   | Check return value for button clicks    | Assume user always clicks                        |
 | Button Actions   | `nls.localize`                          | String literals or template literals without nls |
-| Modal Options    | `{ modal: true, detail: ... }` for blocking dialogs | `detail` without `modal: true` (detail modal-only) |
+| Modal Options    | `{ modal: true, detail: ... }` for blocking dialogs | `detail` without `modal: true` (detail modal-only); explicit 'Cancel' buttons (VS Code adds one automatically) |
 | Effect (wait)    | `Effect.promise()` when response needed | `Effect.promise()` for fire-and-forget           |
 | Effect (no wait) | `Effect.sync()` for fire-and-forget     | `Effect.promise()` when not waiting              |
 
@@ -165,10 +165,11 @@ await vscode.window.showErrorMessage(nls.localize('retrieve_failed', errorMessag
 await vscode.window.showWarningMessage(
   nls.localize('destructive_action_warning'),
   { modal: true, detail: nls.localize('destructive_action_detail') },
-  nls.localize('confirm'),
-  nls.localize('cancel')
+  nls.localize('confirm')
 );
 ```
+
+**Note:** VS Code automatically adds a 'Cancel' button to modal dialogs. Do not add an explicit `nls.localize('cancel_button')` as an item when `modal: true`. Dismissing the dialog (via 'Cancel' or ESC) returns `undefined`.
 
 ## MessageOptions and MessageItem
 
@@ -225,8 +226,7 @@ const confirm =
   Effect.promise(() =>
     vscode.window.showWarningMessage(
       nls.localize('confirm_destructive_action'),
-      nls.localize('proceed_button'),
-      nls.localize('cancel_button')
+      nls.localize('proceed_button')
     )
   );
 
