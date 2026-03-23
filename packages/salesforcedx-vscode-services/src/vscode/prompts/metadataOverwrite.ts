@@ -45,8 +45,7 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           vscode.window.showWarningMessage(
             nls.localize('metadata_overwrite_confirmation', placeholder),
             { modal: true },
-            nls.localize('overwrite_button'),
-            nls.localize('cancel_button')
+            nls.localize('overwrite_button')
           )
         );
 
