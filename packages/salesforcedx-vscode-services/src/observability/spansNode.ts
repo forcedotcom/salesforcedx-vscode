@@ -20,12 +20,11 @@ import { SpanTransformProcessor } from './spanTransformProcessor';
 import { isCommandSpan, isTopLevelSpan } from './spanUtils';
 
 class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
-  public override async export(
-    spans: ReadableSpan[],
-    resultCallback: (result: ExportResult) => void
-  ): Promise<void> {
-    const filteredSpans = spans.filter(span => isTopLevelSpan(span) || isCommandSpan(span));
-    return super.export(filteredSpans, resultCallback);
+  public override async export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): Promise<void> {
+    return super.export(
+      spans.filter(span => isTopLevelSpan(span) || isCommandSpan(span)),
+      resultCallback
+    );
   }
 }
 
