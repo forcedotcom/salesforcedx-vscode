@@ -33,13 +33,13 @@ Shares singleton instances (caches, watchers) across extensions; avoids re-build
 
 Per-extension layers (must build yourself):
 
-| Layer | Why |
-|---|---|
-| `ChannelServiceLayer(displayName)` | Own output channel |
-| `ErrorHandlerService.Default` | Depends on own ChannelService |
-| `ExtensionContextServiceLayer(context)` | Own `ExtensionContext` |
-| `SdkLayerFor(context)` | Own tracer (extension name/version in resource attributes) |
-| `ExtensionProviderServiceLive` | Local singleton |
+| Layer                                   | Why                                                        |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `ChannelServiceLayer(displayName)`      | Own output channel                                         |
+| `ErrorHandlerService.Default`           | Depends on own ChannelService                              |
+| `ExtensionContextServiceLayer(context)` | Own `ExtensionContext`                                     |
+| `SdkLayerFor(context)`                  | Own tracer (extension name/version in resource attributes) |
+| `ExtensionProviderServiceLive`          | Local singleton                                            |
 
 ## ExtensionContext Setup
 
@@ -121,16 +121,23 @@ Accessor pattern: call methods directly, don't assign to variable first.
 
 ### File Watching
 
-Watch file changes:
+FileWatcherService exposes a PubSub of all workspace file changes (`**/*`). Subscribe and filter:
 
 ```typescript
-const watcher = yield * api.services.FileWatcherService.watchFiles(pattern, options);
+import * as PubSub from 'effect/PubSub';
+import * as Stream from 'effect/Stream';
+
+const fileWatcher = yield * api.services.FileWatcherService;
+const dequeue = yield * PubSub.subscribe(fileWatcher.pubsub);
 
 yield *
-  Stream.runForEach(watcher, event =>
-    Effect.sync(() => {
-      // Handle file change
-    })
+  Stream.fromQueue(dequeue).pipe(
+    Stream.filter(event => /* match event.uri to your pattern */),
+    Stream.runForEach(event =>
+      Effect.sync(() => {
+        // Handle event: { type: 'create'|'change'|'delete', uri }
+      })
+    )
   );
 ```
 
@@ -167,22 +174,20 @@ yield *
 
 ### Target Org Changes
 
-Watch org changes via `TargetOrgRef`:
+Watch org changes via `TargetOrgRef` (SubscriptionRef):
 
 ```typescript
-const targetOrgRef = yield * api.services.TargetOrgRef();
+const ref = yield * api.services.TargetOrgRef();
 yield *
-  Effect.forkDaemon(
-    targetOrgRef.changes.pipe(
-      Stream.map(org => org.orgId),
-      Stream.changes,
-      Stream.tap(orgId => {
-        // Handle org change
-      }),
-      Stream.runForEach(() => {
-        // Refresh UI, invalidate caches, etc.
-      })
-    )
+  ref.changes.pipe(
+    Stream.map(org => org.orgId),
+    Stream.changes,
+    Stream.tap(orgId => {
+      // Handle org change
+    }),
+    Stream.runForEach(() => {
+      // Refresh UI, invalidate caches, etc.
+    })
   );
 ```
 

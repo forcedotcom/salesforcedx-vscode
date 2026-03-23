@@ -10,7 +10,10 @@
     ]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "test/playwright/**/*.ts",
+    "playwright.config.desktop.ts",
+    "package.nls.json"
   ],
   "exclude": [
     "node_modules",
@@ -33,6 +36,9 @@
     },
     {
       "path": "../salesforcedx-vscode-i18n"
+    },
+    {
+      "path": "../playwright-vscode-ext"
     }
   ]
 }
