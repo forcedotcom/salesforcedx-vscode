@@ -62,7 +62,7 @@
     "crypto-browserify": "3.12.1",
     "cz-conventional-changelog": "3.3.0",
     "dpdm": "^3.14.0",
-    "effect": "^3.19.19",
+    "effect": "^3.20.0",
     "esbuild": "0.27.3",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-plugin-polyfill-node": "0.3.0",
