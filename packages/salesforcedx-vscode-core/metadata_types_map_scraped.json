@@ -38995,7 +38995,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The object for which you're creating the rule. We recommend that you don’t edit this field after the rule is created.If enforcementType is set to Restrict, custom objects, external objects, and these objects are supported: Contract Event Task TimeSheet TimeSheetEntry If enforcementType is set to Scoping, custom objects and these objects are supported: Account Case Contact Event Lead Opportunity Task",
+        "Description": "Required. The object for which you're creating the rule. We recommend that you don’t edit this field after the rule is created.If enforcementType is set to Restrict, custom objects, external objects, and these objects are supported: Contract Event Quote Task TimeSheet TimeSheetEntry If enforcementType is set to Scoping, custom objects and these objects are supported: Account Case Contact Event Lead Opportunity Task",
         "Field Name": "targetEntity",
         "Field Type": "string"
       },
@@ -40080,6 +40080,11 @@
       {
         "Description": "Indicates whether Transaction Journal creation is enabled for the organization (true) or not (false).",
         "Field Name": "enableAccountingSubledger",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Requires Data Cloud and Accounting Subledger access. Indicates whether Data Cloud Runtime for Accounting Subledger feature is enabled for the organization (true) or not (false). This field is available in API version 66.0 and later.",
+        "Field Name": "enableAslDataCloud",
         "Field Type": "boolean"
       },
       {

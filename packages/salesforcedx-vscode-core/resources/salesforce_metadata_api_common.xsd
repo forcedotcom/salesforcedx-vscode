@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-03-15T13:28:53.681Z
+Generated on: 2026-03-22T13:26:45.883Z
 Total metadata types: 1540
 -->
 <xsd:schema
@@ -1893,6 +1893,12 @@ Total metadata types: 1540
      <xsd:element name="enableAccountingSubledger" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Transaction Journal creation is enabled for the organization (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableAslDataCloud" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Requires Data Cloud and Accounting Subledger access. Indicates whether Data Cloud Runtime for Accounting Subledger feature is enabled for the organization (true) or not (false). This field is available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -62592,7 +62598,7 @@ Total metadata types: 1540
      </xsd:element>
      <xsd:element name="targetEntity" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The object for which you&apos;re creating the rule. We recommend that you don’t edit this field after the rule is created.If enforcementType is set to Restrict, custom objects, external objects, and these objects are supported: Contract Event Task TimeSheet TimeSheetEntry If enforcementType is set to Scoping, custom objects and these objects are supported: Account Case Contact Event Lead Opportunity Task</xsd:documentation>
+       <xsd:documentation>Required. The object for which you&apos;re creating the rule. We recommend that you don’t edit this field after the rule is created.If enforcementType is set to Restrict, custom objects, external objects, and these objects are supported: Contract Event Quote Task TimeSheet TimeSheetEntry If enforcementType is set to Scoping, custom objects and these objects are supported: Account Case Contact Event Lead Opportunity Task</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
