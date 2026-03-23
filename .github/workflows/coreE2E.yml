@@ -112,6 +112,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_SEQUENTIAL: 1
+          WIREIT_CACHE: none
         run: |
           npm run test:desktop -w salesforcedx-vscode-core -- --last-failed --reporter=html
 

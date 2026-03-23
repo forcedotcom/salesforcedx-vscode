@@ -68,6 +68,7 @@ jobs:
         env:
           CI: 1
           E2E_SEQUENTIAL: 1
+          WIREIT_CACHE: none
         run: |
           npm run test:web -w @salesforce/playwright-vscode-ext -- --last-failed
 
@@ -149,6 +150,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           E2E_SEQUENTIAL: 1
+          WIREIT_CACHE: none
         run: |
           npm run test:desktop -w @salesforce/playwright-vscode-ext -- --last-failed
 
