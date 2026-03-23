@@ -8,8 +8,18 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
+import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
+
+class SourceTrackingComponentsFailedError extends Schema.TaggedError<SourceTrackingComponentsFailedError>()(
+  'SourceTrackingComponentsFailedError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.Unknown)
+  }
+) {}
 
 // Type guard function to ensure result has expected shape
 const isApplyResult = (
@@ -26,8 +36,8 @@ export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
     yield* Effect.annotateCurrentSpan({ ignoreConflicts });
 
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const [sourceTrackingService, channelService] = yield* Effect.all(
-      [api.services.SourceTrackingService, api.services.ChannelService],
+    const [sourceTrackingService, channelService, componentSetService] = yield* Effect.all(
+      [api.services.SourceTrackingService, api.services.ChannelService, api.services.ComponentSetService],
       { concurrency: 'unbounded' }
     );
 
@@ -48,26 +58,30 @@ export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
     const result = yield* Effect.tryPromise({
       try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
       catch: e =>
-        new Error(nls.localize('error_source_tracking_components_failed', e instanceof Error ? e.message : String(e)))
+        new SourceTrackingComponentsFailedError({
+          message: nls.localize('error_source_tracking_components_failed', e instanceof Error ? e.message : String(e)),
+          cause: e
+        })
     }).pipe(Effect.withSpan('maybeApplyRemoteDeletesToLocal'));
 
     if (!isApplyResult(result)) {
       return yield* Effect.fail(
-        new Error(nls.localize('error_source_tracking_components_failed', 'Invalid result from source tracking'))
+        new SourceTrackingComponentsFailedError({
+          message: nls.localize('error_source_tracking_components_failed', 'Invalid result from source tracking')
+        })
       );
     }
 
     const componentSet = result.componentSetFromNonDeletes;
-
-    const changeCount = componentSet.size;
+    const nonEmpty = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
     yield* channelService.appendToChannel(
-      `Found ${changeCount} remote change${changeCount === 1 ? '' : 's'} to retrieve`
+      `Found ${nonEmpty.size} remote change${nonEmpty.size === 1 ? '' : 's'} to retrieve`
     );
-
-    if (componentSet.size === 0) {
-      yield* channelService.appendToChannel('No remote changes to retrieve');
-      return;
-    }
-
-    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
-  });
+    yield* retrieveComponentSet({ componentSet: nonEmpty, ignoreConflicts: true });
+  }).pipe(
+    Effect.catchTag('EmptyComponentSetError', () =>
+      Effect.sync(() => {
+        void vscode.window.showInformationMessage(nls.localize('no_remote_changes_to_retrieve'));
+      })
+    )
+  );

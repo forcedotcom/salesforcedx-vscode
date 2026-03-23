@@ -9,42 +9,6 @@ jest.mock('../../../src/services/channel', () => ({
   channelService: { appendLine: jest.fn() },
   OUTPUT_CHANNEL: {}
 }));
-jest.mock('../../../src/messages', () => ({
-  nls: {
-    localize: (key: string, ...args: any[]) => {
-      // Map error keys to themselves for error message tests
-      const errorKeys = [
-        'data_query_error_org_expired',
-        'data_query_error_session_expired',
-        'data_query_error_invalid_login',
-        'data_query_error_insufficient_access',
-        'data_query_error_malformed_query',
-        'data_query_error_invalid_field',
-        'data_query_error_invalid_type',
-        'data_query_error_connection',
-        'data_query_error_tooling_not_found',
-        'data_query_error_message',
-        'data_query_no_records',
-        'data_query_table_title',
-        'data_query_input_text',
-        'data_query_running_query',
-        'data_query_complete',
-        'data_query_warning_limit',
-        'data_query_success_message',
-        'data_query_open_file',
-        'parameter_gatherer_enter_soql_query',
-        'REST_API',
-        'REST_API_description',
-        'tooling_API',
-        'tooling_API_description'
-      ];
-      if (errorKeys.includes(key)) {
-        return key;
-      }
-      return key;
-    }
-  }
-}));
 
 import {
   convertToCSV,
@@ -52,11 +16,12 @@ import {
   formatFieldValue,
   formatFieldValueForDisplay,
   generateTableOutput,
-  buildQueryOptions,
   displayTableResults,
-  convertQueryResultToCSV,
-  formatErrorMessage
+  convertQueryResultToCSV
 } from '../../../src/commands/dataQuery';
+import { formatErrorMessage } from '../../../src/commands/queryUtils';
+import { nls } from '../../../src/messages';
+import { messages } from '../../../src/messages/i18n';
 import { channelService } from '../../../src/services/channel';
 
 describe('DataQuery Pure Functions', () => {
@@ -514,19 +479,10 @@ describe('DataQuery Pure Functions', () => {
     });
   });
 
-  describe('buildQueryOptions', () => {
-    it('should return base options when maxFetch is undefined', () => {
-      expect(buildQueryOptions()).toEqual({ autoFetch: true, scanAll: false });
-    });
-    it('should include maxFetch when provided', () => {
-      expect(buildQueryOptions(100)).toEqual({ autoFetch: true, scanAll: false, maxFetch: 100 });
-    });
-  });
-
   describe('convertQueryResultToCSV', () => {
     it('should return no records message if records are empty', () => {
       const result = convertQueryResultToCSV({ records: [], totalSize: 0, done: true });
-      expect(result).toBe('data_query_no_records');
+      expect(result).toBe(messages.data_query_no_records);
     });
     it('should convert records to CSV if present', () => {
       const result = convertQueryResultToCSV({ records: [{ Id: '001', Name: 'Test' }], totalSize: 1, done: true });
@@ -536,22 +492,22 @@ describe('DataQuery Pure Functions', () => {
 
     it('should handle null records', () => {
       const result = convertQueryResultToCSV({ records: null, totalSize: 0, done: true });
-      expect(result).toBe('data_query_no_records');
+      expect(result).toBe(messages.data_query_no_records);
     });
   });
 
   describe('formatErrorMessage', () => {
     const errorCases = [
-      { input: { message: 'HTTP response contains html content' }, expected: 'data_query_error_org_expired' },
-      { input: { message: 'INVALID_SESSION_ID' }, expected: 'data_query_error_session_expired' },
-      { input: { message: 'INVALID_LOGIN' }, expected: 'data_query_error_invalid_login' },
-      { input: { message: 'INSUFFICIENT_ACCESS' }, expected: 'data_query_error_insufficient_access' },
-      { input: { message: 'MALFORMED_QUERY' }, expected: 'data_query_error_malformed_query' },
-      { input: { message: 'INVALID_FIELD' }, expected: 'data_query_error_invalid_field' },
-      { input: { message: 'INVALID_TYPE' }, expected: 'data_query_error_invalid_type' },
-      { input: { message: 'connection error' }, expected: 'data_query_error_connection' },
-      { input: { message: 'tooling not found' }, expected: 'data_query_error_tooling_not_found' },
-      { input: { message: 'Some other error' }, expected: 'data_query_error_message' }
+      { input: { message: 'HTTP response contains html content' }, expected: messages.data_query_error_org_expired },
+      { input: { message: 'INVALID_SESSION_ID' }, expected: messages.data_query_error_session_expired },
+      { input: { message: 'INVALID_LOGIN' }, expected: messages.data_query_error_invalid_login },
+      { input: { message: 'INSUFFICIENT_ACCESS' }, expected: messages.data_query_error_insufficient_access },
+      { input: { message: 'MALFORMED_QUERY' }, expected: messages.data_query_error_malformed_query },
+      { input: { message: 'INVALID_FIELD' }, expected: messages.data_query_error_invalid_field },
+      { input: { message: 'INVALID_TYPE' }, expected: messages.data_query_error_invalid_type },
+      { input: { message: 'connection error' }, expected: messages.data_query_error_connection },
+      { input: { message: 'tooling not found' }, expected: messages.data_query_error_tooling_not_found },
+      { input: { message: 'Some other error' }, expected: nls.localize('data_query_error_message', 'Some other error') }
     ];
     errorCases.forEach(({ input, expected }) => {
       it(`should handle error: ${input.message}`, () => {
@@ -561,22 +517,22 @@ describe('DataQuery Pure Functions', () => {
 
     it('should handle Error instances', () => {
       const error = new Error('HTTP response contains html content');
-      expect(formatErrorMessage(error)).toBe('data_query_error_org_expired');
+      expect(formatErrorMessage(error)).toBe(messages.data_query_error_org_expired);
     });
 
     it('should handle objects with message property', () => {
       const error = { message: 'INVALID_SESSION_ID' };
-      expect(formatErrorMessage(error)).toBe('data_query_error_session_expired');
+      expect(formatErrorMessage(error)).toBe(messages.data_query_error_session_expired);
     });
 
     it('should handle string errors', () => {
       const error = 'Some random error message';
-      expect(formatErrorMessage(error)).toBe('data_query_error_message');
+      expect(formatErrorMessage(error)).toBe(nls.localize('data_query_error_message', 'Some random error message'));
     });
 
     it('should handle null and undefined', () => {
-      expect(formatErrorMessage(null)).toBe('data_query_error_message');
-      expect(formatErrorMessage(undefined)).toBe('data_query_error_message');
+      expect(formatErrorMessage(null)).toBe(nls.localize('data_query_error_message', 'null'));
+      expect(formatErrorMessage(undefined)).toBe(nls.localize('data_query_error_message', 'undefined'));
     });
   });
 
@@ -586,7 +542,7 @@ describe('DataQuery Pure Functions', () => {
     });
     it('should display no records message for empty results', () => {
       displayTableResults({ records: [], totalSize: 0, done: true });
-      expect(channelService.appendLine).toHaveBeenCalledWith('data_query_no_records');
+      expect(channelService.appendLine).toHaveBeenCalledWith(messages.data_query_no_records);
     });
 
     it('should display table for results with records', () => {
@@ -595,12 +551,12 @@ describe('DataQuery Pure Functions', () => {
         totalSize: 1,
         done: true
       });
-      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining('data_query_table_title'));
+      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining(messages.data_query_table_title));
     });
 
     it('should handle null records', () => {
       displayTableResults({ records: null, totalSize: 0, done: true });
-      expect(channelService.appendLine).toHaveBeenCalledWith('data_query_no_records');
+      expect(channelService.appendLine).toHaveBeenCalledWith(messages.data_query_no_records);
     });
 
     it('should add newline before table output', () => {

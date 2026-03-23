@@ -19,6 +19,8 @@ export { retrieveSourcePaths } from './retrieveSourcePath';
 export { openDocumentation } from './openDocumentation';
 export { projectDeployStart } from './projectDeployStart';
 export {
+  agentProjectGenerate,
+  nativemobileProjectGenerate,
   projectGenerateWithManifest,
   ProjectGenerateArgs,
   ProjectTemplate,

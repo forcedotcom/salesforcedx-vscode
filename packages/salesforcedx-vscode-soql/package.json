@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.2.0",
+  "version": "66.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -36,7 +36,7 @@
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/effect-ext-utils": "*",
-    "effect": "^3.19.19",
+    "effect": "^3.20.0",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
     "@salesforce/soql-language-server": "^1.1.0",
@@ -48,7 +48,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.23.2",
+    "@salesforce/core": "^8.27.0",
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.3.0",
@@ -357,6 +357,14 @@
       {
         "command": "sf.data.query.document",
         "title": "%data_query_document_text%"
+      },
+      {
+        "command": "sf.data.query.explain.selection",
+        "title": "%query_plan_selection_text%"
+      },
+      {
+        "command": "sf.data.query.explain.document",
+        "title": "%query_plan_document_text%"
       }
     ],
     "menus": {
@@ -387,7 +395,15 @@
         },
         {
           "command": "sf.data.query.document",
-          "when": "resourceExtname == .soql && sf:has_target_org"
+          "when": "sf:project_opened && resourceExtname == .soql && sf:has_target_org"
+        },
+        {
+          "command": "sf.data.query.explain.selection",
+          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.data.query.explain.document",
+          "when": "sf:project_opened && resourceExtname == .soql && sf:has_target_org"
         }
       ],
       "editor/title": [

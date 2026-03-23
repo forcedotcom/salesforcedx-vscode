@@ -22,7 +22,7 @@ Related: `@salesforce/apex` (module resolver for LWC; source repo not in package
    - Target: `node_modules/@salesforce/<package-name>/` (repo root; npm workspaces hoists deps).
    - Alternative: `npm link` if you're comfortable with it; copy is simpler and avoids symlink quirks.
 
-1. **Bundle** — Run `npm run vscode:bundle`.
+1. **Bundle** — Run `npm run vscode:bundle`. See [Build](./Build.md) for bundling details.
    - **Wireit cache:** Wireit does not watch `node_modules` for changes. After copying a library, use `WIREIT_CACHE=none` so the bundle runs with your changes instead of a cached result:
      ```bash
      WIREIT_CACHE=none npm run vscode:bundle

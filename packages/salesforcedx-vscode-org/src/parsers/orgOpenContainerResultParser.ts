@@ -24,13 +24,16 @@ export type OrgOpenErrorResult = {
   warnings: any[];
 };
 
+type OrgOpenResponse = OrgOpenSuccessResult | OrgOpenErrorResult;
+
 export class OrgOpenContainerResultParser {
-  private response: any;
+  private response: OrgOpenResponse | undefined;
 
   constructor(stdout: string) {
     try {
       const sanitized = stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
-      this.response = JSON.parse(sanitized);
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- JSON.parse returns any, assert expected shape */
+      this.response = JSON.parse(sanitized) as OrgOpenResponse;
     } catch {
       const err = new Error('Error parsing org open result');
       err.name = 'OrgOpenContainerParserFail';

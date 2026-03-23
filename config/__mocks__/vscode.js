@@ -96,6 +96,10 @@ const vscode = {
     Left: 1,
     Right: 2
   },
+  QuickPickItemKind: {
+    Separator: -1,
+    Default: 0
+  },
   FileType: {
     File: 1,
     Directory: 2

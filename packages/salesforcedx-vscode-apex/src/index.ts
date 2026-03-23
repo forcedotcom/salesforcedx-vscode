@@ -22,6 +22,9 @@ import {
 import { nls } from './messages';
 import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
 
+/** Time to await graceful LSP shutdown before force-kill. LS uses this to close its internal DB. */
+const DEACTIVATE_STOP_TIMEOUT_MS = 3000;
+
 export const activate = async (context: vscode.ExtensionContext) => {
   const vscodeCoreExtension = await getVscodeCoreExtension();
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
@@ -97,7 +100,23 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
 };
 
 export const deactivate = async () => {
-  await languageClientManager.getClientInstance()?.stop();
+  const client = languageClientManager.getClientInstance();
+  if (client) {
+    let timedOut = false;
+    const stopPromise = client.stop();
+    const timeoutPromise = new Promise<void>(resolve =>
+      setTimeout(() => {
+        timedOut = true;
+        resolve();
+      }, DEACTIVATE_STOP_TIMEOUT_MS)
+    );
+    await Promise.race([stopPromise, timeoutPromise]);
+    if (timedOut) {
+      languageClientManager.killChildApexProcesses();
+    }
+  } else {
+    languageClientManager.killChildApexProcesses();
+  }
   getTelemetryService().sendExtensionDeactivationEvent();
 };
 

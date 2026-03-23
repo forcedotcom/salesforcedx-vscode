@@ -32,6 +32,47 @@ import { FileFormat, QueryDataFileService as FileService } from './queryDataFile
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
+const getWebViewContent = async (webview: vscode.Webview, extensionUri: vscode.Uri): Promise<string> => {
+  const baseStyleUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
+  );
+  const tabulatorStyleUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_STYLE_FILENAME)
+  );
+  const viewControllerUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME)
+  );
+  const tabulatorUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_SCRIPT_FILENAME)
+  );
+  const saveIconUri = webview.asWebviewUri(
+    Utils.joinPath(extensionUri, ...DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME)
+  );
+
+  return getHtml({ baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri }, extensionUri, webview);
+};
+
+const saveRecordsEffect = Effect.fn('QueryDataView.save_records')(function* ({
+  queryText,
+  queryData,
+  format,
+  document
+}: {
+  queryText: string;
+  queryData: QueryResult<JsonMap>;
+  format: FileFormat;
+  document: vscode.TextDocument;
+}) {
+  const fileService = new FileService(queryText, queryData, format, document);
+  yield* Effect.promise(() => fileService.save()).pipe(
+    Effect.catchAllCause(() =>
+      Effect.sync(() => {
+        vscode.window.showErrorMessage(nls.localize('error_data_view_save'));
+      })
+    )
+  );
+});
+
 type DataViewEvent = {
   type: string;
   format?: FileFormat;
@@ -39,7 +80,6 @@ type DataViewEvent = {
 
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
-  public readonly viewType = QUERY_DATA_VIEW_TYPE;
   public static extensionUri: vscode.Uri;
   private queryText: string;
 
@@ -55,7 +95,7 @@ export class QueryDataViewService {
     QueryDataViewService.extensionUri = extensionContext.extensionUri;
   }
 
-  private updateWebviewWith(queryData: QueryResult<JsonMap>): Effect.Effect<void> {
+  private updateWebviewWith(queryData: QueryResult<JsonMap>) {
     return Effect.promise(
       () =>
         this.currentPanel?.webview.postMessage({
@@ -78,7 +118,7 @@ export class QueryDataViewService {
   public async createOrShowWebView(): Promise<vscode.Webview> {
     const { extensionUri } = QueryDataViewService;
     this.currentPanel = vscode.window.createWebviewPanel(
-      this.viewType,
+      QUERY_DATA_VIEW_TYPE,
       QUERY_DATA_VIEW_PANEL_TITLE,
       vscode.ViewColumn.Two,
       {
@@ -104,7 +144,7 @@ export class QueryDataViewService {
       dark: salesforceCloudUri
     };
 
-    this.currentPanel.webview.html = await this.getWebViewContent(this.currentPanel.webview);
+    this.currentPanel.webview.html = await getWebViewContent(this.currentPanel.webview, QueryDataViewService.extensionUri);
 
     // Stream-based message handling: each message dispatched as a named OTel span
     const panel = this.currentPanel;
@@ -132,14 +172,14 @@ export class QueryDataViewService {
     return this.currentPanel.webview;
   }
 
-  private handleMessageEffect = (message: DataViewEvent): Effect.Effect<void> => {
+  private handleMessageEffect = (message: DataViewEvent) => {
     const { type, format } = message;
     switch (type) {
       case 'activate':
         return this.updateWebviewWith(this.queryData).pipe(Effect.withSpan('QueryDataView.activate'));
 
       case 'save_records':
-        return this.handleSaveRecordsEffect(format).pipe(Effect.withSpan('QueryDataView.save_records'));
+        return saveRecordsEffect({ queryText: this.queryText, queryData: this.queryData, format: format!, document: this.document });
 
       default:
         return Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', type))).pipe(
@@ -148,44 +188,4 @@ export class QueryDataViewService {
     }
   };
 
-  private handleSaveRecordsEffect = (format: FileFormat): Effect.Effect<void> => {
-    const self = this;
-    return Effect.gen(function* () {
-      const fileService = new FileService(self.queryText, self.queryData, format, self.document);
-      yield* Effect.promise(() => fileService.save());
-    }).pipe(
-      Effect.catchAllCause(() =>
-        Effect.sync(() => vscode.window.showErrorMessage(nls.localize('error_data_view_save')))
-      )
-    );
-  };
-
-  protected async getWebViewContent(webview: vscode.Webview): Promise<string> {
-    const { extensionUri } = QueryDataViewService;
-    const baseStyleUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
-    );
-    const tabulatorStyleUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_STYLE_FILENAME)
-    );
-    const viewControllerUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME)
-    );
-    const tabulatorUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_SCRIPT_FILENAME)
-    );
-    const saveIconUri = webview.asWebviewUri(
-      Utils.joinPath(extensionUri, ...DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME)
-    );
-
-    const staticAssets = {
-      baseStyleUri,
-      tabulatorStyleUri,
-      viewControllerUri,
-      tabulatorUri,
-      saveIconUri
-    };
-
-    return await getHtml(staticAssets, extensionUri, webview);
-  }
 }
