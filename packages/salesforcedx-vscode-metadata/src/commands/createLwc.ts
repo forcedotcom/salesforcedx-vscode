@@ -60,6 +60,9 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   const project = yield* api.services.ProjectService.getSfProject();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
+  const hasTsSupport = getHasTypeScriptSupport();
+  const template = hasTsSupport ? yield* promptForComponentType() : ('default' as const);
+
   const componentName = yield* promptForComponentName();
 
   const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
@@ -70,9 +73,6 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
       defaultUri,
       pickerPlaceHolder: nls.localize('lwc_output_dir_prompt')
     }));
-
-  const hasTsSupport = getHasTypeScriptSupport();
-  const template = hasTsSupport ? yield* promptForComponentType() : ('default' as const);
 
   yield* Effect.annotateCurrentSpan({
     componentName,
