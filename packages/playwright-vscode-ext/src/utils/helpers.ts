@@ -67,7 +67,7 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'vscode-unpkg.net', // VS Code extension marketplace CDN
   'scratchOrgInfo', // asking the org if it's a devhub during auth ?
   'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
-  '.a4drules', // @salesforce/templates optional project template assets (reactb2e/reactb2x) not bundled for Apex
+  '.a4drules', // @salesforce/templates optional project template assets (react internal/external app templates) not bundled for Apex
   'typescript-language-features', // TS extension 404s for package.json etc in web
   'applicationinsights.azure.com' // Azure Application Insights telemetry (e.g. HTTP 439 throttling) — not critical to extension behavior
 ] as const;
