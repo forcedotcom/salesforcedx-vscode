@@ -67,7 +67,7 @@ jobs:
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:web -w @salesforce/playwright-vscode-ext -- --last-failed
 
@@ -148,7 +148,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w @salesforce/playwright-vscode-ext -- --last-failed
 

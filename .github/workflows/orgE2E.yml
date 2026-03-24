@@ -80,7 +80,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-org -- --last-failed --reporter=html
 
