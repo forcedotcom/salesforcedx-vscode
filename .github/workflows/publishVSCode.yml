@@ -97,10 +97,12 @@ jobs:
           GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
         run: |
           VERSION="${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}"
-          echo "Dispatching extension-publish event to code-builder-web with version $VERSION"
+          RELEASE_TYPE="minor"
+          echo "Dispatching extension-publish event to code-builder-web with version $VERSION (release-type: $RELEASE_TYPE)"
           gh api repos/forcedotcom/code-builder-web/dispatches \
             --method POST \
             -f event_type=extension-publish \
             -f "client_payload[version]=$VERSION" \
-            -f "client_payload[source]=publishVSCode"
+            -f "client_payload[source]=publishVSCode" \
+            -f "client_payload[release_type]=$RELEASE_TYPE"
           echo "Dispatch sent successfully"
