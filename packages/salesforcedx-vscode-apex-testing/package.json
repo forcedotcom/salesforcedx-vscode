@@ -146,7 +146,7 @@
       "output": []
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/**/*.ts",
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/**/*.ts --exclude \"/node_modules/|/out/|/dist/|/packages/\"",
       "dependencies": [
         "compile"
       ],
