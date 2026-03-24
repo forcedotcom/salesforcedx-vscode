@@ -57,13 +57,14 @@ export const packageJsonWebVscodeignore: Rule.RuleModule = {
       missingExistingDirPattern: 'Web extension .vscodeignore is missing pattern for existing directory: "{{pattern}}"'
     }
   },
-  create: context =>
-    ({
+  create: context => {
+    const filename = context.filename ?? context.getFilename();
+    if (!filename.includes('package.json')) {
+      return {};
+    }
+
+    return {
       'Document:exit': (node: any) => {
-        const filename = context.getFilename();
-        if (!filename.includes('package.json')) {
-          return;
-        }
         const ast = node?.body;
         if (ast?.type !== 'Object') return;
 
@@ -115,5 +116,6 @@ export const packageJsonWebVscodeignore: Rule.RuleModule = {
           }
         });
       }
-    }) as Rule.RuleListener
+    } as Rule.RuleListener;
+  }
 };

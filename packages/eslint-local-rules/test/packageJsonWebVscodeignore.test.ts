@@ -6,12 +6,18 @@
  */
 
 import * as path from 'node:path';
-import * as fs from 'node:fs';
 
 import { packageJsonWebVscodeignore } from '../src/packageJsonWebVscodeignore';
 import { createJsonLinter, filterByRule } from './jsonLintHelper';
 
 const RULE_NAME = 'package-json-web-vscodeignore';
+const FIXTURES = path.resolve(__dirname, 'fixtures');
+
+const webPkgCode = JSON.stringify(
+  { name: 'salesforcedx-vscode-services', browser: './dist/web/index.js' },
+  null,
+  2
+);
 
 describe('package-json-web-vscodeignore', () => {
   it('should be exported', () => {
@@ -25,103 +31,45 @@ describe('package-json-web-vscodeignore', () => {
 
     it('should pass when package has no browser field', () => {
       const code = JSON.stringify(
-        {
-          name: 'salesforcedx-vscode-core',
-          engines: { vscode: '^1.90.0' }
-        },
+        { name: 'salesforcedx-vscode-core', engines: { vscode: '^1.90.0' } },
         null,
         2
       );
-
       const errors = filterByRule(lintJson(code), RULE_NAME);
       expect(errors).toHaveLength(0);
     });
 
     it('should error when web extension has no .vscodeignore', () => {
-      const code = JSON.stringify(
-        {
-          name: 'salesforcedx-vscode-services',
-          browser: './dist/web/index.js'
-        },
-        null,
-        2
-      );
-
-      // Use a path that definitely won't have a .vscodeignore
-      const servicesPkg = path.resolve(__dirname, '../../salesforcedx-vscode-services/package.json');
-      const fakePkgPath = path.join(path.dirname(servicesPkg), 'nonexistent/package.json');
-      const errors = filterByRule(lintJson(code, fakePkgPath), RULE_NAME);
+      const fakePkgPath = path.join(FIXTURES, 'web-extension-no-ignore/package.json');
+      const errors = filterByRule(lintJson(webPkgCode, fakePkgPath), RULE_NAME);
       expect(errors).toHaveLength(1);
       expect(errors[0].messageId).toBe('missingVscodeignore');
     });
 
     it('should error when web extension .vscodeignore is missing required patterns', () => {
-      const code = JSON.stringify(
-        {
-          name: 'salesforcedx-vscode-services',
-          browser: './dist/web/index.js'
-        },
-        null,
-        2
+      // fixture/.vscodeignore omits **/*.node — all other required entries present
+      const pkgPath = path.join(FIXTURES, 'missing-node-pattern/package.json');
+      const errors = filterByRule(lintJson(webPkgCode, pkgPath), RULE_NAME);
+      const nodeError = errors.find(
+        e => e.messageId === 'missingRequiredPattern' && e.message.includes('**/*.node')
       );
-
-      const servicesPkg = path.resolve(__dirname, '../../salesforcedx-vscode-services/package.json');
-      const vscodeignorePath = path.resolve(__dirname, '../../salesforcedx-vscode-services/.vscodeignore');
-      const originalContent = fs.readFileSync(vscodeignorePath, 'utf-8');
-      
-      try {
-        // Temporarily remove **/*.node from .vscodeignore
-        const modifiedContent = originalContent.replace('**/*.node', '');
-        fs.writeFileSync(vscodeignorePath, modifiedContent);
-        
-        const errors = filterByRule(lintJson(code, servicesPkg), RULE_NAME);
-        const nodeError = errors.find(e => e.messageId === 'missingRequiredPattern' && (e.data as any).pattern === '**/*.node');
-        expect(nodeError).toBeDefined();
-      } finally {
-        fs.writeFileSync(vscodeignorePath, originalContent);
-      }
+      expect(nodeError).toBeDefined();
     });
 
     it('should pass when web extension .vscodeignore is valid', () => {
-      const code = JSON.stringify(
-        {
-          name: 'salesforcedx-vscode-services',
-          browser: './dist/web/index.js'
-        },
-        null,
-        2
-      );
-
       const servicesPkg = path.resolve(__dirname, '../../salesforcedx-vscode-services/package.json');
-      const errors = filterByRule(lintJson(code, servicesPkg), RULE_NAME);
+      const errors = filterByRule(lintJson(webPkgCode, servicesPkg), RULE_NAME);
       expect(errors).toHaveLength(0);
     });
 
     it('should error when existing directory is not in .vscodeignore', () => {
-      const code = JSON.stringify(
-        {
-          name: 'salesforcedx-vscode-services',
-          browser: './dist/web/index.js'
-        },
-        null,
-        2
+      // fixture has a scripts/ directory but .vscodeignore omits scripts/**
+      const pkgPath = path.join(FIXTURES, 'missing-dir-pattern/package.json');
+      const errors = filterByRule(lintJson(webPkgCode, pkgPath), RULE_NAME);
+      const scriptError = errors.find(
+        e => e.messageId === 'missingExistingDirPattern' && e.message.includes('scripts/**')
       );
-
-      const servicesPkg = path.resolve(__dirname, '../../salesforcedx-vscode-services/package.json');
-      const vscodeignorePath = path.resolve(__dirname, '../../salesforcedx-vscode-services/.vscodeignore');
-      const originalContent = fs.readFileSync(vscodeignorePath, 'utf-8');
-      
-      try {
-        // Temporarily remove scripts/** from .vscodeignore
-        const modifiedContent = originalContent.replace('scripts/**', '');
-        fs.writeFileSync(vscodeignorePath, modifiedContent);
-        
-        const errors = filterByRule(lintJson(code, servicesPkg), RULE_NAME);
-        const scriptError = errors.find(e => e.messageId === 'missingExistingDirPattern' && (e.data as any).pattern === 'scripts/**');
-        expect(scriptError).toBeDefined();
-      } finally {
-        fs.writeFileSync(vscodeignorePath, originalContent);
-      }
+      expect(scriptError).toBeDefined();
     });
   });
 });
