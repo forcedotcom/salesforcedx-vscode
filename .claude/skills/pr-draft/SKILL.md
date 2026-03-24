@@ -23,6 +23,10 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
    - **Named:** user picks one (e.g. "Shane", "Daphne") → match first or full name to [gus-cli Team members](../gus-cli/SKILL.md#team-members-assignee__c-qa_engineer__c), use Id
    - **Random (Gus Spinner):** pick one at random from team members, excluding current `Assignee__c`
      Set `Status__c='Ready for Review'`, `QA_Engineer__c='<selected userId>'`. **Before updating:** show user Status**c, QA_Engineer**c. Ask user to confirm. Do not run `sf data update record` until user says yes.
+   - **Reviewer Reassignment:** Immediately after the GUS WI update, replace auto-assigned GitHub reviewers with the selected QA person:
+     1. Get current review requests: `gh pr view <url> --json reviewRequests --jq '.reviewRequests[].login'`
+     2. Remove each existing reviewer: `gh pr edit <url> --remove-reviewer <login>`
+     3. Add selected QA person: `gh pr edit <url> --add-reviewer <github_login>` (from [Team members (GitHub)](#team-members-github))
 
 ## Target branch
 
@@ -32,11 +36,24 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 
 ## Title format
 
-`type(scope): description W-XXXXX`
+`type(scope): description W-XXXXXXXX`
 
 - **Types**: feat, fix, docs, style, refactor, perf, test, ci, chore
 - **Scope**: optional
-- **Work item**: `W-XXXXX` at end
+- **Work item**: `W-XXXXXXXX` at end. This is the 8-digit `Name` field from GUS (e.g., `W-21735053`). NEVER use the Salesforce Record ID (e.g., `a07...`) in the title. If you just created the record, query the `Name` first.
+
+## Team members (GitHub)
+
+| Name | GitHub login |
+|---|---|
+| Cristina Cañizales | `CristiCanizales` |
+| Daphne Yang | `daphne-sfdc` |
+| Jonny Hork | `jonnyhork` |
+| Kyle Walker | `kylewalke` |
+| Madhur Shrivastava | `madhur310` |
+| Peter Hale | `peternhale` |
+| Shane McLaughlin | `mshanemc` |
+| Sonal Budhiraja | `sbudhirajadoc` |
 
 ## Body format
 
