@@ -12,27 +12,23 @@ import * as Schedule from 'effect/Schedule';
 
 /**
  * Downloads and unzips VS Code with retries.
- * @param version VS Code version to download
- * @param cachePath Path to cache the download
- * @returns Effect that resolves to the executable path
+ * @vscode/test-electron retries 3x internally (DOWNLOAD_ATTEMPTS=3) with no delay.
+ * This wrapper adds a 30s spaced retry so the CDN has time to recover between
+ * groups of internal attempts (e.g. after 0-byte / ECONNRESET failures).
  */
 export const downloadVSCodeWithRetry = (
   version: string | undefined,
   cachePath: string
-): Effect.Effect<string, Error, never> => {
-  const downloadTask = Effect.fn('downloadVSCode')(function* () {
-    return yield* Effect.tryPromise({
-      try: () => downloadAndUnzipVSCode({ version, cachePath }),
-      catch: error => (error instanceof Error ? error : new Error(String(error)))
-    });
-  });
-
-  return downloadTask().pipe(
+): Effect.Effect<string, Error, never> =>
+  Effect.tryPromise({
+    try: () => downloadAndUnzipVSCode({ version, cachePath }),
+    catch: error => (error instanceof Error ? error : new Error(String(error)))
+  }).pipe(
     Effect.retry(
-      Schedule.exponential(Duration.seconds(5)).pipe(
-        Schedule.compose(Schedule.recurs(4)),
+      Schedule.spaced(Duration.seconds(30)).pipe(
+        Schedule.compose(Schedule.recurs(1)),
         Schedule.tapOutput(attempt =>
-          Effect.logWarning(`⚠️ VS Code download attempt ${attempt + 1} failed, retrying...`)
+          Effect.logWarning(`VS Code download failed (attempt ${attempt + 1}), retrying in 30s...`)
         )
       )
     ),
@@ -42,4 +38,3 @@ export const downloadVSCodeWithRetry = (
         : Effect.fail(new Error('VS Code download returned undefined executable path'))
     )
   );
-};

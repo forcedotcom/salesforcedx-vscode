@@ -51,6 +51,13 @@ jobs:
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
+      - name: Restore VS Code download cache
+        id: vscode-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .vscode-test
+          key: vscode-test-${{ runner.os }}-${{ env.PLAYWRIGHT_DESKTOP_VSCODE_VERSION || 'stable' }}
+
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
       # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
@@ -114,6 +121,13 @@ jobs:
           E2E_SEQUENTIAL: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-core -- --last-failed --reporter=html
+
+      - name: Save VS Code download cache
+        if: always() && steps.vscode-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .vscode-test
+          key: vscode-test-${{ runner.os }}-${{ env.PLAYWRIGHT_DESKTOP_VSCODE_VERSION || 'stable' }}
 
       - name: Upload Playwright HTML report
         if: always()
