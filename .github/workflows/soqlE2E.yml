@@ -95,7 +95,7 @@ jobs:
         env:
           CI: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:web -w salesforcedx-vscode-soql -- --last-failed --reporter=html
 
@@ -208,7 +208,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-soql -- --last-failed --reporter=html
 
