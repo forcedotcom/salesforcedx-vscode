@@ -85,6 +85,9 @@ export const messages = {
   delete_failed: 'Failed to delete: %s',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
   manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
+  manifest_file_name_empty_error: 'File name cannot be empty',
+  manifest_file_name_format_error:
+    'File name must start with a letter and contain only alphanumeric characters and underscores',
   project_generate_manifest_text: 'SFDX: Generate Manifest File',
   generate_manifest_select_file_or_directory:
     'You can run SFDX: Generate Manifest File only on a source file or directory.',

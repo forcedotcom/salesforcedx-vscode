@@ -16,12 +16,12 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   const name = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('create_script_name_prompt'),
-      validateInput: (value: string) =>
-        !value?.trim()
-          ? nls.localize('create_script_name_empty_error')
-          : !/^[A-Za-z][A-Za-z0-9_]*$/.test(value)
-            ? nls.localize('create_script_name_format_error')
-            : undefined
+      validateInput: (value: string) => {
+        const normalized = value.trim();
+        if (!normalized) return nls.localize('create_script_name_empty_error');
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(normalized)) return nls.localize('create_script_name_format_error');
+        return undefined;
+      }
     })
   );
   return name?.trim() ? Option.some(name.trim()) : Option.none();
