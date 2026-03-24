@@ -77,35 +77,55 @@ export const dataQuery = Effect.fn('sf.data.query')(function* () {
   yield* Effect.promise(() => commandlet.run());
 });
 
+/** Shared flatten pipeline for output channel table, CSV, and Query Data View. */
+const buildFlattenedGridModel = (
+  records: QueryResult['records']
+): { flattenedFields: string[]; rows: Record<string, unknown>[] } | null => {
+  const recs = records?.filter(isRecord) ?? [];
+  if (recs.length === 0) {
+    return null;
+  }
+  const flattenedFields = getAllFlattenedFields(recs);
+  if (flattenedFields.length === 0) {
+    return null;
+  }
+  const rows = recs.flatMap(record => flattenRecord(record));
+  return { flattenedFields, rows };
+};
+
+/** Pre-flattened grid for SOQL Builder webview (string cells for Tabulator). */
+export const getFlattenedSoqlGridPayload = (
+  records: QueryResult['records']
+): { fields: string[]; rowData: Record<string, string>[] } | null => {
+  const model = buildFlattenedGridModel(records);
+  if (!model) {
+    return null;
+  }
+  const { flattenedFields, rows } = model;
+  const rowData = rows.map(row =>
+    Object.fromEntries(flattenedFields.map(field => [field, formatFieldValueForDisplay(row[field])]))
+  );
+  return { fields: flattenedFields, rowData };
+};
+
 /** Generates table output from query records */
 export const generateTableOutput = (records: QueryResult['records'], title: string): string => {
-  // Ensure the first record exists and is an object
-  const firstRecord = records[0];
-  if (!isRecord(firstRecord)) {
+  const model = buildFlattenedGridModel(records);
+  if (!model) {
     return '';
   }
-
-  // Flatten nested objects into separate columns
-  // Examine all records to find the complete field structure
-  const flattenedFields = getAllFlattenedFields(records.filter(isRecord));
-
-  // If no fields after flattening, return empty string
-  if (flattenedFields.length === 0) {
-    return '';
-  }
+  const { flattenedFields, rows } = model;
 
   const columns: Column[] = flattenedFields.map(field => ({
     key: field,
     label: field
   }));
 
-  const rows: Row[] = records.filter(isRecord).flatMap(record =>
-    flattenRecord(record).map(flattenedRecord =>
-      Object.fromEntries(flattenedFields.map(field => [field, formatFieldValueForDisplay(flattenedRecord[field])]))
-    )
+  const tableRows: Row[] = rows.map(flattenedRecord =>
+    Object.fromEntries(flattenedFields.map(field => [field, formatFieldValueForDisplay(flattenedRecord[field])]))
   );
 
-  return createTable(rows, columns, title);
+  return createTable(tableRows, columns, title);
 };
 
 const isRecord = (record: unknown): record is Record<string, unknown> =>
@@ -123,6 +143,75 @@ const isSubQueryResult = (
     typeof value.done === 'boolean' &&
     Array.isArray(value.records)
   );
+};
+
+const RELATIONSHIP_FLATTEN_MAX_DEPTH = 10;
+
+/** True for nested SObjects / relationship blobs, false for sub-query envelopes. */
+const isNestedRelationshipObject = (value: unknown): value is Record<string, unknown> =>
+  isRecord(value) && !isSubQueryResult(value);
+
+/**
+ * Flattens a relationship-shaped object into dotted keys on `row` (e.g. Owner.Manager.Name).
+ * Scalars and non-records are stored at `prefix` when recursion cannot descend.
+ */
+const mergeRelationshipFieldsIntoRow = (
+  row: Record<string, unknown>,
+  prefix: string,
+  value: unknown,
+  depthRemaining: number
+): void => {
+  if (depthRemaining <= 0) {
+    row[prefix] = value;
+    return;
+  }
+  if (!isNestedRelationshipObject(value)) {
+    row[prefix] = value;
+    return;
+  }
+  const keys = Object.keys(value).filter(k => k !== 'attributes');
+  if (keys.length === 0) {
+    return;
+  }
+  for (const nk of keys) {
+    const nv = value[nk];
+    const path = `${prefix}.${nk}`;
+    if (isNestedRelationshipObject(nv)) {
+      mergeRelationshipFieldsIntoRow(row, path, nv, depthRemaining - 1);
+    } else {
+      row[path] = nv;
+    }
+  }
+};
+
+/** Collects dotted field paths for relationship objects (field discovery). */
+const collectRelationshipFieldPaths = (
+  prefix: string,
+  value: unknown,
+  addField: (name: string) => void,
+  depthRemaining: number
+): void => {
+  if (depthRemaining <= 0) {
+    addField(prefix);
+    return;
+  }
+  if (!isNestedRelationshipObject(value)) {
+    addField(prefix);
+    return;
+  }
+  const keys = Object.keys(value).filter(k => k !== 'attributes');
+  if (keys.length === 0) {
+    return;
+  }
+  for (const nk of keys) {
+    const nv = value[nk];
+    const path = `${prefix}.${nk}`;
+    if (isNestedRelationshipObject(nv)) {
+      collectRelationshipFieldPaths(path, nv, addField, depthRemaining - 1);
+    } else {
+      addField(path);
+    }
+  }
 };
 
 /**
@@ -147,8 +236,14 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
         const expandedRows = value.records.filter(isRecord).map(subRecord => {
           const row: Record<string, unknown> = {};
           for (const [subKey, subValue] of Object.entries(subRecord)) {
-            if (subKey !== 'attributes') {
-              row[`${key}.${subKey}`] = subValue;
+            if (subKey === 'attributes') {
+              continue;
+            }
+            const pathPrefix = `${key}.${subKey}`;
+            if (isNestedRelationshipObject(subValue)) {
+              mergeRelationshipFieldsIntoRow(row, pathPrefix, subValue, RELATIONSHIP_FLATTEN_MAX_DEPTH);
+            } else {
+              row[pathPrefix] = subValue;
             }
           }
           return row;
@@ -158,10 +253,16 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
       // When totalSize === 0 no expansion is pushed; the parent row is emitted as-is
       // with undefined sub-columns, which display as empty strings.
     } else if (isRecord(value)) {
-      // Flatten relationship objects into dot-notation columns
+      // Flatten relationship objects into dot-notation columns (multi-level)
       for (const [nestedKey, nestedValue] of Object.entries(value)) {
-        if (nestedKey !== 'attributes') {
-          baseRow[`${key}.${nestedKey}`] = nestedValue;
+        if (nestedKey === 'attributes') {
+          continue;
+        }
+        const pathPrefix = `${key}.${nestedKey}`;
+        if (isNestedRelationshipObject(nestedValue)) {
+          mergeRelationshipFieldsIntoRow(baseRow, pathPrefix, nestedValue, RELATIONSHIP_FLATTEN_MAX_DEPTH);
+        } else {
+          baseRow[pathPrefix] = nestedValue;
         }
       }
     } else {
@@ -192,6 +293,19 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
   }
 
   return grid;
+};
+
+/** Registers one dotted column path, recursing into nested relationship objects. */
+const addFieldPathForValue = (
+  pathPrefix: string,
+  val: unknown,
+  addField: (name: string) => void
+): void => {
+  if (isNestedRelationshipObject(val)) {
+    collectRelationshipFieldPaths(pathPrefix, val, addField, RELATIONSHIP_FLATTEN_MAX_DEPTH);
+  } else {
+    addField(pathPrefix);
+  }
 };
 
 /**
@@ -248,9 +362,11 @@ const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => 
           for (const subRecord of value.records) {
             if (isRecord(subRecord)) {
               for (const subKey of Object.keys(subRecord)) {
-                if (subKey !== 'attributes') {
-                  addField(`${key}.${subKey}`);
+                if (subKey === 'attributes') {
+                  continue;
                 }
+                const pathPrefix = `${key}.${subKey}`;
+                addFieldPathForValue(pathPrefix, subRecord[subKey], addField);
               }
             }
           }
@@ -261,9 +377,11 @@ const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => 
         const value = record[key];
         if (isRecord(value)) {
           for (const nestedKey of Object.keys(value)) {
-            if (nestedKey !== 'attributes') {
-              addField(`${key}.${nestedKey}`);
+            if (nestedKey === 'attributes') {
+              continue;
             }
+            const pathPrefix = `${key}.${nestedKey}`;
+            addFieldPathForValue(pathPrefix, value[nestedKey], addField);
           }
         }
       }
@@ -275,30 +393,67 @@ const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => 
   return fieldOrder;
 };
 
-/** Converts query records to CSV format */
+/** Top-level sub-query keys become column prefixes (`Contacts.` …) for CSV parent vs child columns. */
+const getSubQueryKeyPrefixesFromRecords = (records: Record<string, unknown>[]): string[] => {
+  const prefixes = new Set<string>();
+  for (const record of records) {
+    for (const [key, value] of Object.entries(record)) {
+      if (key === 'attributes') {
+        continue;
+      }
+      if (isSubQueryResult(value)) {
+        prefixes.add(`${key}.`);
+      }
+    }
+  }
+  return [...prefixes];
+};
+
+const isEmptyCsvCell = (value: unknown): boolean => value === undefined || value === null || value === '';
+
+/**
+ * Within one parent record's flattened rows, repeat parent-column values on sub-query overflow rows
+ * so CSV exports are fully denormalized (unlike the output-channel table, which blanks repeated parents).
+ */
+const fillParentColumnsForCsvChunk = (
+  chunk: Record<string, unknown>[],
+  parentFields: string[]
+): Record<string, unknown>[] => {
+  const carry: Record<string, unknown> = {};
+  return chunk.map(row => {
+    const out = { ...row };
+    for (const field of parentFields) {
+      if (isEmptyCsvCell(out[field]) && !isEmptyCsvCell(carry[field])) {
+        out[field] = carry[field];
+      }
+    }
+    for (const field of parentFields) {
+      if (!isEmptyCsvCell(out[field])) {
+        carry[field] = out[field];
+      }
+    }
+    return out;
+  });
+};
+
+/** Converts query records to CSV format (same row/column model as generateTableOutput). */
 export const convertToCSV = (records: QueryResult['records']): string => {
-  if (!records?.length) {
+  const model = buildFlattenedGridModel(records);
+  if (!model) {
     return '';
   }
-
-  // Ensure the first record exists and is an object
-  const firstRecord = records[0];
-  if (!isRecord(firstRecord)) {
-    return '';
-  }
-
-  const fields = Object.keys(firstRecord).filter(key => key !== 'attributes');
-  // If no fields after filtering attributes, return empty string
-  if (fields.length === 0) {
-    return '';
-  }
-
-  const header = fields.map(field => escapeCSVField(field)).join(',');
-  const rows = records
-    .filter(isRecord)
-    .map(record => fields.map(field => escapeCSVField(formatFieldValue(record[field]))).join(','));
-
-  return [header, ...rows].join('\n');
+  const recs = records?.filter(isRecord) ?? [];
+  const { flattenedFields } = model;
+  const subPrefixes = getSubQueryKeyPrefixesFromRecords(recs);
+  const parentFields = flattenedFields.filter(f => !subPrefixes.some(p => f.startsWith(p)));
+  const rows = recs.flatMap(record =>
+    fillParentColumnsForCsvChunk(flattenRecord(record), parentFields)
+  );
+  const header = flattenedFields.map(field => escapeCSVField(field)).join(',');
+  const lines = rows.map(row =>
+    flattenedFields.map(field => escapeCSVField(formatFieldValue(row[field]))).join(',')
+  );
+  return [header, ...lines].join('\n');
 };
 
 /** Escapes a field value for CSV format */
@@ -322,32 +477,47 @@ export const formatFieldValue = (value: unknown): string => {
   return String(value);
 };
 
-/** Formats a field value for table display */
-export const formatFieldValueForDisplay = (value: unknown): string => {
+const DISPLAY_OBJECT_MAX_DEPTH = 10;
+
+/**
+ * Formats a value inside an object/array for display (shows `null` / `undefined` as words).
+ */
+const formatNestedDisplayValue = (value: unknown, depthRemaining: number): string => {
+  if (value === null) {
+    return 'null';
+  }
+  if (value === undefined) {
+    return 'undefined';
+  }
+  if (value instanceof Date) {
+    const dateStr = String(value);
+    return dateStr.length > 50 ? `${dateStr.substring(0, 47)}...` : dateStr;
+  }
+  if (Array.isArray(value)) {
+    const joined = value.map(v => formatNestedDisplayValue(v, depthRemaining)).join(',');
+    return joined.length > 50 ? `${joined.substring(0, 47)}...` : joined;
+  }
+  if (typeof value === 'object' && isRecord(value)) {
+    if (depthRemaining <= 0) {
+      return '[Object]';
+    }
+    const entries = Object.entries(value).filter(([key]) => key !== 'attributes');
+    if (entries.length === 0) {
+      return '[Object]';
+    }
+    const joined = entries.map(([_key, val]) => formatNestedDisplayValue(val, depthRemaining - 1)).join(', ');
+    return joined.length > 50 ? `${joined.substring(0, 47)}...` : joined;
+  }
+  const primitiveStr = String(value);
+  return primitiveStr.length > 50 ? `${primitiveStr.substring(0, 47)}...` : primitiveStr;
+};
+
+/** Formats a field value for table display (recurses into nested plain objects). */
+export const formatFieldValueForDisplay = (value: unknown, depthRemaining = DISPLAY_OBJECT_MAX_DEPTH): string => {
   if (value === null || value === undefined) {
     return '';
   }
-  if (typeof value === 'object' && isRecord(value)) {
-    // Handle nested objects (like relationship fields)
-    const obj = value;
-
-    // Filter out attributes field and collect all values
-    const values = Object.entries(obj)
-      .filter(([key]) => key !== 'attributes')
-      .map(([_key, val]) => String(val))
-      .join(', ');
-
-    if (values) {
-      // Truncate long values for display
-      return values.length > 50 ? `${values.substring(0, 47)}...` : values;
-    }
-
-    // Fallback for empty objects
-    return '[Object]';
-  }
-  const stringValue = String(value);
-  // Truncate long values for display
-  return stringValue.length > 50 ? `${stringValue.substring(0, 47)}...` : stringValue;
+  return formatNestedDisplayValue(value, depthRemaining);
 };
 
 /** Displays query results in table format */

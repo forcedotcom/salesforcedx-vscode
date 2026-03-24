@@ -28,6 +28,9 @@
 
   loadState();
 
+  /** @type {any} */
+  let mainTable;
+
   // ---- RENDER THE WEBVIEW CONTENT ---- //
 
   function updateUIWith(queryData, documentName) {
@@ -42,19 +45,54 @@
   }
 
   function renderTableWith(tableData) {
-    new Tabulator('#data-table', {
+    if (mainTable) {
+      mainTable.destroy();
+      mainTable = undefined;
+    }
+
+    var fg = tableData.flattenedGrid;
+    if (
+      fg &&
+      Array.isArray(fg.fields) &&
+      fg.fields.length > 0 &&
+      Array.isArray(fg.rowData)
+    ) {
+      mainTable = new Tabulator('#data-table', {
+        data: fg.rowData,
+        pagination: 'local',
+        paginationSize: 50,
+        layout: 'fitColumns',
+        height: '60vh',
+        virtualDom: false,
+        columns: fg.fields.map(function (f) {
+          // Tabulator (v4.x) treats dots in `field` as nested paths (row.Contacts.Id).
+          // Flattened SOQL rows use one object key per column, e.g. row["Contacts.Id"].
+          var col = { title: f, field: f };
+          if (f.indexOf('.') !== -1) {
+            col.formatter = function (cell) {
+              var v = cell.getRow().getData()[f];
+              return v === undefined || v === null ? '' : String(v);
+            };
+          }
+          return col;
+        })
+      });
+      return;
+    }
+
+    mainTable = new Tabulator('#data-table', {
       data: tableData.records,
       pagination: 'local',
+      paginationSize: 50,
       layout: 'fitColumns',
       height: '60vh',
+      virtualDom: false,
       columns: getColumns(tableData, tableData.columnData),
       rowFormatter: row => {
         tableData.columnData.subTables.forEach(subTable => {
-
           const key = Object.keys(row.getData()).find(k => k.toLowerCase() === subTable.objectName.toLowerCase());
           if (key && row.getData()[key]) {
             var data = row.getData()[key];
-            //create and style holder elements
             var holderEl = document.createElement("div");
             var tableEl = document.createElement("div");
 
@@ -70,11 +108,16 @@
 
             row.getElement().appendChild(holderEl);
 
-            new Tabulator(tableEl, {
-              layout:"fitColumns",
-              data: data.records,
-              columns: getColumns(data, subTable)
-            });
+            try {
+              new Tabulator(tableEl, {
+                layout: "fitColumns",
+                virtualDom: false,
+                data: data.records,
+                columns: getColumns(data, subTable)
+              });
+            } catch (e) {
+              console.error("SOQL nested Tabulator failed", e);
+            }
           }
         });
       }

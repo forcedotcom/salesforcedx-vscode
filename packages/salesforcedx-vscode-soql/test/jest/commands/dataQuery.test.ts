@@ -117,7 +117,7 @@ describe('DataQuery Pure Functions', () => {
         Name: 'Test',
         NestedObject: { Id: '001XX', Name: 'Nested' }
       };
-      expect(formatFieldValueForDisplay(obj)).toBe('Test, [object Object]');
+      expect(formatFieldValueForDisplay(obj)).toBe('Test, 001XX, Nested');
     });
 
     it('should handle arrays within objects', () => {
@@ -218,29 +218,29 @@ describe('DataQuery Pure Functions', () => {
 
       it('should handle object values', () => {
         const records = [{ Id: '001', Owner: { Id: '005', Name: 'John' } }];
-        const expected = 'Id,Owner\n001,"{""Id"":""005"",""Name"":""John""}"';
+        const expected = 'Id,Owner.Id,Owner.Name\n001,005,John';
         expect(convertToCSV(records)).toBe(expected);
       });
 
       it('should handle malformed records with undefined first record', () => {
         const records = [undefined, { Id: '001', Name: 'Test' }];
-        expect(convertToCSV(records)).toBe('');
+        expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
       it('should handle malformed records with null first record', () => {
         const records = [null, { Id: '001', Name: 'Test' }];
-        expect(convertToCSV(records)).toBe('');
+        expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
       it('should handle malformed records with non-object first record', () => {
         const records = ['not an object', { Id: '001', Name: 'Test' }];
         // @ts-expect-error - testing bad input
-        expect(convertToCSV(records)).toBe('');
+        expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
       it('should handle records with empty object as first record', () => {
         const records = [{}, { Id: '001', Name: 'Test' }];
-        expect(convertToCSV(records)).toBe('');
+        expect(convertToCSV(records)).toBe('Id,Name\n,\n001,Test');
       });
 
       it('should handle records with malformed individual records', () => {
@@ -383,8 +383,10 @@ describe('DataQuery Pure Functions', () => {
 
       expect(output).toContain('Account.Id');
       expect(output).toContain('Account.Name');
-      expect(output).toContain('Account.Owner'); // Complex nested object should show as comma-separated
-      expect(output).toContain('005XX0000001, John Doe'); // Owner values should be joined
+      expect(output).toContain('Account.Owner.Id');
+      expect(output).toContain('Account.Owner.Name');
+      expect(output).toContain('005XX0000001');
+      expect(output).toContain('John Doe');
     });
 
     it('should handle records with attributes field properly', () => {
@@ -444,6 +446,46 @@ describe('DataQuery Pure Functions', () => {
       expect(output).not.toContain('Contacts.done');
       expect(output).not.toContain('Contacts.records');
       expect(output).not.toContain('[object Object]');
+    });
+
+    it('should flatten nested Account.Parent on sub-query rows (CSV matches table)', () => {
+      const records = [
+        {
+          Id: '001leaf',
+          Name: 'LeafAcct',
+          Contacts: {
+            totalSize: 1,
+            done: true,
+            records: [
+              {
+                Id: '003x',
+                FirstName: 'H',
+                LastName: 'P',
+                Account: {
+                  Name: 'LeafAcct',
+                  Parent: {
+                    Name: 'MidAcct',
+                    Parent: {
+                      Name: 'RootAcct'
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ];
+      const output = generateTableOutput(records, 'Test Table');
+      expect(output).toContain('Contacts.Account.Name');
+      expect(output).toContain('Contacts.Account.Parent.Name');
+      expect(output).toContain('Contacts.Account.Parent.Parent.Name');
+      expect(output).toContain('RootAcct');
+      expect(output).not.toContain('[object Object]');
+
+      const csv = convertToCSV(records);
+      expect(csv).toContain('Contacts.Account.Parent.Parent.Name');
+      expect(csv).toContain('RootAcct');
+      expect(csv.split('\n')).toHaveLength(2);
     });
 
     it('should stack multiple sub-queries independently (not cross-product)', () => {
@@ -533,31 +575,39 @@ describe('DataQuery Pure Functions', () => {
 
       expect(output).toContain('Id');
       expect(output).toContain('Level1.Id');
-      expect(output).toContain('Level1.Level2'); // Deep nesting should be comma-separated
-      expect(output).toContain('003XX0000001, Deep Value');
+      expect(output).toContain('Level1.Level2.Id');
+      expect(output).toContain('Level1.Level2.Name');
+      expect(output).toContain('003XX0000001');
+      expect(output).toContain('Deep Value');
     });
 
     describe('bad data handling', () => {
       it('should handle malformed records with undefined first record', () => {
         const records = [undefined, { Id: '001', Name: 'Test' }];
-        expect(generateTableOutput(records, 'Test Table')).toBe('');
+        const output = generateTableOutput(records, 'Test Table');
+        expect(output).toContain('Id');
+        expect(output).toContain('001');
+        expect(output).toContain('Test');
       });
 
       it('should handle malformed records with null first record', () => {
         const records = [null, { Id: '001', Name: 'Test' }];
-        expect(generateTableOutput(records, 'Test Table')).toBe('');
+        const output = generateTableOutput(records, 'Test Table');
+        expect(output).toContain('Id');
+        expect(output).toContain('001');
       });
 
       it('should handle malformed records with non-object first record', () => {
         const records = ['not an object', { Id: '001', Name: 'Test' }];
         // @ts-expect-error - testing bad input
-        expect(generateTableOutput(records, 'Test Table')).toBe('');
+        const output = generateTableOutput(records, 'Test Table');
+        expect(output).toContain('Id');
+        expect(output).toContain('001');
       });
 
       it('should handle records with empty object as first record', () => {
         const records = [{}, { Id: '001', Name: 'Test' }];
         const output = generateTableOutput(records, 'Test Table');
-        // Should still generate table by examining all records, not just the first
         expect(output).toContain('Id');
         expect(output).toContain('Name');
         expect(output).toContain('001');
