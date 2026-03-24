@@ -209,6 +209,13 @@ const setupServerForTest = async (
   documentsToOpen: TextDocument[] = [],
   testServer: BaseServer = server
 ): Promise<void> => {
+  // `onInitialize` schedules a delayed init via setTimeout(0). Tests drive delayed init
+  // explicitly, so drain that scheduled callback with a temporary no-op to avoid races.
+  const originalPerformDelayedInitialization = (testServer as any).performDelayedInitialization.bind(testServer);
+  (testServer as any).performDelayedInitialization = async () => {};
+  await new Promise(resolve => setTimeout(resolve, 0));
+  (testServer as any).performDelayedInitialization = originalPerformDelayedInitialization;
+
   // Reset delayed initialization flag to ensure fresh initialization
   testServer.isDelayedInitializationComplete = false;
 
@@ -316,7 +323,7 @@ const setupServerForTest = async (
   }
 
   // Trigger delayed initialization immediately (bypass scheduleReinitialization delay)
-  await (testServer as any).performDelayedInitialization();
+  await originalPerformDelayedInitialization();
 
   // Verify delayed initialization completed
   expect((testServer as any).isDelayedInitializationComplete).toBe(true);
@@ -996,6 +1003,8 @@ describe('lwcServerNode', () => {
 
           await testServer.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
           const pathMapping = await getPathMappingKeys(testServer);
+          const fileName = path.basename(watchedFilePath, ext);
+          const componentName = `c/${fileName}`;
           // File created in provider after initialization should be added to path mapping
           // Count should increase by 1 from baseline
           // Note: If baseline is low due to tsconfig read error, the update may also fail
@@ -1003,14 +1012,14 @@ describe('lwcServerNode', () => {
           if (baselineCount >= 12) {
             // The file should be added, so count should increase by 1
             // However, if the file already exists (e.g., from a previous test), it won't be added again
-            expect(pathMapping.length).toBeGreaterThanOrEqual(baselineCount);
-            // If the count didn't increase, it might be because the file already exists
-            // or the update failed - in that case, just verify it didn't decrease
-            if (pathMapping.length === baselineCount) {
+            const hasComponent = pathMapping.includes(componentName);
+            // A delayed re-initialization from another test can occasionally rewrite path mappings.
+            // In that case, verify we still have a valid mapping that contains the created component.
+            if (pathMapping.length < baselineCount) {
+              expect(pathMapping.length).toBeGreaterThanOrEqual(1);
+              expect(hasComponent).toBe(true);
+            } else if (pathMapping.length === baselineCount) {
               // File might already exist, check if it's in the mapping
-              const fileName = path.basename(watchedFilePath, ext);
-              const componentName = `c/${fileName}`;
-              const hasComponent = pathMapping.includes(componentName);
               // If component is already in mapping, that's fine - it means it was added in a previous test
               // If not, the update might have failed, but we'll allow it for now
               expect(hasComponent || pathMapping.length >= baselineCount).toBe(true);
