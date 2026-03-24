@@ -26,9 +26,6 @@ tsconfig.json
 .eslint.json
 
 # unique to this package
-context
-design
-media
 scripts/**
 
 # do not reach outside the package

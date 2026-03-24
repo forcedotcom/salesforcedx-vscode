@@ -25,9 +25,6 @@ jest.config.js
 tsconfig.json
 .eslint.json
 
-# unique to this package
-snippets
-
 # do not reach outside the package
 ../../**
 ../**

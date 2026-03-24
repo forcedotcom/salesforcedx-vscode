@@ -26,8 +26,6 @@ tsconfig.json
 .eslint.json
 
 # unique to this package
-context
-design
 
 # do not reach outside the package
 ../../**
