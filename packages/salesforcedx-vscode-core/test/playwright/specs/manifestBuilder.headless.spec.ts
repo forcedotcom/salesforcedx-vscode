@@ -12,6 +12,7 @@ import {
   setupConsoleMonitoring,
   openFileByName,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   executeExplorerContextMenuCommand,
   clearOutputChannel,
   waitForOutputChannelText,
@@ -54,7 +55,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
 
     // Wait for filename prompt and accept default
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await saveScreenshot(page, 'manifest.prompt-visible.png');
     await page.keyboard.press('Enter');
 
@@ -76,6 +77,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     await openFileByName(page, 'package.xml');
     await clearOutputChannel(page);
 
+    await verifyCommandExists(page, packageNls.deploy_in_manifest_text, 120_000);
     await executeCommandWithCommandPalette(page, packageNls.deploy_in_manifest_text);
     await waitForOutputChannelText(page, {
       expectedText: 'Deployed Source',

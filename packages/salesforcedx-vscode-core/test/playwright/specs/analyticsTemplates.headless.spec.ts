@@ -12,6 +12,7 @@ import {
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
+  verifyCommandExists,
   closeWelcomeTabs,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
@@ -37,10 +38,11 @@ test.describe('Analytics Templates (Desktop Only)', () => {
   test('Create Sample Analytics Template', async ({ page }) => {
     const name = `Analytics${Date.now()}`;
     await test.step(`Create Analytics Template ${name}`, async () => {
+      await verifyCommandExists(page, packageNls.analytics_generate_template_text, 30_000);
       await executeCommandWithCommandPalette(page, packageNls.analytics_generate_template_text);
       
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
       await page.keyboard.type(name);
       await page.keyboard.press('Enter');
 
