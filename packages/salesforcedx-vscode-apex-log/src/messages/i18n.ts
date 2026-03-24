@@ -7,8 +7,7 @@
 
 export const messages = {
   create_script_name_empty_error: 'Script name cannot be empty',
-  create_script_name_format_error:
-    'Name must start with a letter and contain only letters, numbers, and underscores',
+  create_script_name_format_error: 'Name must start with a letter and contain only letters, numbers, and underscores',
   create_script_name_prompt: 'Enter script name',
   log_get_no_logs: 'No Apex debug logs found',
   log_get_pick_log: 'Select an Apex debug log to open',
@@ -50,6 +49,5 @@ export const messages = {
   exec_anon_success: 'Anonymous Apex executed successfully',
   open_log: 'Open Log',
   create_script_output_dir_prompt: 'Select the target directory',
-  create_script_output_dir_default_description: '(default)',
-  create_script_custom_output_directory: 'Choose a Custom Directory'
+  create_script_output_dir_default_description: '(default)'
 } as const;

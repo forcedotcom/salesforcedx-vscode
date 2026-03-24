@@ -88,11 +88,13 @@ export const messages = {
   project_generate_analytics_template_display_text: 'Analytics',
   project_generate_react_b2e_template_display_text: 'React B2E',
   project_generate_react_b2x_template_display_text: 'React B2X',
+  project_generate_agent_template_display_text: 'Agent',
   project_generate_empty_template: 'Empty project template',
   project_generate_standard_template: 'Standard project template',
   project_generate_analytics_template: 'Analytics project template',
   project_generate_react_b2e_template: 'React B2E project template',
   project_generate_react_b2x_template: 'React B2X project template',
+  project_generate_agent_template: 'Agent project template',
 
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
