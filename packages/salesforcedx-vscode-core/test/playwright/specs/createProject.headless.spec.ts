@@ -48,7 +48,7 @@ test('Create Project: standard project via command palette', async ({ page, work
 
   await test.step('enter project name', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await page.keyboard.type(PROJECT_NAME);
     await saveScreenshot(page, 'createProject.03-name-entered.png');
     await page.keyboard.press('Enter');

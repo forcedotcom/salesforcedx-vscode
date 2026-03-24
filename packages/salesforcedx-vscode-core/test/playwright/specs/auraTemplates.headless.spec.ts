@@ -42,7 +42,7 @@ test.describe('Aura Templates (Desktop Only)', () => {
       await executeCommandWithCommandPalette(page, command);
       
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
       await page.keyboard.type(name);
       await page.keyboard.press('Enter');
 

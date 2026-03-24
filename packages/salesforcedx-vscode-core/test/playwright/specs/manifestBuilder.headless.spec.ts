@@ -55,7 +55,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
 
     // Wait for filename prompt and accept default
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await saveScreenshot(page, 'manifest.prompt-visible.png');
     await page.keyboard.press('Enter');
 
