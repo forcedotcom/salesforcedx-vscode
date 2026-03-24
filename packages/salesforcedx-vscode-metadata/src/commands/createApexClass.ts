@@ -5,167 +5,97 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SfProject } from '@salesforce/core/project';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
+import { getApiVersion, promptForApexTypeName } from '../templates-shared/sfTemplateProjectHelpers';
 
-export type CreateApexClassParams = {
-  readonly name?: string;
-  readonly outputDir?: URI;
-};
-class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
+const ApexClassTemplate = Schema.Literal('DefaultApexClass', 'ApexException', 'InboundEmailService');
+type ApexClassTemplate = Schema.Schema.Type<typeof ApexClassTemplate>;
 
-const fromProject = Effect.fn('getApiVersion.fromProject')(function* (project: SfProject) {
-  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return String(projectJson.get<string>('sourceApiVersion'));
+const UriSchema = Schema.Unknown.pipe(Schema.filter((u): u is URI => URI.isUri(u), { message: () => 'Expected URI' }));
+
+const CreateApexClassParams = Schema.Struct({
+  name: Schema.optional(Schema.String),
+  outputDir: Schema.optional(UriSchema),
+  template: Schema.optional(ApexClassTemplate)
 });
+type CreateApexClassParams = Schema.Schema.Type<typeof CreateApexClassParams>;
 
-const fromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
-  const connectionService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ConnectionService;
-  const connection = yield* connectionService.getConnection();
-  return connection.version;
-});
-
-/** Get API version using waterfall: sfdx-project.json -> connection -> fallback */
-const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) {
-  return yield* fromProject(project).pipe(
-    Effect.orElse(() => fromConnection()),
-    Effect.catchAll(() => Effect.succeed('65.0'))
+/** Prompt user to select template */
+const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<{ label: ApexClassTemplate; description: string }>(
+      [
+        {
+          label: 'DefaultApexClass',
+          description: nls.localize('apex_class_default_template_description')
+        },
+        {
+          label: 'ApexException',
+          description: nls.localize('apex_class_exception_template_description')
+        },
+        {
+          label: 'InboundEmailService',
+          description: nls.localize('apex_class_inbound_email_template_description')
+        }
+      ],
+      { placeHolder: nls.localize('apex_class_template_prompt') }
+    )
+  ).pipe(
+    Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)),
+    Effect.map(s => s.label)
   );
 });
 
-/** Prompt user to select output directory from available package directories */
-const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
+/** Create Apex class via TemplateService from services extension.
+ * arg: when invoked from explorer context (right-click classes folder), VS Code passes the folder URI.
+ * arg: when invoked programmatically, pass CreateApexClassParams to bypass prompts. */
+export const createApexClassCommand = Effect.fn('createApexClassCommand')(function* (
+  arg?: URI | CreateApexClassParams
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const project = yield* api.services.ProjectService.getSfProject();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
-  // Build Quick Pick items for each package directory
-  const items = project.getPackageDirectories().map(pkg => ({
-    label: `${pkg.path}/main/default/classes`,
-    description: pkg.default ? '(default)' : undefined,
-    uri: Utils.joinPath(workspaceInfo.uri, pkg.path, 'main', 'default', 'classes')
-  }));
+  const outputDirFromContext = URI.isUri(arg) ? arg : undefined;
+  const params = Schema.is(CreateApexClassParams)(arg) ? arg : undefined;
 
-  // Show Quick Pick - VS Code will automatically highlight the first item by default
-  const selected = yield* Effect.promise(() =>
-    vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('apex_class_output_dir_prompt') || 'Select output directory',
-      matchOnDescription: true
-    })
-  );
+  const template = params?.template ?? (yield* promptForTemplate());
+  const className = params?.name ?? (yield* promptForApexTypeName({ prompt: nls.localize('apex_class_name_prompt') }));
 
-  return selected?.uri;
-});
+  const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
+  const outputDirUri =
+    params?.outputDir ??
+    outputDirFromContext ??
+    (yield* promptService.promptForOutputDir({
+      defaultUri,
+      pickerPlaceHolder: nls.localize('apex_class_output_dir_prompt')
+    }));
 
-/** Prompt user for class name */
-const promptForClassName = async (): Promise<string | undefined> => {
-  const name = await vscode.window.showInputBox({
-    prompt: nls.localize('apex_class_name_prompt'),
-    placeHolder: nls.localize('apex_class_name_placeholder'),
-    validateInput: (value: string) => {
-      if (!value || value.trim().length === 0) {
-        return 'Class name cannot be empty';
-      }
-      if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value)) {
-        return 'Class name must start with a letter and contain only alphanumeric characters and underscores';
-      }
-      return undefined;
-    }
-  });
-  return name?.trim();
-};
-
-/** Check if files exist and prompt for overwrite if needed */
-const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (clsUri: URI, metaUri: URI) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-
-  const [clsExists, metaExists] = yield* Effect.all(
-    [api.services.FsService.fileOrFolderExists(clsUri), api.services.FsService.fileOrFolderExists(metaUri)],
-    { concurrency: 'unbounded' }
-  );
-
-  if (!clsExists && !metaExists) {
-    return true; // No files exist, proceed
-  }
-
-  // Prompt user
-  const choice = yield* Effect.promise(() =>
-    vscode.window.showWarningMessage(
-      nls.localize('apex_class_already_exists'),
-      { modal: true },
-      nls.localize('overwrite_button'),
-      nls.localize('cancel_button')
-    )
-  );
-
-  return choice === nls.localize('overwrite_button') ? true : yield* new UserCancelledOverwriteError();
-});
-
-// this really should use the template library, but I need an apex class create for testing purposes and don't have the real one yet
-/** Create Apex class files */
-const createFiles = Effect.fn('createFiles')(function* (className: string, outputDir: URI, apiVersion: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const apiVersion = yield* getApiVersion(project);
+  const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
+  const fsService = yield* api.services.FsService;
   const channelService = yield* api.services.ChannelService;
 
-  const clsUri = Utils.joinPath(outputDir, `${className}.cls`);
-  const metaUri = Utils.joinPath(outputDir, `${className}.cls-meta.xml`);
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
-  yield* channelService.appendToChannel(`Creating Apex class: ${clsUri.toString()}`);
-
-  // Check if files exist and prompt for overwrite
-  yield* checkAndPromptOverwrite(clsUri, metaUri);
-
-  // Create class file
-  const clsContent = `public class ${className} {
-
-}`;
-
-  // Both files share the same parent; safeWriteFile creates the directory on each call (idempotent).
-  yield* Effect.all(
-    [
-      api.services.FsService.safeWriteFile(clsUri, clsContent),
-      api.services.FsService.safeWriteFile(metaUri, getMetaContent(apiVersion))
-    ],
-    {
-      concurrency: 'unbounded'
-    }
-  );
+  yield* api.services.TemplateService.create({
+    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
+    templateType: api.services.TemplateType.ApexClass,
+    outputdir: outputDirUri,
+    options: { template, classname: className, apiversion: apiVersion }
+  });
 
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
+  yield* fsService.showTextDocument(uris[0]);
 
-  yield* api.services.FsService.showTextDocument(clsUri);
+  return undefined;
 });
-
-/** Create Apex class command */
-export const createApexClassCommand = (commandParams?: CreateApexClassParams) =>
-  Effect.gen(function* () {
-    // Get class name
-    const className = commandParams?.name ?? (yield* Effect.promise(async () => await promptForClassName()));
-    if (!className) {
-      return yield* Effect.succeed(undefined);
-    }
-
-    const project = yield* (yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
-      .ProjectService).getSfProject();
-
-    const [outputDir, apiVersion] = yield* Effect.all([
-      Effect.suspend(() =>
-        commandParams?.outputDir ? Effect.succeed(commandParams.outputDir) : promptForOutputDir(project)
-      ),
-      getApiVersion(project)
-    ]);
-
-    return outputDir ? yield* createFiles(className, outputDir, apiVersion) : yield* Effect.succeed(undefined);
-  }).pipe(Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(undefined)));
-
-const getMetaContent = (apiVersion: string) =>
-  // Create meta file
-  `<?xml version="1.0" encoding="UTF-8"?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${apiVersion}</apiVersion>
-    <status>Active</status>
-</ApexClass>`;

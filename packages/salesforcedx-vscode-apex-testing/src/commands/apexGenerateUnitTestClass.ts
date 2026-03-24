@@ -7,18 +7,23 @@
 
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
+import { APEX_CLASS_NAME_MAX_LENGTH } from '../constants';
 import { nls } from '../messages';
 
 type SfProject = Effect.Effect.Success<
   ReturnType<SalesforceVSCodeServicesApi['services']['ProjectService']['getSfProject']>
 >;
 
+const ApexTestTemplate = Schema.Literal('BasicUnitTest', 'ApexUnitTest');
+type ApexTestTemplate = Schema.Schema.Type<typeof ApexTestTemplate>;
+
 type ApexGenerateUnitTestClassParams = {
   readonly name?: string;
   readonly outputDir?: URI;
-  readonly template?: 'BasicUnitTest' | 'ApexUnitTest';
+  readonly template?: ApexTestTemplate;
 };
 
 const fromProject = Effect.fn('getApiVersion.fromProject')(function* (project: SfProject) {
@@ -41,41 +46,63 @@ const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) 
   );
 });
 
-const getDefaultOutputDir = Effect.fn('getDefaultOutputDir')(function* (project: SfProject) {
+const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+
   const defaultPkg = project.getDefaultPackage();
-  return Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
+
+  return yield* promptService.promptForOutputDir({
+    defaultUri,
+    pickerPlaceHolder: nls.localize('apex_test_class_output_dir_prompt')
+  });
 });
 
-const promptForClassName = (): Promise<string | undefined> =>
-  Promise.resolve(
-    vscode.window
-      .showInputBox({
-        prompt: nls.localize('apex_test_class_name_prompt'),
-        placeHolder: nls.localize('apex_test_class_name_placeholder'),
-        validateInput: (value: string) => {
-          if (!value || value.trim().length === 0) return 'Class name cannot be empty';
-          if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value))
-            return 'Class name must start with a letter and contain only alphanumeric characters and underscores';
-          return undefined;
-        }
-      })
-      .then(n => n?.trim())
+const promptForClassName = Effect.fn('promptForClassName')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showInputBox({
+      prompt: nls.localize('apex_test_class_name_prompt'),
+      validateInput: (value: string) => {
+        if (!value || value.trim().length === 0) return nls.localize('apex_test_class_name_empty_error');
+        if (value.toLowerCase() === 'default') return nls.localize('apex_test_class_name_cannot_be_default');
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value)) return nls.localize('apex_test_class_name_format_error');
+        if (value.length > APEX_CLASS_NAME_MAX_LENGTH)
+          return nls.localize('apex_test_class_name_max_length_error', APEX_CLASS_NAME_MAX_LENGTH);
+        return undefined;
+      }
+    })
+  ).pipe(
+    Effect.map(n => n?.trim()),
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
+});
 
-const promptForTemplate = (): Promise<'BasicUnitTest' | 'ApexUnitTest' | undefined> =>
-  Promise.resolve(
-    vscode.window
-      .showQuickPick(
-        [
-          { label: 'ApexUnitTest', description: nls.localize('apex_unit_test_template_description') },
-          { label: 'BasicUnitTest', description: nls.localize('basic_unit_test_template_description') }
-        ],
-        { placeHolder: nls.localize('apex_test_template_prompt') }
-      )
-      .then(sel => (sel?.label === 'ApexUnitTest' || sel?.label === 'BasicUnitTest' ? sel.label : undefined))
+const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<{ label: ApexTestTemplate; description: string }>(
+      [
+        {
+          label: 'ApexUnitTest',
+          description: nls.localize('apex_unit_test_template_description')
+        },
+        {
+          label: 'BasicUnitTest',
+          description: nls.localize('basic_unit_test_template_description')
+        }
+      ],
+      { placeHolder: nls.localize('apex_test_template_prompt') }
+    )
+  ).pipe(
+    Effect.flatMap(selected => promptService.considerUndefinedAsCancellation(selected)),
+    Effect.map(s => s?.label)
   );
+});
 
 /** Create Apex unit test class via TemplateService from services extension */
 export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestClassCommand')(function* (
@@ -83,34 +110,32 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
   outputDirectory?: URI
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const fsService = yield* api.services.FsService;
   const project = yield* api.services.ProjectService.getSfProject();
+
+  const className = params?.name ?? (yield* promptForClassName());
+
+  const outputDirUri = params?.outputDir ?? outputDirectory ?? (yield* promptForOutputDir(project));
+
+  const template = params?.template ?? (yield* promptForTemplate());
+
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
-  const className = params?.name ?? (yield* Effect.promise(promptForClassName));
-  if (!className) return undefined;
-
-  const outputDirUri = params?.outputDir ?? outputDirectory ?? (yield* getDefaultOutputDir(project));
-  if (!outputDirUri) return undefined;
-
-  const template = params?.template ?? (yield* Effect.promise(promptForTemplate));
-  if (!template) return undefined;
-
   const apiVersion = yield* getApiVersion(project);
-  const cwd = workspaceInfo.uri.fsPath;
+  const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
   const result = yield* api.services.TemplateService.create({
-    cwd,
+    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexClass,
     outputdir: outputDirUri,
     options: { template, classname: className, apiversion: apiVersion }
   });
-
   const channelService = yield* api.services.ChannelService;
+
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
 
-  const clsUri = Utils.joinPath(outputDirUri, `${className}.cls`);
-  const fsService = yield* api.services.FsService;
-  yield* fsService.showTextDocument(clsUri);
+  yield* api.services.FsService.showTextDocument(uris[0]);
 
   return result;
 });

@@ -33,8 +33,6 @@ export const messages = {
   view_all_changes_text: 'View All Changes (Local and in Default Org)',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   retrieve_this_source_text: 'SFDX: Retrieve This Source from Org',
-  retrieve_display_text: 'Retrieve This Source from Org',
-  retrieve_and_open_display_text: 'Retrieve and Open Source',
   delete_source_text: 'SFDX: Delete from Project and Org',
   analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
   analytics_template_name_text: 'template name',
@@ -69,12 +67,13 @@ export const messages = {
   project_generate_analytics_template_display_text: 'Analytics',
   project_generate_react_b2e_template_display_text: 'React B2E',
   project_generate_react_b2x_template_display_text: 'React B2X',
+  project_generate_agent_template_display_text: 'Agent',
   project_generate_empty_template: 'Empty project template',
   project_generate_standard_template: 'Standard project template',
   project_generate_analytics_template: 'Analytics project template',
   project_generate_react_b2e_template: 'React B2E project template',
   project_generate_react_b2x_template: 'React B2X project template',
-  apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
+  project_generate_agent_template: 'Agent project template',
 
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',

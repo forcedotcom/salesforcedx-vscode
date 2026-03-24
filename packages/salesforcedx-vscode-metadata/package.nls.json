@@ -8,6 +8,7 @@
   "view_remote_changes_text": "SFDX: View Changes in Default Org",
   "reset_remote_tracking_text": "SFDX: Reset Remote Tracking",
   "apex_generate_class_text": "SFDX: Create Apex Class",
+  "apex_generate_trigger_text": "SFDX: Create Apex Trigger",
   "lightning_generate_lwc_text": "SFDX: Create Lightning Web Component",
   "deploy_this_source_text": "SFDX: Deploy This Source to Org",
   "deploy_in_manifest_text": "SFDX: Deploy Source in Manifest to Org",

@@ -7,54 +7,48 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
-  const name = yield* Effect.promise(() =>
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('create_script_name_prompt'),
-      placeHolder: nls.localize('create_script_name_placeholder'),
       validateInput: (value: string) =>
         !value?.trim()
-          ? 'Script name cannot be empty'
+          ? nls.localize('create_script_name_empty_error')
           : !/^[A-Za-z][A-Za-z0-9_]*$/.test(value)
-            ? 'Name must start with a letter and contain only letters, numbers, and underscores'
+            ? nls.localize('create_script_name_format_error')
             : undefined
     })
+  ).pipe(
+    Effect.map(raw => raw?.trim()),
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
-  return name?.trim() ? Option.some(name.trim()) : Option.none();
-});
-
-const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (uri: URI) {
-  const fsService = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.FsService)
-  );
-  const exists = yield* fsService.fileOrFolderExists(uri);
-  if (!exists) return Option.some(true);
-  const choice = yield* Effect.promise(() =>
-    vscode.window.showWarningMessage(
-      nls.localize('create_script_already_exists'),
-      { modal: true },
-      nls.localize('overwrite_button'),
-      nls.localize('cancel_button')
-    )
-  );
-  return choice === nls.localize('overwrite_button') ? Option.some(true) : Option.none();
 });
 
 export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.createAnonymousApexScript')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { uri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
-  const scriptNameOpt = yield* promptForScriptName();
-  if (Option.isNone(scriptNameOpt)) return;
-  const scriptName = scriptNameOpt.value;
-  const targetUri = Utils.joinPath(Utils.joinPath(uri, 'scripts'), `${scriptName}.apex`);
-  const overwriteOpt = yield* checkAndPromptOverwrite(targetUri);
-  if (Option.isNone(overwriteOpt)) return;
+  const promptService = yield* api.services.PromptService;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+
+  const scriptName = yield* promptForScriptName();
+
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, 'scripts', 'apex');
+  const outputDir = yield* promptService.promptForOutputDir({
+    defaultUri,
+    description: nls.localize('create_script_output_dir_default_description'),
+    pickerPlaceHolder: nls.localize('create_script_output_dir_prompt')
+  });
+  if (!outputDir) return;
+
+  const targetUri = Utils.joinPath(outputDir, `${scriptName}.apex`);
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [targetUri] });
   yield* fsService.writeFile(targetUri, "System.debug('hello, world');\n");
   yield* fsService.showTextDocument(targetUri);
 });

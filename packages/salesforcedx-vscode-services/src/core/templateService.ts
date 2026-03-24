@@ -64,8 +64,13 @@ export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<Templ
 
 export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()(
   'TemplatesManifestLoadError',
-  { message: Schema.String, cause: Schema.optional(Schema.Unknown) }
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.Unknown)
+  }
 ) {}
+
+const TemplateManifestSchema = Schema.parseJson(Schema.Array(Schema.String));
 
 const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
   const ext = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
@@ -90,7 +95,15 @@ const ensureTemplatesInFs = (rootUri: URI, rootFsPath: string) =>
           cause: e
         })
     });
-    const paths: readonly string[] = JSON.parse(Buffer.from(manifestContent).toString());
+    const paths = yield* Schema.decodeUnknown(TemplateManifestSchema)(Buffer.from(manifestContent).toString()).pipe(
+      Effect.mapError(
+        error =>
+          new TemplatesManifestLoadError({
+            message: 'Failed to parse templates manifest from extension assets.',
+            cause: error
+          })
+      )
+    );
     const results = yield* Effect.promise(() =>
       Promise.allSettled(
         paths.map(async relativePath => {

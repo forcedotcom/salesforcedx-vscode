@@ -12,6 +12,7 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
 import { AliasService } from './core/alias';
+import { AliasFileWatcherService, watchDefaultOrgAliases } from './core/aliasFileWatcher';
 import { ApexLogService } from './core/apexLogService';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
@@ -48,7 +49,8 @@ import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope'
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
-import { registerCommandWithLayer } from './vscode/registerCommand';
+import { PromptService, UserCancellationError } from './vscode/prompts/promptService';
+import { registerCommandWithLayer, registerCommandWithRuntime } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherService } from './vscode/settingsWatcherService';
@@ -72,6 +74,7 @@ export type SalesforceVSCodeServicesApi = {
       | MetadataDeleteService
       | MetadataDeployService
       | MetadataDescribeService
+      | PromptService
       | MetadataRegistryService
       | MetadataRetrieveService
       | ProjectService
@@ -93,6 +96,7 @@ export type SalesforceVSCodeServicesApi = {
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
     registerCommandWithLayer: typeof registerCommandWithLayer;
+    registerCommandWithRuntime: typeof registerCommandWithRuntime;
     ExecuteAnonymousService: typeof ExecuteAnonymousService;
     EditorService: typeof EditorService;
     ErrorHandlerService: typeof ErrorHandlerService;
@@ -105,6 +109,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
+    PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     ProjectService: typeof ProjectService;
@@ -117,6 +122,7 @@ export type SalesforceVSCodeServicesApi = {
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
     TraceFlagService: typeof TraceFlagService;
     WorkspaceService: typeof WorkspaceService;
+    UserCancellationError: typeof UserCancellationError;
   };
 };
 export type { AliasService } from './core/alias';
@@ -127,7 +133,7 @@ export {
   type TemplateOptionsFor,
   type TemplateType
 } from './core/templateService';
-export type { TemplatesRootPathNotAvailableError } from './core/templateService';
+export type { TemplatesManifestLoadError, TemplatesRootPathNotAvailableError } from './core/templateService';
 export type {
   NonEmptyComponentSet,
   ComponentSetService,
@@ -191,7 +197,9 @@ export type { IconId, MediaService } from './vscode/mediaService';
 export type { SettingsError } from './vscode/settingsService';
 
 /** Effect that runs when the extension is activated after FS setup */
-const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (context: vscode.ExtensionContext) {
+const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
+  context: vscode.ExtensionContext
+) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
   // do this first to prevent Connection issues.
   yield* updateTelemetryUserIds(context);
@@ -219,7 +227,9 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       // watch active editor changes to update package directories context
       Effect.forkIn(watchPackageDirectoriesContext(), scope),
       // watch active editor changes to update apex test context
-      Effect.forkIn(watchApexTestContext(), scope)
+      Effect.forkIn(watchApexTestContext(), scope),
+      // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
+      Effect.forkIn(watchDefaultOrgAliases(), scope)
     ],
     {
       concurrency: 'unbounded'
@@ -227,7 +237,7 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   );
   // init the connection for all the consumers who might need it
   // no Connection is a possible state
-  yield* Effect.fork(ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)));
+  yield* Effect.forkIn(ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)), scope);
   // set sf:project_opened context before activation resolves so lazy-loaded extensions can show
   // their commands on startup — must be blocking (not forked) so the context key is set before
   // VS Code evaluates `when` clauses for command palette visibility
@@ -275,6 +285,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   /** they're global in the sense that they should be the same for all extension */
   const globalLayers = Layer.mergeAll(
+    Layer.provide(AliasFileWatcherService.Default, FileWatcherService.Default),
     AliasService.Default,
     TemplateService.Default,
     ExtensionContextService.Default,
@@ -290,6 +301,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     MetadataDescribeService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,
+    PromptService.Default,
     MetadataRegistryService.Default,
     MetadataRetrieveService.Default,
     ProjectService.Default,
@@ -323,7 +335,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         })
       ),
       builtContext
-    ).pipe(Scope.extend(extensionScope))
+    ).pipe(
+      Scope.extend(extensionScope),
+      Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error)))
+    )
   );
 
   console.log('Salesforce Services extension is now active!');
@@ -343,6 +358,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ConnectionService,
       ExecuteAnonymousService,
       registerCommandWithLayer,
+      registerCommandWithRuntime,
       EditorService,
       ErrorHandlerService,
       ExtensionContextService,
@@ -365,7 +381,9 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       TransmogrifierService,
       TraceFlagItemStruct,
       TraceFlagService,
-      WorkspaceService
+      WorkspaceService,
+      PromptService,
+      UserCancellationError
     }
   };
 };
@@ -416,3 +434,4 @@ export { type SettingsService } from './vscode/settingsService';
 export { type SettingsWatcherService } from './vscode/settingsWatcherService';
 export { type DebugLevelItem, type TraceFlagItem, type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
+export type { UserCancellationError } from './vscode/prompts/promptService';

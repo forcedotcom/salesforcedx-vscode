@@ -6,7 +6,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.0.1",
+  "version": "66.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -30,12 +30,12 @@
     "jsforce": "^3.10.2",
     "@salesforce/types": "^1.6.0",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.19.14",
+    "effect": "^3.20.0",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/core": "^8.23.3",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.25.12",
     "salesforcedx-vscode-services": "*"
@@ -72,7 +72,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",

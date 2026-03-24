@@ -58,7 +58,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.1.1",
+  "version": "66.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -76,7 +76,7 @@
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
     "applicationinsights": "1.0.7",
-    "effect": "^3.19.19",
+    "effect": "^3.20.0",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1"
   },
@@ -150,7 +150,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",

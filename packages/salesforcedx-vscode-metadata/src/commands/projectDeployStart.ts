@@ -7,7 +7,9 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { handleConflictWithRetry } from '../conflict/conflictFlow';
+import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
@@ -21,6 +23,11 @@ const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreCo
 /** Deploy local changes to the default org */
 export const projectDeployStartCommand = (ignoreConflicts = false) =>
   deployEffect(ignoreConflicts).pipe(
+    Effect.catchTag('EmptyComponentSetError', () =>
+      Effect.sync(() => {
+        void vscode.window.showInformationMessage(nls.localize('no_local_changes_to_deploy'));
+      })
+    ),
     Effect.catchTag('SourceTrackingConflictError', () =>
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;

@@ -11,15 +11,13 @@ export { initSObjectDefinitions } from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';
 export { openDocumentation } from './openDocumentation';
 export {
+  agentProjectGenerate,
+  nativemobileProjectGenerate,
   projectGenerateWithManifest,
-  ProjectGenerateArgs,
-  ProjectTemplate,
   sfProjectGenerate
 } from './projectGenerate';
 export {
   analyticsGenerateTemplate,
-  apexGenerateClass,
-  apexGenerateTrigger,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,

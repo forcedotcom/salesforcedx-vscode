@@ -1,6 +1,13 @@
 {
   "version": 1,
   "hooks": {
-    "stop": [{ "command": ".cursor/hooks/verify-stop.sh" }]
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/block-no-verify.sh",
+        "matcher": "git.*--no-verify"
+      }
+    ],
+    "stop": [{ "command": ".cursor/hooks/verify-stop.sh" }],
+    "afterFileEdit": [{ "command": ".cursor/hooks/mark-edit.sh" }]
   }
 }

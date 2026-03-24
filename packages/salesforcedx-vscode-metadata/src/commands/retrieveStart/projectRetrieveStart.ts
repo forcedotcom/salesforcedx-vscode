@@ -8,6 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SourceTracking } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { detectConflicts, handleConflictWithRetry } from '../../conflict/conflictFlow';
 import { nls } from '../../messages';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
@@ -32,8 +33,8 @@ const retrieveEffect = Effect.fn('retrieveEffect')(function* (ignoreConflicts: b
   yield* Effect.annotateCurrentSpan({ ignoreConflicts });
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [sourceTrackingService, channelService] = yield* Effect.all(
-    [api.services.SourceTrackingService, api.services.ChannelService],
+  const [sourceTrackingService, channelService, componentSetService] = yield* Effect.all(
+    [api.services.SourceTrackingService, api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
   );
 
@@ -50,16 +51,13 @@ const retrieveEffect = Effect.fn('retrieveEffect')(function* (ignoreConflicts: b
         message: nls.localize('error_source_tracking_components_failed', e instanceof Error ? e.message : String(e)),
         cause: e
       })
-  }).pipe(Effect.withSpan('remoteNonDeletesAsComponentSet'));
-
-  yield* channelService.appendToChannel(
-    `Found ${componentSet.size} remote change${componentSet.size === 1 ? '' : 's'} to retrieve`
+  }).pipe(
+    Effect.withSpan('remoteNonDeletesAsComponentSet'),
+    Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+    Effect.tap(cs =>
+      channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
+    )
   );
-
-  if (componentSet.size === 0) {
-    yield* channelService.appendToChannel('No remote changes to retrieve');
-    return;
-  }
 
   if (!ignoreConflicts) {
     const pairs = yield* detectConflicts(componentSet, 'retrieve');
@@ -68,10 +66,7 @@ const retrieveEffect = Effect.fn('retrieveEffect')(function* (ignoreConflicts: b
         retryOperation: Effect.gen(function* () {
           const t = yield* sourceTrackingService.getSourceTrackingOrThrow({ ignoreConflicts: true });
           yield* Effect.all(
-            [
-              Effect.promise(() => t.reReadLocalTrackingCache()),
-              Effect.promise(() => t.reReadRemoteTracking())
-            ],
+            [Effect.promise(() => t.reReadLocalTrackingCache()), Effect.promise(() => t.reReadRemoteTracking())],
             { concurrency: 'unbounded' }
           );
           yield* applyDeletesAndRetrieve(t);
@@ -86,4 +81,11 @@ const retrieveEffect = Effect.fn('retrieveEffect')(function* (ignoreConflicts: b
 });
 
 /** Retrieve remote changes from the default org */
-export const projectRetrieveStartCommand = (ignoreConflicts: boolean) => retrieveEffect(ignoreConflicts);
+export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
+  retrieveEffect(ignoreConflicts).pipe(
+    Effect.catchTag('EmptyComponentSetError', () =>
+      Effect.sync(() => {
+        void vscode.window.showInformationMessage(nls.localize('no_remote_changes_to_retrieve'));
+      })
+    )
+  );

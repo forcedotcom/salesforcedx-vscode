@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.1.1",
+  "version": "66.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,19 +27,19 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.24.0",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/source-deploy-retrieve": "^12.31.12",
-    "@salesforce/templates": "^66.4.1",
+    "@salesforce/source-deploy-retrieve": "^12.31.22",
+    "@salesforce/templates": "^66.5.1",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
-    "effect": "^3.19.19",
-    "fast-xml-parser": "^5.4.1",
+    "effect": "^3.20.0",
+    "fast-xml-parser": "^5.5.7",
     "glob": "^11.1.0",
     "rxjs": "^7.8.2",
     "vscode-uri": "^3.1.0"
@@ -102,7 +102,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
@@ -250,10 +251,6 @@
           "when": "explorerResourceIsFolder && sf:internal_dev"
         },
         {
-          "command": "sf.apex.generate.trigger",
-          "when": "explorerResourceIsFolder && resourceFilename == triggers && sf:project_opened"
-        },
-        {
           "command": "sf.rename.lightning.component",
           "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
@@ -292,16 +289,20 @@
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
+          "command": "sf.agent.generate.project",
+          "when": "false"
+        },
+        {
+          "command": "sf.nativemobile.generate.project",
+          "when": "false"
+        },
+        {
           "command": "sf.project.generate.with.manifest",
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.rename.lightning.component",
           "when": "false"
-        },
-        {
-          "command": "sf.apex.generate.trigger",
-          "when": "sf:project_opened"
         },
         {
           "command": "sf.internal.lightning.generate.lwc",
@@ -407,12 +408,16 @@
         "title": "%project_generate_text%"
       },
       {
-        "command": "sf.project.generate.with.manifest",
-        "title": "%project_generate_with_manifest_text%"
+        "command": "sf.agent.generate.project",
+        "title": "%agent_generate_project_text%"
       },
       {
-        "command": "sf.apex.generate.trigger",
-        "title": "%apex_generate_trigger_text%"
+        "command": "sf.nativemobile.generate.project",
+        "title": "%nativemobile_generate_project_text%"
+      },
+      {
+        "command": "sf.project.generate.with.manifest",
+        "title": "%project_generate_with_manifest_text%"
       },
       {
         "command": "sf.internal.lightning.generate.lwc",

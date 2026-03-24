@@ -27,6 +27,13 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   source_diff_title: '%s//%s ↔ ローカル //%s',
 
+  apex_trigger_name_prompt: 'ファイル名を入力',
+  apex_name_empty_error: 'トリガ名を入力してください',
+  apex_name_format_error: 'トリガ名は文字で始まり、英数字とアンダースコアのみ使用できます',
+  apex_class_name_max_length_error: 'ファイル名は %s 文字を超えることはできません',
+  apex_trigger_output_dir_prompt: 'フォルダを入力 (Enter で確認または Esc でキャンセル)',
+  apex_generate_trigger_success: 'Apex トリガが作成されました',
+
   deploy_on_save_error_no_target_org:
     '保存時のデプロイ実行中にエラー: デフォルトの組織が設定されていません。"SFDX: 組織を認証" を実行して、保存した変更をデプロイしてください。'
 };

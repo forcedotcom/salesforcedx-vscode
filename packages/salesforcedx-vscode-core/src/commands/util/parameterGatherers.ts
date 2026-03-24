@@ -31,10 +31,6 @@ export type MetadataTypeParameter = {
   type: string;
 };
 
-type ApexTestTemplateParameter = {
-  template: string;
-};
-
 export class SelectFileName implements ParametersGatherer<FileNameParameter> {
   private maxFileNameLength: number;
 
@@ -75,8 +71,14 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
     let packageDirs: string[] = [];
     try {
       packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
-    } catch (e) {
-      if (e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
+    } catch (e: unknown) {
+      if (
+        e &&
+        typeof e === 'object' &&
+        'name' in e &&
+        e.name !== 'NoPackageDirectoryPathsFound' &&
+        e.name !== 'NoPackageDirectoriesFound'
+      ) {
         throw e;
       }
     }
@@ -114,7 +116,7 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
   }
 }
 
-export class SimpleGatherer<T> implements ParametersGatherer<T> {
+class SimpleGatherer<T> implements ParametersGatherer<T> {
   private input: T;
 
   constructor(input: T) {
@@ -132,12 +134,6 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
 export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
   constructor(metadataType: string) {
     super({ type: metadataType });
-  }
-}
-
-export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplateParameter> {
-  constructor(template: string) {
-    super({ template });
   }
 }
 

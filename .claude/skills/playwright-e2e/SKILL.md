@@ -15,11 +15,16 @@ Guidelines for writing and iterating on Playwright tests for VS Code extensions.
 - `references/local-setup.md` - Scratch org setup (Dreamhouse, minimal, non-tracking)
 - `references/iterating-playwright-tests.md` - Iterating on tests ("Things to ignore" for failure analysis)
 - `references/analyze-e2e.md` - Analyzing E2E test results from CI
-- `references/local-setup.md` - Local scratch org setup for E2E tests
 
 # Use playwright-vscode-ext
 
 Shared code (helpers, locators, configuration) for tests.
+
+**Desktop workspace shapes (pick one per test):**
+
+- **No folder open** — fixture opens a Salesforce project, then call `prepareNoFolderOpenForPaletteTests(page)` (runs `Workspaces: Close Workspace` + workbench wait). Or use `closeWorkspaceToEmptyWindow` if UI is already prepared.
+- **Folder open, no `sfdx-project.json`** — `createDesktopTest({ emptyWorkspace: true })`; workspace path comes from `createEmptyTestWorkspace()` (also exported from the package).
+- **Default org in workspace** — pass `orgAlias: '…'` (e.g. `MINIMAL_ORG_ALIAS` / `DREAMHOUSE_ORG_ALIAS`) so `.sfdx/config.json` gets `target-org`. Omit `orgAlias` or use `undefined` for **no** `config.json` (no org).
 
 ## Span files (when debugging traces)
 

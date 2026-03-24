@@ -21,7 +21,7 @@ export type SourceTrackingDetails = {
   conflicts: StatusOutputRow[];
 };
 
-export const statusRowOrder = Order.combine(
+const statusRowOrder = Order.combine(
   /** Sort by type (case-insensitive) */
   Order.mapInput(Order.string, (row: StatusOutputRow) => row.type.toLowerCase()),
   /** Sort by fullName (case-insensitive) */

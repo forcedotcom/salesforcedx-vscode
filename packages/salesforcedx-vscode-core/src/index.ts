@@ -28,7 +28,6 @@ import { channelService } from './channels';
 import {
   aliasListCommand,
   analyticsGenerateTemplate,
-  apexGenerateTrigger,
   configList,
   initSObjectDefinitions,
   internalLightningGenerateApp,
@@ -40,6 +39,8 @@ import {
   lightningGenerateAuraComponent,
   lightningGenerateEvent,
   lightningGenerateInterface,
+  agentProjectGenerate,
+  nativemobileProjectGenerate,
   openDocumentation,
   packageInstall,
   projectGenerateWithManifest,
@@ -85,9 +86,10 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.lightning.generate.interface', lightningGenerateInterface),
     vscode.commands.registerCommand('sf.config.list', configList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
+    vscode.commands.registerCommand('sf.agent.generate.project', agentProjectGenerate),
+    vscode.commands.registerCommand('sf.nativemobile.generate.project', nativemobileProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
-    vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger),
     registerGetTelemetryServiceCommand()
   );
 const registerInternalDevCommands = (): vscode.Disposable =>
@@ -195,18 +197,16 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
   await Effect.runPromise(registerEffectCommands().pipe(Effect.provide(AllServicesLayer)));
 
-  extensionContext.subscriptions.push(
-    registerCommands(extensionContext),
-    CommandEventDispatcher.getInstance()
-  );
+  extensionContext.subscriptions.push(registerCommands(extensionContext), CommandEventDispatcher.getInstance());
 
-  if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-    // Refresh SObject definitions if there aren't any faux classes
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (vscode.extensions.getExtension('salesforce.salesforcedx-vscode-metadata') && workspaceFolders?.length) {
+    // Refresh SObject definitions if there aren't any faux classes (metadata ext registers the command)
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
-    await initSObjectDefinitions(vscode.workspace.workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
+    await initSObjectDefinitions(workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
   }
 
   void activateTracker.markActivationStop();

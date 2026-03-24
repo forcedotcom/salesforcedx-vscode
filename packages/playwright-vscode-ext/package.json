@@ -12,7 +12,7 @@
     "@vscode/test-web": "^0.0.78"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.23.3"
+    "@salesforce/core": "^8.27.0"
   },
   "scripts": {
     "compile": "wireit",
