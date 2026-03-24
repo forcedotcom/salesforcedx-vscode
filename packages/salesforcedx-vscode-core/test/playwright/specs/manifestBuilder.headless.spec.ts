@@ -12,6 +12,7 @@ import {
   setupConsoleMonitoring,
   openFileByName,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   executeExplorerContextMenuCommand,
   clearOutputChannel,
   waitForOutputChannelText,
@@ -76,6 +77,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     await openFileByName(page, 'package.xml');
     await clearOutputChannel(page);
 
+    await verifyCommandExists(page, packageNls.deploy_in_manifest_text, 120_000);
     await executeCommandWithCommandPalette(page, packageNls.deploy_in_manifest_text);
     await waitForOutputChannelText(page, {
       expectedText: 'Deployed Source',
