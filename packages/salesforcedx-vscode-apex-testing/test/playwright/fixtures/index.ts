@@ -7,7 +7,7 @@
 
 import { test as webTest } from '@playwright/test';
 
-import { desktopTest } from './desktopFixtures';
+import { desktopTest, emptyWorkspaceDesktopTest } from './desktopFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
 
@@ -23,3 +23,4 @@ webTest.afterEach(async ({ page }, testInfo) => {
 // Export the appropriate test based on environment (fixtures differ)
 // expect is the same for both, so just re-export it directly
 export const test = isDesktop ? desktopTest : webTest;
+export const emptyWorkspaceTest = isDesktop ? emptyWorkspaceDesktopTest : webTest;

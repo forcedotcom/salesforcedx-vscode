@@ -5,41 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Mock JSON imports from baseContext.ts - these are runtime require() calls in compiled code
-// Mock JSON imports from indexer.ts
-const mockJsonFromAuraServer = (relativePath: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pathModule = require('node:path');
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  const filePath = pathModule.join(current, 'src', relativePath);
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return { default: content, ...content };
-};
-
-// Mock relative imports from baseContext.js - these need to match the exact paths Jest resolves when baseContext.js
-// executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
-// resolves to out/src/resources/... which we mock using paths relative to the test file.
-
-// Mock JSON imports for aura indexer - from indexer.ts which is in src/aura-indexer/
-// So the relative path from indexer.ts is ../resources/, but from test file (src/aura-indexer/__tests__/) it's ../../resources/
-jest.mock('../../resources/aura-standard.json', () => mockJsonFromAuraServer('resources/aura-standard.json'));
-jest.mock('../../resources/transformed-aura-system.json', () =>
-  mockJsonFromAuraServer('resources/transformed-aura-system.json')
-);
-
-import { FileSystemDataProvider, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { LspFileSystemAccessor, NormalizedPath, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  createMockWorkspaceFindFilesConnection,
+  getSfdxWorkspaceRelativePaths,
+  SFDX_WORKSPACE_ROOT,
+  sfdxFileSystemAccessor
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
+import type { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { AuraWorkspaceContext } from '../../context/auraContext';
 import AuraIndexer from '../indexer';
+
+const normRoot = normalizePath(SFDX_WORKSPACE_ROOT);
+const isUnderWorkspace = (p: string): boolean => {
+  const key = normalizePath(p);
+  return key === normRoot || key.startsWith(`${normRoot}/`);
+};
 
 // Normalize paths for cross-platform test consistency
 // Converts absolute paths to relative paths from the workspace root
@@ -56,10 +40,61 @@ const normalize = (start: string, p: string): string => {
 const uriToFile = (uri: string): string => URI.parse(uri).fsPath;
 
 describe('indexer parsing content', () => {
+  beforeAll(() => {
+    sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+    sfdxFileSystemAccessor.setConnection(
+      createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+        relativePaths: getSfdxWorkspaceRelativePaths()
+      }) as Connection
+    );
+
+    jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+      const key = normalizePath(uri);
+      if (!isUnderWorkspace(key)) return Promise.resolve(undefined);
+      try {
+        const stat = fs.statSync(uri);
+        return Promise.resolve({
+          type: stat.isDirectory() ? ('directory' as const) : ('file' as const),
+          exists: true,
+          ctime: stat.ctimeMs,
+          mtime: stat.mtimeMs,
+          size: stat.size
+        });
+      } catch {
+        return Promise.resolve(undefined);
+      }
+    });
+    jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) => {
+      const key = normalizePath(uri);
+      if (!isUnderWorkspace(key)) return Promise.resolve(undefined);
+      try {
+        return Promise.resolve(fs.readFileSync(uri, 'utf8'));
+      } catch {
+        return Promise.resolve(undefined);
+      }
+    });
+    jest.spyOn(sfdxFileSystemAccessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
+      const key = normalizePath(uri);
+      if (!isUnderWorkspace(key)) return Promise.resolve([]);
+      try {
+        const entries = fs.readdirSync(uri, { withFileTypes: true });
+        const result = entries.map(e => ({
+          name: e.name,
+          type: (e.isDirectory() ? 'directory' : 'file') as 'directory' | 'file',
+          uri: `file://${path.join(uri, e.name)}`
+        }));
+        return Promise.resolve(result);
+      } catch {
+        return Promise.resolve([]);
+      }
+    });
+    jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockResolvedValue(undefined);
+  });
+
   it('aura indexer', async () => {
-    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
+    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor);
     context.initialize('SFDX');
-    context.configureProject();
+    await context.configureProject();
 
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
@@ -92,15 +127,15 @@ describe('indexer parsing content', () => {
   });
 
   it('should index a valid aura component', async () => {
-    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
+    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor);
     context.initialize('SFDX');
-    context.configureProject();
+    await context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });
 
     const auraFilename = path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp');
-    const tagInfo = auraIndexer.indexFile(auraFilename, true);
+    const tagInfo = await auraIndexer.indexFile(auraFilename, true);
     expect(tagInfo).toBeObject();
     expect(tagInfo?.name).toEqual('c:wireLdsCmp');
     expect(tagInfo?.file).toEndWith('wireLdsCmp.cmp');
@@ -113,9 +148,9 @@ describe('indexer parsing content', () => {
   });
 
   xit('should handle indexing an invalid aura component', async () => {
-    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
+    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new LspFileSystemAccessor());
     context.initialize('SFDX');
-    context.configureProject();
+    await context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });

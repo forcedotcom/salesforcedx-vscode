@@ -10,9 +10,9 @@ import { defineConfig, devices } from '@playwright/test';
 type WebConfigOptions = {
   /** Test directory relative to extension root (default: './test/playwright/specs') */
   testDir?: string;
-  /** Number of parallel workers (default: unset unless E2E_SEQUENTIAL) */
+  /** Number of parallel workers (default: unset) */
   workers?: number;
-  /** Run tests in parallel (default: !E2E_SEQUENTIAL) */
+  /** Run tests in parallel (default: true) */
   fullyParallel?: boolean;
   /** Per-test timeout in ms (default: 360_000) */
   timeout?: number;
@@ -22,9 +22,9 @@ type WebConfigOptions = {
 export const createWebConfig = (options: WebConfigOptions = {}) =>
   defineConfig({
     testDir: options.testDir ?? './test/playwright/specs',
-    fullyParallel: options.fullyParallel ?? !process.env.E2E_SEQUENTIAL,
+    fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
-    ...(options.workers ? { workers: options.workers } : process.env.E2E_SEQUENTIAL ? { workers: 1 } : {}),
+    ...(options.workers ? { workers: options.workers } : {}),
     reporter: process.env.CI
       ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit.xml' }]]
       : [['html', { open: 'never' }], ['list']],

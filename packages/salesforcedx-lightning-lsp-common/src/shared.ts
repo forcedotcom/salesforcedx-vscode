@@ -6,7 +6,7 @@
  */
 
 import * as path from 'node:path';
-import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 import { readPackageJson } from './utils';
 
 const SFDX_PROJECT = 'sfdx-project.json';
@@ -30,20 +30,13 @@ export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX
  * @param root
  * @returns WorkspaceType for singular root
  */
-export const detectWorkspaceHelper = (root: string, fileSystemProvider: IFileSystemProvider): WorkspaceType => {
-  // Early return if no files are available
-  try {
-    const allFiles = fileSystemProvider.getAllFileUris();
-    if (allFiles.length === 0) {
-      return 'UNKNOWN';
-    }
-  } catch {
-    // Error listing files, continue
-  }
-
+export const detectWorkspaceHelper = async (
+  root: string,
+  fileSystemAccessor: LspFileSystemAccessor
+): Promise<WorkspaceType> => {
   try {
     const sfdxProjectFile = getSfdxProjectFile(root);
-    const fileStat = fileSystemProvider.getFileStat(sfdxProjectFile);
+    const fileStat = await fileSystemAccessor.getFileStat(sfdxProjectFile);
 
     if (fileStat?.type === 'file') {
       return 'SFDX';
@@ -53,7 +46,7 @@ export const detectWorkspaceHelper = (root: string, fileSystemProvider: IFileSys
   }
 
   try {
-    const fileStat = fileSystemProvider.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
+    const fileStat = await fileSystemAccessor.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
     if (fileStat?.type === 'file') {
       return 'CORE_ALL';
     }
@@ -63,7 +56,7 @@ export const detectWorkspaceHelper = (root: string, fileSystemProvider: IFileSys
 
   try {
     const parentWorkspaceUserUri = path.join(root, '..', 'workspace-user.xml');
-    const fileStat = fileSystemProvider.getFileStat(`${parentWorkspaceUserUri}`);
+    const fileStat = await fileSystemAccessor.getFileStat(`${parentWorkspaceUserUri}`);
     if (fileStat?.type === 'file') {
       return 'CORE_PARTIAL';
     }
@@ -73,7 +66,7 @@ export const detectWorkspaceHelper = (root: string, fileSystemProvider: IFileSys
 
   try {
     const lwcConfigUri = path.join(root, 'lwc.config.json');
-    const fileStat = fileSystemProvider.getFileStat(`${lwcConfigUri}`);
+    const fileStat = await fileSystemAccessor.getFileStat(`${lwcConfigUri}`);
     if (fileStat?.type === 'file') {
       return 'STANDARD_LWC';
     }
@@ -82,7 +75,7 @@ export const detectWorkspaceHelper = (root: string, fileSystemProvider: IFileSys
   }
 
   try {
-    const packageInfo = readPackageJson(root, fileSystemProvider);
+    const packageInfo = await readPackageJson(root, fileSystemAccessor);
     if (!packageInfo) {
       throw new Error('Package info not found');
     }
@@ -107,7 +100,7 @@ export const detectWorkspaceHelper = (root: string, fileSystemProvider: IFileSys
 
     try {
       const lernaJsonUri = path.join(root, 'lerna.json');
-      const fileStat = fileSystemProvider.getFileStat(`${lernaJsonUri}`);
+      const fileStat = await fileSystemAccessor.getFileStat(`${lernaJsonUri}`);
       if (fileStat?.type === 'file') {
         return 'MONOREPO';
       }
