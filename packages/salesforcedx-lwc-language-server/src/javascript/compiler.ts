@@ -78,7 +78,9 @@ const toDiagnostic = (err: CompilerDiagnostic): Diagnostic => {
     range,
     severity: DiagnosticSeverity.Error,
     source: DIAGNOSTIC_SOURCE,
-    message: err.url ? `${extractMessageFromBabelError(message)}\nMore Details: ${err.url}` : extractMessageFromBabelError(message)
+    message: err.url
+      ? `${extractMessageFromBabelError(message)}\nMore Details: ${err.url}`
+      : extractMessageFromBabelError(message)
   };
   if (err.url) {
     diagnostic.code = err.code;
