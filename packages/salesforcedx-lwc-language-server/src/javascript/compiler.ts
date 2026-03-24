@@ -81,13 +81,21 @@ const toDiagnostic = (err: any): Diagnostic => {
   // https://github.com/forcedotcom/salesforcedx-vscode/issues/2074
   // Limit the end character to max 32 bit integer so that it doesn't overflow other language servers
   const range = Range.create(startLine, startCharacter, startLine, MAX_32BIT_INTEGER);
-  return {
+  const diagnostic: Diagnostic = {
     range,
     severity: DiagnosticSeverity.Error,
     source: DIAGNOSTIC_SOURCE,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    message: extractMessageFromBabelError(message)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    message: err.url ? `${extractMessageFromBabelError(message)}\nMore Details: ${err.url}` : extractMessageFromBabelError(message)
   };
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (err.url && err.code != null) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    diagnostic.code = err.code;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    diagnostic.codeDescription = { href: err.url };
+  }
+  return diagnostic;
 };
 
 export const compileSource = (source: string, fileName = 'foo.js'): CompilerResult => {
