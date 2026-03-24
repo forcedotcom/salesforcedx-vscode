@@ -8,11 +8,13 @@
 // This is Node.js test infrastructure, not extension code
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron } from '@playwright/test';
-import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import type { ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
+import { downloadVSCodeWithRetry } from '../utils/downloadUtils';
 import { filterErrors } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
 import { createEmptyTestWorkspace, createTestWorkspace } from './desktopWorkspace';
@@ -30,7 +32,12 @@ const CLOSE_TIMEOUT_MS = 5000;
 const forceKillProcessGroup = (proc: ChildProcess): void => {
   const { pid } = proc;
   if (typeof pid !== 'number') return;
-  try { process.kill(-pid, 'SIGKILL'); } catch {}
+
+  try {
+    process.kill(-pid, 'SIGKILL');
+  } catch {
+    // ignore
+  }
   proc.stdin?.destroy();
   proc.stdout?.destroy();
   proc.stderr?.destroy();
@@ -69,7 +76,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         const repoRoot = resolveRepoRoot(fixturesDir);
         const cachePath = path.join(repoRoot, '.vscode-test');
         const version = process.env.PLAYWRIGHT_DESKTOP_VSCODE_VERSION ?? undefined;
-        const executablePath = await downloadAndUnzipVSCode({ version, cachePath });
+
+        const executablePath = await Effect.runPromise(downloadVSCodeWithRetry(version, cachePath));
         await use(executablePath);
       },
       { scope: 'worker' }
@@ -93,10 +101,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       if (Object.keys(effectiveUserSettings).length > 0) {
         const userSettingsDir = path.join(userDataDir, 'User');
         await fs.mkdir(userSettingsDir, { recursive: true });
-        await fs.writeFile(
-          path.join(userSettingsDir, 'settings.json'),
-          JSON.stringify(effectiveUserSettings, null, 2)
-        );
+        await fs.writeFile(path.join(userSettingsDir, 'settings.json'), JSON.stringify(effectiveUserSettings, null, 2));
       }
       const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
       await fs.mkdir(extensionsDir, { recursive: true });
@@ -151,22 +156,29 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             forceKillProcessGroup(proc);
             // Wait for Node.js to register the exit (pipes closed → 'close' event → 'exit' event)
             await new Promise<void>(resolve => {
-              if (proc.exitCode !== null) { resolve(); return; }
+              if (proc.exitCode !== null) {
+                resolve();
+                return;
+              }
               proc.on('close', () => resolve());
               setTimeout(resolve, 10_000);
             });
           }
           console.log(`[teardown] exitCode=${proc?.exitCode} killed=${proc?.killed}`);
         } else {
-          try {
-            await Promise.race([
-              electronApp.close(),
-              new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
-            ]);
-          } catch {}
+          await Effect.runPromise(
+            Effect.tryPromise(() => electronApp.close()).pipe(
+              Effect.timeout(Duration.millis(CLOSE_TIMEOUT_MS)),
+              Effect.catchAll(() => Effect.void)
+            )
+          );
           // Force-kill if close didn't work (Windows timeout fallback)
           if (proc?.exitCode === null && process.platform === 'win32') {
-            try { process.kill(proc.pid!, 'SIGKILL'); } catch {}
+            try {
+              process.kill(proc.pid!, 'SIGKILL');
+            } catch {
+              // ignore
+            }
           }
         }
         console.log('[teardown] done');

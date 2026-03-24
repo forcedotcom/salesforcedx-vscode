@@ -34,7 +34,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
   const repoRoot = resolveRepoRoot(options.callerDirname);
   const testRunnerDataDir = path.join(repoRoot, '.vscode-test-web');
 
-  const openTask = Effect.fn('createHeadlessServer.open')(function* () {
+  const openTask = Effect.fn('openHeadlessServer')(function* () {
     yield* Effect.log(`🌐 Starting VS Code Web (headless) for ${options.extensionName} tests...`, {
       extensionDevelopmentPath,
       extensionPaths,
@@ -68,11 +68,11 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
               : [])
           ]
         }),
-      catch: error => error instanceof Error ? error : new Error(String(error))
+      catch: error => (error instanceof Error ? error : new Error(String(error)))
     });
   });
 
-  const program = openTask().pipe(
+  await openTask().pipe(
     Effect.retry(
       Schedule.exponential(Duration.seconds(5)).pipe(
         Schedule.compose(Schedule.recurs(2)),
@@ -83,15 +83,11 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
     ),
     Effect.catchAll(error =>
       Effect.logError('❌ Failed to start headless server after 3 attempts', {
-        error: error.message
-      }).pipe(
-        Effect.andThen(() => process.exit(1)),
-        Effect.asVoid
-      )
-    )
+        error: error instanceof Error ? error.message : String(error)
+      })
+    ),
+    Effect.runPromiseExit
   );
-
-  await Effect.runPromise(program as Effect.Effect<void, Error, never>);
 };
 
 /** Sets up signal handlers for graceful shutdown */
