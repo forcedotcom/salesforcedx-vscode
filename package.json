@@ -128,6 +128,7 @@
     "compile:github-actions": "wireit",
     "compile:watch": "npm run compile && tsc --build --watch",
     "lint": "wireit",
+    "check:circular-deps": "wireit",
     "test": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "coverage:report": "shx mkdir -p ./test-results && npm run coverage:merge && nyc report --reporter=html --report-dir=./test-results/coverage-report --temp-dir=coverage",
@@ -196,6 +197,7 @@
     },
     "lint": {
       "dependencies": [
+        "check:circular-deps",
         "./packages/eslint-local-rules:lint",
         "./packages/salesforcedx-utils:lint",
         "./packages/salesforcedx-vscode-i18n:lint",
@@ -226,6 +228,12 @@
         "./packages/salesforcedx-lightning-lsp-common:lint",
         "./packages/salesforcedx-aura-language-server:lint",
         "./packages/salesforcedx-lwc-language-server:lint"
+      ]
+    },
+    "check:circular-deps": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode-apex-testing:check:circular-deps",
+        "./packages/salesforcedx-vscode-i18n:check:circular-deps"
       ]
     },
     "test": {
