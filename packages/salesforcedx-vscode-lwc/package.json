@@ -152,9 +152,10 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
-        "package.json",
-        "package.nls.json"
-      ],
+            "package.json",
+            "package.nls.json",
+            ".vscodeignore"
+          ],
       "output": []
     },
     "vscode:package:legacy": {

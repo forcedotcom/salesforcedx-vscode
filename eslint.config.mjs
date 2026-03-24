@@ -713,6 +713,7 @@ export default [
       ...jsonPlugin.configs.recommended.rules,
       'local/package-json-i18n-descriptions': 'error',
       'local/package-json-extension-icon': 'error',
+      'local/package-json-web-vscodeignore': 'error',
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error'

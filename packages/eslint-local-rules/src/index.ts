@@ -21,6 +21,7 @@ import { packageJsonExtensionIcon } from './packageJsonExtensionIcon';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
+import { packageJsonWebVscodeignore } from './packageJsonWebVscodeignore';
 import { requireEffectFnSpanName } from './requireEffectFnSpanName';
 
 const plugin = {
@@ -39,6 +40,7 @@ const plugin = {
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,
     'package-json-extension-icon': packageJsonExtensionIcon,
+    'package-json-web-vscodeignore': packageJsonWebVscodeignore,
     'package-json-icon-paths': packageJsonIconPaths,
     'package-json-command-refs': packageJsonCommandRefs,
     'package-json-view-refs': packageJsonViewRefs

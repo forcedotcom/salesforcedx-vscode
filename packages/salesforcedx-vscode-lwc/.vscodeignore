@@ -1,23 +1,33 @@
 .vscode/**
 .vscode-test/**
+.vscode-test-web/**
+.vscode-web/**
 .wireit/**
-out/test/**
-test/**
+node_modules
+out/**
 src/**
+test/**
 **/*.map
-.gitignore
+**/*.node
+dist/*-metafile.json
+playwright*.ts
+playwright-report/**
+test-results/**
+**/*.ts
+coverage
+junit*
+*.vsix
 .circular-deps.json
 .eslintcache
+.gitignore
+esbuild.config.mjs
+jest.config.js
 tsconfig.json
+.eslint.json
 
-# ignore unused jsforce code
-node_modules/jsforce/test/**
-node_modules/jsforce/build/**
+# unique to this package
+snippets
 
-# ignore unused sfdx-faye code
-node_modules/sfdx-faye/examples/**
-node_modules/sfdx-faye/site/**
-node_modules/sfdx-faye/spec/**
-
-# ignore unused dayjs code
-node_modules/dayjs/esm/**
+# do not reach outside the package
+../../**
+../**
