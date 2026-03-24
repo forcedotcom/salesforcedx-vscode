@@ -79,13 +79,12 @@ describe('AliasFileWatcherService', () => {
           const subscriber = yield* PubSub.subscribe(aliasWatcher.pubsub);
 
           yield* PubSub.publish(fileWatcherPubSub, { type: 'change' as const, uri: URI.file(ALIAS_FILE_PATH) });
-          yield* Effect.sleep(200);
 
-          const events: AliasChangeEvent[] = [];
-          yield* Queue.takeAll(subscriber).pipe(Effect.map(chunk => events.push(...chunk)));
-
-          expect(events).toHaveLength(1);
-          expect(events[0]).toEqual({ type: 'changed' });
+          // Block until the event arrives rather than a fixed sleep. A fixed sleep is
+          // unreliable on CI because the Effect fiber scheduler may not flush before the
+          // wall-clock timer fires under parallel test load.
+          const event = yield* Queue.take(subscriber);
+          expect(event).toEqual({ type: 'changed' });
         })
       )
     );
