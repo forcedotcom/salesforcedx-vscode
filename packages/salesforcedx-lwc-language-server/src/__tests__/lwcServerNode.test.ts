@@ -105,7 +105,12 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
 // executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
 
-import { normalizePath, DirectoryEntry, FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  normalizePath,
+  DirectoryEntry,
+  FileSystemDataProvider,
+  SERVER_READY_NOTIFICATION
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { dirname, basename } from 'node:path';
@@ -686,6 +691,19 @@ describe('lwcServerNode', () => {
         expect(location.range.start.line).toEqual(15);
         expect(location.range.start.character).toEqual(60);
       });
+    });
+
+    describe('delayed initialization notification', () => {
+      it(
+        'sends SERVER_READY_NOTIFICATION after successful delayed initialization',
+        async () => {
+          await server.onInitialize(initializeParams);
+          await setupServerForTest([document]);
+
+          expect(server.connection.sendNotification).toHaveBeenCalledWith(SERVER_READY_NOTIFICATION);
+        },
+        10_000
+      );
     });
 
     describe('onInitialized()', () => {

@@ -72,3 +72,9 @@ export { scheduleReinitialization } from './reinitializationScheduler';
 
 // Re-export TypeScript configuration templates
 export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';
+
+/**
+ * Custom LSP notification sent by LWC/Aura servers when delayed initialization
+ * is complete and the server is ready to serve requests.
+ */
+export const SERVER_READY_NOTIFICATION = 'custom/serverReady';

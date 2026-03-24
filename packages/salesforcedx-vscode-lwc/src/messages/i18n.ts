@@ -34,7 +34,9 @@ export const messages = {
     'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
   lightning_lwc_redhat_extension_regression:
     'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
-  lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension'
+  lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension',
+  lwc_language_server_loading: 'Indexing LWC files. Hold tight, almost ready… $(sync~spin)',
+  lwc_language_server_loaded: 'Indexing complete $(check)'
 } as const;
 
 export type MessageKey = keyof typeof messages;

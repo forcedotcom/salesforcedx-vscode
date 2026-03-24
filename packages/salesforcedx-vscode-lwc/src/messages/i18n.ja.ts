@@ -34,5 +34,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'Salesforce js-meta.xml IntelliSense を使用するには、Red Hat XML 拡張機能のバージョン 0.14.0 以上が必要です。Red Hat XML 拡張機能をアップグレードしてください。',
   lightning_lwc_redhat_extension_regression:
     'Salesforce js-meta.xml IntelliSense は Red Hat XML 拡張機能のバージョン 0.15.0 では動作しません。Red Hat XML 拡張機能をアップグレードしてください。',
-  lightning_lwc_fail_redhat_extension: 'Red Hat XML 拡張機能の設定に失敗しました'
+  lightning_lwc_fail_redhat_extension: 'Red Hat XML 拡張機能の設定に失敗しました',
+  lwc_language_server_loading: 'LWC ファイルをインデックス化しています。しばらくお待ちください… $(sync~spin)',
+  lwc_language_server_loaded: 'インデックス化が完了しました $(check)'
 };

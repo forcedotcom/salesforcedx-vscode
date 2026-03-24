@@ -14,7 +14,8 @@ import {
   scheduleReinitialization,
   normalizePath,
   NormalizedPath,
-  WorkspaceType
+  WorkspaceType,
+  SERVER_READY_NOTIFICATION
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
@@ -618,10 +619,7 @@ export default class Server {
     }
 
     // send notification that delayed initialization is complete
-    void this.connection.sendNotification(ShowMessageNotification.type, {
-      type: MessageType.Info,
-      message: 'Aura Language Server is ready'
-    });
+    void this.connection.sendNotification(SERVER_READY_NOTIFICATION);
   }
 
   public listen(): void {

@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DirectoryEntry, FileSystemDataProvider, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  DirectoryEntry,
+  FileSystemDataProvider,
+  isLWC,
+  SERVER_READY_NOTIFICATION
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ApplyWorkspaceEditRequest,
   handleApplyEditWithFs
@@ -23,6 +28,7 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
+import AuraLspStatusBarItem from './auraLspStatusBarItem';
 import { nls } from './messages';
 
 const getActivationMode = (): string => {
@@ -136,6 +142,15 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Handle workspace/applyEdit by writing via workspace.fs (no IDE open); must register before start()
   client.onRequest(ApplyWorkspaceEditRequest.type, handleApplyEditWithFs);
   console.log(`Server module path: ${serverModule}`);
+
+  // Create language status item to show indexing progress
+  const statusBarItem = new AuraLspStatusBarItem();
+  extensionContext.subscriptions.push(statusBarItem);
+
+  // Listen for server ready notification to update status
+  client.onNotification(SERVER_READY_NOTIFICATION, () => {
+    statusBarItem.ready();
+  });
 
   // Start the language server
   try {

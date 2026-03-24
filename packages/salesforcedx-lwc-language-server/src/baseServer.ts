@@ -17,7 +17,8 @@ import {
   scheduleReinitialization,
   NormalizedPath,
   WorkspaceType,
-  normalizePath
+  normalizePath,
+  SERVER_READY_NOTIFICATION
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { basename, dirname, parse } from 'node:path';
@@ -840,10 +841,7 @@ export abstract class BaseServer {
 
       // send notification that delayed initialization is complete (only if we have components)
       if (componentCount > 0) {
-        void this.connection.sendNotification(ShowMessageNotification.type, {
-          type: MessageType.Info,
-          message: 'LWC Language Server is ready'
-        });
+        void this.connection.sendNotification(SERVER_READY_NOTIFICATION);
       }
     } catch (error: unknown) {
       Logger.error(
