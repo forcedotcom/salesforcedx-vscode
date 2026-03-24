@@ -46,16 +46,16 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 
 **Default when unassigned:** Platform Dev Tools Scrum Team `005B0000000GIODIA4` – use when work isn't assigned to a person yet.
 
-| Name               | Id                   |
-| ------------------ | -------------------- |
-| Cristina Cañizales | `005EE000008cgrGYAQ` |
-| Daphne Yang        | `005EE000005d0jdYAA` |
-| Jonny Hork         | `005B0000004pYWjIAM` |
-| Kyle Walker        | `005EE0000010oCLYAY` |
-| Madhur Shrivastava | `005EE00000VZK5FYAX` |
-| Peter Hale         | `005B0000000GFvWIAW` |
-| Shane McLaughlin   | `005B00000024wGBIAY` |
-| Sonal Budhiraja    | `005B0000005ccPnIAI` |
+| Name | Id | GitHub login |
+|---|---|---|
+| Cristina Cañizales | `005EE000008cgrGYAQ` | `CristiCanizales` |
+| Daphne Yang | `005EE000005d0jdYAA` | `daphne-sfdc` |
+| Jonny Hork | `005B0000004pYWjIAM` | `jonnyhork` |
+| Kyle Walker | `005EE0000010oCLYAY` | `kylewalke` |
+| Madhur Shrivastava | `005EE00000VZK5FYAX` | `madhur310` |
+| Peter Hale | `005B0000000GFvWIAW` | `peternhale` |
+| Shane McLaughlin | `005B00000024wGBIAY` | `mshanemc` |
+| Sonal Budhiraja | `005B0000005ccPnIAI` | `sbudhirajadoc` |
 
 ## Work items (ADM_Work\_\_c)
 
