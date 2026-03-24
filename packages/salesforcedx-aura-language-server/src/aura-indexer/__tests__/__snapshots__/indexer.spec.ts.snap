@@ -906,8 +906,8 @@ Map {
     "location": {
       "range": {
         "end": {
-          "character": 37,
-          "line": 1,
+          "character": 19,
+          "line": 3,
         },
         "start": {
           "character": 1,
@@ -928,8 +928,8 @@ Map {
     "location": {
       "range": {
         "end": {
-          "character": 37,
-          "line": 1,
+          "character": 19,
+          "line": 13,
         },
         "start": {
           "character": 1,
@@ -972,8 +972,8 @@ Map {
     "location": {
       "range": {
         "end": {
-          "character": 37,
-          "line": 1,
+          "character": 19,
+          "line": 3,
         },
         "start": {
           "character": 1,

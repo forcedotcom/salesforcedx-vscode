@@ -63,7 +63,7 @@ const readFile = async (filename: string): Promise<string> => {
   }
 
   try {
-    const content = server.fileSystemProvider.getFileContent(`file://${normalized}`);
+    const content = await server.fileSystemAccessor.getFileContent(`file://${normalized}`);
     return content ?? '';
   } catch {
     // Handle file not found or other errors

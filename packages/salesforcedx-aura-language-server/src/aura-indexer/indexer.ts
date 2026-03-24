@@ -71,9 +71,9 @@ export default class AuraIndexer implements Indexer {
     this.deleteCustomTag(name);
   }
 
-  public indexFile(file: string, sfdxProject: boolean): TagInfo | undefined {
+  public async indexFile(file: string, sfdxProject: boolean): Promise<TagInfo | undefined> {
     try {
-      const stat = this.context.fileSystemProvider.getFileStat(file);
+      const stat = await this.context.fileSystemAccessor.getFileStat(file);
       if (stat?.type !== 'file') {
         return undefined;
       }
@@ -81,7 +81,7 @@ export default class AuraIndexer implements Indexer {
       this.clearTagsforFile(file, sfdxProject);
       return;
     }
-    const content = this.context.fileSystemProvider.getFileContent(file);
+    const content = await this.context.fileSystemAccessor.getFileContent(file);
     const markup = content ?? '';
     const result = parse(markup);
     const tags: Node[] = [];
@@ -148,7 +148,7 @@ export default class AuraIndexer implements Indexer {
 
     for (const file of markupfiles) {
       try {
-        this.indexFile(file, this.context.type === 'SFDX');
+        await this.indexFile(file, this.context.type === 'SFDX');
       } catch (e) {
         Logger.log(`Error parsing markup from ${file}:`, e);
       }

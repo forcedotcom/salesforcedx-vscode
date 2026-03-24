@@ -37,7 +37,11 @@ export const sharedUriConverters = {
   protocol2Code: protocol2CodeConverter
 };
 
-export type LwcInitializationOptions = { workspaceType: WorkspaceType };
+export type LwcInitializationOptions = {
+  workspaceType: WorkspaceType;
+  /** URI of the extension's sfdx typings directory. The server reads lds.d.ts and messageservice.d.ts from here. */
+  sfdxTypingsDir: string;
+};
 
 /** Shared language client options. Override documentSelector (and add outputChannel etc.) in node/web. */
 export const getBaseClientOptions = (initializationOptions: LwcInitializationOptions) => ({

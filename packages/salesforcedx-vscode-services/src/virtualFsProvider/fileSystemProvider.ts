@@ -17,11 +17,11 @@ import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import type { URI } from 'vscode-uri';
+import { Utils, type URI } from 'vscode-uri';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { unknownToErrorCause } from '../core/shared';
+import { joinPathWithBase } from '../vscode/uriUtils';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { emitter } from './memfsWatcher';
 import { VirtualFsProviderError } from './virtualFsProviderError';
@@ -35,18 +35,18 @@ const handleFileSystemError = (error: unknown, uri: URI): never => {
 };
 
 /** Extract SDR suffix from path: "MyClass.cls" -> "cls", "MyClass.cls-meta.xml" -> "cls" */
-const suffixFromPath = (fsPath: string): string | undefined => {
-  const base = path.basename(fsPath);
+const suffixFromPath = (uri: URI): string | undefined => {
+  const base = Utils.basename(uri);
   const metaMatch = base.match(/\.([^.]+)-meta\.xml$/);
   if (metaMatch) return metaMatch[1];
-  const ext = path.extname(fsPath).slice(1);
+  const ext = Utils.extname(uri).slice(1);
   return ext || undefined;
 };
 
 /** Effect that uses MetadataRegistryService (cached) to resolve metadata type from URI */
 export const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
   if (readOnlyTypes.length === 0) return false;
-  const suffix = suffixFromPath(uri.path);
+  const suffix = suffixFromPath(uri);
   if (!suffix) return false;
   const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
   const metadataType = registryAccess.getTypeBySuffix(suffix);
@@ -59,7 +59,7 @@ export const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyT
   return readOnlyTypes.some(opt => opt.id === metadataType.id);
 });
 
-/** Layer required to run isItReadOnlyEffect */
+/** Layer required to run isItReadOnly*/
 export const isItReadOnlyLayer = Layer.mergeAll(MetadataRegistryService.Default, WorkspaceService.Default);
 
 export class FsProvider implements vscode.FileSystemProvider {
@@ -171,5 +171,36 @@ export class FsProvider implements vscode.FileSystemProvider {
 
   public watch(_uri: URI, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
     return new vscode.Disposable(() => {});
+  }
+
+  /**
+   * Find files by glob. baseUri optional: when provided (via RelativePattern), search under that URI only; otherwise use workspace folder.
+   * The 4 param is usually a cancellation token.  That is omitted here because there's no way to interrupt the glob operation..
+   */
+  public async findFiles(
+    include: vscode.GlobPattern,
+    exclude?: vscode.GlobPattern | null,
+    maxResults?: number
+  ): Promise<URI[]> {
+    const pattern = typeof include === 'string' ? include : include.pattern;
+    const baseUri =
+      (typeof include === 'object' && 'baseUri' in include ? include.baseUri : undefined) ??
+      vscode.workspace.workspaceFolders?.[0]?.uri;
+    if (!baseUri) return [];
+    const excludeArr = exclude == null ? undefined : typeof exclude === 'string' ? [exclude] : [exclude.pattern];
+    // Only runs on web (memfs); node:fs.glob returns AsyncIterator but we never hit that path
+    // this is fixed in higher memfs versions, but there's other conflicts there (would break sfdx-core support for node 20)
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- web-only, memfs returns Promise<string[]>
+    const matches = await (fs.promises.glob(pattern, {
+      cwd: baseUri.path,
+      exclude: excludeArr
+    }) as unknown as Promise<string[]>);
+    return (
+      matches
+        .map(p => joinPathWithBase(baseUri, p))
+        // current memfs doesn't have the Dirents option so we need to filter out directories
+        .filter(uri => !fs.statSync(uri.path).isDirectory())
+        .slice(0, maxResults ?? Infinity)
+    );
   }
 }

@@ -127,6 +127,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "out/**"
       ],
       "output": [
@@ -148,6 +149,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "out/**",
         "../../.esbuild-web-extra-settings.json",
         "node_modules/@salesforce/templates/lib/**"

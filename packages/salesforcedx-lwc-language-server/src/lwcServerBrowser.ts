@@ -6,7 +6,7 @@
  */
 // Browser-specific version that extends BaseServer
 // Overrides connection creation and adds browser-specific logic for web mode
-import { BaseWorkspaceContextOptions, scheduleReinitialization } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { getLanguageService } from 'vscode-html-languageservice';
 import {
   createConnection,
   BrowserMessageReader,
@@ -14,8 +14,10 @@ import {
   Connection
 } from 'vscode-languageserver/browser';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-
+import { AuraDataProvider } from './auraDataProvider';
 import { BaseServer } from './baseServer';
+import ComponentIndexer from './componentIndexer';
+import { LWCDataProvider } from './lwcDataProvider';
 
 export default class Server extends BaseServer {
   protected createConnection(): Connection {
@@ -24,30 +26,39 @@ export default class Server extends BaseServer {
   }
 
   /**
-   * Override to add browser-specific re-indexing logic when LWC files are added after delayed initialization.
-   * In web mode only the opened document is synced, so when a new .js/.ts is opened (e.g. sibling of .html)
-   * we must re-run the indexer so the component is available for go-to-definition.
+   * Re-run only the component indexer and refresh data providers.
+   * Used when new LWC .js/.ts files are opened after delayed init (e.g. in browser when sibling is opened).
    */
-  protected async onDidOpen(changeEvent: { document: TextDocument }): Promise<{ isLwcPath: boolean }> {
-    const { isLwcPath } = await super.onDidOpen(changeEvent);
-
-    if (this.isDelayedInitializationComplete && isLwcPath && this.componentIndexer) {
-      const uri = changeEvent.document.uri.toLowerCase();
-      const isComponentImpl = uri.endsWith('.js') || uri.endsWith('.ts');
-      if (isComponentImpl) {
-        void scheduleReinitialization(this.fileSystemProvider, () => this.reindexComponents());
-      }
-    } else if (!this.isDelayedInitializationComplete && isLwcPath && this.componentIndexer) {
-      const componentCount = this.componentIndexer.getCustomData().length;
-      if (componentCount === 0) {
-        void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
-      }
+  private async reindexComponents(): Promise<void> {
+    if (!this.componentIndexer) {
+      return;
     }
-
-    return { isLwcPath };
+    this.componentIndexer = new ComponentIndexer({
+      workspaceRoot: this.workspaceRoots[0],
+      fileSystemAccessor: this.fileSystemAccessor,
+      workspaceType: this.workspaceType
+    });
+    await this.componentIndexer.init();
+    this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
+    this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
+    this.languageService = getLanguageService({
+      customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
+      useDefaultDataProvider: false
+    });
   }
 
-  protected override getContextOptions(): BaseWorkspaceContextOptions | undefined {
-    return { sfdxTypingsDir: '~/MyProject/.sfdx/typings/lwc' };
+  /**
+   * Override to add browser-specific re-indexing logic when LWC files are added after delayed initialization.
+   * In web mode only the opened document is synced, so when any LWC file is opened (.html, .js, .ts under /lwc/)
+   * we re-run the indexer so findFiles runs again and picks up downloaded components (memfs walk returns current files).
+   */
+  protected onDidOpen(changeEvent: { document: TextDocument }): void {
+    super.onDidOpen(changeEvent);
+
+    const uri = changeEvent.document.uri.toLowerCase();
+    const isLwcFile = /\/lwc\/[^/]+\/[^/]+\.(html|js|ts)$/.test(uri);
+    if (isLwcFile) {
+      void this.reindexComponents();
+    }
   }
 }

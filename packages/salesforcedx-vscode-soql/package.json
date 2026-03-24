@@ -35,6 +35,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.20.0",
     "@salesforce/salesforcedx-utils-vscode": "*",

@@ -95,6 +95,24 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
+        "src/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "vscode:bundle:local": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "src/**"
       ],
       "output": [

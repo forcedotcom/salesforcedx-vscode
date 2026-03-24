@@ -8,13 +8,10 @@ import {
   toResolvedPath,
   Logger,
   TagInfo,
-  FileSystemDataProvider,
-  FileStat,
-  syncDocumentToTextDocumentsProvider,
-  scheduleReinitialization,
   normalizePath,
   NormalizedPath,
-  WorkspaceType
+  WorkspaceType,
+  LspFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
@@ -23,7 +20,6 @@ import {
   createConnection,
   Connection,
   TextDocuments,
-  TextDocumentChangeEvent,
   InitializeParams,
   InitializeResult,
   TextDocumentPositionParams,
@@ -54,16 +50,16 @@ import { AuraWorkspaceContext } from './context/auraContext';
 import { setIndexer, getAuraTagProvider } from './markup/auraTags';
 import { nls } from './messages';
 import {
-  startServer,
   addFile,
   delFile,
+  init,
+  startServer,
   onCompletion,
   onHover,
   onDefinition,
   onTypeDefinition,
   onReferences,
-  onSignatureHelp,
-  init
+  onSignatureHelp
 } from './tern-server/ternServer';
 
 interface TagParams {
@@ -81,14 +77,13 @@ export default class Server {
   private workspaceRoots!: NormalizedPath[];
   private htmlLS!: LanguageService;
   private auraIndexer!: AuraIndexer;
-  public fileSystemProvider: FileSystemDataProvider;
   private isDelayedInitializationComplete = false;
   private isIndexerInitialized = false;
   private hasDetectedAuraFiles = false;
   private workspaceType: WorkspaceType;
+  private fileSystemAccessor: LspFileSystemAccessor;
 
   constructor() {
-    this.fileSystemProvider = new FileSystemDataProvider();
     this.connection.onInitialize(params => this.onInitialize(params));
     this.connection.onCompletion(params => this.onCompletion(params));
     this.connection.onCompletionResolve(item => this.onCompletionResolve(item));
@@ -100,6 +95,7 @@ export default class Server {
     this.connection.onRequest('salesforce/listNamespaces', () => this.onListNamespaces());
     this.workspaceType = 'UNKNOWN';
     this.documents.listen(this.connection);
+    this.fileSystemAccessor = new LspFileSystemAccessor();
   }
 
   public onInitialize(params: InitializeParams): InitializeResult {
@@ -111,6 +107,9 @@ export default class Server {
     );
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
+    // Wire up the LSP connection so workspace/stat, workspace/findFiles, etc. can be sent
+    this.fileSystemAccessor.setConnection(this.connection);
+    this.fileSystemAccessor.setWorkspaceFolderUris((workspaceFolders ?? []).map(f => f.uri));
     try {
       if (this.workspaceRoots.length === 0) {
         Logger.warn(nls.localize('no_workspace_found_message'));
@@ -119,15 +118,17 @@ export default class Server {
 
       // Set up document event handlers
       this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
-      this.documents.onDidChangeContent(changeEvent => this.onDidChangeContent(changeEvent));
-      this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
-      // Populate FileSystemDataProvider with static resources from initializationOptions
-      // These are static framework files needed for Tern server initialization
-      this.populateFileSystemProvider(params);
-
-      // Note: Workspace context initialization is delayed until performDelayedInitialization()
-      // to ensure all essential files (like sfdx-project.json) are loaded via onDidOpen events
+      // Defer performDelayedInitialization to next tick (like LWC) so the client has time to attach
+      // workspace/readFile and workspace/stat handlers before we send any requests.
+      setTimeout(() => {
+        void this.performDelayedInitialization().catch((err: unknown) => {
+          Logger.error(
+            `Aura delayed initialization failed: ${err instanceof Error ? err.message : String(err)}`,
+            err instanceof Error ? err : undefined
+          );
+        });
+      }, 0);
 
       this.htmlLS = getLanguageService();
       this.htmlLS.setDataProviders(true, [getAuraTagProvider()]);
@@ -162,61 +163,6 @@ export default class Server {
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e);
       throw new Error(nls.localize('initialization_unsuccessful_message', errorMessage));
-    }
-  }
-
-  private isFileStat(obj: unknown): obj is FileStat {
-    return typeof obj === 'object' && obj !== null && 'type' in obj && 'exists' in obj;
-  }
-
-  private populateFileSystemProvider(params: InitializeParams) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (params.initializationOptions?.fileSystemProvider) {
-      // Reconstruct the FileSystemDataProvider from serialized data
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const serializedProvider = params.initializationOptions.fileSystemProvider;
-
-      if (typeof serializedProvider !== 'object' || serializedProvider === null) {
-        throw new Error(nls.localize('invalid_filesystem_provider_message'));
-      }
-
-      // Restore the data from the serialized object
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.fileContents && typeof serializedProvider.fileContents === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        for (const [uri, content] of Object.entries(serializedProvider.fileContents)) {
-          if (typeof content === 'string') {
-            void this.fileSystemProvider.updateFileContent(uri, content);
-          }
-        }
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.directoryListings && typeof serializedProvider.directoryListings === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        for (const [uri, entries] of Object.entries(serializedProvider.directoryListings)) {
-          if (Array.isArray(entries)) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            this.fileSystemProvider.updateDirectoryListing(uri, entries);
-          }
-        }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.fileStats && typeof serializedProvider.fileStats === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        for (const [uri, stat] of Object.entries(serializedProvider.fileStats)) {
-          if (this.isFileStat(stat)) {
-            this.fileSystemProvider.updateFileStat(uri, stat);
-          }
-        }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.workspaceConfig && typeof serializedProvider.workspaceConfig === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        this.fileSystemProvider.updateWorkspaceConfig(serializedProvider.workspaceConfig);
-      }
-    } else {
-      throw new Error(nls.localize('no_filesystem_provider_message'));
     }
   }
 
@@ -264,7 +210,7 @@ export default class Server {
       }
 
       if (await this.context.isAuraJavascript(document)) {
-        const result = await onCompletion(completionParams, this.fileSystemProvider);
+        const result = await onCompletion(completionParams);
         return result;
       }
 
@@ -308,7 +254,7 @@ export default class Server {
             contents: nls.localize('server_initializing_message')
           };
         }
-        const result = await onHover(textDocumentPosition, this.fileSystemProvider);
+        const result = await onHover(textDocumentPosition);
         return result;
       }
 
@@ -329,7 +275,7 @@ export default class Server {
       const isAuraJavascript = await this.context.isAuraJavascript(document);
 
       if (isAuraJavascript) {
-        const result = await onTypeDefinition(textDocumentPosition, this.fileSystemProvider);
+        const result = await onTypeDefinition(textDocumentPosition);
         return result ?? null;
       }
 
@@ -405,7 +351,7 @@ export default class Server {
       const isAuraJavascript = await this.context.isAuraJavascript(document);
 
       if (isAuraJavascript) {
-        const result = await onDefinition(textDocumentPosition, this.fileSystemProvider);
+        const result = await onDefinition(textDocumentPosition);
         return result ?? null;
       }
 
@@ -419,7 +365,7 @@ export default class Server {
     const document = this.getDocumentIfReady(reference.textDocument.uri);
 
     return document && (await this.context.isAuraJavascript(document))
-      ? ((await onReferences(reference, this.fileSystemProvider)) ?? null)
+      ? ((await onReferences(reference)) ?? null)
       : null;
   }
 
@@ -479,19 +425,9 @@ export default class Server {
     void this.connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
   }
 
-  private async onDidOpen(changeEvent: { document: TextDocument }): Promise<void> {
+  private onDidOpen(changeEvent: { document: TextDocument }): void {
     const { document } = changeEvent;
     const uri = document.uri;
-    const content = document.getText();
-
-    // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
-
-    // Perform delayed initialization once we have documents
-    if (!this.isDelayedInitializationComplete) {
-      void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
-    }
 
     // Check if this is an Aura component file and initialize indexer if needed
     // Parse URI to get filename in a cross-platform way (URIs use forward slashes, but path.basename handles both)
@@ -503,26 +439,6 @@ export default class Server {
         void this.initializeIndexer();
       }
     }
-  }
-
-  public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
-    const { document } = changeEvent;
-    const { uri } = document;
-    const content = document.getText();
-
-    // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
-  }
-
-  public async onDidSave(change: TextDocumentChangeEvent<TextDocument>): Promise<void> {
-    const { document } = change;
-    const uri = document.uri;
-    const content = document.getText();
-
-    // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
   }
 
   /**
@@ -565,7 +481,7 @@ export default class Server {
 
   /**
    * Performs delayed initialization of Tern server and indexer components
-   * using the populated fileSystemProvider
+   * using the populated fileSystemAccessor
    */
   private async performDelayedInitialization(): Promise<void> {
     if (this.isDelayedInitializationComplete) {
@@ -575,27 +491,22 @@ export default class Server {
     try {
       // Initialize workspace context now that essential files are loaded via onDidOpen
       if (!this.context) {
-        this.context = new AuraWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
+        this.context = new AuraWorkspaceContext(this.workspaceRoots, this.fileSystemAccessor, this.connection);
         this.context.initialize(this.workspaceType);
-      } else {
-        // Update context to use fileSystemProvider for better file access
-        this.context.fileSystemProvider = this.fileSystemProvider;
       }
 
-      // Initialize Tern server with original fileSystemProvider (contains Aura resources)
+      // Initialize Tern server before registering handlers that depend on it
       if (this.context.type === 'CORE_PARTIAL') {
         const corePartialRoot = normalizePath(path.join(this.workspaceRoots[0], '..'));
-        await startServer(corePartialRoot, corePartialRoot, this.fileSystemProvider);
+        await startServer(corePartialRoot, corePartialRoot, this.fileSystemAccessor);
       } else {
-        await startServer(this.workspaceRoots[0], this.workspaceRoots[0], this.fileSystemProvider);
+        await startServer(this.workspaceRoots[0], this.workspaceRoots[0], this.fileSystemAccessor);
       }
+      await init(this.fileSystemAccessor);
 
-      // Initialize tern server with original fileSystemProvider (has Aura resources)
-      await init(this.fileSystemProvider);
-
-      // Register event handlers that depend on fileSystemProvider
+      // Register event handlers
       this.connection.onReferences(reference => this.onReferences(reference));
-      this.connection.onSignatureHelp(signatureParams => onSignatureHelp(signatureParams, this.fileSystemProvider));
+      this.connection.onSignatureHelp(signatureParams => onSignatureHelp(signatureParams));
 
       // Register tern server document event handlers
       this.documents.onDidOpen(addFile);
@@ -604,7 +515,7 @@ export default class Server {
       this.documents.onDidClose(event => this.onDidClose(event));
 
       // Configure project with updated context
-      this.context.configureProject();
+      await this.context.configureProject();
 
       this.isDelayedInitializationComplete = true;
 

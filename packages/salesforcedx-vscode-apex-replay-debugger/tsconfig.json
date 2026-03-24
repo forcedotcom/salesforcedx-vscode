@@ -9,18 +9,8 @@
       }
     ]
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
-  "include": [
-    "src/**/*.ts",
-    "test/playwright/**/*.ts",
-    "playwright.config.desktop.ts",
-    "package.nls.json"
-  ],
+  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "include": ["src/**/*.ts", "test/playwright/**/*.ts", "playwright.config.desktop.ts", "package.nls.json"],
   "references": [
     {
       "path": "../salesforcedx-vscode-apex-log"

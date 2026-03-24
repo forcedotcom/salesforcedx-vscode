@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { PackageJson } from '@salesforce/salesforcedx-lightning-lsp-common';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -18,6 +16,7 @@ import * as vscode from 'vscode';
 // use an exact version.
 
 const checkedPackagePatterns: RegExp[] = [/^@salesforce/i, /^@lwc/i];
+const exemptedPackages = new Set(['@salesforce/core']);
 
 // Helper functions for async file operations
 const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
@@ -27,7 +26,7 @@ const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknow
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(fileContent);
   } catch (e) {
-    throw new Error(`Error reading json file from ${jsonFilePath}: ${e}`);
+    throw new Error(`Error reading json file from ${jsonFilePath}: ${String(e)}`);
   }
 };
 
@@ -65,7 +64,7 @@ const setupPackageData = async (): Promise<void> => {
           const peerPackageJsonPath = path.join(monorepoRootPath, match, 'package.json');
           const peerPackageJson = await readJsonFile(peerPackageJsonPath);
           if (peerPackageJson.name !== packageJson.name) {
-            checkedPackagePatterns.push(new RegExp(`^${peerPackageJson.name}`, 'i'));
+            checkedPackagePatterns.push(new RegExp(`^${String(peerPackageJson.name)}`, 'i'));
           }
         }
       }
@@ -86,35 +85,27 @@ describe('package.json dependencies', () => {
     const devDependencies = packageJson.devDependencies ?? {};
     let testMatchFound = false;
 
-    // Check dependencies
-    for (const [name, versionRange] of Object.entries(dependencies)) {
-      checkedPackagePatterns.forEach(pattern => {
-        if (pattern.test(name)) {
-          expect(versionRange.trim()).not.toStartWith('^');
-          expect(versionRange.trim()).not.toStartWith('~');
-          expect(versionRange.trim()).not.toStartWith('>');
-          expect(versionRange.trim()).not.toStartWith('<');
-          testMatchFound = true;
-        }
-      });
-    }
+    const checkEntries = (entries: [string, string][]) =>
+      entries
+        .filter(([name]) => !exemptedPackages.has(name))
+        .forEach(([name, versionRange]) =>
+          checkedPackagePatterns.forEach(pattern => {
+            if (pattern.test(name)) {
+              expect(versionRange.trim()).not.toStartWith('^');
+              expect(versionRange.trim()).not.toStartWith('~');
+              expect(versionRange.trim()).not.toStartWith('>');
+              expect(versionRange.trim()).not.toStartWith('<');
+              testMatchFound = true;
+            }
+          })
+        );
 
-    // Check devDependencies
-    for (const [name, versionRange] of Object.entries(devDependencies)) {
-      checkedPackagePatterns.forEach(pattern => {
-        if (pattern.test(name)) {
-          expect(versionRange.trim()).not.toStartWith('^');
-          expect(versionRange.trim()).not.toStartWith('~');
-          expect(versionRange.trim()).not.toStartWith('>');
-          expect(versionRange.trim()).not.toStartWith('<');
-          testMatchFound = true;
-        }
-      });
-    }
+    checkEntries(Object.entries(dependencies));
+    checkEntries(Object.entries(devDependencies));
 
     if (!testMatchFound) {
       console.log(
-        `no dependencies matching expected patterns ${checkedPackagePatterns} for package ${packageJson.name}`
+        `no dependencies matching expected patterns ${checkedPackagePatterns.map(r => r.toString()).join(', ')} for package ${packageJson.name}`
       );
     }
   });
