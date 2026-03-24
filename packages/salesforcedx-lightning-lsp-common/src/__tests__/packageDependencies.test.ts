@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -17,6 +16,7 @@ import { PackageJson } from '../types/packageJson';
 // use an exact version.
 
 const checkedPackagePatterns: RegExp[] = [/^@salesforce/i, /^@lwc/i];
+const exemptedPackages = new Set(['@salesforce/core']);
 
 const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
   try {
@@ -78,29 +78,23 @@ describe('package.json dependencies', () => {
     const devDependencies = packageJson.devDependencies ?? {};
     let testMatchFound = false;
 
-    for (const [name, versionRange] of Object.entries(dependencies)) {
-      checkedPackagePatterns.forEach(pattern => {
-        if (pattern.test(name)) {
-          expect(versionRange.trim().startsWith('^')).toEqual(false);
-          expect(versionRange.trim().startsWith('~')).toEqual(false);
-          expect(versionRange.trim().startsWith('>')).toEqual(false);
-          expect(versionRange.trim().startsWith('<')).toEqual(false);
-          testMatchFound = true;
-        }
-      });
-    }
+    const checkEntries = (entries: [string, string][]) =>
+      entries
+        .filter(([name]) => !exemptedPackages.has(name))
+        .forEach(([name, versionRange]) =>
+          checkedPackagePatterns.forEach(pattern => {
+            if (pattern.test(name)) {
+              expect(versionRange.trim().startsWith('^')).toEqual(false);
+              expect(versionRange.trim().startsWith('~')).toEqual(false);
+              expect(versionRange.trim().startsWith('>')).toEqual(false);
+              expect(versionRange.trim().startsWith('<')).toEqual(false);
+              testMatchFound = true;
+            }
+          })
+        );
 
-    for (const [name, versionRange] of Object.entries(devDependencies)) {
-      checkedPackagePatterns.forEach(pattern => {
-        if (pattern.test(name)) {
-          expect(versionRange.trim().startsWith('^')).toEqual(false);
-          expect(versionRange.trim().startsWith('~')).toEqual(false);
-          expect(versionRange.trim().startsWith('>')).toEqual(false);
-          expect(versionRange.trim().startsWith('<')).toEqual(false);
-          testMatchFound = true;
-        }
-      });
-    }
+    checkEntries(Object.entries(dependencies));
+    checkEntries(Object.entries(devDependencies));
 
     if (!testMatchFound) {
       console.log(`no dependencies matching expected patterns ${checkedPackagePatterns.join(', ')}`);

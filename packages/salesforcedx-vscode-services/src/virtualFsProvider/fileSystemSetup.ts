@@ -16,6 +16,7 @@ import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { FsProvider } from './fileSystemProvider';
+import { fsProviderRef } from './fsProviderRef';
 import { IndexedDBStorageService } from './indexedDbStorage';
 import { startWatch } from './memfsWatcher';
 import { projectFiles } from './projectInit';
@@ -41,6 +42,7 @@ const waitForWorkspaceFolders = () =>
 export const fileSystemSetup = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
     const fsProvider = new FsProvider();
+    fsProviderRef.current = fsProvider;
 
     // Load state from IndexedDB first
     yield* (yield* IndexedDBStorageService).loadState();
