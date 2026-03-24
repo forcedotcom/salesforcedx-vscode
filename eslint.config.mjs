@@ -27,7 +27,8 @@ import jsonPlugin from '@eslint/json';
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
 const localRules = localRulesPlugin.rules;
-const localPlugin = { rules: localRules };
+const localProcessors = localRulesPlugin.processors;
+const localPlugin = { processors: localProcessors, rules: localRules };
 
 export default [
   {
@@ -713,10 +714,19 @@ export default [
       ...jsonPlugin.configs.recommended.rules,
       'local/package-json-i18n-descriptions': 'error',
       'local/package-json-extension-icon': 'error',
-      'local/package-json-web-vscodeignore': 'error',
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error'
+    }
+  },
+  {
+    files: ['packages/*/.vscodeignore'],
+    plugins: {
+      local: localPlugin
+    },
+    processor: 'local/vscodeignoreText',
+    rules: {
+      'local/vscodeignore-required-patterns': 'error'
     }
   },
   eslintConfigPrettier
