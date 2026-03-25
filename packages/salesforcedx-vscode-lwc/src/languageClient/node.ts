@@ -5,17 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ApplyWorkspaceEditRequest,
   handleApplyEditWithFs
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
-import { buildDocumentSelector, getBaseClientOptions } from './clientOptions';
+import { buildDocumentSelector, getBaseClientOptions, type LwcInitializationOptions } from './clientOptions';
 
 export const createLanguageClient = (
   serverPath: string,
-  initializationOptions: { workspaceType: WorkspaceType }
+  initializationOptions: LwcInitializationOptions
 ): LanguageClient => {
   // Setup the language server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6030'] };

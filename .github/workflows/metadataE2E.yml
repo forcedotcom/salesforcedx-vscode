@@ -120,7 +120,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: hub
           CI: 1
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:web -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
 
@@ -273,7 +273,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
 

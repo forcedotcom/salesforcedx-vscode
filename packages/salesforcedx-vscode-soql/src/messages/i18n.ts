@@ -68,7 +68,9 @@ export const messages = {
   data_query_no_records: 'No records found',
   data_query_table_title: 'Query Results',
   soql_file_name_prompt: 'Enter a name for the new SOQL file',
-  soql_file_name_invalid: 'File name must start with a letter or underscore and contain only alphanumeric characters, underscores, or hyphens',
+  soql_file_name_empty_error: 'File name cannot be empty',
+  soql_file_name_format_error:
+    'File name must start with a letter and contain only alphanumeric characters and underscores',
   soql_output_dir_default_description: '(default)',
   soql_output_dir_prompt: 'Select the target directory',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',

@@ -7,14 +7,15 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { parse } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 const DEFAULT_MANIFEST = 'package.xml';
 
-const appendExtension = (input: string): string => parse(input).name?.concat('.xml') ?? `${input}.xml`;
+const toManifestBaseName = (input: string): string => input.trim().replace(/\.xml$/i, '');
+
+const appendExtension = (input: string): string => `${toManifestBaseName(input)}.xml`;
 
 const promptForFileName = Effect.fn('promptForFileName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -22,7 +23,13 @@ const promptForFileName = Effect.fn('promptForFileName')(function* () {
   const inputOptions: vscode.InputBoxOptions = {
     placeHolder: nls.localize('manifest_input_save_placeholder'),
     prompt: nls.localize('manifest_input_save_prompt'),
-    value: DEFAULT_MANIFEST
+    value: DEFAULT_MANIFEST,
+    validateInput: (value: string) => {
+      const baseName = toManifestBaseName(value);
+      if (!baseName) return nls.localize('manifest_file_name_empty_error');
+      if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(baseName)) return nls.localize('manifest_file_name_format_error');
+      return undefined;
+    }
   };
   return yield* Effect.promise(() => vscode.window.showInputBox(inputOptions)).pipe(
     Effect.map(s => (s ? appendExtension(s) : undefined)),

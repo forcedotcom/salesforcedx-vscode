@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ApplyWorkspaceEditRequest,
   handleApplyEditWithFs
@@ -13,11 +12,11 @@ import {
 import { window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
 import { channelService } from '../channel';
-import { buildDocumentSelector, getBaseClientOptions } from './clientOptions';
+import { buildDocumentSelector, getBaseClientOptions, type LwcInitializationOptions } from './clientOptions';
 
 export const createLanguageClient = (
   serverPath: string,
-  initializationOptions: { workspaceType: WorkspaceType }
+  initializationOptions: LwcInitializationOptions
 ): LanguageClient => {
   // Browser mode: use web worker
   // Create a web worker for the language server

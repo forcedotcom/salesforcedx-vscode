@@ -25,11 +25,7 @@ const promptForComponentName = Effect.fn('promptForComponentName')(function* () 
       prompt: nls.localize('lwc_component_name_prompt'),
       validateInput: (value: string) => {
         if (!value || value.trim().length === 0) return nls.localize('lwc_component_name_empty_error');
-        if (!/^[a-z][A-Za-z0-9_]*$/.test(value)) {
-          return /^[A-Z]/.test(value)
-            ? nls.localize('lwc_component_name_lowercase_error')
-            : nls.localize('lwc_component_name_format_error');
-        }
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value)) return nls.localize('lwc_component_name_format_error');
         return undefined;
       }
     })
@@ -64,6 +60,9 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   const project = yield* api.services.ProjectService.getSfProject();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
+  const hasTsSupport = getHasTypeScriptSupport();
+  const template = hasTsSupport ? yield* promptForComponentType() : ('default' as const);
+
   const componentName = yield* promptForComponentName();
 
   const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
@@ -75,16 +74,14 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
       pickerPlaceHolder: nls.localize('lwc_output_dir_prompt')
     }));
 
-  const template = getHasTypeScriptSupport() ? yield* promptForComponentType() : ('default' as const);
-
   yield* Effect.annotateCurrentSpan({
     componentName,
     outputDir: outputDirUri.toString(),
     template
   });
 
-  yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [Utils.joinPath(outputDirUri, componentName)] });
-
+  const componentDirUri = Utils.joinPath(outputDirUri, componentName);
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [componentDirUri] });
   const fsService = yield* api.services.FsService;
 
   yield* api.services.TemplateService.create({
@@ -103,7 +100,9 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   yield* channelService.appendToChannel(nls.localize('lwc_generate_success'));
 
   const ext = template === 'typeScript' ? '.ts' : '.js';
-  const actualDirUri = Utils.joinPath(outputDirUri, componentName);
-  const mainFileUri = Utils.joinPath(actualDirUri, `${componentName}${ext}`);
+  // @salesforce/templates uses camelCase for LWC dir and filename (lightningComponentGenerator.js:69)
+  const camelCaseName = `${componentName.substring(0, 1).toLowerCase()}${componentName.substring(1)}`;
+  const actualDirUri = Utils.joinPath(outputDirUri, camelCaseName);
+  const mainFileUri = Utils.joinPath(actualDirUri, `${camelCaseName}${ext}`);
   yield* fsService.showTextDocument(mainFileUri);
 });

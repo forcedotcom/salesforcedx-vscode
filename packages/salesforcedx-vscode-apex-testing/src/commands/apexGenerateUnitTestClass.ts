@@ -114,11 +114,11 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
   const fsService = yield* api.services.FsService;
   const project = yield* api.services.ProjectService.getSfProject();
 
+  const template = params?.template ?? (yield* promptForTemplate());
+
   const className = params?.name ?? (yield* promptForClassName());
 
   const outputDirUri = params?.outputDir ?? outputDirectory ?? (yield* promptForOutputDir(project));
-
-  const template = params?.template ?? (yield* promptForTemplate());
 
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const apiVersion = yield* getApiVersion(project);

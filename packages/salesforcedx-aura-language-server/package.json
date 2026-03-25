@@ -72,7 +72,6 @@
   "dependencies": {
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-utils": "*",
-    "salesforcedx-vscode-services": "*",
     "@salesforce/vscode-i18n": "*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",

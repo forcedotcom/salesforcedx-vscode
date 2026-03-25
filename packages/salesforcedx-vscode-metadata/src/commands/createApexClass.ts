@@ -64,7 +64,6 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   const project = yield* api.services.ProjectService.getSfProject();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
-  const outputDirFromContext = URI.isUri(arg) ? arg : undefined;
   const params = Schema.is(CreateApexClassParams)(arg) ? arg : undefined;
 
   const template = params?.template ?? (yield* promptForTemplate());
@@ -72,6 +71,8 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
 
   const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
   const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
+
+  const outputDirFromContext = URI.isUri(arg) ? arg : undefined;
   const outputDirUri =
     params?.outputDir ??
     outputDirFromContext ??
@@ -84,7 +85,6 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   const fsService = yield* api.services.FsService;
   const channelService = yield* api.services.ChannelService;
-
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
   yield* api.services.TemplateService.create({
@@ -95,6 +95,8 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   });
 
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
+  yield* fsService.showTextDocument(uris[0]);
+
   yield* fsService.showTextDocument(uris[0]);
 
   return undefined;

@@ -8,7 +8,7 @@
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { BaseWorkspaceContext } from '../baseContext';
-import { findNamespaceRoots } from '../namespaceUtils';
+import { findLwcNamespaceRoots } from '../namespaceUtils';
 
 export class WorkspaceContext extends BaseWorkspaceContext {
   /**
@@ -68,8 +68,7 @@ export class WorkspaceContext extends BaseWorkspaceContext {
               .stat(vscode.Uri.file(modulesDir))
               .then(stat => stat.type === vscode.FileType.Directory)
           ) {
-            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
-            roots.lwc.push(...subroots.lwc);
+            roots.lwc.push(...(await findLwcNamespaceRoots(modulesDir, this.fileSystemAccessor, 2)));
           }
         }
         return roots;
@@ -82,8 +81,7 @@ export class WorkspaceContext extends BaseWorkspaceContext {
               .stat(vscode.Uri.file(modulesDir))
               .then(stat => stat.type === vscode.FileType.Directory)
           ) {
-            const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemProvider, 2);
-            roots.lwc.push(...subroots.lwc);
+            roots.lwc.push(...(await findLwcNamespaceRoots(path.join(ws, 'modules'), this.fileSystemAccessor, 2)));
           }
         }
         return roots;
@@ -95,8 +93,7 @@ export class WorkspaceContext extends BaseWorkspaceContext {
         if (this.type === 'MONOREPO') {
           depth += 2;
         }
-        const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemProvider, depth);
-        roots.lwc.push(...unknownroots.lwc);
+        roots.lwc.push(...(await findLwcNamespaceRoots(this.workspaceRoots[0], this.fileSystemAccessor, depth)));
         return roots;
       }
     }

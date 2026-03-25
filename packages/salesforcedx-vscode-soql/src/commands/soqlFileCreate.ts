@@ -19,12 +19,9 @@ const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function
     vscode.window.showInputBox({
       prompt: nls.localize('soql_file_name_prompt'),
       validateInput: (value: string) => {
-        if (!value || value.trim().length === 0) {
-          return nls.localize('soql_file_name_invalid');
-        }
-        if (!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(value.trim())) {
-          return nls.localize('soql_file_name_invalid');
-        }
+        const normalized = value.trim();
+        if (!normalized) return nls.localize('soql_file_name_empty_error');
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(normalized)) return nls.localize('soql_file_name_format_error');
         return undefined;
       }
     })

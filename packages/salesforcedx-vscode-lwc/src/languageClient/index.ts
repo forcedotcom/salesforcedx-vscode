@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
+import type { LwcInitializationOptions } from './clientOptions.js';
 
 // Conditionally export the appropriate language client based on platform
 // Use dynamic imports to avoid bundling Node.js-specific code in web mode
 export const createLanguageClient = async (
   serverPath: string,
-  initializationOptions: { workspaceType: WorkspaceType }
+  initializationOptions: LwcInitializationOptions
 ) => {
   if (process.env.ESBUILD_PLATFORM === 'web') {
     const { createLanguageClient: createWebLanguageClient } = await import('./web.js');

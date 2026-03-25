@@ -13,6 +13,7 @@ import {
   editOpenFile,
   openFileByName,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   clearOutputChannel,
   waitForOutputChannelText,
   validateNoCriticalErrors,
@@ -50,6 +51,7 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
 
     await clearOutputChannel(page);
     await openFileByName(page, `${className}.cls`);
+    await verifyCommandExists(page, packageNls.deploy_this_source_text, 120_000);
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.deploy_this_source_text}`,
