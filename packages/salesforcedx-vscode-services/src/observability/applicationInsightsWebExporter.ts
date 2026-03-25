@@ -18,6 +18,7 @@ import { TelemetryReporter } from '@vscode/extension-telemetry';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { workspace } from 'vscode';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
@@ -26,8 +27,7 @@ import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
-  isTelemetryIgnored,
-  isTopLevelSpan,
+  isSpanValidForProductionTelemetry,
   spanDuration
 } from './spanUtils';
 // TODO: should this be in Effect?
@@ -61,9 +61,10 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
   // eslint-disable-next-line class-methods-use-this
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
     void Effect.runPromise(
-      Effect.all(spans.filter(span => isTopLevelSpan(span) && !isTelemetryIgnored(span)).map(exportSpan), {
-        concurrency: 'unbounded'
-      }).pipe(
+      Stream.fromIterable(spans).pipe(
+        Stream.filter(isSpanValidForProductionTelemetry),
+        Stream.mapEffect(exportSpan),
+        Stream.runDrain,
         Effect.map(() => {
           resultCallback({ code: ExportResultCode.SUCCESS });
         }),
