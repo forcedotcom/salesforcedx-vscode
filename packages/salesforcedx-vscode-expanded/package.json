@@ -63,6 +63,7 @@
     "salesforce.salesforcedx-vscode-services",
     "salesforce.salesforce-vscode-slds",
     "salesforce.sfdx-code-analyzer-vscode",
+    "salesforce.salesforcedx-vscode-ui-preview",
     "salesforce.apex-language-server-extension",
     "redhat.vscode-xml",
     "esbenp.prettier-vscode",
