@@ -98,7 +98,7 @@ test.describe.serial('Settings', () => {
       await page.keyboard.press('Backspace');
       await page.keyboard.type(settingKey);
 
-      const searchResultId = `searchResultModel_${settingKey.replace(/\./, '_')}`;
+      const searchResultId = `searchResultModel_${settingKey.replaceAll('.', '_')}`;
       const row = page.locator(`[data-id="${searchResultId}"]`).last();
       await row.waitFor({ state: 'visible', timeout: 15_000 });
       const minimapCheckbox = row.getByRole('checkbox').first();

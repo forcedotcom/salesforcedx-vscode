@@ -124,7 +124,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     // VS Code only replaces the FIRST dot with underscore in data-id
     // e.g., "salesforcedx-vscode-metadata.deployOnSave.enabled" -> "searchResultModel_salesforcedx-vscode-metadata_deployOnSave.enabled"
     // Use .last() when duplicates exist (User + Workspace): we're on Workspace tab, so Workspace row is last
-    const searchResultId = `searchResultModel_${id.replace(/\./, '_')}`;
+    const searchResultId = `searchResultModel_${id.replaceAll('.', '_')}`;
     const row = page.locator(`[data-id="${searchResultId}"]`).last();
 
     if (debugAria) {
