@@ -25,7 +25,7 @@ flowchart TD
 ### Key Points
 
 - **All spans** can go to Console and Local OTLP (for trace/debugging/perf)
-- **Top-level spans only** go to App Insights and O11y (to reduce noise) - see [Attributes](#automatic-attributes) for details on what attributes are automatically added
+- **Top-level spans only** go to App Insights and O11y (to reduce noise), except spans with `telemetryIgnore: true` - see [Attributes](#automatic-attributes) for details on what attributes are automatically added
 - App Insights is **automatic** (see [Automatic Configuration](#automatic-configuration) for details). It can be disabled via VSCode Settings.
 - O11y requires configuration (see [O11y Configuration](#o11y-configuration))
 
@@ -118,6 +118,14 @@ yield *
   });
 ```
 
+#### Excluding a Span from Production Telemetry
+
+Use `telemetryIgnore: true` to skip a span in production exporters (App Insights Node/Web and O11y) while still keeping it in local debug exporters (Console, File, Local OTLP).
+
+```typescript
+yield * Effect.annotateCurrentSpan({ telemetryIgnore: true });
+```
+
 ### Logging
 
 When `enableConsoleTraces` is enabled, spans are exported to the console (browser console or Node.js console). This is useful for debugging and seeing what spans are being created.
@@ -156,7 +164,7 @@ The SDK layer automatically handles:
 
 - Platform detection (Node vs Web)
 - Span processor configuration based on settings
-- Top-level span filtering for App Insights and O11y (see [Architecture Philosophy](#architecture-philosophy--diagram))
+- Top-level span filtering for App Insights and O11y, plus `telemetryIgnore` exclusion (see [Architecture Philosophy](#architecture-philosophy--diagram))
 - Attribute injection for top-level spans (see [Automatic Attributes](#automatic-attributes))
 
 ## Settings Configuration
@@ -178,7 +186,7 @@ To enable any VS Code setting:
 
 ### Automatic Configuration
 
-**App Insights**: Automatically enabled when telemetry is enabled (see [Telemetry Settings](#telemetry-settings)). No configuration needed. Top-level spans are automatically sent to Application Insights.
+**App Insights**: Automatically enabled when telemetry is enabled (see [Telemetry Settings](#telemetry-settings)). No configuration needed. Top-level spans are automatically sent to Application Insights, except spans annotated with `telemetryIgnore: true`.
 
 ### O11y Configuration
 

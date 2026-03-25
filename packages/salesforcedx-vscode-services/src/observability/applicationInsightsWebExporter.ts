@@ -23,7 +23,13 @@ import { workspace } from 'vscode';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
-import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
+import {
+  convertAttributes,
+  getExtensionNameAndVersionAttributes,
+  isTelemetryIgnored,
+  isTopLevelSpan,
+  spanDuration
+} from './spanUtils';
 // TODO: should this be in Effect?
 // Lazy initialization to avoid bundling issues
 const _webAppInsightsReporter: { instance: TelemetryReporter | undefined } = { instance: undefined };
@@ -55,7 +61,9 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
   // eslint-disable-next-line class-methods-use-this
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
     void Effect.runPromise(
-      Effect.all(spans.filter(isTopLevelSpan).map(exportSpan), { concurrency: 'unbounded' }).pipe(
+      Effect.all(spans.filter(span => isTopLevelSpan(span) && !isTelemetryIgnored(span)).map(exportSpan), {
+        concurrency: 'unbounded'
+      }).pipe(
         Effect.map(() => {
           resultCallback({ code: ExportResultCode.SUCCESS });
         }),
@@ -89,7 +97,7 @@ const exportSpan = (span: ReadableSpan) =>
       parentID: span.parentSpanContext?.spanId
     };
 
-    const { userId, webUserId } = yield* SubscriptionRef.get((yield* getDefaultOrgRef()));
+    const { userId, webUserId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
 
     const props = {
       ...convertAttributes(span.resource.attributes),
