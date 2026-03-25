@@ -39,7 +39,7 @@ describe('projectGenerate', () => {
 
     it('should pass through all project template types in template options', async () => {
       await sfProjectGenerate();
-      const templates = ['standard', 'empty', 'analytics', 'reactb2e', 'reactb2x'] as const;
+      const templates = ['standard', 'empty', 'analytics', 'reactexternalapp', 'reactinternalapp'] as const;
       for (const template of templates) {
         const options = capturedExecutor.constructTemplateOptions({
           projectName: 'TestProject',

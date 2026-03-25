@@ -80,7 +80,14 @@ type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x' | 'nativemobile' | 'agent';
+export type ProjectTemplate =
+  | 'standard'
+  | 'empty'
+  | 'analytics'
+  | 'reactexternalapp'
+  | 'reactinternalapp'
+  | 'nativemobile'
+  | 'agent';
 
 class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
   private readonly initialTemplate?: ProjectTemplate;
@@ -124,10 +131,10 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         projectTemplate = 'analytics';
         break;
       case nls.localize('project_generate_react_b2e_template_display_text'):
-        projectTemplate = 'reactb2e';
+        projectTemplate = 'reactinternalapp';
         break;
       case nls.localize('project_generate_react_b2x_template_display_text'):
-        projectTemplate = 'reactb2x';
+        projectTemplate = 'reactexternalapp';
         break;
       case nls.localize('project_generate_agent_template_display_text'):
         projectTemplate = 'agent';
