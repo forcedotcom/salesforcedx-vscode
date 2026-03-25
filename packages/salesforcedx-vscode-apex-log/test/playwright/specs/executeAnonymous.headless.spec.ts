@@ -44,7 +44,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
   await test.step('create anonymous apex script via command palette', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.createAnonymousApexScript'], 30_000);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.createAnonymousApexScript']);
-    const quickInput = page.locator(QUICK_INPUT_WIDGET).filter({ visible: true }).first();
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
     await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 5000 });
     const quickInputText = quickInput.locator('input.input').first();
