@@ -146,6 +146,7 @@ const isSubQueryResult = (
 };
 
 const RELATIONSHIP_FLATTEN_MAX_DEPTH = 10;
+const SUBQUERY_FLATTEN_MAX_DEPTH = 5;
 
 /** True for nested SObjects / relationship blobs, false for sub-query envelopes. */
 const isNestedRelationshipObject = (value: unknown): value is Record<string, unknown> =>
@@ -222,7 +223,11 @@ const collectRelationshipFieldPaths = (
  * Total rows = 1 + sum(len - 1) for each sub-query — never a cross-product.
  * When a sub-query has no records the parent row is still emitted with empty sub-columns.
  */
-const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>[] => {
+const flattenRecordWithSubQueryDepth = (
+  record: Record<string, unknown>,
+  depthRemaining: number,
+  keyPrefix = ''
+): Record<string, unknown>[] => {
   const baseRow: Record<string, unknown> = {};
   const subQueryExpansions: Record<string, unknown>[][] = [];
 
@@ -230,25 +235,20 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
     if (key === 'attributes') {
       continue;
     }
+    const pathPrefix = keyPrefix ? `${keyPrefix}.${key}` : key;
 
     if (isSubQueryResult(value)) {
+      if (depthRemaining <= 0) {
+        baseRow[pathPrefix] = value;
+        continue;
+      }
       if (value.records.length > 0) {
-        const expandedRows = value.records.filter(isRecord).map(subRecord => {
-          const row: Record<string, unknown> = {};
-          for (const [subKey, subValue] of Object.entries(subRecord)) {
-            if (subKey === 'attributes') {
-              continue;
-            }
-            const pathPrefix = `${key}.${subKey}`;
-            if (isNestedRelationshipObject(subValue)) {
-              mergeRelationshipFieldsIntoRow(row, pathPrefix, subValue, RELATIONSHIP_FLATTEN_MAX_DEPTH);
-            } else {
-              row[pathPrefix] = subValue;
-            }
-          }
-          return row;
-        });
-        subQueryExpansions.push(expandedRows);
+        const expandedRows = value.records.filter(isRecord).flatMap(subRecord =>
+          flattenRecordWithSubQueryDepth(subRecord, depthRemaining - 1, pathPrefix)
+        );
+        if (expandedRows.length > 0) {
+          subQueryExpansions.push(expandedRows);
+        }
       }
       // When totalSize === 0 no expansion is pushed; the parent row is emitted as-is
       // with undefined sub-columns, which display as empty strings.
@@ -258,15 +258,15 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
         if (nestedKey === 'attributes') {
           continue;
         }
-        const pathPrefix = `${key}.${nestedKey}`;
+        const nestedPathPrefix = `${pathPrefix}.${nestedKey}`;
         if (isNestedRelationshipObject(nestedValue)) {
-          mergeRelationshipFieldsIntoRow(baseRow, pathPrefix, nestedValue, RELATIONSHIP_FLATTEN_MAX_DEPTH);
+          mergeRelationshipFieldsIntoRow(baseRow, nestedPathPrefix, nestedValue, RELATIONSHIP_FLATTEN_MAX_DEPTH);
         } else {
-          baseRow[pathPrefix] = nestedValue;
+          baseRow[nestedPathPrefix] = nestedValue;
         }
       }
     } else {
-      baseRow[key] = value;
+      baseRow[pathPrefix] = value;
     }
   }
 
@@ -295,6 +295,9 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
   return grid;
 };
 
+const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>[] =>
+  flattenRecordWithSubQueryDepth(record, SUBQUERY_FLATTEN_MAX_DEPTH);
+
 /** Registers one dotted column path, recursing into nested relationship objects. */
 const addFieldPathForValue = (
   pathPrefix: string,
@@ -305,6 +308,34 @@ const addFieldPathForValue = (
     collectRelationshipFieldPaths(pathPrefix, val, addField, RELATIONSHIP_FLATTEN_MAX_DEPTH);
   } else {
     addField(pathPrefix);
+  }
+};
+
+const collectSubQueryFieldPaths = (
+  prefix: string,
+  value: { totalSize: number; done: boolean; records: unknown[] },
+  addField: (name: string) => void,
+  depthRemaining: number
+): void => {
+  if (depthRemaining <= 0) {
+    addField(prefix);
+    return;
+  }
+  for (const subRecord of value.records) {
+    if (!isRecord(subRecord)) {
+      continue;
+    }
+    for (const [subKey, subValue] of Object.entries(subRecord)) {
+      if (subKey === 'attributes') {
+        continue;
+      }
+      const pathPrefix = `${prefix}.${subKey}`;
+      if (isSubQueryResult(subValue)) {
+        collectSubQueryFieldPaths(pathPrefix, subValue, addField, depthRemaining - 1);
+      } else {
+        addFieldPathForValue(pathPrefix, subValue, addField);
+      }
+    }
   }
 };
 
@@ -359,17 +390,7 @@ const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => 
       for (const record of records) {
         const value = record[key];
         if (isSubQueryResult(value)) {
-          for (const subRecord of value.records) {
-            if (isRecord(subRecord)) {
-              for (const subKey of Object.keys(subRecord)) {
-                if (subKey === 'attributes') {
-                  continue;
-                }
-                const pathPrefix = `${key}.${subKey}`;
-                addFieldPathForValue(pathPrefix, subRecord[subKey], addField);
-              }
-            }
-          }
+          collectSubQueryFieldPaths(key, value, addField, SUBQUERY_FLATTEN_MAX_DEPTH);
         }
       }
     } else if (relationshipKeys.has(key)) {
