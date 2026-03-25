@@ -10,7 +10,8 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import { isTelemetryExtensionConfigurationEnabled } from './appInsights';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
-import { getConsoleTracesEnabled, getLocalTracesEnabled } from './localTracing';
+import { FileSpanExporterWeb } from './fileSpanExporterWeb';
+import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
@@ -19,7 +20,7 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
     resource: {
       serviceName: extensionName,
       //manually bump this to cause rebuilds/bust cache
-      serviceVersion: '2026-01-08T10:38.004Z',
+      serviceVersion: '2026-03-10T10:38.004Z',
       attributes: {
         'extension.name': extensionName,
         'extension.version': extensionVersion,
@@ -35,6 +36,7 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
       ...(o11yEndpoint && (o11yEndpoint.includes('localhost') || isTelemetryExtensionConfigurationEnabled())
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
-      ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : [])
+      ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
+      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new FileSpanExporterWeb(extensionName))] : [])
     ]
   }));

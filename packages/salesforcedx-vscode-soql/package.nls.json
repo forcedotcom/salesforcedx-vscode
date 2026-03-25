@@ -1,7 +1,8 @@
 {
   "configuration_title": "Salesforce SOQL Configuration",
   "soqlCustom_soql": "SOQL Builder",
-  "soql_builder_open_new": "SFDX: Create Query in SOQL Builder",
+  "soql_open_new_builder": "SFDX: Create Query in SOQL Builder",
+  "soql_open_new_text_editor": "SFDX: Create SOQL Query",
   "soql_builder_toggle": "Switch Between SOQL Builder and Text Editor",
   "soql_validation_flag": "Use REST API to validate SOQL queries and to identify errors.",
   "soql_walkthrough_open": "Open SOQL Walkthrough",
@@ -11,7 +12,7 @@
   "soql_walkthrough_step1_description": "SOQL (Salesforce Object Query Language) is a powerful query language similar to SQL that allows you to search your organization's Salesforce data. The SOQL Builder provides a visual interface to create queries without writing SQL syntax manually.",
   "soql_walkthrough_step1_alt": "Introduction to SOQL Builder interface",
   "soql_walkthrough_step2_title": "Create a New SOQL Query",
-  "soql_walkthrough_step2_description": "Start by creating a new SOQL query file. You can use the command palette and search for 'SFDX: Create Query in SOQL Builder' or use the button below to get started.\n\n⚠️ **Important**: Make sure you have authorized a Salesforce org and set it as your default org before proceeding. You can do this by running 'SFDX: Authorize an Org' from the command palette.\n\n[Create SOQL Query](command:soql.builder.open.new)",
+  "soql_walkthrough_step2_description": "Start by creating a new SOQL query file. You can use the command palette and search for 'SFDX: Create Query in SOQL Builder' or use the button below to get started.\n\n⚠️ **Important**: Make sure you have authorized a Salesforce org and set it as your default org before proceeding. You can do this by running 'SFDX: Authorize an Org' from the command palette.\n\n[Create SOQL Query](command:soql.open.new.builder)",
   "soql_walkthrough_step2_alt": "Creating a new SOQL query",
   "soql_walkthrough_step3_title": "Build Your Query Visually",
   "soql_walkthrough_step3_description": "Use the visual SOQL Builder to construct your query by selecting objects, fields, and conditions. The builder provides an intuitive interface with dropdowns for available objects and fields from your org.\n\n🎯 **Get started**: Try selecting the `Account` object, then add fields like `Id`, `Name`, and `Type`. You can add filters in the WHERE section to narrow your results.",
@@ -23,5 +24,7 @@
   "soql_walkthrough_step5_description": "After running a query, you can export the results by clicking the **Save** button in the results viewer. Choose between CSV or JSON format for further analysis. You can also save your SOQL queries as `.soql` files to reuse them later.\n\n💡 **Pro tip**: CSV format is great for spreadsheet analysis, while JSON format preserves data relationships for programmatic use.",
   "soql_walkthrough_step5_alt": "Saving and exporting SOQL query results",
   "data_query_input_text": "SFDX: Execute SOQL Query...",
-  "data_query_selection_text": "SFDX: Execute SOQL Query with Currently Selected Text"
+  "data_query_selection_text": "SFDX: Execute SOQL Query with Currently Selected Text",
+  "query_plan_selection_text": "SFDX: Get SOQL Query Plan with Currently Selected Text",
+  "query_plan_document_text": "SFDX: Get SOQL Query Plan with Current File"
 }

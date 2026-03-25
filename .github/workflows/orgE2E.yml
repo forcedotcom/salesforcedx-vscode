@@ -1,0 +1,101 @@
+name: Org E2E (Playwright)
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main, develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '**/README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
+
+concurrency:
+  group: ci-${{ github.ref }}-orgE2E
+  cancel-in-progress: true
+
+jobs:
+  e2e-desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+      fail-fast: false
+
+    env:
+      VSCODE_DESKTOP: 1
+      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      # No Salesforce CLI or scratch org — tests use a temp project folder only (see org test fixtures).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-org -- --reporter=html
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Org E2E tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-org -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          PLAYWRIGHT_WORKERS: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-org -- --last-failed --reporter=html
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-org-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-org/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-org-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-org/test-results
+          if-no-files-found: ignore

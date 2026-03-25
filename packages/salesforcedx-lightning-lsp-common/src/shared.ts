@@ -6,7 +6,8 @@
  */
 
 import * as path from 'node:path';
-import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
+import { readPackageJson } from './utils';
 
 const SFDX_PROJECT = 'sfdx-project.json';
 
@@ -31,21 +32,11 @@ export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX
  */
 export const detectWorkspaceHelper = async (
   root: string,
-  fileSystemProvider: IFileSystemProvider
+  fileSystemAccessor: LspFileSystemAccessor
 ): Promise<WorkspaceType> => {
-  // Early return if no files are available
-  try {
-    const allFiles = fileSystemProvider.getAllFileUris();
-    if (allFiles.length === 0) {
-      return 'UNKNOWN';
-    }
-  } catch {
-    // Error listing files, continue
-  }
-
   try {
     const sfdxProjectFile = getSfdxProjectFile(root);
-    const fileStat = fileSystemProvider.getFileStat(sfdxProjectFile);
+    const fileStat = await fileSystemAccessor.getFileStat(sfdxProjectFile);
 
     if (fileStat?.type === 'file') {
       return 'SFDX';
@@ -55,7 +46,7 @@ export const detectWorkspaceHelper = async (
   }
 
   try {
-    const fileStat = fileSystemProvider.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
+    const fileStat = await fileSystemAccessor.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
     if (fileStat?.type === 'file') {
       return 'CORE_ALL';
     }
@@ -65,7 +56,7 @@ export const detectWorkspaceHelper = async (
 
   try {
     const parentWorkspaceUserUri = path.join(root, '..', 'workspace-user.xml');
-    const fileStat = fileSystemProvider.getFileStat(`${parentWorkspaceUserUri}`);
+    const fileStat = await fileSystemAccessor.getFileStat(`${parentWorkspaceUserUri}`);
     if (fileStat?.type === 'file') {
       return 'CORE_PARTIAL';
     }
@@ -75,7 +66,7 @@ export const detectWorkspaceHelper = async (
 
   try {
     const lwcConfigUri = path.join(root, 'lwc.config.json');
-    const fileStat = fileSystemProvider.getFileStat(`${lwcConfigUri}`);
+    const fileStat = await fileSystemAccessor.getFileStat(`${lwcConfigUri}`);
     if (fileStat?.type === 'file') {
       return 'STANDARD_LWC';
     }
@@ -83,16 +74,14 @@ export const detectWorkspaceHelper = async (
     // File doesn't exist, continue
   }
 
-  const packageJson = path.join(root, 'package.json');
   try {
-    const packageInfoContent = fileSystemProvider.getFileContent(`${packageJson}`);
-    if (!packageInfoContent) {
+    const packageInfo = await readPackageJson(root, fileSystemAccessor);
+    if (!packageInfo) {
       throw new Error('Package info not found');
     }
-    const packageInfo = JSON.parse(packageInfoContent);
     const dependencies = Object.keys(packageInfo.dependencies ?? {});
     const devDependencies = Object.keys(packageInfo.devDependencies ?? {});
-    const allDependencies = [...dependencies, ...devDependencies];
+    const allDependencies: string[] = [...dependencies, ...devDependencies];
     const hasLWCdependencies = allDependencies.some(key => key.startsWith('@lwc/') || key === 'lwc');
 
     // any type of @lwc is a dependency
@@ -111,7 +100,7 @@ export const detectWorkspaceHelper = async (
 
     try {
       const lernaJsonUri = path.join(root, 'lerna.json');
-      const fileStat = fileSystemProvider.getFileStat(`${lernaJsonUri}`);
+      const fileStat = await fileSystemAccessor.getFileStat(`${lernaJsonUri}`);
       if (fileStat?.type === 'file') {
         return 'MONOREPO';
       }
@@ -125,24 +114,4 @@ export const detectWorkspaceHelper = async (
   }
 
   return 'UNKNOWN';
-};
-
-/**
- * @param workspaceRoots
- * @returns WorkspaceType, actively not supporting workspaces of mixed type
- */
-export const detectWorkspaceType = async (
-  workspaceRoots: string[],
-  fileSystemProvider: IFileSystemProvider
-): Promise<WorkspaceType> => {
-  if (workspaceRoots.length === 1) {
-    return await detectWorkspaceHelper(workspaceRoots[0], fileSystemProvider);
-  }
-  for (const root of workspaceRoots) {
-    const type = await detectWorkspaceHelper(root, fileSystemProvider);
-    if (type !== 'CORE_PARTIAL') {
-      return 'UNKNOWN';
-    }
-  }
-  return 'CORE_PARTIAL';
 };

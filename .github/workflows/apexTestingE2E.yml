@@ -4,6 +4,17 @@ on:
   workflow_dispatch:
   push:
     branches-ignore: [main, develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '**/README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
 
 concurrency:
   group: ci-${{ github.ref }}-apexTestingE2E
@@ -84,7 +95,7 @@ jobs:
         env:
           CI: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:web -w salesforcedx-vscode-apex-testing -- --last-failed --reporter=html
 
@@ -198,7 +209,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-apex-testing -- --last-failed --reporter=html
 

@@ -6,10 +6,8 @@
  */
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 jest.mock('../resources/transformed-lwc-standard.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pathModule = require('node:path');
+  const fs = require('node:fs') as typeof import('node:fs');
+  const pathModule = require('node:path') as typeof import('node:path');
   // Find package root (lwc-language-server)
   let current = __dirname;
   while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
@@ -18,19 +16,66 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
     current = parent;
   }
   const filePath = pathModule.join(current, 'src', 'resources', 'transformed-lwc-standard.json');
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const content = JSON.parse(fs.readFileSync(filePath, 'utf8')) as Record<string, unknown>;
   // JSON imports in TypeScript are treated as default exports
   return { default: content, ...content };
 });
 
-import { sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  createMockWorkspaceFindFilesConnection,
+  getSfdxWorkspaceRelativePaths,
+  SFDX_WORKSPACE_ROOT,
+  SFDX_WORKSPACE_STRUCTURE,
+  sfdxFileSystemAccessor
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import * as path from 'node:path';
+import type { Connection } from 'vscode-languageserver';
+import { URI } from 'vscode-uri';
 import ComponentIndexer from '../componentIndexer';
 import { DataProviderAttributes, LWCDataProvider } from '../lwcDataProvider';
 import { TagAttrs, createTag, getTagName } from '../tag';
 
+// Discovery via workspace/findFiles (no server-side cache)
+sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+sfdxFileSystemAccessor.setConnection(
+  createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+    relativePaths: getSfdxWorkspaceRelativePaths()
+  }) as Connection
+);
+
+// LspFileSystemAccessor has no LSP read/stat in tests, so init() would exit early (fileExists(sfdx-project.json))
+// and createTagFromFile would get no content. Mock stat/content from SFDX_WORKSPACE_STRUCTURE so discovery works.
+const contentByPath: Record<string, string> = {};
+for (const [rel, content] of Object.entries(SFDX_WORKSPACE_STRUCTURE)) {
+  contentByPath[normalizePath(path.join(SFDX_WORKSPACE_ROOT, rel.replaceAll('\\', '/')))] = content as string;
+}
+const fileStat = {
+  type: 'file' as const,
+  exists: true,
+  ctime: 0,
+  mtime: 0,
+  size: 0
+};
+
+beforeAll(() => {
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+    const key = normalizePath(uri);
+    return Promise.resolve(key in contentByPath ? fileStat : undefined);
+  });
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) => {
+    const key = normalizePath(uri);
+    return Promise.resolve(contentByPath[key]);
+  });
+  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
+    contentByPath[normalizePath(uri)] = content;
+    return Promise.resolve();
+  });
+});
+
 const componentIndexer: ComponentIndexer = new ComponentIndexer({
   workspaceRoot: SFDX_WORKSPACE_ROOT,
-  fileSystemProvider: sfdxFileSystemProvider
+  fileSystemAccessor: sfdxFileSystemAccessor
 });
 const attributes: DataProviderAttributes = {
   indexer: componentIndexer
@@ -46,8 +91,9 @@ describe('provideValues()', () => {
     const values = provider.provideValues();
     const names = values.map(value => value.name);
     expect(values).not.toBeEmpty();
-    expect(names).toInclude('info');
-    expect(names).toInclude('iconName');
+    // Values come from disk-discovered components (e.g. todo_item has @api todo, sameLine, nextLine)
+    expect(names).toInclude('todo');
+    expect(names).toInclude('sameLine');
   });
 
   it('should validate an empty array is returned when tag.classMembers is undefined', async () => {
@@ -66,7 +112,7 @@ describe('provideValues()', () => {
 
     const componentIndexr = new ComponentIndexer({
       workspaceRoot: SFDX_WORKSPACE_ROOT,
-      fileSystemProvider: sfdxFileSystemProvider
+      fileSystemAccessor: sfdxFileSystemAccessor
     });
     componentIndexr.tags.set(getTagName(tag), tag);
 

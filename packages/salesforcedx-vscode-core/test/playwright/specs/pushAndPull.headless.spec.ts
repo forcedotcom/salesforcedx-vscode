@@ -10,6 +10,7 @@ import {
   setupConsoleMonitoring,
   editOpenFile,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   clearOutputChannel,
   waitForOutputChannelText,
   validateNoCriticalErrors,
@@ -27,13 +28,13 @@ test('Push and Pull: push, pull, and view changes', async ({ page }) => {
 
   const SOURCE_STATUS_HEADER = 'Source Status';
 
-
   await test.step('setup: workbench, settings, output channel', async () => {
     await setupWorkbenchSettingsAndOutputChannel(page);
   });
 
   await test.step('view all changes (empty)', async () => {
     await clearOutputChannel(page);
+    await verifyCommandExists(page, packageNls.view_all_changes_text, 120_000);
     await executeCommandWithCommandPalette(page, packageNls.view_all_changes_text);
     await waitForOutputChannelText(page, {
       expectedText: SOURCE_STATUS_HEADER,

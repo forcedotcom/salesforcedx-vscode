@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  IFileSystemProvider,
+  LspFileSystemAccessor,
   Logger,
   NormalizedPath,
   normalizePath
@@ -27,6 +27,18 @@ interface SfdxProjectConfig {
   sourceApiVersion?: string;
 }
 
+const isSfdxProjectConfig = (value: unknown): value is SfdxProjectConfig => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  return (
+    (!('namespace' in value) || typeof value.namespace === 'string' || value.namespace === undefined) &&
+    (!('sourceApiVersion' in value) ||
+      typeof value.sourceApiVersion === 'string' ||
+      value.sourceApiVersion === undefined)
+  );
+};
+
 // Utility function to resolve workspace root
 // Normalizes the path to ensure consistency (path.resolve() may reintroduce backslashes on Windows)
 // On Windows, path.isAbsolute() returns false for Windows-style paths on non-Windows platforms
@@ -47,53 +59,34 @@ export const getWorkspaceRoot = (workspaceRoot: string): NormalizedPath => {
 };
 
 /** Get SFDX configuration from sfdx-project.json */
-const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProvider): SfdxProjectConfig => {
+const getSfdxConfig = async (
+  root: NormalizedPath,
+  fileSystemAccessor: LspFileSystemAccessor
+): Promise<SfdxProjectConfig> => {
   const filename = normalizePath(path.join(root, 'sfdx-project.json'));
 
-  if (fileSystemProvider) {
-    // Also check with URI format in case that's needed
-    const allFileUris = fileSystemProvider.getAllFileUris();
+  const content = await fileSystemAccessor.getFileContent(filename);
 
-    // Try to find the exact match
-    const exactMatch = allFileUris.find(uri => normalizePath(uri) === filename);
-
-    const content = fileSystemProvider.getFileContent(filename);
-
-    // If content not found with direct path, try with exact match URI if found
-    if (!content && exactMatch) {
-      const contentFromUri = fileSystemProvider.getFileContent(exactMatch);
-      if (contentFromUri) {
-        try {
-          return JSON.parse(contentFromUri);
-        } catch (error) {
-          Logger.error(
-            `[getSfdxConfig] Error parsing JSON from URI: ${error instanceof Error ? error.message : String(error)}`,
-            error
-          );
-        }
-      }
-    }
-
-    if (content) {
-      try {
-        return JSON.parse(content);
-      } catch (error) {
-        Logger.error(
-          `[getSfdxConfig] Error parsing JSON: ${error instanceof Error ? error.message : String(error)}`,
-          error
-        );
-      }
+  if (content) {
+    try {
+      const parsed: unknown = JSON.parse(content);
+      return isSfdxProjectConfig(parsed) ? parsed : {};
+    } catch (error) {
+      Logger.error(
+        `[getSfdxConfig] Error parsing JSON: ${error instanceof Error ? error.message : String(error)}`,
+        error
+      );
     }
   }
   return {};
 };
 
 /** Get SFDX package directories pattern from sfdx-project.json */
-export const getSfdxPackageDirsPattern = (
+export const getSfdxPackageDirsPattern = async (
   workspaceRoot: NormalizedPath,
-  fileSystemProvider: IFileSystemProvider
-): string => {
-  const config = getSfdxConfig(workspaceRoot, fileSystemProvider);
+  fileSystemAccessor: LspFileSystemAccessor
+): Promise<string> => {
+  const config = await getSfdxConfig(workspaceRoot, fileSystemAccessor);
   const dirs = config.packageDirectories;
   const paths: string[] = dirs?.map(item => item.path) ?? [];
 
@@ -101,6 +94,5 @@ export const getSfdxPackageDirsPattern = (
     return '';
   }
 
-  const result = paths.length === 1 ? paths[0] : `{${paths.join(',')}}`;
-  return result;
+  return paths.length === 1 ? paths[0] : `{${paths.join(',')}}`;
 };

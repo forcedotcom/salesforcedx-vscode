@@ -24,3 +24,4 @@ webTest.afterEach(async ({ page }, testInfo) => {
 export const test = isDesktop ? desktopTest : webTest;
 export const dreamhouseTest = isDesktop ? dreamhouseDesktopTest : webTest;
 export const nonTrackingTest = isDesktop ? nonTrackingDesktopTest : webTest;
+export { emptyWorkspaceDesktopTest } from './desktopFixtures';

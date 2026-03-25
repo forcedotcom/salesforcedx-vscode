@@ -1,0 +1,216 @@
+name: Apex Log E2E (Playwright)
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main, develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '**/README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
+
+concurrency:
+  group: ci-${{ github.ref }}-apexLogE2E
+  cancel-in-progress: true
+
+jobs:
+  e2e-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-apex-log -- --reporter=html
+
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        run: npm i -g @salesforce/cli
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
+
+      - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: Create scratch org
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
+
+      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:web sets PLAYWRIGHT_WORKERS.
+      - name: Run Apex Log E2E tests
+        if: steps.try-run.outcome == 'failure'
+        env:
+          CI: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+        run: |
+          npm run test:web -w salesforcedx-vscode-apex-log -- --reporter=html
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-apex-log-web
+          path: packages/salesforcedx-vscode-apex-log/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-apex-log-web
+          path: packages/salesforcedx-vscode-apex-log/test-results
+          if-no-files-found: ignore
+
+      - name: Cleanup scratch org
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+
+  e2e-desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+      fail-fast: false
+
+    env:
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      VSCODE_DESKTOP: 1
+      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-apex-log -- --reporter=html
+
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        run: npm i -g @salesforce/cli
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        run: npx playwright install chromium --with-deps
+
+      - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: Create scratch org
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
+
+      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:desktop sets PLAYWRIGHT_WORKERS.
+      - name: Run Apex Log E2E tests
+        if: steps.try-run.outcome == 'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-apex-log -- --reporter=html
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-apex-log-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-apex-log/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-apex-log-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-apex-log/test-results
+          if-no-files-found: ignore
+
+      - name: Cleanup scratch org
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true

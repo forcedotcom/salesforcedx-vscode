@@ -10,12 +10,16 @@ import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { channelService, initializeOutputChannel } from './channels';
+import { URI, Utils } from 'vscode-uri';
+import { initializeOutputChannel } from './channels';
+import { CodeCoverageHandler } from './codecoverage/colorizer';
+import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
   apexTestClassRunCodeAction,
   apexTestClassRunCodeActionDelegate,
+  apexGenerateUnitTestClassCommand,
   apexTestMethodRunCodeAction,
   apexTestMethodRunCodeActionDelegate,
   apexTestRun,
@@ -23,7 +27,11 @@ import {
   apexTestSuiteCreate,
   apexTestSuiteRun
 } from './commands';
-import { AllServicesLayer } from './services/extensionProvider';
+import {
+  buildAllServicesLayer,
+  getApexTestingRuntime,
+  setAllServicesLayer
+} from './services/extensionProvider';
 import { telemetryService } from './telemetry/telemetry';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
@@ -31,7 +39,7 @@ import { disposeTestController, getTestController } from './views/testController
 /** File change event from FileWatcherService */
 type FileChangeEvent = {
   readonly type: 'create' | 'change' | 'delete';
-  readonly uri: vscode.Uri;
+  readonly uri: URI;
 };
 
 /** Check if an org is connected by looking at TargetOrgRef */
@@ -49,6 +57,7 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
     const targetOrgRef = yield* api.services.TargetOrgRef();
     const connectionService = yield* api.services.ConnectionService;
 
+    const channelService = yield* api.services.ChannelService;
     // Track the last discovered org key to prevent duplicate discoveries
     const lastDiscoveredOrgRef = yield* Ref.make<string | undefined>(undefined);
 
@@ -65,7 +74,7 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
       targetOrgRef.changes.pipe(
         // if we don't have an orgId, try to get the connection to cause another event to fire with it
         Stream.tap((org: { username?: string; orgId?: string }) =>
-          !org.orgId ? connectionService.getConnection() : Effect.succeed(undefined)
+          !org.orgId ? connectionService.getConnection() : Effect.void
         ),
         Stream.filter(hasOrgConnected),
         // Deduplicate: only emit when org key changes
@@ -82,10 +91,10 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
         }),
         // Log after deduplication so we only see unique org changes
         Stream.tap((org: { username?: string; orgId?: string }) =>
-          Effect.promise(() => channelService.appendLine(`Target org changed to ${JSON.stringify(org)}`))
+          channelService.appendToChannel(`Target org changed to ${JSON.stringify(org)}`)
         ),
         Stream.tap((org: { username?: string; orgId?: string }) =>
-          Effect.promise(() => channelService.appendLine(`Discovering tests for org: ${org.username ?? org.orgId}`))
+          channelService.appendToChannel(`Discovering tests for org: ${org.username ?? org.orgId}`)
         ),
         Stream.runForEach(discoverForOrg)
       )
@@ -98,8 +107,7 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
     Effect.catchAll(error => {
       console.debug('[Apex Testing] Test discovery setup failed:', error);
       return Effect.void;
-    }),
-    Effect.provide(AllServicesLayer)
+    })
   );
 
 /** Normalize path separators to forward slashes for cross-platform comparison */
@@ -125,12 +133,9 @@ const setupTestResultsFileWatcher = (testController: ReturnType<typeof getTestCo
     yield* Effect.forkDaemon(
       Stream.fromPubSub(fileWatcherService.pubsub).pipe(
         Stream.filter(isTestResultJsonFile),
-        Stream.map(event => event.uri.fsPath ?? event.uri.path),
-        Stream.runForEach(filePath => {
-          // Extract the apex test results directory from the file path (handle both / and \ separators)
-          const lastSepIndex = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
-          const apexDirPath = filePath.substring(0, lastSepIndex);
-          void testController.onResultFileCreate(apexDirPath, filePath);
+        Stream.runForEach(event => {
+          const apexDirUri = Utils.dirname(event.uri);
+          void testController.onResultFileCreate(apexDirUri, event.uri);
           return Effect.void;
         })
       )
@@ -138,73 +143,83 @@ const setupTestResultsFileWatcher = (testController: ReturnType<typeof getTestCo
   });
 
 /** Effect-based activation that provides automatic timing via span */
-const activateEffect = (context: vscode.ExtensionContext) =>
-  Effect.gen(function* () {
-    yield* Effect.log('Salesforce Apex Testing extension is activating...');
+const activateEffect = Effect.fn('apex-testing.activation')(function* (context: vscode.ExtensionContext) {
+  yield* Effect.log('Salesforce Apex Testing extension is activating...');
 
-    // Initialize the shared output channel from services API
-    yield* initializeOutputChannel;
+  // Initialize the shared output channel from services API
+  yield* initializeOutputChannel;
 
-    // Check if we're in a Salesforce project (also sets VS Code context as side effect)
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const projectService = yield* api.services.ProjectService;
-    const isSalesforceProject = yield* projectService
-      .isSalesforceProject()
-      .pipe(Effect.catchAll(() => Effect.succeed(false)));
+  // Check if we're in a Salesforce project (also sets VS Code context as side effect)
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const projectService = yield* api.services.ProjectService;
+  const isSalesforceProject = yield* projectService.isSalesforceProject();
 
-    // Only set up project-specific features if we're in a Salesforce project
-    if (isSalesforceProject) {
-      const testController = getTestController();
-      yield* Effect.log('[Apex Testing] Test controller created');
+  // Only set up project-specific features if we're in a Salesforce project
+  if (isSalesforceProject) {
+    const testController = getTestController();
+    yield* Effect.log('[Apex Testing] Test controller created');
 
-      // Set up file watcher for test result JSON files using FileWatcherService
-      yield* setupTestResultsFileWatcher(testController);
+    // Set up file watcher for test result JSON files using FileWatcherService
+    yield* setupTestResultsFileWatcher(testController);
 
-      // Initialize test discovery when an org is available, and re-discover on org changes (runs in background)
-      yield* Effect.forkDaemon(initializeTestDiscovery(testController));
+    // Initialize test discovery when an org is available, and re-discover on org changes (runs in background)
+    yield* Effect.forkDaemon(initializeTestDiscovery(testController));
 
-      // Register virtual document provider for org-only Apex classes
-      const orgApexClassProvider = getOrgApexClassProvider();
-      const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
-        'sf-org-apex',
-        orgApexClassProvider
-      );
-      context.subscriptions.push(providerRegistration);
-    }
+    // Register virtual document provider for org-only Apex classes
+    const orgApexClassProvider = getOrgApexClassProvider();
+    const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
+      'sf-org-apex',
+      orgApexClassProvider
+    );
+    context.subscriptions.push(providerRegistration);
+  }
 
-    // Always register commands (they'll be no-ops if not in a project)
-    const commands = registerCommands();
-    context.subscriptions.push(commands);
+  // Always register commands (they'll be no-ops if not in a project)
+  const registerCommand = api.services.registerCommandWithRuntime(getApexTestingRuntime());
+  yield* registerCommand('sf.apex.generate.unit.test.class', (outputDir?: URI) =>
+    apexGenerateUnitTestClassCommand(undefined, outputDir)
+  );
+  const commands = registerCommands();
+  context.subscriptions.push(commands);
 
-    yield* Effect.log('Salesforce Apex Testing extension is now active!');
+  yield* Effect.log('Salesforce Apex Testing extension is now active!');
 
-    // Export API for other extensions to consume
-    return {
-      getTestClassName: async (uri: vscode.Uri): Promise<string | undefined> => {
-        try {
-          const controller = getTestController();
-          return controller.getTestClassName(uri);
-        } catch (error) {
-          console.debug('Failed to get test class name:', error);
-          return undefined;
-        }
+  // Export API for other extensions to consume
+  return {
+    getTestClassName: async (uri: URI): Promise<string | undefined> => {
+      try {
+        const controller = getTestController();
+        return controller.getTestClassName(uri);
+      } catch (error) {
+        console.debug('Failed to get test class name:', error);
+        return undefined;
       }
-    };
-  }).pipe(Effect.withSpan('apex-testing.activation'), Effect.provide(AllServicesLayer));
+    }
+  };
+});
 
-export const activate = (context: vscode.ExtensionContext) =>
-  Effect.runPromise(
+export const activate = (context: vscode.ExtensionContext) => {
+  setAllServicesLayer(buildAllServicesLayer(context));
+  return getApexTestingRuntime().runPromise(
     activateEffect(context).pipe(
       Effect.catchAll(error => {
         console.error('[Apex Testing] Activation failed:', error);
         return Effect.succeed({
-          getTestClassName: async (_uri: vscode.Uri) => undefined
+          getTestClassName: async (_uri: URI) => undefined
         });
       })
     )
   );
+};
 
 const registerCommands = (): vscode.Disposable => {
+  // Code coverage highlighting (owned by Apex Testing; works in Desktop and Web)
+  const statusBarToggle = new StatusBarToggle();
+  const colorizer = new CodeCoverageHandler(statusBarToggle);
+  const apexToggleColorizerCmd = vscode.commands.registerCommand('sf.apex.toggle.colorizer', () =>
+    colorizer.toggleCoverage()
+  );
+
   // Customer-facing commands
   const apexTestClassRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.test.class.run.delegate',
@@ -242,8 +257,20 @@ const registerCommands = (): vscode.Disposable => {
       await getTestController().openOrgOnlyTest(test);
     }
   );
+  const apexTestRefreshCmd = vscode.commands.registerCommand('sf.apex.test.refresh', async () => {
+    await getTestController().refresh();
+  });
+  const apexTestingWalkthroughOpenCmd = vscode.commands.registerCommand('sf.apex.testing.walkthrough.open', () =>
+    vscode.commands.executeCommand(
+      'workbench.action.openWalkthrough',
+      'salesforce.salesforcedx-vscode-apex-testing#sf.apex.testing.explorer',
+      false
+    )
+  );
 
   return vscode.Disposable.from(
+    apexToggleColorizerCmd,
+    statusBarToggle,
     apexTestClassRunCmd,
     apexTestClassRunDelegateCmd,
     apexDebugClassRunDelegateCmd,
@@ -256,7 +283,9 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
     apexTestSuiteAddCmd,
-    openOrgOnlyTestCmd
+    openOrgOnlyTestCmd,
+    apexTestRefreshCmd,
+    apexTestingWalkthroughOpenCmd
   );
 };
 
@@ -266,5 +295,5 @@ export const deactivate = () => {
 };
 
 export type ApexTestingVSCodeApi = {
-  getTestClassName: (uri: vscode.Uri) => Promise<string | undefined>;
+  getTestClassName: (uri: URI) => Promise<string | undefined>;
 };

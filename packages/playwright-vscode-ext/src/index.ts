@@ -19,7 +19,10 @@ export {
   isMacDesktop,
   isWindowsDesktop,
   validateNoCriticalErrors,
-  ensureSecondarySideBarHidden
+  ensureSecondarySideBarHidden,
+  waitForExtensionsActivated,
+  closeWorkspaceToEmptyWindow,
+  prepareNoFolderOpenForPaletteTests
 } from './utils/helpers';
 
 export {
@@ -42,6 +45,7 @@ export {
   TAB,
   TAB_CLOSE_BUTTON,
   STATUS_BAR_ITEM_LABEL,
+  APEX_TRACE_FLAG_STATUS_BAR,
   NOTIFICATION_LIST_ITEM,
   SETTINGS_SEARCH_INPUT,
   CONTEXT_MENU
@@ -69,11 +73,18 @@ export {
   captureOutputChannelDetails
 } from './pages/outputChannel';
 
+export {
+  ensureProblemsViewOpen,
+  getProblemsCount,
+  expectProblemsCount,
+  expectProblemsCountAtLeast
+} from './pages/problems';
+
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
 
 // Fixtures
-export { createTestWorkspace } from './fixtures/desktopWorkspace';
+export { createEmptyTestWorkspace, createTestWorkspace } from './fixtures/desktopWorkspace';
 export { createDesktopTest } from './fixtures/createDesktopTest';
 export type { WorkerFixtures, TestFixtures } from './fixtures/desktopFixtureTypes';
 

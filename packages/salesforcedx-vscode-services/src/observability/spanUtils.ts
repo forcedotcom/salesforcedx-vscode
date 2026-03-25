@@ -4,11 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { Attributes } from '@opentelemetry/api';
+import { type Attributes, SpanStatusCode } from '@opentelemetry/api';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 
 /** Check if a span is a top-level span (has no parent) */
 export const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
+
+/** Check if a span has a command attribute */
+export const isCommandSpan = (span: ReadableSpan): boolean => span.attributes['command'] !== undefined;
 
 /** Convert span attributes to string key-value pairs, filtering out undefined/null values */
 export const convertAttributes = (attributes: Attributes): Attributes =>
@@ -30,3 +33,16 @@ export const getExtensionNameAndVersionAttributes = (
   const extensionVersion = attributes['extension.version'] ?? 'unknown';
   return { 'common.extname': String(extensionName), 'common.extversion': String(extensionVersion) };
 };
+
+/** Serialize span to flat JSON line for file export (AI-optimized). */
+export const serializeSpanForFile = (span: ReadableSpan): string =>
+  JSON.stringify({
+    name: span.name,
+    traceId: span.spanContext().traceId,
+    spanId: span.spanContext().spanId,
+    parentSpanId: span.parentSpanContext?.spanId ?? '',
+    durationMs: spanDuration(span),
+    status: span.status?.code === SpanStatusCode.ERROR ? 'ERROR' : 'OK',
+    startTime: new Date(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000).toISOString(),
+    attributes: convertAttributes(span.attributes)
+  });

@@ -35,9 +35,10 @@ import {
   zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { By, InputBox, QuickOpenBox,  } from 'vscode-extension-tester';
+import { By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
 import {
+  expandTestExplorerNamespaceAndPackage,
   findCheckboxElement,
   findTestItemByName,
   getTestResultsTabText,
@@ -175,7 +176,7 @@ describe('Run Apex Tests', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Run SFDX: Run Apex tests.
-    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
+    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(15));
 
     // Select the "All Tests" option
     await prompt.selectQuickPick('All Tests');
@@ -209,7 +210,7 @@ describe('Run Apex Tests', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Run SFDX: Run Apex tests.
-    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
+    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(15));
 
     // Select the "ExampleApexClass1Test" file
     await prompt.selectQuickPick('ExampleApexClass1Test');
@@ -257,6 +258,9 @@ describe('Run Apex Tests', () => {
       'RunApexTests - Error refreshing test explorer'
     );
     await pause(Duration.seconds(20)); // Wait for the tests to load
+
+    // Expand namespace/package so test classes are visible (grouping: Namespace → Package → Class → Method)
+    await expandTestExplorerNamespaceAndPackage();
 
     // Verify the expected test items appear
     const expectedTestNames = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleApexClass3Test'];
@@ -313,6 +317,9 @@ describe('Run Apex Tests', () => {
   it('Run All Tests on a Class via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run All Tests on a Class via the Test Sidebar');
 
+    // Expand namespace/package so test classes are visible (grouping: Namespace → Package → Class → Method)
+    await expandTestExplorerNamespaceAndPackage();
+
     // Find and click on the test method in the Test Explorer
     const testClassItem = await findTestItemByName('ExampleApexClass2Test');
     await pause(Duration.seconds(5));
@@ -348,6 +355,9 @@ describe('Run Apex Tests', () => {
 
   it('Run Single Test via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run Single Test via the Test Sidebar');
+
+    // Expand namespace/package so test classes and methods are visible (grouping: Namespace → Package → Class → Method)
+    await expandTestExplorerNamespaceAndPackage();
 
     // Find and click on the test method in the Test Explorer
     await pause(Duration.seconds(5)); // Wait for the tests to load

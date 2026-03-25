@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { CommandOutput, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
@@ -13,7 +14,6 @@ import {
   notificationService,
   ParametersGatherer,
   ProgressNotification,
-  SfWorkspaceChecker,
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -114,7 +114,7 @@ class StopActiveDebuggerSessionExecutor {
         if (sessionIdToUpdate?.startsWith('07a')) {
           const SfCommandlet = await getSfCommandlet();
           const sessionDetachCommandlet = new SfCommandlet(
-            new SfWorkspaceChecker(),
+            sfProjectPreconditionChecker,
             new IdGatherer(sessionIdToUpdate),
             new DebuggerSessionDetachExecutor()
           );
@@ -130,7 +130,7 @@ class StopActiveDebuggerSessionExecutor {
 export const debuggerStop = async () => {
   const SfCommandlet = await getSfCommandlet();
   const sessionStopCommandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new EmptyParametersGatherer(),
     new StopActiveDebuggerSessionExecutor()
   );

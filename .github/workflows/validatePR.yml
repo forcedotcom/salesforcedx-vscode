@@ -3,6 +3,17 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
     branches: [develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '**/README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
 
 jobs:
   pr-validation:

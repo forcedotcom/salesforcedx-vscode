@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.19.0",
+  "version": "66.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,13 +28,13 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
-    "effect": "^3.19.14",
+    "effect": "^3.20.0",
     "@salesforce/vscode-i18n": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve": "^12.31.12",
-    "@salesforce/source-tracking": "^7.8.1",
+    "@salesforce/source-deploy-retrieve": "^12.31.22",
+    "@salesforce/source-tracking": "^7.8.6",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -65,14 +65,16 @@
       "dependencies": [
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-services:compile"
+        "../salesforcedx-vscode-services:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
@@ -159,9 +161,15 @@
     },
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -174,7 +182,10 @@
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
-        "VSCODE_DESKTOP": "1"
+        "VSCODE_DESKTOP": "1",
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
       },
       "dependencies": [
         "vscode:bundle",
@@ -244,6 +255,10 @@
     },
     "menus": {
       "commandPalette": [
+        {
+          "command": "sf.internal.refreshsobjects",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
         {
           "command": "sf.metadata.source.diff",
           "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
@@ -319,6 +334,10 @@
         {
           "command": "sf.metadata.project.generate.manifest",
           "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "sf:project_opened"
         }
       ],
       "editor/context": [
@@ -379,6 +398,10 @@
         {
           "command": "sf.metadata.source.diff",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
         }
       ]
     },
@@ -414,6 +437,10 @@
       {
         "command": "sf.metadata.apex.generate.class",
         "title": "%apex_generate_class_text%"
+      },
+      {
+        "command": "sf.metadata.lightning.generate.lwc",
+        "title": "%lightning_generate_lwc_text%"
       },
       {
         "command": "sf.metadata.delete.source",
@@ -458,6 +485,10 @@
       {
         "command": "sf.metadata.source.diff",
         "title": "%diff_source_against_org_text%"
+      },
+      {
+        "command": "sf.internal.refreshsobjects",
+        "title": "%sobjects_refresh%"
       }
     ]
   }

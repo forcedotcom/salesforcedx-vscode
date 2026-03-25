@@ -7,39 +7,49 @@
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
-import { getConnection } from '../coreExtensionUtils';
+import { URI, Utils } from 'vscode-uri';
+import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
 import { nls } from '../messages';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
+import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import { getUriPath } from '../utils/commandletHelpers';
+import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { notificationService } from '../utils/notificationHelpers';
-import { createOrgApexClassUri, getOrgApexClassProvider, openOrgApexClass } from '../utils/orgApexClassProvider';
+import { getOrgApexClassProvider, openOrgApexClass } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
-  createClassId,
-  createMethodId,
+  createNamespaceId,
   createSuiteClassId,
   createSuiteId,
   extractClassName,
   extractSuiteName,
+  gatherTests,
   getTestName,
   isClass,
   isMethod,
-  isSuite,
-  gatherTests
+  isSuite
 } from '../utils/testItemUtils';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
-import { buildClassToUriIndex, getFullClassName, isFlowTest, writeTestResultJsonFile } from '../utils/testUtils';
+import { buildClassToUriIndex, isFlowTest, readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
+import {
+  buildClassIdToNamespace,
+  buildNamespacePackageStructure,
+  createClassAndMethodsFactory,
+  getNamespaceDisplayLabel,
+  getPackageKeysOrdered,
+  getPackageLabelAndId,
+  isNonEmptyClassEntriesList,
+  sortNamespaceKeys
+} from './orgTestItems';
 
 const TEST_CONTROLLER_ID = 'sf.apex.testController';
-const TEST_RUN_ID_FILE = 'test-run-id.txt';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
 
 export class ApexTestController {
@@ -48,7 +58,7 @@ export class ApexTestController {
   private classItems: Map<string, vscode.TestItem> = new Map();
   private methodItems: Map<string, vscode.TestItem> = new Map();
   private suiteParentItem: vscode.TestItem | undefined;
-  private lastProcessedResultFile: string | null = null;
+  private lastProcessedResultFile: URI | null = null;
   private connection: Connection | undefined;
   private testService: TestService | undefined;
   private suiteToClasses: Map<string, Set<string>> = new Map();
@@ -76,7 +86,7 @@ export class ApexTestController {
   /**
    * Returns the Apex test class name for the given file URI, if it is a known test class in the controller.
    */
-  public getTestClassName(uri: vscode.Uri): string | undefined {
+  public getTestClassName(uri: URI): string | undefined {
     const uriStr = uri.toString();
     for (const [className, item] of this.classItems) {
       if (item.uri?.toString() === uriStr) {
@@ -148,7 +158,7 @@ export class ApexTestController {
       await this.populateSuiteItems();
 
       // Then populate test classes from org (all tests, not just local)
-      const discoveryResult = await Effect.runPromise(discoverTests());
+      const discoveryResult = await getApexTestingRuntime().runPromise(discoverTests());
 
       // Always populate whatever classes were discovered, even if discovery was partial
       if (discoveryResult.classes.length > 0) {
@@ -156,36 +166,29 @@ export class ApexTestController {
       }
     } catch (error) {
       console.debug('Failed to discover tests:', error);
-      // Try to show a user-friendly error message
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
-        void notificationService.showWarningMessage(nls.localize('apex_test_discovery_partial_warning'));
+      const friendlyMessage = toUserFriendlyApexTestError(error);
+      if (friendlyMessage === nls.localize('apex_test_discovery_partial_warning')) {
+        void notificationService.showWarningMessage(friendlyMessage);
+      } else {
+        void notificationService.showErrorMessage(friendlyMessage);
       }
     }
   }
 
-  public async onResultFileCreate(apexTestPath: string, testResultFile: string): Promise<void> {
-    const testRunIdFile = path.join(apexTestPath, TEST_RUN_ID_FILE);
-    const fs = vscode.workspace.fs;
-    let testRunId: string | undefined;
-    try {
-      const testRunIdData = await fs.readFile(URI.file(testRunIdFile));
-      testRunId = Buffer.from(testRunIdData).toString('utf-8').trim();
-    } catch {
-      // test-run-id.txt might not exist
-    }
+  public async onResultFileCreate(apexTestDir: URI, testResultUri: URI): Promise<void> {
+    const testRunId = await readTestRunIdFile(apexTestDir);
 
-    const testResultFilePath = path.join(
-      apexTestPath,
+    const expectedResultUri = Utils.joinPath(
+      apexTestDir,
       testRunId ? `test-result-${testRunId}.json` : TEST_RESULT_JSON_FILE
     );
 
-    if (testResultFile === testResultFilePath) {
-      if (this.lastProcessedResultFile === testResultFilePath) {
+    if (testResultUri.toString() === expectedResultUri.toString()) {
+      if (this.lastProcessedResultFile?.toString() === testResultUri.toString()) {
         return;
       }
-      this.lastProcessedResultFile = testResultFilePath;
-      await this.updateTestResults(testResultFile);
+      this.lastProcessedResultFile = testResultUri;
+      await this.updateTestResults(testResultUri);
     }
   }
 
@@ -206,116 +209,81 @@ export class ApexTestController {
 
   /**
    * Populate test items from org test classes (Tooling API).
-   * Shows all test classes in the org, even if they're not in the local workspace.
+   * Groups by namespace then package (2GP / 1GP / unpackaged). Shows all test classes in the org.
    */
   private async populateTestItemsFromOrg(classes: ToolingTestClass[]): Promise<void> {
-    // Filter to only Apex test classes (not Flow tests) and those with test methods
     const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
-
     if (apexClasses.length === 0) {
       return;
     }
 
-    // Build a map of class names to URIs for classes that exist locally
-    const classNames = apexClasses.map(cls => cls.name);
-    const classNameToUri = await buildClassToUriIndex(classNames);
+    const classNameToUri = await buildClassToUriIndex(apexClasses.map(cls => cls.name));
 
-    // Group classes by full name (with namespace if present)
-    const classMap = new Map<string, ToolingTestClass[]>();
-    for (const cls of apexClasses) {
-      const fullClassName = getFullClassName(cls);
-      const existing = classMap.get(fullClassName) ?? [];
-      existing.push(cls);
-      classMap.set(fullClassName, existing);
-    }
+    const classIds = apexClasses
+      .map(cls => cls.id)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0);
+    const [connection, orgInfo] = await Promise.all([this.getConnection(), getDefaultOrgInfo()]);
+    const classIdToPackage = await resolvePackage2Members(
+      connection,
+      classIds,
+      buildClassIdToNamespace(apexClasses),
+      orgInfo
+    );
 
-    // Create test items for all classes - batch additions to avoid blocking UI
-    const classItemsToAdd: vscode.TestItem[] = [];
-    const BATCH_SIZE = 10; // Smaller batches for more frequent UI updates
+    const structure = buildNamespacePackageStructure(apexClasses, classIdToPackage);
+    const createClassAndMethods = createClassAndMethodsFactory({
+      controller: this.controller,
+      classItems: this.classItems,
+      methodItems: this.methodItems,
+      classNameToUri,
+      orgOnlyTag: this.orgOnlyTag,
+      inWorkspaceTag: this.inWorkspaceTag
+    });
 
-    for (const [fullClassName, classEntries] of classMap) {
-      try {
-        // Use the first entry's name as the base class name
-        const baseClassName = classEntries[0].name;
-        // Try to find a local URI for this class
-        // If the class doesn't exist locally, use a virtual document URI for org-only classes
-        const localUri = classNameToUri.get(baseClassName);
-        const uri = localUri ?? createOrgApexClassUri(baseClassName);
-        const isOrgOnly = !localUri;
+    const BATCH_SIZE = 50;
+    let processed = 0;
 
-        // Create class item
-        // For org-only classes, use virtual document URI so they can be opened
-        const classItem = this.controller.createTestItem(createClassId(fullClassName), fullClassName, uri);
-        classItem.canResolveChildren = false;
-        if (isOrgOnly && this.orgOnlyTag) {
-          classItem.tags = [this.orgOnlyTag];
-        } else if (this.inWorkspaceTag) {
-          classItem.tags = [this.inWorkspaceTag];
-        }
-        this.classItems.set(fullClassName, classItem);
+    for (const nsKey of sortNamespaceKeys(structure)) {
+      const pkMap = structure.get(nsKey);
+      if (!pkMap) {
+        continue;
+      }
 
-        // Collect all unique test methods from all entries (in case of duplicates)
-        const methodNames = new Set<string>();
-        for (const entry of classEntries) {
-          for (const testMethod of entry.testMethods ?? []) {
-            methodNames.add(testMethod.name);
-          }
+      const namespaceItem = this.controller.createTestItem(
+        createNamespaceId(nsKey),
+        getNamespaceDisplayLabel(nsKey),
+        undefined
+      );
+
+      for (const pkgKey of getPackageKeysOrdered(nsKey, [...pkMap.keys()])) {
+        const classEntriesList = pkMap.get(pkgKey);
+        if (!isNonEmptyClassEntriesList(classEntriesList)) {
+          continue;
         }
 
-        // Create method items
-        for (const methodName of methodNames) {
-          const methodId = `${fullClassName}.${methodName}`;
-          // Use line/column from Tooling API if available, otherwise default to (0,0)
-          const line = classEntries[0].testMethods?.find(m => m.name === methodName)?.line ?? 0;
-          const column = classEntries[0].testMethods?.find(m => m.name === methodName)?.column ?? 0;
-          const position = new vscode.Position(Math.max(0, line - 1), Math.max(0, column - 1));
-          // Set range for both local and org-only classes (virtual documents support ranges)
-          const range = new vscode.Range(position, position);
+        const { packageLabel, packageId } = getPackageLabelAndId(nsKey, pkgKey, classEntriesList, classIdToPackage);
+        const packageItem = this.controller.createTestItem(packageId, packageLabel, undefined);
 
-          // Create method item
-          // For org-only classes, use virtual document URI so they can be opened
-          const methodItem = this.controller.createTestItem(createMethodId(fullClassName, methodName), methodName, uri);
-          methodItem.range = range;
-          methodItem.canResolveChildren = false;
-          if (isOrgOnly && this.orgOnlyTag) {
-            methodItem.tags = [this.orgOnlyTag];
-          } else if (this.inWorkspaceTag) {
-            methodItem.tags = [this.inWorkspaceTag];
-          }
-          this.methodItems.set(methodId, methodItem);
-          classItem.children.add(methodItem);
-        }
-
-        classItemsToAdd.push(classItem);
-
-        // Add items in batches and yield control to UI thread
-        if (classItemsToAdd.length >= BATCH_SIZE) {
-          for (const item of classItemsToAdd) {
-            this.controller.items.add(item);
-          }
-          classItemsToAdd.length = 0; // Clear array
-          
-          // Yield control to event loop to allow UI to render
-          await new Promise<void>(resolve => {
-            // Use setImmediate to yield control without artificial delay
-            if (typeof setImmediate !== 'undefined') {
-              setImmediate(() => resolve());
-            } else {
-              // Fallback for environments without setImmediate
-              void Promise.resolve().then(() => resolve());
+        for (const { fullClassName, entries } of classEntriesList) {
+          try {
+            packageItem.children.add(createClassAndMethods(fullClassName, entries));
+            processed++;
+            if (processed % BATCH_SIZE === 0) {
+              await new Promise<void>(resolve => {
+                if (typeof setImmediate !== 'undefined') {
+                  setImmediate(() => resolve());
+                } else {
+                  void Promise.resolve().then(() => resolve());
+                }
+              });
             }
-          });
+          } catch (error) {
+            console.error(`Error processing class ${fullClassName}:`, error);
+          }
         }
-      } catch (error) {
-        console.error(`Error processing class ${fullClassName}:`, error);
+        namespaceItem.children.add(packageItem);
       }
-    }
-
-    // Add any remaining items
-    if (classItemsToAdd.length > 0) {
-      for (const item of classItemsToAdd) {
-        this.controller.items.add(item);
-      }
+      this.controller.items.add(namespaceItem);
     }
   }
 
@@ -351,14 +319,28 @@ export class ApexTestController {
       // Add the parent item first so it appears at the top
       this.controller.items.add(this.suiteParentItem);
     } catch (error) {
-      throw new Error(nls.localize('apex_test_populate_suite_items_failed_message', String(error)));
+      const friendlyMessage = toUserFriendlyApexTestError(error);
+      throw new Error(nls.localize('apex_test_populate_suite_items_failed_message', friendlyMessage));
     }
   }
 
   private setupRunProfiles(): void {
-    // Run profile
-    this.controller.createRunProfile(nls.localize('run_tests_title'), vscode.TestRunProfileKind.Run, (request, token) =>
-      this.runTests(request, token, false)
+    const runHandler = (request: vscode.TestRunRequest, token: vscode.CancellationToken) =>
+      this.runTests(request, token, false);
+    // Run all tests (default profile)
+    this.controller.createRunProfile(
+      nls.localize('run_tests_title'),
+      vscode.TestRunProfileKind.Run,
+      runHandler,
+      true
+    );
+    // Run only in-workspace tests (profile with tag; editor restricts request.include to eligible tests)
+    this.controller.createRunProfile(
+      nls.localize('run_tests_in_workspace_title'),
+      vscode.TestRunProfileKind.Run,
+      runHandler,
+      false,
+      this.inWorkspaceTag
     );
 
     // Debug profile
@@ -423,8 +405,6 @@ export class ApexTestController {
       return;
     }
 
-    let classNames: string[] = [];
-
     try {
       // Ensure connection and testService are initialized
       await this.ensureInitialized();
@@ -437,21 +417,24 @@ export class ApexTestController {
         return;
       }
 
-      // Extract class IDs and query for class names
+      // Extract class IDs and query for class names and namespace (for full name lookup)
       const classIds = classesInSuite.map(record => record.ApexClassId);
-      const classNamesQuery = `SELECT Id, Name FROM ApexClass WHERE Id IN (${classIds.map(id => `'${id}'`).join(',')})`;
-      const queryResult = await this.getConnection().tooling.query<{ Name: string }>(classNamesQuery);
+      const classNamesQuery = `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Id IN (${classIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',')})`;
+      const queryResult = await this.getConnection().tooling.query<{
+        Name: string;
+        NamespacePrefix: string | null;
+      }>(classNamesQuery);
 
-      classNames = queryResult.records.map(record => record.Name);
+      const classNames = queryResult.records.map((record: { Name: string; NamespacePrefix?: string | null }) =>
+        record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name
+      );
 
-      // Store the mapping of suite to classes
+      // Store the mapping of suite to classes (full class names for lookup)
       this.suiteToClasses.set(suiteName, new Set(classNames));
 
-      // Add class items as children of the suite
-      // These are just for display - the actual class items remain at root level
+      // Add class items as children of the suite (placeholders; actual class items live under namespace/package)
       for (const className of classNames) {
         const existingClassItem = this.classItems.get(className);
-        // Create a simple placeholder item for display under the suite
         const classItem = this.controller.createTestItem(
           createSuiteClassId(suiteName, className),
           className,
@@ -460,7 +443,8 @@ export class ApexTestController {
         suiteItem.children.add(classItem);
       }
     } catch (error) {
-      throw new Error(nls.localize('apex_test_resolve_suite_children_failed_message', suiteName, String(error)));
+      const friendlyMessage = toUserFriendlyApexTestError(error);
+      throw new Error(nls.localize('apex_test_resolve_suite_children_failed_message', suiteName, friendlyMessage));
     }
   }
 
@@ -472,6 +456,12 @@ export class ApexTestController {
     const startTime = Date.now();
     const run = this.controller.createTestRun(request);
     let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
+
+    // When the run profile has a tag, the editor does not set request.include—filter to only eligible tests
+    if (request.profile?.tag) {
+      const profileTag = request.profile.tag;
+      testsToRun = testsToRun.filter(test => test.tags?.includes(profileTag));
+    }
 
     // Resolve any suite in testsToRun so we have class data (for empty-suite check and expansion)
     for (const test of testsToRun) {
@@ -557,7 +547,11 @@ export class ApexTestController {
         const testNames = testsToRun.map(test => getTestName(test));
         const tmpFolder = await this.getTempFolder();
         const codeCoverage = settings.retrieveTestCodeCoverage();
-        const runAllTestsInOrg = !request.include || request.include.length === 0;
+        // Use RunAllTestsInOrg when running the full tree (no include/exclude/profile tag) to avoid huge payload
+        const runAllTestsInOrg =
+          (!request.include || request.include.length === 0) &&
+          (!request.exclude || request.exclude.length === 0) &&
+          !request.profile?.tag;
         await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun, runAllTestsInOrg);
       }
 
@@ -572,8 +566,9 @@ export class ApexTestController {
         }
       );
     } catch (error) {
+      const friendlyMessage = toUserFriendlyApexTestError(error);
       for (const test of testsToRun) {
-        run.errored(test, new vscode.TestMessage(String(error)));
+        run.errored(test, new vscode.TestMessage(friendlyMessage));
       }
     } finally {
       run.end();
@@ -631,7 +626,8 @@ export class ApexTestController {
           run.errored(test, new vscode.TestMessage(nls.localize('apex_test_suite_debug_not_supported_message')));
         }
       } catch (error) {
-        run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', String(error))));
+        const friendlyMessage = toUserFriendlyApexTestError(error);
+        run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
       }
     }
 
@@ -640,12 +636,12 @@ export class ApexTestController {
       try {
         await vscode.commands.executeCommand('sf.test.view.debugTests', { name: className });
       } catch (error) {
-        // Find all tests from this class and mark them as errored
+        const friendlyMessage = toUserFriendlyApexTestError(error);
         for (const test of testsToDebug) {
           if (isClass(test.id) && getTestName(test) === className) {
-            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', String(error))));
+            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
           } else if (isMethod(test.id) && extractClassName(test.id) === className) {
-            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', String(error))));
+            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
           }
         }
       }
@@ -654,7 +650,7 @@ export class ApexTestController {
 
   private async executeTests(
     testNames: string[],
-    outputDir: string,
+    outputDir: URI,
     codeCoverage: boolean,
     token: vscode.CancellationToken,
     run: vscode.TestRun,
@@ -702,14 +698,16 @@ export class ApexTestController {
     }
 
     // Write JSON test result file
-    await writeTestResultJsonFile(result, outputDir, codeCoverage, testService);
+    await writeTestResultJsonFile(result, outputDir, codeCoverage);
 
     // Generate and open test report
     const reportStartTime = Date.now();
     const outputFormat = settings.retrieveOutputFormat();
     const sortOrder = settings.retrieveTestSortOrder();
     try {
-      await writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder);
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder)
+      );
       const reportDurationMs = Date.now() - reportStartTime;
       telemetryService.sendEventData(
         'apexTestReportGenerated',
@@ -750,12 +748,16 @@ export class ApexTestController {
     }
   }
 
-  private async updateTestResults(testResultFilePath: string): Promise<void> {
+  private async updateTestResults(testResultUri: URI): Promise<void> {
     try {
-      const fs = vscode.workspace.fs;
-      const resultData = await fs.readFile(URI.file(testResultFilePath));
+      const resultText = await getApexTestingRuntime().runPromise(
+        Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          return yield* api.services.FsService.readFile(testResultUri);
+        })
+      );
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const resultContent = JSON.parse(Buffer.from(resultData).toString('utf-8')) as TestResult;
+      const resultContent = JSON.parse(resultText) as TestResult;
 
       // Create a test run to update results
       const run = this.controller.createTestRun(new vscode.TestRunRequest());
@@ -776,18 +778,15 @@ export class ApexTestController {
 
       run.end();
     } catch (error) {
-      throw new Error(nls.localize('apex_test_update_results_failed_message', String(error)));
+      const friendlyMessage = toUserFriendlyApexTestError(error);
+      throw new Error(nls.localize('apex_test_update_results_failed_message', friendlyMessage));
     }
   }
 
-  private async getTempFolder(): Promise<string> {
-    if (vscode.workspace?.workspaceFolders) {
-      const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
-      // In web mode, use path instead of fsPath for virtual file systems
-      const workspacePath = getUriPath(workspaceUri);
-      const apexDir = await getTestResultsFolder(workspacePath, 'apex');
-      return apexDir;
-    } else {
+  private async getTempFolder(): Promise<URI> {
+    try {
+      return await getTestResultsFolder();
+    } catch {
       throw new Error(nls.localize('cannot_determine_workspace'));
     }
   }

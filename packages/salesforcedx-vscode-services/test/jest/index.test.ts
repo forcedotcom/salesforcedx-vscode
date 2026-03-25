@@ -208,11 +208,18 @@ jest.mock('node:fs', () => ({
   }
 }));
 
+const { URI } = require('vscode-uri');
+
+const mockExtensionUri = URI.file('/mock/extension');
+
 describe('Extension', () => {
   beforeEach(() => {
     // Mock workspace.workspaceFolders to have at least one folder
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const vscode = require('vscode');
+    vscode.extensions = {
+      getExtension: jest.fn().mockReturnValue({ extensionUri: mockExtensionUri })
+    };
     vscode.workspace.workspaceFolders = [
       {
         uri: {
@@ -279,7 +286,8 @@ describe('Extension', () => {
       stat: jest.fn(),
       readDirectory: jest.fn(),
       watch: jest.fn(),
-      onDidChangeFile: jest.fn()
+      onDidChangeFile: jest.fn(),
+      findFiles: jest.fn().mockResolvedValue([])
     };
 
     // Test that projectFiles works correctly with proper mocking

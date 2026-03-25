@@ -6,22 +6,30 @@
  */
 
 import type { QueryResult, DescribeSObjectResult } from '../types';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as debounce from 'debounce';
+import * as Cause from 'effect/Cause';
+import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { trackErrorWithTelemetry } from '../commonUtils';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
-import {
-  channelService,
-  isDefaultOrgSet,
-  onOrgChange,
-  retrieveSObject,
-  retrieveSObjects,
-  workspaceContext
-} from '../sf';
+import { channelService } from '../services/channel';
+import { getSoqlRuntime } from '../services/extensionProvider';
+import { getConnection, isDefaultOrgSet } from '../services/org';
+import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
 import { runQuery } from './queryRunner';
+
+const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function* (sobjectName: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const metadataDescribeService = yield* api.services.MetadataDescribeService;
+  return yield* metadataDescribeService
+    .describeCustomObject(sobjectName)
+    .pipe(Effect.catchAll(() => Effect.succeed<DescribeSObjectResult | undefined>(undefined)));
+});
 
 // TODO: This should be exported from soql-builder-ui
 type SoqlEditorEvent =
@@ -68,45 +76,11 @@ type MessageType =
   | 'connection_changed'
   | 'run_query_done';
 
-class ConnectionChangedListener {
-  protected editorInstances: SOQLEditorInstance[];
-  protected static instance: ConnectionChangedListener;
-
-  protected constructor() {
-    onOrgChange(async (_orgInfo: any) => {
-      await this.connectionChanged();
-    });
-
-    this.editorInstances = [];
-  }
-
-  public static getInstance(): ConnectionChangedListener {
-    if (!ConnectionChangedListener.instance) {
-      ConnectionChangedListener.instance = new ConnectionChangedListener();
-    }
-    return ConnectionChangedListener.instance;
-  }
-
-  public addSoqlEditor(editor: SOQLEditorInstance): void {
-    this.editorInstances.push(editor);
-  }
-
-  public removeSoqlEditor(editor: SOQLEditorInstance): void {
-    this.editorInstances = this.editorInstances.filter(instance => instance !== editor);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
-  public async connectionChanged(): Promise<void> {
-    this.editorInstances.forEach(editor => editor.onConnectionChanged());
-  }
-}
-
 export class SOQLEditorInstance {
-  // when destroyed, dispose of all event listeners.
   public subscriptions: vscode.Disposable[] = [];
-  protected lastIncomingSoqlStatement = '';
+  /** True for exactly one debounced cycle after the webview triggered a document edit, to avoid echoing it back. */
+  protected pendingWebviewUpdate = false;
 
-  // Notify soqlEditorProvider when destroyed
   protected disposedCallback: ((instance: SOQLEditorInstance) => void) | undefined;
 
   constructor(
@@ -114,145 +88,188 @@ export class SOQLEditorInstance {
     protected webviewPanel: vscode.WebviewPanel,
     protected _token: vscode.CancellationToken
   ) {
-    // Update the UI when the Text Document is changed, if its the same document.
     vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
 
-    // Update the text document when message recieved
-    webviewPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
+    // Stream-based message handling: each message is dispatched concurrently as a named OTel span
+    const messageFiber = getSoqlRuntime().runFork(
+      Stream.async<SoqlEditorEvent>(emit => {
+        const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
+          void emit.single(event);
+        });
+        return Effect.sync(() => disposable.dispose());
+      }).pipe(
+        Stream.mapEffect(
+          event =>
+            this.handleMessageEffect(event).pipe(
+              Effect.catchAllCause(_cause =>
+                Effect.sync(() =>
+                  channelService.appendLine(nls.localize('error_unknown_error', `message_${event.type}`))
+                )
+              )
+            ),
+          { concurrency: 'unbounded' }
+        ),
+        Stream.runDrain
+      )
+    );
+    this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(messageFiber)) });
 
-    // register editor with connection changed listener
-    ConnectionChangedListener.getInstance().addSoqlEditor(this);
+    const { onConnectionChanged } = this;
+    const connectionFiber = getSoqlRuntime().runFork(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const targetOrgRef = yield* api.services.TargetOrgRef();
+        yield* targetOrgRef.changes.pipe(
+          Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${org.orgId ?? '<NOT SET>'}`))),
+          Stream.map(org => org.orgId),
+          Stream.changes,
+          Stream.runForEach(() => onConnectionChanged())
+        );
+      })
+    );
+    this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(connectionFiber)) });
 
-    // Make sure we get rid of the event listeners when our editor is closed.
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  protected sendMessageToUi(type: MessageType, payload?: string | string[] | DescribeSObjectResult): void {
-    this.webviewPanel.webview
-      .postMessage({
-        type,
-        payload
-      })
-      .then(undefined, (err: string) => {
-        const message = nls.localize('error_unknown_error', 'web_view_post_message');
-        channelService.appendLine(message);
-        trackErrorWithTelemetry(type, err);
-      });
+  protected sendMessageToUi(
+    type: MessageType,
+    payload?: string | string[] | DescribeSObjectResult
+  ) {
+    return Effect.promise<boolean>(
+      () => this.webviewPanel.webview.postMessage({ type, payload })
+    ).pipe(
+      Effect.asVoid,
+      Effect.catchAllCause(cause =>
+        Effect.sync(() => {
+          channelService.appendLine(nls.localize('error_unknown_error', 'web_view_post_message'));
+          channelService.appendLine(`soql_error_${type}: ${String(Cause.squash(cause))}`);
+        })
+      )
+    );
   }
 
-  protected updateWebview(document: vscode.TextDocument): void {
-    const newSoqlStatement = document.getText();
-    // The automated onDocumentChangeHandler fires unnecessarily
-    // when we manually update the soql statement in the document
-    // this introduced a 'cache once' and muffles the unnecessary postMessage
-    // For more info, see section "From TextDocument to webviews"
-    // url: https://code.visualstudio.com/api/extension-guides/custom-editors#synchronizing-changes-with-the-textdocument
-    if (this.lastIncomingSoqlStatement !== newSoqlStatement) {
-      this.sendMessageToUi('text_soql_changed', newSoqlStatement);
-    }
-    this.lastIncomingSoqlStatement = '';
+  protected updateWebview(document: vscode.TextDocument) {
+    const self = this;
+    return Effect.gen(function* () {
+      if (self.pendingWebviewUpdate) {
+        self.pendingWebviewUpdate = false;
+        return;
+      }
+      yield* self.sendMessageToUi('text_soql_changed', document.getText());
+    });
   }
 
-  protected updateSObjects(sobjectNames: string[]): void {
-    this.sendMessageToUi('sobjects_response', sobjectNames);
+  protected updateSObjects(sobjectNames: string[]) {
+    return this.sendMessageToUi('sobjects_response', sobjectNames);
   }
 
-  protected updateSObjectMetadata(sobject: DescribeSObjectResult): void {
-    this.sendMessageToUi('sobject_metadata_response', sobject);
+  protected updateSObjectMetadata(sobject: DescribeSObjectResult) {
+    return this.sendMessageToUi('sobject_metadata_response', sobject);
   }
 
   protected onDocumentChangeHandler(e: vscode.TextDocumentChangeEvent): void {
     if (e.document.uri.toString() === this.document.uri.toString()) {
-      this.updateWebview(this.document);
+      getSoqlRuntime().runFork(this.updateWebview(this.document));
     }
   }
 
-  protected onDidRecieveMessageHandler(event: SoqlEditorEvent): void {
+  private handleMessageEffect = (event: SoqlEditorEvent) => {
     switch (event.type) {
-      case 'ui_activated': {
-        this.updateWebview(this.document);
-        break;
-      }
+      case 'ui_activated':
+        return this.updateWebview(this.document).pipe(Effect.withSpan('SOQLEditor.ui_activated'));
+
       case 'ui_soql_changed': {
         const soql = event.payload;
-        this.lastIncomingSoqlStatement = soql;
-        this.updateTextDocument(this.document, soql);
-        break;
+        return Effect.sync(() => {
+          this.pendingWebviewUpdate = true;
+        }).pipe(
+          Effect.andThen(Effect.promise<boolean>(() => this.updateTextDocument(this.document, soql))),
+          Effect.asVoid,
+          Effect.withSpan('SOQLEditor.ui_soql_changed')
+        );
       }
+
       case 'ui_telemetry': {
         const { unsupported } = event.payload;
         const hasUnsupported = Array.isArray(unsupported) ? unsupported.length : unsupported;
-        if (hasUnsupported) {
-          trackErrorWithTelemetry('syntax_unsupported', JSON.stringify(event.payload));
-          const message = nls.localize('info_syntax_unsupported');
-          channelService.appendLine(message);
-        }
-        break;
+        return (
+          hasUnsupported
+            ? Effect.sync(() => channelService.appendLine(nls.localize('info_syntax_unsupported')))
+            : Effect.void
+        ).pipe(Effect.withSpan('SOQLEditor.ui_telemetry'));
       }
-      case 'sobject_metadata_request': {
-        retrieveSObject(event.payload)
-          .then(sobject => this.updateSObjectMetadata(sobject))
-          .catch(() => {
-            const message = nls.localize('error_sobject_metadata_request', event.payload);
-            channelService.appendLine(message);
-          });
-        break;
-      }
-      case 'sobjects_request': {
-        retrieveSObjects()
-          .then(sobjectNames => this.updateSObjects(sobjectNames))
-          .catch(() => {
-            const message = nls.localize('error_sobjects_request');
-            channelService.appendLine(message);
-          });
-        break;
-      }
+
+      case 'sobject_metadata_request':
+        return retrieveSObjectRawEffect(event.payload).pipe(
+          Effect.flatMap(sobject => (sobject ? this.updateSObjectMetadata(sobject) : Effect.void)),
+          Effect.catchAll(() =>
+            Effect.sync(() =>
+              channelService.appendLine(nls.localize('error_sobject_metadata_request', event.payload))
+            )
+          ),
+          Effect.withSpan('SOQLEditor.sobject_metadata_request', { attributes: { sobjectName: event.payload } })
+        );
+
+      case 'sobjects_request':
+        return listSObjectNamesEffect.pipe(
+          Effect.flatMap(names => (names ? this.updateSObjects(names) : Effect.void)),
+          Effect.catchAll(() =>
+            Effect.sync(() => channelService.appendLine(nls.localize('error_sobjects_request')))
+          ),
+          Effect.withSpan('SOQLEditor.sobjects_request')
+        );
+
       case 'run_query': {
-        vscode.window
-          .withProgress(
-            {
-              cancellable: false,
-              location: vscode.ProgressLocation.Notification,
-              title: nls.localize('progress_running_query')
-            },
-            () => this.handleRunQuery()
-          )
-          .then(undefined, err => {
-            const message = nls.localize('error_run_soql_query', err.message);
+        const self = this;
+        return Effect.gen(function* () {
+          const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
+          if (!isOrgSet) {
+            const message = nls.localize('info_no_default_org');
             channelService.appendLine(message);
-            this.runQueryDone();
-          });
-        break;
+            yield* Effect.promise(() => vscode.window.showInformationMessage(message));
+            yield* self.runQueryDone();
+            return;
+          }
+          const queryText = self.document.getText();
+          const conn = yield* Effect.promise(() => getConnection());
+          const queryData = yield* Effect.promise(() =>
+            vscode.window.withProgress(
+              {
+                cancellable: false,
+                location: vscode.ProgressLocation.Notification,
+                title: nls.localize('progress_running_query')
+              },
+              () => runQuery(conn)(queryText)
+            )
+          );
+          yield* Effect.promise(() => self.openQueryDataView(queryData));
+          yield* self.runQueryDone();
+        }).pipe(
+          Effect.catchAllCause(cause => {
+            const err = Cause.squash(cause);
+            return Effect.gen(function* () {
+              channelService.appendLine(
+                nls.localize('error_run_soql_query', err instanceof Error ? err.message : String(err))
+              );
+              yield* self.runQueryDone();
+            });
+          }),
+          Effect.withSpan('SOQLEditor.run_query')
+        );
       }
-      default: {
-        const message = nls.localize('error_unknown_error', event.type);
-        channelService.appendLine(message);
-        trackErrorWithTelemetry('message_unknown', event.type);
-      }
+
+      default:
+        return Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', event.type))).pipe(
+          Effect.withSpan('SOQLEditor.unknown_message', { attributes: { messageType: event.type } })
+        );
     }
-  }
+  };
 
-  protected async handleRunQuery(): Promise<void> {
-    // Check to see if a default org is set.
-    if (!(await isDefaultOrgSet())) {
-      const message = nls.localize('info_no_default_org');
-      channelService.appendLine(message);
-      vscode.window.showInformationMessage(message);
-      this.runQueryDone();
-      return;
-    }
-
-    const queryText = this.document.getText();
-    const conn = await workspaceContext.getConnection();
-    const queryData = await runQuery(conn)(queryText);
-    await this.openQueryDataView(queryData);
-    this.runQueryDone();
-  }
-
-  protected runQueryDone(): void {
-    this.webviewPanel.webview.postMessage({
-      type: 'run_query_done' satisfies MessageType
-    });
+  protected runQueryDone() {
+    return Effect.promise<boolean>(() =>
+      this.webviewPanel.webview.postMessage({ type: 'run_query_done' satisfies MessageType })
+    ).pipe(Effect.asVoid);
   }
 
   protected async openQueryDataView(queryData: QueryResult<JsonMap>): Promise<void> {
@@ -260,18 +277,14 @@ export class SOQLEditorInstance {
     await webview.createOrShowWebView();
   }
 
-  // Write out the json to a given document. //
   protected updateTextDocument(document: vscode.TextDocument, soqlQuery: string): Thenable<boolean> {
     const edit = new vscode.WorkspaceEdit();
-
     edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), soqlQuery);
-
     return vscode.workspace.applyEdit(edit);
   }
 
   protected dispose(): void {
-    ConnectionChangedListener.getInstance().removeSoqlEditor(this);
-    this.subscriptions.forEach(dispposable => dispposable.dispose());
+    this.subscriptions.forEach(disposable => disposable.dispose());
     if (this.disposedCallback) {
       this.disposedCallback(this);
     }
@@ -281,7 +294,5 @@ export class SOQLEditorInstance {
     this.disposedCallback = callback;
   }
 
-  public onConnectionChanged(): void {
-    this.sendMessageToUi('connection_changed');
-  }
+  public onConnectionChanged = () => this.sendMessageToUi('connection_changed');
 }

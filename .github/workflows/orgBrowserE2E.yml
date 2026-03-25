@@ -4,6 +4,17 @@ on:
   workflow_dispatch:
   push:
     branches-ignore: [main, develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '**/README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
 
 concurrency:
   group: ci-${{ github.ref }}-orgBrowserE2E
@@ -84,7 +95,7 @@ jobs:
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:web -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
 
@@ -189,7 +200,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
 

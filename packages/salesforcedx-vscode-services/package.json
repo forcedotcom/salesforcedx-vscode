@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.19.0",
+  "version": "66.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,24 +28,25 @@
   ],
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",
-    "@effect/opentelemetry": "0.60.0",
-    "@effect/platform": "^0.94.1",
+    "@effect/opentelemetry": "0.61.0",
+    "@effect/platform": "^0.94.5",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/core": "2.0.1",
-    "@opentelemetry/exporter-trace-otlp-http": "0.209.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.213.0",
     "@opentelemetry/resources": "2.2.0",
     "@opentelemetry/sdk-logs": "0.203.0",
     "@opentelemetry/sdk-metrics": "2.5.0",
     "@opentelemetry/sdk-trace-base": "2.0.1",
     "@opentelemetry/sdk-trace-node": "2.2.0",
     "@opentelemetry/sdk-trace-web": "2.2.0",
-    "@salesforce/core": "^8.23.4",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/o11y-reporter": "^1.8.1",
-    "@salesforce/source-deploy-retrieve": "^12.31.12",
-    "@salesforce/source-tracking": "^7.8.1",
+    "@salesforce/source-deploy-retrieve": "^12.31.22",
+    "@salesforce/source-tracking": "^7.8.6",
+    "@salesforce/templates": "^66.5.6",
+    "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
-    "effect": "^3.19.14",
+    "effect": "^3.20.0",
     "jsforce": "^3.10.2",
     "o11y_schema": "^260.44.0",
     "vscode-uri": "^3.1.0"
@@ -72,7 +73,8 @@
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
     "test:e2e": "wireit",
-    "o11y:debug": "wireit"
+    "o11y:debug": "wireit",
+    "spans:server": "wireit"
   },
   "wireit": {
     "build:icons": {
@@ -92,14 +94,16 @@
       "dependencies": [
         "build:icons",
         "generate-types",
-        "../salesforcedx-vscode-i18n:compile"
+        "../salesforcedx-vscode-i18n:compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
@@ -123,6 +127,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "out/**"
       ],
       "output": [
@@ -144,8 +149,10 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "out/**",
-        "../../.esbuild-web-extra-settings.json"
+        "../../.esbuild-web-extra-settings.json",
+        "node_modules/@salesforce/templates/lib/**"
       ],
       "output": [
         "dist"
@@ -215,13 +222,22 @@
     },
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
       "dependencies": [
         "vscode:bundle",
-        "../playwright-vscode-ext:compile"
+        "../playwright-vscode-ext:compile",
+        "spans:server"
       ],
       "files": [
-        "playwright.config.web.ts"
-      ]
+        "playwright.config.web.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:e2e": {
       "dependencies": [
@@ -244,6 +260,13 @@
       "files": [
         "scripts/o11yDebugServer.ts"
       ]
+    },
+    "spans:server": {
+      "command": "ts-node scripts/spanFileServer.ts",
+      "service": true,
+      "files": [
+        "scripts/spanFileServer.ts"
+      ]
     }
   },
   "activationEvents": [
@@ -261,22 +284,22 @@
           "default": false,
           "description": "%configuration.protectedOrg.description%"
         },
-        "salesforcedx-vscode-code-builder-web.instanceUrl": {
+        "salesforce-web-console.instanceUrl": {
           "type": "string",
           "default": "",
           "description": "%configuration.instanceUrl.description%"
         },
-        "salesforcedx-vscode-code-builder-web.accessToken": {
+        "salesforce-web-console.accessToken": {
           "type": "string",
           "default": "",
           "description": "%configuration.accessToken.description%"
         },
-        "salesforcedx-vscode-code-builder-web.apiVersion": {
+        "salesforce-web-console.apiVersion": {
           "type": "string",
           "default": "64.0",
           "description": "%configuration.apiVersion.description%"
         },
-        "salesforcedx-vscode-code-builder-web.retrieveOnLoad": {
+        "salesforce-web-console.retrieveOnLoad": {
           "type": "string",
           "default": "",
           "description": "%configuration.retrieveOnLoad.description%"
@@ -290,6 +313,11 @@
           "type": "boolean",
           "default": false,
           "description": "%configuration.otelConsole.description%"
+        },
+        "salesforcedx-vscode-salesforcedx.enableFileTraces": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.otelFile.description%"
         }
       }
     },

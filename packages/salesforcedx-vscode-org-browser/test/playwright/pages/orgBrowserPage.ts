@@ -57,8 +57,10 @@ export class OrgBrowserPage {
     await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
   }
 
-  public async expandFolder(folderName: string): Promise<void> {
-    const folderItem = this.page.getByRole('treeitem', { name: folderName, exact: true });
+  public async expandFolder(folderName: string, level?: number): Promise<void> {
+    const folderItem = level
+      ? this.page.getByRole('treeitem', { name: folderName, level, exact: true })
+      : this.page.getByRole('treeitem', { name: folderName, exact: true });
     const twistie = folderItem.locator('.monaco-tl-twistie');
     await Promise.all([
       folderItem.click({ timeout: 5000, delay: 100 }),
@@ -86,7 +88,9 @@ export class OrgBrowserPage {
     await this.page.waitForTimeout(50);
 
     // locators get messed up because of the scroll
-    const folderItemAgain = this.page.getByRole('treeitem', { name: folderName, exact: true });
+    const folderItemAgain = level
+      ? this.page.getByRole('treeitem', { name: folderName, level, exact: true })
+      : this.page.getByRole('treeitem', { name: folderName, exact: true });
     const twistieAgain = folderItemAgain.locator('.monaco-tl-twistie');
 
     // tapping to refocus;  But that also closes it.  So we need to tap twice to reopen and ensure it's open

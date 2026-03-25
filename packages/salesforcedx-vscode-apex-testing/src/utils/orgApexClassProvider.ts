@@ -12,7 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 
 const SCHEME = 'sf-org-apex';
 
@@ -43,7 +43,6 @@ const lookupClassBody = (className: string) =>
     }
     return apexClass.Body;
   }).pipe(
-    Effect.provide(AllServicesLayer),
     Effect.catchAll((error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
       return Effect.succeed(`// Error retrieving class '${className}' from org: ${errorMessage}`);
@@ -51,7 +50,7 @@ const lookupClassBody = (className: string) =>
   );
 
 /** Create cache for Apex class bodies with 5 minute TTL */
-const createClassBodyCache = (): Effect.Effect<Cache.Cache<string, string>, never, never> =>
+const createClassBodyCache = () =>
   Cache.make({
     capacity: 1000,
     timeToLive: Duration.minutes(5),
@@ -65,11 +64,11 @@ let classBodyCache: Cache.Cache<string, string> | undefined;
  * This allows viewing org-only test classes in VS Code.
  */
 class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
-  private readonly _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+  private readonly _onDidChange = new vscode.EventEmitter<URI>();
 
   public readonly onDidChange = this._onDidChange.event;
 
-  public async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
+  public async provideTextDocumentContent(uri: URI): Promise<string> {
     // Extract class name from path, removing .cls extension if present
     let className = uri.path;
     if (!className) {
@@ -82,11 +81,11 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
 
     // Ensure cache is initialized and get cached or fetch class body
     const cache = this.ensureCacheInitialized();
-    return Effect.runPromise(cache.get(className));
+    return getApexTestingRuntime().runPromise(cache.get(className));
   }
 
   private ensureCacheInitialized(): Cache.Cache<string, string> {
-    classBodyCache ??= Effect.runSync(createClassBodyCache());
+    classBodyCache ??= getApexTestingRuntime().runSync(createClassBodyCache());
     return classBodyCache;
   }
 
@@ -128,7 +127,7 @@ export const getOrgApexClassProvider = (): OrgApexClassProvider => {
  * The URI format is: sf-org-apex:ClassName.cls
  * The .cls extension enables syntax highlighting from the LSP
  */
-export const createOrgApexClassUri = (className: string): vscode.Uri => {
+export const createOrgApexClassUri = (className: string): URI => {
   // Extract base class name if it includes namespace (e.g., "ns.ClassName" -> "ClassName")
   const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
   // Add .cls extension for syntax highlighting
@@ -139,23 +138,25 @@ export const createOrgApexClassUri = (className: string): vscode.Uri => {
  * Opens an org-only Apex class in a virtual document
  */
 export const openOrgApexClass = async (className: string, position?: vscode.Position): Promise<void> => {
-  try {
-    const uri = createOrgApexClassUri(className);
-    const document = await vscode.workspace.openTextDocument(uri);
-    const editor = await vscode.window.showTextDocument(document, {
-      preview: false,
-      viewColumn: vscode.ViewColumn.Active
-    });
-
-    // Navigate to the specified position if provided
-    if (position) {
-      editor.selection = new vscode.Selection(position, position);
-      editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    void vscode.window.showErrorMessage(
-      nls.localize('apex_test_open_org_class_failed_message', className, errorMessage)
-    );
-  }
+  const uri = createOrgApexClassUri(className);
+  await getApexTestingRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const editor = yield* api.services.FsService.showTextDocument(uri, {
+        preview: false,
+        viewColumn: vscode.ViewColumn.Active
+      });
+      if (position) {
+        editor.selection = new vscode.Selection(position, position);
+        editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+      }
+    }).pipe(
+      Effect.catchAll((error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return Effect.sync(() =>
+          void vscode.window.showErrorMessage(nls.localize('apex_test_open_org_class_failed_message', className, errorMessage))
+        );
+      })
+    )
+  );
 };

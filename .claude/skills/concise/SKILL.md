@@ -1,14 +1,16 @@
 ---
 name: concise
-description: when creating/modifying md files in skills/rules for AI
+description: Writing style for AI-consumed docs. Proactively apply when creating or editing any md file in .claude/skills/ or .claude/rules/ or .cursor/rules/.
 disable-model-invocation: false
 ---
 
+**Excluded**: packages/\*\*/README.md — customer-facing, marketplace; use full sentences.
+
 # Concise
 
-We want to save tokens and preserve context window size.
+Save tokens and preserve context window.
 
-- use fragments/bullets, not full sentences
-- remove as many words as possible without altering meaning
+- fragments/bullets, not full sentences
+- remove words without altering meaning
 - cut repetition
-- prefer shorter words that mean the same thing
+- prefer shorter synonyms

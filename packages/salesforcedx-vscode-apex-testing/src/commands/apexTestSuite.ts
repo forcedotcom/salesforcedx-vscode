@@ -6,33 +6,44 @@
  */
 
 import { TestService } from '@salesforce/apex-node';
-import { isNotUndefined } from 'effect/Predicate';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT } from '../constants';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
+import { getApexTestingRuntime } from '../services/extensionProvider';
+import { discoverTests } from '../testDiscovery/testDiscovery';
 import {
   CancelResponse,
   ContinueResponse,
   LibraryCommandletExecutor,
   ParametersGatherer,
-  SFDX_FOLDER,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '../utils/commandletHelpers';
-import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
+import { ApexTestQuickPickItem } from '../utils/fileHelpers';
+import { getFullClassName, isFlowTest } from '../utils/testUtils';
 import { getTestController } from '../views/testController';
 import { ApexLibraryTestRunExecutor } from './apexTestRun';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
-  return (await Promise.all(apexClasses.map(getTestInfo)))
-    .filter(isNotUndefined)
-    .toSorted((a, b) => a.label.localeCompare(b.label));
+  const result = await getApexTestingRuntime().runPromise(discoverTests());
+  return result.classes
+    .filter(cls => !isFlowTest(cls))
+    .map(
+      (cls): ApexTestQuickPickItem => ({
+        label: cls.name,
+        description: cls.namespacePrefix ?? '',
+        type: 'Class',
+        fullClassName: getFullClassName(cls)
+      })
+    )
+    .toSorted((a, b): number => {
+      const byLabel = a.label.localeCompare(b.label);
+      return byLabel !== 0 ? byLabel : (a.fullClassName ?? '').localeCompare(b.fullClassName ?? '');
+    });
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
@@ -64,18 +75,19 @@ class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
     if (testSuiteName) {
       const apexClassItems = await listApexClassItems();
 
-      const apexClassSelection =
-        (await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
-          canPickMany: true
-        })) ?? [];
-      const apexClassNames = apexClassSelection.map(selection => selection.label);
-
-      return apexClassSelection
-        ? {
-            type: 'CONTINUE',
-            data: { suitename: testSuiteName.label, tests: apexClassNames }
-          }
-        : { type: 'CANCEL' };
+      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
+        canPickMany: true
+      });
+      if (!apexClassSelection || apexClassSelection.length === 0) {
+        return { type: 'CANCEL' };
+      }
+      const apexClassNames = apexClassSelection.map(
+        selection => selection.fullClassName ?? selection.label
+      );
+      return {
+        type: 'CONTINUE',
+        data: { suitename: testSuiteName.label, tests: apexClassNames }
+      };
     }
     return { type: 'CANCEL' };
   }
@@ -89,20 +101,42 @@ class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
     const testSuiteName = await vscode.window.showInputBox(testSuiteInput);
 
     if (testSuiteName) {
-      const apexClassItems = await listApexClassItems();
-
-      const apexClassSelection =
-        (await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
-          canPickMany: true
-        })) ?? [];
-      const apexClassNames = apexClassSelection?.map(selection => selection.label);
-
-      return apexClassSelection
-        ? {
-            type: 'CONTINUE',
-            data: { suitename: testSuiteName, tests: apexClassNames }
+      let apexClassItems: ApexTestQuickPickItem[];
+      try {
+        apexClassItems = await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: nls.localize('retrieving_tests_message'),
+            cancellable: true
+          },
+          async (_progress, token) => {
+            const items = await listApexClassItems();
+            if (token.isCancellationRequested) {
+              throw new vscode.CancellationError();
+            }
+            return items;
           }
-        : { type: 'CANCEL' };
+        );
+      } catch (e) {
+        if (e instanceof vscode.CancellationError) {
+          return { type: 'CANCEL' };
+        }
+        throw e;
+      }
+
+      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
+        canPickMany: true
+      });
+      if (!apexClassSelection || apexClassSelection.length === 0) {
+        return { type: 'CANCEL' };
+      }
+      const apexClassNames = apexClassSelection.map(
+        selection => selection.fullClassName ?? selection.label
+      );
+      return {
+        type: 'CONTINUE',
+        data: { suitename: testSuiteName, tests: apexClassNames }
+      };
     }
     return { type: 'CANCEL' };
   }
@@ -125,35 +159,39 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
 
 export const apexTestSuiteAdd = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new TestSuiteBuilder(),
     new ApexLibraryTestSuiteBuilder('apex_test_suite_add_text')
   );
-  await commandlet.run();
-  // Clear all suite children so they re-query from org instead of using stale local files
-  const testController = getTestController();
-  testController.clearAllSuiteChildren();
-  // Refresh to update the tree with latest suite data from org
-  void testController.refresh();
+  const didRun = await commandlet.run();
+  if (didRun) {
+    // Clear all suite children so they re-query from org instead of using stale local files
+    const testController = getTestController();
+    testController.clearAllSuiteChildren();
+    // Refresh to update the tree with latest suite data from org
+    void testController.refresh();
+  }
 };
 
 export const apexTestSuiteCreate = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new TestSuiteCreator(),
     new ApexLibraryTestSuiteBuilder('apex_test_suite_create_text')
   );
-  await commandlet.run();
-  // Clear all suite children so they re-query from org instead of using stale local files
-  const testController = getTestController();
-  testController.clearAllSuiteChildren();
-  // Refresh to update the tree with the newly created suite
-  void testController.refresh();
+  const didRun = await commandlet.run();
+  if (didRun) {
+    // Clear all suite children so they re-query from org instead of using stale local files
+    const testController = getTestController();
+    testController.clearAllSuiteChildren();
+    // Refresh to update the tree with the newly created suite
+    void testController.refresh();
+  }
 };
 
 export const apexTestSuiteRun = async () => {
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new TestSuiteSelector(),
     new ApexLibraryTestRunExecutor()
   );

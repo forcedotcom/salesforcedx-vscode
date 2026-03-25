@@ -10,10 +10,8 @@ import * as path from 'node:path';
 import { expect } from '@playwright/test';
 import { createProjectTest as test } from '../fixtures/desktopFixtures';
 import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  prepareNoFolderOpenForPaletteTests,
   verifyCommandExists,
   saveScreenshot,
   QUICK_INPUT_WIDGET,
@@ -29,12 +27,7 @@ test('Create Project: standard project via command palette', async ({ page, work
   const targetDir = path.dirname(workspaceDir);
 
   await test.step('close workspace to reach empty state', async () => {
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await executeCommandWithCommandPalette(page, 'Workspaces: Close Workspace');
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
+    await prepareNoFolderOpenForPaletteTests(page);
     await saveScreenshot(page, 'createProject.01-empty-workspace.png');
   });
 
@@ -55,7 +48,7 @@ test('Create Project: standard project via command palette', async ({ page, work
 
   await test.step('enter project name', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await page.keyboard.type(PROJECT_NAME);
     await saveScreenshot(page, 'createProject.03-name-entered.png');
     await page.keyboard.press('Enter');
@@ -70,10 +63,14 @@ test('Create Project: standard project via command palette', async ({ page, work
     // Triple-click to select all existing path text (Control+a doesn't select-all on mac)
     const input = quickInput.locator('input.input');
     await input.click({ clickCount: 3 });
-    await page.keyboard.type(targetDir);
+    // Trailing sep forces the simple dialog to navigate INTO the directory immediately.
+    // Without it, Windows shows the parent dir with the folder highlighted, then auto-navigates
+    // after a debounce — clicking "Create Project" during that transition doesn't register.
+    await page.keyboard.type(`${targetDir}${path.sep}`);
 
-    // Wait for dialog to validate the path
+    // Wait for dialog to show the directory contents (not just highlight the folder name)
     await expect(quickInput.getByText('path does not exist')).not.toBeVisible({ timeout: 5000 });
+    await expect(input).toHaveValue(new RegExp(`${targetDir.replaceAll('\\', '\\\\')}[/\\\\]$`), { timeout: 5000 });
     await saveScreenshot(page, 'createProject.05-folder-path-set.png');
 
     // Click "Create Project" button (openLabel from extension's showOpenDialog call)
@@ -87,7 +84,7 @@ test('Create Project: standard project via command palette', async ({ page, work
     // Poll for sfdx-project.json (project generation may take a moment)
     await expect(async () => {
       await fs.access(path.join(projectDir, 'sfdx-project.json'));
-    }).toPass({ timeout: 60_000 });
+    }).toPass({ timeout: 120_000 });
 
     await fs.access(path.join(projectDir, 'force-app'));
     await saveScreenshot(page, 'createProject.06-verified.png');

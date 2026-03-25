@@ -43,7 +43,7 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-aura-language-server/src/tern/**',
       'packages/salesforcedx-vscode-lightning/tern/**',
-      'packages/salesforcedx-vscode-lightning/extension/tern/lib/**',
+      'packages/salesforcedx-vscode-lightning/extension/tern/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
@@ -135,7 +135,10 @@ export default [
           ]
         }
       ],
+      'local/no-effect-fn-wrapper': 'error',
+      'local/require-effect-fn-span-name': 'error',
       'local/no-duplicate-i18n-values': 'error',
+      'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
       'local/no-vscode-progress-title-literals': 'error',
       'workspaces/no-relative-imports': 'error',
@@ -343,7 +346,7 @@ export default [
       'import/no-empty-named-blocks': 'error',
       'import/newline-after-import': 'error',
       'import/no-cycle': 'error',
-      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/scripts/**'] }],
+      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }],
       'import/order': [
         'error',
         {
@@ -557,6 +560,7 @@ export default [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
     ],
     rules: {
@@ -572,6 +576,8 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
+      'local/no-effect-service-accessor-calls': 'error',
+      'local/no-vscode-uri': 'error',
 
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',
@@ -585,7 +591,7 @@ export default [
       'import/no-extraneous-dependencies': [
         'error',
         {
-          devDependencies: ['**/test/**', '**/scripts/**'],
+          devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'],
           // Allow Effect and core Salesforce dependencies
           optionalDependencies: false
         }
@@ -630,17 +636,20 @@ export default [
     }
   },
   {
-    // Relaxed rules for test files in services and org-browser packages
+    // Relaxed rules for test files
     files: [
-      'packages/salesforcedx-vscode-services/test/**/*.ts',
-      'packages/salesforcedx-vscode-org-browser/test/**/*.ts',
-      'packages/salesforcedx-vscode-metadata/test/**/*.ts',
-      'packages/salesforcedx-vscode-apex-testing/test/**/*.ts',
+      'packages/**/test/**/*.ts',
+      'packages/**/__tests__/**/*.ts',
       'packages/salesforcedx-vscode-services/playwright*.ts',
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
       'packages/salesforcedx-vscode-metadata/playwright*.ts',
+      'packages/salesforcedx-vscode-apex-log/playwright*.ts',
       'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
-      'packages/salesforcedx-vscode-core/playwright*.ts'
+      'packages/salesforcedx-vscode-core/playwright*.ts',
+      'packages/salesforcedx-vscode-org/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-org/playwright*.ts',
+      'packages/salesforcedx-vscode-soql/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-soql/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
@@ -653,6 +662,19 @@ export default [
       'functional/no-loop-statements': 'off',
       'functional/prefer-property-signatures': 'off',
       'import/no-extraneous-dependencies': 'off'
+    }
+  },
+  // i18n TS plugin - node:fs; type assertions; triple-slash for tsserverlibrary
+  {
+    files: ['packages/salesforcedx-vscode-i18n/src/hover/**/*.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
+      '@typescript-eslint/consistent-type-assertions': 'off',
+      '@typescript-eslint/triple-slash-reference': 'off',
+      '@typescript-eslint/array-type': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
+      'prefer-arrow/prefer-arrow-functions': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off'
     }
   },
   // ESLint plugin rules for eslint-local-rules package only
@@ -690,6 +712,7 @@ export default [
     rules: {
       ...jsonPlugin.configs.recommended.rules,
       'local/package-json-i18n-descriptions': 'error',
+      'local/package-json-extension-icon': 'error',
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error'

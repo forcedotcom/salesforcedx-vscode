@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   CancelResponse,
   ContinueResponse,
@@ -12,7 +13,6 @@ import {
   notificationService,
   ParametersGatherer,
   SfCommandlet,
-  SfWorkspaceChecker,
   readDirectory,
   rename
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -24,19 +24,12 @@ import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { ComponentName, getComponentName, getComponentPath, isLwcComponent, TEST_FOLDER } from '../util';
 import { LwcAuraDuplicateComponentCheckerForRename } from './util';
-import {
-  isNameMatch,
-  RENAME_ERROR,
-  RENAME_INPUT_PLACEHOLDER,
-  RENAME_INPUT_PROMPT,
-  RENAME_LIGHTNING_COMPONENT_EXECUTOR,
-  RENAME_WARNING
-} from './util/lwcAuraDuplicateDetectionUtils';
+import { isNameMatch } from './util/lwcAuraDuplicateDetectionUtils';
 
 class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
   constructor(sourceFsPath: string) {
-    super(nls.localize(RENAME_LIGHTNING_COMPONENT_EXECUTOR), RENAME_LIGHTNING_COMPONENT_EXECUTOR, OUTPUT_CHANNEL);
+    super(nls.localize('rename_lightning_component'), 'rename_lightning_component', OUTPUT_CHANNEL);
     this.sourceFsPath = sourceFsPath;
   }
 
@@ -48,7 +41,7 @@ class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName
         await renameComponent(this.sourceFsPath, newComponentName);
         return true;
       } catch (err) {
-        const errorMessage = nls.localize(RENAME_ERROR);
+        const errorMessage = nls.localize('rename_component_error');
         void notificationService.showErrorMessage(errorMessage);
         throw err;
       }
@@ -61,7 +54,7 @@ export const renameLightningComponent = (sourceUri: URI): void => {
   const sourceFsPath = sourceUri.fsPath;
   if (sourceFsPath) {
     const commandlet = new SfCommandlet(
-      new SfWorkspaceChecker(),
+      sfProjectPreconditionChecker,
       new GetComponentName(sourceFsPath),
       new RenameLwcComponentExecutor(sourceFsPath),
       new LwcAuraDuplicateComponentCheckerForRename(sourceFsPath)
@@ -78,8 +71,8 @@ class GetComponentName implements ParametersGatherer<ComponentName> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ComponentName>> {
     const inputOptions: vscode.InputBoxOptions = {
       value: getComponentName(await getComponentPath(this.sourceFsPath)),
-      placeHolder: nls.localize(RENAME_INPUT_PLACEHOLDER),
-      prompt: nls.localize(RENAME_INPUT_PROMPT)
+      placeHolder: nls.localize('rename_component_input_placeholder'),
+      prompt: nls.localize('rename_component_input_prompt')
     };
     const inputResult = await vscode.window.showInputBox(inputOptions);
     return inputResult ? { type: 'CONTINUE', data: { name: inputResult } } : { type: 'CANCEL' };
@@ -116,5 +109,5 @@ const renameComponent = async (sourceFsPath: string, newName: string): Promise<v
   }
   const newComponentPath = path.join(path.dirname(componentPath), newName);
   await rename(componentPath, newComponentPath);
-  void notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
+  void notificationService.showWarningMessage(nls.localize('rename_component_warning'));
 };

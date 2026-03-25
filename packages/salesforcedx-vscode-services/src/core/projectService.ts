@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfProject } from '@salesforce/core/project';
+import { Global, SfProject } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
-import { toUri } from '../vscode/fsService';
+import { URI, Utils } from 'vscode-uri';
+import { toUri } from '../vscode/uriUtils';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';
 
@@ -50,6 +50,13 @@ const globalSfProjectCache = Effect.runSync(
     lookup: resolveSfProject // Lookup function that resolves SfProject for given fsPath
   }).pipe(Effect.withSpan('sfProjectCache'))
 );
+
+const TOOLS_DIR = 'tools';
+const SOBJECTS_DIR = 'sobjects';
+const STANDARDOBJECTS_DIR = 'standardObjects';
+const CUSTOMOBJECTS_DIR = 'customObjects';
+const SOQLMETADATA_DIR = 'soqlMetadata';
+const TYPINGS_SEGMENTS = ['typings', 'lwc', 'sobjects'] as const;
 
 export class ProjectService extends Effect.Service<ProjectService>()('ProjectService', {
   accessors: true,
@@ -101,7 +108,52 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
           )
       );
     });
-    return { isSalesforceProject, getSfProject, isInPackageDirectories };
+    const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
+      const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
+      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, TOOLS_DIR);
+    });
+
+    const getSoqlMetadataPath = Effect.fn('ProjectService.getSoqlMetadataPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR);
+    });
+
+    const getSoqlStandardObjectsPath = Effect.fn('ProjectService.getSoqlStandardObjectsPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, STANDARDOBJECTS_DIR);
+    });
+
+    const getSoqlCustomObjectsPath = Effect.fn('ProjectService.getSoqlCustomObjectsPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, CUSTOMOBJECTS_DIR);
+    });
+
+    const getFauxClassesPath = Effect.fn('ProjectService.getFauxClassesPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR);
+    });
+
+    const getFauxStandardObjectsPath = Effect.fn('ProjectService.getFauxStandardObjectsPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);
+    });
+
+    const getFauxCustomObjectsPath = Effect.fn('ProjectService.getFauxCustomObjectsPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, CUSTOMOBJECTS_DIR);
+    });
+
+    const getTypingsPath = Effect.fn('ProjectService.getTypingsPath')(function* () {
+      const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
+      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, ...TYPINGS_SEGMENTS);
+    });
+
+    return {
+      isSalesforceProject,
+      getSfProject,
+      isInPackageDirectories,
+      getSoqlMetadataPath,
+      getSoqlStandardObjectsPath,
+      getSoqlCustomObjectsPath,
+      getFauxClassesPath,
+      getFauxStandardObjectsPath,
+      getFauxCustomObjectsPath,
+      getTypingsPath
+    };
   })
 }) {}
 

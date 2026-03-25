@@ -29,6 +29,7 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Failed to load resource', // Generic failed to load resources (paired with specific url filtering below)
   'vscode-userdata:/user/caches/cachedconfigurations', // VS Code user data caching in web environment
   'vsliveshare', // vscode liveshare ext
+  'MaxListenersExceededWarning', // expected when loading many dev extensions simultaneously
   'punycode', // known jsforce and transitive dep deprecation by node
   'selectedStep', // VS Code internal walkthrough/tutorial state errors
   'onWillSaveTextDocument', // VS Code save event timeout (non-critical)
@@ -38,6 +39,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'theme-defaults/themes', // VS Code theme loading failures
   'light_modern.json', // VS Code theme file loading
   'Failed to fetch', // Generic fetch failures (often for optional resources)
+  'tsserver.web.js', // TypeScript language features extension (UriError: Scheme contains illegal characters)
+  'typescript-language-features', // TS extension console/URI errors in web
   'NO_COLOR', // Node.js color env var warnings
   'Content Security Policy', // CSP violations from VS Code webviews (non-critical UI errors)
   'Applying inline style violates', // CSP inline style errors from VS Code UI
@@ -53,7 +56,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
   'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)
   'testResults', // Test results folder access before it's created (non-critical)
-  'workspaceStorage' // Workspace storage access errors during initialization (non-critical)
+  'workspaceStorage', // Workspace storage access errors during initialization (non-critical)
+  'Illegal assignment from String to Integer' // Execute anonymous compile error (intentionally triggered in E2E)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -61,7 +65,11 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'workbench.web.main.nls.js',
   'marketplace.visualstudio.com',
   'vscode-unpkg.net', // VS Code extension marketplace CDN
-  'scratchOrgInfo' // asking the org if it's a devhub during auth ?
+  'scratchOrgInfo', // asking the org if it's a devhub during auth ?
+  'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
+  '.a4drules', // @salesforce/templates optional project template assets (react internal/external app templates) not bundled for Apex
+  'typescript-language-features', // TS extension 404s for package.json etc in web
+  'applicationinsights.azure.com' // Azure Application Insights telemetry (e.g. HTTP 439 throttling) — not critical to extension behavior
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
@@ -277,19 +285,53 @@ export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
 };
 
 /**
+ * Wait for all VS Code extensions to finish activating by watching the
+ * "Developer: Show Running Extensions" editor.  More reliable than polling
+ * the command palette, especially on slow CI runners (e.g. Windows).
+ *
+ * While an extension is activating its row contains the text "Activating".
+ * Once done the row shows "Activation: Xms" / "Startup Activation: Xms".
+ * We wait until no rows contain "Activating" any more.
+ *
+ * @param timeout - Maximum ms to wait for all extensions to activate (default 120 000).
+ */
+export const waitForExtensionsActivated = async (page: Page, timeout = 120_000): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Developer: Show Running Extensions');
+
+  // The editor container gets class "runtime-extensions-editor" via createEditor()
+  const editor = page.locator('.runtime-extensions-editor');
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+
+  // Wait for the list to populate (at least one row rendered)
+  const rows = editor.locator('.monaco-list-row');
+  await expect(rows).not.toHaveCount(0, { timeout: 30_000 });
+
+  // Wait until no row still contains "Activating" text
+  const stillActivating = rows.filter({ hasText: 'Activating' });
+  await expect(stillActivating).toHaveCount(0, { timeout });
+
+  // Close the Running Extensions tab via command palette (cross-platform, no hover needed)
+  const tab = page.getByRole('tab', { name: /Running Extensions/i });
+  await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+  await tab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+};
+
+/**
  * Ensure the secondary sidebar (auxiliary bar, typically used for Chat/Copilot) is hidden.
  * This is idempotent - only hides if currently visible, avoiding toggle state issues.
  * Useful to prevent keystrokes from going to chat input instead of editor.
  */
 export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> => {
   // VS Code's secondary sidebar is in the .part.auxiliarybar element
-  // Check if it's visible (has the 'visible' class or is not 'display: none')
   const auxiliaryBar = page.locator('.part.auxiliarybar');
 
   // Check if sidebar exists and is visible
-  const isVisible = await auxiliaryBar.isVisible().catch(() => false);
+  // Use a short timeout to avoid hanging if it's not there
+  const isVisible = await auxiliaryBar.isVisible({ timeout: 1000 }).catch(() => false);
 
   if (isVisible) {
+    // Focus workbench before opening palette (avoids F1/keystrokes going to auxiliary bar chat input)
+    await page.locator(WORKBENCH).click({ timeout: 5000 });
     // Use the explicit Hide command (not Toggle) to ensure we're hiding
     await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
 
@@ -298,4 +340,25 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
       // Ignore error - may have been already hidden or command not available
     });
   }
+};
+
+/**
+ * Runs `Workspaces: Close Workspace` so no folder is open (empty VS Code window).
+ * Call after {@link waitForVSCodeWorkbench} / {@link closeWelcomeTabs} / {@link ensureSecondarySideBarHidden} if needed.
+ */
+export const closeWorkspaceToEmptyWindow = async (page: Page): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Workspaces: Close Workspace');
+  await waitForVSCodeWorkbench(page);
+};
+
+/**
+ * From a desktop fixture that opened a workspace folder: prepare UI, then close the workspace so **no folder** is open.
+ * Use when asserting palette commands with **no folder open**. Contrast: `createDesktopTest({ emptyWorkspace: true })` — a folder **is** open but has no `sfdx-project.json`.
+ */
+export const prepareNoFolderOpenForPaletteTests = async (page: Page): Promise<void> => {
+  await waitForVSCodeWorkbench(page);
+  await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
+  await closeWorkspaceToEmptyWindow(page);
+  await closeWelcomeTabs(page);
 };

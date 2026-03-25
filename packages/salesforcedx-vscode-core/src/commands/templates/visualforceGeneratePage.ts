@@ -6,7 +6,8 @@
  */
 
 import type { DirFileNameSelection, LocalComponent } from '../../util/types';
-import { CompositeParametersGatherer, SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { CompositeParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateType, VisualforcePageOptions } from '@salesforce/templates';
 import { nls } from '../../messages';
 import { MetadataTypeGatherer, SelectFileName, SelectOutputDir } from '../util';
@@ -36,7 +37,7 @@ class LibraryVisualforceGeneratePageExecutor extends LibraryBaseTemplateCommand<
 export const visualforceGeneratePage = (): void => {
   const createTemplateExecutor = new LibraryVisualforceGeneratePageExecutor();
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new CompositeParametersGatherer<LocalComponent>(
       new MetadataTypeGatherer(VISUALFORCE_PAGE_TYPE),
       new SelectFileName(),

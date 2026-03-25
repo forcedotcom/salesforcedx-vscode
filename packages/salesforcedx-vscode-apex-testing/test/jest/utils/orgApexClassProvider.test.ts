@@ -10,6 +10,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const EffectLib = jest.requireActual('effect/Effect');
   const Context = jest.requireActual('effect/Context');
   const Layer = jest.requireActual('effect/Layer');
+  const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
 
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
 
@@ -21,9 +22,21 @@ jest.mock('../../../src/services/extensionProvider', () => {
     getConnection: () => EffectLib.succeed(mockConnectionRef)
   };
 
+  const mockFsService = {
+    showTextDocument: (uri: unknown, options?: unknown) => {
+      const showDoc =
+        (global as any).__orgApexClassProvider_showTextDocument ?? require('vscode').window.showTextDocument;
+      return EffectLib.tryPromise({
+        try: () => showDoc(uri, options),
+        catch: (e: unknown) => (e instanceof Error ? e : new Error(String(e)))
+      });
+    }
+  };
+
   const mockServicesApi = {
     services: {
-      ConnectionService: MockConnectionService
+      ConnectionService: MockConnectionService,
+      FsService: mockFsService
     }
   };
 
@@ -37,7 +50,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   return {
     ExtensionProviderService: MockExtensionProviderService,
     AllServicesLayer: MockAllServicesLayer,
-    // Export a function to set the mock connection
+    getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
     }
@@ -46,6 +59,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
 
 import type { Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import {
   createOrgApexClassUri,
@@ -71,13 +85,14 @@ describe('orgApexClassProvider', () => {
 
     (vscode.workspace.openTextDocument as jest.Mock) = jest.fn().mockResolvedValue({
       getText: jest.fn().mockReturnValue('class TestClass {}'),
-      uri: { scheme: 'sf-org-apex', path: 'TestClass.cls', toString: () => 'sf-org-apex:TestClass.cls' } as vscode.Uri
+      uri: { scheme: 'sf-org-apex', path: 'TestClass.cls', toString: () => 'sf-org-apex:TestClass.cls' } as URI
     });
-
+    // openOrgApexClass uses FsService.showTextDocument; mock invokes vscode.window.showTextDocument
     (vscode.window.showTextDocument as jest.Mock) = jest.fn().mockResolvedValue({
       selection: {} as vscode.Selection,
       revealRange: jest.fn()
     });
+    (global as any).__orgApexClassProvider_showTextDocument = vscode.window.showTextDocument;
 
     (vscode.window.showErrorMessage as jest.Mock) = jest.fn();
 
@@ -126,7 +141,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'TestClass.cls',
         toString: () => 'sf-org-apex:TestClass.cls'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(mockConnection.tooling!.query).toHaveBeenCalledWith(
@@ -147,7 +162,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'NonExistentClass.cls',
         toString: () => 'sf-org-apex:NonExistentClass.cls'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(content).toContain("Error: Class 'NonExistentClass' not found in org");
@@ -172,7 +187,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'EmptyClass.cls',
         toString: () => 'sf-org-apex:EmptyClass.cls'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(content).toContain("Class 'EmptyClass' found but body is empty");
@@ -197,7 +212,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'ApplicationTest.cls',
         toString: () => 'sf-org-apex:ApplicationTest.cls'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(content).toContain('Source code for class');
@@ -227,7 +242,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: `${uniqueClassName}.cls`,
         toString: () => `sf-org-apex:${uniqueClassName}.cls`
-      } as vscode.Uri;
+      } as URI;
 
       // The error will be caught by Effect.catchAll and converted to an error message string
       const content = await provider.provideTextDocumentContent(uri);
@@ -256,7 +271,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: 'CachedClass.cls',
         toString: () => 'sf-org-apex:CachedClass.cls'
-      } as vscode.Uri;
+      } as URI;
 
       // First call
       const content1 = await provider.provideTextDocumentContent(uri);
@@ -273,7 +288,7 @@ describe('orgApexClassProvider', () => {
         scheme: 'sf-org-apex',
         path: '',
         toString: () => 'sf-org-apex:'
-      } as vscode.Uri;
+      } as URI;
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(content).toContain('Error: Class name not found in URI');
@@ -282,15 +297,8 @@ describe('orgApexClassProvider', () => {
 
   describe('openOrgApexClass', () => {
     it('should open org-only class in virtual editor', async () => {
-      // Clear previous calls
-      (vscode.workspace.openTextDocument as jest.Mock).mockClear();
       (vscode.window.showTextDocument as jest.Mock).mockClear();
 
-      const mockDocument = {
-        getText: jest.fn().mockReturnValue('class TestClass {}'),
-        uri: { scheme: 'sf-org-apex', path: 'TestClass.cls', toString: () => 'sf-org-apex:TestClass.cls' } as vscode.Uri
-      };
-      (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue(mockDocument);
       const mockEditor = {
         selection: {} as vscode.Selection,
         revealRange: jest.fn()
@@ -299,25 +307,17 @@ describe('orgApexClassProvider', () => {
 
       await openOrgApexClass('TestClass');
 
-      expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
-      const openDocCall = (vscode.workspace.openTextDocument as jest.Mock).mock.calls[0][0];
-      expect(openDocCall).toBeDefined();
-      expect(openDocCall.scheme).toBe('sf-org-apex');
-      expect(openDocCall.path).toBe('TestClass.cls');
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
+      const showDocCall = (vscode.window.showTextDocument as jest.Mock).mock.calls[0][0];
+      expect(showDocCall).toBeDefined();
+      expect(showDocCall.scheme).toBe('sf-org-apex');
+      expect(showDocCall.path).toBe('TestClass.cls');
     });
 
     it('should navigate to specified position', async () => {
-      // Clear previous calls
-      (vscode.workspace.openTextDocument as jest.Mock).mockClear();
       (vscode.window.showTextDocument as jest.Mock).mockClear();
 
       const position = new vscode.Position(5, 10);
-      const mockDocument = {
-        getText: jest.fn().mockReturnValue('class TestClass {}'),
-        uri: { scheme: 'sf-org-apex', path: 'TestClass.cls', toString: () => 'sf-org-apex:TestClass.cls' } as vscode.Uri
-      };
-      (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue(mockDocument);
       const mockEditor = {
         selection: {} as vscode.Selection,
         revealRange: jest.fn()
@@ -326,7 +326,6 @@ describe('orgApexClassProvider', () => {
 
       await openOrgApexClass('TestClass', position);
 
-      expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
       expect(mockEditor.revealRange).toHaveBeenCalled();
       const revealCall = mockEditor.revealRange.mock.calls[0];
@@ -337,8 +336,9 @@ describe('orgApexClassProvider', () => {
     });
 
     it('should show error message on failure', async () => {
-      const error = new Error('Failed to open');
-      (vscode.workspace.openTextDocument as jest.Mock).mockRejectedValue(error);
+      (global as any).__orgApexClassProvider_showTextDocument = jest
+        .fn()
+        .mockRejectedValue(new Error('Failed to open'));
 
       await openOrgApexClass('TestClass');
 

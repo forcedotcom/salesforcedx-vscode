@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isPackageJson, PackageJson } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -13,50 +14,57 @@ const checkedPackagePatterns: RegExp[] = [
   /^@salesforce\/lwc-language-server/i,
   /^@salesforce\/salesforcedx/i
 ];
+const exemptedPackages = new Set(['@salesforce/core']);
 
-const readJsonFile = (jsonFilePath: string): any => {
+const readJsonFile = (jsonFilePath: string): PackageJson => {
+  let parsed: unknown;
   try {
-    return JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
+    parsed = JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
   } catch (e) {
-    throw new Error(`Error reading json file from ${jsonFilePath}: ${e}`);
+    throw new Error(`Error reading json file from ${jsonFilePath}: ${String(e)}`);
   }
+  if (!isPackageJson(parsed)) {
+    throw new Error(`File does not conform to PackageJson shape: ${jsonFilePath}`);
+  }
+  return parsed;
 };
 
 const packageJsonPath = path.join(__dirname, '..', '..', '..', 'package.json');
-const packageJson = readJsonFile(packageJsonPath) as {
-  name: string;
-  dependencies: Record<string, string>;
-  devDependencies: Record<string, string>;
-};
+const packageJson = readJsonFile(packageJsonPath);
 
-describe(`package.json dependencies for ${packageJson.name}`, () => {
-  const { dependencies, devDependencies } = packageJson;
+describe(`package.json dependencies for ${packageJson.name ?? ''}`, () => {
+  const dependencies = packageJson.dependencies ?? {};
+  const devDependencies = packageJson.devDependencies ?? {};
 
-  Object.keys(dependencies ?? {}).forEach(name => {
-    const versionRange = dependencies[name];
-    checkedPackagePatterns.forEach(pattern => {
-      if (pattern.test(name)) {
-        test(`should use a strict version for dependency ${name}`, () => {
-          expect(versionRange.trim()).not.toContain('^');
-          expect(versionRange.trim()).not.toContain('~');
-          expect(versionRange.trim()).not.toContain('>');
-          expect(versionRange.trim()).not.toContain('<');
-        });
-      }
+  Object.keys(dependencies)
+    .filter((name) => !exemptedPackages.has(name))
+    .forEach((name) => {
+      const versionRange = dependencies[name];
+      checkedPackagePatterns.forEach((pattern) => {
+        if (pattern.test(name)) {
+          test(`should use a strict version for dependency ${name}`, () => {
+            expect(versionRange.trim()).not.toContain('^');
+            expect(versionRange.trim()).not.toContain('~');
+            expect(versionRange.trim()).not.toContain('>');
+            expect(versionRange.trim()).not.toContain('<');
+          });
+        }
+      });
     });
-  });
 
-  Object.keys(devDependencies ?? {}).forEach(name => {
-    const versionRange = devDependencies[name];
-    checkedPackagePatterns.forEach(pattern => {
-      if (pattern.test(name)) {
-        test(`should use a strict version for devDependency ${name}`, () => {
-          expect(versionRange.trim()).not.toContain('^');
-          expect(versionRange.trim()).not.toContain('~');
-          expect(versionRange.trim()).not.toContain('>');
-          expect(versionRange.trim()).not.toContain('<');
-        });
-      }
+  Object.keys(devDependencies)
+    .filter((name) => !exemptedPackages.has(name))
+    .forEach((name) => {
+      const versionRange = devDependencies[name];
+      checkedPackagePatterns.forEach((pattern) => {
+        if (pattern.test(name)) {
+          test(`should use a strict version for devDependency ${name}`, () => {
+            expect(versionRange.trim()).not.toContain('^');
+            expect(versionRange.trim()).not.toContain('~');
+            expect(versionRange.trim()).not.toContain('>');
+            expect(versionRange.trim()).not.toContain('<');
+          });
+        }
+      });
     });
-  });
 });

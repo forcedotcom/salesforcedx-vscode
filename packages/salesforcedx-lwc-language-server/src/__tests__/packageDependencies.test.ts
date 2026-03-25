@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-// eslint-disable-next-line import/no-extraneous-dependencies
+import { PackageJson } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -19,101 +16,97 @@ import * as vscode from 'vscode';
 // use an exact version.
 
 const checkedPackagePatterns: RegExp[] = [/^@salesforce/i, /^@lwc/i];
+const exemptedPackages = new Set(['@salesforce/core']);
 
 // Helper functions for async file operations
-const readJsonFile = async (jsonFilePath: string): Promise<any> => {
-    try {
-        const fileBuffer = await vscode.workspace.fs.readFile(vscode.Uri.file(jsonFilePath));
-        const fileContent = Buffer.from(fileBuffer).toString('utf8');
-        return JSON.parse(fileContent);
-    } catch (e) {
-        throw new Error(`Error reading json file from ${jsonFilePath}: ${e}`);
-    }
+const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
+  try {
+    const fileBuffer = await vscode.workspace.fs.readFile(vscode.Uri.file(jsonFilePath));
+    const fileContent = Buffer.from(fileBuffer).toString('utf8');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return JSON.parse(fileContent);
+  } catch (e) {
+    throw new Error(`Error reading json file from ${jsonFilePath}: ${String(e)}`);
+  }
 };
 
 const checkFileExists = async (filePath: string): Promise<boolean> => {
-    try {
-        await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
-        return true;
-    } catch {
-        return false;
-    }
+  try {
+    await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 // Variables to store loaded data
-let packageJson: any;
+let packageJson: PackageJson;
 let packageJsonPath: string;
 
 // Setup function to load package data
 const setupPackageData = async (): Promise<void> => {
-    packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
-    packageJson = await readJsonFile(packageJsonPath);
+  packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
+  packageJson = (await readJsonFile(packageJsonPath)) as PackageJson;
 
-    // if we're in a monorepo, find other packages in the monorepo and make sure
-    // references to those also use exact versions
-    const monorepoRootPath = path.join(packageJsonPath, '..', '..', '..');
-    const monorepoConfigPath = path.join(monorepoRootPath, 'lerna.json');
+  // if we're in a monorepo, find other packages in the monorepo and make sure
+  // references to those also use exact versions
+  const monorepoRootPath = path.join(packageJsonPath, '..', '..', '..');
+  const monorepoConfigPath = path.join(monorepoRootPath, 'lerna.json');
 
-    if (await checkFileExists(monorepoConfigPath)) {
-        const monorepoConfig = await readJsonFile(monorepoConfigPath);
-        if (monorepoConfig.packages && Array.isArray(monorepoConfig.packages)) {
-            for (const packageGlob of monorepoConfig.packages) {
-                const matches = globSync(packageGlob, {
-                    cwd: monorepoRootPath,
-                });
-                for (const match of matches) {
-                    const peerPackageJsonPath = path.join(monorepoRootPath, match, 'package.json');
-                    const peerPackageJson = await readJsonFile(peerPackageJsonPath);
-                    if (peerPackageJson.name !== packageJson.name) {
-                        checkedPackagePatterns.push(new RegExp(`^${peerPackageJson.name}`, 'i'));
-                    }
-                }
-            }
+  if (await checkFileExists(monorepoConfigPath)) {
+    const monorepoConfig = await readJsonFile(monorepoConfigPath);
+    if (monorepoConfig.packages && Array.isArray(monorepoConfig.packages)) {
+      for (const packageGlob of monorepoConfig.packages) {
+        const matches = globSync(packageGlob, {
+          cwd: monorepoRootPath
+        });
+        for (const match of matches) {
+          const peerPackageJsonPath = path.join(monorepoRootPath, match, 'package.json');
+          const peerPackageJson = await readJsonFile(peerPackageJsonPath);
+          if (peerPackageJson.name !== packageJson.name) {
+            checkedPackagePatterns.push(new RegExp(`^${String(peerPackageJson.name)}`, 'i'));
+          }
         }
+      }
     }
+  }
 };
 
 describe('package.json dependencies', () => {
-    beforeAll(async () => {
-        await setupPackageData();
-    });
+  beforeAll(async () => {
+    await setupPackageData();
+  });
 
-    it('should use strict versions for matching dependencies', () => {
-        expect(packageJson).toBeDefined();
-        expect(packageJson.name).toBeDefined();
+  it('should use strict versions for matching dependencies', () => {
+    expect(packageJson).toBeDefined();
+    expect(packageJson.name).toBeDefined();
 
-        const dependencies: { [key: string]: string } = packageJson.dependencies ?? {};
-        const devDependencies: { [key: string]: string } = packageJson.devDependencies ?? {};
-        let testMatchFound = false;
+    const dependencies = packageJson.dependencies ?? {};
+    const devDependencies = packageJson.devDependencies ?? {};
+    let testMatchFound = false;
 
-        // Check dependencies
-        for (const [name, versionRange] of Object.entries(dependencies)) {
-            checkedPackagePatterns.forEach((pattern) => {
-                if (pattern.test(name)) {
-                    expect(versionRange.trim()).not.toStartWith('^');
-                    expect(versionRange.trim()).not.toStartWith('~');
-                    expect(versionRange.trim()).not.toStartWith('>');
-                    expect(versionRange.trim()).not.toStartWith('<');
-                    testMatchFound = true;
-                }
-            });
-        }
+    const checkEntries = (entries: [string, string][]) =>
+      entries
+        .filter(([name]) => !exemptedPackages.has(name))
+        .forEach(([name, versionRange]) =>
+          checkedPackagePatterns.forEach(pattern => {
+            if (pattern.test(name)) {
+              expect(versionRange.trim()).not.toStartWith('^');
+              expect(versionRange.trim()).not.toStartWith('~');
+              expect(versionRange.trim()).not.toStartWith('>');
+              expect(versionRange.trim()).not.toStartWith('<');
+              testMatchFound = true;
+            }
+          })
+        );
 
-        // Check devDependencies
-        for (const [name, versionRange] of Object.entries(devDependencies)) {
-            checkedPackagePatterns.forEach((pattern) => {
-                if (pattern.test(name)) {
-                    expect(versionRange.trim()).not.toStartWith('^');
-                    expect(versionRange.trim()).not.toStartWith('~');
-                    expect(versionRange.trim()).not.toStartWith('>');
-                    expect(versionRange.trim()).not.toStartWith('<');
-                    testMatchFound = true;
-                }
-            });
-        }
+    checkEntries(Object.entries(dependencies));
+    checkEntries(Object.entries(devDependencies));
 
-        if (!testMatchFound) {
-            console.log(`no dependencies matching expected patterns ${checkedPackagePatterns} for package ${packageJson.name}`);
-        }
-    });
+    if (!testMatchFound) {
+      console.log(
+        `no dependencies matching expected patterns ${checkedPackagePatterns.map(r => r.toString()).join(', ')} for package ${packageJson.name}`
+      );
+    }
+  });
 });

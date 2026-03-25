@@ -6,9 +6,7 @@
     "strict": false,
     "noImplicitAny": false,
     "paths": {
-      "@salesforce/soql-model/*": [
-        "./src/soql-model/*"
-      ]
+      "@salesforce/soql-model/*": ["./src/soql-model/*"]
     }
   },
   "exclude": [
@@ -21,26 +19,34 @@
     "test/jest/soql-builder-ui"
   ],
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "test/playwright/**/*.ts",
+    "playwright.config.web.ts",
+    "playwright.config.desktop.ts",
+    "package.json",
+    "package.nls.json"
   ],
   "references": [
     {
-      "path": "../salesforcedx-sobjects-faux-generator"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../soql-common"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
+      "path": "../effect-ext-utils"
     },
     {
       "path": "../salesforcedx-utils"
     },
     {
-      "path": "../salesforcedx-vscode-core"
+      "path": "../salesforcedx-utils-vscode"
+    },
+    {
+      "path": "../salesforcedx-vscode-i18n"
+    },
+    {
+      "path": "../playwright-vscode-ext"
+    },
+    {
+      "path": "../salesforcedx-vscode-services"
+    },
+    {
+      "path": "../soql-common"
     }
   ]
 }

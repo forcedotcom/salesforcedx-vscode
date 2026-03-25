@@ -104,6 +104,24 @@ service.messageBundleManager.registerMessageBundle(instanceName, {
 });
 ```
 
+### i18n Hover (TypeScript Language Service Plugin)
+
+The package includes a TypeScript plugin that shows message text when you hover over `nls.localize('key')` or `coerceMessageKey('key')` in your editor.
+
+**Setup:**
+
+1. Add the plugin to your `tsconfig.json`:
+   ```json
+   {
+     "compilerOptions": {
+       "plugins": [{ "name": "@salesforce/vscode-i18n/tsPlugin" }]
+     }
+   }
+   ```
+2. In VS Code, use the workspace TypeScript version: run "TypeScript: Select TypeScript Version" and choose "Use Workspace Version". (Plugins only load with the workspace TS version.)
+
+Your messages must follow the standard format: `export const messages = { ... }` in a `messages/i18n.ts` file within the package.
+
 ### Constants
 
 - `DEFAULT_LOCALE`: The default locale ('en')

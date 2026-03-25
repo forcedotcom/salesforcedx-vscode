@@ -9,10 +9,12 @@ import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { unknownToErrorCause } from '../core/shared';
+import { fsProviderRef } from '../virtualFsProvider/fsProviderRef';
 import { HashableUri } from './hashableUri';
 import { uriToPath } from './paths';
+import { toUri } from './uriUtils';
 
 export class FsServiceError extends Data.TaggedError('FsServiceError')<{
   readonly cause: Error;
@@ -24,34 +26,7 @@ export class FsServiceError extends Data.TaggedError('FsServiceError')<{
  * @param filePath - Either a URI object, URI string (e.g., "memfs:/MyProject/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
  * @returns A properly parsed VS Code URI
  */
-export const toUri = (filePath: string | URI): URI => {
-  // If it's already a URI object, return it
-  if (typeof filePath !== 'string') {
-    return filePath;
-  }
-
-  // Check if it's already a URI string (has scheme:/path format)
-  // Must have colon followed by slash, but not be a Windows drive letter (single letter + colon)
-  if (/^[a-z][\w+.-]*:/i.test(filePath) && !/^[a-z]:/i.test(filePath)) {
-    return URI.parse(filePath);
-  }
-
-  // Handle Windows UNC paths (\\server\share\file.txt) by converting to proper file URI
-  if (filePath.startsWith('\\\\')) {
-    // Convert \\server\share\file.txt to /server/share/file.txt for URI.path
-    const normalizedPath = filePath.slice(2).replaceAll('\\', '/'); // Remove leading \\, normalize separators
-    return URI.file(`/${normalizedPath}`);
-  }
-
-  // In web environment, paths without a scheme should use memfs:
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    return URI.parse(`memfs:${filePath}`);
-  }
-
-  // Otherwise treat as file path (including Windows paths like C:\)
-  const fileUri = URI.file(filePath);
-  return fileUri;
-};
+const encoder = new TextEncoder();
 
 // capture readFile for use in readJSON
 const readFile = Effect.fn('fsService.readFile')(function* (filePath: string | URI) {
@@ -66,12 +41,36 @@ const readFile = Effect.fn('fsService.readFile')(function* (filePath: string | U
   });
 });
 
-const writeFile = Effect.fn('fsService.writeFile')(function* (filePath: string | URI, content: string) {
+/**
+ * Writes content to a file, creating the parent directory if it does not exist.
+ * Use `writeFile` instead when the directory is guaranteed to exist (e.g. bulk writes
+ * where directories are pre-created once) to avoid per-call `createDirectory` overhead.
+ */
+const safeWriteFile = Effect.fn('fsService.safeWriteFile')(function* (filePath: string | URI, content: string) {
   return yield* Effect.tryPromise({
     try: async () => {
       const uri = toUri(filePath);
       await vscode.workspace.fs.createDirectory(Utils.dirname(uri));
-      const uint8Array = new TextEncoder().encode(content);
+      await vscode.workspace.fs.writeFile(uri, encoder.encode(content));
+    },
+    catch: e =>
+      new FsServiceError({
+        ...unknownToErrorCause(e),
+        function: 'safeWriteFile',
+        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+      })
+  });
+});
+
+/**
+ * Writes content to a file. The parent directory must already exist.
+ * Call `createDirectory` or `safeWriteFile` first if the directory may not exist.
+ */
+const writeFile = Effect.fn('fsService.writeFile')(function* (filePath: string | URI, content: string) {
+  return yield* Effect.tryPromise({
+    try: async () => {
+      const uri = toUri(filePath);
+      const uint8Array = encoder.encode(content);
       await vscode.workspace.fs.writeFile(uri, uint8Array);
     },
     catch: e =>
@@ -99,6 +98,23 @@ const fileOrFolderExists = Effect.fn('fsService.fileOrFolderExists')(function* (
       })
   }).pipe(Effect.catchAll(() => Effect.succeed(false)));
 });
+
+const showTextDocument = Effect.fn('fsService.showTextDocument')(function* (
+  filePath: string | URI,
+  options?: vscode.TextDocumentShowOptions
+) {
+  const uri = toUri(filePath);
+  return yield* Effect.tryPromise({
+    try: () => vscode.window.showTextDocument(uri, options),
+    catch: e =>
+      new FsServiceError({
+        ...unknownToErrorCause(e),
+        function: 'showTextDocument',
+        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+      })
+  });
+});
+
 export class FsService extends Effect.Service<FsService>()('FsService', {
   accessors: true,
   dependencies: [],
@@ -108,9 +124,31 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
       toUri: (filePath: string | URI) => Effect.succeed(toUri(filePath)),
       HashableUri,
       uriToPath: (uri: URI) => Effect.succeed(uriToPath(uri)),
+      /** Find files by glob. baseUri optional via RelativePattern; defaults to workspace folders. */
+      findFiles: (
+        include: vscode.GlobPattern,
+        exclude?: vscode.GlobPattern | null,
+        maxResults?: number,
+        token?: vscode.CancellationToken
+      ) =>
+        Effect.tryPromise({
+          try: () =>
+            process.env.ESBUILD_PLATFORM === 'web'
+              ? (fsProviderRef.current?.findFiles(include, exclude ?? undefined, maxResults) ?? Promise.resolve([]))
+              : vscode.workspace.findFiles(include, exclude ?? undefined, maxResults, token),
+          catch: e =>
+            new FsServiceError({
+              ...unknownToErrorCause(e),
+              function: 'findFiles',
+              filePath: typeof include === 'string' ? include : include.pattern
+            })
+        }),
       /** Write file to filesystem, creating directories if they don't exist */
+      safeWriteFile,
       writeFile,
       fileOrFolderExists,
+      /** Open the file at the given path in an editor tab. Options passed to vscode.window.showTextDocument (e.g. preview, viewColumn). */
+      showTextDocument,
       isDirectory: (path: string | URI) =>
         Effect.tryPromise(
           async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.Directory
@@ -119,13 +157,22 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
         Effect.tryPromise(async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.File).pipe(
           Effect.catchAll(() => Effect.succeed(false))
         ),
-      createDirectory: (dirPath: string) =>
-        Effect.tryPromise({
+      /** create a directory.  Creates any parent directories necessary.  Safe if directory already exists. */
+      createDirectory: Effect.fn('fsService.createDirectory')(function* (dirPath: string | URI) {
+        const path = UriOrStringToString(dirPath);
+        yield* Effect.annotateCurrentSpan({ filePath: path });
+        return yield* Effect.tryPromise({
           try: async () => {
             await vscode.workspace.fs.createDirectory(toUri(dirPath));
           },
-          catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'createDirectory', filePath: dirPath })
-        }),
+          catch: e =>
+            new FsServiceError({
+              ...unknownToErrorCause(e),
+              function: 'createDirectory',
+              filePath: path
+            })
+        }).pipe(Effect.tapError(err => Effect.annotateCurrentSpan({ 'error.message': err.cause.message })));
+      }),
       deleteFile: (filePath: string, options = {}) =>
         Effect.tryPromise({
           try: async () => {

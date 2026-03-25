@@ -169,19 +169,26 @@ type IdentityResult = { username: string; userId: string };
 
 const identityCache = new Map<string, IdentityResult>();
 
-const getIdentity = (orgId: string, conn: Connection) => {
+const getUserFromUserSobject = (orgId: string, conn: Connection) => {
   const cached = identityCache.get(orgId);
-  if (cached) {
-    return Effect.succeed(cached);
-  }
-  return Effect.tryPromise(() => conn.identity()).pipe(
-    Effect.map(({ username, user_id }) => {
-      const result = { username, userId: user_id };
+  if (cached) return Effect.succeed(cached);
+
+  const username = conn.getUsername() ?? conn.getAuthInfoFields().username;
+  if (!username) return Effect.void;
+
+  return Effect.tryPromise(() =>
+    conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
+  ).pipe(
+    Effect.map(r => {
+      const record = r.records[0];
+      if (!record) return undefined;
+      const result = { username: record.Username, userId: record.Id };
       identityCache.set(orgId, result);
       return result;
     }),
-    Effect.catchAll(() => Effect.succeed(undefined)),
-    Effect.withSpan('getIdentity', { attributes: { orgId } })
+    Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
+    Effect.catchAll(() => Effect.void),
+    Effect.withSpan('getUserFromUserSobject', { attributes: { orgId } })
   );
 };
 
@@ -211,14 +218,19 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
                 () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
               )
             );
-            const username = yield* aliasService.getUsernameFromAlias(usernameOrAlias).pipe(
-              Effect.map(Option.getOrElse(() => usernameOrAlias))
-            );
+            const username = yield* aliasService
+              .getUsernameFromAlias(usernameOrAlias)
+              .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
             return yield* connectionCache.get(username);
           });
 
       // update the org ref in the background
-      yield* maybeUpdateDefaultOrgRef(conn, aliasService).pipe(Effect.forkDaemon);
+      yield* maybeUpdateDefaultOrgRef(conn).pipe(
+        Effect.provide(AliasService.Default),
+        Effect.tapError(e => Effect.logWarning(String(e))),
+        Effect.catchAll(() => Effect.void),
+        Effect.forkDaemon
+      );
       return conn;
     });
 
@@ -244,7 +256,8 @@ const getTracksSourceFromOrg = (conn: Connection) =>
   );
 
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
-const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection, aliasService: AliasService) {
+const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection) {
+  const aliasService = yield* AliasService;
   const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
@@ -253,9 +266,9 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     [
       orgIdChanged || existingOrgInfo.username === undefined || existingOrgInfo.userId === undefined
         ? orgId
-          ? (getIdentity(orgId, conn).pipe(
+          ? getUserFromUserSobject(orgId, conn).pipe(
               Effect.map(identity => identity ?? { username: undefined, userId: undefined })
-            ) ?? { username: undefined, userId: undefined })
+            )
           : Effect.succeed({ username: undefined, userId: undefined })
         : Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }),
       existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),

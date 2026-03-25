@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { PackageJson } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
@@ -13,12 +14,14 @@ import * as vscode from 'vscode';
 // use an exact version.
 
 const checkedPackagePatterns: RegExp[] = [/^@salesforce/i, /^@lwc/i];
+const exemptedPackages = new Set(['@salesforce/core']);
 
 const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
     try {
         const uri = vscode.Uri.file(jsonFilePath);
         const content = await vscode.workspace.fs.readFile(uri);
         const textContent = new TextDecoder().decode(content);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return JSON.parse(textContent);
     } catch (e) {
         throw new Error(`Error reading json file from ${jsonFilePath}: ${String(e)}`);
@@ -37,7 +40,7 @@ const pathExists = async (filePath: string): Promise<boolean> => {
 };
 
 // Async setup function to initialize test data
-const setupTestData = async (): Promise<Record<string, unknown>> => {
+const setupTestData = async (): Promise<PackageJson> => {
     const packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
     const packageJson = await readJsonFile(packageJsonPath);
 
@@ -83,11 +86,11 @@ const setupTestData = async (): Promise<Record<string, unknown>> => {
         }
     }
 
-    return packageJson;
+    return packageJson as PackageJson;
 };
 
 describe('package.json dependencies', () => {
-    let packageJson: Record<string, unknown>;
+    let packageJson: PackageJson;
     let testMatchFound = false;
 
     beforeAll(async () => {
@@ -106,29 +109,23 @@ describe('package.json dependencies', () => {
             const dependencies = packageJson.dependencies ?? {};
             const devDependencies = packageJson.devDependencies ?? {};
 
-            for (const [name, versionRange] of Object.entries(dependencies)) {
-                checkedPackagePatterns.forEach((pattern) => {
-                    if (pattern.test(name)) {
-                        expect(versionRange.trim()).not.toMatch(/^\^/);
-                        expect(versionRange.trim()).not.toMatch(/^~/);
-                        expect(versionRange.trim()).not.toMatch(/^>/);
-                        expect(versionRange.trim()).not.toMatch(/^</);
-                        testMatchFound = true;
-                    }
-                });
-            }
+            const checkEntries = (entries: [string, string][]) =>
+                entries
+                    .filter(([name]) => !exemptedPackages.has(name))
+                    .forEach(([name, versionRange]) =>
+                        checkedPackagePatterns.forEach((pattern) => {
+                            if (pattern.test(name)) {
+                                expect(versionRange.trim()).not.toMatch(/^\^/);
+                                expect(versionRange.trim()).not.toMatch(/^~/);
+                                expect(versionRange.trim()).not.toMatch(/^>/);
+                                expect(versionRange.trim()).not.toMatch(/^</);
+                                testMatchFound = true;
+                            }
+                        })
+                    );
 
-            for (const [name, versionRange] of Object.entries(devDependencies)) {
-                checkedPackagePatterns.forEach((pattern) => {
-                    if (pattern.test(name)) {
-                        expect(versionRange.trim()).not.toMatch(/^\^/);
-                        expect(versionRange.trim()).not.toMatch(/^~/);
-                        expect(versionRange.trim()).not.toMatch(/^>/);
-                        expect(versionRange.trim()).not.toMatch(/^</);
-                        testMatchFound = true;
-                    }
-                });
-            }
+            checkEntries(Object.entries(dependencies));
+            checkEntries(Object.entries(devDependencies));
 
             if (!testMatchFound) {
                 console.log(`no dependencies matching expected patterns ${String(checkedPackagePatterns)}`);

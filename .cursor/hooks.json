@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/block-no-verify.sh",
+        "matcher": "git.*--no-verify"
+      }
+    ],
+    "stop": [{ "command": ".cursor/hooks/verify-stop.sh" }]
+  }
+}

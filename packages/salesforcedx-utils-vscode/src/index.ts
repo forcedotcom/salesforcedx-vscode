@@ -13,7 +13,6 @@ export {
   EmptyParametersGatherer,
   type FlagParameter
 } from './commands/parameterGatherers';
-export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigUtil } from './config/configUtil';
@@ -53,13 +52,6 @@ export {
   projectPaths,
   TOOLS
 } from './helpers/paths';
-export {
-  TraceFlags,
-  showTraceFlagExpiration,
-  disposeTraceFlagExpiration,
-  getTraceFlagExpirationKey,
-  handleTraceFlagCleanup
-} from './helpers/traceFlags';
 export {
   difference,
   extractJson,

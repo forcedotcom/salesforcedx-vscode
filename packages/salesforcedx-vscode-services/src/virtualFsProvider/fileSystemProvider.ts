@@ -17,16 +17,17 @@ import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { Utils, type URI } from 'vscode-uri';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { unknownToErrorCause } from '../core/shared';
+import { joinPathWithBase } from '../vscode/uriUtils';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { emitter } from './memfsWatcher';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
 /** Convert ENOENT errors to VS Code FileSystemError.FileNotFound */
-const handleFileSystemError = (error: unknown, uri: vscode.Uri): never => {
+const handleFileSystemError = (error: unknown, uri: URI): never => {
   if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
     throw vscode.FileSystemError.FileNotFound(uri);
   }
@@ -34,43 +35,42 @@ const handleFileSystemError = (error: unknown, uri: vscode.Uri): never => {
 };
 
 /** Extract SDR suffix from path: "MyClass.cls" -> "cls", "MyClass.cls-meta.xml" -> "cls" */
-const suffixFromPath = (fsPath: string): string | undefined => {
-  const base = path.basename(fsPath);
+const suffixFromPath = (uri: URI): string | undefined => {
+  const base = Utils.basename(uri);
   const metaMatch = base.match(/\.([^.]+)-meta\.xml$/);
   if (metaMatch) return metaMatch[1];
-  const ext = path.extname(fsPath).slice(1);
+  const ext = Utils.extname(uri).slice(1);
   return ext || undefined;
 };
 
 /** Effect that uses MetadataRegistryService (cached) to resolve metadata type from URI */
-export const isItReadOnlyEffect = (readOnlyTypes: MetadataType[], uri: vscode.Uri) =>
-  Effect.fn('isItReadOnly', { attributes: { path: uri.path } })(function* () {
-    if (readOnlyTypes.length === 0) return false;
-    const suffix = suffixFromPath(uri.path);
-    if (!suffix) return false;
-    const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
-    const metadataType = registryAccess.getTypeBySuffix(suffix);
-    if (!metadataType) return false;
-    console.log(
-      'metadataType',
-      metadataType.id,
-      readOnlyTypes.some(opt => opt.id === metadataType.id)
-    );
-    return readOnlyTypes.some(opt => opt.id === metadataType.id);
-  });
+export const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
+  if (readOnlyTypes.length === 0) return false;
+  const suffix = suffixFromPath(uri);
+  if (!suffix) return false;
+  const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
+  const metadataType = registryAccess.getTypeBySuffix(suffix);
+  if (!metadataType) return false;
+  console.log(
+    'metadataType',
+    metadataType.id,
+    readOnlyTypes.some(opt => opt.id === metadataType.id)
+  );
+  return readOnlyTypes.some(opt => opt.id === metadataType.id);
+});
 
-/** Layer required to run isItReadOnlyEffect */
+/** Layer required to run isItReadOnly*/
 export const isItReadOnlyLayer = Layer.mergeAll(MetadataRegistryService.Default, WorkspaceService.Default);
 
 export class FsProvider implements vscode.FileSystemProvider {
   public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = emitter.event;
   public readOnly: MetadataType[] = [];
 
-  public exists(uri: vscode.Uri): boolean {
+  public exists(uri: URI): boolean {
     return fs.existsSync(uri.path);
   }
 
-  public async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
+  public async stat(uri: URI): Promise<vscode.FileStat> {
     try {
       const stats = fs.statSync(uri.path);
 
@@ -79,7 +79,7 @@ export class FsProvider implements vscode.FileSystemProvider {
         ctime: stats.ctimeMs,
         mtime: stats.mtimeMs,
         size: stats.size,
-        ...(isItReadOnlyEffect(this.readOnly, uri)().pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)
+        ...(isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)
           ? { permissions: vscode.FilePermission.Readonly }
           : {})
       };
@@ -88,7 +88,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     }
   }
 
-  public readDirectory(uri: vscode.Uri): [string, vscode.FileType][] {
+  public readDirectory(uri: URI): [string, vscode.FileType][] {
     try {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return (fs.readdirSync(uri.path, { withFileTypes: true }) as Dirent[]).map(dirent => [
@@ -100,12 +100,12 @@ export class FsProvider implements vscode.FileSystemProvider {
     }
   }
 
-  public async createDirectory(uri: vscode.Uri): Promise<void> {
+  public async createDirectory(uri: URI): Promise<void> {
     await fs.promises.mkdir(uri.path, { recursive: true });
     emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
   }
 
-  public readFile(uri: vscode.Uri): Uint8Array {
+  public readFile(uri: URI): Uint8Array {
     try {
       // memfs types are loose around readFileSync
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -116,11 +116,11 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async writeFile(
-    uri: vscode.Uri,
+    uri: URI,
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): Promise<void> {
-    if (isItReadOnlyEffect(this.readOnly, uri)().pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
     const program = Effect.sync(() => {
@@ -146,16 +146,16 @@ export class FsProvider implements vscode.FileSystemProvider {
     emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
   }
 
-  public async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
-    if (isItReadOnlyEffect(this.readOnly, uri)().pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+  public async delete(uri: URI, options: { recursive: boolean }): Promise<void> {
+    if (isItReadOnlyEffect(this.readOnly, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
     await fs.promises.rm(uri.path, { recursive: options.recursive, force: true });
     emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
   }
 
-  public async rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): Promise<void> {
-    if (isItReadOnlyEffect(this.readOnly, oldUri)().pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
+  public async rename(oldUri: URI, newUri: URI, options: { overwrite: boolean }): Promise<void> {
+    if (isItReadOnlyEffect(this.readOnly, oldUri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync)) {
       throw vscode.FileSystemError.NoPermissions(oldUri);
     }
     if (!options.overwrite && this.exists(newUri)) {
@@ -169,7 +169,38 @@ export class FsProvider implements vscode.FileSystemProvider {
     ]);
   }
 
-  public watch(_uri: vscode.Uri, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
+  public watch(_uri: URI, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
     return new vscode.Disposable(() => {});
+  }
+
+  /**
+   * Find files by glob. baseUri optional: when provided (via RelativePattern), search under that URI only; otherwise use workspace folder.
+   * The 4 param is usually a cancellation token.  That is omitted here because there's no way to interrupt the glob operation..
+   */
+  public async findFiles(
+    include: vscode.GlobPattern,
+    exclude?: vscode.GlobPattern | null,
+    maxResults?: number
+  ): Promise<URI[]> {
+    const pattern = typeof include === 'string' ? include : include.pattern;
+    const baseUri =
+      (typeof include === 'object' && 'baseUri' in include ? include.baseUri : undefined) ??
+      vscode.workspace.workspaceFolders?.[0]?.uri;
+    if (!baseUri) return [];
+    const excludeArr = exclude == null ? undefined : typeof exclude === 'string' ? [exclude] : [exclude.pattern];
+    // Only runs on web (memfs); node:fs.glob returns AsyncIterator but we never hit that path
+    // this is fixed in higher memfs versions, but there's other conflicts there (would break sfdx-core support for node 20)
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- web-only, memfs returns Promise<string[]>
+    const matches = await (fs.promises.glob(pattern, {
+      cwd: baseUri.path,
+      exclude: excludeArr
+    }) as unknown as Promise<string[]>);
+    return (
+      matches
+        .map(p => joinPathWithBase(baseUri, p))
+        // current memfs doesn't have the Dirents option so we need to filter out directories
+        .filter(uri => !fs.statSync(uri.path).isDirectory())
+        .slice(0, maxResults ?? Infinity)
+    );
   }
 }

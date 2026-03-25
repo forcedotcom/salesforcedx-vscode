@@ -25,6 +25,22 @@ const ExtensionProviderServiceLive = Layer.effect(
 const api = yield * (yield * ExtensionProviderService).getServicesApi;
 ```
 
+## Prebuilt vs Per-Extension Services
+
+`api.services.prebuiltServicesDependencies` — pre-built `Context.Context` from services extension activation. Wrap with `Layer.succeedContext(...)`.
+
+Shares singleton instances (caches, watchers) across extensions; avoids re-building stateful services.
+
+Per-extension layers (must build yourself):
+
+| Layer                                   | Why                                                        |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `ChannelServiceLayer(displayName)`      | Own output channel                                         |
+| `ErrorHandlerService.Default`           | Depends on own ChannelService                              |
+| `ExtensionContextServiceLayer(context)` | Own `ExtensionContext`                                     |
+| `SdkLayerFor(context)`                  | Own tracer (extension name/version in resource attributes) |
+| `ExtensionProviderServiceLive`          | Local singleton                                            |
+
 ## ExtensionContext Setup
 
 Factory function building services layer with ExtensionContext:
@@ -35,21 +51,18 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
-      const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
-      const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
-      const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
-
-      // ErrorHandlerService needs ChannelService
-      const channelLayer = api.services.ChannelServiceLayer(extension?.packageJSON.displayName);
+      const channelLayer = api.services.ChannelServiceLayer(
+        context.extension.packageJSON.displayName ?? 'My Extension'
+      );
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
 
       return Layer.mergeAll(
+        Layer.succeedContext(api.services.prebuiltServicesDependencies),
         ExtensionProviderServiceLive,
+        errorHandlerWithChannel,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.sdkLayerFor(context)
-        // ... other services
-        channelLayer,
-        errorHandlerWithChannel
+        api.services.SdkLayerFor(context),
+        channelLayer
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
@@ -61,9 +74,16 @@ In `activate`:
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
-  await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
+  await getRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 ```
+
+## Runtime vs provide
+
+- **Do**: Build `ManagedRuntime.make(AllServicesLayer)` and export `getRuntime()`.
+- **Do**: Use `getRuntime().runPromise(effect)` / `runFork(effect)` for ad-hoc execution.
+- **Don't**: Use `Effect.provide(AllServicesLayer)` at call sites — use the runtime instead.
+- **Exception**: `registerCommandWithLayer(AllServicesLayer)` — keep passing the Layer; it internally uses provide.
 
 ## Registering Commands
 
@@ -101,16 +121,23 @@ Accessor pattern: call methods directly, don't assign to variable first.
 
 ### File Watching
 
-Watch file changes:
+FileWatcherService exposes a PubSub of all workspace file changes (`**/*`). Subscribe and filter:
 
 ```typescript
-const watcher = yield * api.services.FileWatcherService.watchFiles(pattern, options);
+import * as PubSub from 'effect/PubSub';
+import * as Stream from 'effect/Stream';
+
+const fileWatcher = yield * api.services.FileWatcherService;
+const dequeue = yield * PubSub.subscribe(fileWatcher.pubsub);
 
 yield *
-  Stream.runForEach(watcher, event =>
-    Effect.sync(() => {
-      // Handle file change
-    })
+  Stream.fromQueue(dequeue).pipe(
+    Stream.filter(event => /* match event.uri to your pattern */),
+    Stream.runForEach(event =>
+      Effect.sync(() => {
+        // Handle event: { type: 'create'|'change'|'delete', uri }
+      })
+    )
   );
 ```
 
@@ -147,22 +174,20 @@ yield *
 
 ### Target Org Changes
 
-Watch org changes via `TargetOrgRef`:
+Watch org changes via `TargetOrgRef` (SubscriptionRef):
 
 ```typescript
-const targetOrgRef = yield * api.services.TargetOrgRef();
+const ref = yield * api.services.TargetOrgRef();
 yield *
-  Effect.forkDaemon(
-    targetOrgRef.changes.pipe(
-      Stream.map(org => org.orgId),
-      Stream.changes,
-      Stream.tap(orgId => {
-        // Handle org change
-      }),
-      Stream.runForEach(() => {
-        // Refresh UI, invalidate caches, etc.
-      })
-    )
+  ref.changes.pipe(
+    Stream.map(org => org.orgId),
+    Stream.changes,
+    Stream.tap(orgId => {
+      // Handle org change
+    }),
+    Stream.runForEach(() => {
+      // Refresh UI, invalidate caches, etc.
+    })
   );
 ```
 
@@ -170,33 +195,40 @@ yield *
 
 ```typescript
 // extensionProvider.ts
+import * as ManagedRuntime from 'effect/ManagedRuntime';
+
 export const buildAllServicesLayer = (context: ExtensionContext) =>
   Layer.unwrapEffect(
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
-      const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
-      const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
-      const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
-
-      const channelLayer = api.services.ChannelServiceLayer(extension?.packageJSON.displayName);
+      const channelLayer = api.services.ChannelServiceLayer(
+        context.extension.packageJSON.displayName ?? 'My Extension'
+      );
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
 
       return Layer.mergeAll(
-        // list whatever you need.  TS will tell you if there's something missing
+        Layer.succeedContext(api.services.prebuiltServicesDependencies),
         ExtensionProviderServiceLive,
-        api.services.ConnectionService.Default,
-        api.services.EditorService.Default,
-        api.services.MediaService.Default,
+        errorHandlerWithChannel,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.ProjectService.Default,
-        api.services.WorkspaceService.Default,
-        api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint }),
-        channelLayer,
-        errorHandlerWithChannel
+        api.services.SdkLayerFor(context),
+        channelLayer
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
+
+export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
+  AllServicesLayer = layer;
+};
+
+const createRuntime = () => ManagedRuntime.make(AllServicesLayer);
+let _runtime: ReturnType<typeof createRuntime> | undefined;
+export const getRuntime = () => {
+  _runtime ??= createRuntime();
+  return _runtime;
+};
 
 // index.ts
 import { myCommandEffect } from './commands/myCommand';
@@ -205,7 +237,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
-  // useful if registering multiple commands...they all get the layer provided to them
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
 
   yield* registerCommand('sf.my.command', myCommandEffect);
@@ -216,9 +247,11 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
 ## Common Patterns
 
-- Include `ExtensionContextServiceLayer(context)` when you have ExtensionContext
-- Use `MediaService.Default` when building UI strings in Effect; use direct `import { ICONS }` when outside Effect
-- Provide `ChannelServiceLayer` before `ErrorHandlerService`
-- Use `SdkLayerFor` with extension name/version for observability
-- Fork watchers with `Effect.forkIn(..., yield* getExtensionScope())` for cleanup on deactivation
-- Use `registerCommandWithLayer` for all commands (tracing + error handling)
+- Start with `Layer.succeedContext(api.services.prebuiltServicesDependencies)` — don't add individual `*.Default` for services already there
+- Only add per-extension layers on top
+- `import { ICONS }` outside Effect; `MediaService` inside Effect
+- `ChannelServiceLayer` before `ErrorHandlerService`
+- Pass `context` to `SdkLayerFor` (extracts name/version from ExtensionContext)
+- `Effect.forkIn(..., yield* getExtensionScope())` for watcher cleanup on deactivation
+- `registerCommandWithLayer` for all commands (tracing + error handling)
+- Use `getRuntime().runPromise` / `runFork` instead of `Effect.provide(AllServicesLayer)` for execution

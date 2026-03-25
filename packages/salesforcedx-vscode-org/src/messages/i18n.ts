@@ -6,17 +6,17 @@
  */
 
 export const messages = {
-  auth_custom_detail: 'Enter a custom login URL',
-  auth_custom_label: 'Custom',
   auth_invalid_url: 'URL must begin with http:// or https://',
-  auth_prod_detail: 'login.salesforce.com',
-  auth_prod_label: 'Production',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
   auth_project_label: 'Project Default',
-  auth_sandbox_detail: 'test.salesforce.com',
+  auth_prod_detail: 'Production or Developer org',
+  auth_prod_label: 'Production',
+  auth_sandbox_detail: 'Sandbox org',
   auth_sandbox_label: 'Sandbox',
+  auth_custom_detail: 'Custom org',
+  auth_custom_label: 'Custom',
   channel_name: 'Salesforce Org Management',
-  config_set_name: 'Set Config',
+  config_set_name: 'Target Org',
   config_set_org_text: 'SFDX: Set a Default Org',
   default_org_expired:
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
@@ -24,12 +24,9 @@ export const messages = {
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
-  error_no_target_dev_hub: 'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  invalid_default_org: "The org you've chosen as your default org isn't valid. Please choose a different one.",
   missing_default_org: 'No Default Org Set',
-  notification_make_default_dev: 'Authorize a Dev Hub',
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
   org_delete_default_text: 'SFDX: Delete Default Org',
@@ -53,12 +50,22 @@ export const messages = {
   org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
-  org_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
+  org_login_web_verification_code_message: 'Verification Code: %s — If prompted, enter this code in your browser window.',
+  org_login_web_verification_code_suffix: '(Verification Code: %s)',
+  org_logout_all_text: 'SFDX: Log Out from Authorized Orgs',
   org_logout_default_text: 'SFDX: Log Out from Default Org',
   org_logout_no_default_org: 'No default org to logout from',
+  org_delete_failed_for_org: 'Failed to delete %s (%s). Check the output above for details.',
+  org_delete_select_orgs_placeholder: 'Select scratch orgs and sandboxes to delete',
+  org_delete_confirm_prompt: 'Permanently delete %d org(s)? This cannot be undone.',
+  org_delete_confirm_label: 'Delete',
   org_logout_scratch_logout: 'Logout',
   org_logout_scratch_prompt:
     'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
+  org_logout_select_orgs_placeholder: 'Select orgs to log out from',
+  org_logout_confirm_prompt: 'Log out of %s org(s)? You will need to re-authenticate to use them again.',
+  org_logout_confirm_scratch_prompt:
+    'Log out of %s org(s)?\n\nBefore logging out, ensure that you or someone on your team has a username and password for any scratch orgs. Otherwise you might lose all access.',
   org_open_default_scratch_org_container_error: 'There was an unexpected error when processing the org open response.',
   org_open_default_scratch_org_text: 'SFDX: Open Default Org',
   org_open_container_mode_message_text: 'Access org %s as user %s with the following URL: %s',
@@ -73,8 +80,7 @@ export const messages = {
   parameter_gatherer_enter_session_id: 'Enter Session ID',
   parameter_gatherer_enter_session_id_diagnostic_message: 'Enter a valid Session ID',
   parameter_gatherer_enter_session_id_placeholder: 'Session ID',
-  parameter_gatherer_enter_username_name: 'Enter target username',
-  parameter_gatherer_placeholder_delete_selected_org: 'Confirm to continue deleting the selected org',
+
   parameter_gatherer_placeholder_delete_default_org: 'Confirm to continue deleting the default org',
   parameter_gatherer_placeholder_org_list_clean: 'Confirm to continue removing deleted and expired scratch orgs',
   pending_org_expiration_expires_on_message: '%s\n(expires on %s)',
@@ -85,8 +91,6 @@ export const messages = {
   status_bar_open_org_tooltip: 'Open Default Org in Browser',
   status_bar_org_picker_tooltip: 'Change Default Org',
   table_header_name: 'Name',
-  table_header_value: 'Value',
   table_header_success: 'Success',
-  warning_using_global_username:
-    'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.'
+  table_header_value: 'Value',
 } as const;

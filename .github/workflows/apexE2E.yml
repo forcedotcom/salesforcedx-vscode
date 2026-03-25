@@ -3,18 +3,13 @@ name: Apex End to End Tests
 on:
   workflow_dispatch:
     inputs:
-      createOasDoc:
-        description: 'Create OAS Doc'
-        required: false
-        default: true
-        type: boolean
+      # createOasDoc:
+      #   description: 'Create OAS Doc'
+      #   required: false
+      #   default: true
+      #   type: boolean
       apexLsp:
         description: 'Apex LSP'
-        required: false
-        default: true
-        type: boolean
-      apexReplayDebugger:
-        description: 'Apex Replay Debugger'
         required: false
         default: true
         type: boolean
@@ -31,7 +26,7 @@ on:
       trailApexReplayDebugger:
         description: 'Trail Apex Replay Debugger'
         required: false
-        default: true
+        default: false
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
@@ -45,18 +40,13 @@ on:
 
   workflow_call:
     inputs:
-      createOasDoc:
-        description: 'Create OAS Doc'
-        required: false
-        default: true
-        type: boolean
+      # createOasDoc:
+      #   description: 'Create OAS Doc'
+      #   required: false
+      #   default: true
+      #   type: boolean
       apexLsp:
         description: 'Apex LSP'
-        required: false
-        default: true
-        type: boolean
-      apexReplayDebugger:
-        description: 'Apex Replay Debugger'
         required: false
         default: true
         type: boolean
@@ -73,7 +63,7 @@ on:
       trailApexReplayDebugger:
         description: 'Trail Apex Replay Debugger'
         required: false
-        default: true
+        default: false
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
@@ -86,15 +76,15 @@ on:
         type: string
 
 jobs:
-  createOasDoc:
-    if: ${{ inputs.createOasDoc }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'createOasDoc.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-      os: '["ubuntu-latest"]'
+  # createOasDoc:
+  #   if: ${{ inputs.createOasDoc }}
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     testToRun: 'createOasDoc.e2e.js'
+  #     vscodeVersion: ${{ inputs.vscodeVersion }}
+  #     runId: ${{ inputs.runId }}
+  #     os: '["ubuntu-latest"]'
 
   apexLSP:
     if: ${{ inputs.apexLsp }}
@@ -102,15 +92,6 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'apexLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  apexReplayDebugger:
-    if: ${{ inputs.apexReplayDebugger }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'apexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 

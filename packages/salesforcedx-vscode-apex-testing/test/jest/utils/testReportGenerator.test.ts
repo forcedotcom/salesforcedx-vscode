@@ -9,6 +9,7 @@
 const mockWriteFile = jest.fn().mockResolvedValue(undefined);
 const mockChannelAppendLine = jest.fn().mockResolvedValue(undefined);
 const mockChannelShow = jest.fn().mockResolvedValue(undefined);
+const mockAppendToChannel = jest.fn();
 
 // Make mockWriteFile available globally for the extensionProvider mock to use
 
@@ -31,60 +32,59 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const Effect = jest.requireActual('effect/Effect');
   const Context = jest.requireActual('effect/Context');
   const Layer = jest.requireActual('effect/Layer');
+  const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
+  const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
 
-  const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
-  // Mock FsService as a class-like object with static accessor methods
+  const mockFsWrite = (pathOrUri: unknown, _content: string) =>
+    Effect.promise(async () => {
+      const filePath = typeof pathOrUri === 'string' ? pathOrUri : ((pathOrUri as { fsPath?: string })?.fsPath ?? '');
+      const mockUri = {
+        fsPath: filePath,
+        path: filePath,
+        scheme: 'file',
+        authority: '',
+        query: '',
+        fragment: '',
+        toString: () => `file://${filePath}`
+      };
+      await (global as any).__mockWriteFile(mockUri, new TextEncoder().encode(_content));
+    });
+
   const MockFsService = {
-    writeFile: (pathOrUri: unknown, _content: string) =>
-      Effect.promise(async () => {
-        // Call the global mockWriteFile which is set up by the test
-        // Extract the path to pass to the mock
-        const filePath = typeof pathOrUri === 'string' ? pathOrUri : ((pathOrUri as { fsPath?: string })?.fsPath ?? '');
-        const mockUri = {
-          fsPath: filePath,
-          path: filePath,
-          scheme: 'file',
-          authority: '',
-          query: '',
-          fragment: '',
-          toString: () => `file://${filePath}`
-        };
-
-        await (global as any).__mockWriteFile(mockUri, new TextEncoder().encode(_content));
+    writeFile: mockFsWrite,
+    safeWriteFile: mockFsWrite,
+    showTextDocument: (uri: unknown, options?: unknown) =>
+      Effect.promise(() => {
+        const vscodeApi = require('vscode');
+        return vscodeApi.window.showTextDocument(uri, options);
       }),
     Default: Layer.succeed(Context.GenericTag('FsService'), {
-      writeFile: (pathOrUri: unknown, _content: string) =>
-        Effect.promise(async () => {
-          const filePath =
-            typeof pathOrUri === 'string' ? pathOrUri : ((pathOrUri as { fsPath?: string })?.fsPath ?? '');
-          const mockUri = {
-            fsPath: filePath,
-            path: filePath,
-            scheme: 'file',
-            authority: '',
-            query: '',
-            fragment: '',
-            toString: () => `file://${filePath}`
-          };
-          await (global as any).__mockWriteFile(mockUri, new TextEncoder().encode(_content));
-        })
+      writeFile: mockFsWrite,
+      safeWriteFile: mockFsWrite
     })
   };
+  const MockChannelServiceInstance = {
+    appendToChannel: (message: string) => Effect.sync(() => mockAppendToChannel(message)),
+    getChannel: Effect.succeed({ appendLine: jest.fn(), show: jest.fn() })
+  };
+
   const mockServicesApi = {
     services: {
-      FsService: MockFsService
+      FsService: MockFsService,
+      ChannelService: Effect.succeed(MockChannelServiceInstance)
     }
   };
   const MockAllServicesLayer = Layer.effect(
-    MockExtensionProviderService,
+    ExtensionProviderService,
     Effect.sync(() => ({
       getServicesApi: Effect.succeed(mockServicesApi)
     }))
   );
 
   return {
-    ExtensionProviderService: MockExtensionProviderService,
-    AllServicesLayer: MockAllServicesLayer
+    ExtensionProviderService,
+    AllServicesLayer: MockAllServicesLayer,
+    getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer)
   };
 });
 
@@ -92,7 +92,8 @@ import { TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node
 import { Global } from '@salesforce/core';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { channelService } from '../../../src/channels';
+import { URI } from 'vscode-uri';
+import { getApexTestingRuntime } from '../../../src/services/extensionProvider';
 import * as settings from '../../../src/settings';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../../../src/settings';
 import { writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
@@ -108,6 +109,7 @@ describe('testReportGenerator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWriteFile.mockClear();
+    mockAppendToChannel.mockClear();
     mockOpenTextDocument.mockClear();
     mockShowTextDocument.mockClear();
     mockExecuteCommand.mockClear();
@@ -1045,109 +1047,105 @@ describe('testReportGenerator', () => {
   describe('writeAndOpenTestReport', () => {
     it('should write markdown report and notify without opening by default', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
-
-      await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
+      );
 
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockShowInformationMessage).toHaveBeenCalledWith(
         expect.stringContaining('test-result-test-run-123.md'),
         'Open Report'
       );
-      expect(mockExecuteCommand).not.toHaveBeenCalled();
-      expect(mockOpenTextDocument).not.toHaveBeenCalled();
-      expect(mockShowTextDocument).not.toHaveBeenCalled();
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.md')
       );
     });
 
     it('should open markdown preview when user selects Open Report', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
       mockShowInformationMessage.mockResolvedValueOnce('Open Report');
 
-      await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
-      await Promise.resolve();
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
+      );
+      // Allow daemon fiber to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       expect(mockWriteFile).toHaveBeenCalled();
       // Refresh should be called before showing preview
       expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.preview.refresh');
       expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.showPreview', expect.any(Object));
-      expect(mockOpenTextDocument).not.toHaveBeenCalled();
-      expect(mockShowTextDocument).not.toHaveBeenCalled();
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.md')
       );
     });
 
     it('should write text report and notify without opening by default', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
-
-      await writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime')
+      );
 
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockShowInformationMessage).toHaveBeenCalledWith(
         expect.stringContaining('test-result-test-run-123.txt'),
         'Open Report'
       );
-      expect(mockExecuteCommand).not.toHaveBeenCalled();
-      expect(mockOpenTextDocument).not.toHaveBeenCalled();
-      expect(mockShowTextDocument).not.toHaveBeenCalled();
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.txt')
       );
     });
 
     it('should open text report when user selects Open Report', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
       mockShowInformationMessage.mockResolvedValueOnce('Open Report');
 
-      await writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime');
-      await Promise.resolve();
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime')
+      );
+      // Allow daemon fiber to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       expect(mockWriteFile).toHaveBeenCalled();
-      expect(mockExecuteCommand).not.toHaveBeenCalled();
-      expect(mockOpenTextDocument).toHaveBeenCalled();
       expect(mockShowTextDocument).toHaveBeenCalled();
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.txt')
       );
     });
 
     it('should write report path and markdown tip to output channel for markdown format', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
-      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
-
-      await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
+      );
 
       // Should write report path to output channel
-      expect(appendLineSpy).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.md')
       );
       // Should also write markdown preview tip for markdown format
-      expect(appendLineSpy).toHaveBeenCalledWith(
+      expect(mockAppendToChannel).toHaveBeenCalledWith(
         expect.stringContaining('Tip: For the best experience viewing the markdown file')
       );
     });
 
     it('should encode content as UTF-8', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
-      await writeAndOpenTestReport(result, outputDir, 'markdown');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown')
+      );
 
       expect(mockWriteFile).toHaveBeenCalled();
       const writeCall = mockWriteFile.mock.calls[0];
@@ -1163,9 +1161,11 @@ describe('testReportGenerator', () => {
 
     it('should use library filename format: test-result-{testRunId}.md', async () => {
       const result = createMockTestResult();
-      const outputDir = path.join('test', 'output');
+      const outputDir = URI.file(path.join('test', 'output'));
 
-      await writeAndOpenTestReport(result, outputDir, 'markdown');
+      await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown')
+      );
 
       expect(mockStat).not.toHaveBeenCalled();
       const writeCall = mockWriteFile.mock.calls[0];

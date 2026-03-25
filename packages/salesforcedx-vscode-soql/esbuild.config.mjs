@@ -6,16 +6,20 @@
  */
 import { build } from 'esbuild';
 import copy from 'esbuild-plugin-copy';
+import { createRequire } from 'node:module';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
+
+const require = createRequire(import.meta.url);
 
 const commonConfig = {
   external: ['vscode']
 };
 
+// Desktop extension bundle
 await build({
   ...nodeConfig,
   ...commonConfig,
-  // the soql extension
   entryPoints: ['./out/src/index.js'],
   outfile: './dist/index.js',
   plugins: [
@@ -34,10 +38,30 @@ await build({
   ]
 });
 
-// the language server is a whole other package and we'll need to bundle that separately
+// Desktop language server bundle
 await build({
   ...nodeConfig,
   ...commonConfig,
-  entryPoints: ['../../node_modules/@salesforce/soql-language-server/lib/server.js'],
+  entryPoints: [require.resolve('@salesforce/soql-language-server/lib/server.js')],
   outfile: './dist/server.js'
+});
+
+// Web extension bundle
+// Alias vscode-languageclient/node -> /browser so the LSP client works in a web worker context
+await build({
+  ...commonConfigBrowser,
+  alias: {
+    ...commonConfigBrowser.alias,
+    'vscode-languageclient/node': 'vscode-languageclient/browser'
+  },
+  entryPoints: ['./out/src/index.js'],
+  outfile: './dist/web/index.js'
+});
+
+// Web language server worker bundle
+await build({
+  ...commonConfigBrowser,
+  format: 'iife', // Workers run as plain browser scripts — no module system, no `exports`
+  entryPoints: [require.resolve('@salesforce/soql-language-server/lib/serverWorker.js')],
+  outfile: './dist/serverWorker.js'
 });

@@ -98,12 +98,15 @@ export const commonConfigBrowser = {
     'node:assert': 'assert',
     'node:path/posix': 'path-browserify',
     'node:assert/strict': 'assert',
-    // Polyfills for jsforce-node dependencies
+    // Polyfills for jsforce-node dependencies and @salesforce/templates (basic-ftp, pac-proxy-agent)
     // Empty polyfills for modules that can't be polyfilled
     'node:child_process': emptyPolyfillsPath,
     'node:dns': emptyPolyfillsPath,
     'node:net': emptyPolyfillsPath,
     'node:tls': emptyPolyfillsPath,
+    net: emptyPolyfillsPath,
+    tls: emptyPolyfillsPath,
+    dns: emptyPolyfillsPath,
     'node:http2': emptyPolyfillsPath,
     got: emptyPolyfillsPath, // has a lot of very node-focused references in its dependencies.
     // tty is Node.js built-in, provide polyfill with isatty function
@@ -122,7 +125,8 @@ export const commonConfigBrowser = {
     assert: 'assert',
     zlib: 'browserify-zlib',
     timers: 'timers-browserify',
-    'node:timers': 'timers-browserify'
+    'node:timers': 'timers-browserify',
+    'node:string_decoder': 'string_decoder'
   },
   plugins: [
     jszipNodestreamTransformPlugin(),

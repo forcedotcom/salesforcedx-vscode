@@ -123,8 +123,9 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     // Deterministic locator: target the element that actually contains the `data-id` attribute
     // VS Code only replaces the FIRST dot with underscore in data-id
     // e.g., "salesforcedx-vscode-metadata.deployOnSave.enabled" -> "searchResultModel_salesforcedx-vscode-metadata_deployOnSave.enabled"
+    // Use .last() when duplicates exist (User + Workspace): we're on Workspace tab, so Workspace row is last
     const searchResultId = `searchResultModel_${id.replace(/\./, '_')}`;
-    const row = page.locator(`[data-id="${searchResultId}"]`).first();
+    const row = page.locator(`[data-id="${searchResultId}"]`).last();
 
     if (debugAria) {
       console.log(`[upsertSettings] using deterministic locator for ${id}: data-id="${searchResultId}"`);
@@ -195,7 +196,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         await expect(combobox).toHaveValue(value, { timeout: 10_000 });
       } else {
         // Handle textbox or spinbutton setting.
-        // fill() unreliable on spinbutton (input type=number). Use keyboard select-all + pressSequentially.
         const roleTextbox = row.getByRole('textbox').first();
         const roleSpinbutton = row.getByRole('spinbutton').first();
 
@@ -204,10 +204,8 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
         await inputElement.waitFor({ timeout: 30_000 });
         await inputElement.click({ timeout: 5000 });
-        // Select all via keyboard (works for both textbox and spinbutton on desktop + web)
-        const selectAllKey = isMacDesktop() ? 'Meta+a' : 'Control+a';
-        await page.keyboard.press(selectAllKey);
-        await inputElement.pressSequentially(value);
+        // fill() clears and types (reliable for both textbox and spinbutton; select-all + type can miss on desktop)
+        await inputElement.fill(value);
         await inputElement.blur();
         await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
       }

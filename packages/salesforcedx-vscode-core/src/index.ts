@@ -4,25 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import {
   ActivationTracker,
   ChannelService,
   ensureCurrentWorkingDirIsProjectPath,
-  errorToString,
   getRootWorkspacePath,
-  handleTraceFlagCleanup,
-  isSalesforceProjectOpened,
   notificationService,
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   SfCommandlet,
-  SfWorkspaceChecker,
   TelemetryService,
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -33,7 +30,6 @@ import {
   analyticsGenerateTemplate,
   apexGenerateClass,
   apexGenerateTrigger,
-  apexGenerateUnitTestClass,
   configList,
   deleteSource,
   deployManifest,
@@ -48,30 +44,26 @@ import {
   lightningGenerateAuraComponent,
   lightningGenerateEvent,
   lightningGenerateInterface,
-  lightningGenerateLwc,
+  agentProjectGenerate,
+  nativemobileProjectGenerate,
   openDocumentation,
   packageInstall,
   projectDeployStart,
   projectGenerateManifest,
   projectGenerateWithManifest,
   projectRetrieveStart,
-  refreshSObjects,
   renameLightningComponent,
-  retrieveComponent,
   retrieveManifest,
   retrieveSourcePaths,
   sfProjectGenerate,
   sourceDiff,
   sourceFolderDiff,
-  turnOffLogging,
-  turnOnLogging,
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges,
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './commands';
-import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
@@ -80,7 +72,6 @@ import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } fr
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { buildAllServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
@@ -125,14 +116,12 @@ const registerEffectCommands = () =>
   });
 
 /** Customer-facing commands */
-const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
+const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff),
     vscode.commands.registerCommand('sf.diff', sourceDiff),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
-    vscode.commands.registerCommand('sf.internal.refreshsobjects', refreshSObjects),
-    vscode.commands.registerCommand('sf.apex.generate.unit.test.class', apexGenerateUnitTestClass),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
     vscode.commands.registerCommand('sf.visualforce.generate.component', visualforceGenerateComponent),
     vscode.commands.registerCommand('sf.visualforce.generate.page', visualforceGeneratePage),
@@ -140,14 +129,13 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.lightning.generate.aura.component', lightningGenerateAuraComponent),
     vscode.commands.registerCommand('sf.lightning.generate.event', lightningGenerateEvent),
     vscode.commands.registerCommand('sf.lightning.generate.interface', lightningGenerateInterface),
-    vscode.commands.registerCommand('sf.lightning.generate.lwc', lightningGenerateLwc),
     vscode.commands.registerCommand('sf.config.list', configList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
+    vscode.commands.registerCommand('sf.agent.generate.project', agentProjectGenerate),
+    vscode.commands.registerCommand('sf.nativemobile.generate.project', nativemobileProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
     vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger),
-    vscode.commands.registerCommand('sf.start.apex.debug.logging', () => turnOnLogging(extensionContext)),
-    vscode.commands.registerCommand('sf.stop.apex.debug.logging', () => turnOffLogging(extensionContext)),
     registerGetTelemetryServiceCommand()
   );
 const registerInternalDevCommands = (): vscode.Disposable =>
@@ -161,30 +149,6 @@ const registerInternalDevCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.internal.lightning.generate.event', internalLightningGenerateEvent),
     vscode.commands.registerCommand('sf.internal.lightning.generate.interface', internalLightningGenerateInterface)
   );
-
-const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
-  const useLegacyOrgBrowser = salesforceCoreSettings.getUseLegacyOrgBrowser();
-  if (!useLegacyOrgBrowser) {
-    return;
-  }
-  await orgBrowser.init(extensionContext);
-
-  vscode.commands.registerCommand('sf.metadata.view.type.refresh', async node => {
-    await orgBrowser.refreshAndExpand(node);
-  });
-
-  vscode.commands.registerCommand('sf.metadata.view.component.refresh', async node => {
-    await orgBrowser.refreshAndExpand(node);
-  });
-
-  vscode.commands.registerCommand('sf.retrieve.component', async (trigger: RetrieveMetadataTrigger) => {
-    await retrieveComponent(trigger);
-  });
-
-  vscode.commands.registerCommand('sf.retrieve.open.component', async (trigger: RetrieveMetadataTrigger) => {
-    await retrieveComponent(trigger, true);
-  });
-};
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   const activationStartTime = TimingUtils.getCurrentTime();
@@ -232,7 +196,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     SfCommandlet,
     SfCommandletExecutor,
     salesforceCoreSettings,
-    SfWorkspaceChecker,
     WorkspaceContext,
     telemetryService,
     workspaceContextUtils,
@@ -257,8 +220,15 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     return api;
   }
 
-  // Context
-  const salesforceProjectOpened = (await isSalesforceProjectOpened()).result;
+  // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
+  const salesforceProjectOpened = await Effect.runPromise(
+    Effect.gen(function* () {
+      const servicesApi = yield* getServicesApi;
+      return yield* servicesApi.services.ProjectService.isSalesforceProject().pipe(
+        Effect.provide(Layer.succeedContext(servicesApi.services.prebuiltServicesDependencies))
+      );
+    }).pipe(Effect.catchAllCause(() => Effect.succeed(false)))
+  );
 
   // TODO: move this and the replay debugger commands to the apex extension
   void vscode.commands.executeCommand(
@@ -266,8 +236,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     'sf:replay_debugger_extension',
     vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex-replay-debugger') !== undefined
   );
-
-  void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
 
   // Set Code Builder context
   const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
@@ -297,8 +265,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     CommandEventDispatcher.getInstance()
   );
 
-  if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-    // Refresh SObject definitions if there aren't any faux classes
+  if (metadataExtension && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    // Refresh SObject definitions if there aren't any faux classes (metadata ext registers the command)
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
@@ -308,16 +276,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   void activateTracker.markActivationStop();
   reportExtensionPackStatus();
-
-  // Handle trace flag cleanup after setting target org
-  try {
-    await handleTraceFlagCleanup(extensionContext);
-  } catch (error) {
-    console.log(
-      'Trace flag cleanup not completed during activation of CLI Integration extension',
-      errorToString(error)
-    );
-  }
 
   setImmediate(() => {
     void WorkspaceContext.getInstance().initialize(extensionContext);
@@ -338,7 +296,6 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   const metadataHoverProvider = new MetadataHoverProvider();
 
   await Promise.all([
-    setupOrgBrowser(extensionContext),
     setupConflictView(extensionContext),
     // Initialize metadata XML support
     MetadataXmlSupport.getInstance().initializeMetadataSupport(extensionContext),
@@ -414,7 +371,6 @@ export type SalesforceVSCodeCoreApi = {
   SfCommandlet: typeof SfCommandlet;
   SfCommandletExecutor: typeof SfCommandletExecutor;
   salesforceCoreSettings: typeof salesforceCoreSettings;
-  SfWorkspaceChecker: typeof SfWorkspaceChecker;
   WorkspaceContext: typeof WorkspaceContext;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;

@@ -7,7 +7,7 @@
 
 import { AuthRemover, AuthInfo, Org } from '@salesforce/core';
 import { createTable } from '@salesforce/effect-ext-utils';
-import { ConfigUtil, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import {
@@ -49,7 +49,6 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   notificationService: {
     showSuccessfulExecution: jest.fn()
   },
-  SfWorkspaceChecker: jest.fn(),
   ContinueResponse: jest.fn(),
   LibraryCommandletExecutor: jest.fn(),
   // Add these to align with command imports
@@ -93,30 +92,24 @@ jest.mock('../../../src/util/configAggregatorEffect', () => {
   };
 });
 
-// Mock extensionProvider to provide AllServicesLayer
+// Mock extensionProvider to provide AllServicesLayer and getOrgRuntime (getConfigAggregatorEffect is fully mocked)
 jest.mock('../../../src/extensionProvider', () => {
   const Layer = require('effect/Layer');
   const Context = require('effect/Context');
-  // Create a minimal Layer - since getConfigAggregatorEffect is mocked, no services are needed
+  const ManagedRuntime = require('effect/ManagedRuntime');
   const DummyService = Context.GenericTag('DummyService');
+  const AllServicesLayer = Layer.succeed(DummyService, {});
   return {
-    AllServicesLayer: Layer.succeed(DummyService, {})
+    AllServicesLayer,
+    setAllServicesLayer: jest.fn(),
+    getOrgRuntime: () => ManagedRuntime.make(AllServicesLayer)
   };
 });
-jest.mock('../../../src/messages', () => ({
-  nls: {
-    localize: jest.fn()
-  }
-}));
-// No local util module to mock; command imports come from utils-vscode above
 
 describe('orgList command', () => {
   let mockGetAuthFieldsFor: jest.SpyInstance;
 
   beforeEach(() => {
-    // Mock nls.localize
-    (nls.localize as jest.Mock).mockImplementation((key: string, ...args: string[]) => `${key}_${args.join('_')}`);
-
     // Reset all mocks
     jest.clearAllMocks();
 
@@ -328,32 +321,18 @@ describe('orgList command', () => {
       }
     ];
 
+    const defaultConfig = {
+      defaultDevHubProperty: undefined,
+      defaultOrgProperty: undefined,
+      defaultDevHubUsername: undefined,
+      defaultOrgUsername: undefined
+    };
+
     beforeEach(() => {
       jest.clearAllMocks();
       (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue(mockOrgAuths);
       mockGetAuthFieldsFor.mockResolvedValue({});
-
-      // Set the mock value that getConfigAggregatorEffect will return
-      mockConfigAggregatorStore.value = {
-        getPropertyValue: jest.fn().mockImplementation((key: string) => {
-          if (key === 'target-dev-hub') return 'devhub@example.com';
-          if (key === 'target-org') return 'prod@example.com';
-          return undefined;
-        })
-      };
-
-      // Mock ConfigUtil methods
-      (ConfigUtil as any).getConfigValue.mockImplementation((key: string) => {
-        if (key === 'target-dev-hub') return 'devhub@example.com';
-        if (key === 'target-org') return 'prod@example.com';
-        return undefined;
-      });
-      (ConfigUtil as any).getUsernameFor.mockImplementation((key: string) => {
-        if (key === 'target-dev-hub') return 'devhub@example.com';
-        if (key === 'target-org') return 'prod@example.com';
-        return undefined;
-      });
-      (ConfigUtil as any).getAllAliasesFor.mockReturnValue(['alias1', 'alias2']);
+      jest.spyOn(orgUtil, 'getDefaultOrgConfiguration').mockResolvedValue(defaultConfig);
     });
 
     it('should display message when no orgs found', async () => {
@@ -361,7 +340,9 @@ describe('orgList command', () => {
 
       await displayRemainingOrgs();
 
-      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining('org_list_no_orgs_found'));
+      expect(channelService.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining(nls.localize('org_list_no_orgs_found'))
+      );
     });
 
     it('should create and display table for orgs', async () => {
@@ -384,7 +365,9 @@ describe('orgList command', () => {
 
       await displayRemainingOrgs();
 
-      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining('org_list_display_error'));
+      expect(channelService.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining(nls.localize('org_list_display_error', 'List error'))
+      );
     });
   });
 });

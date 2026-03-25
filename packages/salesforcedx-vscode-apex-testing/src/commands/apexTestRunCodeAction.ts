@@ -7,7 +7,7 @@
 import { ApexTestResultData, TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
 import { type NamedPackageDir } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -15,15 +15,13 @@ import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
 import {
   EmptyParametersGatherer,
-  getUriPath,
   LibraryCommandletExecutor,
   SfCommandlet,
-  SfWorkspaceChecker,
   type ContinueResponse
 } from '../utils/commandletHelpers';
 import { notificationService } from '../utils/notificationHelpers';
@@ -31,17 +29,17 @@ import { getTestResultsFolder } from '../utils/pathHelpers';
 import { runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
-export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
+class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   protected cancellable: boolean = true;
   private readonly tests: string[];
-  private readonly outputDir: string;
+  private readonly outputDir: URI;
   private readonly codeCoverage: boolean;
   private readonly concise: boolean;
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-testing-errors');
 
   constructor(
     tests: string[],
-    outputDir: string,
+    outputDir: URI,
     codeCoverage = settings.retrieveTestCodeCoverage(),
     concise = settings.retrieveTestRunConcise()
   ) {
@@ -68,16 +66,18 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       !this.codeCoverage // the setting enables code coverage, so we need to pass false to disable it
     );
 
-    const result = await runApexTests(
-      {
-        payload,
-        outputDir: this.outputDir,
-        codeCoverage: this.codeCoverage,
-        concise: this.concise,
-        telemetryTrigger: 'codeAction'
-      },
-      progress,
-      token
+    const result = await getApexTestingRuntime().runPromise(
+      runApexTests(
+        {
+          payload,
+          outputDir: this.outputDir,
+          codeCoverage: this.codeCoverage,
+          concise: this.concise,
+          telemetryTrigger: 'codeAction'
+        },
+        progress,
+        token
+      )
     );
 
     if (!result) {
@@ -97,11 +97,11 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     }
 
     // Get project from services extension
-    const sfProject = await Effect.runPromise(
+    const sfProject = await getApexTestingRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         return yield* api.services.ProjectService.getSfProject();
-      }).pipe(Effect.provide(AllServicesLayer))
+      })
     );
 
     if (!sfProject) {
@@ -169,18 +169,14 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
 const apexTestRunCodeAction = async (tests: string[]) => {
   const outputDir = await getTempFolder();
   const testRunExecutor = new ApexLibraryTestRunExecutor(tests, outputDir);
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), testRunExecutor);
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), testRunExecutor);
   await commandlet.run();
 };
 
-const getTempFolder = async (): Promise<string> => {
-  if (vscode.workspace?.workspaceFolders) {
-    const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
-    // In web mode, use path instead of fsPath for virtual file systems
-    const workspacePath = getUriPath(workspaceUri);
-    const apexDir = await getTestResultsFolder(workspacePath, 'apex');
-    return apexDir;
-  } else {
+const getTempFolder = async (): Promise<URI> => {
+  try {
+    return await getTestResultsFolder();
+  } catch {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
 };

@@ -19,7 +19,7 @@
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/vscode-service-provider": "1.5.0",
     "jsforce": "^3.10.10",
-    "memfs": "^4.17.2",
+    "memfs": "^4.32.0",
     "node": "^22.19.0",
     "npm": "^10",
     "semver": "^7.5.4",
@@ -30,7 +30,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@effect/eslint-plugin": "0.3.2",
-    "@effect/language-service": "0.72.0",
+    "@effect/language-service": "0.73.0",
     "@eslint/json": "^0.3.0",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.11.0",
     "@octokit/core": "^5",
@@ -41,7 +41,7 @@
     "@secretlint/node": "11.2.5",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.1.3",
-    "@tsconfig/node22": "22.0.2",
+    "@tsconfig/node22": "22.0.5",
     "@types/chai": "^4.3.17",
     "@types/cross-spawn": "6.0.6",
     "@types/jest": "^29.5.12",
@@ -62,7 +62,7 @@
     "crypto-browserify": "3.12.1",
     "cz-conventional-changelog": "3.3.0",
     "dpdm": "^3.14.0",
-    "effect": "^3.19.13",
+    "effect": "^3.20.0",
     "esbuild": "0.27.3",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-plugin-polyfill-node": "0.3.0",
@@ -82,12 +82,14 @@
     "eslint-plugin-unicorn": "62.0.0",
     "eslint-plugin-workspaces": "0.11.0",
     "glob": "11.1.0",
+    "globals": "^15.14.0",
     "https-browserify": "1.0.0",
     "husky": "1.3.1",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
     "jscpd": "^4.0.5",
     "jsonwebtoken-esm": "^2.0.1",
+    "jszip": "^3.10.1",
     "junit-report-merger": "9.0.3",
     "markdown-link-check": "^3.14.2",
     "mocha": "^11.7.1",
@@ -134,12 +136,14 @@
     "capture:results": "shx mkdir -p ./test-results && npm run junit:report && npm run coverage:report",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
+    "check:branch": "wireit",
     "precommit": "wireit",
     "prepush": "wireit",
     "vscode:bundle": "wireit",
     "vscode:package": "wireit",
     "vscode:package:modern": "wireit",
     "vscode:package:legacy": "wireit",
+    "run:web": "wireit",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} --force \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} --force \\;",
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
@@ -164,7 +168,6 @@
         "./packages/salesforcedx-vscode-i18n:compile",
         "./packages/salesforcedx-utils-vscode:compile",
         "./packages/soql-common:compile",
-        "./packages/salesforcedx-sobjects-faux-generator:compile",
         "./packages/salesforcedx-apex-debugger:compile",
         "./packages/salesforcedx-apex-replay-debugger:compile",
         "./packages/effect-ext-utils:compile",
@@ -187,6 +190,7 @@
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
+        "./packages/salesforcedx-vscode-apex-log:compile",
         "./packages/salesforcedx-vscode-automation-tests:compile"
       ]
     },
@@ -197,7 +201,6 @@
         "./packages/salesforcedx-vscode-i18n:lint",
         "./packages/salesforcedx-utils-vscode:lint",
         "./packages/soql-common:lint",
-        "./packages/salesforcedx-sobjects-faux-generator:lint",
         "./packages/salesforcedx-apex-debugger:lint",
         "./packages/salesforcedx-apex-replay-debugger:lint",
         "./packages/effect-ext-utils:lint",
@@ -217,6 +220,7 @@
         "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
+        "./packages/salesforcedx-vscode-apex-log:lint",
         "./packages/salesforcedx-vscode-automation-tests:lint",
         "./packages/playwright-vscode-ext:lint",
         "./packages/salesforcedx-lightning-lsp-common:lint",
@@ -231,7 +235,6 @@
         "./packages/salesforcedx-vscode-i18n:test",
         "./packages/salesforcedx-utils-vscode:test",
         "./packages/soql-common:test",
-        "./packages/salesforcedx-sobjects-faux-generator:test",
         "./packages/salesforcedx-apex-debugger:test",
         "./packages/salesforcedx-apex-replay-debugger:test",
         "./packages/salesforcedx-lightning-lsp-common:test",
@@ -253,6 +256,7 @@
         "./packages/salesforcedx-vscode-services:test",
         "./packages/salesforcedx-vscode-org:test",
         "./packages/salesforcedx-vscode-org-browser:test",
+        "./packages/salesforcedx-vscode-apex-log:test",
         "./packages/effect-ext-utils:test"
       ]
     },
@@ -270,6 +274,7 @@
         "./packages/salesforcedx-vscode-services:vscode:bundle",
         "./packages/salesforcedx-vscode-org:vscode:bundle",
         "./packages/salesforcedx-vscode-org-browser:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex-log:vscode:bundle",
         "./packages/salesforcedx-vscode-metadata:vscode:bundle",
         "./packages/salesforcedx-vscode-apex-testing:vscode:bundle"
       ]
@@ -288,6 +293,7 @@
         "./packages/salesforcedx-vscode:vscode:package",
         "./packages/salesforcedx-vscode-expanded:vscode:package",
         "./packages/salesforcedx-vscode-apex:vscode:package",
+        "./packages/salesforcedx-vscode-apex-log:vscode:package",
         "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package",
         "./packages/salesforcedx-vscode-apex-testing:vscode:package",
         "./packages/salesforcedx-vscode-visualforce:vscode:package",
@@ -306,6 +312,21 @@
       "dependencies": [
         "vscode:package:modern"
       ]
+    },
+    "run:web": {
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-lwc --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "service": true,
+      "dependencies": [
+        "./packages/salesforcedx-vscode-services:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-apex-log:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-org-browser:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-lwc:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-metadata:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-apex-testing:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-soql:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-services:spans:server"
+      ],
+      "files": []
     },
     "compile:github-actions": {
       "command": "tsc -p .github/actions/new-issue/tsconfig.json && tsc -p .github/actions/validate-issue/tsconfig.json && tsc -p .github/actions/check-feature-request/tsconfig.json",
@@ -344,18 +365,32 @@
       ],
       "output": []
     },
+    "check:lock-sync": {
+      "command": "npm ci --dry-run",
+      "files": [
+        "package.json",
+        "package-lock.json"
+      ],
+      "output": []
+    },
+    "check:branch": {
+      "command": "node scripts/check-branch.js"
+    },
     "precommit": {
       "dependencies": [
+        "check:branch",
         "compile",
         "lint",
         "check:peer-deps",
         "check:typescript-project-references",
-        "check:package-lock"
+        "check:package-lock",
+        "check:lock-sync"
       ]
     },
     "prepush": {
       "dependencies": [
-        "lint",
+        "precommit",
+        "vscode:bundle",
         "test"
       ]
     },

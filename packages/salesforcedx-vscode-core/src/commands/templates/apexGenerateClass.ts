@@ -6,11 +6,11 @@
  */
 
 import type { LocalComponent } from '../../util/types';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   CompositeParametersGatherer,
   ParametersGatherer,
   SfCommandlet,
-  SfWorkspaceChecker,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
@@ -36,7 +36,7 @@ let outputDirGatherer: ParametersGatherer<OutputDirParameter> | undefined;
 let metadataTypeGatherer: ParametersGatherer<MetadataTypeParameter> | undefined;
 let templateGatherer: ParametersGatherer<any> | undefined;
 
-export const getParamGatherers = () => {
+const getParamGatherers = () => {
   fileNameGatherer ??= new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
   outputDirGatherer ??= new SelectOutputDir(APEX_CLASS_DIRECTORY);
   metadataTypeGatherer ??= new MetadataTypeGatherer(APEX_CLASS_TYPE);
@@ -66,7 +66,7 @@ export const apexGenerateClass = async (sourceUri?: URI) => {
 
   const createTemplateExecutor = new LibraryApexGenerateClassExecutor();
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new CompositeParametersGatherer<LocalComponent>(
       gatherers.metadataTypeGatherer,
       gatherers.fileNameGatherer,

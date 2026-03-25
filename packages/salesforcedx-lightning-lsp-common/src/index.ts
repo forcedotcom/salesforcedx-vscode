@@ -14,7 +14,8 @@ export {
   getSfdxResource,
   memoize,
   readJsonSync,
-  writeJsonSync,
+  writeJson,
+  readPackageJson,
   extractJsonFromImport,
   SfdxTsConfig,
   TsConfigPaths,
@@ -37,7 +38,7 @@ export {
 } from './baseContext';
 
 // Re-export from shared
-export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper, detectWorkspaceType } from './shared';
+export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper } from './shared';
 
 // Re-export from indexer
 export { TagInfo, getHover } from './indexer/tagInfo';
@@ -45,7 +46,7 @@ export { AttributeInfo, DecoratorType, MemberType } from './indexer/attributeInf
 
 // Re-export from other modules
 export { Logger } from './logger';
-export { findNamespaceRoots } from './namespaceUtils';
+export { findLwcNamespaceRoots } from './namespaceUtils';
 
 // Re-export from decorators
 export {
@@ -58,15 +59,21 @@ export {
   DecoratorTargetMethod
 } from './decorators';
 
+// WORKSPACE_READ_FILE_REQUEST is used by server and client. registerWorkspaceReadFileHandler is
+// client-only (uses effect-ext-utils/vscode); export it from ./workspaceReadFileHandler so the
+// server bundle never loads it (server runs in a separate process without vscode).
+export {
+  WORKSPACE_READ_FILE_REQUEST,
+  WORKSPACE_STAT_REQUEST,
+  WORKSPACE_READ_DIRECTORY_REQUEST,
+  WORKSPACE_FIND_FILES_REQUEST,
+  WORKSPACE_DELETE_FILE_REQUEST
+} from './lspCustomRequests';
+
 // Re-export from file system providers
-export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
+export { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
-
-// Re-export from document sync
-export { syncDocumentToTextDocumentsProvider } from './documentSync';
-
-// Re-export from reinitialization scheduler
-export { scheduleReinitialization } from './reinitializationScheduler';
+export { PackageJson, isPackageJson } from './types/packageJson';
 
 // Re-export TypeScript configuration templates
 export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';

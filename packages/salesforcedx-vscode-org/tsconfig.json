@@ -2,15 +2,43 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "out"
+    "outDir": "out",
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "include": [
+    "src/**/*.ts",
+    "test/playwright/**/*.ts",
+    "playwright.config.desktop.ts",
+    "package.nls.json"
+  ],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "dist"
+  ],
   "references": [
-    { "path": "../effect-ext-utils" },
-    { "path": "../salesforcedx-utils" },
-    { "path": "../salesforcedx-utils-vscode" },
-    { "path": "../salesforcedx-vscode-i18n" },
-    { "path": "../salesforcedx-vscode-services-types" }
+    {
+      "path": "../effect-ext-utils"
+    },
+    {
+      "path": "../salesforcedx-utils"
+    },
+    {
+      "path": "../salesforcedx-utils-vscode"
+    },
+    {
+      "path": "../salesforcedx-vscode-services-types"
+    },
+    {
+      "path": "../salesforcedx-vscode-i18n"
+    },
+    {
+      "path": "../playwright-vscode-ext"
+    }
   ]
 }

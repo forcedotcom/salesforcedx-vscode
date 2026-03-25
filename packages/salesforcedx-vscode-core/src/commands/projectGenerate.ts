@@ -80,14 +80,35 @@ type ProjectName = {
   projectName: string;
 };
 
-type ProjectTemplate = 'standard' | 'empty' | 'analytics';
+export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x' | 'nativemobile' | 'agent';
 
 class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
+  private readonly initialTemplate?: ProjectTemplate;
+
+  constructor(initialTemplate?: ProjectTemplate) {
+    this.initialTemplate = initialTemplate;
+  }
+
   public async gather(): Promise<CancelResponse | ContinueResponse<{ projectTemplate: ProjectTemplate }>> {
+    if (this.initialTemplate !== undefined) {
+      return { type: 'CONTINUE', data: { projectTemplate: this.initialTemplate } };
+    }
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem('project_generate_standard_template_display_text', 'project_generate_standard_template'),
       new ProjectTemplateItem('project_generate_empty_template_display_text', 'project_generate_empty_template'),
-      new ProjectTemplateItem('project_generate_analytics_template_display_text', 'project_generate_analytics_template')
+      new ProjectTemplateItem(
+        'project_generate_analytics_template_display_text',
+        'project_generate_analytics_template'
+      ),
+      new ProjectTemplateItem(
+        'project_generate_react_b2x_template_display_text',
+        'project_generate_react_b2x_template'
+      ),
+      new ProjectTemplateItem(
+        'project_generate_react_b2e_template_display_text',
+        'project_generate_react_b2e_template'
+      ),
+      new ProjectTemplateItem('project_generate_agent_template_display_text', 'project_generate_agent_template')
     ];
 
     const selection = await vscode.window.showQuickPick(items);
@@ -102,6 +123,15 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
       case nls.localize('project_generate_analytics_template_display_text'):
         projectTemplate = 'analytics';
         break;
+      case nls.localize('project_generate_react_b2e_template_display_text'):
+        projectTemplate = 'reactb2e';
+        break;
+      case nls.localize('project_generate_react_b2x_template_display_text'):
+        projectTemplate = 'reactb2x';
+        break;
+      case nls.localize('project_generate_agent_template_display_text'):
+        projectTemplate = 'agent';
+        break;
       default:
         break;
     }
@@ -110,12 +140,17 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
 }
 class SelectProjectName implements ParametersGatherer<ProjectName> {
   private readonly prefillValueProvider?: () => string;
+  private readonly initialProjectName?: string;
 
-  constructor(prefillValueProvider?: () => string) {
+  constructor(prefillValueProvider?: () => string, initialProjectName?: string) {
     this.prefillValueProvider = prefillValueProvider;
+    this.initialProjectName = initialProjectName;
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<ProjectName>> {
+    if (this.initialProjectName !== undefined && this.initialProjectName.length > 0) {
+      return { type: 'CONTINUE', data: { projectName: this.initialProjectName } };
+    }
     const prompt = nls.localize('parameter_gatherer_enter_project_name');
     const prefillValue = this.prefillValueProvider ? this.prefillValueProvider() : '';
     const projectName = await getFormattedString(prompt, prefillValue);
@@ -124,7 +159,16 @@ class SelectProjectName implements ParametersGatherer<ProjectName> {
 }
 
 class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
+  private readonly initialProjectUri?: string;
+
+  constructor(initialProjectUri?: string) {
+    this.initialProjectUri = initialProjectUri;
+  }
+
   public async gather(): Promise<CancelResponse | ContinueResponse<ProjectURI>> {
+    if (this.initialProjectUri !== undefined && this.initialProjectUri.length > 0) {
+      return { type: 'CONTINUE', data: { projectUri: this.initialProjectUri } };
+    }
     const projectUri = await vscode.window.showOpenDialog({
       canSelectFiles: false,
       canSelectFolders: true,
@@ -160,31 +204,48 @@ class PathExistsChecker implements PostconditionChecker<ProjectNameAndPathAndTem
 }
 
 const workspaceChecker = new EmptyPreChecker();
-const parameterGatherer = new CompositeParametersGatherer(
-  new SelectProjectTemplate(),
-  new SelectProjectName(),
-  new SelectProjectFolder()
-);
 const pathExistsChecker = new PathExistsChecker();
 
-export const sfProjectGenerate = async () => {
+/** Optional args when invoking Create Project; when provided, the corresponding prompt is skipped. */
+export type ProjectGenerateArgs = {
+  projectTemplate?: ProjectTemplate;
+  projectName?: string;
+  projectUri?: string;
+};
+
+const buildParameterGatherer = (args?: ProjectGenerateArgs) =>
+  new CompositeParametersGatherer<ProjectNameAndPathAndTemplate>(
+    new SelectProjectTemplate(args?.projectTemplate),
+    new SelectProjectName(undefined, args?.projectName),
+    new SelectProjectFolder(args?.projectUri)
+  );
+
+export const sfProjectGenerate = async (args?: ProjectGenerateArgs): Promise<void> => {
   const createTemplateExecutor = new LibraryProjectGenerateExecutor();
   const sfProjectGenerateCommandlet = new SfCommandlet(
     workspaceChecker,
-    parameterGatherer,
+    buildParameterGatherer(args),
     createTemplateExecutor,
     pathExistsChecker
   );
   await sfProjectGenerateCommandlet.run();
 };
 
-export const projectGenerateWithManifest = async (): Promise<void> => {
+export const nativemobileProjectGenerate = async (): Promise<void> => {
+  await sfProjectGenerate({ projectTemplate: 'nativemobile' });
+};
+
+export const agentProjectGenerate = async (): Promise<void> => {
+  await sfProjectGenerate({ projectTemplate: 'agent' });
+};
+
+export const projectGenerateWithManifest = async (args?: ProjectGenerateArgs): Promise<void> => {
   const createTemplateExecutor = new LibraryProjectGenerateExecutor({
     isProjectWithManifest: true
   });
   const projectGenerateWithManifestCommandlet = new SfCommandlet(
     workspaceChecker,
-    parameterGatherer,
+    buildParameterGatherer(args),
     createTemplateExecutor,
     pathExistsChecker
   );

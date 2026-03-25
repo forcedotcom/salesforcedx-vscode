@@ -18,15 +18,16 @@ import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/
 import {
   notificationService,
   workspaceUtils,
-  ConfigAggregatorProvider,
-  ConfigUtil
+  ConfigAggregatorProvider
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
+import * as Option from 'effect/Option';
 import { isNotUndefined, isString } from 'effect/Predicate';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { AllServicesLayer } from '../extensionProvider';
+import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 import { getConfigAggregatorEffect } from './configAggregatorEffect';
 
@@ -40,7 +41,7 @@ const orgIsExpired = (authFields: AuthFields) =>
   isString(authFields.expirationDate) && new Date(authFields.expirationDate) < new Date();
 
 /** One time notification about orgs that expire soon */
-export const checkForSoonToBeExpiredOrgs = Effect.fn(function* () {
+export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeExpiredOrgs')(function* () {
   const daysUntilExpiration = new Date();
   daysUntilExpiration.setDate(daysUntilExpiration.getDate() + DAYS_BEFORE_EXPIRE);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -101,8 +102,16 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   const configAggregatorProvider = ConfigAggregatorProvider.getInstance();
   await configAggregatorProvider.reloadConfigAggregators();
   // Also force the StateAggregator to reload to have the latest
-  // authorization info.
-  StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
+  // authorization info. Called without args to clear ALL cached instances,
+  // including the default one used by AuthInfo.listAllAuthorizations().
+  await StateAggregator.clearInstanceAsync();
+
+  // Trigger Apex Test Controller to discover tests after org auth/set-default. Delay so config
+  // and TargetOrgRef can propagate before refresh runs.
+  const REFRESH_DELAY_MS = 800;
+  setTimeout(() => {
+    void vscode.commands.executeCommand('sf.apex.test.refresh');
+  }, REFRESH_DELAY_MS);
 };
 
 const setUsernameOrAlias = async (usernameOrAlias: string): Promise<void> => {
@@ -270,17 +279,53 @@ type DefaultOrgConfig = {
   defaultOrgUsername: string | undefined;
 };
 
+const resolveUsernameFromAliasEffect = (aliasOrUsername: string) =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const aliasService = yield* api.services.AliasService;
+    const opt = yield* aliasService.getUsernameFromAlias(aliasOrUsername);
+    return Option.getOrElse(opt, () => aliasOrUsername);
+  });
+
+const readAliasesByUsernameFromDiskEffect = () =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const aliasService = yield* api.services.AliasService;
+    const orgs = yield* aliasService.getAllAliases();
+    const result = new Map<string, string[]>();
+    for (const [alias, username] of Object.entries(orgs)) {
+      const existing = result.get(username) ?? [];
+      existing.push(alias);
+      result.set(username, existing);
+    }
+    return result;
+  });
+
+/**
+ * Returns the resolved username for a given alias, or the input if it is already a username.
+ * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
+ */
+export const resolveUsernameFromAlias = async (aliasOrUsername: string): Promise<string> =>
+  getOrgRuntime().runPromise(resolveUsernameFromAliasEffect(aliasOrUsername));
+
+/**
+ * Returns a map of username → aliases[]. Used to supplement stale StateAggregator data in the org picker.
+ * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
+ */
+export const readAliasesByUsernameFromDisk = async (): Promise<Map<string, string[]>> =>
+  getOrgRuntime().runPromise(readAliasesByUsernameFromDiskEffect());
+
 /** Get default org and devhub configuration */
 export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
-  const configAggregator = await Effect.runPromise(getConfigAggregatorEffect.pipe(Effect.provide(AllServicesLayer)));
+  const configAggregator = await getOrgRuntime().runPromise(getConfigAggregatorEffect);
   const defaultDevHubProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
   const defaultOrgProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
 
   return {
     defaultDevHubProperty,
     defaultOrgProperty,
-    defaultDevHubUsername: defaultDevHubProperty ? await ConfigUtil.getUsernameFor(defaultDevHubProperty) : undefined,
-    defaultOrgUsername: defaultOrgProperty ? await ConfigUtil.getUsernameFor(defaultOrgProperty) : undefined
+    defaultDevHubUsername: defaultDevHubProperty ? await resolveUsernameFromAlias(defaultDevHubProperty) : undefined,
+    defaultOrgUsername: defaultOrgProperty ? await resolveUsernameFromAlias(defaultOrgProperty) : undefined
   };
 };
 
@@ -300,16 +345,17 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
 
   // Check if this org is the default DevHub (by property value or resolved username)
   const matchesDevHubProperty =
-    defaultConfig.defaultDevHubProperty && possibleDefaults.has(String(defaultConfig.defaultDevHubProperty));
+    defaultConfig.defaultDevHubProperty != null && possibleDefaults.has(String(defaultConfig.defaultDevHubProperty));
   const matchesDevHubUsername =
-    defaultConfig.defaultDevHubUsername && orgAuth.username === defaultConfig.defaultDevHubUsername;
-  const isDefaultDevHub = orgAuth.isDevHub && (matchesDevHubProperty ?? matchesDevHubUsername);
+    defaultConfig.defaultDevHubUsername != null && orgAuth.username === defaultConfig.defaultDevHubUsername;
+  const isDefaultDevHub = orgAuth.isDevHub && (matchesDevHubProperty || matchesDevHubUsername);
 
-  // Check if this org is the default org (by property value or resolved username)
+  // Check if this org is the default org (by property value or resolved username).
   const matchesOrgProperty =
-    defaultConfig.defaultOrgProperty && possibleDefaults.has(String(defaultConfig.defaultOrgProperty));
-  const matchesOrgUsername = defaultConfig.defaultOrgUsername && orgAuth.username === defaultConfig.defaultOrgUsername;
-  const isDefaultOrg = matchesOrgProperty ?? matchesOrgUsername;
+    defaultConfig.defaultOrgProperty != null && possibleDefaults.has(String(defaultConfig.defaultOrgProperty));
+  const matchesOrgUsername =
+    defaultConfig.defaultOrgUsername != null && orgAuth.username === defaultConfig.defaultOrgUsername;
+  const isDefaultOrg = matchesOrgProperty || matchesOrgUsername;
 
   if (isDefaultDevHub && isDefaultOrg) {
     return `${ICONS.SF_DEFAULT_HUB} ${ICONS.SF_DEFAULT_ORG}`;

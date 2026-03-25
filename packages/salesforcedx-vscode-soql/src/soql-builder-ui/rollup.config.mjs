@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import lwc from '@lwc/rollup-plugin';
 import alias from '@rollup/plugin-alias';
-import babel from '@rollup/plugin-babel';
+import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import inject from '@rollup/plugin-inject';
 import resolve from '@rollup/plugin-node-resolve';
@@ -72,7 +72,9 @@ export default util;
 const fixLwcEmptyCss = {
   name: 'fix-lwc-empty-css',
   load(id) {
-    if (id.endsWith('@lwc/resources/empty_css.css')) {
+    // Normalize Windows backslashes; also use includes() to tolerate query
+    // strings like ?scoped=true that LWC appends to the scoped CSS variant.
+    if (id.replace(/\\/g, '/').includes('@lwc/resources/empty_css.css')) {
       return 'export default undefined;';
     }
   }
@@ -121,9 +123,7 @@ export default {
     babel({
       extensions: ['.ts'],
       babelHelpers: 'bundled',
-      plugins: [
-        ['@babel/plugin-syntax-decorators', { version: 'legacy' }]
-      ],
+      plugins: [['@babel/plugin-syntax-decorators', { legacy: true }]],
       presets: [['@babel/preset-typescript', { allExtensions: true }]]
     }),
     lwc({

@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService, SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { notificationService, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { URI } from 'vscode-uri';
 import { MetadataCacheExecutor, MetadataCacheResult, PathType } from '../conflict';
 import * as differ from '../conflict/directoryDiffer';
@@ -14,7 +15,6 @@ import { nls } from '../messages';
 import { FilePathGatherer } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
-const workspaceChecker = new SfWorkspaceChecker();
 
 export const sourceDiff = async (sourceUri?: URI) => {
   const resolved =
@@ -39,7 +39,7 @@ export const sourceDiff = async (sourceUri?: URI) => {
     'source_diff',
     handleCacheResults
   );
-  const commandlet = new SfCommandlet(workspaceChecker, new FilePathGatherer(resolved), executor);
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new FilePathGatherer(resolved), executor);
   await commandlet.run();
 };
 
@@ -61,7 +61,7 @@ export const sourceFolderDiff = async (explorerPath?: URI) => {
   }
 
   const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
+    sfProjectPreconditionChecker,
     new FilePathGatherer(resolved),
     new MetadataCacheExecutor(
       username,
