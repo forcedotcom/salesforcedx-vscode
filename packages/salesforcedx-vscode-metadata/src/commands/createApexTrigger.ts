@@ -38,10 +38,9 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [triggerUri, metaUri] });
 
   const fsService = yield* api.services.FsService;
-  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
 
   yield* api.services.TemplateService.create({
-    cwd,
+    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexTrigger,
     outputdir: outputDirUri,
     options: {
