@@ -79,7 +79,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'Salesforce 認証でサインインする従業員向け (B2E)。サンプル: Property Management App',
   project_generate_agent_template_display_text: 'エージェント',
   project_generate_agent_template: 'エージェントのプロジェクトテンプレート',
-  apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
