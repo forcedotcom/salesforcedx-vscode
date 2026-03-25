@@ -15,7 +15,7 @@ import {
   NormalizedPath,
   WorkspaceType,
   normalizePath,
-  SERVER_READY_NOTIFICATION
+  LWC_SERVER_READY_NOTIFICATION
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { basename, dirname, parse } from 'node:path';
@@ -752,7 +752,7 @@ export abstract class BaseServer {
       await this.configureTypeScriptSupport();
 
       // send notification that delayed initialization is complete (only if we have components)
-      void this.connection.sendNotification(SERVER_READY_NOTIFICATION);
+      void this.connection.sendNotification(LWC_SERVER_READY_NOTIFICATION);
       this.isDelayedInitializationComplete = true;
     } catch (error: unknown) {
       Logger.error(

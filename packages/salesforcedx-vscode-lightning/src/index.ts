@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isLWC, SERVER_READY_NOTIFICATION } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { AURA_SERVER_READY_NOTIFICATION, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ApplyWorkspaceEditRequest,
   handleApplyEditWithFs
@@ -137,7 +137,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   extensionContext.subscriptions.push(statusBarItem);
 
   // Listen for server ready notification to update status
-  client.onNotification(SERVER_READY_NOTIFICATION, () => {
+  client.onNotification(AURA_SERVER_READY_NOTIFICATION, () => {
     statusBarItem.ready();
   });
   // Register workspace read file handler before start so the server can read files during initialize

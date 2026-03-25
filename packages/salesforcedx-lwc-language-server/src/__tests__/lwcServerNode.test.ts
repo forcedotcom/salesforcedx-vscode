@@ -108,7 +108,7 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
 import {
   LspFileSystemAccessor,
   normalizePath,
-  SERVER_READY_NOTIFICATION,
+  LWC_SERVER_READY_NOTIFICATION,
   WORKSPACE_FIND_FILES_REQUEST,
   WORKSPACE_READ_FILE_REQUEST,
   WORKSPACE_STAT_REQUEST
@@ -733,11 +733,11 @@ describe('lwcServerNode', () => {
     });
 
     describe('delayed initialization notification', () => {
-      it('sends SERVER_READY_NOTIFICATION after successful delayed initialization', async () => {
+      it('sends LWC_SERVER_READY_NOTIFICATION after successful delayed initialization', async () => {
         await server.onInitialize(initializeParams);
         await setupServerForTest([document]);
 
-        expect(server.connection.sendNotification).toHaveBeenCalledWith(SERVER_READY_NOTIFICATION);
+        expect(server.connection.sendNotification).toHaveBeenCalledWith(LWC_SERVER_READY_NOTIFICATION);
       }, 10_000);
     });
 

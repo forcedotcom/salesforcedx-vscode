@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isLWC, SERVER_READY_NOTIFICATION, type WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { isLWC, LWC_SERVER_READY_NOTIFICATION, type WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
@@ -114,7 +114,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
     extensionContext.subscriptions.push(statusBarItem);
 
     // Listen for server ready notification to update status
-    client.onNotification(SERVER_READY_NOTIFICATION, () => {
+    client.onNotification(LWC_SERVER_READY_NOTIFICATION, () => {
       statusBarItem.ready();
     });
 

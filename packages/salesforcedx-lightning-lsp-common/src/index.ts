@@ -79,7 +79,13 @@ export { PackageJson, isPackageJson } from './types/packageJson';
 export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';
 
 /**
- * Custom LSP notification sent by LWC/Aura servers when delayed initialization
+ * Custom LSP notification sent by the LWC server when delayed initialization
  * is complete and the server is ready to serve requests.
  */
-export const SERVER_READY_NOTIFICATION = 'custom/serverReady';
+export const LWC_SERVER_READY_NOTIFICATION = 'custom/lwcServerReady';
+
+/**
+ * Custom LSP notification sent by the Aura server when delayed initialization
+ * is complete and the server is ready to serve requests.
+ */
+export const AURA_SERVER_READY_NOTIFICATION = 'custom/auraServerReady';

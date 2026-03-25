@@ -11,7 +11,7 @@ import {
   normalizePath,
   NormalizedPath,
   WorkspaceType,
-  SERVER_READY_NOTIFICATION,
+  AURA_SERVER_READY_NOTIFICATION,
   LspFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
@@ -530,7 +530,7 @@ export default class Server {
     }
 
     // send notification that delayed initialization is complete
-    void this.connection.sendNotification(SERVER_READY_NOTIFICATION);
+    void this.connection.sendNotification(AURA_SERVER_READY_NOTIFICATION);
   }
 
   public listen(): void {
