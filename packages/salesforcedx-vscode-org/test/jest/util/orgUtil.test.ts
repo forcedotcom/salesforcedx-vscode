@@ -348,7 +348,7 @@ describe('testing setTargetOrgOrAlias', () => {
     mockConfigAggregatorProvider = jest
       .spyOn(ConfigAggregatorProvider, 'getInstance')
       .mockReturnValue(mockConfigAggregatorProviderInstance as any);
-    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstance');
+    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
   });
 
   it('should set provided username or alias as default configs', async () => {
@@ -362,7 +362,7 @@ describe('testing setTargetOrgOrAlias', () => {
   it('should change the current working directory to the original working directory', async () => {
     const username = 'vscodeO';
     await setTargetOrgOrAlias(username);
-    expect(workspacePathStub).toHaveBeenCalledTimes(2);
+    expect(workspacePathStub).toHaveBeenCalledTimes(1);
     expect(chdirStub).toHaveBeenCalledTimes(2);
     expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
     expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);

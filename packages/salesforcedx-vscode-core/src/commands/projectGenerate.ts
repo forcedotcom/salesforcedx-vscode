@@ -80,7 +80,7 @@ type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x' | 'nativemobile';
+export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x' | 'nativemobile' | 'agent';
 
 class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
   private readonly initialTemplate?: ProjectTemplate;
@@ -101,10 +101,14 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         'project_generate_analytics_template'
       ),
       new ProjectTemplateItem(
+        'project_generate_react_b2x_template_display_text',
+        'project_generate_react_b2x_template'
+      ),
+      new ProjectTemplateItem(
         'project_generate_react_b2e_template_display_text',
         'project_generate_react_b2e_template'
       ),
-      new ProjectTemplateItem('project_generate_react_b2x_template_display_text', 'project_generate_react_b2x_template')
+      new ProjectTemplateItem('project_generate_agent_template_display_text', 'project_generate_agent_template')
     ];
 
     const selection = await vscode.window.showQuickPick(items);
@@ -124,6 +128,9 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         break;
       case nls.localize('project_generate_react_b2x_template_display_text'):
         projectTemplate = 'reactb2x';
+        break;
+      case nls.localize('project_generate_agent_template_display_text'):
+        projectTemplate = 'agent';
         break;
       default:
         break;
@@ -200,7 +207,7 @@ const workspaceChecker = new EmptyPreChecker();
 const pathExistsChecker = new PathExistsChecker();
 
 /** Optional args when invoking Create Project; when provided, the corresponding prompt is skipped. */
-export type ProjectGenerateArgs = {
+type ProjectGenerateArgs = {
   projectTemplate?: ProjectTemplate;
   projectName?: string;
   projectUri?: string;
@@ -226,6 +233,10 @@ export const sfProjectGenerate = async (args?: ProjectGenerateArgs): Promise<voi
 
 export const nativemobileProjectGenerate = async (): Promise<void> => {
   await sfProjectGenerate({ projectTemplate: 'nativemobile' });
+};
+
+export const agentProjectGenerate = async (): Promise<void> => {
+  await sfProjectGenerate({ projectTemplate: 'agent' });
 };
 
 export const projectGenerateWithManifest = async (args?: ProjectGenerateArgs): Promise<void> => {

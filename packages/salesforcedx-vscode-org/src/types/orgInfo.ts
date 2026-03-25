@@ -18,7 +18,7 @@ export type OrgInfo = {
   instanceUrl: string;
   clientId: string;
   apiVersion: string;
-  alias: string;
+  aliases: string[];
   connectionStatus: string;
   password?: string;
   namespace?: string;

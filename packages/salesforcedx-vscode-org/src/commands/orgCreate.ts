@@ -28,9 +28,9 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { FileSelector, FileSelection } from '../parameterGatherers/fileSelector';
 import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreateResultParser';
-import { CompositePreconditionChecker } from '../preconditionCheckers/compositePreconditionChecker';
-import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
+import { checkDevHubConfigured } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
+import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
@@ -80,6 +80,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
           // Set workspace org type to source-tracked for newly created scratch orgs
           // Scratch orgs are always source-tracked, so set the context to true
           await vscode.commands.executeCommand('setContext', 'sf:target_org_has_change_tracking', true);
+          await updateConfigAndStateAggregators();
         } else {
           // remove when we drop CLI invocations
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -149,8 +150,10 @@ type Alias = {
 
 type AliasAndFileSelection = Alias & FileSelection;
 
-export const orgCreate = (): void => {
-  const preconditionChecker = new CompositePreconditionChecker(sfProjectPreconditionChecker, new DevUsernameChecker());
+export const orgCreate = async (): Promise<void> => {
+  if (!(await checkDevHubConfigured())) {
+    return;
+  }
   const parameterGatherer = new CompositeParametersGatherer(
     new FileSelector(
       nls.localize('parameter_gatherer_enter_scratch_org_def_files'),
@@ -159,6 +162,6 @@ export const orgCreate = (): void => {
     ),
     new AliasGatherer()
   );
-  const commandlet = new SfCommandlet(preconditionChecker, parameterGatherer, new OrgCreateExecutor());
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, new OrgCreateExecutor());
   void commandlet.run();
 };

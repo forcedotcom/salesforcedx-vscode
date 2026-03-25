@@ -8,8 +8,10 @@
 import { test } from '../fixtures';
 import {
   setupConsoleMonitoring,
+  createApexClass,
   editOpenFile,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   clearOutputChannel,
   waitForOutputChannelText,
   validateNoCriticalErrors,
@@ -17,7 +19,6 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
-import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
 test('Push and Pull: push, pull, and view changes', async ({ page }) => {
@@ -33,6 +34,7 @@ test('Push and Pull: push, pull, and view changes', async ({ page }) => {
 
   await test.step('view all changes (empty)', async () => {
     await clearOutputChannel(page);
+    await verifyCommandExists(page, packageNls.view_all_changes_text, 120_000);
     await executeCommandWithCommandPalette(page, packageNls.view_all_changes_text);
     await waitForOutputChannelText(page, {
       expectedText: SOURCE_STATUS_HEADER,
@@ -52,7 +54,7 @@ test('Push and Pull: push, pull, and view changes', async ({ page }) => {
   });
 
   await test.step('create apex class', async () => {
-    await createApexClassCore(page, className);
+    await createApexClass(page, className);
     await saveScreenshot(page, 'class-created.png');
   });
 

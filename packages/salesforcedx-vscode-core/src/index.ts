@@ -28,7 +28,6 @@ import { channelService } from './channels';
 import {
   aliasListCommand,
   analyticsGenerateTemplate,
-  apexGenerateClass,
   apexGenerateTrigger,
   configList,
   deleteSource,
@@ -44,6 +43,7 @@ import {
   lightningGenerateAuraComponent,
   lightningGenerateEvent,
   lightningGenerateInterface,
+  agentProjectGenerate,
   nativemobileProjectGenerate,
   openDocumentation,
   packageInstall,
@@ -96,7 +96,6 @@ const registerSharedCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
     vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
     vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
-    vscode.commands.registerCommand('sf.apex.generate.class', apexGenerateClass),
     vscode.commands.registerCommand('sf.delete.source', deleteSource),
     vscode.commands.registerCommand('sf.delete.source.current.file', deleteSource),
     vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
@@ -130,6 +129,7 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.lightning.generate.interface', lightningGenerateInterface),
     vscode.commands.registerCommand('sf.config.list', configList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
+    vscode.commands.registerCommand('sf.agent.generate.project', agentProjectGenerate),
     vscode.commands.registerCommand('sf.nativemobile.generate.project', nativemobileProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
@@ -263,11 +263,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     CommandEventDispatcher.getInstance()
   );
 
-  if (
-    metadataExtension &&
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
+  if (metadataExtension && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
     // Refresh SObject definitions if there aren't any faux classes (metadata ext registers the command)
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)

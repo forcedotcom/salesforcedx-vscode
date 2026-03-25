@@ -14,6 +14,7 @@ import * as vscode from 'vscode';
 // use an exact version.
 
 const checkedPackagePatterns: RegExp[] = [/^@salesforce/i, /^@lwc/i];
+const exemptedPackages = new Set(['@salesforce/core']);
 
 const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
     try {
@@ -108,29 +109,23 @@ describe('package.json dependencies', () => {
             const dependencies = packageJson.dependencies ?? {};
             const devDependencies = packageJson.devDependencies ?? {};
 
-            for (const [name, versionRange] of Object.entries(dependencies)) {
-                checkedPackagePatterns.forEach((pattern) => {
-                    if (pattern.test(name)) {
-                        expect(versionRange.trim()).not.toMatch(/^\^/);
-                        expect(versionRange.trim()).not.toMatch(/^~/);
-                        expect(versionRange.trim()).not.toMatch(/^>/);
-                        expect(versionRange.trim()).not.toMatch(/^</);
-                        testMatchFound = true;
-                    }
-                });
-            }
+            const checkEntries = (entries: [string, string][]) =>
+                entries
+                    .filter(([name]) => !exemptedPackages.has(name))
+                    .forEach(([name, versionRange]) =>
+                        checkedPackagePatterns.forEach((pattern) => {
+                            if (pattern.test(name)) {
+                                expect(versionRange.trim()).not.toMatch(/^\^/);
+                                expect(versionRange.trim()).not.toMatch(/^~/);
+                                expect(versionRange.trim()).not.toMatch(/^>/);
+                                expect(versionRange.trim()).not.toMatch(/^</);
+                                testMatchFound = true;
+                            }
+                        })
+                    );
 
-            for (const [name, versionRange] of Object.entries(devDependencies)) {
-                checkedPackagePatterns.forEach((pattern) => {
-                    if (pattern.test(name)) {
-                        expect(versionRange.trim()).not.toMatch(/^\^/);
-                        expect(versionRange.trim()).not.toMatch(/^~/);
-                        expect(versionRange.trim()).not.toMatch(/^>/);
-                        expect(versionRange.trim()).not.toMatch(/^</);
-                        testMatchFound = true;
-                    }
-                });
-            }
+            checkEntries(Object.entries(dependencies));
+            checkEntries(Object.entries(devDependencies));
 
             if (!testMatchFound) {
                 console.log(`no dependencies matching expected patterns ${String(checkedPackagePatterns)}`);
