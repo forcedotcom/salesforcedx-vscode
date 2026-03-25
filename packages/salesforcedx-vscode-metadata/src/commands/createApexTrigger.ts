@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { getApiVersion, promptForApexTypeName } from '../templates-shared/sfTemplateProjectHelpers';
+import { promptForApexTypeName } from '../templates-shared/sfTemplateProjectHelpers';
 
 /** outputDirParam: explorer context (right-click triggers folder) */
 export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(function* (outputDirParam?: URI) {
@@ -32,8 +32,6 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
       pickerPlaceHolder: nls.localize('apex_trigger_output_dir_prompt')
     }));
 
-  const apiVersion = yield* getApiVersion(project);
-
   const triggerUri = Utils.joinPath(outputDirUri, `${triggerName}.trigger`);
   const metaUri = Utils.joinPath(outputDirUri, `${triggerName}.trigger-meta.xml`);
 
@@ -49,8 +47,7 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
       triggername: triggerName,
       triggerevents: ['before insert'],
       sobject: 'SOBJECT',
-      template: 'ApexTrigger',
-      apiversion: apiVersion
+      template: 'ApexTrigger'
     }
   });
 

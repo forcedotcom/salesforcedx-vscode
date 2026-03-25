@@ -7,6 +7,7 @@
 
 import * as SfTemplates from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 
 // eslint-disable-next-line no-restricted-imports -- memfs polyfill on web; @salesforce/templates expects fs path
@@ -15,6 +16,8 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
 import { uriToPath } from '../vscode/paths';
+import { ConnectionService } from './connectionService';
+import { ProjectService } from './projectService';
 
 /** Re-export for consumers that don't depend on @salesforce/templates */
 export { TemplateType, type CreateOutput } from '@salesforce/templates';
@@ -62,10 +65,18 @@ export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<Templ
   { message: Schema.String }
 ) {}
 
-export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()('TemplatesManifestLoadError', {
-  message: Schema.String,
-  cause: Schema.optional(Schema.Unknown)
-}) {}
+export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()(
+  'TemplatesManifestLoadError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.Unknown)
+  }
+) {}
+
+class MissingProjectSourceApiVersionError extends Schema.TaggedError<MissingProjectSourceApiVersionError>()(
+  'MissingProjectSourceApiVersionError',
+  { message: Schema.String }
+) {}
 
 const TemplateManifestSchema = Schema.parseJson(Schema.Array(Schema.String));
 
@@ -117,12 +128,32 @@ const ensureTemplatesInFs = (rootUri: URI, rootFsPath: string) =>
     }
   });
 
+const getApiVersionFromProject = Effect.fn('TemplateService.getApiVersionFromProject')(function* () {
+  const project = yield* ProjectService.getSfProject();
+  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
+  const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
+  return yield* Effect.fromNullable(sourceApiVersion).pipe(
+    Effect.map(String),
+    Effect.orElseFail(() => new MissingProjectSourceApiVersionError({ message: 'sourceApiVersion is not defined' }))
+  );
+});
+
+const getApiVersionFromConnection = Effect.fn('TemplateService.getApiVersionFromConnection')(function* () {
+  const connection = yield* (yield* ConnectionService).getConnection();
+  return connection.version;
+});
+
+const resolveApiVersion = Effect.fn('TemplateService.resolveApiVersion')(function* () {
+  return yield* getApiVersionFromProject().pipe(Effect.orElse(() => getApiVersionFromConnection()));
+});
+
 /**
  * Service that wraps @salesforce/templates TemplateService for creating templates.
  * Lives in services extension which has @salesforce/core and @salesforce/templates.
  */
 export class TemplateService extends Effect.Service<TemplateService>()('TemplateService', {
   accessors: true,
+  dependencies: [ProjectService.Default, ConnectionService.Default],
   effect: Effect.gen(function* () {
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
       const extensionUri = yield* getExtensionUri();
@@ -135,12 +166,17 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
         templatesRootPath,
         fs: nodeFs
       });
+      const resolvedApiVersion = Option.fromNullable(params.options.apiversion ?? (yield* resolveApiVersion()));
+      const optionsWithApiVersion = Option.match(resolvedApiVersion, {
+        onNone: () => params.options,
+        onSome: apiversion => ({ ...params.options, apiversion })
+      });
       const templateOptions = params.outputdir
         ? {
-            ...params.options,
+            ...optionsWithApiVersion,
             outputdir: path.relative(params.cwd, uriToPath(params.outputdir))
           }
-        : params.options;
+        : optionsWithApiVersion;
       return yield* Effect.tryPromise(() => templateService.create(params.templateType, templateOptions));
     });
     return { create };

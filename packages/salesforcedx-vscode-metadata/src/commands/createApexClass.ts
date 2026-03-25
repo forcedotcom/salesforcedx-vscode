@@ -11,7 +11,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { getApiVersion, promptForApexTypeName } from '../templates-shared/sfTemplateProjectHelpers';
+import { promptForApexTypeName } from '../templates-shared/sfTemplateProjectHelpers';
 
 const ApexClassTemplate = Schema.Literal('DefaultApexClass', 'ApexException', 'InboundEmailService');
 type ApexClassTemplate = Schema.Schema.Type<typeof ApexClassTemplate>;
@@ -81,22 +81,18 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
       pickerPlaceHolder: nls.localize('apex_class_output_dir_prompt')
     }));
 
-  const apiVersion = yield* getApiVersion(project);
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   const fsService = yield* api.services.FsService;
-  const channelService = yield* api.services.ChannelService;
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
   yield* api.services.TemplateService.create({
-    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
+    cwd: yield* api.services.FsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexClass,
     outputdir: outputDirUri,
-    options: { template, classname: className, apiversion: apiVersion }
+    options: { template, classname: className }
   });
-
+  const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
-  yield* fsService.showTextDocument(uris[0]);
-
   yield* fsService.showTextDocument(uris[0]);
 
   return undefined;

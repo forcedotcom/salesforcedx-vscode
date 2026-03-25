@@ -5,31 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SfProject } from '@salesforce/core/project';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { APEX_CLASS_NAME_MAX_LENGTH } from '../constants';
 import { nls } from '../messages';
-
-const getApiVersionFromProject = Effect.fn('getApiVersion.fromProject')(function* (project: SfProject) {
-  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return String(projectJson.get<string>('sourceApiVersion'));
-});
-
-const getApiVersionFromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
-  const connectionService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ConnectionService;
-  const connection = yield* connectionService.getConnection();
-  return connection.version;
-});
-
-/** Waterfall: sfdx-project.json → connection → fallback */
-export const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) {
-  return yield* getApiVersionFromProject(project).pipe(
-    Effect.orElse(() => getApiVersionFromConnection()),
-    Effect.catchAll(() => Effect.succeed('65.0'))
-  );
-});
 
 type ApexTypeNameMessages = {
   empty: string;
