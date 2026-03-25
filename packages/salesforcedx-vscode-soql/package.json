@@ -65,6 +65,7 @@
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
@@ -103,7 +104,9 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../soql-common:compile",
+        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-services:compile"
       ],
       "files": [
@@ -114,7 +117,9 @@
         "package.json",
         "package.nls*.json",
         "../soql-common/out/**",
+        "../salesforcedx-utils-vscode/out/**",
         "../salesforcedx-vscode-i18n/out/**",
+        "../salesforcedx-utils/out/**",
         "../salesforcedx-vscode-services/out/**"
       ],
       "output": [
