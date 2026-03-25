@@ -7,8 +7,9 @@
 import type { SdkLayerConfig } from './sdkLayerConfig';
 import { AzureMonitorTraceExporter } from '@azure/monitor-opentelemetry-exporter';
 import { NodeSdk } from '@effect/opentelemetry';
+import type { ExportResult } from '@opentelemetry/core';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
+import { ConsoleSpanExporter, type ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
@@ -16,6 +17,16 @@ import { FileSpanExporterNode } from './fileSpanExporterNode';
 import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { SpanTransformProcessor } from './spanTransformProcessor';
+import { isCommandSpan, isTopLevelSpan } from './spanUtils';
+
+class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
+  public override async export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): Promise<void> {
+    return super.export(
+      spans.filter(span => isTopLevelSpan(span) || isCommandSpan(span)),
+      resultCallback
+    );
+  }
+}
 
 export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
   NodeSdk.layer(() => ({
@@ -33,7 +44,7 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
       ...(isTelemetryExtensionConfigurationEnabled()
         ? [
             new SpanTransformProcessor(
-              new AzureMonitorTraceExporter({
+              new FilteredAzureMonitorTraceExporter({
                 connectionString: DEFAULT_AI_CONNECTION_STRING,
                 storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
               }),

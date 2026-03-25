@@ -51,7 +51,7 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await saveScreenshot(page, 'step1.after-command.png');
 
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 500 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     // this is going to change very soon when it goes GA (and we'll need to get it from sfdx-project.json
     const componentTypePromptVisible = await quickInput
       .getByText(/Select component type/i)

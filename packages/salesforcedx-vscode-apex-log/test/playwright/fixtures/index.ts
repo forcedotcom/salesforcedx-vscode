@@ -7,7 +7,7 @@
 
 import { test as webTest } from '@playwright/test';
 
-import { desktopTest } from './desktopFixtures';
+import { desktopTest, emptyWorkspaceDesktopTest } from './desktopFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
 
@@ -21,3 +21,4 @@ webTest.afterEach(async ({ page }, testInfo) => {
 });
 
 export const test = isDesktop ? desktopTest : webTest;
+export const emptyWorkspaceTest = isDesktop ? emptyWorkspaceDesktopTest : webTest;

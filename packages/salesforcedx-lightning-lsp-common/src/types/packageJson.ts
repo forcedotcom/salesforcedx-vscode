@@ -17,7 +17,9 @@ export interface PackageJson {
 }
 
 const isStringRecord = (value: unknown): value is Record<string, string> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value) &&
+  typeof value === 'object' &&
+  value !== null &&
+  !Array.isArray(value) &&
   Object.values(value).every(v => typeof v === 'string');
 
 /** Type guard – returns true when `value` conforms to the PackageJson shape. */

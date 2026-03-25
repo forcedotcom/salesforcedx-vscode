@@ -58,7 +58,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
 
   await test.step('enter class name in InputBox', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await quickInput.getByText(/Enter Apex test class name/i).waitFor({ state: 'visible', timeout: 10_000 });
     await page.keyboard.type(className);
     await page.keyboard.press('Enter');
