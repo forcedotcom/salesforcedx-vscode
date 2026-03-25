@@ -9,6 +9,7 @@ import * as SfTemplates from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 
 // eslint-disable-next-line no-restricted-imports -- memfs polyfill on web; @salesforce/templates expects fs path
 import * as nodeFs from 'node:fs';
@@ -92,41 +93,55 @@ const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
 /** Load template files from extension assets into the polyfilled fs (memfs on web).
  * Reads manifest.json (generated at build time) to get the file list, then reads each file
  * via vscode.workspace.fs (supported on HTTPS extension URIs) and writes to memfs. */
-const ensureTemplatesInFs = (rootUri: URI, rootFsPath: string) =>
-  Effect.gen(function* () {
-    if (process.env.ESBUILD_PLATFORM !== 'web') return;
-    const manifestContent = yield* Effect.tryPromise({
-      try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),
-      catch: e =>
+const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(function* (
+  rootUri: URI,
+  rootFsPath: string
+) {
+  if (process.env.ESBUILD_PLATFORM !== 'web') return;
+  const manifestContent = yield* Effect.tryPromise({
+    try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),
+    catch: e =>
+      new TemplatesManifestLoadError({
+        message: `Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (${e instanceof Error ? e.message : String(e)})`,
+        cause: e
+      })
+  });
+  const paths = yield* Schema.decodeUnknown(TemplateManifestSchema)(Buffer.from(manifestContent).toString()).pipe(
+    Effect.mapError(
+      error =>
         new TemplatesManifestLoadError({
-          message: `Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (${e instanceof Error ? e.message : String(e)})`,
-          cause: e
+          message: 'Failed to parse templates manifest from extension assets.',
+          cause: error
         })
-    });
-    const paths = yield* Schema.decodeUnknown(TemplateManifestSchema)(Buffer.from(manifestContent).toString()).pipe(
-      Effect.mapError(
-        error =>
-          new TemplatesManifestLoadError({
-            message: 'Failed to parse templates manifest from extension assets.',
-            cause: error
-          })
-      )
-    );
-    const results = yield* Effect.promise(() =>
-      Promise.allSettled(
-        paths.map(async relativePath => {
+    )
+  );
+  const failCount = yield* Stream.fromIterable(paths).pipe(
+    Stream.mapEffect(relativePath =>
+      Effect.tryPromise({
+        try: async () => {
           const dest = `${rootFsPath}/${relativePath}`;
           nodeFs.mkdirSync(dest.slice(0, dest.lastIndexOf('/')), { recursive: true });
           const content = await vscode.workspace.fs.readFile(Utils.joinPath(rootUri, relativePath));
           nodeFs.writeFileSync(dest, Buffer.from(content));
-        })
+        },
+        catch: e =>
+          new TemplatesManifestLoadError({
+            message: `Failed to copy template file "${relativePath}" to memfs. (${e instanceof Error ? e.message : String(e)})`,
+            cause: e
+          })
+      }).pipe(
+        Effect.as(0),
+        Effect.catchTag('TemplatesManifestLoadError', error =>
+          Effect.logWarning(error.message).pipe(Effect.as(1))
+        )
       )
-    );
-    const failCount = results.filter(r => r.status === 'rejected').length;
-    if (failCount > 0) {
-      yield* Effect.logWarning(`${failCount}/${paths.length} template files failed to copy to memfs`);
-    }
-  });
+    ),
+    Stream.runFold(0, (count, failed) => count + failed)
+  );
+  if (failCount > 0) {
+    yield* Effect.logWarning(`${failCount}/${paths.length} template files failed to copy to memfs`);
+  }
+});
 
 const getApiVersionFromProject = Effect.fn('TemplateService.getApiVersionFromProject')(function* () {
   const project = yield* ProjectService.getSfProject();
@@ -143,6 +158,15 @@ const getApiVersionFromConnection = Effect.fn('TemplateService.getApiVersionFrom
   return connection.version;
 });
 
+const getTemplatesRoot = Effect.fn('TemplateService.getTemplatesRoot')(function* () {
+  const extensionUri = yield* getExtensionUri();
+  const templatesRootUri = Utils.joinPath(extensionUri, 'dist', 'templates');
+  // fsPath on non-file URIs returns platform-specific path (e.g. backslashes on Windows);
+  // memfs expects forward slashes. Use uri.path for http(s) extension URIs.
+  const templatesRootPath = templatesRootUri.scheme === 'file' ? templatesRootUri.fsPath : templatesRootUri.path;
+  return { templatesRootUri, templatesRootPath } as const;
+});
+
 const resolveApiVersion = Effect.fn('TemplateService.resolveApiVersion')(function* () {
   return yield* getApiVersionFromProject().pipe(Effect.orElse(() => getApiVersionFromConnection()));
 });
@@ -155,13 +179,16 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
   accessors: true,
   dependencies: [ProjectService.Default, ConnectionService.Default],
   effect: Effect.gen(function* () {
+    const getTemplatesRootCached = yield* Effect.cached(getTemplatesRoot());
+    const ensureTemplatesInFsOnce = yield* Effect.once(
+      getTemplatesRootCached.pipe(
+        Effect.flatMap(({ templatesRootUri, templatesRootPath }) => ensureTemplatesInFs(templatesRootUri, templatesRootPath))
+      )
+    );
+
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
-      const extensionUri = yield* getExtensionUri();
-      const templatesRootUri = Utils.joinPath(extensionUri, 'dist', 'templates');
-      // fsPath on non-file URIs returns platform-specific path (e.g. backslashes on Windows);
-      // memfs expects forward slashes. Use uri.path for http(s) extension URIs.
-      const templatesRootPath = templatesRootUri.scheme === 'file' ? templatesRootUri.fsPath : templatesRootUri.path;
-      yield* ensureTemplatesInFs(templatesRootUri, templatesRootPath);
+      const { templatesRootPath } = yield* getTemplatesRootCached;
+      yield* ensureTemplatesInFsOnce;
       const templateService = SfTemplates.TemplateService.getInstance(params.cwd, {
         templatesRootPath,
         fs: nodeFs
