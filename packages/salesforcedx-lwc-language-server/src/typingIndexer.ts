@@ -45,13 +45,13 @@ export const getMetaFiles = async (indexer: TypingIndexerData): Promise<string[]
   );
 };
 
-export const getMetaTypings = async (indexer: TypingIndexerData): Promise<string[]> =>
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-  await indexer.fileSystemAccessor
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    .findFilesWithGlobAsync('*.{messageChannel,resource,asset}.d.ts', indexer.typingsBaseDir)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
-    .then(paths => paths.map(p => path.resolve(p)));
+export const getMetaTypings = async (indexer: TypingIndexerData): Promise<string[]> => {
+  const paths = await indexer.fileSystemAccessor.findFilesWithGlobAsync(
+    '*.{messageChannel,resource,asset}.d.ts',
+    indexer.typingsBaseDir
+  );
+  return paths.map(p => path.resolve(p));
+};
 
 export const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
   const newFiles = diffItems(await getMetaFiles(indexer), await getMetaTypings(indexer));

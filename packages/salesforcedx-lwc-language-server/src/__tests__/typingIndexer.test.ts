@@ -97,7 +97,9 @@ describe('TypingIndexer', () => {
       contentMap.delete(normalizePath(pathOrUri));
     });
 
-    typingIndexerData = (await initializeTypings(SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor))!;
+    const result = await initializeTypings(SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor);
+    if (!result) throw new Error('initializeTypings returned undefined for SFDX workspace');
+    typingIndexerData = result;
   });
 
   describe('new', () => {
