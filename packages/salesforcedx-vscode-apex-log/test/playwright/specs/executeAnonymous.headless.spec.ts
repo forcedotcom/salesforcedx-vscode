@@ -47,7 +47,9 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
     await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 5000 });
-    await page.keyboard.type(scriptName);
+    const quickInputText = quickInput.locator('input.input').first();
+    await quickInputText.waitFor({ state: 'visible', timeout: 5000 });
+    await quickInputText.fill(scriptName);
     await page.keyboard.press('Enter');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
