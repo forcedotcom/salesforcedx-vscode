@@ -6,7 +6,6 @@
  */
 
 export { analyticsGenerateTemplate } from './analyticsGenerateTemplate';
-export { apexGenerateClass } from './apexGenerateClass';
 export { apexGenerateTrigger } from './apexGenerateTrigger';
 export { internalLightningGenerateApp, lightningGenerateApp } from './lightningGenerateApp';
 export {
@@ -15,6 +14,6 @@ export {
 } from './lightningGenerateAuraComponent';
 export { internalLightningGenerateEvent, lightningGenerateEvent } from './lightningGenerateEvent';
 export { internalLightningGenerateInterface, lightningGenerateInterface } from './lightningGenerateInterface';
-export { internalLightningGenerateLwc, lightningGenerateLwc } from './lightningGenerateLwc';
+export { internalLightningGenerateLwc } from './lightningGenerateLwc';
 export { visualforceGenerateComponent } from './visualforceGenerateComponent';
 export { visualforceGeneratePage } from './visualforceGeneratePage';
