@@ -98,8 +98,13 @@ test.describe.serial('Settings', () => {
       await page.keyboard.press('Backspace');
       await page.keyboard.type(settingKey);
 
-      const searchResultId = `searchResultModel_${settingKey.replaceAll('.', '_')}`;
-      const row = page.locator(`[data-id="${searchResultId}"]`).last();
+      const allDotsId = `searchResultModel_${settingKey.replaceAll('.', '_')}`;
+      const firstDotId = `searchResultModel_${settingKey.replace('.', '_')}`;
+      const dataIdSelector =
+        allDotsId === firstDotId
+          ? `[data-id="${allDotsId}"]`
+          : `[data-id="${allDotsId}"], [data-id="${firstDotId}"]`;
+      const row = page.locator(dataIdSelector).last();
       await row.waitFor({ state: 'visible', timeout: 15_000 });
       const minimapCheckbox = row.getByRole('checkbox').first();
       await expect(minimapCheckbox).not.toBeChecked();
