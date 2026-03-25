@@ -8,6 +8,7 @@
 import { test } from '../fixtures';
 import {
   setupConsoleMonitoring,
+  createApexClass,
   executeCommandWithCommandPalette,
   clearOutputChannel,
   waitForOutputChannelText,
@@ -19,7 +20,6 @@ import {
 import { expect } from '@playwright/test';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
-import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
 test('Deploy On Save: automatically deploys when file is saved', async ({ page }) => {
@@ -42,7 +42,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     await clearOutputChannel(page);
 
     // Create the apex class
-    await createApexClassCore(page, className);
+    await createApexClass(page, className);
     await saveScreenshot(page, 'setup.class-created.png');
 
     // Save the file - this will trigger deploy-on-save (DeployQueue has 500ms delay + deploy time)

@@ -32,10 +32,6 @@ export type MetadataTypeParameter = {
   type: string;
 };
 
-type ApexTestTemplateParameter = {
-  template: string;
-};
-
 export class FilePathGatherer implements ParametersGatherer<string> {
   private filePath: string;
   constructor(uri: URI) {
@@ -129,7 +125,7 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
   }
 }
 
-export class SimpleGatherer<T> implements ParametersGatherer<T> {
+class SimpleGatherer<T> implements ParametersGatherer<T> {
   private input: T;
 
   constructor(input: T) {
@@ -147,12 +143,6 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
 export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
   constructor(metadataType: string) {
     super({ type: metadataType });
-  }
-}
-
-export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplateParameter> {
-  constructor(template: string) {
-    super({ template });
   }
 }
 

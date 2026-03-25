@@ -19,7 +19,8 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -85,6 +86,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
   });
 
   await test.step('verify single-class test execution output', async () => {
+    await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');
@@ -94,6 +96,10 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForOutputChannelText(page, { expectedText: testClassName });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
     await saveScreenshot(page, 'step.run-single.done.png');
+  });
+
+  await test.step('clear output before running all tests', async () => {
+    await clearOutputChannel(page);
   });
 
   await test.step('run all Apex tests via command palette', async () => {
@@ -108,6 +114,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
   });
 
   await test.step('verify run-all test execution output', async () => {
+    await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');

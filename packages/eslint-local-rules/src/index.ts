@@ -15,7 +15,9 @@ import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
+import { noVscodeQuickpickDescriptionLiterals } from './noVscodeQuickpickDescriptionLiterals';
 import { noVscodeUri } from './noVscodeUri';
+import { noVscodeValidateInputLiterals } from './noVscodeValidateInputLiterals';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
 import { packageJsonExtensionIcon } from './packageJsonExtensionIcon';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
@@ -35,8 +37,10 @@ const plugin = {
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'no-vscode-message-literals': noVscodeMessageLiterals,
-    'no-vscode-uri': noVscodeUri,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
+    'no-vscode-quickpick-description-literals': noVscodeQuickpickDescriptionLiterals,
+    'no-vscode-uri': noVscodeUri,
+    'no-vscode-validateinput-literals': noVscodeValidateInputLiterals,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,
     'package-json-extension-icon': packageJsonExtensionIcon,
     'package-json-icon-paths': packageJsonIconPaths,

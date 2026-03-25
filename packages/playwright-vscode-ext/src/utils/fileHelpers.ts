@@ -78,16 +78,18 @@ export const createApexClass = async (page: Page, className: string, content?: s
 
   await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
 
-  // First prompt: "Enter Apex class name"
-  // Wait for widget to appear first (command palette closes, new prompt opens)
-  // Then wait for text to render (CI can be slower)
+  // First prompt: Quick Pick to select template - press Enter to accept default (DefaultApexClass)
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+  await page.keyboard.press('Enter');
+
+  // Second prompt: "Enter Apex class name"
   await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
   await page.keyboard.type(className);
   await page.keyboard.press('Enter');
 
-  // Second prompt: Quick Pick to select output directory - just press Enter to accept default
+  // Third prompt: Quick Pick to select output directory - just press Enter to accept default
   await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
   await page.keyboard.press('Enter');
 

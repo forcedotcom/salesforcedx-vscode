@@ -62,11 +62,18 @@ export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<Templ
   { message: Schema.String }
 ) {}
 
+export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()('TemplatesManifestLoadError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
+
+const TemplateManifestSchema = Schema.parseJson(Schema.Array(Schema.String));
+
 const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
   const ext = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
   const extensionUri = ext?.extensionUri;
   if (!extensionUri) {
-    return yield* Effect.fail(new TemplatesRootPathNotAvailableError({ message: 'Extension context not available' }));
+    return yield* new TemplatesRootPathNotAvailableError({ message: 'Extension context not available' });
   }
   return extensionUri;
 });
@@ -80,11 +87,20 @@ const ensureTemplatesInFs = (rootUri: URI, rootFsPath: string) =>
     const manifestContent = yield* Effect.tryPromise({
       try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),
       catch: e =>
-        new Error(
-          `Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (${e instanceof Error ? e.message : String(e)})`
-        )
+        new TemplatesManifestLoadError({
+          message: `Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (${e instanceof Error ? e.message : String(e)})`,
+          cause: e
+        })
     });
-    const paths: readonly string[] = JSON.parse(Buffer.from(manifestContent).toString());
+    const paths = yield* Schema.decodeUnknown(TemplateManifestSchema)(Buffer.from(manifestContent).toString()).pipe(
+      Effect.mapError(
+        error =>
+          new TemplatesManifestLoadError({
+            message: 'Failed to parse templates manifest from extension assets.',
+            cause: error
+          })
+      )
+    );
     const results = yield* Effect.promise(() =>
       Promise.allSettled(
         paths.map(async relativePath => {
@@ -113,8 +129,7 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       const templatesRootUri = Utils.joinPath(extensionUri, 'dist', 'templates');
       // fsPath on non-file URIs returns platform-specific path (e.g. backslashes on Windows);
       // memfs expects forward slashes. Use uri.path for http(s) extension URIs.
-      const templatesRootPath =
-        templatesRootUri.scheme === 'file' ? templatesRootUri.fsPath : templatesRootUri.path;
+      const templatesRootPath = templatesRootUri.scheme === 'file' ? templatesRootUri.fsPath : templatesRootUri.path;
       yield* ensureTemplatesInFs(templatesRootUri, templatesRootPath);
       const templateService = SfTemplates.TemplateService.getInstance(params.cwd, {
         templatesRootPath,

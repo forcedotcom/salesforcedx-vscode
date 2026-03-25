@@ -55,6 +55,9 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 5000 });
     await page.keyboard.type(scriptName);
     await page.keyboard.press('Enter');
+    // Wait for directory QuickPick list rows (InputBox has none; QuickPick has 2 options)
+    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
+    await page.keyboard.press('Enter');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await editor.click();

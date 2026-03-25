@@ -207,7 +207,7 @@ const workspaceChecker = new EmptyPreChecker();
 const pathExistsChecker = new PathExistsChecker();
 
 /** Optional args when invoking Create Project; when provided, the corresponding prompt is skipped. */
-export type ProjectGenerateArgs = {
+type ProjectGenerateArgs = {
   projectTemplate?: ProjectTemplate;
   projectName?: string;
   projectUri?: string;

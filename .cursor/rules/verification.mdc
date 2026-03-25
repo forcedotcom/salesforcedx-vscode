@@ -3,7 +3,7 @@ description: Run verification after code changes
 alwaysApply: true
 ---
 
-After making code changes, follow the verification checklist in .claude/skills/verification/SKILL.md: compile, lint, effect LS, test, vscode:bundle, knip, check:dupes.
+After making code changes, follow the verification checklist in .claude/skills/verification/SKILL.md: compile, lint, test, bundle, knip, check:dupes. On compile failure, use `.claude/skills/verification/references/compile.md` (TS4023 / TS1261 skills).
 
 Delegate to the verifier subagent (@.cursor/agents/verifier.md) to confirm verification passes. The verifier runs compile, lint, effect LS, test, vscode:bundle, knip and reports pass/fail; do not fix in the verifier — parent fixes.
 

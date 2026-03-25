@@ -7,34 +7,35 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { parse } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 const DEFAULT_MANIFEST = 'package.xml';
 
-const appendExtension = (input: string): string => parse(input).name?.concat('.xml') ?? `${input}.xml`;
+const toManifestBaseName = (input: string): string => input.trim().replace(/\.xml$/i, '');
 
-const promptForFileName = () =>
-  Effect.promise(async () => {
-    const inputOptions: vscode.InputBoxOptions = {
-      placeHolder: nls.localize('manifest_input_save_placeholder'),
-      prompt: nls.localize('manifest_input_save_prompt'),
-      value: DEFAULT_MANIFEST
-    };
-    return await vscode.window.showInputBox(inputOptions);
-  }).pipe(Effect.map(s => (s ? appendExtension(s) : undefined)));
+const appendExtension = (input: string): string => `${toManifestBaseName(input)}.xml`;
 
-const promptForOverwrite = (fileName: string) =>
-  Effect.promise(() =>
-    vscode.window.showWarningMessage(
-      nls.localize('manifest_overwrite_confirmation', fileName),
-      { modal: true },
-      nls.localize('overwrite_button'),
-      nls.localize('cancel_button')
-    )
+const promptForFileName = Effect.fn('promptForFileName')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const inputOptions: vscode.InputBoxOptions = {
+    placeHolder: nls.localize('manifest_input_save_placeholder'),
+    prompt: nls.localize('manifest_input_save_prompt'),
+    value: DEFAULT_MANIFEST,
+    validateInput: (value: string) => {
+      const baseName = toManifestBaseName(value);
+      if (!baseName) return nls.localize('manifest_file_name_empty_error');
+      if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(baseName)) return nls.localize('manifest_file_name_format_error');
+      return undefined;
+    }
+  };
+  return yield* Effect.promise(() => vscode.window.showInputBox(inputOptions)).pipe(
+    Effect.map(s => (s ? appendExtension(s) : undefined)),
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
+});
 
 const generateManifestFromUris = (uris: URI[]) =>
   Effect.gen(function* () {
@@ -49,19 +50,11 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
     const fsService = yield* api.services.FsService;
+    const promptService = yield* api.services.PromptService;
     // Build manifest directory path
     const manifestFileUri = Utils.joinPath(workspacePath, 'manifest', fileName);
 
-    const shouldWrite =
-      // doesn't exist
-      !(yield* fsService.fileOrFolderExists(manifestFileUri)) ||
-      // exists and user wants to overwrite
-      (yield* promptForOverwrite(fileName)) === nls.localize('overwrite_button');
-
-    if (!shouldWrite) {
-      yield* channelService.appendToChannel('Manifest generation cancelled by user');
-      return;
-    }
+    yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [manifestFileUri] });
 
     yield* api.services.FsService.safeWriteFile(manifestFileUri, packageXML);
     yield* channelService.appendToChannel(`Manifest file created: ${manifestFileUri.toString()}`);
@@ -103,11 +96,6 @@ export const generateManifestCommand = Effect.fn('generateManifest')(function* (
   const [fileName, packageXML] = yield* Effect.all([promptForFileName(), generateManifestFromUris(resolvedUris)], {
     concurrency: 'unbounded'
   });
-
-  // If user cancelled the input (pressed Escape), don't proceed
-  if (fileName === undefined) {
-    return;
-  }
 
   // Save the manifest file
   yield* saveManifestFile(workspaceInfo.uri, fileName, packageXML);

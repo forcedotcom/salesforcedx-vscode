@@ -14,6 +14,7 @@ import {
   expectProblemsCountAtLeast,
   EDITOR_WITH_URI,
   NOTIFICATION_LIST_ITEM,
+  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
@@ -50,6 +51,9 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     const quickInputText = quickInput.locator('input.input').first();
     await quickInputText.waitFor({ state: 'visible', timeout: 5000 });
     await quickInputText.fill(scriptName);
+    await page.keyboard.press('Enter');
+    // Wait for directory QuickPick list rows (InputBox has none; QuickPick has 2 options)
+    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
     await page.keyboard.press('Enter');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });

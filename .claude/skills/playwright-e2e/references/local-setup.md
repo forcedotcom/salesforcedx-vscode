@@ -24,7 +24,7 @@ Prereq: authenticated Dev Hub (`sf org login web --set-default-dev-hub` or simil
 ```bash
 mkdir -p /tmp/minimal-project/force-app
 echo '{"packageDirectories":[{"path":"force-app","default":true}],"namespace":"","sfdcLoginUrl":"https://login.salesforce.com","sourceApiVersion":"64.0"}' > /tmp/minimal-project/sfdx-project.json
-cd /tmp/minimal-project && sf org create scratch -d -w 10 -a minimalTestOrg --wait 30 --json
+cd /tmp/minimal-project && sf org create scratch -d -w 10 -a minimalTestOrg --edition developer --json
 ```
 
 ## Non-tracking
@@ -36,7 +36,7 @@ cd /tmp/minimal-project && sf org create scratch -d -w 10 -a minimalTestOrg --wa
 ```bash
 mkdir -p /tmp/non-tracking-project/force-app
 echo '{"packageDirectories":[{"path":"force-app","default":true}],"namespace":"","sfdcLoginUrl":"https://login.salesforce.com","sourceApiVersion":"64.0"}' > /tmp/non-tracking-project/sfdx-project.json
-cd /tmp/non-tracking-project && sf org create scratch -d -w 10 -a nonTrackingTestOrg --wait 30 --no-track-source --json
+cd /tmp/non-tracking-project && sf org create scratch -d -w 10 -a nonTrackingTestOrg --edition developer --no-track-source --json
 ```
 
 **Note:** Non-tracking test skips on web locally — requires Dev Hub aliased as `hub`. Desktop and CI work.

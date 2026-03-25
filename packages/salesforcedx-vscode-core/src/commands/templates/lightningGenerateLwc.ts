@@ -5,20 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DirFileNameSelection, LocalComponent } from '../../util/types';
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import type { DirFileNameSelection } from '../../util/types';
 import { CompositeParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
-import { CompositePostconditionChecker, MetadataTypeGatherer, SelectFileName, SelectOutputDir } from '../util';
-import { LwcAuraDuplicateComponentCheckerForCreate } from '../util/lwcAuraDuplicateComponentCheckers';
-import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
-import { SelectLwcComponentType } from '../util/parameterGatherers';
+import { SelectFileName } from '../util';
 import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './internalCommandUtils';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
+import { LWC_TYPE } from './metadataTypeConstants';
 
 class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_lwc_text');
@@ -48,22 +44,6 @@ class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<Dir
     return this.templateOptions?.template === 'typeScript' ? '.ts' : '.js';
   }
 }
-
-export const lightningGenerateLwc = (): void => {
-  const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new CompositeParametersGatherer<LocalComponent>(
-      new MetadataTypeGatherer(LWC_TYPE),
-      new SelectLwcComponentType(),
-      new SelectFileName(),
-      new SelectOutputDir(LWC_DIRECTORY, true)
-    ),
-    createTemplateExecutor,
-    new CompositePostconditionChecker(new LwcAuraDuplicateComponentCheckerForCreate(), new OverwriteComponentPrompt())
-  );
-  void commandlet.run();
-};
 
 export const internalLightningGenerateLwc = (sourceUri: Uri): void => {
   const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();

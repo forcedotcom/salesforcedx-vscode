@@ -1,0 +1,6 @@
+---
+description: Wireit build system usage and authoring
+alwaysApply: true
+---
+
+When working with wireit — answering questions, authoring scripts, or editing `package.json` — read `.claude/skills/wireit/SKILL.md` first.

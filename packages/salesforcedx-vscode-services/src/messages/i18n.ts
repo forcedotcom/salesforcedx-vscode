@@ -30,7 +30,11 @@ export const messages = {
   icon_org_type_org: 'Production',
   icon_add: 'Run Command',
   icon_browser: 'Open Org in Browser',
-  icon_warning: 'Expired'
+  icon_warning: 'Expired',
+  metadata_overwrite_confirmation: '"%s" already exists. Do you want to overwrite it?',
+  overwrite_button: 'Overwrite',
+  choose_different_folder: 'Choose a different folder...',
+  select_folder: 'Select'
 } as const;
 
 export type MessageKey = keyof typeof messages;

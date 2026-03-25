@@ -9,6 +9,7 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
+  createApexClass,
   executeCommandWithCommandPalette,
   verifyCommandExists,
   executeEditorContextMenuCommand,
@@ -23,7 +24,6 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
-import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
 test('Delete: delete from project and org via command palette and context menus', async ({ page }) => {
@@ -35,7 +35,7 @@ test('Delete: delete from project and org via command palette and context menus'
     await setupWorkbenchSettingsAndOutputChannel(page);
 
     // Create the apex class under test
-    await createApexClassCore(page, className);
+    await createApexClass(page, className);
     await saveScreenshot(page, 'setup.class-created.png');
 
     // Wait for extension to fully activate (context keys like sf:has_target_org)
@@ -76,8 +76,8 @@ test('Delete: delete from project and org via command palette and context menus'
 
   if (!isMacDesktop()) {
     await test.step('create classes for context menu delete tests', async () => {
-      await createApexClassCore(page, `${className}Del1`);
-      await createApexClassCore(page, `${className}Del2`);
+      await createApexClass(page, `${className}Del1`);
+      await createApexClass(page, `${className}Del2`);
 
       // Push both to org
       await clearOutputChannel(page);

@@ -15,8 +15,8 @@ import {
 import { join } from 'node:path';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { ContinueOrCancel, isContinue, MetadataDictionary, OneOrMany } from '../../util';
-
+import { ContinueOrCancel, isContinue, OneOrMany } from '../../util';
+import { MetadataDictionary } from '../../util/metadataDictionary';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 /** Get file extensions for a component including metadata and any additional extensions */
