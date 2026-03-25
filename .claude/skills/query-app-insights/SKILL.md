@@ -26,10 +26,11 @@ Query Azure Application Insights telemetry to answer questions about command usa
 ## Key Points
 
 - Telemetry uses **executor names**, not command IDs
-- Event pattern: ends with `/commandExecution`
-- Table: `customEvents`
-- Properties: `customDimensions.commandName` (executor name), `customDimensions.extensionName`
-- Measurements: `customMeasurements.executionTime` (ms)
+- Event pattern: ends with `/commandExecution` (Legacy/v2) or stored in `dependencies` table (OTEL/v3)
+- Tables: `customEvents` (Legacy), `dependencies` (OTEL Spans), `requests` (Root Spans)
+- OTEL Properties: `name` (Span name), `cloud_RoleName` (Extension name), `operation_Id` (Trace ID), `operation_ParentId` (Parent Span ID)
+- OTEL Root Filter: `where operation_ParentId == operation_Id` (Finds top-level spans in v3)
+- Measurements: `customMeasurements.executionTime` (ms for Legacy) or `duration` (ms for OTEL)
 
 ## References
 
