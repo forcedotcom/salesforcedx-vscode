@@ -121,8 +121,8 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
 
     // Deterministic locator: target the element that actually contains the `data-id` attribute
-    // VS Code only replaces the FIRST dot with underscore in data-id
-    // e.g., "salesforcedx-vscode-metadata.deployOnSave.enabled" -> "searchResultModel_salesforcedx-vscode-metadata_deployOnSave.enabled"
+    // VS Code replaces all dots with underscores in data-id
+    // e.g., "salesforcedx-vscode-metadata.deployOnSave.enabled" -> "searchResultModel_salesforcedx-vscode-metadata_deployOnSave_enabled"
     // Use .last() when duplicates exist (User + Workspace): we're on Workspace tab, so Workspace row is last
     const searchResultId = `searchResultModel_${id.replaceAll('.', '_')}`;
     const row = page.locator(`[data-id="${searchResultId}"]`).last();
