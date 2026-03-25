@@ -12,15 +12,10 @@ import {
   NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
-import { Connection } from 'vscode-languageserver';
-import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
+import { getSfdxPackageDirsPattern } from './baseIndexer';
 import { fromMeta, declarationsFromCustomLabels, getDeclaration } from './typing';
 
 const basenameRegex = new RegExp(/(?<name>[\w-_]+)\.[^/]+$/);
-
-type BaseIndexerAttributes = {
-  workspaceRoot: NormalizedPath;
-};
 
 // visible for testing
 export const pathBasename = (filename: string): string => {
@@ -29,189 +24,130 @@ export const pathBasename = (filename: string): string => {
   return match?.groups?.name ?? '';
 };
 
-// Type definition for TypingIndexer data structure
-type TypingIndexerData = {
+export type TypingIndexerData = {
   workspaceRoot: NormalizedPath;
   typingsBaseDir: NormalizedPath;
   projectType: WorkspaceType;
   fileSystemAccessor: LspFileSystemAccessor;
-  connection?: Connection;
 };
 
-// Utility function to diff items
-const diffItems = (items: string[], compareItems: string[]): string[] => {
+export const diffItems = (items: string[], compareItems: string[]): string[] => {
   const compareBasenames = new Set(compareItems.map(pathBasename));
-  return items.filter(item => {
-    const filename = pathBasename(item);
-    return !compareBasenames.has(filename);
-  });
+  return items.filter(item => !compareBasenames.has(pathBasename(item)));
 };
 
-// Utility function to create new meta typings
-const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
-  const newFiles = diffItems(await getMetaFiles(indexer), await getMetaTypings(indexer));
-
-  // Process and write each typing file immediately
-  for (const filename of newFiles) {
-    const typing = fromMeta(filename);
-    const uri = path.join(indexer.typingsBaseDir, typing.fileName);
-    const content = getDeclaration(typing);
-
-    // Use updateFileContent with connection to create file via LSP
-    await indexer.fileSystemAccessor.updateFileContent(uri, content);
-  }
-};
-
-// Utility function to delete stale meta typings
-const deleteStaleMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
-  const staleTypings = diffItems(await getMetaTypings(indexer), await getMetaFiles(indexer));
-  const filesToDelete: string[] = [];
-
-  for (const filename of staleTypings) {
-    const uri = normalizePath(filename);
-    if (await indexer.fileSystemAccessor.fileExists(uri)) {
-      filesToDelete.push(uri);
-    }
-  }
-
-  for (const pathToDelete of filesToDelete) {
-    await indexer.fileSystemAccessor.deleteFile(pathToDelete);
-  }
-};
-
-// Utility function to save custom label typings
-const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void> => {
-  const customLabelFiles = await getCustomLabelFiles(indexer);
-  const typings: string[] = [];
-
-  for (const filename of customLabelFiles) {
-    const uri = normalizePath(filename);
-    if (await indexer.fileSystemAccessor.fileExists(uri)) {
-      const content = await indexer.fileSystemAccessor.getFileContent(uri);
-      if (content) {
-        const data = Buffer.from(content, 'utf8');
-        const typing = await declarationsFromCustomLabels(data);
-        typings.push(typing);
-      }
-    }
-  }
-
-  const fileContent = typings.join('\n');
-  if (fileContent.length > 0) {
-    const customLabelTypingsPath = normalizePath(
-      path.join(indexer.workspaceRoot, '.sfdx', 'typings', 'lwc', 'customlabels.d.ts')
-    );
-    await indexer.fileSystemAccessor.updateFileContent(customLabelTypingsPath, fileContent);
-  }
-};
-
-// Utility function to get meta files
-const getMetaFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
+export const getMetaFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
   const packageDirsPattern = await getSfdxPackageDirsPattern(indexer.workspaceRoot, indexer.fileSystemAccessor);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   return await indexer.fileSystemAccessor.findFilesWithGlobAsync(
     `${packageDirsPattern}/**/{staticresources,contentassets,messageChannels}/*.{resource,asset,messageChannel}-meta.xml`,
     indexer.workspaceRoot
   );
 };
 
-// Utility function to get meta typings
-// visible for testing
 export const getMetaTypings = async (indexer: TypingIndexerData): Promise<string[]> =>
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   await indexer.fileSystemAccessor
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     .findFilesWithGlobAsync('*.{messageChannel,resource,asset}.d.ts', indexer.typingsBaseDir)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
     .then(paths => paths.map(p => path.resolve(p)));
 
-// Utility function to get custom label files
+export const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
+  const newFiles = diffItems(await getMetaFiles(indexer), await getMetaTypings(indexer));
+  for (const filename of newFiles) {
+    const typing = fromMeta(filename);
+    const uri = path.join(indexer.typingsBaseDir, typing.fileName);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    await indexer.fileSystemAccessor.updateFileContent(uri, getDeclaration(typing));
+  }
+};
+
+export const deleteStaleMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
+  const staleTypings = diffItems(await getMetaTypings(indexer), await getMetaFiles(indexer));
+  const filesToDelete: string[] = [];
+  for (const filename of staleTypings) {
+    const uri = normalizePath(filename);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    if (await indexer.fileSystemAccessor.fileExists(uri)) {
+      filesToDelete.push(uri);
+    }
+  }
+  for (const pathToDelete of filesToDelete) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    await indexer.fileSystemAccessor.deleteFile(pathToDelete);
+  }
+};
+
+export const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void> => {
+  const customLabelFiles = await getCustomLabelFiles(indexer);
+  const typings: string[] = [];
+  for (const filename of customLabelFiles) {
+    const uri = normalizePath(filename);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    if (await indexer.fileSystemAccessor.fileExists(uri)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+      const content = await indexer.fileSystemAccessor.getFileContent(uri);
+      if (content) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const data = Buffer.from(content, 'utf8');
+
+        typings.push(await declarationsFromCustomLabels(data));
+      }
+    }
+  }
+  const fileContent = typings.join('\n');
+  if (fileContent.length > 0) {
+    const customLabelTypingsPath = normalizePath(
+      path.join(indexer.workspaceRoot, '.sfdx', 'typings', 'lwc', 'customlabels.d.ts')
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    await indexer.fileSystemAccessor.updateFileContent(customLabelTypingsPath, fileContent);
+  }
+};
+
 const getCustomLabelFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
   const packageDirsPattern = await getSfdxPackageDirsPattern(indexer.workspaceRoot, indexer.fileSystemAccessor);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   return await indexer.fileSystemAccessor.findFilesWithGlobAsync(
     `${packageDirsPattern}/**/labels/CustomLabels.labels-meta.xml`,
     indexer.workspaceRoot
   );
 };
 
-// Legacy class for backward compatibility (deprecated)
-export default class TypingIndexer {
-  public readonly workspaceRoot: NormalizedPath;
-  public typingsBaseDir!: NormalizedPath;
-  public projectType!: WorkspaceType;
-  public metaFiles: string[] = [];
-  public fileSystemAccessor: LspFileSystemAccessor;
-  public connection?: Connection;
+/** Detects workspace type, sets up the typings directory, and runs the initial indexing pass
+ * for SFDX workspaces. Returns undefined for workspace types without a typings directory. */
+export const initializeTypings = async (
+  workspaceRoot: NormalizedPath,
+  fileSystemAccessor: LspFileSystemAccessor
+): Promise<TypingIndexerData | undefined> => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  const projectType = await detectWorkspaceHelper(workspaceRoot, fileSystemAccessor);
 
-  // visible for testing
-  public static diff(items: string[], compareItems: string[]): string[] {
-    return diffItems(items, compareItems);
+  let typingsBaseDir: NormalizedPath;
+  switch (projectType) {
+    case 'SFDX':
+      typingsBaseDir = normalizePath(path.join(workspaceRoot, '.sfdx', 'typings', 'lwc'));
+      break;
+    case 'CORE_PARTIAL':
+      typingsBaseDir = normalizePath(path.join(workspaceRoot, '..', '.vscode', 'typings', 'lwc'));
+      break;
+    case 'CORE_ALL':
+      typingsBaseDir = normalizePath(path.join(workspaceRoot, '.vscode', 'typings', 'lwc'));
+      break;
+    default:
+      return undefined;
   }
 
-  constructor(attributes: BaseIndexerAttributes, fileSystemAccessor: LspFileSystemAccessor) {
-    this.workspaceRoot = getWorkspaceRoot(attributes.workspaceRoot);
-    this.fileSystemAccessor = fileSystemAccessor;
-    // projectType and typingsBaseDir will be set by the async initialization
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const data: TypingIndexerData = { workspaceRoot, typingsBaseDir, projectType, fileSystemAccessor };
+
+  if (projectType === 'SFDX') {
+    await createNewMetaTypings(data);
+    await deleteStaleMetaTypings(data);
+    await saveCustomLabelTypings(data);
   }
 
-  /**
-   * Set the LSP connection for file operations (works in both Node.js and web)
-   */
-  public setConnection(connection?: Connection): void {
-    if (connection) {
-      this.connection = connection;
-    }
-  }
-
-  /**
-   * Creates and initializes a TypingIndexer instance
-   */
-  public static async create(
-    attributes: BaseIndexerAttributes,
-    fileSystemAccessor: LspFileSystemAccessor,
-    connection?: Connection
-  ): Promise<TypingIndexer> {
-    const indexer = new TypingIndexer(attributes, fileSystemAccessor);
-    indexer.setConnection(connection);
-    await indexer.initialize();
-    return indexer;
-  }
-
-  /**
-   * Initializes the TypingIndexer with workspace type detection and sets up typings
-   */
-  private async initialize(): Promise<void> {
-    this.projectType = await detectWorkspaceHelper(this.workspaceRoot, this.fileSystemAccessor);
-
-    switch (this.projectType) {
-      case 'SFDX':
-        this.typingsBaseDir = normalizePath(path.join(this.workspaceRoot, '.sfdx', 'typings', 'lwc'));
-        break;
-      case 'CORE_PARTIAL':
-        this.typingsBaseDir = normalizePath(path.join(this.workspaceRoot, '..', '.vscode', 'typings', 'lwc'));
-        break;
-      case 'CORE_ALL':
-        this.typingsBaseDir = normalizePath(path.join(this.workspaceRoot, '.vscode', 'typings', 'lwc'));
-        break;
-    }
-
-    // Initialize typings for SFDX workspaces
-    if (this.projectType === 'SFDX') {
-      this.metaFiles = await getMetaFiles(this);
-      await this.createNewMetaTypings();
-      await this.deleteStaleMetaTypings();
-      await this.saveCustomLabelTypings();
-    }
-  }
-
-  // visible for testing
-  public async createNewMetaTypings(): Promise<void> {
-    return createNewMetaTypings(this);
-  }
-
-  // visible for testing
-  public async deleteStaleMetaTypings(): Promise<void> {
-    return deleteStaleMetaTypings(this);
-  }
-
-  // visible for testing
-  public async saveCustomLabelTypings(): Promise<void> {
-    return saveCustomLabelTypings(this);
-  }
-}
+  return data;
+};
