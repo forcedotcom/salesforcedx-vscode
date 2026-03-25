@@ -82,6 +82,13 @@ So you go to assert the number of elements, or search the DOM and don't get what
 
 When the VSCode UI changes, you might have to update your e2e tests. And you might have to only run tests on newer versions (you still support older versions but don't test against them)
 
+### Playwright selector gotchas
+
+- quick input: target visible widget (`.filter({ visible: true }).first()`)
+- quick input text entry: prefer filling `input.input`; avoid `keyboard.type` into ambiguous focus target
+- Problems view assertions: clear `Filter Problems` input before counting diagnostics
+- `expectProblemsCount*` helpers now clear Problems filter before assertion; use helpers over ad-hoc row counts
+
 ## See Also
 
 - [Build](./Build.md) - use packaged vsix for e2e tests

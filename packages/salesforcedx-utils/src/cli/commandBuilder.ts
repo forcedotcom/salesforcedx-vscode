@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CommandFields } from '../types/command';
 import { Command } from './command';
 
 export const JSON_FLAG = '--json';
 
-export class CommandBuilder {
+export class CommandBuilder implements CommandFields {
   public readonly command: string;
   public description?: string;
   public args: string[] = [];

@@ -13,3 +13,8 @@ export type Command = {
   toString(): string;
   toCommand(): string;
 };
+
+export type CommandFields = Pick<
+  Command,
+  'command' | 'description' | 'args' | 'logName'
+>;

@@ -4,8 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { Command as CommandType } from '../types/command';
-import { CommandBuilder } from './commandBuilder';
+import type {
+  Command as CommandType,
+  CommandFields
+} from '../types/command';
 
 export class Command implements CommandType {
   public readonly command: string;
@@ -13,7 +15,7 @@ export class Command implements CommandType {
   public readonly args: string[];
   public readonly logName?: string;
 
-  constructor(builder: CommandBuilder) {
+  constructor(builder: CommandFields) {
     this.command = builder.command;
     this.description = builder.description;
     this.args = builder.args;

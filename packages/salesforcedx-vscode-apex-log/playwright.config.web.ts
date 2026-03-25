@@ -6,4 +6,4 @@
  */
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createWebConfig();
+export default createWebConfig({ fullyParallel: false, workers: 1 });
