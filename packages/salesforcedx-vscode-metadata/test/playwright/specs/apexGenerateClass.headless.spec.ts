@@ -11,12 +11,14 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  waitForWorkspaceReady,
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
   saveScreenshot,
+  verifyCommandExists,
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW,
   EDITOR_WITH_URI,
@@ -39,6 +41,7 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
+    await waitForWorkspaceReady(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');
@@ -49,6 +52,10 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
     await saveScreenshot(page, 'setup.complete.png');
   });
 
+  await test.step('command is present', async () => {
+    await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
+  });
+
   await test.step('create apex class via command palette', async () => {
     // Generate unique class name to avoid conflicts
     className = `GenerateClassTest${Date.now()}`;
@@ -57,22 +64,23 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
     await executeCommandWithCommandPalette(page, packageNls.apex_generate_class_text);
     await saveScreenshot(page, 'step1.after-command.png');
 
-    // First prompt: "Enter Apex class name"
+    // First prompt: Quick Pick to select template - accept default (DefaultApexClass)
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await saveScreenshot(page, 'step1.template-prompt-visible.png');
+    await page.keyboard.press('Enter');
+
+    // Second prompt: "Enter Apex class name"
     await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
-
-    // Type class name
     await page.keyboard.type(className);
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
-    // Second prompt: Quick Pick to select output directory
+    // Third prompt: Quick Pick to select output directory
     await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
-
-    // Accept default directory
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-accept-directory.png');
 
@@ -96,10 +104,10 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
     const editorContent = page.locator('[data-uri*=".cls"]').first();
     await expect(editorContent).toBeVisible();
 
-    // Check that the class name is in the editor
+    // Check that the class name is in the editor (DefaultApexClass template uses "public with sharing class")
     // Use first() to handle desktop mode which has multiple .view-lines elements
     const editorText = page.locator('.view-lines').first();
-    await expect(editorText).toContainText(`public class ${className}`);
+    await expect(editorText).toContainText(`public with sharing class ${className}`);
     await saveScreenshot(page, 'step2.class-content-verified.png');
 
     // Get current counts for informational purposes (don't assert on exact values)

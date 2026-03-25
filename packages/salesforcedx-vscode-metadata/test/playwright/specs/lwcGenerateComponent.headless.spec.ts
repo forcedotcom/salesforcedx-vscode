@@ -52,6 +52,16 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
 
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+    // this is going to change very soon when it goes GA (and we'll need to get it from sfdx-project.json
+    const componentTypePromptVisible = await quickInput
+      .getByText(/Select component type/i)
+      .isVisible({ timeout: 500 })
+      .catch(() => false);
+    if (componentTypePromptVisible) {
+      await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
+      await page.keyboard.press('Enter');
+    }
+
     await quickInput.getByText(/Enter Lightning Web Component name/i).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
 
