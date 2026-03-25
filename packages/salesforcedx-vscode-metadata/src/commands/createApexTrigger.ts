@@ -9,11 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import {
-  getApiVersion,
-  promptForApexTypeName,
-  promptForPackageMetadataSubdir
-} from '../templates-shared/sfTemplateProjectHelpers';
+import { getApiVersion, promptForApexTypeName } from '../templates-shared/sfTemplateProjectHelpers';
 
 /** outputDirParam: explorer context (right-click triggers folder) */
 export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(function* (outputDirParam?: URI) {
@@ -26,9 +22,15 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
     prompt: nls.localize('apex_trigger_name_prompt')
   });
 
+  const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'triggers');
+
   const outputDirUri =
     outputDirParam ??
-    (yield* promptForPackageMetadataSubdir(project, 'triggers', nls.localize('apex_trigger_output_dir_prompt')));
+    (yield* promptService.promptForOutputDir({
+      defaultUri,
+      pickerPlaceHolder: nls.localize('apex_trigger_output_dir_prompt')
+    }));
 
   const apiVersion = yield* getApiVersion(project);
 
