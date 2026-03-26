@@ -11,6 +11,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { nls } from './messages';
 import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 import { jsconfigCore } from './resources/core/jsconfig-core';
+import { settingsCore } from './resources/core/settings-core';
 import { jsconfigSfdx } from './resources/sfdx/jsconfig-sfdx';
 import { WorkspaceType, getSfdxProjectFile } from './shared';
 import * as utils from './utils';
@@ -77,6 +78,22 @@ const readSfdxProjectConfig = async (
     throw new Error(nls.localize('sfdx_project_file_invalid_message', configPath, errorMessage));
   }
 };
+
+const getCoreSettings = (workspaceRoots: string[]): Record<string, unknown> =>
+  // Merge template settings with provided settings
+  ({
+    ...settingsCore,
+    // Update eslint settings
+    'eslint.workingDirectories': workspaceRoots,
+    'eslint.validate': ['javascript', 'typescript'],
+    'eslint.options': {
+      overrideConfigFile: path.join(workspaceRoots[0], '.eslintrc.json')
+    },
+    // Set perforce settings with default values
+    'perforce.client': 'username-localhost-blt',
+    'perforce.user': 'username',
+    'perforce.port': 'ssl:host:port'
+  });
 
 export const updateForceIgnoreFile = async (
   forceignorePath: string,
@@ -275,12 +292,31 @@ export abstract class BaseWorkspaceContext {
    * Configures the project
    */
   public async configureProject(): Promise<void> {
-    await this.writeCodeWorkspace();
+    await this.writeSettings();
     await this.writeJsconfigJson();
     await this.writeTypings();
   }
 
-  private async writeCodeWorkspace(): Promise<void> {
+  private async writeSettings(): Promise<void> {
+    switch (this.type) {
+      case 'CORE_ALL':
+        await this.updateCoreCodeWorkspace();
+      case 'CORE_PARTIAL':
+        // updateCoreSettings is performed by core's setupVSCode
+        await this.updateCoreSettings();
+        break;
+      default:
+        break;
+    }
+  }
+
+  private async updateCoreSettings(): Promise<void> {
+    const settingsPath = path.join(this.workspaceRoots[0], '.vscode', 'settings.json');
+    const settings = getCoreSettings(this.workspaceRoots);
+    await this.fileSystemAccessor.updateFileContent(settingsPath, JSON.stringify(settings, null, 2));
+  }
+
+  private async updateCoreCodeWorkspace(): Promise<void> {
     const workspacePath = path.join(this.workspaceRoots[0], 'core.code-workspace');
     const workspace = getCodeWorkspace(this.workspaceRoots);
     await this.fileSystemAccessor.updateFileContent(workspacePath, JSON.stringify(workspace, null, 2));
