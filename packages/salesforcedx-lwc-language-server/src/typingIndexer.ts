@@ -38,7 +38,6 @@ export const diffItems = (items: string[], compareItems: string[]): string[] => 
 
 export const getMetaFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
   const packageDirsPattern = await getSfdxPackageDirsPattern(indexer.workspaceRoot, indexer.fileSystemAccessor);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   return await indexer.fileSystemAccessor.findFilesWithGlobAsync(
     `${packageDirsPattern}/**/{staticresources,contentassets,messageChannels}/*.{resource,asset,messageChannel}-meta.xml`,
     indexer.workspaceRoot
@@ -59,7 +58,6 @@ export const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<
     const typing = fromMeta(filename);
     const uri = path.join(indexer.typingsBaseDir, typing.fileName);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await indexer.fileSystemAccessor.updateFileContent(uri, getDeclaration(typing));
   }
 };
@@ -69,13 +67,11 @@ export const deleteStaleMetaTypings = async (indexer: TypingIndexerData): Promis
   const filesToDelete: string[] = [];
   for (const filename of staleTypings) {
     const uri = normalizePath(filename);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     if (await indexer.fileSystemAccessor.fileExists(uri)) {
       filesToDelete.push(uri);
     }
   }
   for (const pathToDelete of filesToDelete) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await indexer.fileSystemAccessor.deleteFile(pathToDelete);
   }
 };
@@ -85,12 +81,9 @@ export const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promis
   const typings: string[] = [];
   for (const filename of customLabelFiles) {
     const uri = normalizePath(filename);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     if (await indexer.fileSystemAccessor.fileExists(uri)) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
       const content = await indexer.fileSystemAccessor.getFileContent(uri);
       if (content) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const data = Buffer.from(content, 'utf8');
 
         typings.push(await declarationsFromCustomLabels(data));
@@ -102,14 +95,12 @@ export const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promis
     const customLabelTypingsPath = normalizePath(
       path.join(indexer.workspaceRoot, '.sfdx', 'typings', 'lwc', 'customlabels.d.ts')
     );
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await indexer.fileSystemAccessor.updateFileContent(customLabelTypingsPath, fileContent);
   }
 };
 
 const getCustomLabelFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
   const packageDirsPattern = await getSfdxPackageDirsPattern(indexer.workspaceRoot, indexer.fileSystemAccessor);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   return await indexer.fileSystemAccessor.findFilesWithGlobAsync(
     `${packageDirsPattern}/**/labels/CustomLabels.labels-meta.xml`,
     indexer.workspaceRoot
@@ -122,7 +113,6 @@ export const initializeTypings = async (
   workspaceRoot: NormalizedPath,
   fileSystemAccessor: LspFileSystemAccessor
 ): Promise<TypingIndexerData | undefined> => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const projectType = await detectWorkspaceHelper(workspaceRoot, fileSystemAccessor);
 
   let typingsBaseDir: NormalizedPath;
@@ -140,7 +130,6 @@ export const initializeTypings = async (
       return undefined;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data: TypingIndexerData = { workspaceRoot, typingsBaseDir, projectType, fileSystemAccessor };
 
   if (projectType === 'SFDX') {
