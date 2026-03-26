@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Column, createTable, getServicesApi, Row } from '@salesforce/effect-ext-utils';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Schema from 'effect/Schema';
@@ -13,11 +14,13 @@ import { nls } from '../messages';
 import { channelService } from '../services/channel';
 import { formatErrorMessage, getDocumentQueryInputsForPlan, getQueryInputsForPlan } from './queryUtils';
 
-const QueryPlanNote = Schema.Struct({
-  description: Schema.String,
-  fields: Schema.Array(Schema.String),
-  tableEnumOrId: Schema.String
-});
+const QueryPlanNote = Schema.Data(
+  Schema.Struct({
+    description: Schema.String,
+    fields: Schema.Chunk(Schema.String),
+    tableEnumOrId: Schema.String
+  })
+);
 
 const QueryPlanEntry = Schema.Struct({
   cardinality: Schema.Number,
@@ -29,11 +32,11 @@ const QueryPlanEntry = Schema.Struct({
   sobjectType: Schema.String
 });
 
-const QueryPlanResponse = Schema.Struct({
+export const QueryPlanResponse = Schema.Struct({
   plans: Schema.Array(QueryPlanEntry)
 });
 
-const formatQueryPlanResults = (response: Schema.Schema.Type<typeof QueryPlanResponse>): string => {
+export const formatQueryPlanResults = (response: Schema.Schema.Type<typeof QueryPlanResponse>): string => {
   const { plans } = response;
 
   if (!plans?.length) {
@@ -67,7 +70,7 @@ const formatQueryPlanResults = (response: Schema.Schema.Type<typeof QueryPlanRes
 
   const notesLines = HashSet.toValues(allNotes).map(
     note =>
-      `${nls.localize('query_plan_notes_description')}: ${note.description}\n${nls.localize('query_plan_notes_table')}: ${note.tableEnumOrId}\n${nls.localize('query_plan_notes_fields')}: ${note.fields.join(', ')}`
+      `${nls.localize('query_plan_notes_description')}: ${note.description}\n${nls.localize('query_plan_notes_table')}: ${note.tableEnumOrId}\n${nls.localize('query_plan_notes_fields')}: ${Chunk.toArray(note.fields).join(', ')}`
   );
   return `${table}\n${nls.localize('query_plan_notes_header')}:\n${notesLines.join('\n\n')}`;
 };
