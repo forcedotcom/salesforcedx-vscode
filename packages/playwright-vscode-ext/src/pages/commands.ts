@@ -7,7 +7,7 @@
 
 import { expect, Page } from '@playwright/test';
 import { dismissAllQuickInputWidgets } from '../utils/helpers';
-import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
+import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW, WORKBENCH } from '../utils/locators';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
@@ -17,12 +17,11 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
 
   // Wrap the entire open sequence in retry logic
   await expect(async () => {
-    // Bring page to front to ensure VS Code window is active (critical on Windows)
-    await page.bringToFront();
-
-    // Small delay to allow Windows to process focus change before F1 keypress
-    // On Windows, F1 can trigger Windows Search if VS Code doesn't have focus
-    await page.waitForTimeout(100);
+    // Click workbench to ensure VS Code has focus before pressing F1.
+    // bringToFront() alone is insufficient on macOS — if the Copilot Chat
+    // secondary sidebar has focus, F1 goes to the chat input instead of
+    // opening the command palette.
+    await page.locator(WORKBENCH).click({ timeout: 5000 });
 
     // Press F1 to open command palette
     await page.keyboard.press('F1');
