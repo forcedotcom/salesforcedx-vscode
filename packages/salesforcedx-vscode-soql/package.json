@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -82,7 +82,7 @@
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/node_modules",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/node_modules .circular-deps.json",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
@@ -224,16 +224,31 @@
     "lint": {
       "command": "../../node_modules/.bin/eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],
       "output": []
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json --exclude \"node_modules|out\" src/index.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "package.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
     },
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",

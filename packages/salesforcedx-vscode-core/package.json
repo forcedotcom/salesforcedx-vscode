@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -261,10 +261,6 @@
           "when": "explorerResourceIsFolder && sf:internal_dev"
         },
         {
-          "command": "sf.apex.generate.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened && sf:show_shared_commands"
-        },
-        {
           "command": "sf.folder.diff",
           "when": "explorerResourceIsFolder && sf:project_opened && sf:has_target_org && sf:show_shared_commands"
         },
@@ -385,10 +381,6 @@
         {
           "command": "sf.view.remote.changes",
           "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:show_shared_commands"
-        },
-        {
-          "command": "sf.apex.generate.class",
-          "when": "sf:project_opened && sf:show_shared_commands"
         },
         {
           "command": "sf.analytics.generate.template",
@@ -556,10 +548,6 @@
       {
         "command": "sf.view.remote.changes",
         "title": "%view_remote_changes_text%"
-      },
-      {
-        "command": "sf.apex.generate.class",
-        "title": "%apex_generate_class_text%"
       },
       {
         "command": "sf.analytics.generate.template",

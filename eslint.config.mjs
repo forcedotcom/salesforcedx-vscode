@@ -27,7 +27,8 @@ import jsonPlugin from '@eslint/json';
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
 const localRules = localRulesPlugin.rules;
-const localPlugin = { rules: localRules };
+const localProcessors = localRulesPlugin.processors;
+const localPlugin = { processors: localProcessors, rules: localRules };
 
 export default [
   {
@@ -58,7 +59,10 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
       '**/.vscode-test-web/**',
       '**/.vscode-test/**',
-      '**/playwright-report/**'
+      '**/playwright-report/**',
+      '**/playwright-report/',
+      '**/test-results/**',
+      '**/test-results/'
     ]
   },
   {
@@ -141,6 +145,8 @@ export default [
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
       'local/no-vscode-progress-title-literals': 'error',
+      'local/no-vscode-quickpick-description-literals': 'error',
+      'local/no-vscode-validateinput-literals': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
@@ -716,6 +722,16 @@ export default [
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error'
+    }
+  },
+  {
+    files: ['packages/*/.vscodeignore'],
+    plugins: {
+      local: localPlugin
+    },
+    processor: 'local/vscodeignoreText',
+    rules: {
+      'local/vscodeignore-required-patterns': 'error'
     }
   },
   eslintConfigPrettier

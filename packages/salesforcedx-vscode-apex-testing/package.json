@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -54,8 +54,9 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
     "lint": "wireit",
+    "check:circular-deps": "wireit",
     "lint:fix": "npm run lint -- --fix",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit"
   },
   "wireit": {
@@ -132,16 +133,30 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],
       "output": []
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/**/*.ts --exclude \"/node_modules/|/out/|/dist/|/packages/\"",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
     },
     "vscode:package": {
       "command": "vsce package --allow-package-all-secrets",
