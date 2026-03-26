@@ -38,7 +38,6 @@
     "@salesforce/core": "^8.27.0",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.20.0",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",

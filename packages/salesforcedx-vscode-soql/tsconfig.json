@@ -31,9 +31,6 @@
       "path": "../effect-ext-utils"
     },
     {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
       "path": "../salesforcedx-vscode-i18n"
     },
     {
