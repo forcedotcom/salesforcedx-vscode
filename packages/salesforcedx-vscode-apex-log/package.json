@@ -6,7 +6,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -163,6 +163,7 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],

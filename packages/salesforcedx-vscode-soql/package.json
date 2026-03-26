@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -231,6 +231,7 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],
