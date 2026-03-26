@@ -81,12 +81,16 @@ const className =
   });
 ```
 
-### `promptForPackageMetadataSubdir`
+- prompt text uses `apex_class_name_prompt`
+- built-in validation strings: `apex_name_empty_error`, `apex_name_format_error`, `apex_class_name_max_length_error`, `apex_name_cannot_be_default`
+- supply `messages` with localized overrides if you need custom copy or translations
 
-Selects package directory.
+### `promptForOutputDir`
+
+Selects metadata package folder (apex classes/triggers, etc.).
 
 ```typescript
-const outputDirUri = yield * promptForPackageMetadataSubdir(project, 'classes', 'Select output directory');
+const outputDirUri = yield * promptForOutputDir(project, 'classes', 'Select output directory');
 ```
 
 ### `getApiVersion`

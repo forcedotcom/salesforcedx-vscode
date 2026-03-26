@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,13 +27,14 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.27.1",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/source-deploy-retrieve": "^12.31.22",
-    "@salesforce/templates": "^66.5.1",
+    "@salesforce/source-deploy-retrieve": "^12.31.25",
+    "@salesforce/source-tracking": "^7.8.7",
+    "@salesforce/templates": "^66.5.6",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -172,7 +173,10 @@
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
-        "VSCODE_DESKTOP": "1"
+        "VSCODE_DESKTOP": "1",
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
       },
       "dependencies": [
         "vscode:bundle",

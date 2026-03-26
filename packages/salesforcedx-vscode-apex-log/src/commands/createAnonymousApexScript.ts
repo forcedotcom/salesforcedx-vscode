@@ -18,12 +18,12 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('create_script_name_prompt'),
-      validateInput: (value: string) =>
-        !value?.trim()
-          ? nls.localize('create_script_name_empty_error')
-          : !/^[A-Za-z][A-Za-z0-9_]*$/.test(value)
-            ? nls.localize('create_script_name_format_error')
-            : undefined
+      validateInput: (value: string) => {
+        const normalized = value.trim();
+        if (!normalized) return nls.localize('create_script_name_empty_error');
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(normalized)) return nls.localize('create_script_name_format_error');
+        return undefined;
+      }
     })
   ).pipe(
     Effect.map(raw => raw?.trim()),
@@ -39,13 +39,11 @@ export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.creat
 
   const scriptName = yield* promptForScriptName();
 
-  const defaultUri = Utils.joinPath(workspaceInfo.uri, 'scripts', 'apex');
   const outputDir = yield* promptService.promptForOutputDir({
-    defaultUri,
+    defaultUri: Utils.joinPath(workspaceInfo.uri, 'scripts', 'apex'),
     description: nls.localize('create_script_output_dir_default_description'),
     pickerPlaceHolder: nls.localize('create_script_output_dir_prompt')
   });
-  if (!outputDir) return;
 
   const targetUri = Utils.joinPath(outputDir, `${scriptName}.apex`);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [targetUri] });

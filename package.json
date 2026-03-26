@@ -19,7 +19,7 @@
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/vscode-service-provider": "1.5.0",
     "jsforce": "^3.10.10",
-    "memfs": "^4.17.2",
+    "memfs": "^4.32.0",
     "node": "^22.19.0",
     "npm": "^10",
     "semver": "^7.5.4",
@@ -128,6 +128,7 @@
     "compile:github-actions": "wireit",
     "compile:watch": "npm run compile && tsc --build --watch",
     "lint": "wireit",
+    "check:circular-deps": "wireit",
     "test": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "coverage:report": "shx mkdir -p ./test-results && npm run coverage:merge && nyc report --reporter=html --report-dir=./test-results/coverage-report --temp-dir=coverage",
@@ -314,12 +315,13 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-lwc --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "./packages/salesforcedx-vscode-services:vscode:bundle:local",
         "./packages/salesforcedx-vscode-apex-log:vscode:bundle:local",
         "./packages/salesforcedx-vscode-org-browser:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-lwc:vscode:bundle:local",
         "./packages/salesforcedx-vscode-metadata:vscode:bundle:local",
         "./packages/salesforcedx-vscode-apex-testing:vscode:bundle:local",
         "./packages/salesforcedx-vscode-soql:vscode:bundle:local",

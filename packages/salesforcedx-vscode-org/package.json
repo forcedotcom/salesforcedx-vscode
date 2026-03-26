@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -143,7 +143,10 @@
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
-        "VSCODE_DESKTOP": "1"
+        "VSCODE_DESKTOP": "1",
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
       },
       "dependencies": [
         "vscode:bundle",

@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -41,9 +41,9 @@
     "@opentelemetry/sdk-trace-web": "2.2.0",
     "@salesforce/core": "^8.27.0",
     "@salesforce/o11y-reporter": "^1.8.1",
-    "@salesforce/source-deploy-retrieve": "^12.31.22",
-    "@salesforce/source-tracking": "^7.8.6",
-    "@salesforce/templates": "^66.5.1",
+    "@salesforce/source-deploy-retrieve": "^12.31.25",
+    "@salesforce/source-tracking": "^7.8.7",
+    "@salesforce/templates": "^66.5.6",
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.20.0",
@@ -127,6 +127,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "out/**"
       ],
       "output": [
@@ -148,6 +149,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "out/**",
         "../../.esbuild-web-extra-settings.json",
         "node_modules/@salesforce/templates/lib/**"
@@ -195,6 +197,7 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],
@@ -220,6 +223,11 @@
     },
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
       "dependencies": [
         "vscode:bundle",
         "../playwright-vscode-ext:compile",

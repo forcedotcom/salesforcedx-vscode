@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,6 +35,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.20.0",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -64,6 +65,7 @@
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
@@ -80,7 +82,7 @@
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/node_modules",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/node_modules .circular-deps.json",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
@@ -102,7 +104,9 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../soql-common:compile",
+        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-services:compile"
       ],
       "files": [
@@ -113,7 +117,9 @@
         "package.json",
         "package.nls*.json",
         "../soql-common/out/**",
+        "../salesforcedx-utils-vscode/out/**",
         "../salesforcedx-vscode-i18n/out/**",
+        "../salesforcedx-utils/out/**",
         "../salesforcedx-vscode-services/out/**"
       ],
       "output": [
@@ -218,19 +224,39 @@
     "lint": {
       "command": "../../node_modules/.bin/eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],
       "output": []
     },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json --exclude \"node_modules|out\" src/index.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "package.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
       "dependencies": [
         "compile",
         "vscode:bundle",
@@ -249,7 +275,10 @@
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
-        "VSCODE_DESKTOP": "1"
+        "VSCODE_DESKTOP": "1",
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
       },
       "dependencies": [
         "vscode:bundle",

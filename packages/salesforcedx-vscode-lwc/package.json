@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -95,6 +95,24 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
+        "src/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "vscode:bundle:local": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "src/**"
       ],
       "output": [
@@ -134,9 +152,10 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
-        "package.json",
-        "package.nls.json"
-      ],
+            "package.json",
+            "package.nls.json",
+            ".vscodeignore"
+          ],
       "output": []
     },
     "vscode:package:legacy": {

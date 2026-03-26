@@ -32,10 +32,11 @@ export const messages = {
   source_tracking_status_bar_click_to_retrieve: '💡 Click to retrieve these changes from the org',
   source_tracking_status_bar_click_to_view_details: '💡 Click to view full details in the output channel',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
-  apex_class_name_max_length_error: 'Name cannot exceed %d characters',
-  apex_name_cannot_be_default: 'Name cannot be "default"',
-  apex_name_empty_error: 'Name cannot be empty',
-  apex_name_format_error: 'Name must start with a letter and contain only alphanumeric characters and underscores',
+  apex_name_cannot_be_default: 'Apex name cannot be "default"',
+  apex_name_empty_error: 'Apex name cannot be empty',
+  apex_name_format_error:
+    'Apex name must start with a letter and contain only alphanumeric characters and underscores',
+  apex_class_name_max_length_error: 'Class name cannot exceed %d characters',
   apex_class_name_prompt: 'Enter Apex class name',
   apex_class_output_dir_prompt: 'Select output directory',
   apex_class_template_prompt: 'Select template type',
@@ -53,7 +54,6 @@ export const messages = {
   lwc_output_dir_prompt: 'Select output directory',
   lwc_select_component_type: 'Select component type',
   lwc_generate_success: 'Lightning Web Component created successfully',
-  lwc_component_name_lowercase_error: 'Component name must start with a lowercase letter',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',
@@ -89,6 +89,9 @@ export const messages = {
   delete_failed: 'Failed to delete: %s',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
   manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
+  manifest_file_name_empty_error: 'File name cannot be empty',
+  manifest_file_name_format_error:
+    'File name must start with a letter and contain only alphanumeric characters and underscores',
   project_generate_manifest_text: 'SFDX: Generate Manifest File',
   generate_manifest_select_file_or_directory:
     'You can run SFDX: Generate Manifest File only on a source file or directory.',

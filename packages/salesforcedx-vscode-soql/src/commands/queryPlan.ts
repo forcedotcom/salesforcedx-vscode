@@ -4,36 +4,41 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Column, createTable, getServicesApi, Row } from '@salesforce/effect-ext-utils';
+import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { Column, ContinueResponse, createTable, Row, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as HashSet from 'effect/HashSet';
-import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { channelService } from '../services/channel';
-import { formatErrorMessage, getDocumentQueryInputsForPlan, getQueryInputsForPlan } from './queryUtils';
+import { getConnection } from '../services/org';
+import {
+  formatErrorMessage,
+  GetDocumentQueryInputsForPlan,
+  GetQueryInputsForPlan,
+  QueryInputs
+} from './queryUtils';
 
-const QueryPlanNote = Schema.Struct({
-  description: Schema.String,
-  fields: Schema.Array(Schema.String),
-  tableEnumOrId: Schema.String
-});
+type QueryPlanNote = {
+  description: string;
+  fields: string[];
+  tableEnumOrId: string;
+};
 
-const QueryPlanEntry = Schema.Struct({
-  cardinality: Schema.Number,
-  fields: Schema.Array(Schema.String),
-  leadingOperationType: Schema.String,
-  notes: Schema.Array(QueryPlanNote),
-  relativeCost: Schema.Number,
-  sobjectCardinality: Schema.Number,
-  sobjectType: Schema.String
-});
+type QueryPlanEntry = {
+  cardinality: number;
+  fields: string[];
+  leadingOperationType: string;
+  notes: QueryPlanNote[];
+  relativeCost: number;
+  sobjectCardinality: number;
+  sobjectType: string;
+};
 
-const QueryPlanResponse = Schema.Struct({
-  plans: Schema.Array(QueryPlanEntry)
-});
+type QueryPlanResponse = {
+  plans: QueryPlanEntry[];
+};
 
-const formatQueryPlanResults = (response: Schema.Schema.Type<typeof QueryPlanResponse>): string => {
+const formatQueryPlanResults = (response: QueryPlanResponse): string => {
   const { plans } = response;
 
   if (!plans?.length) {
@@ -60,57 +65,69 @@ const formatQueryPlanResults = (response: Schema.Schema.Type<typeof QueryPlanRes
 
   const table = createTable(rows, columns, nls.localize('query_plan_table_title'));
 
-  const allNotes = HashSet.fromIterable(plans.flatMap(plan => plan.notes ?? []));
-  if (HashSet.size(allNotes) === 0) {
+  const seenNotes = new Set<string>();
+  const allNotes = plans
+    .flatMap(plan => plan.notes ?? [])
+    .filter(note => {
+      const key = `${note.description}|${note.tableEnumOrId}|${note.fields.join(',')}`;
+      if (seenNotes.has(key)) {
+        return false;
+      }
+      seenNotes.add(key);
+      return true;
+    });
+  if (allNotes.length === 0) {
     return table;
   }
 
-  const notesLines = HashSet.toValues(allNotes).map(
+  const notesLines = allNotes.map(
     note =>
       `${nls.localize('query_plan_notes_description')}: ${note.description}\n${nls.localize('query_plan_notes_table')}: ${note.tableEnumOrId}\n${nls.localize('query_plan_notes_fields')}: ${note.fields.join(', ')}`
   );
   return `${table}\n${nls.localize('query_plan_notes_header')}:\n${notesLines.join('\n\n')}`;
 };
 
-const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: string) {
-  const servicesApi = yield* getServicesApi;
-  if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
-    channelService.clear();
+class QueryPlanExecutor {
+  public async execute(response: ContinueResponse<QueryInputs>): Promise<void> {
+    if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
+      channelService.clear();
+    }
+
+    const { query } = response.data;
+
+    try {
+      const connection = await getConnection();
+      channelService.appendLine(nls.localize('query_plan_running', nls.localize('REST_API')));
+
+      const apiVersion = connection.getApiVersion();
+      const encodedQuery = encodeURIComponent(query);
+      const path = `/services/data/v${apiVersion}/query?explain=${encodedQuery}`;
+
+      const result = await connection.request<QueryPlanResponse>(path);
+      channelService.appendLine(`\n${formatQueryPlanResults(result)}\n`);
+      channelService.appendLine(nls.localize('query_plan_complete'));
+    } catch (error) {
+      channelService.appendLine(formatErrorMessage(error));
+    } finally {
+      channelService.show();
+    }
   }
-
-  try {
-    const connection = yield* servicesApi.services.ConnectionService.getConnection();
-    channelService.appendLine(nls.localize('query_plan_running', nls.localize('REST_API')));
-
-    const encodedQuery = encodeURIComponent(query);
-    const path = `/query?explain=${encodedQuery}`;
-
-    const result = yield* Effect.promise(() => connection.request(path)).pipe(
-      Effect.flatMap(Schema.decodeUnknown(QueryPlanResponse))
-    );
-    channelService.appendLine(`\n${formatQueryPlanResults(result)}\n`);
-    channelService.appendLine(nls.localize('query_plan_complete'));
-  } catch (error) {
-    channelService.appendLine(formatErrorMessage(error));
-  } finally {
-    channelService.show();
-  }
-});
+}
 
 export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
-  const servicesApi = yield* getServicesApi;
-  yield* servicesApi.services.ProjectService.isSalesforceProject().pipe(
-    Effect.flatMap(isProject => (isProject ? Effect.void : Effect.fail(new Error('No Salesforce project found'))))
+  const commandlet = new SfCommandlet(
+    sfProjectPreconditionChecker,
+    new GetQueryInputsForPlan(),
+    new QueryPlanExecutor()
   );
-  const inputs = yield* getQueryInputsForPlan();
-  yield* executeQueryPlan(inputs);
+  yield* Effect.promise(() => commandlet.run());
 });
 
 export const queryPlanDocument = Effect.fn('sf.data.query.explain.document')(function* () {
-  const servicesApi = yield* getServicesApi;
-  yield* servicesApi.services.ProjectService.isSalesforceProject().pipe(
-    Effect.flatMap(isProject => (isProject ? Effect.void : Effect.fail(new Error('No Salesforce project found'))))
+  const commandlet = new SfCommandlet(
+    sfProjectPreconditionChecker,
+    new GetDocumentQueryInputsForPlan(),
+    new QueryPlanExecutor()
   );
-  const inputs = yield* getDocumentQueryInputsForPlan();
-  yield* executeQueryPlan(inputs);
+  yield* Effect.promise(() => commandlet.run());
 });

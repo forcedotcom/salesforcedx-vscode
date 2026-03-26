@@ -9,11 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import {
-  getApiVersion,
-  promptForApexTypeName,
-  promptForPackageMetadataSubdir
-} from '../templates-shared/sfTemplateProjectHelpers';
+import { promptForApexTypeName } from '../templates-shared/sfTemplateProjectHelpers';
 
 /** outputDirParam: explorer context (right-click triggers folder) */
 export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(function* (outputDirParam?: URI) {
@@ -26,11 +22,15 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
     prompt: nls.localize('apex_trigger_name_prompt')
   });
 
+  const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'triggers');
+
   const outputDirUri =
     outputDirParam ??
-    (yield* promptForPackageMetadataSubdir(project, 'triggers', nls.localize('apex_trigger_output_dir_prompt')));
-
-  const apiVersion = yield* getApiVersion(project);
+    (yield* promptService.promptForOutputDir({
+      defaultUri,
+      pickerPlaceHolder: nls.localize('apex_trigger_output_dir_prompt')
+    }));
 
   const triggerUri = Utils.joinPath(outputDirUri, `${triggerName}.trigger`);
   const metaUri = Utils.joinPath(outputDirUri, `${triggerName}.trigger-meta.xml`);
@@ -38,18 +38,16 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [triggerUri, metaUri] });
 
   const fsService = yield* api.services.FsService;
-  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
 
   yield* api.services.TemplateService.create({
-    cwd,
+    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexTrigger,
     outputdir: outputDirUri,
     options: {
       triggername: triggerName,
       triggerevents: ['before insert'],
       sobject: 'SOBJECT',
-      template: 'ApexTrigger',
-      apiversion: apiVersion
+      template: 'ApexTrigger'
     }
   });
 

@@ -5,50 +5,61 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Connection } from '@salesforce/core';
-import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
+import { getServicesApi, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { Column, ContinueResponse, createTable, Row, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { formatErrorMessage, getQueryAndApiInputs } from './queryUtils';
+import { channelService } from '../services/channel';
+import { getSoqlRuntime } from '../services/extensionProvider';
+import { getConnection } from '../services/org';
+import { formatErrorMessage, GetQueryAndApiInputs, QueryAndApiInputs } from './queryUtils';
 
 type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
-/**
- * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
- * `org-max-query-limit` (default 10,000). Emits a lifecycle warning if results are truncated.
- *
- * @param query - SOQL query string to execute
- * @param useTooling - Whether to use the Tooling API instead of REST
- */
-const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const connection = yield* api.services.ConnectionService.getConnection();
-  const channelService = yield* api.services.ChannelService;
+class DataQueryExecutor {
+  public async execute(response: ContinueResponse<QueryAndApiInputs>): Promise<void> {
+    if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
+      channelService.clear();
+    }
 
-  yield* channelService.appendToChannel(
-    nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
-  );
+    const { query, api } = response.data;
 
-  return yield* Effect.promise(() => connection.autoFetchQuery(query, { tooling: useTooling }));
-});
+    try {
+      const connection = await getConnection();
+      const queryResult = await runSoqlQuery(connection, query, api === 'TOOLING');
+      displayTableResults(queryResult);
+      channelService.appendLine(nls.localize('data_query_complete', queryResult.totalSize));
+      await this.saveResultsToCSV(queryResult);
+    } catch (error) {
+      channelService.appendLine(formatErrorMessage(error));
+    } finally {
+      channelService.show();
+    }
+  }
 
-const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult) {
-  const csvContent = convertQueryResultToCSV(queryResult);
+  private async saveResultsToCSV(queryResult: QueryResult): Promise<void> {
+    const csvContent = convertQueryResultToCSV(queryResult);
 
-  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
-  const fileName = `soql-query-${timestamp}.csv`;
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { uri: workspaceUri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const fileUri = Utils.joinPath(workspaceUri, '.sfdx', 'data', fileName);
-  yield* api.services.FsService.writeFile(fileUri, csvContent);
+    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+    const fileName = `soql-query-${timestamp}.csv`;
+    const fileUri = await getSoqlRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* getServicesApi;
+        const { uri: workspaceUri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+        const uri = Utils.joinPath(workspaceUri, '.sfdx', 'data', fileName);
+        yield* api.services.FsService.writeFile(uri, csvContent);
+        return uri;
+      })
+    );
+    const filePath = fileUri.fsPath;
 
-  // Show success message with clickable file link
-  const openFileAction = nls.localize('data_query_open_file');
-  yield* Effect.promise(() =>
+    // Show success message with clickable file link
+    const openFileAction = nls.localize('data_query_open_file');
     vscode.window
       .showInformationMessage(
-        nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath),
+        nls.localize('data_query_success_message', queryResult.totalSize, filePath),
         openFileAction
       )
       .then(selection => {
@@ -57,36 +68,13 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
             vscode.window.showTextDocument(doc);
           });
         }
-      })
-  );
-});
+      });
+  }
+}
 
 export const dataQuery = Effect.fn('sf.data.query')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const { query, api: queryApi } = yield* getQueryAndApiInputs();
-
-  if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
-    yield* channelService.clearChannel;
-  }
-
-  const vscChannel = yield* channelService.getChannel;
-
-  try {
-    const queryResult = yield* runSoqlQuery(query, queryApi === 'TOOLING');
-    yield* Effect.all(
-      [
-        displayTableResults(queryResult),
-        channelService.appendToChannel(nls.localize('data_query_complete', queryResult.totalSize)),
-        saveResultsToCSV(queryResult),
-        Effect.sync(() => vscChannel.show())
-      ],
-      { concurrency: 'unbounded' }
-    );
-  } catch (error) {
-    yield* channelService.appendToChannel(formatErrorMessage(error));
-    vscChannel.show();
-  }
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new GetQueryAndApiInputs(), new DataQueryExecutor());
+  yield* Effect.promise(() => commandlet.run());
 });
 
 /** Generates table output from query records */
@@ -238,10 +226,13 @@ export const convertToCSV = (records: QueryResult['records']): string => {
 };
 
 /** Escapes a field value for CSV format */
-export const escapeCSVField = (field: string): string =>
-  field.includes(',') || field.includes('"') || field.includes('\n') || field.includes('\r')
-    ? `"${field.replaceAll('"', '""')}"`
-    : field;
+export const escapeCSVField = (field: string): string => {
+  // If field contains comma, quote, or newline, wrap in quotes and escape internal quotes
+  if (field.includes(',') || field.includes('"') || field.includes('\n') || field.includes('\r')) {
+    return `"${field.replaceAll('"', '""')}"`;
+  }
+  return field;
+};
 
 /** Formats a field value for CSV export */
 export const formatFieldValue = (value: unknown): string => {
@@ -284,19 +275,43 @@ export const formatFieldValueForDisplay = (value: unknown): string => {
 };
 
 /** Displays query results in table format */
-export const displayTableResults = Effect.fn('displayTableResults')(function* (queryResult: QueryResult) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-
+export const displayTableResults = (queryResult: QueryResult): void => {
   if (!queryResult.records?.length) {
-    yield* channelService.appendToChannel(nls.localize('data_query_no_records'));
+    channelService.appendLine(nls.localize('data_query_no_records'));
     return;
   }
 
   const tableOutput = generateTableOutput(queryResult.records, nls.localize('data_query_table_title'));
-  yield* channelService.appendToChannel(`\n${tableOutput}`);
-});
+  channelService.appendLine(`\n${tableOutput}`);
+};
 
 /** Converts query result to CSV string */
-export const convertQueryResultToCSV = (queryResult: QueryResult): string =>
-  queryResult.records?.length ? convertToCSV(queryResult.records) : nls.localize('data_query_no_records');
+export const convertQueryResultToCSV = (queryResult: QueryResult): string => {
+  if (!queryResult.records?.length) {
+    return nls.localize('data_query_no_records');
+  }
+
+  return convertToCSV(queryResult.records);
+};
+
+/**
+ * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
+ * `org-max-query-limit` (default 10,000). Emits a lifecycle warning if results are truncated.
+ *
+ * @param connection - Salesforce connection
+ * @param query - SOQL query string to execute
+ * @param useTooling - Whether to use the Tooling API instead of REST
+ */
+const runSoqlQuery = async (connection: Connection, query: string, useTooling = false): Promise<QueryResult> => {
+  channelService.appendLine(
+    nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
+  );
+  const result = await connection.autoFetchQuery(query, { tooling: useTooling });
+  if (result.records.length > 0 && result.totalSize > result.records.length) {
+    const missingRecords = result.totalSize - result.records.length;
+    channelService.appendLine(
+      nls.localize('data_query_warning_limit', missingRecords, result.records.length, result.totalSize, result.records.length)
+    );
+  }
+  return result;
+};

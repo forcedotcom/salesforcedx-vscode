@@ -21,15 +21,20 @@
       "import": "./out/src/workspaceLoader.js",
       "require": "./out/src/workspaceLoader.js"
     },
+    "./workspaceReadFileHandler": {
+      "import": "./out/src/workspaceReadFileHandler.js",
+      "require": "./out/src/workspaceReadFileHandler.js",
+      "types": "./out/src/workspaceReadFileHandler.d.ts"
+    },
     "./testUtils": {
       "types": "./out/src/__tests__/testUtils.d.ts",
       "import": "./out/src/__tests__/testUtils.js",
       "require": "./out/src/__tests__/testUtils.js"
     },
-    "./providers/fileSystemDataProvider": {
-      "types": "./out/src/providers/fileSystemDataProvider.d.ts",
-      "import": "./out/src/providers/fileSystemDataProvider.js",
-      "require": "./out/src/providers/fileSystemDataProvider.js"
+    "./providers/lspFileSystemAccessor": {
+      "import": "./out/src/providers/lspFileSystemAccessor.js",
+      "require": "./out/src/providers/lspFileSystemAccessor.js",
+      "types": "./out/src/providers/lspFileSystemAccessor.d.ts"
     },
     "./applyEditHandler": {
       "types": "./out/src/applyEditHandler.d.ts",
@@ -52,6 +57,7 @@
       "command": "tsc --build --pretty && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../effect-ext-utils:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
@@ -96,15 +102,18 @@
     }
   },
   "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "ejs": "^3.1.10",
     "effect": "^3.20.0",
+    "minimatch": "^9.0.5",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
     "vscode-languageserver-textdocument": "^1.0.12",
-    "vscode-uri": "^2.1.2"
+    "vscode-uri": "^2.1.2",
+    "@salesforce/core": "^8.27.0"
   },
   "devDependencies": {
     "@lwc/engine-dom": "8.26.2",

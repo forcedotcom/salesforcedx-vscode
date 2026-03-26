@@ -26,26 +26,6 @@ type ApexGenerateUnitTestClassParams = {
   readonly template?: ApexTestTemplate;
 };
 
-const fromProject = Effect.fn('getApiVersion.fromProject')(function* (project: SfProject) {
-  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return String(projectJson.get<string>('sourceApiVersion'));
-});
-
-const fromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
-  const connectionService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ConnectionService;
-  const connection = yield* connectionService.getConnection();
-  return connection.version;
-});
-
-const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) {
-  return yield* fromProject(project).pipe(
-    Effect.orElse(() => fromConnection()),
-    Effect.catchAll(err =>
-      Effect.log('Could not determine API version, using default', { error: err }).pipe(Effect.as('65.0'))
-    )
-  );
-});
-
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
@@ -114,14 +94,13 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
   const fsService = yield* api.services.FsService;
   const project = yield* api.services.ProjectService.getSfProject();
 
+  const template = params?.template ?? (yield* promptForTemplate());
+
   const className = params?.name ?? (yield* promptForClassName());
 
   const outputDirUri = params?.outputDir ?? outputDirectory ?? (yield* promptForOutputDir(project));
 
-  const template = params?.template ?? (yield* promptForTemplate());
-
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const apiVersion = yield* getApiVersion(project);
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
@@ -129,7 +108,7 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
     cwd: yield* fsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexClass,
     outputdir: outputDirUri,
-    options: { template, classname: className, apiversion: apiVersion }
+    options: { template, classname: className }
   });
   const channelService = yield* api.services.ChannelService;
 
