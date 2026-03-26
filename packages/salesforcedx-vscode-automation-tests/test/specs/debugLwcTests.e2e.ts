@@ -5,34 +5,33 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  TestReqConfig,
-  ProjectShapeOption,
   Duration,
+  ProjectShapeOption,
+  TestReqConfig,
   log,
+  openFile,
   pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import {
-  retryOperation,
-  verifyNotificationWithRetry
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
-  getTestsSection,
-  verifyTestItemsInSideBar,
   continueDebugging,
-  verifyTestIconColor
+  getTestsSection,
+  verifyTestIconColor,
+  verifyTestItemsInSideBar
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   closeAllEditors,
-  reloadWindow,
-  getWorkbench,
   executeQuickPick,
+  getStatusBarItemWhichIncludes,
   getTerminalViewText,
-  verifyOutputPanelText,
-  runCommandFromCommandPrompt,
   getTextEditor,
+  getWorkbench,
+  reloadWindow,
+  runCommandFromCommandPrompt,
+  verifyOutputPanelText,
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
@@ -75,9 +74,22 @@ describe('Debug LWC Tests', () => {
     // Install Jest unit testing tools for LWC
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
     await reloadWindow(Duration.seconds(30));
+  });
 
-    // wait for server initialization to complete
-    await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(10));
+  it('Verify LWC LSP finished indexing in status bar', async () => {
+    logTestStart(testSetup, 'Verify LWC LSP finished indexing in status bar');
+
+    await retryOperation(
+      async () => {
+        await openFile(path.join(lwcFolderPath, 'lwc1', 'lwc1.html'));
+
+        const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+        await statusBar.click();
+        expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
+      },
+      5,
+      'LWC language status did not reach indexing complete'
+    );
   });
 
   it('Debug All Tests on a LWC via the Test Sidebar', async () => {

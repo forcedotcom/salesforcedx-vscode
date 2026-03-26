@@ -6,14 +6,12 @@
  */
 import { Duration, ProjectShapeOption, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log, openFile, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
-import {
-  retryOperation,
-  verifyNotificationWithRetry
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createAura } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
+  getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
   moveCursorWithFallback,
@@ -56,9 +54,22 @@ describe('Aura LSP', () => {
 
     // Reload the VSCode window to allow the Aura Component to be indexed by the Aura Language Server
     await reloadWindow(Duration.seconds(20));
+  });
 
-    // wait for server initialization to complete
-    await verifyNotificationWithRetry(/Aura Language Server is ready/, Duration.seconds(10));
+  it('Verify Aura LSP finished indexing in status bar', async () => {
+    logTestStart(testSetup, 'Verify Aura LSP finished indexing in status bar');
+
+    await retryOperation(
+      async () => {
+        await openFile(path.join(auraFolderPath, 'aura1.cmp'));
+
+        const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+        await statusBar.click();
+        expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
+      },
+      5,
+      'Aura language status did not reach indexing complete'
+    );
   });
 
   it('Go to Definition', async () => {
