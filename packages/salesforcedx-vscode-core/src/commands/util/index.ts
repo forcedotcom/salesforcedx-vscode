@@ -17,8 +17,7 @@ export {
   FilePathGatherer,
   MetadataTypeGatherer,
   SelectFileName,
-  SelectOutputDir,
-  SimpleGatherer
+  SelectOutputDir
 } from './parameterGatherers';
 export { SfCommandletExecutor } from './sfCommandletExecutor';
 export { PathStrategyFactory, SourcePathStrategy } from './sourcePathStrategies';

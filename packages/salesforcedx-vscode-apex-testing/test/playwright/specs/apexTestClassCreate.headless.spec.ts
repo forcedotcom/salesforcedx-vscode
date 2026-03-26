@@ -50,6 +50,12 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
     await saveScreenshot(page, 'step.command-triggered.png');
   });
 
+  await test.step('select template in QuickPick', async () => {
+    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await saveScreenshot(page, 'step.template-selected.png');
+  });
+
   await test.step('enter class name in InputBox', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
@@ -59,11 +65,12 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
     await saveScreenshot(page, 'step.class-name-entered.png');
   });
 
-  await test.step('select template in QuickPick', async () => {
+  await test.step('select output directory in QuickPick', async () => {
     await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await saveScreenshot(page, 'step.directory-prompt-visible.png');
     await page.keyboard.press('Enter');
     await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'hidden', timeout: 10_000 });
-    await saveScreenshot(page, 'step.template-selected.png');
+    await saveScreenshot(page, 'step.after-accept-directory.png');
   });
 
   await test.step('verify editor opens with new class file', async () => {
