@@ -39,6 +39,7 @@ import {
   retrieveGeneralMethodAccessModifiers,
   retrieveGeneralPropAccessModifiers
 } from './settings';
+import { isApexLspTelemetryAllowed } from './telemetry/apexLspTelemetryAllowlist';
 import { getTelemetryService } from './telemetry/telemetry';
 
 /** Use 0 for dynamic JDWP port to avoid "address in use" when previous LS orphaned (e.g. Extension Host not shut down cleanly). */
@@ -139,7 +140,11 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
   const server = await createServer(extensionContext);
   const client = new ApexLanguageClient('apex', nls.localize('client_name'), server, buildClientOptions());
 
-  client.onTelemetry(data => telemetryService.sendEventData('apexLSPLog', data.properties, data.measures));
+  client.onTelemetry((data: { properties?: Record<string, string>; measures?: Record<string, number> }) => {
+    if (isApexLspTelemetryAllowed(data.properties)) {
+      telemetryService.sendEventData('apexLSPLog', data.properties, data.measures);
+    }
+  });
 
   return client;
 };
