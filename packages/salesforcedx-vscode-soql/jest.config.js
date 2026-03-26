@@ -9,7 +9,7 @@ module.exports = Object.assign({}, baseConfig, {
   // Enable isolatedModules for faster test execution
   // This package doesn't use dynamic imports, so it's safe
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
+    '^.+\\.tsx?$': 'ts-jest'
   },
   // Map @salesforce/soql-model to actual source path for Jest
   moduleNameMapper: {

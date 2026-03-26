@@ -3,8 +3,8 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
-    "strict": false,
-    "noImplicitAny": false,
+    "isolatedModules": true,
+    "noImplicitAny": true,
     "paths": {
       "@salesforce/soql-model/*": ["./src/soql-model/*"]
     }
@@ -29,12 +29,6 @@
   "references": [
     {
       "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
     },
     {
       "path": "../salesforcedx-vscode-i18n"
