@@ -86,22 +86,14 @@ export const activate = async (extensionContext: ExtensionContext) => {
   }
 
   // Start the LWC Language Server
-  const serverPath = extensionContext.extension.packageJSON.serverPath;
-  let serverModule: string;
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    // For web mode, use the browser bundle and convert to URI
-    const baseUri = URI.from(extensionContext.extensionUri);
-    serverModule = Utils.joinPath(baseUri, 'dist', 'web', 'lwcServer.js').toString();
-  } else {
-    // For Node.js mode, use the file system path
-    // Dynamically import path only in Node.js mode to avoid bundling issues in web mode
-    const { join } = await import('node:path');
-    serverModule = extensionContext.asAbsolutePath(join(...serverPath));
-  }
-
   try {
-    const sfdxTypingsDir = Utils.joinPath(URI.from(extensionContext.extensionUri), 'resources', 'sfdx', 'typings').toString();
-    const client = await createLanguageClient(serverModule, { workspaceType, sfdxTypingsDir });
+    const sfdxTypingsDir = Utils.joinPath(
+      URI.from(extensionContext.extensionUri),
+      'resources',
+      'sfdx',
+      'typings'
+    ).toString();
+    const client = await createLanguageClient(extensionContext.extensionUri, { workspaceType, sfdxTypingsDir });
 
     // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
     registerWorkspaceReadFileHandler(client, channelService);
