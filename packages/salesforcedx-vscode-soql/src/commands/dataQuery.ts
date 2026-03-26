@@ -74,10 +74,14 @@ export const dataQuery = Effect.fn('sf.data.query')(function* () {
 
   try {
     const queryResult = yield* runSoqlQuery(query, queryApi === 'TOOLING');
+    const truncated = queryResult.records.length > 0 && queryResult.totalSize > queryResult.records.length;
+    const statusMessage = truncated
+      ? nls.localize('data_query_warning_limit', queryResult.totalSize - queryResult.records.length, queryResult.records.length, queryResult.totalSize, queryResult.records.length)
+      : nls.localize('data_query_complete', queryResult.totalSize);
     yield* Effect.all(
       [
         displayTableResults(queryResult),
-        channelService.appendToChannel(nls.localize('data_query_complete', queryResult.totalSize)),
+        channelService.appendToChannel(statusMessage),
         saveResultsToCSV(queryResult),
         Effect.sync(() => vscChannel.show())
       ],
