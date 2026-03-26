@@ -28,6 +28,9 @@
 
   loadState();
 
+  /** @type {any} */
+  let mainTable;
+
   // ---- RENDER THE WEBVIEW CONTENT ---- //
 
   function updateUIWith(queryData, documentName) {
@@ -42,19 +45,43 @@
   }
 
   function renderTableWith(tableData) {
-    new Tabulator('#data-table', {
+    if (mainTable) {
+      mainTable.destroy();
+      mainTable = undefined;
+    }
+
+    var fg = tableData.flattenedGrid;
+    if (
+      fg &&
+      Array.isArray(fg.fields) &&
+      fg.fields.length > 0 &&
+      Array.isArray(fg.rowData)
+    ) {
+      mainTable = new Tabulator('#data-table', {
+        data: fg.rowData,
+        pagination: 'local',
+        paginationSize: 50,
+        layout: 'fitColumns',
+        height: '60vh',
+        virtualDom: false,
+        columns: getFlattenedGridColumns(fg.fields)
+      });
+      return;
+    }
+
+    mainTable = new Tabulator('#data-table', {
       data: tableData.records,
       pagination: 'local',
+      paginationSize: 50,
       layout: 'fitColumns',
       height: '60vh',
+      virtualDom: false,
       columns: getColumns(tableData, tableData.columnData),
       rowFormatter: row => {
         tableData.columnData.subTables.forEach(subTable => {
-
           const key = Object.keys(row.getData()).find(k => k.toLowerCase() === subTable.objectName.toLowerCase());
           if (key && row.getData()[key]) {
             var data = row.getData()[key];
-            //create and style holder elements
             var holderEl = document.createElement("div");
             var tableEl = document.createElement("div");
 
@@ -70,15 +97,74 @@
 
             row.getElement().appendChild(holderEl);
 
-            new Tabulator(tableEl, {
-              layout:"fitColumns",
-              data: data.records,
-              columns: getColumns(data, subTable)
-            });
+            try {
+              new Tabulator(tableEl, {
+                layout: "fitColumns",
+                virtualDom: false,
+                data: data.records,
+                columns: getColumns(data, subTable)
+              });
+            } catch (e) {
+              console.error("SOQL nested Tabulator failed", e);
+            }
           }
         });
       }
     });
+  }
+
+  function getFlattenedGridColumns(fields) {
+    var filteredFields = fields.filter(function (fieldName) {
+      return !fields.some(function (candidate) {
+        return candidate !== fieldName && candidate.indexOf(fieldName + '.') === 0;
+      });
+    });
+    var root = { groups: {}, leaves: [] };
+
+    filteredFields.forEach(function (fieldName) {
+      var parts = fieldName.split('.');
+      if (parts.length < 2) {
+        root.leaves.push({ title: fieldName, field: fieldName });
+        return;
+      }
+
+      var current = root;
+      for (var i = 0; i < parts.length - 1; i++) {
+        var segment = parts[i];
+        if (!current.groups[segment]) {
+          current.groups[segment] = { groups: {}, leaves: [] };
+        }
+        current = current.groups[segment];
+      }
+      var leafTitle = parts[parts.length - 1];
+      current.leaves.push(createFlattenedLeafColumn(fieldName, leafTitle));
+    });
+
+    return buildGroupedColumns(root);
+  }
+
+  function buildGroupedColumns(node) {
+    var columns = node.leaves.slice();
+    Object.keys(node.groups).forEach(function (groupTitle) {
+      columns.push({
+        title: groupTitle,
+        columns: buildGroupedColumns(node.groups[groupTitle])
+      });
+    });
+    return columns;
+  }
+
+  function createFlattenedLeafColumn(fieldName, title) {
+    // Tabulator (v4.x) treats dots in `field` as nested paths (row.Contacts.Id).
+    // Flattened SOQL rows use one object key per column, e.g. row["Contacts.Id"].
+    return {
+      title: title,
+      field: fieldName,
+      formatter: function (cell) {
+        var v = cell.getRow().getData()[fieldName];
+        return v === undefined || v === null ? '' : String(v);
+      }
+    };
   }
 
   // getColumns uses ColumnData to match QueryResult fields to columns.

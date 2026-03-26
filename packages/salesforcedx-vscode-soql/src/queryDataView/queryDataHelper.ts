@@ -7,12 +7,24 @@
 import type { QueryResult } from '../types';
 import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model/analyzers/selectAnalyzer';
 import type { JsonMap } from '@salesforce/ts-types';
+import { getFlattenedSoqlGridPayload } from '../commands/dataQuery';
+
+type FlattenedSoqlGridPayload = {
+  fields: string[];
+  rowData: Record<string, string>[];
+};
 
 type ExtendedQueryData = QueryResult<JsonMap> & {
   columnData: ColumnData;
+  /** Pre-flattened rows/columns aligned with output-channel SOQL table (for webview Tabulator). */
+  flattenedGrid?: FlattenedSoqlGridPayload;
 };
 
-export const extendQueryData = (queryText: string, queryData: QueryResult<JsonMap>): ExtendedQueryData => ({
-  ...queryData,
-  columnData: new SelectAnalyzer(queryText).getColumnData()
-});
+export const extendQueryData = (queryText: string, queryData: QueryResult<JsonMap>): ExtendedQueryData => {
+  const flattenedGrid = getFlattenedSoqlGridPayload(queryData.records);
+  return {
+    ...queryData,
+    columnData: new SelectAnalyzer(queryText).getColumnData(),
+    ...(flattenedGrid ? { flattenedGrid } : {})
+  };
+};
