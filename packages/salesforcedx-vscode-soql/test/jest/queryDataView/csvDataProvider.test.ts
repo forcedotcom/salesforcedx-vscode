@@ -4,75 +4,74 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { toTableFn } from '../../../src/queryDataView/dataProviders/csvDataProvider';
+import { convertToCSV } from '../../../src/commands/dataQuery';
+import { CsvDataProvider } from '../../../src/queryDataView/dataProviders/csvDataProvider';
 
-describe('toTableFn', () => {
-  it('handles a simple flat SOQL query', () => {
-    const query = 'SELECT Name, Age FROM Person';
+describe('CsvDataProvider', () => {
+  it('delegates CSV export to convertToCSV', () => {
+    const provider = new CsvDataProvider('q');
+    const csv = provider.getFileContent(
+      'SELECT Name FROM X',
+      [{ Name: 'A' }, { Name: 'B' }] as unknown as import('@salesforce/ts-types').JsonMap[]
+    );
+    expect(csv).toBe('Name\nA\nB');
+  });
+});
+
+describe('convertToCSV (Query Data View / SOQL Builder save)', () => {
+  it('handles a simple flat SOQL-shaped result', () => {
     const data = [
       { Name: 'Alice', Age: 30 },
       { Name: 'Bob', Age: 25 }
     ];
-    const result = toTableFn(query, data);
-    expect(result.fields).toEqual(['Name', 'Age']);
-    expect(result.data).toEqual([
-      ['Alice', '30'],
-      ['Bob', '25']
-    ]);
+    expect(convertToCSV(data)).toBe('Name,Age\nAlice,30\nBob,25');
   });
 
-  it('handles missing fields in data', () => {
-    const query = 'SELECT Name, Age FROM Person';
-    const data = [{ Name: 'Charlie' }];
-    const result = toTableFn(query, data);
-    expect(result.fields).toEqual(['Name', 'Age']);
-    expect(result.data).toEqual([['Charlie', '']]);
+  it('preserves column order from field discovery and leaves missing cells empty', () => {
+    const data = [{ Name: 'Charlie' }, { Name: 'Dee', Age: 40 }];
+    expect(convertToCSV(data)).toBe('Name,Age\nCharlie,\nDee,40');
   });
 
-  it('handles nested subquery', () => {
-    const query = 'SELECT Name, (SELECT PetName FROM Pets) FROM Person';
+  it('handles subquery envelope with totalSize/done/records', () => {
     const data = [
       {
         Name: 'Dana',
         Pets: {
+          totalSize: 2,
+          done: true,
           records: [{ PetName: 'Fido' }, { PetName: 'Whiskers' }]
         }
       }
     ];
-    const result = toTableFn(query, data);
-    expect(result.fields).toEqual(['Name', 'Pets.PetName']);
-    expect(result.data).toEqual([
-      ['Dana', 'Fido'],
-      ['Dana', 'Whiskers']
-    ]);
+    // CSV repeats parent columns on sub-query overflow rows (fully denormalized export)
+    expect(convertToCSV(data)).toBe('Name,Pets.PetName\nDana,Fido\nDana,Whiskers');
   });
 
-  it('handles empty data', () => {
-    const query = 'SELECT Name FROM Person';
-    const data = [];
-    const result = toTableFn(query, data);
-    expect(result.fields).toEqual(['Name']);
-    expect(result.data).toEqual([]);
+  it('returns empty string for empty data', () => {
+    expect(convertToCSV([])).toBe('');
   });
 
-  it('handles 3rd level nested subquery', () => {
-    // TODO: this is a test that reflects the code as is, not as is should be.
-    // WI to really fix it:
-    const query = 'SELECT Name, (SELECT PetName, (SELECT ToyName FROM Toys) FROM Pets) FROM Person';
+  it('flattens nested sub-query rows into dotted columns', () => {
     const data = [
       {
         Name: 'Dana',
         Pets: {
+          totalSize: 2,
+          done: true,
           records: [
             {
               PetName: 'Fido',
               Toys: {
+                totalSize: 2,
+                done: true,
                 records: [{ ToyName: 'Ball' }, { ToyName: 'Bone' }]
               }
             },
             {
               PetName: 'Whiskers',
               Toys: {
+                totalSize: 1,
+                done: true,
                 records: [{ ToyName: 'Yarn' }]
               }
             }
@@ -80,11 +79,13 @@ describe('toTableFn', () => {
         }
       }
     ];
-    const result = toTableFn(query, data);
-    expect(result.fields).toEqual(['Name', 'Pets.PetName', 'Toys.ToyName']);
-    expect(result.data).toEqual([
-      ['Dana', 'Fido'],
-      ['Dana', 'Whiskers']
-    ]);
+    const csv = convertToCSV(data);
+    expect(csv.startsWith('Name,Pets.PetName,Pets.Toys.ToyName\n')).toBe(true);
+    expect(csv).toContain('Dana');
+    expect(csv).toContain('Fido');
+    expect(csv).toContain('Whiskers');
+    expect(csv).toContain('Ball');
+    expect(csv).toContain('Bone');
+    expect(csv).toContain('Yarn');
   });
 });
