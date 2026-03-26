@@ -64,18 +64,7 @@
         layout: 'fitColumns',
         height: '60vh',
         virtualDom: false,
-        columns: fg.fields.map(function (f) {
-          // Tabulator (v4.x) treats dots in `field` as nested paths (row.Contacts.Id).
-          // Flattened SOQL rows use one object key per column, e.g. row["Contacts.Id"].
-          var col = { title: f, field: f };
-          if (f.indexOf('.') !== -1) {
-            col.formatter = function (cell) {
-              var v = cell.getRow().getData()[f];
-              return v === undefined || v === null ? '' : String(v);
-            };
-          }
-          return col;
-        })
+        columns: getFlattenedGridColumns(fg.fields)
       });
       return;
     }
@@ -122,6 +111,60 @@
         });
       }
     });
+  }
+
+  function getFlattenedGridColumns(fields) {
+    var filteredFields = fields.filter(function (fieldName) {
+      return !fields.some(function (candidate) {
+        return candidate !== fieldName && candidate.indexOf(fieldName + '.') === 0;
+      });
+    });
+    var root = { groups: {}, leaves: [] };
+
+    filteredFields.forEach(function (fieldName) {
+      var parts = fieldName.split('.');
+      if (parts.length < 2) {
+        root.leaves.push({ title: fieldName, field: fieldName });
+        return;
+      }
+
+      var current = root;
+      for (var i = 0; i < parts.length - 1; i++) {
+        var segment = parts[i];
+        if (!current.groups[segment]) {
+          current.groups[segment] = { groups: {}, leaves: [] };
+        }
+        current = current.groups[segment];
+      }
+      var leafTitle = parts[parts.length - 1];
+      current.leaves.push(createFlattenedLeafColumn(fieldName, leafTitle));
+    });
+
+    return buildGroupedColumns(root);
+  }
+
+  function buildGroupedColumns(node) {
+    var columns = node.leaves.slice();
+    Object.keys(node.groups).forEach(function (groupTitle) {
+      columns.push({
+        title: groupTitle,
+        columns: buildGroupedColumns(node.groups[groupTitle])
+      });
+    });
+    return columns;
+  }
+
+  function createFlattenedLeafColumn(fieldName, title) {
+    // Tabulator (v4.x) treats dots in `field` as nested paths (row.Contacts.Id).
+    // Flattened SOQL rows use one object key per column, e.g. row["Contacts.Id"].
+    return {
+      title: title,
+      field: fieldName,
+      formatter: function (cell) {
+        var v = cell.getRow().getData()[fieldName];
+        return v === undefined || v === null ? '' : String(v);
+      }
+    };
   }
 
   // getColumns uses ColumnData to match QueryResult fields to columns.

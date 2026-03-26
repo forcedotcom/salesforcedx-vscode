@@ -51,7 +51,7 @@ describe('convertToCSV (Query Data View / SOQL Builder save)', () => {
     expect(convertToCSV([])).toBe('');
   });
 
-  it('serializes nested sub-query on child row as JSON (single column)', () => {
+  it('flattens nested sub-query rows into dotted columns', () => {
     const data = [
       {
         Name: 'Dana',
@@ -80,10 +80,12 @@ describe('convertToCSV (Query Data View / SOQL Builder save)', () => {
       }
     ];
     const csv = convertToCSV(data);
-    expect(csv.startsWith('Name,Pets.PetName,Pets.Toys\n')).toBe(true);
+    expect(csv.startsWith('Name,Pets.PetName,Pets.Toys.ToyName\n')).toBe(true);
     expect(csv).toContain('Dana');
     expect(csv).toContain('Fido');
     expect(csv).toContain('Whiskers');
     expect(csv).toContain('Ball');
+    expect(csv).toContain('Bone');
+    expect(csv).toContain('Yarn');
   });
 });
