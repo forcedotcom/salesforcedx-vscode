@@ -11,6 +11,7 @@ import { saveScreenshot } from '../shared/screenshotUtils';
 import {
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
+  closeSettingsTab,
   waitForWorkspaceReady,
   isMacDesktop,
   isDesktop
@@ -228,4 +229,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
   }
+
+  // Close the settings overlay/tab so callers can open command palette etc.
+  await closeSettingsTab(page);
 };
