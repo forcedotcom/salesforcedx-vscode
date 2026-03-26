@@ -57,7 +57,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.all(
     [
       svc.appendToChannel('Registering metadata commands'),
-      registerCommand('sf.metadata.apex.generate.class', createApexClassCommand),
+      registerCommand('sf.apex.generate.class', createApexClassCommand),
       registerCommand('sf.metadata.lightning.generate.lwc', createLwcCommand),
       registerCommand('sf.metadata.delete.source', (sourceUri?: URI, uris?: URI[]) =>
         deleteSourcePathsCommand(sourceUri, uris)

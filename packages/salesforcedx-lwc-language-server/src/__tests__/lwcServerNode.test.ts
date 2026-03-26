@@ -485,7 +485,7 @@ describe('lwcServerNode', () => {
           }
         };
 
-        await server.onInitialize(initializeParams);
+        server.onInitialize(initializeParams);
         await setupServerForTest([jsDocument]);
 
         const doc = server.documents.get(jsUri);

@@ -6,7 +6,6 @@
  */
 
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
-export const ENV_SF_DISABLE_TELEMETRY = 'SF_DISABLE_TELEMETRY';
 export const PKG_ID_PREFIX = '04t';
 
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';

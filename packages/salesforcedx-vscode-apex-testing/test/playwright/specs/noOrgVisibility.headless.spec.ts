@@ -14,15 +14,15 @@ import {
   isDesktop
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { noOrgTest } from '../fixtures';
 
-(isDesktop() ? test : test.skip.bind(test))(
+(isDesktop() ? noOrgTest : noOrgTest.skip.bind(noOrgTest))(
   'Apex Testing commands visibility when project is open but no org is connected',
   async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
-    await test.step('verify project-only commands are visible', async () => {
+    await noOrgTest.step('verify project-only commands are visible', async () => {
       // Create Apex Unit Test Class should be visible with just a project
       await verifyCommandExists(page, packageNls.apex_generate_unit_test_class_text, 30_000);
 
@@ -30,7 +30,7 @@ import { test } from '../fixtures';
       await verifyCommandExists(page, packageNls.apex_testing_walkthrough_open_command, 5000);
     });
 
-    await test.step('verify org-dependent commands are hidden', async () => {
+    await noOrgTest.step('verify org-dependent commands are hidden', async () => {
       // Run Apex Tests requires an org
       await verifyCommandDoesNotExist(page, packageNls.apex_test_run_text);
 
@@ -50,6 +50,6 @@ import { test } from '../fixtures';
       await verifyCommandDoesNotExist(page, packageNls.apex_test_last_method_run_text);
     });
 
-    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+    await validateNoCriticalErrors(noOrgTest, consoleErrors, networkErrors);
   }
 );
