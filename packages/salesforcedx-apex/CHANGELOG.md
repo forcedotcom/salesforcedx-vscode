@@ -1,3 +1,12 @@
+## [8.4.16](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.15...8.4.16) (2026-03-26)
+
+
+### Bug Fixes
+
+* **deps:** bump picomatch from 2.3.1 to 2.3.2 ([1dc56d7](https://github.com/forcedotcom/salesforcedx-apex/commit/1dc56d74bc1f4477e6642f5439ff1740204b53a0))
+
+
+
 ## [8.4.15](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.14...8.4.15) (2026-03-22)
 
 
