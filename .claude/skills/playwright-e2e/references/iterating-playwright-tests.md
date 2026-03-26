@@ -11,7 +11,17 @@ Scratch org setup: see `references/local-setup.md`.
 1. run `web` locally (use `--retries 0`, follow debugging tips)
 2. run `desktop` locally (use `--retries 0`)
 
-**Passing args:** Use `--` to forward params to the underlying command, e.g. `npm run test:web -w <package> -- --retries 0` or `npm run test:desktop -w <package> -- --retries 0` 3. edit github workflows if needed 4. CI (windows, gha) - see `analyze-e2e.md` for monitoring and analyzing results
+**Passing args:** Use `--` to forward params to the underlying playwright command. Prefer file path over `--grep` (exact match, immune to title changes):
+```bash
+WIREIT_CACHE=none npm run test:web -w <package> -- --retries 0 test/playwright/specs/myTest.headless.spec.ts
+WIREIT_CACHE=none npm run test:desktop -w <package> -- --retries 0 test/playwright/specs/myTest.headless.spec.ts
+```
+`WIREIT_CACHE=none` is always required when running a subset — wireit's cache key is based on input file fingerprints, not CLI args, so it serves the cached full-suite result otherwise.
+
+**Port conflict (web):** If a previous web server is still on port 3001, playwright fails immediately with `http://localhost:3001 is already used`. Fix: `lsof -ti :3001 | xargs kill -9`
+
+3. edit github workflows if needed
+4. CI (windows, gha) - see `analyze-e2e.md` for monitoring and analyzing results
 
 After passing, clean up while keeping tests passing:
 

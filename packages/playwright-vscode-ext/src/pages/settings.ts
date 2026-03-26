@@ -11,6 +11,7 @@ import { saveScreenshot } from '../shared/screenshotUtils';
 import {
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
+  closeSettingsTab,
   waitForWorkspaceReady,
   isMacDesktop,
   isDesktop
@@ -120,15 +121,23 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     // Wait for search results to appear - wait for any search result element to indicate search completed
     await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
 
-    // Deterministic locator: target the element that actually contains the `data-id` attribute
-    // VS Code only replaces the FIRST dot with underscore in data-id
-    // e.g., "salesforcedx-vscode-metadata.deployOnSave.enabled" -> "searchResultModel_salesforcedx-vscode-metadata_deployOnSave.enabled"
+    // VS Code sanitizeId(key) builds the data-id, but the behavior changed in 1.113:
+    // < 1.113: replace(/[\.\/]/, '_') — only the FIRST dot replaced
+    //          e.g. "a.b.c" → "searchResultModel_a_b.c"
+    // ≥ 1.113: replace(/[\.\/]/g, '_') — ALL dots replaced
+    //          e.g. "a.b.c" → "searchResultModel_a_b_c"
+    // Use an OR selector so this works across VS Code versions.
     // Use .last() when duplicates exist (User + Workspace): we're on Workspace tab, so Workspace row is last
-    const searchResultId = `searchResultModel_${id.replace(/\./, '_')}`;
-    const row = page.locator(`[data-id="${searchResultId}"]`).last();
+    const allDotsId = `searchResultModel_${id.replaceAll('.', '_')}`;
+    const firstDotId = `searchResultModel_${id.replace('.', '_')}`;
+    const dataIdSelector =
+      allDotsId === firstDotId
+        ? `[data-id="${allDotsId}"]`
+        : `[data-id="${allDotsId}"], [data-id="${firstDotId}"]`;
+    const row = page.locator(dataIdSelector).last();
 
     if (debugAria) {
-      console.log(`[upsertSettings] using deterministic locator for ${id}: data-id="${searchResultId}"`);
+      console.log(`[upsertSettings] using deterministic locator for ${id}: selector="${dataIdSelector}"`);
       // Capture HTML to debug selector issues - look for settings results
       try {
         const settingsBody = page.locator('.settings-body, .settings-tree-container, [class*="settings"]').first();
@@ -220,4 +229,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
   }
+
+  // Close the settings overlay/tab so callers can open command palette etc.
+  await closeSettingsTab(page);
 };
