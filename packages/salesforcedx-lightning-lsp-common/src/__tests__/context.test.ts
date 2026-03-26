@@ -159,6 +159,12 @@ const verifyTypingsCore = async (fileSystemAccessor: LspFileSystemAccessor): Pro
   expect(await fileSystemAccessor.fileExists(path.join(typingsPath, 'lds.d.ts'))).toBe(true);
 };
 
+const verifyCoreSettings = (settings: any): void => {
+  expect(settings['files.watcherExclude']).toBeDefined();
+  expect(settings['perforce.client']).toBe('username-localhost-blt');
+  expect(settings['perforce.user']).toBe('username');
+  expect(settings['perforce.port']).toBe('ssl:host:port');
+};
 
 describe('WorkspaceContext', () => {
   it('WorkspaceContext', async () => {
@@ -311,11 +317,21 @@ describe('WorkspaceContext', () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemAccessor);
     context.initialize('CORE_PARTIAL');
     const jsconfigPath = path.join(CORE_PROJECT_ROOT, 'modules', 'jsconfig.json');
+    const settingsPath = path.join(CORE_PROJECT_ROOT, '.vscode', 'settings.json');
 
+    // make sure no generated files are there from previous runs
+
+    // configure and verify typings/jsconfig after configuration:
     await context.configureProject();
 
     await verifyJsconfigCore(coreProjectFileSystemAccessor, jsconfigPath);
     await verifyTypingsCore(coreProjectFileSystemAccessor);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const settings = JSON.parse(
+      Buffer.from((await coreProjectFileSystemAccessor.getFileContent(settingsPath)) ?? '').toString('utf8')
+    );
+    verifyCoreSettings(settings);
   });
 
   it('configureCoreMulti()', async () => {
