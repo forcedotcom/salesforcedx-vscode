@@ -62,7 +62,14 @@ Validates view ID references in `package.json`:
 - View IDs in `when` clauses must match defined views in `contributes.views`
 - View IDs in `viewsWelcome` must reference defined views
 
-**Note:** These JSON rules require `@eslint/json` to be installed and configured.
+### vscodeignore-required-patterns
+
+Validates `.vscodeignore` required patterns for web extensions (`package.json` contains a `browser` field):
+
+- Enforces a baseline set of required ignore patterns
+- Enforces `scripts/**` and `docs/**` when those directories exist in the package
+
+**Note:** The `package-json-*` rules require `@eslint/json` to be installed and configured.
 
 ## Usage
 
@@ -101,6 +108,17 @@ export default [
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error'
+    }
+  },
+  // Enable .vscodeignore linting for extension package folders
+  {
+    files: ['packages/*/.vscodeignore'],
+    plugins: {
+      local: localRulesPlugin
+    },
+    processor: 'local/vscodeignoreText',
+    rules: {
+      'local/vscodeignore-required-patterns': 'error'
     }
   }
 ];

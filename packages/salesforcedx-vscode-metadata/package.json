@@ -138,7 +138,8 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        ".vscodeignore"
       ],
       "output": []
     },

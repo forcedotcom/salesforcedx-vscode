@@ -27,15 +27,17 @@ const packageDir = __dirname;
 const templatesPkgPath = dirname(createRequire(import.meta.url).resolve('@salesforce/templates/package.json'));
 const templatesLibPath = join(templatesPkgPath, 'lib/templates');
 // Use forward slashes in glob so copy works on Windows CI (globby is cross-platform when pattern uses /).
-const templatesGlob = `${templatesLibPath.replace(/\\/g, '/')}/**/*`;
+const templatesBase = templatesLibPath.replace(/\\/g, '/');
 
 const copyTemplates = copy({
   resolveFrom: 'cwd',
   globbyOptions: { dot: true },
-  assets: {
-    from: [templatesGlob],
-    to: ['./dist/templates']
-  }
+  assets: [
+    { from: [`${templatesBase}/apexclass/**/*`], to: ['./dist/templates/apexclass'] },
+    { from: [`${templatesBase}/apextrigger/**/*`], to: ['./dist/templates/apextrigger'] },
+    { from: [`${templatesBase}/lightningcomponent/lwc/**/*`], to: ['./dist/templates/lightningcomponent/lwc'] },
+    { from: [`${templatesBase}/staticresource/**/*`], to: ['./dist/templates/staticresource'] }
+  ]
 });
 
 // Generate manifest listing all template file paths (relative to templates root).

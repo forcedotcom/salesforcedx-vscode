@@ -1,0 +1,4 @@
+{
+  "name": "web-extension-fixture-missing-node",
+  "browser": "./dist/web/index.js"
+}
