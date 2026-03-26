@@ -12,6 +12,7 @@ import {
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
+  verifyCommandExists,
   closeWelcomeTabs,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
@@ -37,10 +38,11 @@ test.describe('Aura Templates (Desktop Only)', () => {
 
   const createAuraTemplate = async (page: any, command: string, name: string, expectedFiles: string[]) => {
     await test.step(`Create Aura ${name}`, async () => {
+      await verifyCommandExists(page, command, 30_000);
       await executeCommandWithCommandPalette(page, command);
       
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
       await page.keyboard.type(name);
       await page.keyboard.press('Enter');
 

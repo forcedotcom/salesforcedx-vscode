@@ -12,6 +12,13 @@ This extension provides Salesforce org and authorization management commands for
 - **Log Out from Default Org** - Remove authorization for the current default org
 - **Log Out from All Authorized Orgs** - Remove all stored org authorizations
 
+When **Authorize an Org** fails because local port `1717` is already in use, the extension now shows an explicit troubleshooting message and a **Show Output** action so you can inspect the full CLI error details.
+
+#### Port 1717 Troubleshooting for Authorize an Org
+
+- macOS/Linux: `lsof -i :1717`, then `kill -9 <PID>`, then retry authorization.
+- Windows: `netstat -ano | findstr :1717`, then `taskkill /PID <PID> /F`, then retry authorization.
+
 ### Org Management Commands
 
 - **Create a Default Scratch Org** - Create a new scratch org and set it as default

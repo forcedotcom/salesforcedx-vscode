@@ -186,6 +186,10 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10000 });
     await page.keyboard.type('TestScript');
     await page.keyboard.press('Enter');
+    // Wait for directory QuickPick list rows (InputBox has none; QuickPick has 2 options)
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
+    await page.keyboard.press('Enter');
 
     // Wait for TestScript.apex to be opened, then ensure it's the active editor
     await page

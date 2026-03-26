@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
-import {  getDefaultOrgRef } from '../core/defaultOrgRef';
+import { getDefaultOrgRef } from '../core/defaultOrgRef';
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {

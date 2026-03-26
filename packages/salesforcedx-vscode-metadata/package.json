@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.0",
+  "version": "66.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -293,8 +293,8 @@
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.metadata.apex.generate.class",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands"
+          "command": "sf.apex.generate.class",
+          "when": "sf:project_opened"
         },
         {
           "command": "sf.metadata.delete.source",
@@ -403,6 +403,10 @@
         {
           "command": "sf.metadata.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
+        },
+        {
+          "command": "sf.apex.generate.class",
+          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
         }
       ]
     },
@@ -436,7 +440,7 @@
         "title": "%reset_remote_tracking_text%"
       },
       {
-        "command": "sf.metadata.apex.generate.class",
+        "command": "sf.apex.generate.class",
         "title": "%apex_generate_class_text%"
       },
       {
