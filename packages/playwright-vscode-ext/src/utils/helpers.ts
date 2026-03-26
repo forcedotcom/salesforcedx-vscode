@@ -217,6 +217,10 @@ export const closeSettingsTab = async (page: Page): Promise<void> => {
     await closeButton.click();
     await settingsTab.waitFor({ state: 'detached', timeout: 5000 });
   }
+  // Restore focus to the workbench after closing the settings tab.
+  // On macOS, VS Code may refocus the secondary sidebar (e.g. Copilot Chat),
+  // which intercepts F1 and prevents the command palette from opening.
+  await page.locator(WORKBENCH).click({ timeout: 5000 });
 };
 
 /** Wait for workspace file system to be ready by checking for sfdx-project.json in Explorer */
