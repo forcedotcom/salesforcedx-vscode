@@ -27,7 +27,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.13",
+    "@salesforce/apex-node": "^8.4.17-dev.0",
     "salesforcedx-vscode-apex-log": "*",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
@@ -137,7 +137,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],

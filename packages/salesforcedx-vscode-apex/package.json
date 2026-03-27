@@ -27,7 +27,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.13",
+    "@salesforce/apex-node": "^8.4.17-dev.0",
     "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -148,7 +148,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
