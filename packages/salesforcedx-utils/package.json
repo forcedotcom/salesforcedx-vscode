@@ -9,7 +9,8 @@
   "scripts": {
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache",
+    "check:circular-deps": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
     "test": "wireit"
   },
   "wireit": {
@@ -46,6 +47,7 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
+        "check:circular-deps",
         "../eslint-local-rules:compile"
       ],
       "files": [
@@ -56,10 +58,22 @@
         "package.nls.json"
       ],
       "output": []
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/index.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
     }
   },
   "dependencies": {
-    "@salesforce/core": "^8.23.3"
+    "@salesforce/core": "^8.27.0"
   },
   "devDependencies": {
     "rxjs": "^7.8.2"

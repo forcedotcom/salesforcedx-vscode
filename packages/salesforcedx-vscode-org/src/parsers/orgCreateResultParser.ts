@@ -25,13 +25,16 @@ export type OrgCreateErrorResult = {
   warnings: any[];
 };
 
+type OrgCreateResponse = OrgCreateSuccessResult | OrgCreateErrorResult;
+
 export class OrgCreateResultParser {
-  private response: any;
+  private response: OrgCreateResponse | undefined;
 
   constructor(stdout: string) {
     try {
       if (stdout) {
-        this.response = extractJson(stdout);
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- extractJson returns any */
+        this.response = extractJson(stdout) as OrgCreateResponse;
       }
     } catch {
       const err = new Error('Error parsing org create result');

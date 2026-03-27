@@ -33,7 +33,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   deploy_this_source_text: 'SFDX: このソースを組織へデプロイ',
   retrieve_this_source_text: 'SFDX: このソースを組織から取得',
-  retrieve_display_text: 'SFDX: このソースを組織から取得',
 
   delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
   delete_source_manifest_unsupported_message:
@@ -73,8 +72,14 @@ export const messages: Partial<Record<MessageKey, string>> = {
   project_generate_empty_template_display_text: '空',
   project_generate_empty_template: '空のプロジェクトテンプレート',
   project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
-  project_generate_react_b2e_template: 'React B2E のプロジェクトテンプレート',
-  project_generate_react_b2x_template: 'React B2X のプロジェクトテンプレート',
+  project_generate_react_b2x_template_display_text: 'React 外部アプリ',
+  project_generate_react_b2e_template_display_text: 'React 内部アプリ',
+  project_generate_react_b2x_template:
+    '組織外の顧客・パートナー向け (B2C)。サンプル: Property Rental App',
+  project_generate_react_b2e_template:
+    'Salesforce 認証でサインインする従業員向け (B2E)。サンプル: Property Management App',
+  project_generate_agent_template_display_text: 'エージェント',
+  project_generate_agent_template: 'エージェントのプロジェクトテンプレート',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
@@ -94,12 +99,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   custom_output_directory: 'ディレクトリを選択',
   lightning_generate_lwc_text: 'SFDX: Lightning Web コンポーネントを作成',
-  empty_components: '利用できるコンポーネントがありません',
-  error_auth_token: '認証トークン更新中にエラーが発生しました。',
-  error_no_org_found: '組織の認証情報が見つかりませんでした。',
-  error_fetching_metadata: '組織のメタデータ読み込み中にエラーが発生しました。',
-  error_org_browser_text: '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
-  error_org_browser_init: '組織ブラウザが初期化されませんでした。',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
 
   conflict_detect_error: '競合を検出中にエラーが発生しました。%s',

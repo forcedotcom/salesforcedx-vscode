@@ -6,7 +6,6 @@
  */
 
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
-export const ENV_SF_DISABLE_TELEMETRY = 'SF_DISABLE_TELEMETRY';
 export const PKG_ID_PREFIX = '04t';
 
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
@@ -31,7 +30,6 @@ export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-star
 export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE = 'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
 export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
-export const USE_LEGACY_ORG_BROWSER = 'useLegacyOrgBrowser';
 export const USE_METADATA_EXTENSION_COMMANDS = 'useMetadataExtensionCommands';
 
 export const APEX_FILE_NAME_EXTENSION = '.apex';

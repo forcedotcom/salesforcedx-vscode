@@ -17,7 +17,6 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { coerceMessageKey, nls } from '../../messages';
 import { SalesforcePackageDirectories, SalesforceProjectConfig } from '../../salesforceProject';
-import { RetrieveDescriber } from '../retrieveMetadata';
 
 export type FileNameParameter = {
   fileName: string;
@@ -140,21 +139,6 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
       type: 'CONTINUE',
       data: this.input
     });
-  }
-}
-
-export class RetrieveComponentOutputGatherer implements ParametersGatherer<LocalComponent[]> {
-  private describer: RetrieveDescriber;
-
-  constructor(describer: RetrieveDescriber) {
-    this.describer = describer;
-  }
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<LocalComponent[]>> {
-    return {
-      type: 'CONTINUE',
-      data: await this.describer.gatherOutputLocations()
-    };
   }
 }
 

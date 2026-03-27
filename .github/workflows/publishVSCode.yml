@@ -10,6 +10,7 @@ on:
 jobs:
   prepare-environment-from-main:
     name: 'Get Release Version'
+    if: github.event_name != 'release' || !startsWith(github.event.release.tag_name, 'soql-common')
     runs-on: ubuntu-latest
     environment: publish
     outputs:
@@ -82,3 +83,26 @@ jobs:
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
+
+  # Set repo variable CBW_TRIGGER_ENABLED=false to disable dispatch to code-builder-web.
+  # Default (unset): dispatch after publish. Use when publishing without CBW promotion.
+  trigger-cbw-release:
+    needs: [publish, prepare-environment-from-main]
+    if: needs.publish.result == 'success' && vars.CBW_TRIGGER_ENABLED != 'false'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Code Builder Web release
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+        run: |
+          VERSION="${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}"
+          RELEASE_TYPE="minor"
+          echo "Dispatching extension-publish event to code-builder-web with version $VERSION (release-type: $RELEASE_TYPE)"
+          gh api repos/forcedotcom/code-builder-web/dispatches \
+            --method POST \
+            -f event_type=extension-publish \
+            -f "client_payload[version]=$VERSION" \
+            -f "client_payload[source]=publishVSCode" \
+            -f "client_payload[release_type]=$RELEASE_TYPE"
+          echo "Dispatch sent successfully"

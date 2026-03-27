@@ -10,6 +10,9 @@ import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 /** Check if a span is a top-level span (has no parent) */
 export const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
 
+/** Check if a span has a command attribute */
+export const isCommandSpan = (span: ReadableSpan): boolean => span.attributes['command'] !== undefined;
+
 /** Convert span attributes to string key-value pairs, filtering out undefined/null values */
 export const convertAttributes = (attributes: Attributes): Attributes =>
   Object.fromEntries(

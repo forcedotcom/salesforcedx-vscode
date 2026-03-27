@@ -1,35 +1,33 @@
-# 66.1.1 - March 12, 2026
+# 66.3.2 - March 29, 2026
 
 ## Added
 
+#### salesforcedx-vscode-apex
+
+- Gate LSP telemetry/event forwarding so only allowlisted Jorje Feature values are sent as apexLSPLog, reducing high-volume editor telemetry toward Application Insights. ([PR #7044](https://github.com/forcedotcom/salesforcedx-vscode/pull/7044))
+
+#### salesforcedx-vscode-apex-log
+#### salesforcedx-vscode-apex-testing
+#### salesforcedx-vscode-lwc
+#### salesforcedx-vscode-metadata
+#### salesforcedx-vscode-org-browser
+#### salesforcedx-vscode-services
+#### salesforcedx-vscode-soql
+
+- We made changes under the hood ([PR #7055](https://github.com/forcedotcom/salesforcedx-vscode/pull/7055))
+
 #### salesforcedx-vscode-core
 
-- We added a progress indicator to SFDX:Refresh SObjects command & refactored it to use shared services, improving performance and consistency. ([PR #6925](https://github.com/forcedotcom/salesforcedx-vscode/pull/6925))
+- Renamed react web app templates ([PR #7070](https://github.com/forcedotcom/salesforcedx-vscode/pull/7070))
 
-#### salesforcedx-vscode-org
-
-- Verification code now appear when authorizing an org or Dev Hub in the Agentforce Vibes IDE. ([PR #6945](https://github.com/forcedotcom/salesforcedx-vscode/pull/6945))
 
 ## Fixed
 
-#### docs
-
-- We made some changes under the hood. ([PR #6963](https://github.com/forcedotcom/salesforcedx-vscode/pull/6963))
-
-#### salesforcedx-lwc-language-server
-#### salesforcedx-vscode-apex-testing
-#### salesforcedx-vscode-org-browser
-#### salesforcedx-vscode-services
-
-- Fixed issues with Apex Testing in web-based VS Code environments (such as vscode.dev) and improved file discovery for more reliable test execution across web and desktop. ([PR #6930](https://github.com/forcedotcom/salesforcedx-vscode/pull/6930))
-
-#### salesforcedx-vscode-core
-
-- We fixed a missing label error that was appearing when running **SFDX: Create Lightning Web Component**. ([PR #6948](https://github.com/forcedotcom/salesforcedx-vscode/pull/6948))
-
-#### salesforcedx-vscode-lightning
-#### salesforcedx-vscode-lwc
 #### salesforcedx-lightning-lsp-common
 
-- We fixed a behavior where files written to by language server were opened in the user's IDE ([PR #6946](https://github.com/forcedotcom/salesforcedx-vscode/pull/6946))
+- Fixed an issue where vscode settings were overriden ([PR #7077](https://github.com/forcedotcom/salesforcedx-vscode/pull/7077))
+
+#### salesforcedx-vscode-soql
+
+- Report sub-query records correctly in SOQL execution table output ([PR #7034](https://github.com/forcedotcom/salesforcedx-vscode/pull/7034))
 

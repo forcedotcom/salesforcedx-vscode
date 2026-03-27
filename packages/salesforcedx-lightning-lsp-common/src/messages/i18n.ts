@@ -16,12 +16,11 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  config_file_not_found_message: 'Config file not found',
   invalid_config_format_message: 'Invalid config format',
   sfdx_project_file_invalid_message: 'SFDX project file %s is invalid: %s',
   forceignore_file_not_found_message: 'Forceignore file not found',
   existing_config_content_not_found_message: 'Existing config content not found',
   invalid_existing_config_format_message: 'Invalid existing config format',
   workspaceRoots_0_required_message: 'workspaceRoots[0] is required: value=%s, isUndefined=%s',
-  invalid_paths_message: 'Invalid paths: fromPath=%s, toPath=%s',
+  invalid_paths_message: 'Invalid paths: fromPath=%s, toPath=%s'
 } as const;

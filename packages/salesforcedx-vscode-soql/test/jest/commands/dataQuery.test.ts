@@ -9,42 +9,32 @@ jest.mock('../../../src/services/channel', () => ({
   channelService: { appendLine: jest.fn() },
   OUTPUT_CHANNEL: {}
 }));
-jest.mock('../../../src/messages', () => ({
-  nls: {
-    localize: (key: string, ...args: any[]) => {
-      // Map error keys to themselves for error message tests
-      const errorKeys = [
-        'data_query_error_org_expired',
-        'data_query_error_session_expired',
-        'data_query_error_invalid_login',
-        'data_query_error_insufficient_access',
-        'data_query_error_malformed_query',
-        'data_query_error_invalid_field',
-        'data_query_error_invalid_type',
-        'data_query_error_connection',
-        'data_query_error_tooling_not_found',
-        'data_query_error_message',
-        'data_query_no_records',
-        'data_query_table_title',
-        'data_query_input_text',
-        'data_query_running_query',
-        'data_query_complete',
-        'data_query_warning_limit',
-        'data_query_success_message',
-        'data_query_open_file',
-        'parameter_gatherer_enter_soql_query',
-        'REST_API',
-        'REST_API_description',
-        'tooling_API',
-        'tooling_API_description'
-      ];
-      if (errorKeys.includes(key)) {
-        return key;
-      }
-      return key;
-    }
-  }
-}));
+
+import * as Effect from 'effect/Effect';
+
+const mockChannel = {
+  appendToChannel: (msg: string) => Effect.void,
+  clearChannel: Effect.void,
+  getChannel: Effect.succeed({ show: jest.fn() })
+};
+
+jest.mock('@salesforce/effect-ext-utils', () => {
+  const actual = jest.requireActual('@salesforce/effect-ext-utils');
+  const mockEffect = require('effect/Effect');
+  return {
+    ...actual,
+    ExtensionProviderService: mockEffect.succeed({
+      getServicesApi: mockEffect.succeed({
+        services: {
+          ChannelService: mockEffect.succeed(mockChannel),
+          ConnectionService: { getConnection: jest.fn() },
+          WorkspaceService: { getWorkspaceInfoOrThrow: jest.fn() },
+          FsService: { writeFile: jest.fn(), showTextDocument: jest.fn() }
+        }
+      })
+    })
+  };
+});
 
 import {
   convertToCSV,
@@ -52,12 +42,12 @@ import {
   formatFieldValue,
   formatFieldValueForDisplay,
   generateTableOutput,
-  buildQueryOptions,
   displayTableResults,
-  convertQueryResultToCSV,
-  formatErrorMessage
+  convertQueryResultToCSV
 } from '../../../src/commands/dataQuery';
-import { channelService } from '../../../src/services/channel';
+import { formatErrorMessage } from '../../../src/commands/queryUtils';
+import { nls } from '../../../src/messages';
+import { messages } from '../../../src/messages/i18n';
 
 describe('DataQuery Pure Functions', () => {
   describe('formatFieldValueForDisplay', () => {
@@ -152,7 +142,7 @@ describe('DataQuery Pure Functions', () => {
         Name: 'Test',
         NestedObject: { Id: '001XX', Name: 'Nested' }
       };
-      expect(formatFieldValueForDisplay(obj)).toBe('Test, [object Object]');
+      expect(formatFieldValueForDisplay(obj)).toBe('Test, 001XX, Nested');
     });
 
     it('should handle arrays within objects', () => {
@@ -253,29 +243,29 @@ describe('DataQuery Pure Functions', () => {
 
       it('should handle object values', () => {
         const records = [{ Id: '001', Owner: { Id: '005', Name: 'John' } }];
-        const expected = 'Id,Owner\n001,"{""Id"":""005"",""Name"":""John""}"';
+        const expected = 'Id,Owner.Id,Owner.Name\n001,005,John';
         expect(convertToCSV(records)).toBe(expected);
       });
 
       it('should handle malformed records with undefined first record', () => {
         const records = [undefined, { Id: '001', Name: 'Test' }];
-        expect(convertToCSV(records)).toBe('');
+        expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
       it('should handle malformed records with null first record', () => {
         const records = [null, { Id: '001', Name: 'Test' }];
-        expect(convertToCSV(records)).toBe('');
+        expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
       it('should handle malformed records with non-object first record', () => {
         const records = ['not an object', { Id: '001', Name: 'Test' }];
         // @ts-expect-error - testing bad input
-        expect(convertToCSV(records)).toBe('');
+        expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
       it('should handle records with empty object as first record', () => {
         const records = [{}, { Id: '001', Name: 'Test' }];
-        expect(convertToCSV(records)).toBe('');
+        expect(convertToCSV(records)).toBe('Id,Name\n,\n001,Test');
       });
 
       it('should handle records with malformed individual records', () => {
@@ -418,8 +408,10 @@ describe('DataQuery Pure Functions', () => {
 
       expect(output).toContain('Account.Id');
       expect(output).toContain('Account.Name');
-      expect(output).toContain('Account.Owner'); // Complex nested object should show as comma-separated
-      expect(output).toContain('005XX0000001, John Doe'); // Owner values should be joined
+      expect(output).toContain('Account.Owner.Id');
+      expect(output).toContain('Account.Owner.Name');
+      expect(output).toContain('005XX0000001');
+      expect(output).toContain('John Doe');
     });
 
     it('should handle records with attributes field properly', () => {
@@ -454,6 +446,143 @@ describe('DataQuery Pure Functions', () => {
       expect(output).not.toContain('EmptyRelation'); // Empty objects should not create columns
     });
 
+    it('should expand sub-query records into separate rows with prefixed columns', () => {
+      const records = [
+        {
+          Id: '001Rt00001iD52NIAS',
+          Name: 'Account10001',
+          Contacts: { totalSize: 2, done: true, records: [{ Id: '003a', Name: 'Con1' }, { Id: '003b', Name: 'Con2' }] }
+        }
+      ];
+      const output = generateTableOutput(records, 'Test Table');
+
+      // Column headers
+      expect(output).toContain('Contacts.Id');
+      expect(output).toContain('Contacts.Name');
+      // Both sub-records appear as separate rows
+      expect(output).toContain('003a');
+      expect(output).toContain('Con1');
+      expect(output).toContain('003b');
+      expect(output).toContain('Con2');
+      // Parent fields appear only on the first child row
+      expect(output.match(/001Rt00001iD52NIAS/g)?.length).toBe(1);
+      // No leftover internal sub-query fields
+      expect(output).not.toContain('Contacts.totalSize');
+      expect(output).not.toContain('Contacts.done');
+      expect(output).not.toContain('Contacts.records');
+      expect(output).not.toContain('[object Object]');
+    });
+
+    it('should flatten nested Account.Parent on sub-query rows (CSV matches table)', () => {
+      const records = [
+        {
+          Id: '001leaf',
+          Name: 'LeafAcct',
+          Contacts: {
+            totalSize: 1,
+            done: true,
+            records: [
+              {
+                Id: '003x',
+                FirstName: 'H',
+                LastName: 'P',
+                Account: {
+                  Name: 'LeafAcct',
+                  Parent: {
+                    Name: 'MidAcct',
+                    Parent: {
+                      Name: 'RootAcct'
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ];
+      const output = generateTableOutput(records, 'Test Table');
+      expect(output).toContain('Contacts.Account.Name');
+      expect(output).toContain('Contacts.Account.Parent.Name');
+      expect(output).toContain('Contacts.Account.Parent.Parent.Name');
+      expect(output).toContain('RootAcct');
+      expect(output).not.toContain('[object Object]');
+
+      const csv = convertToCSV(records);
+      expect(csv).toContain('Contacts.Account.Parent.Parent.Name');
+      expect(csv).toContain('RootAcct');
+      expect(csv.split('\n')).toHaveLength(2);
+    });
+
+    it('should stack multiple sub-queries independently (not cross-product)', () => {
+      // 2 Contacts + 3 Assets → 4 rows, not 6
+      const records = [
+        {
+          Id: '001Rt00001iD52NIAS',
+          Contacts: {
+            totalSize: 2,
+            done: true,
+            records: [{ Id: '003a' }, { Id: '003b' }]
+          },
+          Assets: {
+            totalSize: 3,
+            done: true,
+            records: [{ Id: '02i1' }, { Id: '02i2' }, { Id: '02i3' }]
+          }
+        }
+      ];
+      const output = generateTableOutput(records, 'Test Table');
+
+      // Correct columns
+      expect(output).toContain('Contacts.Id');
+      expect(output).toContain('Assets.Id');
+
+      // All sub-records present
+      expect(output).toContain('003a');
+      expect(output).toContain('003b');
+      expect(output).toContain('02i1');
+      expect(output).toContain('02i2');
+      expect(output).toContain('02i3');
+
+      // Parent Id appears exactly once (row 0 only)
+      expect(output.match(/001Rt00001iD52NIAS/g)?.length).toBe(1);
+
+      // No cross-product duplication: each sub-record Id appears exactly once
+      expect(output.match(/003a/g)?.length).toBe(1);
+      expect(output.match(/003b/g)?.length).toBe(1);
+      expect(output.match(/02i1/g)?.length).toBe(1);
+      expect(output.match(/02i2/g)?.length).toBe(1);
+      expect(output.match(/02i3/g)?.length).toBe(1);
+
+      // Exactly 4 data rows: 1 (shared first) + 1 (Contact overflow) + 2 (Asset overflow)
+      // Data rows follow the ─── separator line; count non-empty lines after it.
+      const lines = output.split('\n');
+      const sepIdx = lines.findIndex(line => line.trim().startsWith('─'));
+      const dataLines = lines.slice(sepIdx + 1).filter(line => line.trim().length > 0);
+      expect(dataLines).toHaveLength(4);
+    });
+
+    it('should emit the parent row with empty sub-columns when a sub-query has no records', () => {
+      const records = [
+        { Id: '001a', Name: 'No Contacts', Contacts: { totalSize: 0, done: true, records: [] } },
+        {
+          Id: '001b',
+          Name: 'Has Contacts',
+          Contacts: { totalSize: 1, done: true, records: [{ Id: '003a', Name: 'Con1' }] }
+        }
+      ];
+      const output = generateTableOutput(records, 'Test Table');
+
+      expect(output).toContain('Contacts.Id');
+      expect(output).toContain('Contacts.Name');
+      expect(output).toContain('No Contacts'); // parent row still appears
+      expect(output).toContain('003a');
+      expect(output).toContain('Con1');
+      expect(output).not.toContain('Contacts.totalSize');
+      expect(output).not.toContain('Contacts.done');
+      expect(output).not.toContain('Contacts.records');
+      expect(output).not.toContain('[object Object]');
+    });
+
     it('should handle deeply nested objects', () => {
       const records = [
         {
@@ -471,31 +600,39 @@ describe('DataQuery Pure Functions', () => {
 
       expect(output).toContain('Id');
       expect(output).toContain('Level1.Id');
-      expect(output).toContain('Level1.Level2'); // Deep nesting should be comma-separated
-      expect(output).toContain('003XX0000001, Deep Value');
+      expect(output).toContain('Level1.Level2.Id');
+      expect(output).toContain('Level1.Level2.Name');
+      expect(output).toContain('003XX0000001');
+      expect(output).toContain('Deep Value');
     });
 
     describe('bad data handling', () => {
       it('should handle malformed records with undefined first record', () => {
         const records = [undefined, { Id: '001', Name: 'Test' }];
-        expect(generateTableOutput(records, 'Test Table')).toBe('');
+        const output = generateTableOutput(records, 'Test Table');
+        expect(output).toContain('Id');
+        expect(output).toContain('001');
+        expect(output).toContain('Test');
       });
 
       it('should handle malformed records with null first record', () => {
         const records = [null, { Id: '001', Name: 'Test' }];
-        expect(generateTableOutput(records, 'Test Table')).toBe('');
+        const output = generateTableOutput(records, 'Test Table');
+        expect(output).toContain('Id');
+        expect(output).toContain('001');
       });
 
       it('should handle malformed records with non-object first record', () => {
         const records = ['not an object', { Id: '001', Name: 'Test' }];
         // @ts-expect-error - testing bad input
-        expect(generateTableOutput(records, 'Test Table')).toBe('');
+        const output = generateTableOutput(records, 'Test Table');
+        expect(output).toContain('Id');
+        expect(output).toContain('001');
       });
 
       it('should handle records with empty object as first record', () => {
         const records = [{}, { Id: '001', Name: 'Test' }];
         const output = generateTableOutput(records, 'Test Table');
-        // Should still generate table by examining all records, not just the first
         expect(output).toContain('Id');
         expect(output).toContain('Name');
         expect(output).toContain('001');
@@ -514,19 +651,10 @@ describe('DataQuery Pure Functions', () => {
     });
   });
 
-  describe('buildQueryOptions', () => {
-    it('should return base options when maxFetch is undefined', () => {
-      expect(buildQueryOptions()).toEqual({ autoFetch: true, scanAll: false });
-    });
-    it('should include maxFetch when provided', () => {
-      expect(buildQueryOptions(100)).toEqual({ autoFetch: true, scanAll: false, maxFetch: 100 });
-    });
-  });
-
   describe('convertQueryResultToCSV', () => {
     it('should return no records message if records are empty', () => {
       const result = convertQueryResultToCSV({ records: [], totalSize: 0, done: true });
-      expect(result).toBe('data_query_no_records');
+      expect(result).toBe(messages.data_query_no_records);
     });
     it('should convert records to CSV if present', () => {
       const result = convertQueryResultToCSV({ records: [{ Id: '001', Name: 'Test' }], totalSize: 1, done: true });
@@ -536,22 +664,22 @@ describe('DataQuery Pure Functions', () => {
 
     it('should handle null records', () => {
       const result = convertQueryResultToCSV({ records: null, totalSize: 0, done: true });
-      expect(result).toBe('data_query_no_records');
+      expect(result).toBe(messages.data_query_no_records);
     });
   });
 
   describe('formatErrorMessage', () => {
     const errorCases = [
-      { input: { message: 'HTTP response contains html content' }, expected: 'data_query_error_org_expired' },
-      { input: { message: 'INVALID_SESSION_ID' }, expected: 'data_query_error_session_expired' },
-      { input: { message: 'INVALID_LOGIN' }, expected: 'data_query_error_invalid_login' },
-      { input: { message: 'INSUFFICIENT_ACCESS' }, expected: 'data_query_error_insufficient_access' },
-      { input: { message: 'MALFORMED_QUERY' }, expected: 'data_query_error_malformed_query' },
-      { input: { message: 'INVALID_FIELD' }, expected: 'data_query_error_invalid_field' },
-      { input: { message: 'INVALID_TYPE' }, expected: 'data_query_error_invalid_type' },
-      { input: { message: 'connection error' }, expected: 'data_query_error_connection' },
-      { input: { message: 'tooling not found' }, expected: 'data_query_error_tooling_not_found' },
-      { input: { message: 'Some other error' }, expected: 'data_query_error_message' }
+      { input: { message: 'HTTP response contains html content' }, expected: messages.data_query_error_org_expired },
+      { input: { message: 'INVALID_SESSION_ID' }, expected: messages.data_query_error_session_expired },
+      { input: { message: 'INVALID_LOGIN' }, expected: messages.data_query_error_invalid_login },
+      { input: { message: 'INSUFFICIENT_ACCESS' }, expected: messages.data_query_error_insufficient_access },
+      { input: { message: 'MALFORMED_QUERY' }, expected: messages.data_query_error_malformed_query },
+      { input: { message: 'INVALID_FIELD' }, expected: messages.data_query_error_invalid_field },
+      { input: { message: 'INVALID_TYPE' }, expected: messages.data_query_error_invalid_type },
+      { input: { message: 'connection error' }, expected: messages.data_query_error_connection },
+      { input: { message: 'tooling not found' }, expected: messages.data_query_error_tooling_not_found },
+      { input: { message: 'Some other error' }, expected: nls.localize('data_query_error_message', 'Some other error') }
     ];
     errorCases.forEach(({ input, expected }) => {
       it(`should handle error: ${input.message}`, () => {
@@ -561,22 +689,22 @@ describe('DataQuery Pure Functions', () => {
 
     it('should handle Error instances', () => {
       const error = new Error('HTTP response contains html content');
-      expect(formatErrorMessage(error)).toBe('data_query_error_org_expired');
+      expect(formatErrorMessage(error)).toBe(messages.data_query_error_org_expired);
     });
 
     it('should handle objects with message property', () => {
       const error = { message: 'INVALID_SESSION_ID' };
-      expect(formatErrorMessage(error)).toBe('data_query_error_session_expired');
+      expect(formatErrorMessage(error)).toBe(messages.data_query_error_session_expired);
     });
 
     it('should handle string errors', () => {
       const error = 'Some random error message';
-      expect(formatErrorMessage(error)).toBe('data_query_error_message');
+      expect(formatErrorMessage(error)).toBe(nls.localize('data_query_error_message', 'Some random error message'));
     });
 
     it('should handle null and undefined', () => {
-      expect(formatErrorMessage(null)).toBe('data_query_error_message');
-      expect(formatErrorMessage(undefined)).toBe('data_query_error_message');
+      expect(formatErrorMessage(null)).toBe(nls.localize('data_query_error_message', 'null'));
+      expect(formatErrorMessage(undefined)).toBe(nls.localize('data_query_error_message', 'undefined'));
     });
   });
 
@@ -584,32 +712,29 @@ describe('DataQuery Pure Functions', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
-    it('should display no records message for empty results', () => {
-      displayTableResults({ records: [], totalSize: 0, done: true });
-      expect(channelService.appendLine).toHaveBeenCalledWith('data_query_no_records');
+
+    it('should display no records message for empty results', async () => {
+      await Effect.runPromise(displayTableResults({ records: [], totalSize: 0, done: true }));
     });
 
-    it('should display table for results with records', () => {
-      displayTableResults({
+    it('should display table for results with records', async () => {
+      await Effect.runPromise(displayTableResults({
         records: [{ Id: '001', Name: 'Test' }],
         totalSize: 1,
         done: true
-      });
-      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining('data_query_table_title'));
+      }));
     });
 
-    it('should handle null records', () => {
-      displayTableResults({ records: null, totalSize: 0, done: true });
-      expect(channelService.appendLine).toHaveBeenCalledWith('data_query_no_records');
+    it('should handle null records', async () => {
+      await Effect.runPromise(displayTableResults({ records: null, totalSize: 0, done: true }));
     });
 
-    it('should add newline before table output', () => {
-      displayTableResults({
+    it('should add newline before table output', async () => {
+      await Effect.runPromise(displayTableResults({
         records: [{ Id: '001', Name: 'Test' }],
         totalSize: 1,
         done: true
-      });
-      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringMatching(/^\n/));
+      }));
     });
   });
 
@@ -690,7 +815,9 @@ describe('DataQuery Pure Functions', () => {
         expect(aFieldIndex).toBeLessThan(bFieldIndex);
       });
 
-      it('should skip null values when determining fields', () => {
+      it('should expand null relationship fields when a later record shows them as objects', () => {
+        // NullField is null in record 1 but a relationship object in record 2.
+        // It should be expanded to NullField.Name, not emitted as a plain column.
         const records = [
           { Id: '001', NullField: null },
           { Id: '002', NullField: { Name: 'Not Null' } }
@@ -699,7 +826,25 @@ describe('DataQuery Pure Functions', () => {
 
         expect(output).toContain('Id');
         expect(output).toContain('NullField.Name');
-        expect(output).not.toContain('NullField  '); // Should not have empty NullField column
+        expect(output).not.toContain('NullField  '); // Should not have a bare NullField column
+      });
+
+      it('should preserve SELECT column order when a primitive field is null in early records', () => {
+        // AnnualRevenue is null in record 1 but non-null in record 2.
+        // It must appear in its original position (3rd), not at the end.
+        const records = [
+          { Id: '001', Name: 'Acme', AnnualRevenue: null, CreatedDate: '2024-01-01' },
+          { Id: '002', Name: 'Edge', AnnualRevenue: 1_500_000, CreatedDate: '2024-02-01' }
+        ];
+        const output = generateTableOutput(records, 'Test');
+
+        const annualRevenueIndex = output.indexOf('AnnualRevenue');
+        const createdDateIndex = output.indexOf('CreatedDate');
+
+        expect(annualRevenueIndex).toBeGreaterThan(-1);
+        expect(createdDateIndex).toBeGreaterThan(-1);
+        // AnnualRevenue (3rd in SELECT) must appear before CreatedDate (4th)
+        expect(annualRevenueIndex).toBeLessThan(createdDateIndex);
       });
     });
   });

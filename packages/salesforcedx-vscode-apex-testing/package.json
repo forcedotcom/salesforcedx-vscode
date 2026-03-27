@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.1.1",
+  "version": "66.3.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,11 +27,11 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.10",
+    "@salesforce/apex-node": "^8.4.13",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/types": "1.7.1",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.19.19",
+    "effect": "^3.20.0",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
@@ -54,8 +54,9 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
     "lint": "wireit",
+    "check:circular-deps": "wireit",
     "lint:fix": "npm run lint -- --fix",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit"
   },
   "wireit": {
@@ -74,7 +75,8 @@
         "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
-        "package.json"
+        "package.json",
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
@@ -131,16 +133,30 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],
       "output": []
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/**/*.ts --exclude \"/node_modules/|/out/|/dist/|/packages/\"",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
     },
     "vscode:package": {
       "command": "vsce package --allow-package-all-secrets",
@@ -174,6 +190,11 @@
     },
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
       "dependencies": [
         "compile",
         "vscode:bundle",
@@ -192,7 +213,10 @@
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
-        "VSCODE_DESKTOP": "1"
+        "VSCODE_DESKTOP": "1",
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
       },
       "dependencies": [
         "vscode:bundle",
@@ -281,6 +305,10 @@
         {
           "command": "sf.apex.generate.unit.test.class",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.apex.testing.walkthrough.open",
+          "when": "sf:project_opened"
         }
       ]
     },
@@ -328,6 +356,69 @@
       {
         "command": "sf.apex.generate.unit.test.class",
         "title": "%apex_generate_unit_test_class_text%"
+      },
+      {
+        "command": "sf.apex.testing.walkthrough.open",
+        "title": "%apex_testing_walkthrough_open_command%",
+        "category": "%apex_testing_walkthrough_category%"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "sf.apex.testing.explorer",
+        "title": "%apex_testing_walkthrough_title%",
+        "description": "%apex_testing_walkthrough_description%",
+        "when": "sf:project_opened",
+        "steps": [
+          {
+            "id": "discover-org-tests",
+            "title": "%apex_testing_walkthrough_step1_title%",
+            "description": "%apex_testing_walkthrough_step1_description%",
+            "media": {
+              "image": "images/walkthrough/view-tests.png",
+              "altText": "%apex_testing_walkthrough_step1_alt%"
+            },
+            "completionEvents": [
+              "onCommand:workbench.view.extension.test"
+            ]
+          },
+          {
+            "id": "run-class-method",
+            "title": "%apex_testing_walkthrough_step2_title%",
+            "description": "%apex_testing_walkthrough_step2_description%",
+            "media": {
+              "image": "images/walkthrough/run-tests.gif",
+              "altText": "%apex_testing_walkthrough_step2_alt%"
+            }
+          },
+          {
+            "id": "test-suites",
+            "title": "%apex_testing_walkthrough_step3_title%",
+            "description": "%apex_testing_walkthrough_step3_description%",
+            "media": {
+              "image": "images/walkthrough/view-test-suites.png",
+              "altText": "%apex_testing_walkthrough_step3_alt%"
+            }
+          },
+          {
+            "id": "filter-tests",
+            "title": "%apex_testing_walkthrough_step4_title%",
+            "description": "%apex_testing_walkthrough_step4_description%",
+            "media": {
+              "image": "images/walkthrough/filter-tests.gif",
+              "altText": "%apex_testing_walkthrough_step4_alt%"
+            }
+          },
+          {
+            "id": "test-results",
+            "title": "%apex_testing_walkthrough_step5_title%",
+            "description": "%apex_testing_walkthrough_step5_description%",
+            "media": {
+              "image": "images/walkthrough/view-test-results.png",
+              "altText": "%apex_testing_walkthrough_step5_alt%"
+            }
+          }
+        ]
       }
     ],
     "configuration": {

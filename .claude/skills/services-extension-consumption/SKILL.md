@@ -33,13 +33,13 @@ Shares singleton instances (caches, watchers) across extensions; avoids re-build
 
 Per-extension layers (must build yourself):
 
-| Layer | Why |
-|---|---|
-| `ChannelServiceLayer(displayName)` | Own output channel |
-| `ErrorHandlerService.Default` | Depends on own ChannelService |
-| `ExtensionContextServiceLayer(context)` | Own `ExtensionContext` |
-| `SdkLayerFor(context)` | Own tracer (extension name/version in resource attributes) |
-| `ExtensionProviderServiceLive` | Local singleton |
+| Layer                                   | Why                                                        |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `ChannelServiceLayer(displayName)`      | Own output channel                                         |
+| `ErrorHandlerService.Default`           | Depends on own ChannelService                              |
+| `ExtensionContextServiceLayer(context)` | Own `ExtensionContext`                                     |
+| `SdkLayerFor(context)`                  | Own tracer (extension name/version in resource attributes) |
+| `ExtensionProviderServiceLive`          | Local singleton                                            |
 
 ## ExtensionContext Setup
 
@@ -74,9 +74,16 @@ In `activate`:
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
-  await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
+  await getRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 ```
+
+## Runtime vs provide
+
+- **Do**: Build `ManagedRuntime.make(AllServicesLayer)` and export `getRuntime()`.
+- **Do**: Use `getRuntime().runPromise(effect)` / `runFork(effect)` for ad-hoc execution.
+- **Don't**: Use `Effect.provide(AllServicesLayer)` at call sites — use the runtime instead.
+- **Exception**: `registerCommandWithLayer(AllServicesLayer)` — keep passing the Layer; it internally uses provide.
 
 ## Registering Commands
 
@@ -114,16 +121,23 @@ Accessor pattern: call methods directly, don't assign to variable first.
 
 ### File Watching
 
-Watch file changes:
+FileWatcherService exposes a PubSub of all workspace file changes (`**/*`). Subscribe and filter:
 
 ```typescript
-const watcher = yield * api.services.FileWatcherService.watchFiles(pattern, options);
+import * as PubSub from 'effect/PubSub';
+import * as Stream from 'effect/Stream';
+
+const fileWatcher = yield * api.services.FileWatcherService;
+const dequeue = yield * PubSub.subscribe(fileWatcher.pubsub);
 
 yield *
-  Stream.runForEach(watcher, event =>
-    Effect.sync(() => {
-      // Handle file change
-    })
+  Stream.fromQueue(dequeue).pipe(
+    Stream.filter(event => /* match event.uri to your pattern */),
+    Stream.runForEach(event =>
+      Effect.sync(() => {
+        // Handle event: { type: 'create'|'change'|'delete', uri }
+      })
+    )
   );
 ```
 
@@ -160,22 +174,20 @@ yield *
 
 ### Target Org Changes
 
-Watch org changes via `TargetOrgRef`:
+Watch org changes via `TargetOrgRef` (SubscriptionRef):
 
 ```typescript
-const targetOrgRef = yield * api.services.TargetOrgRef();
+const ref = yield * api.services.TargetOrgRef();
 yield *
-  Effect.forkDaemon(
-    targetOrgRef.changes.pipe(
-      Stream.map(org => org.orgId),
-      Stream.changes,
-      Stream.tap(orgId => {
-        // Handle org change
-      }),
-      Stream.runForEach(() => {
-        // Refresh UI, invalidate caches, etc.
-      })
-    )
+  ref.changes.pipe(
+    Stream.map(org => org.orgId),
+    Stream.changes,
+    Stream.tap(orgId => {
+      // Handle org change
+    }),
+    Stream.runForEach(() => {
+      // Refresh UI, invalidate caches, etc.
+    })
   );
 ```
 
@@ -183,6 +195,8 @@ yield *
 
 ```typescript
 // extensionProvider.ts
+import * as ManagedRuntime from 'effect/ManagedRuntime';
+
 export const buildAllServicesLayer = (context: ExtensionContext) =>
   Layer.unwrapEffect(
     Effect.gen(function* () {
@@ -203,6 +217,18 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
+
+export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
+  AllServicesLayer = layer;
+};
+
+const createRuntime = () => ManagedRuntime.make(AllServicesLayer);
+let _runtime: ReturnType<typeof createRuntime> | undefined;
+export const getRuntime = () => {
+  _runtime ??= createRuntime();
+  return _runtime;
+};
 
 // index.ts
 import { myCommandEffect } from './commands/myCommand';
@@ -228,3 +254,4 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 - Pass `context` to `SdkLayerFor` (extracts name/version from ExtensionContext)
 - `Effect.forkIn(..., yield* getExtensionScope())` for watcher cleanup on deactivation
 - `registerCommandWithLayer` for all commands (tracing + error handling)
+- Use `getRuntime().runPromise` / `runFork` instead of `Effect.provide(AllServicesLayer)` for execution

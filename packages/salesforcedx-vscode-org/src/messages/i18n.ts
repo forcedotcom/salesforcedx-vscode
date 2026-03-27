@@ -50,14 +50,31 @@ export const messages = {
   org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
-  org_login_web_verification_code_message: 'Verification Code: %s — If prompted, enter this code in your browser window.',
+  org_login_web_port_conflict_notification_message:
+    'Could not authorize your org because local port 1717 is already in use. Close the process using that port, then try again.',
+  org_login_web_port_conflict_steps_label: 'Try this:',
+  org_login_web_port_conflict_find_process_unix: 'Find process: lsof -i :1717',
+  org_login_web_port_conflict_kill_process_unix: 'Kill process: kill -9 <PID>',
+  org_login_web_port_conflict_find_process_windows: 'Find process: netstat -ano | findstr :1717',
+  org_login_web_port_conflict_kill_process_windows: 'Kill process: taskkill /PID <PID> /F',
+  org_login_web_show_output_button_text: 'Show Output',
+  org_login_web_verification_code_message:
+    'Verification Code: %s — If prompted, enter this code in your browser window.',
   org_login_web_verification_code_suffix: '(Verification Code: %s)',
-  org_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
+  org_logout_all_text: 'SFDX: Log Out from Authorized Orgs',
   org_logout_default_text: 'SFDX: Log Out from Default Org',
   org_logout_no_default_org: 'No default org to logout from',
+  org_delete_failed_for_org: 'Failed to delete %s (%s). Check the output above for details.',
+  org_delete_select_orgs_placeholder: 'Select scratch orgs and sandboxes to delete',
+  org_delete_confirm_prompt: 'Permanently delete %d org(s)? This cannot be undone.',
+  org_delete_confirm_label: 'Delete',
   org_logout_scratch_logout: 'Logout',
   org_logout_scratch_prompt:
     'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
+  org_logout_select_orgs_placeholder: 'Select orgs to log out from',
+  org_logout_confirm_prompt: 'Log out of %s org(s)? You will need to re-authenticate to use them again.',
+  org_logout_confirm_scratch_prompt:
+    'Log out of %s org(s)?\n\nBefore logging out, ensure that you or someone on your team has a username and password for any scratch orgs. Otherwise you might lose all access.',
   org_open_default_scratch_org_container_error: 'There was an unexpected error when processing the org open response.',
   org_open_default_scratch_org_text: 'SFDX: Open Default Org',
   org_open_container_mode_message_text: 'Access org %s as user %s with the following URL: %s',
@@ -72,8 +89,7 @@ export const messages = {
   parameter_gatherer_enter_session_id: 'Enter Session ID',
   parameter_gatherer_enter_session_id_diagnostic_message: 'Enter a valid Session ID',
   parameter_gatherer_enter_session_id_placeholder: 'Session ID',
-  parameter_gatherer_enter_username_name: 'Enter target username',
-  parameter_gatherer_placeholder_delete_selected_org: 'Confirm to continue deleting the selected org',
+
   parameter_gatherer_placeholder_delete_default_org: 'Confirm to continue deleting the default org',
   parameter_gatherer_placeholder_org_list_clean: 'Confirm to continue removing deleted and expired scratch orgs',
   pending_org_expiration_expires_on_message: '%s\n(expires on %s)',
@@ -85,5 +101,5 @@ export const messages = {
   status_bar_org_picker_tooltip: 'Change Default Org',
   table_header_name: 'Name',
   table_header_success: 'Success',
-  table_header_value: 'Value',
+  table_header_value: 'Value'
 } as const;
