@@ -122,12 +122,15 @@ export class SOQLEditorInstance {
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const targetOrgRef = yield* api.services.TargetOrgRef();
-        yield* targetOrgRef.changes.pipe(
-          Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${org.orgId ?? '<NOT SET>'}`))),
-          Stream.map(org => org.orgId),
+        yield* Stream.concat(
+          Stream.make(undefined),
+          targetOrgRef.changes.pipe(Stream.as(undefined))
+        ).pipe(
+          Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${String(org)}`))),
+          Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
           Stream.changes,
-          Stream.runForEach(orgId =>
-            orgId ? onConnectionChanged() : self.sendMessageToUi('no_default_org')
+          Stream.runForEach(isOrgSet =>
+            isOrgSet ? onConnectionChanged() : self.sendMessageToUi('no_default_org')
           )
         );
       })
