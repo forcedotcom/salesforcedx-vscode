@@ -9,11 +9,11 @@ import {
   ProjectShapeOption,
   Duration,
   log,
+  openFile,
   pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import {
   retryOperation,
-  verifyNotificationWithRetry
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
@@ -26,6 +26,7 @@ import {
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   closeAllEditors,
+  getStatusBarItemWhichIncludes,
   reloadWindow,
   getWorkbench,
   executeQuickPick,
@@ -75,9 +76,22 @@ describe('Debug LWC Tests', () => {
     // Install Jest unit testing tools for LWC
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
     await reloadWindow(Duration.seconds(30));
+  });
 
-    // wait for server initialization to complete
-    await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(10));
+  it('Verify LWC LSP finished indexing in status bar', async () => {
+    logTestStart(testSetup, 'Verify LWC LSP finished indexing in status bar');
+
+    await retryOperation(
+      async () => {
+        await openFile(path.join(lwcFolderPath, 'lwc1', 'lwc1.html'));
+
+        const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+        await statusBar.click();
+        expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
+      },
+      5,
+      'LWC language status did not reach indexing complete'
+    );
   });
 
   it('Debug All Tests on a LWC via the Test Sidebar', async () => {

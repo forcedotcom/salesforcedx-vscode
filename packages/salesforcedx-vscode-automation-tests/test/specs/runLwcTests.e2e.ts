@@ -6,13 +6,13 @@
  */
 import {
   Duration,
+  openFile,
   pause,
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import {
   retryOperation,
-  verifyNotificationWithRetry
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
   createLwc,
@@ -28,6 +28,7 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import {
   closeAllEditors,
   executeQuickPick,
+  getStatusBarItemWhichIncludes,
   getTerminalViewText,
   getTextEditor,
   getWorkbench,
@@ -77,9 +78,22 @@ describe('Run LWC Tests', () => {
 
     // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
     await reloadWindow(Duration.seconds(20));
+  });
 
-    // wait for server initialization to complete
-    await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(10));
+  it('Verify LWC LSP finished indexing in status bar', async () => {
+    logTestStart(testSetup, 'Verify LWC LSP finished indexing in status bar');
+
+    await retryOperation(
+      async () => {
+        await openFile(path.join(lwcFolderPath, 'lwc1', 'lwc1.html'));
+
+        const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+        await statusBar.click();
+        expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
+      },
+      5,
+      'LWC language status did not reach indexing complete'
+    );
   });
 
   it('SFDX: Run All Lightning Web Component Tests from Command Palette', async () => {

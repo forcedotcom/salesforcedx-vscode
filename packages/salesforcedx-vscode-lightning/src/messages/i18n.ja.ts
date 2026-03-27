@@ -19,4 +19,6 @@ import { MessageKey } from './i18n';
  */
 export const messages: Partial<Record<MessageKey, string>> = {
   client_name: 'Aura 言語サーバ',
+  aura_language_server_loading: 'Aura ファイルをインデックス化しています。しばらくお待ちください… $(sync~spin)',
+  aura_language_server_loaded: 'インデックス化が完了しました $(check)'
 };
