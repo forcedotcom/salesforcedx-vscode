@@ -32,48 +32,35 @@ const ensureTextAndNormalize = Effect.fn('ensureTextAndNormalize')(function* (te
   return yield* Effect.succeed(text).pipe(Effect.map(normalizeQuery), Effect.flatMap(promptService.considerUndefinedAsCancellation));
 });
 
-export const getQueryAndApiInputs = Effect.fn('getQueryAndApiInputs')(function* () {
+const getQueryText = Effect.fn('getQueryText')(function* (useSelection: boolean) {
+  const servicesApi = yield* getServicesApi;
+  const editorService = yield* servicesApi.services.EditorService;
+  return yield* editorService.getActiveEditorText(useSelection).pipe(Effect.flatMap(ensureTextAndNormalize));
+});
+
+const pickApi = Effect.fn('pickApi')(function* () {
   const servicesApi = yield* getServicesApi;
   const promptService = yield* servicesApi.services.PromptService;
-  const editorService = yield* servicesApi.services.EditorService;
-
-  const query = yield* editorService.getActiveEditorText(true).pipe(Effect.flatMap(ensureTextAndNormalize));
-
-  const api = yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
+  return yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
     Effect.flatMap(s => promptService.considerUndefinedAsCancellation(s)),
     Effect.map(s => s.api)
   );
+});
 
-  return { query, api };
+export const getQueryAndApiInputs = Effect.fn('getQueryAndApiInputs')(function* () {
+  return { query: yield* getQueryText(true), api: yield* pickApi() };
 });
 
 export const getDocumentQueryAndApiInputs = Effect.fn('getDocumentQueryAndApiInputs')(function* () {
-  const servicesApi = yield* getServicesApi;
-  const promptService = yield* servicesApi.services.PromptService;
-  const editorService = yield* servicesApi.services.EditorService;
-
-  const query = yield* editorService.getActiveEditorText(false).pipe(Effect.flatMap(ensureTextAndNormalize));
-
-  const api = yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
-    Effect.flatMap(s => promptService.considerUndefinedAsCancellation(s)),
-    Effect.map(s => s.api)
-  );
-
-  return { query, api };
+  return { query: yield* getQueryText(false), api: yield* pickApi() };
 });
 
 export const getQueryInputsForPlan = Effect.fn('getQueryInputsForPlan')(function* () {
-  const servicesApi = yield* getServicesApi;
-  const editorService = yield* servicesApi.services.EditorService;
-
-  return yield* editorService.getActiveEditorText(true).pipe(Effect.flatMap(ensureTextAndNormalize));
+  return yield* getQueryText(true);
 });
 
 export const getDocumentQueryInputsForPlan = Effect.fn('getDocumentQueryInputsForPlan')(function* () {
-  const servicesApi = yield* getServicesApi;
-  const editorService = yield* servicesApi.services.EditorService;
-
-  return yield* editorService.getActiveEditorText(false).pipe(Effect.flatMap(ensureTextAndNormalize));
+  return yield* getQueryText(false);
 });
 
 const ERROR_PATTERNS = [
