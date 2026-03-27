@@ -6,7 +6,6 @@
  */
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -39,21 +38,7 @@ export const getQueryAndApiInputs = Effect.fn('getQueryAndApiInputs')(function* 
   const promptService = yield* servicesApi.services.PromptService;
   const editorService = yield* servicesApi.services.EditorService;
 
-  const query = yield* editorService.getActiveEditorText(true).pipe(
-    Effect.flatMap(promptService.considerUndefinedAsCancellation),
-    // if not text, we'll prompt the user for it
-    Effect.catchAll(() => Effect.void),
-    Effect.flatMap(q =>
-      isString(q)
-        ? Effect.succeed(q)
-        : Effect.promise(() =>
-          vscode.window.showInputBox({
-            prompt: nls.localize('parameter_gatherer_enter_soql_query')
-          })
-        ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation))
-    ),
-    Effect.map(normalizeQuery)
-  );
+  const query = yield* editorService.getActiveEditorText(true).pipe(Effect.flatMap(ensureTextAndNormalize));
 
   const api = yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
     Effect.flatMap(s => promptService.considerUndefinedAsCancellation(s)),

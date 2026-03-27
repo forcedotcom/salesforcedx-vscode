@@ -76,7 +76,6 @@ export const messages = {
     'File name must start with a letter and contain only alphanumeric characters and underscores',
   soql_output_dir_default_description: '(default)',
   soql_output_dir_prompt: 'Select the target directory',
-  parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   REST_API: 'REST API',
   REST_API_description: 'Use REST API to execute the query',
   tooling_API: 'Tooling API',
