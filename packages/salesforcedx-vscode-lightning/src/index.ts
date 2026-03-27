@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { AURA_SERVER_READY_NOTIFICATION, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ApplyWorkspaceEditRequest,
   handleApplyEditWithFs
@@ -22,6 +22,7 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
+import AuraLspStatusBarItem from './auraLspStatusBarItem';
 import { nls } from './messages';
 
 const getActivationMode = (): string => {
@@ -131,6 +132,14 @@ export const activate = async (extensionContext: ExtensionContext) => {
   client.onRequest(ApplyWorkspaceEditRequest.type, handleApplyEditWithFs);
   console.log(`Server module path: ${serverModule}`);
 
+  // Create language status item to show indexing progress
+  const statusBarItem = new AuraLspStatusBarItem();
+  extensionContext.subscriptions.push(statusBarItem);
+
+  // Listen for server ready notification to update status
+  client.onNotification(AURA_SERVER_READY_NOTIFICATION, () => {
+    statusBarItem.ready();
+  });
   // Register workspace read file handler before start so the server can read files during initialize
   registerWorkspaceReadFileHandler(client);
   log('Workspace read file handler registered');

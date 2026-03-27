@@ -17,6 +17,8 @@
  */
 export const messages = {
   client_name: 'Aura Language Server',
+  aura_language_server_loading: 'Indexing Aura files. Hold tight, almost ready… $(sync~spin)',
+  aura_language_server_loaded: 'Indexing complete $(check)'
 } as const;
 
 export type MessageKey = keyof typeof messages;
