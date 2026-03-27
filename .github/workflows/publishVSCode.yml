@@ -15,16 +15,35 @@ jobs:
     environment: publish
     outputs:
       RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
+      CBW_RELEASE_TYPE: ${{ steps.cbwReleaseType.outputs.type }}
       GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild}}
       SF_CHANGE_CASE_SCHEDULE_BUILD: ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: 'main'
+      - run: git fetch --tags --quiet
       - id: getMainVersion
         run: |
           echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
       - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
+      - id: cbwReleaseType
+        run: |
+          VERSION="${{ steps.getMainVersion.outputs.version }}"
+          PREV_TAG=$(git tag -l 'v[0-9]*' --sort=-v:refname | grep -v "^v${VERSION}$" | head -1)
+          PREV_VERSION="${PREV_TAG#v}"
+
+          CURR_MINOR=$(echo "$VERSION" | cut -d. -f1-2)
+          PREV_MINOR=$(echo "$PREV_VERSION" | cut -d. -f1-2)
+
+          if [ "$CURR_MINOR" = "$PREV_MINOR" ]; then
+            TYPE="patch"
+          else
+            TYPE="minor"
+          fi
+
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+          echo "CBW release type: $TYPE (current=$VERSION, previous=$PREV_VERSION)"
       - id: getGusBuild
         run: |
           echo "gusBuild=${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
@@ -99,7 +118,7 @@ jobs:
           GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
         run: |
           VERSION="${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}"
-          RELEASE_TYPE="minor"
+          RELEASE_TYPE="${{ needs.prepare-environment-from-main.outputs.CBW_RELEASE_TYPE }}"
           echo "Dispatching extension-publish event to code-builder-web with version $VERSION (release-type: $RELEASE_TYPE)"
           gh api repos/forcedotcom/code-builder-web/dispatches \
             --method POST \
