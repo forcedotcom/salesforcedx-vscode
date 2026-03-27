@@ -19,17 +19,11 @@ const API_ITEMS = [
   { api: 'TOOLING' as const, label: nls.localize('tooling_API'), description: nls.localize('tooling_API_description') }
 ];
 
-const normalizeQuery = (q: string): string =>
-  q
-    .replace('[', '')
-    .replace(']', '')
-    .replaceAll(/(\r\n|\n)/g, ' ')
-    .trim();
-
 const ensureTextAndNormalize = Effect.fn('ensureTextAndNormalize')(function* (text: string) {
   const servicesApi = yield* getServicesApi;
   const promptService = yield* servicesApi.services.PromptService;
-  return yield* Effect.succeed(text).pipe(Effect.map(normalizeQuery), Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  const normalized = text.replace('[', '').replace(']', '').replaceAll(/(\r\n|\n)/g, ' ').trim();
+  return yield* promptService.considerUndefinedAsCancellation(normalized);
 });
 
 const getQueryText = Effect.fn('getQueryText')(function* (useSelection: boolean) {
