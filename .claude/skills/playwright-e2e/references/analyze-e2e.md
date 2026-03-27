@@ -14,6 +14,7 @@ Monitor running e2e playwright tests for current branch, download artifacts on f
 1. **Offer Analysis** (if artifacts downloaded)
    - Search HTML reports: `playwright-report/index.html` or `**/playwright-report/index.html`
    - Search test results: `test-results/` directory
+   - Search span traces: `test-results/spans/*.jsonl`
    - Reference: `.claude/skills/playwright-e2e/references/coding-playwright-tests.md`, `.claude/skills/playwright-e2e/references/iterating-playwright-tests.md`
    - Offer: open HTML report, show test results, open workflow (`gh run view <run-id> --web`)
 
@@ -25,6 +26,32 @@ Organized by branch and run ID.
 - `gh run watch <run-id>` - Monitor until completion
 - `gh run download <run-id> -D <directory>` - Download artifacts
 - `gh run view <run-id> --web` - Open in browser
+
+## Span files from CI artifacts
+
+- Download: `gh run download <run-id> -D .e2e-artifacts`
+- Location: `.e2e-artifacts/playwright-test-results-*/spans/*.jsonl`
+- Format: JSONL (one span per line, parse with `JSON.parse`)
+- Fields: `name`, `traceId`, `spanId`, `parentSpanId`, `durationMs`, `status`, `startTime`, `attributes`
+
+Quick inspect:
+
+```bash
+ls -lt .e2e-artifacts/playwright-test-results-*/spans/*.jsonl
+```
+
+Read spans compact JSON:
+
+```bash
+python3 - <<'PY'
+import glob, json
+for path in glob.glob('.e2e-artifacts/playwright-test-results-*/spans/*.jsonl'):
+    print(f'### {path}')
+    with open(path, encoding='utf-8') as f:
+        for line in f:
+            print(json.dumps(json.loads(line), separators=(',', ':')))
+PY
+```
 
 ## Run ID
 

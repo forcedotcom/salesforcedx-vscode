@@ -124,6 +124,13 @@ jobs:
         run: |
           npm run test:web -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
 
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-metadata/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-metadata/test-results/spans/ 2>/dev/null || true
+
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
@@ -276,6 +283,13 @@ jobs:
           PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-metadata/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-metadata/test-results/spans/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()

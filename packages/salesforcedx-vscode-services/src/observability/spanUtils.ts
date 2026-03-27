@@ -13,6 +13,13 @@ export const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanCo
 /** Check if a span has a command attribute */
 export const isCommandSpan = (span: ReadableSpan): boolean => span.attributes['command'] !== undefined;
 
+/** Check if a span should be excluded from production telemetry */
+export const isTelemetryIgnored = (span: ReadableSpan): boolean => span.attributes['telemetryIgnore'] === true;
+
+/** Span is not ignored and is either a top-level span or a command span */
+export const isSpanValidForProductionTelemetry = (span: ReadableSpan): boolean =>
+  !isTelemetryIgnored(span) && (isTopLevelSpan(span) || isCommandSpan(span));
+
 /** Convert span attributes to string key-value pairs, filtering out undefined/null values */
 export const convertAttributes = (attributes: Attributes): Attributes =>
   Object.fromEntries(

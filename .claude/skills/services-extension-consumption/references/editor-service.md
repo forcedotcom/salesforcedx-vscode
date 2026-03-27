@@ -62,7 +62,8 @@ yield *
 From `salesforcedx-vscode-services` (package directories context):
 
 ```typescript
-const [editorService, projectService] = yield * Effect.all([EditorService, ProjectService]);
+const editorService = yield * EditorService;
+const projectService = yield * ProjectService;
 
 yield *
   Stream.merge(

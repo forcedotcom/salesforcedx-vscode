@@ -28,10 +28,11 @@ Shared code (helpers, locators, configuration) for tests.
 
 ## Span files (when debugging traces)
 
-Local only — span export disabled in CI/GHA.
+Available local + CI/GHA.
 
 - Output: `~/.sf/vscode-spans/` — `web-*.jsonl` (test:web), `node-*.jsonl` (test:desktop)
-- Auto-enabled when !CI (no manual enable needed)
+- Auto-enabled (no manual enable needed)
+- CI runs: copied into package `test-results/spans/` artifacts (see workflow upload/download in `references/analyze-e2e.md`)
 - Latest: `ls -lt ~/.sf/vscode-spans/`
 - Clear before run for fresh output: `rm -rf ~/.sf/vscode-spans/`
 - Format: JSONL; parse each line with `JSON.parse`

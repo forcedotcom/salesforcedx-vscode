@@ -13,7 +13,6 @@ import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   verifyCommandExists,
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -24,32 +23,17 @@ import packageNls from '../../package.nls.json';
 
 type OrgAuthResult = Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>;
 
-type SetupOptions = {
-  extraSettings?: Record<string, string>;
-};
-
 /**
  * Shared setup: create org, workbench, auth, core commands, output channel.
  * Used by deployAndRetrieve, pushAndPull, metadataDeployRetrieve, manifestBuilder, delete, deployOnSave.
  */
-export const setupWorkbenchSettingsAndOutputChannel = async (
-  page: Page,
-  options: SetupOptions = {}
-): Promise<void> => {
+export const setupWorkbenchSettingsAndOutputChannel = async (page: Page): Promise<void> => {
   const createResult: OrgAuthResult = await createMinimalOrg();
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
   await upsertScratchOrgAuthFieldsToSettings(page, createResult);
   await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
-
-  // Ensure core commands are active (not metadata extension commands)
-  await upsertSettings(page, { 'salesforcedx-vscode-core.useMetadataExtensionCommands': 'false' });
-  if (options.extraSettings) {
-    for (const [key, value] of Object.entries(options.extraSettings)) {
-      await upsertSettings(page, { [key]: value });
-    }
-  }
 
   // Open output panel and select Salesforce CLI channel
   await ensureOutputPanelOpen(page);

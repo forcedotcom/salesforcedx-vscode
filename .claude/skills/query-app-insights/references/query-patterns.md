@@ -5,20 +5,35 @@
 - **Question**: "How often is command X used?"
 - **Query**: `customEvents | where name endswith "/commandExecution" and customDimensions.commandName == "X" | summarize count()`
 
-## Most Used Commands
+## Most Used Commands (Legacy/v2)
 
 - **Question**: "What are the most used commands?"
 - **Query**: `customEvents | where name endswith "/commandExecution" | summarize count() by tostring(customDimensions.commandName) | order by count_ desc | take 10`
 
-## Extension Activity
+## Most Used Commands (OTEL/v3)
 
-- **Question**: "Which extensions are most active?"
-- **Query**: `customEvents | where name endswith "/commandExecution" | summarize count() by tostring(customDimensions.extensionName) | order by count_ desc`
+- **Question**: "What are the most used top-level commands in v3?"
+- **Query**: `dependencies | where timestamp > ago(1d) | where operation_ParentId == operation_Id | summarize count() by name, cloud_RoleName | order by count_ desc | take 20`
 
-## Performance Metrics
+## Extension Activity (OTEL/v3)
 
-- **Question**: "What's the average execution time for command X?"
-- **Query**: `customEvents | where name endswith "/commandExecution" and customDimensions.commandName == "X" | summarize avg(todouble(customMeasurements.executionTime))`
+- **Question**: "Which extensions are most active in v3?"
+- **Query**: `dependencies | where timestamp > ago(1d) | where operation_ParentId == operation_Id | summarize count() by cloud_RoleName | order by count_ desc`
+
+## Performance Metrics (OTEL/v3)
+
+- **Question**: "What's the average duration for span X in v3?"
+- **Query**: `dependencies | where timestamp > ago(1d) | where name == "X" | summarize avg(duration)`
+
+## Filtering Top-Level Spans (OTEL/v3)
+
+- **Question**: "Show me only top-level spans that look like commands."
+- **Query**: `dependencies | where timestamp > ago(1h) | where operation_ParentId == operation_Id | where name contains "command" or name contains "." or name contains ":" | summarize count() by name, cloud_RoleName | order by count_ desc`
+
+## Reconstructing a Trace (OTEL/v3)
+
+- **Question**: "Show me all spans for a specific operation/trace."
+- **Query**: `dependencies | where operation_Id == "TRACE_ID" | order by timestamp asc | project timestamp, id, operation_ParentId, name, type, duration`
 
 ## Time-Based Queries
 

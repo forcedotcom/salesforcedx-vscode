@@ -17,14 +17,11 @@ import { FileSpanExporterNode } from './fileSpanExporterNode';
 import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { SpanTransformProcessor } from './spanTransformProcessor';
-import { isCommandSpan, isTopLevelSpan } from './spanUtils';
+import { isSpanValidForProductionTelemetry } from './spanUtils';
 
 class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
   public override async export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): Promise<void> {
-    return super.export(
-      spans.filter(span => isTopLevelSpan(span) || isCommandSpan(span)),
-      resultCallback
-    );
+    return super.export(spans.filter(isSpanValidForProductionTelemetry), resultCallback);
   }
 }
 
