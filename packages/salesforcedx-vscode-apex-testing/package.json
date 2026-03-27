@@ -159,7 +159,7 @@
       ]
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets --no-dependencies",
+      "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
         "vscode:bundle"
       ],
