@@ -6,7 +6,6 @@
  */
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -67,10 +66,7 @@ export const getQueryInputsForPlan = Effect.fn('getQueryInputsForPlan')(function
   const servicesApi = yield* getServicesApi;
   const editorService = yield* servicesApi.services.EditorService;
 
-  return yield* editorService.getActiveEditorContext(true).pipe(
-    Effect.flatMap(ctx => Schema.decodeUnknown(Schema.String)(ctx.text)),
-    Effect.flatMap(ensureTextAndNormalize)
-  );
+  return yield* editorService.getActiveEditorText(true).pipe(Effect.flatMap(ensureTextAndNormalize));
 });
 
 export const getDocumentQueryInputsForPlan = Effect.fn('getDocumentQueryInputsForPlan')(function* () {
