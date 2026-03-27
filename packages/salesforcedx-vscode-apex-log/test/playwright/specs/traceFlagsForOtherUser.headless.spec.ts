@@ -24,8 +24,6 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
-test.describe.configure({ mode: 'serial' });
-
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
 const findInEditor = async (page: Page, query: string): Promise<void> => {
   const editor = page.locator(EDITOR_WITH_URI).first();
@@ -35,7 +33,9 @@ const findInEditor = async (page: Page, query: string): Promise<void> => {
   await expect(findInput).toBeVisible({ timeout: 10_000 });
   await findInput.fill(query);
   const findDialog = page.getByRole('dialog', { name: /Find/ });
-  await expect(findDialog.getByText(/(\d+|\?) of \d+/).filter({ hasNotText: /No results/ })).toBeVisible({ timeout: 10_000 });
+  await expect(findDialog.getByText(/(\d+|\?) of \d+/).filter({ hasNotText: /No results/ })).toBeVisible({
+    timeout: 10_000
+  });
   await page.keyboard.press('Escape');
 };
 
@@ -75,7 +75,10 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
     const pickerInput = userPicker.locator('input.input');
     await pickerInput.click();
     await pickerInput.fill('Integration');
-    const integrationUserRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Integration User/i }).first();
+    const integrationUserRow = page
+      .locator(QUICK_INPUT_LIST_ROW)
+      .filter({ hasText: /Integration User/i })
+      .first();
     await expect(integrationUserRow).toBeVisible({ timeout: 45_000 });
     await integrationUserRow.evaluate(el => {
       el.scrollIntoView({ block: 'center', behavior: 'instant' });

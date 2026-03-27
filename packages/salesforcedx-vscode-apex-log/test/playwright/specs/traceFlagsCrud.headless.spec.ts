@@ -25,8 +25,6 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
-test.describe.configure({ mode: 'serial' });
-
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
 const findInEditor = async (page: Page, query: string): Promise<void> => {
   const editor = page.locator(EDITOR_WITH_URI).first();
@@ -36,7 +34,9 @@ const findInEditor = async (page: Page, query: string): Promise<void> => {
   await expect(findInput).toBeVisible({ timeout: 10_000 });
   await findInput.fill(query);
   const findDialog = page.getByRole('dialog', { name: /Find/ });
-  await expect(findDialog.getByText(/(\d+|\?) of \d+/).filter({ hasNotText: /No results/ })).toBeVisible({ timeout: 10_000 });
+  await expect(findDialog.getByText(/(\d+|\?) of \d+/).filter({ hasNotText: /No results/ })).toBeVisible({
+    timeout: 10_000
+  });
   await page.keyboard.press('Escape');
 };
 
@@ -64,7 +64,10 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
 
   await test.step('cleanup stale trace flags from prior runs', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsOpen'], 30_000);
-    const removeLink = page.locator('.codelens-decoration a').filter({ hasText: /^Remove$/ }).first();
+    const removeLink = page
+      .locator('.codelens-decoration a')
+      .filter({ hasText: /^Remove$/ })
+      .first();
     await expect(async () => {
       await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsOpen']);
       await expect(page.locator('.tab').filter({ hasText: /traceFlags\.json/ })).toBeVisible({ timeout: 10_000 });
@@ -89,7 +92,12 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     });
 
     await openTraceFlagsAndExpectContent(page, '"DEVELOPER_LOG"');
-    await expect(page.locator('.codelens-decoration a').filter({ hasText: /^Remove$/ }).first()).toBeVisible({
+    await expect(
+      page
+        .locator('.codelens-decoration a')
+        .filter({ hasText: /^Remove$/ })
+        .first()
+    ).toBeVisible({
       timeout: 30_000
     });
     await saveScreenshot(page, 'trace-flag.created.png');
