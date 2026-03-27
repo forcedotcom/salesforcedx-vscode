@@ -61,7 +61,7 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   );
 });
 
-const executeDataQuery = Effect.fn('sf.data.query.execute')(function* (
+const executeDataQuery = Effect.fn('executeDataQuery')(function* (
   query: string,
   queryApi: 'REST' | 'TOOLING'
 ) {
