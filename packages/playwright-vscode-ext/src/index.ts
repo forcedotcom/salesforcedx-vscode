@@ -80,6 +80,8 @@ export {
   expectProblemsCountAtLeast
 } from './pages/problems';
 
+export { waitForRunApexTestsProgressNotificationGone } from './pages/notifications';
+
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
 

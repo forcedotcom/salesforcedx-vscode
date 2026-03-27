@@ -64,8 +64,10 @@ jobs:
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - name: Validate VSIX OPC Part URIs
         run: node scripts/validate-vsix-opc.mjs ./extensions
-      - run: |
-          cmd=$(find . -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx vsce publish --skip-duplicate --pat "%s" --packagePath "%s" && ' "${VSCE_PERSONAL_ACCESS_TOKEN}" '{}' | sed 's/ && $//')&&[ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: |
+            cmd=$(find . -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx vsce publish --skip-duplicate --pat "%s" --packagePath "%s" && ' "${VSCE_PERSONAL_ACCESS_TOKEN}" '{}' | sed 's/ && $//')&&[ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
@@ -97,10 +99,12 @@ jobs:
           GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
         run: |
           VERSION="${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}"
-          echo "Dispatching extension-publish event to code-builder-web with version $VERSION"
+          RELEASE_TYPE="minor"
+          echo "Dispatching extension-publish event to code-builder-web with version $VERSION (release-type: $RELEASE_TYPE)"
           gh api repos/forcedotcom/code-builder-web/dispatches \
             --method POST \
             -f event_type=extension-publish \
             -f "client_payload[version]=$VERSION" \
-            -f "client_payload[source]=publishVSCode"
+            -f "client_payload[source]=publishVSCode" \
+            -f "client_payload[release_type]=$RELEASE_TYPE"
           echo "Dispatch sent successfully"

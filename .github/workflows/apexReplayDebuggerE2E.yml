@@ -105,9 +105,16 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger -- --last-failed --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-apex-replay-debugger/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-apex-replay-debugger/test-results/spans/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()

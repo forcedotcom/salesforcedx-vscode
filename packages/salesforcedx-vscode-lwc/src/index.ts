@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
+import { isLWC, LWC_SERVER_READY_NOTIFICATION, type WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
@@ -14,6 +14,7 @@ import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
+import LwcLspStatusBarItem from './lwcLspStatusBarItem';
 import { metaSupport } from './metasupport';
 import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
 
@@ -73,11 +74,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // For workspace type detection, we still need to check the file system
   // Create a temporary provider just for detection
   // In web mode with no valid paths, default to UNKNOWN
-  const workspaceType: lspCommon.WorkspaceType =
+  const workspaceType: WorkspaceType =
     workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
 
   // Check if we have a valid project structure
-  if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
+  if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     channelService.appendLine(
       `LWC LSP - autodetect did not find a valid project structure, exiting. WorkspaceType detected: ${workspaceType}`
@@ -100,9 +101,25 @@ export const activate = async (extensionContext: ExtensionContext) => {
   }
 
   try {
-    const sfdxTypingsDir = Utils.joinPath(URI.from(extensionContext.extensionUri), 'resources', 'sfdx', 'typings').toString();
+    const sfdxTypingsDir = Utils.joinPath(
+      URI.from(extensionContext.extensionUri),
+      'resources',
+      'sfdx',
+      'typings'
+    ).toString();
     const client = await createLanguageClient(serverModule, { workspaceType, sfdxTypingsDir });
 
+    // Create language status item to show indexing progress
+    const statusBarItem = new LwcLspStatusBarItem();
+    extensionContext.subscriptions.push(statusBarItem);
+
+    // Listen for server ready notification to update status
+    client.onNotification(LWC_SERVER_READY_NOTIFICATION, () => {
+      statusBarItem.ready();
+    });
+
+    // Start the client and add it to subscriptions
+    channelService.appendLine('Starting LWC Language Server...');
     // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
     registerWorkspaceReadFileHandler(client, channelService);
 

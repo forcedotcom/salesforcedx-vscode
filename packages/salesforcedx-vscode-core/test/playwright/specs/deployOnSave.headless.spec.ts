@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+import { deployOnSaveTest as test } from '../fixtures';
 import {
   setupConsoleMonitoring,
+  createApexClass,
   executeCommandWithCommandPalette,
   clearOutputChannel,
   waitForOutputChannelText,
@@ -19,7 +20,6 @@ import {
 import { expect } from '@playwright/test';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
-import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
 test('Deploy On Save: automatically deploys when file is saved', async ({ page }) => {
@@ -28,12 +28,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
   const className = `DeployOnSaveTest${Date.now()}`;
 
   await test.step('setup: workbench, settings, enable deploy-on-save', async () => {
-    await setupWorkbenchSettingsAndOutputChannel(page, {
-      extraSettings: {
-        'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'true',
-        'salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave': 'true'
-      }
-    });
+    await setupWorkbenchSettingsAndOutputChannel(page);
     // Wait for extension to fully activate (context keys like sf:has_target_org). Use a command that doesn't require a file to be open.
     await verifyCommandExists(page, packageNls.view_local_changes_text, 120_000);
   });
@@ -42,7 +37,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     await clearOutputChannel(page);
 
     // Create the apex class
-    await createApexClassCore(page, className);
+    await createApexClass(page, className);
     await saveScreenshot(page, 'setup.class-created.png');
 
     // Save the file - this will trigger deploy-on-save (DeployQueue has 500ms delay + deploy time)

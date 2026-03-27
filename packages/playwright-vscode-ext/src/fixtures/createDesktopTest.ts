@@ -87,7 +87,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
       const effectiveUserSettings = {
-        ...(!process.env.CI ? { 'salesforcedx-vscode-salesforcedx.enableFileTraces': true } : {}),
+        'salesforcedx-vscode-salesforcedx.enableFileTraces': true,
         ...userSettings
       };
       if (Object.keys(effectiveUserSettings).length > 0) {

@@ -16,6 +16,7 @@ Interact with Gus (Salesforce Agile Accelerator org) via sf CLI. Requires alias 
   - Only run `sf data create record` / `sf data update record` after user says yes (or equivalent)
   - Answering scope questions (e.g. "just createProject") is not confirmation—still ask
 - **Epic selection**: when less than 50% sure which epic a work item belongs in, ask the user
+- **IDs vs Names**: `Id` (e.g. `a07...`) is for CLI commands. `Name` (e.g. `W-12345`) is for PR titles and human display. NEVER use `Id` in PR titles or descriptions. Always query `Name` after creation.
 
 ## Prerequisites
 
@@ -45,16 +46,16 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 
 **Default when unassigned:** Platform Dev Tools Scrum Team `005B0000000GIODIA4` – use when work isn't assigned to a person yet.
 
-| Name               | Id                   |
-| ------------------ | -------------------- |
-| Cristina Cañizales | `005EE000008cgrGYAQ` |
-| Daphne Yang        | `005EE000005d0jdYAA` |
-| Jonny Hork         | `005B0000004pYWjIAM` |
-| Kyle Walker        | `005EE0000010oCLYAY` |
-| Madhur Shrivastava | `005EE00000VZK5FYAX` |
-| Peter Hale         | `005B0000000GFvWIAW` |
-| Shane McLaughlin   | `005B00000024wGBIAY` |
-| Sonal Budhiraja    | `005B0000005ccPnIAI` |
+| Name | Id | GitHub login |
+|---|---|---|
+| Cristina Cañizales | `005EE000008cgrGYAQ` | `CristiCanizales` |
+| Daphne Yang | `005EE000005d0jdYAA` | `daphne-sfdc` |
+| Jonny Hork | `005B0000004pYWjIAM` | `jonnyhork` |
+| Kyle Walker | `005EE0000010oCLYAY` | `kylewalke` |
+| Madhur Shrivastava | `005EE00000VZK5FYAX` | `madhur310` |
+| Peter Hale | `005B0000000GFvWIAW` | `peternhale` |
+| Shane McLaughlin | `005B00000024wGBIAY` | `mshanemc` |
+| Sonal Budhiraja | `005B0000005ccPnIAI` | `sbudhirajadoc` |
 
 ## Work items (ADM_Work\_\_c)
 
@@ -84,6 +85,11 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 Constraints: File must be single-line (flags-dir treats each line as a separate flag invocation). Value in single quotes. Use HTML: `<p>`, `<strong>`, `<code>`, `<ul><li>`, `<a href="...">`. Avoid unescaped `"` inside value—use `&quot;` or rephrase.
 
 **After create:** Always provide the work item link. Format: `https://gus.lightning.force.com/lightning/r/ADM_Work__c/<recordId>/view` (replace `<recordId>` with the Id from the create output, e.g. `a07EE00002V3a8YYAR`). Example: [a07EE00002V3a8YYAR](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002V3a8YYAR/view).
+
+**CRITICAL:** After creation, you MUST query the `Name` (W-XXXXX) to use in PR titles. The `id` returned by `sf data create` is NOT the `W-XXXXX` name.
+```bash
+sf data query --query "SELECT Name FROM ADM_Work__c WHERE Id = '<id_from_create>'" -o gus --json
+```
 
 **Update:** If User Story has null `Story_Points__c`, set `Story_Points__c=2`. Never modify `Sprint__c`. `Details__c` can store PR links, notes.
 

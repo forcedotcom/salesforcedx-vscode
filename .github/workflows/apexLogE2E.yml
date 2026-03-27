@@ -80,7 +80,7 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
-      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:web sets E2E_SEQUENTIAL.
+      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:web sets PLAYWRIGHT_WORKERS.
       - name: Run Apex Log E2E tests
         if: steps.try-run.outcome == 'failure'
         env:
@@ -88,6 +88,13 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
           npm run test:web -w salesforcedx-vscode-apex-log -- --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-apex-log/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-apex-log/test-results/spans/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()
@@ -182,7 +189,7 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
-      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:desktop sets E2E_SEQUENTIAL.
+      # Apex-log tests mutate TraceFlag/DebugLevel org-wide; wireit test:desktop sets PLAYWRIGHT_WORKERS.
       - name: Run Apex Log E2E tests
         if: steps.try-run.outcome == 'failure'
         env:
@@ -191,6 +198,13 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
           npm run test:desktop -w salesforcedx-vscode-apex-log -- --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-apex-log/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-apex-log/test-results/spans/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()

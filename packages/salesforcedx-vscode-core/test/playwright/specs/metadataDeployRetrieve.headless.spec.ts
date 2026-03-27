@@ -9,9 +9,11 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
+  createApexClass,
   editOpenFile,
   openFileByName,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   clearOutputChannel,
   waitForOutputChannelText,
   validateNoCriticalErrors,
@@ -20,7 +22,6 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
-import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
 test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', async ({ page }) => {
@@ -44,12 +45,13 @@ test('Metadata Deploy Retrieve: deploy v1, deploy v2, retrieve matches v2', asyn
   });
 
   await test.step('create and deploy v1', async () => {
-    await createApexClassCore(page, className);
+    await createApexClass(page, className);
     textV1 = await getEditorText();
     await saveScreenshot(page, 'v1.after-create.png');
 
     await clearOutputChannel(page);
     await openFileByName(page, `${className}.cls`);
+    await verifyCommandExists(page, packageNls.deploy_this_source_text, 120_000);
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await waitForOutputChannelText(page, {
       expectedText: `Ended ${packageNls.deploy_this_source_text}`,

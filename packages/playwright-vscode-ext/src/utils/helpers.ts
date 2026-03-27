@@ -8,7 +8,7 @@
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { upsertSettings } from '../pages/settings';
-import { QUICK_INPUT_WIDGET, TAB, TAB_CLOSE_BUTTON, WORKBENCH } from './locators';
+import { QUICK_INPUT_WIDGET, SETTINGS_SEARCH_INPUT, TAB, TAB_CLOSE_BUTTON, WORKBENCH } from './locators';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -200,17 +200,29 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 30_000 });
 };
 
-/** Closes any visible Settings tabs */
+/** Closes any visible Settings tabs or the floating Settings overlay on Windows desktop */
 export const closeSettingsTab = async (page: Page): Promise<void> => {
+  if (isWindowsDesktop()) {
+    // On Windows desktop, Settings opens as a floating overlay dialog, not a tab
+    await page.keyboard.press('Escape');
+    return;
+  }
   const settingsTab = page
     .locator(TAB)
     .filter({ hasText: /Settings/i })
     .first();
-  const isSettingsVisible = await settingsTab.isVisible().catch(() => false);
-  if (isSettingsVisible) {
+  const isTabVisible = await settingsTab.isVisible().catch(() => false);
+  if (isTabVisible) {
     const closeButton = settingsTab.locator(TAB_CLOSE_BUTTON);
     await closeButton.click();
     await settingsTab.waitFor({ state: 'detached', timeout: 5000 });
+    return;
+  }
+  // On macOS GHA with VS Code ≥1.113, Settings opens as a floating overlay (same as
+  // Windows), not a tab. No tab is found above, so press Escape to dismiss the overlay.
+  const settingsInput = page.locator(SETTINGS_SEARCH_INPUT.join(',')).first();
+  if (await settingsInput.isVisible().catch(() => false)) {
+    await page.keyboard.press('Escape');
   }
 };
 

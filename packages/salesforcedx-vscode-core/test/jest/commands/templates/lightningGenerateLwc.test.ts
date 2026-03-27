@@ -6,17 +6,10 @@
  */
 
 import * as utilsVscode from '@salesforce/salesforcedx-utils-vscode';
-import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
-import { lightningGenerateLwc } from '../../../../src/commands/templates';
-import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
-import {
-  MetadataTypeGatherer,
-  SelectFileName,
-  SelectOutputDir,
-  SelectLwcComponentType
-} from '../../../../src/commands/util/parameterGatherers';
+import { URI } from 'vscode-uri';
+import { internalLightningGenerateLwc } from '../../../../src/commands/templates';
+import { SelectFileName } from '../../../../src/commands/util/parameterGatherers';
 
-jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
@@ -27,13 +20,8 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
 });
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
-const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
-const selectOutputDirMocked = jest.mocked(SelectOutputDir);
-const compositeParametersGathererMocked = jest.mocked(CompositeParametersGatherer);
-const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
-const selectLwcComponentTypeMocked = jest.mocked(SelectLwcComponentType);
 
-describe('lightningGenerateLwc Unit Tests.', () => {
+describe('internalLightningGenerateLwc Unit Tests.', () => {
   let runMock: jest.Mock<any, any>;
   let sfCommandletMocked: jest.SpyInstance<any, any>;
 
@@ -44,15 +32,10 @@ describe('lightningGenerateLwc Unit Tests.', () => {
     }));
   });
 
-  it('Should generate lwc scaffolding.', async () => {
-    await lightningGenerateLwc();
+  it('Should generate lwc scaffolding.', () => {
+    internalLightningGenerateLwc(URI.file('/some/lwc/dir') as any);
     expect(sfCommandletMocked).toHaveBeenCalled();
-    expect(metadataTypeGathererMocked).toHaveBeenCalled();
-    expect(selectLwcComponentTypeMocked).toHaveBeenCalled();
     expect(selectFileNameMocked).toHaveBeenCalled();
-    expect(compositeParametersGathererMocked).toHaveBeenCalled();
-    expect(selectOutputDirMocked).toHaveBeenCalled();
-    expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();
   });
 });

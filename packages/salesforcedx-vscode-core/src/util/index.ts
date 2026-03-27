@@ -6,13 +6,10 @@
  */
 
 export {
-  disableCLITelemetry,
   isCLIInstalled,
-  isCLITelemetryAllowed,
   setNodeExtraCaCerts,
   setSfLogLevel
 } from './cliConfiguration';
-export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
 
 export { ComponentName, ContinueOrCancel, OneOrMany, isContinue } from './types';
 
