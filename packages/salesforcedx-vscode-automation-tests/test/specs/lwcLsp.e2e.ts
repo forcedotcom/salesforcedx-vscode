@@ -89,7 +89,6 @@ describe('LWC LSP', () => {
   });
 
   it('Go to Definition (HTML)', async () => {
-    if (process.platform !== 'win32') {
       logTestStart(testSetup, 'Go to Definition (HTML)');
       await executeQuickPick('View: Close All Editors', Duration.seconds(1));
 
@@ -107,7 +106,6 @@ describe('LWC LSP', () => {
       const activeTab = await editorView.getActiveTab();
       const title = await activeTab?.getTitle();
       expect(title).to.equal('lwc1.js');
-    }
   });
 
   it('Autocompletion', async () => {
