@@ -11,13 +11,41 @@ export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   // some of the necessary configs are over there
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata']
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
+});
+
+export const deployOnSaveTest = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: MINIMAL_ORG_ALIAS,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  userSettings: {
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': false,
+    'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': true,
+    'salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave': true
+  }
+});
+
+export const deployNoStTest = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: MINIMAL_ORG_ALIAS,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  userSettings: {
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': false,
+    'salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve': false
+  }
 });
 
 export const createProjectTest = createDesktopTest({
   fixturesDir: __dirname,
-  orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
   // use vscode's dialog box instead of the native OS, so playwright can interact with it
   userSettings: { 'files.simpleDialog.enable': true }
+});
+
+/** Workspace path is an empty temp folder (no `sfdx-project.json`) — folder is open, not “close workspace” */
+export const folderWithoutSfdxProjectTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  emptyWorkspace: true
 });

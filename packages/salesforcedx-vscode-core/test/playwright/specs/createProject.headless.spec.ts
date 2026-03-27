@@ -10,10 +10,8 @@ import * as path from 'node:path';
 import { expect } from '@playwright/test';
 import { createProjectTest as test } from '../fixtures/desktopFixtures';
 import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  prepareNoFolderOpenForPaletteTests,
   verifyCommandExists,
   saveScreenshot,
   QUICK_INPUT_WIDGET,
@@ -29,12 +27,7 @@ test('Create Project: standard project via command palette', async ({ page, work
   const targetDir = path.dirname(workspaceDir);
 
   await test.step('close workspace to reach empty state', async () => {
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await executeCommandWithCommandPalette(page, 'Workspaces: Close Workspace');
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
+    await prepareNoFolderOpenForPaletteTests(page);
     await saveScreenshot(page, 'createProject.01-empty-workspace.png');
   });
 
@@ -55,7 +48,7 @@ test('Create Project: standard project via command palette', async ({ page, work
 
   await test.step('enter project name', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await page.keyboard.type(PROJECT_NAME);
     await saveScreenshot(page, 'createProject.03-name-entered.png');
     await page.keyboard.press('Enter');

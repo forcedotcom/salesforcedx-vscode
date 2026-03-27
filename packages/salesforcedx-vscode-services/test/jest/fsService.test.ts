@@ -6,7 +6,7 @@
  */
 
 import { URI, Utils } from 'vscode-uri';
-import { toUri } from '../../src/vscode/fsService';
+import { toUri } from '../../src/vscode/uriUtils';
 
 describe('toUri', () => {
   describe('virtual filesystem URIs (memfs)', () => {

@@ -67,9 +67,16 @@ jobs:
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:web -w @salesforce/playwright-vscode-ext -- --last-failed
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/playwright-vscode-ext/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/playwright-vscode-ext/test-results/spans/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()
@@ -148,9 +155,16 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w @salesforce/playwright-vscode-ext -- --last-failed
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/playwright-vscode-ext/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/playwright-vscode-ext/test-results/spans/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()

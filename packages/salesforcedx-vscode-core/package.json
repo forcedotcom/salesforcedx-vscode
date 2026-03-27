@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.2.1",
+  "version": "66.3.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,20 +27,20 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.24.0",
+    "@salesforce/core": "^8.27.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/source-deploy-retrieve": "^12.31.12",
-    "@salesforce/source-tracking": "^7.8.1",
-    "@salesforce/templates": "^66.4.2",
+    "@salesforce/source-deploy-retrieve": "^12.31.22",
+    "@salesforce/source-tracking": "^7.8.6",
+    "@salesforce/templates": "^66.6.0",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
-    "effect": "^3.19.19",
-    "fast-xml-parser": "^5.4.1",
+    "effect": "^3.20.0",
+    "fast-xml-parser": "^5.5.7",
     "glob": "^11.1.0",
     "rxjs": "^7.8.2",
     "vscode-uri": "^3.1.0"
@@ -173,7 +173,10 @@
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
-        "VSCODE_DESKTOP": "1"
+        "VSCODE_DESKTOP": "1",
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
       },
       "dependencies": [
         "vscode:bundle",
@@ -256,10 +259,6 @@
         {
           "command": "sf.internal.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && sf:internal_dev"
-        },
-        {
-          "command": "sf.apex.generate.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened && sf:show_shared_commands"
         },
         {
           "command": "sf.folder.diff",
@@ -384,10 +383,6 @@
           "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:show_shared_commands"
         },
         {
-          "command": "sf.apex.generate.class",
-          "when": "sf:project_opened && sf:show_shared_commands"
-        },
-        {
           "command": "sf.analytics.generate.template",
           "when": "sf:project_opened"
         },
@@ -410,6 +405,10 @@
         {
           "command": "sf.project.generate",
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
+        {
+          "command": "sf.agent.generate.project",
+          "when": "false"
         },
         {
           "command": "sf.nativemobile.generate.project",
@@ -551,10 +550,6 @@
         "title": "%view_remote_changes_text%"
       },
       {
-        "command": "sf.apex.generate.class",
-        "title": "%apex_generate_class_text%"
-      },
-      {
         "command": "sf.analytics.generate.template",
         "title": "%analytics_generate_template_text%"
       },
@@ -609,6 +604,10 @@
       {
         "command": "sf.project.generate",
         "title": "%project_generate_text%"
+      },
+      {
+        "command": "sf.agent.generate.project",
+        "title": "%agent_generate_project_text%"
       },
       {
         "command": "sf.nativemobile.generate.project",

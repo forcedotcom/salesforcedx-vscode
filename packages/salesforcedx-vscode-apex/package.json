@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.2.1",
+  "version": "66.3.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,7 +27,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.10",
+    "@salesforce/apex-node": "^8.4.13",
     "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -37,7 +37,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.23.2",
+    "@salesforce/core": "^8.27.0",
     "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
@@ -90,12 +90,17 @@
       ]
     },
     "copy:grammars": {
-      "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/*.tmLanguage ./grammars/",
+      "command": "shx mkdir -p grammars syntaxes && shx cp ../salesforcedx-vscode-apex-log/grammars/apex.tmLanguage ./grammars/ && shx cp ../salesforcedx-vscode-apex-log/syntaxes/apex.configuration.json ./syntaxes/",
+      "dependencies": [
+        "../salesforcedx-vscode-apex-log:copy:grammars"
+      ],
       "files": [
-        "../../node_modules/@salesforce/apex-tmlanguage/grammars/*.tmLanguage"
+        "../salesforcedx-vscode-apex-log/grammars/apex.tmLanguage",
+        "../salesforcedx-vscode-apex-log/syntaxes/apex.configuration.json"
       ],
       "output": [
-        "grammars/*.tmLanguage"
+        "grammars/apex.tmLanguage",
+        "syntaxes/apex.configuration.json"
       ]
     },
     "vscode:bundle": {

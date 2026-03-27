@@ -90,9 +90,16 @@ jobs:
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
-          E2E_SEQUENTIAL: 1
+          PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:web -w salesforcedx-vscode-services -- --last-failed --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-services/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-services/test-results/spans/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()

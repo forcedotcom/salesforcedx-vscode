@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+import { deployNoStTest, test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
-  upsertSettings,
+  createApexClass,
   editOpenFile,
   openFileByName,
   executeCommandWithCommandPalette,
@@ -25,7 +25,6 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
-import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
 test('Deploy and Retrieve: deploy and retrieve via command palette and context menus', async ({ page }) => {
@@ -37,7 +36,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
     await setupWorkbenchSettingsAndOutputChannel(page);
 
     // Create the apex class under test
-    await createApexClassCore(page, className);
+    await createApexClass(page, className);
     await saveScreenshot(page, 'setup.class-created.png');
 
     // Wait for extension to fully activate (context keys like sf:has_target_org)
@@ -135,9 +134,7 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
 
     // Verify the marker comment is gone from the editor
     const editor = page.locator(`[data-uri*="${className}.cls"] .view-lines`).first();
-    await expect(editor).toBeVisible({ timeout: 10_000 });
-    const editorText = await editor.textContent();
-    expect(editorText, 'File should not contain the edit marker after retrieve').not.toContain('WILL_BE_REVERTED');
+    await expect(editor).not.toHaveText(/WILL_BE_REVERTED/, { timeout: 15_000 });
     await saveScreenshot(page, 'retrieve-revert.complete.png');
   });
 
@@ -170,14 +167,22 @@ test('Deploy and Retrieve: deploy and retrieve via command palette and context m
     });
   }
 
-  await test.step('disable ST and deploy', async () => {
-    await upsertSettings(page, {
-      'salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve': 'false'
-    });
-    // Ensure apex class file is open (command requires active editor)
-    await openFileByName(page, `${className}.cls`);
-    // Wait for command to be available after setting change
+  await validateNoCriticalErrors(test, consoleErrors);
+});
+
+deployNoStTest('Deploy and Retrieve: deploy with ST disabled', async ({ page }) => {
+  test.setTimeout(COMMAND_TIMEOUT);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const className = `DeployNoStTest${Date.now()}`;
+
+  await test.step('setup: workbench, settings, create apex class', async () => {
+    await setupWorkbenchSettingsAndOutputChannel(page);
+    await createApexClass(page, className);
+    await saveScreenshot(page, 'setup-no-st.class-created.png');
     await verifyCommandExists(page, packageNls.deploy_this_source_text, 120_000);
+  });
+
+  await test.step('deploy with ST disabled', async () => {
     await clearOutputChannel(page);
     await openFileByName(page, `${className}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);

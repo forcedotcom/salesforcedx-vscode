@@ -4,29 +4,31 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { retryOperation, verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src';
 import {
   Duration,
-  pause,
-  log,
   ProjectShapeOption,
-  TestReqConfig
+  TestReqConfig,
+  log,
+  openFile,
+  pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
+  closeAllEditors,
   executeQuickPick,
-  getWorkbench,
+  getStatusBarItemWhichIncludes,
   getTextEditor,
-  reloadWindow,
+  getWorkbench,
   moveCursorWithFallback,
-  closeAllEditors
+  reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-// import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('LWC LSP', () => {
@@ -62,14 +64,28 @@ describe('LWC LSP', () => {
 
     // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
     await reloadWindow(Duration.seconds(20));
+  });
 
-    // wait for server initialization to complete
-    await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(10));
+  it('Verify LWC LSP finished indexing in status bar', async () => {
+    logTestStart(testSetup, 'Verify LWC LSP finished indexing in status bar');
+
+    await retryOperation(
+      async () => {
+        await openFile(path.join(lwcFolderPath, 'lwc1', 'lwc1.html'));
+
+        const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+        await statusBar.click();
+        expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
+      },
+      5,
+      'LWC language status did not reach indexing complete'
+    );
   });
 
   it('Go to Definition (JavaScript)', async () => {
     logTestStart(testSetup, 'Go to Definition (Javascript)');
     // Get open text editor
+    await openFile(path.join(lwcFolderPath, 'lwc1.js'));
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.js');
 
@@ -87,7 +103,6 @@ describe('LWC LSP', () => {
   });
 
   it('Go to Definition (HTML)', async () => {
-    if (process.platform !== 'win32') {
       logTestStart(testSetup, 'Go to Definition (HTML)');
       await executeQuickPick('View: Close All Editors', Duration.seconds(1));
 
@@ -105,7 +120,6 @@ describe('LWC LSP', () => {
       const activeTab = await editorView.getActiveTab();
       const title = await activeTab?.getTitle();
       expect(title).to.equal('lwc1.js');
-    }
   });
 
   it('Autocompletion', async () => {

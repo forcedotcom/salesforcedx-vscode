@@ -10,6 +10,7 @@ on:
 jobs:
   prepare-environment-from-main:
     name: 'Get Release Version'
+    if: github.event_name != 'release' || !startsWith(github.event.release.tag_name, 'soql-common')
     runs-on: ubuntu-latest
     environment: publish
     outputs:
@@ -61,8 +62,10 @@ jobs:
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-      - run: |
-          cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish --skip-duplicate "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: |
+            cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish --skip-duplicate "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]

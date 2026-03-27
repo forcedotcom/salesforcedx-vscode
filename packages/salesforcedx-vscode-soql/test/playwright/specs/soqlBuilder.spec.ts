@@ -16,6 +16,7 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
+  verifyCommandExists,
   waitForExtensionsActivated
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
@@ -30,6 +31,7 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
     await waitForExtensionsActivated(page);
     await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.complete.png');
+    await verifyCommandExists(page, packageNls.soql_open_new_builder);
   });
 
   await test.step('create query in SOQL Builder', async () => {
@@ -38,7 +40,8 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
 
     // Enter the file name
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    // sometimes it takes a while for the extension to activate after running its first command.
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await page.keyboard.type('MySoqlFile');
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.file-name-entered.png');

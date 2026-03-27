@@ -27,7 +27,8 @@ import jsonPlugin from '@eslint/json';
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
 const localRules = localRulesPlugin.rules;
-const localPlugin = { rules: localRules };
+const localProcessors = localRulesPlugin.processors;
+const localPlugin = { processors: localProcessors, rules: localRules };
 
 export default [
   {
@@ -43,7 +44,7 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-aura-language-server/src/tern/**',
       'packages/salesforcedx-vscode-lightning/tern/**',
-      'packages/salesforcedx-vscode-lightning/extension/tern/lib/**',
+      'packages/salesforcedx-vscode-lightning/extension/tern/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
@@ -58,7 +59,10 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
       '**/.vscode-test-web/**',
       '**/.vscode-test/**',
-      '**/playwright-report/**'
+      '**/playwright-report/**',
+      '**/playwright-report/',
+      '**/test-results/**',
+      '**/test-results/'
     ]
   },
   {
@@ -141,6 +145,8 @@ export default [
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
       'local/no-vscode-progress-title-literals': 'error',
+      'local/no-vscode-quickpick-description-literals': 'error',
+      'local/no-vscode-validateinput-literals': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
@@ -346,7 +352,7 @@ export default [
       'import/no-empty-named-blocks': 'error',
       'import/newline-after-import': 'error',
       'import/no-cycle': 'error',
-      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/scripts/**'] }],
+      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }],
       'import/order': [
         'error',
         {
@@ -591,7 +597,7 @@ export default [
       'import/no-extraneous-dependencies': [
         'error',
         {
-          devDependencies: ['**/test/**', '**/scripts/**'],
+          devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'],
           // Allow Effect and core Salesforce dependencies
           optionalDependencies: false
         }
@@ -636,19 +642,18 @@ export default [
     }
   },
   {
-    // Relaxed rules for test files in services and org-browser packages
+    // Relaxed rules for test files
     files: [
-      'packages/salesforcedx-vscode-services/test/**/*.ts',
-      'packages/salesforcedx-vscode-org-browser/test/**/*.ts',
-      'packages/salesforcedx-vscode-metadata/test/**/*.ts',
-      'packages/salesforcedx-vscode-apex-testing/test/**/*.ts',
-      'packages/salesforcedx-vscode-apex-log/test/**/*.ts',
+      'packages/**/test/**/*.ts',
+      'packages/**/__tests__/**/*.ts',
       'packages/salesforcedx-vscode-services/playwright*.ts',
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
       'packages/salesforcedx-vscode-metadata/playwright*.ts',
       'packages/salesforcedx-vscode-apex-log/playwright*.ts',
       'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-core/playwright*.ts',
+      'packages/salesforcedx-vscode-org/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-org/playwright*.ts',
       'packages/salesforcedx-vscode-soql/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-soql/playwright*.ts'
     ],
@@ -717,6 +722,17 @@ export default [
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error'
+    }
+  },
+  {
+    files: ['packages/*/.vscodeignore'],
+    ignores: ['packages/salesforcedx-vscode-lwc/.vscodeignore'],
+    plugins: {
+      local: localPlugin
+    },
+    processor: 'local/vscodeignoreText',
+    rules: {
+      'local/vscodeignore-required-patterns': 'error'
     }
   },
   eslintConfigPrettier

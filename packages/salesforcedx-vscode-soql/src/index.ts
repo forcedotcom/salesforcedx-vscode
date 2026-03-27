@@ -10,12 +10,19 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { dataQuery } from './commands/dataQuery';
+import { queryPlan, queryPlanDocument } from './commands/queryPlan';
 import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
+import { registerSoqlCodeLensProvider } from './commands/soqlCodeLensProvider';
 import { soqlOpenNewBuilder, soqlOpenNewTextEditor } from './commands/soqlFileCreate';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
-import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import {
+  AllServicesLayer,
+  buildAllServicesLayer,
+  getSoqlRuntime,
+  setAllServicesLayer
+} from './services/extensionProvider';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-soql';
 
@@ -27,12 +34,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   );
 };
 
-export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
+export const deactivate = async (): Promise<void> => getSoqlRuntime().runPromise(deactivateEffect());
 
-export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (
-  context: vscode.ExtensionContext
-) {
+export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
@@ -40,9 +44,10 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.sync(() => {
     context.subscriptions.push(SOQLEditorProvider.register(context));
     QueryDataViewService.register(context);
+    registerSoqlCodeLensProvider(context);
   });
 
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getSoqlRuntime());
   yield* Effect.all(
     [
       registerCommand('soql.open.new.builder', soqlOpenNewBuilder),
@@ -58,7 +63,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         )
       ),
       registerCommand('sf.data.query.input', dataQuery),
-      registerCommand('sf.data.query.selection', dataQuery)
+      registerCommand('sf.data.query.selection', dataQuery),
+      registerCommand('sf.data.query.explain.selection', queryPlan),
+      registerCommand('sf.data.query.explain.document', queryPlanDocument)
     ],
     { concurrency: 'unbounded' }
   );

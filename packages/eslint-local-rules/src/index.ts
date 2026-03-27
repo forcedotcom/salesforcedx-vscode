@@ -15,15 +15,22 @@ import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
+import { noVscodeQuickpickDescriptionLiterals } from './noVscodeQuickpickDescriptionLiterals';
 import { noVscodeUri } from './noVscodeUri';
+import { noVscodeValidateInputLiterals } from './noVscodeValidateInputLiterals';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
 import { packageJsonExtensionIcon } from './packageJsonExtensionIcon';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
 import { requireEffectFnSpanName } from './requireEffectFnSpanName';
+import { vscodeignoreRequiredPatterns } from './vscodeignoreRequiredPatterns';
+import { vscodeignoreTextProcessor } from './vscodeignoreTextProcessor';
 
 const plugin = {
+  processors: {
+    vscodeignoreText: vscodeignoreTextProcessor
+  },
   rules: {
     'command-must-be-in-package-json': commandMustBeInPackageJson,
     'no-duplicate-i18n-values': noDuplicateI18nValues,
@@ -35,13 +42,16 @@ const plugin = {
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'no-vscode-message-literals': noVscodeMessageLiterals,
-    'no-vscode-uri': noVscodeUri,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
+    'no-vscode-quickpick-description-literals': noVscodeQuickpickDescriptionLiterals,
+    'no-vscode-uri': noVscodeUri,
+    'no-vscode-validateinput-literals': noVscodeValidateInputLiterals,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,
     'package-json-extension-icon': packageJsonExtensionIcon,
     'package-json-icon-paths': packageJsonIconPaths,
     'package-json-command-refs': packageJsonCommandRefs,
-    'package-json-view-refs': packageJsonViewRefs
+    'package-json-view-refs': packageJsonViewRefs,
+    'vscodeignore-required-patterns': vscodeignoreRequiredPatterns
   }
 };
 export = plugin;

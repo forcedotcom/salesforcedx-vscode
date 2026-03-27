@@ -14,7 +14,7 @@ export {
   getSfdxResource,
   memoize,
   readJsonSync,
-  writeJsonSync,
+  writeJson,
   readPackageJson,
   extractJsonFromImport,
   SfdxTsConfig,
@@ -46,7 +46,7 @@ export { AttributeInfo, DecoratorType, MemberType } from './indexer/attributeInf
 
 // Re-export from other modules
 export { Logger } from './logger';
-export { findNamespaceRoots } from './namespaceUtils';
+export { findLwcNamespaceRoots } from './namespaceUtils';
 
 // Re-export from decorators
 export {
@@ -59,16 +59,33 @@ export {
   DecoratorTargetMethod
 } from './decorators';
 
+// WORKSPACE_READ_FILE_REQUEST is used by server and client. registerWorkspaceReadFileHandler is
+// client-only (uses effect-ext-utils/vscode); export it from ./workspaceReadFileHandler so the
+// server bundle never loads it (server runs in a separate process without vscode).
+export {
+  WORKSPACE_READ_FILE_REQUEST,
+  WORKSPACE_STAT_REQUEST,
+  WORKSPACE_READ_DIRECTORY_REQUEST,
+  WORKSPACE_FIND_FILES_REQUEST,
+  WORKSPACE_DELETE_FILE_REQUEST
+} from './lspCustomRequests';
+
 // Re-export from file system providers
-export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
+export { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
 export { PackageJson, isPackageJson } from './types/packageJson';
 
-// Re-export from document sync
-export { syncDocumentToTextDocumentsProvider } from './documentSync';
-
-// Re-export from reinitialization scheduler
-export { scheduleReinitialization } from './reinitializationScheduler';
-
 // Re-export TypeScript configuration templates
 export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';
+
+/**
+ * Custom LSP notification sent by the LWC server when delayed initialization
+ * is complete and the server is ready to serve requests.
+ */
+export const LWC_SERVER_READY_NOTIFICATION = 'custom/lwcServerReady';
+
+/**
+ * Custom LSP notification sent by the Aura server when delayed initialization
+ * is complete and the server is ready to serve requests.
+ */
+export const AURA_SERVER_READY_NOTIFICATION = 'custom/auraServerReady';
