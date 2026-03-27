@@ -10,9 +10,9 @@ import { defineConfig } from '@playwright/test';
 type DesktopConfigOptions = {
   /** Test directory relative to extension root (default: './test/playwright/specs') */
   testDir?: string;
-  /** Number of parallel workers (default: unset unless E2E_SEQUENTIAL) */
+  /** Number of parallel workers (default: unset) */
   workers?: number;
-  /** Run tests in parallel (default: !E2E_SEQUENTIAL) */
+  /** Run tests in parallel (default: true) */
   fullyParallel?: boolean;
   /** Per-test timeout in ms (default: 60_000) */
   timeout?: number;
@@ -22,9 +22,9 @@ type DesktopConfigOptions = {
 export const createDesktopConfig = (options: DesktopConfigOptions = {}) =>
   defineConfig({
     testDir: options.testDir ?? './test/playwright/specs',
-    fullyParallel: options.fullyParallel ?? !process.env.E2E_SEQUENTIAL,
+    fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
-    ...(options.workers ? { workers: options.workers } : process.env.E2E_SEQUENTIAL ? { workers: 1 } : {}),
+    ...(options.workers ? { workers: options.workers } : {}),
     reporter: process.env.CI
       ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit-desktop.xml' }]]
       : [['html', { open: 'never' }], ['list']],

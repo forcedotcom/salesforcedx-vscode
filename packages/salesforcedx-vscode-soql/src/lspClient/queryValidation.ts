@@ -30,7 +30,7 @@ export const afterStart = (client: LanguageClient): LanguageClient => {
               showErrors: false
             })
           }
-        : { done: true, totalSize: 0, records: [] };
+        : { done: true, totalSize: 0, records: [] as const };
     } catch (e) {
       // NOTE: The return value must be serializable, for JSON-RPC.
       // Thus we cannot include the exception object as-is

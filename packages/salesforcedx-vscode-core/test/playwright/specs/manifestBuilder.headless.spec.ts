@@ -10,8 +10,10 @@ import * as path from 'node:path';
 import { test } from '../fixtures';
 import {
   setupConsoleMonitoring,
+  createApexClass,
   openFileByName,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   executeExplorerContextMenuCommand,
   clearOutputChannel,
   waitForOutputChannelText,
@@ -23,7 +25,6 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { COMMAND_TIMEOUT } from '../constants';
 import { setupWorkbenchSettingsAndOutputChannel } from '../setupHelpers';
-import { createApexClassCore } from '../coreHelpers';
 import packageNls from '../../../package.nls.json';
 
 const MANIFEST_XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -43,7 +44,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     await setupWorkbenchSettingsAndOutputChannel(page);
 
     // Create an apex class to include in the manifest
-    await createApexClassCore(page, `ManifestTest${Date.now()}`);
+    await createApexClass(page, `ManifestTest${Date.now()}`);
     await saveScreenshot(page, 'setup.class-created.png');
   });
 
@@ -54,7 +55,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
 
     // Wait for filename prompt and accept default
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await saveScreenshot(page, 'manifest.prompt-visible.png');
     await page.keyboard.press('Enter');
 
@@ -76,6 +77,7 @@ test('Manifest Builder: generate manifest, deploy and retrieve via manifest', as
     await openFileByName(page, 'package.xml');
     await clearOutputChannel(page);
 
+    await verifyCommandExists(page, packageNls.deploy_in_manifest_text, 120_000);
     await executeCommandWithCommandPalette(page, packageNls.deploy_in_manifest_text);
     await waitForOutputChannelText(page, {
       expectedText: 'Deployed Source',

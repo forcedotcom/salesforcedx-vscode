@@ -6,7 +6,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.3.0",
+  "version": "66.3.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -82,12 +82,12 @@
       ]
     },
     "copy:grammars": {
-      "command": "shx mkdir -p syntaxes && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./syntaxes/",
+      "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./grammars/",
       "files": [
         "../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
       ],
       "output": [
-        "syntaxes/apex.tmLanguage"
+        "grammars/apex.tmLanguage"
       ]
     },
     "vscode:bundle": {
@@ -163,6 +163,7 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],
@@ -181,7 +182,8 @@
         "LICENSE.txt",
         "images/**",
         "resources/**",
-        "syntaxes/**"
+        "syntaxes/**",
+        "grammars/**"
       ],
       "output": [
         "*.vsix"
@@ -190,7 +192,9 @@
     "test:web": {
       "command": "playwright test --config=playwright.config.web.ts",
       "env": {
-        "E2E_SEQUENTIAL": "1"
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
       },
       "dependencies": [
         "vscode:bundle",
@@ -210,7 +214,9 @@
       "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
-        "E2E_SEQUENTIAL": "1"
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
       },
       "dependencies": [
         "vscode:bundle",
@@ -296,7 +302,7 @@
       {
         "language": "apex-anon",
         "scopeName": "source.apex",
-        "path": "./syntaxes/apex.tmLanguage"
+        "path": "./grammars/apex.tmLanguage"
       }
     ],
     "menus": {

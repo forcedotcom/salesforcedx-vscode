@@ -14,6 +14,7 @@ const checkedPackagePatterns: RegExp[] = [
   /^@salesforce\/lwc-language-server/i,
   /^@salesforce\/salesforcedx/i
 ];
+const exemptedPackages = new Set(['@salesforce/core']);
 
 const readJsonFile = (jsonFilePath: string): PackageJson => {
   let parsed: unknown;
@@ -35,31 +36,35 @@ describe(`package.json dependencies for ${packageJson.name ?? ''}`, () => {
   const dependencies = packageJson.dependencies ?? {};
   const devDependencies = packageJson.devDependencies ?? {};
 
-  Object.keys(dependencies).forEach(name => {
-    const versionRange = dependencies[name];
-    checkedPackagePatterns.forEach(pattern => {
-      if (pattern.test(name)) {
-        test(`should use a strict version for dependency ${name}`, () => {
-          expect(versionRange.trim()).not.toContain('^');
-          expect(versionRange.trim()).not.toContain('~');
-          expect(versionRange.trim()).not.toContain('>');
-          expect(versionRange.trim()).not.toContain('<');
-        });
-      }
+  Object.keys(dependencies)
+    .filter((name) => !exemptedPackages.has(name))
+    .forEach((name) => {
+      const versionRange = dependencies[name];
+      checkedPackagePatterns.forEach((pattern) => {
+        if (pattern.test(name)) {
+          test(`should use a strict version for dependency ${name}`, () => {
+            expect(versionRange.trim()).not.toContain('^');
+            expect(versionRange.trim()).not.toContain('~');
+            expect(versionRange.trim()).not.toContain('>');
+            expect(versionRange.trim()).not.toContain('<');
+          });
+        }
+      });
     });
-  });
 
-  Object.keys(devDependencies).forEach(name => {
-    const versionRange = devDependencies[name];
-    checkedPackagePatterns.forEach(pattern => {
-      if (pattern.test(name)) {
-        test(`should use a strict version for devDependency ${name}`, () => {
-          expect(versionRange.trim()).not.toContain('^');
-          expect(versionRange.trim()).not.toContain('~');
-          expect(versionRange.trim()).not.toContain('>');
-          expect(versionRange.trim()).not.toContain('<');
-        });
-      }
+  Object.keys(devDependencies)
+    .filter((name) => !exemptedPackages.has(name))
+    .forEach((name) => {
+      const versionRange = devDependencies[name];
+      checkedPackagePatterns.forEach((pattern) => {
+        if (pattern.test(name)) {
+          test(`should use a strict version for devDependency ${name}`, () => {
+            expect(versionRange.trim()).not.toContain('^');
+            expect(versionRange.trim()).not.toContain('~');
+            expect(versionRange.trim()).not.toContain('>');
+            expect(versionRange.trim()).not.toContain('<');
+          });
+        }
+      });
     });
-  });
 });

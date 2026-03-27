@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export const APEX_CLASS_NAME_MAX_LENGTH = 40;
+
 export const PASS_RESULT = 'Pass';
 export const FAIL_RESULT = 'Fail';
 export const SKIP_RESULT = 'Skip';

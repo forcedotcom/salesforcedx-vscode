@@ -4,8 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  buildSfdxContentMap,
+  createMockWorkspaceFindFilesConnection,
+  DIR_STAT,
+  FILE_STAT,
+  getSfdxWorkspaceRelativePaths,
+  SFDX_WORKSPACE_ROOT,
+  sfdxFileSystemAccessor
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { join } from 'node:path';
+import type { Connection } from 'vscode-languageserver';
+import { URI } from 'vscode-uri';
+
 import {
   Tag,
   createTag,
@@ -27,6 +39,30 @@ import {
   getClassMemberLocation
 } from '../tag';
 
+const contentMap = buildSfdxContentMap();
+
+beforeAll(() => {
+  sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);
+  sfdxFileSystemAccessor.setConnection(
+    createMockWorkspaceFindFilesConnection(SFDX_WORKSPACE_ROOT, {
+      relativePaths: getSfdxWorkspaceRelativePaths()
+    }) as Connection
+  );
+
+  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+    const key = normalizePath(uri);
+    if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
+    const prefix = `${key}/`;
+    for (const k of contentMap.keys()) {
+      if (k.startsWith(prefix)) return Promise.resolve(DIR_STAT);
+    }
+    return Promise.resolve(undefined);
+  });
+  jest
+    .spyOn(sfdxFileSystemAccessor, 'getFileContent')
+    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
+});
+
 describe('Tag', () => {
   const filepath = join(SFDX_WORKSPACE_ROOT, 'javascript', '__tests__', 'fixtures', 'metadata.js');
 
@@ -41,7 +77,7 @@ describe('Tag', () => {
 
   describe('.fromFile', () => {
     it('creates a tag from a lwc .js file', async () => {
-      const tag: Tag | null = await createTagFromFile(filepath, sfdxFileSystemProvider);
+      const tag: Tag | null = await createTagFromFile(filepath, sfdxFileSystemAccessor);
 
       expect(tag?.file).toEqual(filepath);
       expect(tag?.metadata.decorators);
@@ -54,12 +90,12 @@ describe('Tag', () => {
     let tag: Tag | null;
 
     beforeEach(async () => {
-      tag = await createTagFromFile(filepath, sfdxFileSystemProvider);
+      tag = await createTagFromFile(filepath, sfdxFileSystemAccessor);
     });
 
     describe('#classMembers', () => {
       it('returns methods, properties, attributes. Everything defined on the component', () => {
-        expect(getClassMembers(tag!)).not.toBeEmpty();
+        expect(getClassMembers(tag!).length).toBeGreaterThan(0);
         expect(getClassMembers(tag!)[0].name).toEqual('todo');
         expect(getClassMembers(tag!)[0].type).toEqual('property');
       });
@@ -86,7 +122,7 @@ describe('Tag', () => {
     });
 
     describe('#publicAttributes', () => {
-      it('returns the public attributes', () => {
+      it('returns the public attributes', async () => {
         expect(getPublicAttributes(tag!)[0].decorator);
         expect(getPublicAttributes(tag!)[0].detail);
         expect(getPublicAttributes(tag!)[0].location);
@@ -107,16 +143,21 @@ describe('Tag', () => {
       it('returns a location for the component', () => {
         const location = {
           range: getTagRange(tag!),
-          uri: getTagUri(tag!)
+          uri: getTagUri(tag!, sfdxFileSystemAccessor)
         };
-        expect(getTagLocation(tag!)).toEqual(location);
+        expect(getTagLocation(tag!, sfdxFileSystemAccessor)).toEqual(location);
       });
     });
 
     describe('#allLocations', () => {
-      it('returns multiple files if present', () => {
-        const allLocations = getAllLocations(tag!, sfdxFileSystemProvider);
-        expect(allLocations.length).toEqual(3);
+      it('returns multiple files if present', async () => {
+        const allLocations = await getAllLocations(tag!, sfdxFileSystemAccessor);
+        // At least .js + .html + .css (length can vary on Windows due to path normalization)
+        expect(allLocations.length).toBeGreaterThanOrEqual(3);
+        const uris = allLocations.map(loc => loc.uri);
+        expect(uris.some(u => u.includes('metadata.js'))).toBe(true);
+        expect(uris.some(u => u.includes('metadata.html'))).toBe(true);
+        expect(uris.some(u => u.includes('metadata.css'))).toBe(true);
       });
     });
 
@@ -220,7 +261,7 @@ describe('Tag', () => {
     const fileWithErrors = join(SFDX_WORKSPACE_ROOT, 'javascript', '__tests__', 'fixtures', 'navmetadata.js');
 
     it('does not throw an error when finding a class member location without class members', async () => {
-      const tag: Tag | null = await createTagFromFile(fileWithErrors, sfdxFileSystemProvider);
+      const tag: Tag | null = await createTagFromFile(fileWithErrors, sfdxFileSystemAccessor);
       expect(tag).not.toBeNull();
       expect(() => getClassMemberLocation(tag!, 'account')).not.toThrow();
     });

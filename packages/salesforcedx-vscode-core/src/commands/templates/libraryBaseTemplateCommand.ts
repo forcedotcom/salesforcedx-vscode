@@ -18,7 +18,7 @@ import * as path from 'node:path';
 import { ProgressLocation, window, workspace } from 'vscode';
 import { channelService } from '../../channels';
 import { telemetryService } from '../../telemetry';
-import { MetadataDictionary, MetadataInfo } from '../../util';
+import { MetadataDictionary, MetadataInfo } from '../../util/metadataDictionary';
 
 import { CommandletExecutor, PathStrategyFactory, SelectOutputDir, SourcePathStrategy } from '../util';
 

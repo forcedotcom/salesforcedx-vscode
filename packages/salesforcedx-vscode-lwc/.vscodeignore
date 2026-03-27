@@ -1,15 +1,8 @@
 .vscode/**
 .vscode-test/**
+.vscode-test-web/**
+.vscode-web/**
 .wireit/**
-out/test/**
-test/**
-src/**
-**/*.map
-.gitignore
-.circular-deps.json
-.eslintcache
-tsconfig.json
-
 # ignore unused jsforce code
 node_modules/jsforce/test/**
 node_modules/jsforce/build/**
@@ -21,3 +14,27 @@ node_modules/sfdx-faye/spec/**
 
 # ignore unused dayjs code
 node_modules/dayjs/esm/**
+out/**
+src/**
+test/**
+**/*.map
+**/*.node
+dist/*-metafile.json
+playwright*.ts
+playwright-report/**
+test-results/**
+**/*.ts
+coverage
+junit*
+*.vsix
+.circular-deps.json
+.eslintcache
+.gitignore
+esbuild.config.mjs
+jest.config.js
+tsconfig.json
+.eslint.json
+
+# do not reach outside the package
+../../**
+../**

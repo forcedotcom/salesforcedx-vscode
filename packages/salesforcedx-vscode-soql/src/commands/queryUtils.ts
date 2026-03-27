@@ -4,7 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -13,59 +16,84 @@ export type QueryAndApiInputs = {
   api: 'REST' | 'TOOLING';
 };
 
-export type QueryInputs = { query: string };
-
 const API_ITEMS = [
   { api: 'REST' as const, label: nls.localize('REST_API'), description: nls.localize('REST_API_description') },
   { api: 'TOOLING' as const, label: nls.localize('tooling_API'), description: nls.localize('tooling_API_description') }
 ];
 
 const normalizeQuery = (q: string): string =>
-  q.replace('[', '').replace(']', '').replaceAll(/(\r\n|\n)/g, ' ').trim();
+  q
+    .replace('[', '')
+    .replace(']', '')
+    .replaceAll(/(\r\n|\n)/g, ' ')
+    .trim();
 
-const pickApiForQuery = async (
-  query: string
-): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> => {
-  const selection = await vscode.window.showQuickPick(API_ITEMS);
-  return selection ? { type: 'CONTINUE', data: { query, api: selection.api } } : { type: 'CANCEL' };
-};
+const ensureTextAndNormalize = Effect.fn('ensureTextAndNormalize')(function* (text: string) {
+  const servicesApi = yield* getServicesApi;
+  const promptService = yield* servicesApi.services.PromptService;
+  return yield* Effect.succeed(text).pipe(Effect.map(normalizeQuery), Effect.flatMap(promptService.considerUndefinedAsCancellation));
+});
 
-const getQuery = (useSelection: boolean): string | undefined => {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor || (useSelection && editor.selection.isEmpty)) {
-    return undefined;
-  }
-  const text = useSelection ? editor.document.getText(editor.selection) : editor.document.getText();
-  return normalizeQuery(text) || undefined;
-};
+export const getQueryAndApiInputs = Effect.fn('getQueryAndApiInputs')(function* () {
+  const servicesApi = yield* getServicesApi;
+  const promptService = yield* servicesApi.services.PromptService;
+  const editorService = yield* servicesApi.services.EditorService;
 
-export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
-    const query = getQuery(true);
-    return query ? pickApiForQuery(query) : { type: 'CANCEL' };
-  }
-}
+  const query = yield* editorService.getActiveEditorText(true).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
+    // if not text, we'll prompt the user for it
+    Effect.catchAll(() => Effect.void),
+    Effect.flatMap(q =>
+      isString(q)
+        ? Effect.succeed(q)
+        : Effect.promise(() =>
+          vscode.window.showInputBox({
+            prompt: nls.localize('parameter_gatherer_enter_soql_query')
+          })
+        ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation))
+    ),
+    Effect.map(normalizeQuery)
+  );
 
-export class GetDocumentQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
-    const query = getQuery(false);
-    return query ? pickApiForQuery(query) : { type: 'CANCEL' };
-  }
-}
+  const api = yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
+    Effect.flatMap(s => promptService.considerUndefinedAsCancellation(s)),
+    Effect.map(s => s.api)
+  );
 
-export class GetQueryInputsForPlan implements ParametersGatherer<QueryInputs> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<QueryInputs>> {
-    const query = getQuery(true);
-    return query ? { type: 'CONTINUE', data: { query } } : { type: 'CANCEL' };
-  }
-}
+  return { query, api };
+});
 
-export class GetDocumentQueryInputsForPlan implements ParametersGatherer<QueryInputs> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<QueryInputs>> {
-    const query = getQuery(false);
-    return query ? { type: 'CONTINUE', data: { query } } : { type: 'CANCEL' };
-  }
-}
+export const getDocumentQueryAndApiInputs = Effect.fn('getDocumentQueryAndApiInputs')(function* () {
+  const servicesApi = yield* getServicesApi;
+  const promptService = yield* servicesApi.services.PromptService;
+  const editorService = yield* servicesApi.services.EditorService;
+
+  const query = yield* editorService.getActiveEditorText(false).pipe(Effect.flatMap(ensureTextAndNormalize));
+
+  const api = yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
+    Effect.flatMap(s => promptService.considerUndefinedAsCancellation(s)),
+    Effect.map(s => s.api)
+  );
+
+  return { query, api };
+});
+
+export const getQueryInputsForPlan = Effect.fn('getQueryInputsForPlan')(function* () {
+  const servicesApi = yield* getServicesApi;
+  const editorService = yield* servicesApi.services.EditorService;
+
+  return yield* editorService.getActiveEditorContext(true).pipe(
+    Effect.flatMap(ctx => Schema.decodeUnknown(Schema.String)(ctx.text)),
+    Effect.flatMap(ensureTextAndNormalize)
+  );
+});
+
+export const getDocumentQueryInputsForPlan = Effect.fn('getDocumentQueryInputsForPlan')(function* () {
+  const servicesApi = yield* getServicesApi;
+  const editorService = yield* servicesApi.services.EditorService;
+
+  return yield* editorService.getActiveEditorText(false).pipe(Effect.flatMap(ensureTextAndNormalize));
+});
 
 const ERROR_PATTERNS = [
   { match: (s: string) => s.includes('HTTP response contains html content'), key: 'data_query_error_org_expired' },

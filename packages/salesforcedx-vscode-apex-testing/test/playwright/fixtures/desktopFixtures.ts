@@ -18,3 +18,26 @@ export const desktopTest = createDesktopTest({
     'git.autofetch': false
   }
 });
+
+export const noOrgDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  disableOtherExtensions: false,
+  userSettings: {
+    'github.gitAuthentication': false,
+    'git.terminalAuthentication': false,
+    'git.autofetch': false
+  }
+});
+
+export const emptyWorkspaceDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  emptyWorkspace: true,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  disableOtherExtensions: false,
+  userSettings: {
+    'github.gitAuthentication': false,
+    'git.terminalAuthentication': false,
+    'git.autofetch': false
+  }
+});
