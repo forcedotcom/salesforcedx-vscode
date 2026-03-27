@@ -19,7 +19,6 @@ const nodeBuild = await build({
   loader: { '.node': 'file' },
   external: [
     ...nodeConfig.external,
-    'applicationinsights',
     '@babel/preset-typescript/package.json',
     'jest-editor-support',
     '@babel/core'
