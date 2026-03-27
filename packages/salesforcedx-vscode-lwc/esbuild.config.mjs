@@ -8,6 +8,10 @@ import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 import { build } from 'esbuild';
 import { writeFile } from 'fs/promises';
+import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 // Node.js build (desktop VS Code)
 const nodeBuild = await build({
@@ -15,8 +19,9 @@ const nodeBuild = await build({
   loader: { '.node': 'file' },
   external: [
     ...nodeConfig.external,
-    'jest-editor-support'
-    // @babel/core and @babel/preset-typescript/package.json are bundled
+    '@babel/preset-typescript/package.json',
+    'jest-editor-support',
+    '@babel/core'
   ],
   entryPoints: ['./src/index.ts'],
   outdir: 'dist',
@@ -33,44 +38,48 @@ const browserBuild = await build({
   metafile: true
 });
 
-const htmlLsExternalList = [
-  'vscode',
-  'applicationinsights',
-  '@salesforce/lightning-lsp-common',
-  'jest-editor-support'
-  // @babel/core and @babel/preset-typescript/package.json are bundled:
-  // - @babel/core: all its require() calls are static; the dynamic import() for ESM config loading passes through
-  // - @babel/preset-typescript/package.json: bundled as JSON via loader: { '.json': 'json' }
-];
-
 // Bundle the LWC language server for Node.js (desktop VS Code)
-// mainFields: ['module', 'main'] prefers the ESM build of vscode-html-languageservice (static imports).
-// supported: { 'dynamic-import': true } overrides nodeConfig's false setting — the server runs in
-// Node 18+ which natively supports import(), so @babel/core's import(filepath) config loader passes through.
+// Single entry server.js; define ESBUILD_PLATFORM so only ServerNode is included (ServerBrowser tree-shaken)
+// Note: vscode-html-languageservice must be external because it uses dynamic requires
+// that esbuild cannot resolve (e.g., './parser/htmlScanner')
 await build({
   ...nodeConfig,
   loader: { '.node': 'file', '.json': 'json' },
-  external: htmlLsExternalList,
+  external: [
+    'vscode',
+    'applicationinsights',
+    '@salesforce/lightning-lsp-common',
+    '@babel/preset-typescript/package.json',
+    'jest-editor-support',
+    '@babel/core',
+    'vscode-html-languageservice'
+  ],
   entryPoints: ['../salesforcedx-lwc-language-server/out/src/server.js'],
   outfile: './dist/lwcServer.js',
   bundle: true,
   platform: 'node',
   target: 'node18',
-  define: { 'process.env.ESBUILD_PLATFORM': '"node"' },
-  mainFields: ['module', 'main'],
-  supported: { 'dynamic-import': true },
-  logOverride: {
-    ...nodeConfig.logOverride,
-    'unsupported-dynamic-import': 'info'
-  }
+  define: { 'process.env.ESBUILD_PLATFORM': '"node"' }
 });
 
 // Bundle the LWC language server for browser/web worker (VS Code for the Web)
-// mainFields: ['module', 'main'] also ensures the ESM build is used for browser.
+// Single entry server.js; define ESBUILD_PLATFORM so only ServerBrowser is included (ServerNode tree-shaken)
+// The language server runs in a web worker, so we need a browser-compatible bundle
+// Note: vscode-html-languageservice must be bundled (not external) for browser to avoid dynamic require errors
+// We configure esbuild to prefer the ESM version which doesn't use dynamic requires
 await build({
   ...commonConfigBrowser,
   loader: { '.json': 'json' },
-  external: htmlLsExternalList.filter(e => e !== '@babel/core'),
+  external: [
+    'vscode',
+    'applicationinsights',
+    '@salesforce/lightning-lsp-common',
+    '@babel/preset-typescript/package.json',
+    'jest-editor-support'
+    // @babel/core is NOT external - it needs to be bundled for browser to avoid dynamic require errors
+    // tty is NOT external - it needs to be aliased to empty polyfill (handled via alias in commonConfigBrowser)
+    // vscode-html-languageservice is NOT external - it needs to be bundled for browser
+  ],
   entryPoints: ['../salesforcedx-lwc-language-server/out/src/server.js'],
   outfile: './dist/web/lwcServer.js',
   bundle: true,
@@ -78,7 +87,36 @@ await build({
   format: 'iife', // IIFE format for web workers
   target: 'es2020',
   define: { ...commonConfigBrowser.define, 'process.env.ESBUILD_PLATFORM': '"web"' },
-  mainFields: ['module', 'main']
+  // Prefer ESM version to avoid dynamic requires in UMD version
+  mainFields: ['module', 'main'],
+  plugins: [
+    {
+      name: 'resolve-vscode-html-languageservice-dynamic-requires',
+      setup(build) {
+        // Resolve dynamic requires within vscode-html-languageservice UMD build
+        // Map relative requires to their actual file paths using ESM version
+        build.onResolve({ filter: /^\.\.\/parser\/htmlScanner$/ }, args => {
+          if (args.importer.includes('vscode-html-languageservice')) {
+            // Resolve to ESM version to avoid dynamic requires
+            const htmlScannerPath = resolve(
+              __dirname,
+              '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js'
+            );
+            return { path: htmlScannerPath };
+          }
+        });
+        build.onResolve({ filter: /^\.\/parser\/htmlScanner$/ }, args => {
+          if (args.importer.includes('vscode-html-languageservice')) {
+            const htmlScannerPath = resolve(
+              __dirname,
+              '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js'
+            );
+            return { path: htmlScannerPath };
+          }
+        });
+      }
+    }
+  ]
 });
 
 // Write metafiles for dependency analysis
