@@ -38,7 +38,6 @@ const htmlLsExternalList = [
   'applicationinsights',
   '@salesforce/lightning-lsp-common',
   'jest-editor-support'
-  // @babel/core and @babel/preset-typescript/package.json are bundled:
   // - @babel/core: all its require() calls are static; the dynamic import() for ESM config loading passes through
   // - @babel/preset-typescript/package.json: bundled as JSON via loader: { '.json': 'json' }
 ];
@@ -70,7 +69,7 @@ await build({
 await build({
   ...commonConfigBrowser,
   loader: { '.json': 'json' },
-  external: htmlLsExternalList.filter(e => e !== '@babel/core'),
+  external: htmlLsExternalList,
   entryPoints: ['../salesforcedx-lwc-language-server/out/src/server.js'],
   outfile: './dist/web/lwcServer.js',
   bundle: true,
