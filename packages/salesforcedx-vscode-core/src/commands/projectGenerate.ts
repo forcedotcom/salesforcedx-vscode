@@ -88,7 +88,14 @@ type LwcLanguage = {
   lwcLanguage?: 'javascript' | 'typescript';
 };
 
-export type ProjectTemplate = 'standard' | 'empty' | 'analytics' | 'reactb2e' | 'reactb2x';
+export type ProjectTemplate =
+  | 'standard'
+  | 'empty'
+  | 'analytics'
+  | 'reactinternalapp'
+  | 'reactexternalapp'
+  | 'nativemobile'
+  | 'agent';
 
 class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
   private readonly initialTemplate?: ProjectTemplate;
@@ -112,7 +119,9 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         'project_generate_react_b2e_template_display_text',
         'project_generate_react_b2e_template'
       ),
-      new ProjectTemplateItem('project_generate_react_b2x_template_display_text', 'project_generate_react_b2x_template')
+      new ProjectTemplateItem('project_generate_react_b2x_template_display_text', 'project_generate_react_b2x_template'),
+      new ProjectTemplateItem('project_generate_agent_template_display_text', 'project_generate_agent_template'),
+      new ProjectTemplateItem('project_generate_nativemobile_template_display_text', 'project_generate_nativemobile_template')
     ];
 
     const selection = await vscode.window.showQuickPick(items);
@@ -128,10 +137,16 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
         projectTemplate = 'analytics';
         break;
       case nls.localize('project_generate_react_b2e_template_display_text'):
-        projectTemplate = 'reactb2e';
+        projectTemplate = 'reactinternalapp';
         break;
       case nls.localize('project_generate_react_b2x_template_display_text'):
-        projectTemplate = 'reactb2x';
+        projectTemplate = 'reactexternalapp';
+        break;
+      case nls.localize('project_generate_agent_template_display_text'):
+        projectTemplate = 'agent';
+        break;
+      case nls.localize('project_generate_nativemobile_template_display_text'):
+        projectTemplate = 'nativemobile';
         break;
       default:
         break;
@@ -284,4 +299,12 @@ export const projectGenerateWithManifest = async (args?: ProjectGenerateArgs): P
     pathExistsChecker
   );
   await projectGenerateWithManifestCommandlet.run();
+};
+
+export const agentProjectGenerate = async (): Promise<void> => {
+  await sfProjectGenerate({ projectTemplate: 'agent' });
+};
+
+export const nativemobileProjectGenerate = async (): Promise<void> => {
+  await sfProjectGenerate({ projectTemplate: 'nativemobile' });
 };
