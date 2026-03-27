@@ -311,6 +311,18 @@
           "when": "sf:project_opened"
         },
         {
+          "command": "sf.apex.generate.class",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.metadata.apex.generate.trigger",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.apex.generate.unit.test.class",
+          "when": "sf:project_opened"
+        },
+        {
           "command": "sf.anon.apex.execute.selection",
           "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && editorHasSelection && sf:has_target_org"
         },
@@ -364,12 +376,38 @@
           "command": "sf.anon.apex.execute.document",
           "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && !editorHasSelection && sf:has_target_org"
         }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.metadata.apex.generate.trigger",
+          "when": "explorerResourceIsFolder && resourceFilename == triggers && sf:project_opened"
+        },
+        {
+          "command": "sf.apex.generate.class",
+          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
+        },
+        {
+          "command": "sf.apex.generate.unit.test.class",
+          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
+        }
       ]
     },
     "commands": [
       {
         "command": "sf.create.anonymous.apex.script",
         "title": "%apexLog.command.createAnonymousApexScript%"
+      },
+      {
+        "command": "sf.apex.generate.class",
+        "title": "%apex_generate_class_text%"
+      },
+      {
+        "command": "sf.metadata.apex.generate.trigger",
+        "title": "%apex_generate_trigger_text%"
+      },
+      {
+        "command": "sf.apex.generate.unit.test.class",
+        "title": "%apex_generate_unit_test_class_text%"
       },
       {
         "command": "sf.apex.log.get",

@@ -24,6 +24,8 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
+test.describe.configure({ mode: 'serial' });
+
 const LOG_POLL_INTERVAL_SETTING = 'salesforcedx-vscode-apex-log.logPollIntervalSeconds';
 
 test('Auto-collection: poll interval setting, trace flag triggers collector, disable via 0', async ({ page }) => {

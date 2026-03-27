@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -7,9 +7,9 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { Utils, URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { promptForApexTypeName } from '../templates-shared/sfTemplateProjectHelpers';
+import { promptForApexTypeName } from './sfTemplateProjectHelpers';
 
 /** outputDirParam: explorer context (right-click triggers folder) */
 export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(function* (outputDirParam?: URI) {
@@ -29,16 +29,14 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
     outputDirParam ??
     (yield* promptService.promptForOutputDir({
       defaultUri,
-      pickerPlaceHolder: nls.localize('apex_trigger_output_dir_prompt')
+      pickerPlaceHolder: nls.localize('output_dir_prompt')
     }));
 
   const triggerUri = Utils.joinPath(outputDirUri, `${triggerName}.trigger`);
   const metaUri = Utils.joinPath(outputDirUri, `${triggerName}.trigger-meta.xml`);
-
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [triggerUri, metaUri] });
 
   const fsService = yield* api.services.FsService;
-
   yield* api.services.TemplateService.create({
     cwd: yield* fsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexTrigger,
@@ -53,7 +51,6 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
 
   const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('apex_generate_trigger_success'));
-
   yield* fsService.showTextDocument(triggerUri);
 
   return undefined;

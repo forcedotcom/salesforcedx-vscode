@@ -255,12 +255,7 @@
     "menus": {
       "view/title": [],
       "view/item/context": [],
-      "explorer/context": [
-        {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
-        }
-      ],
+      "explorer/context": [],
       "commandPalette": [
         {
           "command": "sf.apex.test.last.class.run",
@@ -301,10 +296,6 @@
         {
           "command": "sf.apex.test.refresh",
           "when": "false"
-        },
-        {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "sf:project_opened"
         },
         {
           "command": "sf.apex.testing.walkthrough.open",
@@ -352,10 +343,6 @@
       {
         "command": "sf.apex.test.refresh",
         "title": "%apex_test_refresh_title%"
-      },
-      {
-        "command": "sf.apex.generate.unit.test.class",
-        "title": "%apex_generate_unit_test_class_text%"
       },
       {
         "command": "sf.apex.testing.walkthrough.open",

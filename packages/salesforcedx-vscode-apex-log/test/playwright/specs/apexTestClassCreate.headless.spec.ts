@@ -6,13 +6,12 @@
  */
 
 import { expect } from '@playwright/test';
-
 import {
   assertWelcomeTabExists,
   closeWelcomeTabs,
+  EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  EDITOR_WITH_URI,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
@@ -22,7 +21,6 @@ import {
   verifyCommandExists,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
@@ -30,7 +28,6 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-
   const className = `CreateTestClass${Date.now()}`;
 
   await test.step('setup with no org', async () => {

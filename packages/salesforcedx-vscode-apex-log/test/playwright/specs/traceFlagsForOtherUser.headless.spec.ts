@@ -24,6 +24,8 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
+test.describe.configure({ mode: 'serial' });
+
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
 const findInEditor = async (page: Page, query: string): Promise<void> => {
   const editor = page.locator(EDITOR_WITH_URI).first();

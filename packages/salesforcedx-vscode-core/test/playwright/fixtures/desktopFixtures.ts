@@ -11,12 +11,12 @@ export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   // some of the necessary configs are over there
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata']
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log']
 });
 
 export const createProjectTest = createDesktopTest({
   fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   // use vscode's dialog box instead of the native OS, so playwright can interact with it
   userSettings: { 'files.simpleDialog.enable': true }
 });
@@ -24,6 +24,6 @@ export const createProjectTest = createDesktopTest({
 /** Workspace path is an empty temp folder (no `sfdx-project.json`) — folder is open, not “close workspace” */
 export const folderWithoutSfdxProjectTest = createDesktopTest({
   fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   emptyWorkspace: true
 });
