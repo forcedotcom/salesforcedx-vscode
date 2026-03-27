@@ -24,8 +24,13 @@ import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
 import { requireEffectFnSpanName } from './requireEffectFnSpanName';
+import { vscodeignoreRequiredPatterns } from './vscodeignoreRequiredPatterns';
+import { vscodeignoreTextProcessor } from './vscodeignoreTextProcessor';
 
 const plugin = {
+  processors: {
+    vscodeignoreText: vscodeignoreTextProcessor
+  },
   rules: {
     'command-must-be-in-package-json': commandMustBeInPackageJson,
     'no-duplicate-i18n-values': noDuplicateI18nValues,
@@ -45,7 +50,8 @@ const plugin = {
     'package-json-extension-icon': packageJsonExtensionIcon,
     'package-json-icon-paths': packageJsonIconPaths,
     'package-json-command-refs': packageJsonCommandRefs,
-    'package-json-view-refs': packageJsonViewRefs
+    'package-json-view-refs': packageJsonViewRefs,
+    'vscodeignore-required-patterns': vscodeignoreRequiredPatterns
   }
 };
 export = plugin;
