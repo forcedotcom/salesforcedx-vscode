@@ -6,7 +6,7 @@
  */
 
 import type { QueryResult, DescribeSObjectResult } from '../types';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as debounce from 'debounce';
 import * as Cause from 'effect/Cause';
@@ -16,12 +16,17 @@ import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
-import { channelService } from '../services/channel';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection, isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
 import { runQuery } from './queryRunner';
+
+const appendToChannel = (message: string) =>
+  getServicesApi.pipe(
+    Effect.flatMap(api => api.services.ChannelService),
+    Effect.flatMap(svc => svc.appendToChannel(message))
+  );
 
 const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -102,9 +107,7 @@ export class SOQLEditorInstance {
           event =>
             this.handleMessageEffect(event).pipe(
               Effect.catchAllCause(_cause =>
-                Effect.sync(() =>
-                  channelService.appendLine(nls.localize('error_unknown_error', `message_${event.type}`))
-                )
+                appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`))
               )
             ),
           { concurrency: 'unbounded' }
@@ -141,10 +144,9 @@ export class SOQLEditorInstance {
     ).pipe(
       Effect.asVoid,
       Effect.catchAllCause(cause =>
-        Effect.sync(() => {
-          channelService.appendLine(nls.localize('error_unknown_error', 'web_view_post_message'));
-          channelService.appendLine(`soql_error_${type}: ${String(Cause.squash(cause))}`);
-        })
+        appendToChannel(nls.localize('error_unknown_error', 'web_view_post_message')).pipe(
+          Effect.andThen(appendToChannel(`soql_error_${type}: ${String(Cause.squash(cause))}`))
+        )
       )
     );
   }
@@ -195,7 +197,7 @@ export class SOQLEditorInstance {
         const hasUnsupported = Array.isArray(unsupported) ? unsupported.length : unsupported;
         return (
           hasUnsupported
-            ? Effect.sync(() => channelService.appendLine(nls.localize('info_syntax_unsupported')))
+            ? appendToChannel(nls.localize('info_syntax_unsupported'))
             : Effect.void
         ).pipe(Effect.withSpan('SOQLEditor.ui_telemetry'));
       }
@@ -204,9 +206,7 @@ export class SOQLEditorInstance {
         return retrieveSObjectRawEffect(event.payload).pipe(
           Effect.flatMap(sobject => (sobject ? this.updateSObjectMetadata(sobject) : Effect.void)),
           Effect.catchAll(() =>
-            Effect.sync(() =>
-              channelService.appendLine(nls.localize('error_sobject_metadata_request', event.payload))
-            )
+            appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))
           ),
           Effect.withSpan('SOQLEditor.sobject_metadata_request', { attributes: { sobjectName: event.payload } })
         );
@@ -215,7 +215,7 @@ export class SOQLEditorInstance {
         return listSObjectNamesEffect.pipe(
           Effect.flatMap(names => (names ? this.updateSObjects(names) : Effect.void)),
           Effect.catchAll(() =>
-            Effect.sync(() => channelService.appendLine(nls.localize('error_sobjects_request')))
+            appendToChannel(nls.localize('error_sobjects_request'))
           ),
           Effect.withSpan('SOQLEditor.sobjects_request')
         );
@@ -226,7 +226,7 @@ export class SOQLEditorInstance {
           const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
           if (!isOrgSet) {
             const message = nls.localize('info_no_default_org');
-            channelService.appendLine(message);
+            yield* appendToChannel(message);
             yield* Effect.promise(() => vscode.window.showInformationMessage(message));
             yield* self.runQueryDone();
             return;
@@ -249,7 +249,7 @@ export class SOQLEditorInstance {
           Effect.catchAllCause(cause => {
             const err = Cause.squash(cause);
             return Effect.gen(function* () {
-              channelService.appendLine(
+              yield* appendToChannel(
                 nls.localize('error_run_soql_query', err instanceof Error ? err.message : String(err))
               );
               yield* self.runQueryDone();
@@ -260,7 +260,7 @@ export class SOQLEditorInstance {
       }
 
       default:
-        return Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', event.type))).pipe(
+        return appendToChannel(nls.localize('error_unknown_error', event.type)).pipe(
           Effect.withSpan('SOQLEditor.unknown_message', { attributes: { messageType: event.type } })
         );
     }
