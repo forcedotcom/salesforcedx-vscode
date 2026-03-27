@@ -37,6 +37,11 @@ test('Auto-collection: poll interval setting, trace flag triggers collector, dis
     await setupMinimalOrgAndAuth(page);
     await closeSettingsTab(page);
     await ensureSecondarySideBarHidden(page);
+
+    // makes sure apex-log is loaded
+    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
+      timeout: 60_000
+    });
   });
 
   await test.step('set logPollIntervalSeconds to 10', async () => {

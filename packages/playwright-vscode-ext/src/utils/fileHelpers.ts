@@ -23,7 +23,8 @@ import {
   disableMonacoAutoClosing,
   ensureSecondarySideBarHidden,
   isDesktop,
-  waitForVSCodeWorkbench
+  waitForVSCodeWorkbench,
+  waitForQuickInputFirstOption
 } from './helpers';
 import {
   DIRTY_EDITOR,
@@ -79,18 +80,17 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
 
   // First prompt: Quick Pick to select template - press Enter to accept default (DefaultApexClass)
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+  await waitForQuickInputFirstOption(page);
   await page.keyboard.press('Enter');
 
   // Second prompt: "Enter Apex class name"
+  const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
   await page.keyboard.type(className);
   await page.keyboard.press('Enter');
 
   // Third prompt: Quick Pick to select output directory - just press Enter to accept default
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+  await waitForQuickInputFirstOption(page);
   await page.keyboard.press('Enter');
 
   // Wait for the editor to open with the new class (extension writes a template and opens it)
@@ -198,7 +198,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   await page.keyboard.type(fileName);
 
   // Wait for search results to populate and stabilize
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
+  await waitForQuickInputFirstOption(page);
   // Wait for results to be stable (no new results appearing)
   await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 1000 });
 

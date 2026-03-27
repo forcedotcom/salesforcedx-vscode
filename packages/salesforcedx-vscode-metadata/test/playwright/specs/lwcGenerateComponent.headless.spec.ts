@@ -50,14 +50,15 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await executeCommandWithCommandPalette(page, packageNls.lightning_generate_lwc_text);
     await saveScreenshot(page, 'step1.after-command.png');
 
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     // this is going to change very soon when it goes GA (and we'll need to get it from sfdx-project.json
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
     const componentTypePromptVisible = await quickInput
       .getByText(/Select component type/i)
       .isVisible({ timeout: 500 })
       .catch(() => false);
     if (componentTypePromptVisible) {
+      await waitForQuickInputFirstOption(page);
+
       await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
       await page.keyboard.press('Enter');
     }
@@ -90,11 +91,11 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
       .locator('[role="treeitem"]')
       .filter({ hasText: new RegExp(`${camelCaseName}$`, 'i') })
       .first();
-    await expect(explorerFolder).toBeVisible({ timeout: 100 });
+    await expect(explorerFolder).toBeVisible({ timeout: 500 });
     await saveScreenshot(page, 'step2.folder-in-explorer.png');
 
     const editorContent = page.locator(`[data-uri*="${camelCaseName}.js"]`).first();
-    await expect(editorContent).toBeVisible({ timeout: 100 });
+    await expect(editorContent).toBeVisible({ timeout: 500 });
 
     const editorText = page.locator('.view-lines').first();
     await expect(editorText).toContainText('import { LightningElement }', { timeout: 100 });

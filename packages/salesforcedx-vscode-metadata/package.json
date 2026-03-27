@@ -85,7 +85,8 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "../salesforcedx-vscode-services:vscode:bundle"
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -102,7 +103,8 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "../salesforcedx-vscode-services:vscode:bundle:local"
+        "../salesforcedx-vscode-services:vscode:bundle:local",
+        "../salesforcedx-vscode-apex-log:vscode:bundle:local"
       ],
       "files": [
         "esbuild.config.mjs",

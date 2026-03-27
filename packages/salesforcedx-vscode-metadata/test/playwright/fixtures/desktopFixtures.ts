@@ -12,10 +12,19 @@ import {
   NON_TRACKING_ORG_ALIAS
 } from '@salesforce/playwright-vscode-ext';
 
-export const desktopTest = createDesktopTest({ fixturesDir: __dirname, orgAlias: MINIMAL_ORG_ALIAS });
+export const desktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: MINIMAL_ORG_ALIAS,
+  additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
+});
 export const dreamhouseDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
-  orgAlias: DREAMHOUSE_ORG_ALIAS
+  orgAlias: DREAMHOUSE_ORG_ALIAS,
+  additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
 });
-export const nonTrackingDesktopTest = createDesktopTest({ fixturesDir: __dirname, orgAlias: NON_TRACKING_ORG_ALIAS });
+export const nonTrackingDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: NON_TRACKING_ORG_ALIAS,
+  additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
+});
 export const emptyWorkspaceDesktopTest = createDesktopTest({ fixturesDir: __dirname, emptyWorkspace: true });

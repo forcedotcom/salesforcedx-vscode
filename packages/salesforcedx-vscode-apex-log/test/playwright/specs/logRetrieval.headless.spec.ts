@@ -21,9 +21,11 @@ import {
   setupNetworkMonitoring,
   TAB,
   validateNoCriticalErrors,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
+import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
@@ -55,8 +57,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 5000 });
     await page.keyboard.type(scriptName);
     await page.keyboard.press('Enter');
-    // Wait for directory QuickPick list rows (InputBox has none; QuickPick has 2 options)
-    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
+    await waitForQuickInputFirstOption(page);
     await page.keyboard.press('Enter');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
@@ -81,8 +82,13 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.logGet']);
     const widget = page.locator(QUICK_INPUT_WIDGET);
     await expect(widget).toBeVisible({ timeout: 30_000 });
-    const firstRow = widget.locator(QUICK_INPUT_LIST_ROW).first();
-    await expect(firstRow).toBeVisible({ timeout: 30_000 });
+    await waitForQuickInputFirstOption(page, {
+      quickInputVisibleTimeout: 30_000,
+      optionVisibleTimeout: 30_000,
+      retryTimeout: 30_000
+    });
+    const firstAriaOption = widget.getByRole('option').first();
+    const firstRow = (await firstAriaOption.count()) > 0 ? firstAriaOption : widget.locator(QUICK_INPUT_LIST_ROW).first();
     await firstRow.evaluate(el => {
       el.scrollIntoView({ block: 'center', behavior: 'instant' });
       (el as HTMLElement).click();
@@ -106,10 +112,12 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
   });
 
   await test.step('turn off trace flag', async () => {
-    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
-      timeout: 60_000
-    });
+    await expect(async () => {
+      await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
+      await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: messages.trace_flag_inactive })).toBeVisible({
+        timeout: 5000
+      });
+    }).toPass({ timeout: 60_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

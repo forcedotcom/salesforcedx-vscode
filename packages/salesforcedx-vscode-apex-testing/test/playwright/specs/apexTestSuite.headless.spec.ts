@@ -19,7 +19,8 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -44,7 +45,7 @@ const createApexTestSuiteViaPalette = async (
   await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
 
   // Wait for the quick pick list to populate
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 20_000 });
+  await waitForQuickInputFirstOption(page);
 
   // Type test class name to filter the list
   await page.keyboard.type(testClassName);
@@ -69,8 +70,7 @@ const selectSuiteInQuickPick = async (
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
   await page.keyboard.type(testSuiteName);
-  const waitMs = options?.waitForListRowMs ?? 30_000;
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: waitMs });
+  await waitForQuickInputFirstOption(page, { retryTimeout: options?.waitForListRowMs });
   const suiteOption = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(testSuiteName, 'i') });
   await suiteOption.waitFor({ state: 'visible', timeout: 10_000 });
   await suiteOption.click();

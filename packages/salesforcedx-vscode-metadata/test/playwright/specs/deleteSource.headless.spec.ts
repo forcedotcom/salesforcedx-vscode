@@ -18,6 +18,7 @@ import {
   upsertSettings,
   createApexClass,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   validateNoCriticalErrors,
   saveScreenshot,
   ensureOutputPanelOpen,
@@ -59,6 +60,9 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     await saveScreenshot(page, 'setup.after-disable-deploy-on-save.png');
     await saveScreenshot(page, 'setup.complete.png');
+
+    // Wait for core commands to be available
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
   });
 
   await test.step('create and deploy apex class', async () => {

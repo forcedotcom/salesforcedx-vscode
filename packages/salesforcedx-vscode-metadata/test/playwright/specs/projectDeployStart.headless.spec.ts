@@ -16,6 +16,7 @@ import {
   upsertScratchOrgAuthFieldsToSettings,
   createApexClass,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   saveScreenshot,
   validateNoCriticalErrors,
   ensureOutputPanelOpen,
@@ -48,6 +49,10 @@ test('Project Deploy Start: deploys source to org', async ({ page }) => {
     statusBarPage = new SourceTrackingStatusBarPage(page);
     await statusBarPage.waitForVisible(120_000);
     await saveScreenshot(page, 'setup.after-status-bar-visible.png');
+
+    // Wait for core commands to be available
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
+
     await saveScreenshot(page, 'setup.complete.png');
   });
 
