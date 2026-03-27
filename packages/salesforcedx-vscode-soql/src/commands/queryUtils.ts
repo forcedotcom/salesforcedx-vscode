@@ -9,11 +9,6 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-export type QueryAndApiInputs = {
-  query: string;
-  api: 'REST' | 'TOOLING';
-};
-
 const API_ITEMS = [
   { api: 'REST' as const, label: nls.localize('REST_API'), description: nls.localize('REST_API_description') },
   { api: 'TOOLING' as const, label: nls.localize('tooling_API'), description: nls.localize('tooling_API_description') }
