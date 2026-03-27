@@ -17,11 +17,11 @@ import {
   validateNoCriticalErrors,
   saveScreenshot,
   QUICK_INPUT_WIDGET,
-  QUICK_INPUT_LIST_ROW,
   EDITOR_WITH_URI,
   assertWelcomeTabExists,
   ensureSecondarySideBarHidden,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 
@@ -69,7 +69,7 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
 
     await page.keyboard.press('Enter');

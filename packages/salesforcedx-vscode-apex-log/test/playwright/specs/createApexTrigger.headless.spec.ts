@@ -12,13 +12,13 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
+  waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
@@ -56,7 +56,7 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-accept-directory.png');

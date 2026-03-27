@@ -7,20 +7,18 @@
 
 import { expect } from '@playwright/test';
 import {
-  createMinimalOrg,
   assertWelcomeTabExists,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  upsertScratchOrgAuthFieldsToSettings,
   validateNoCriticalErrors,
   verifyCommandExists,
+  waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
@@ -32,16 +30,13 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
   const networkErrors = setupNetworkMonitoring(page);
   const className = `GenerateClassTest${Date.now()}`;
 
-  await test.step('setup minimal org', async () => {
-    const createResult = await createMinimalOrg();
+  await test.step('setup with no org', async () => {
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-    await saveScreenshot(page, 'setup.after-auth-fields.png');
   });
 
   await test.step('command is present', async () => {
@@ -54,7 +49,7 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
 
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.template-prompt-visible.png');
     await page.keyboard.press('Enter');
 
@@ -64,7 +59,7 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-accept-directory.png');

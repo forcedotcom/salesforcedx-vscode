@@ -12,13 +12,13 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
+  waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
@@ -48,7 +48,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   });
 
   await test.step('select template in QuickPick', async () => {
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step.template-selected.png');
   });
@@ -63,7 +63,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   });
 
   await test.step('select output directory in QuickPick', async () => {
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step.directory-prompt-visible.png');
     await page.keyboard.press('Enter');
     await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'hidden', timeout: 10_000 });

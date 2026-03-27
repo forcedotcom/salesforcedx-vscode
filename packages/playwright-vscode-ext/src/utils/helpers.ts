@@ -8,10 +8,15 @@
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { upsertSettings } from '../pages/settings';
-import { QUICK_INPUT_WIDGET, TAB, TAB_CLOSE_BUTTON, WORKBENCH } from './locators';
+import { QUICK_INPUT_LIST_ROW, QUICK_INPUT_WIDGET, TAB, TAB_CLOSE_BUTTON, WORKBENCH } from './locators';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
+type WaitForQuickInputFirstOptionOptions = {
+  quickInputVisibleTimeout?: number;
+  optionVisibleTimeout?: number;
+  retryTimeout?: number;
+};
 
 const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // VS Code Web expected missing resources
@@ -150,6 +155,26 @@ export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => 
       break;
     }
   }
+};
+
+/** Wait for the first quick-pick option using ARIA or Monaco row selectors. */
+export const waitForQuickInputFirstOption = async (
+  page: Page,
+  options?: WaitForQuickInputFirstOptionOptions
+): Promise<void> => {
+  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  const firstAriaOption = quickInput.getByRole('option').first();
+  const quickInputVisibleTimeout = options?.quickInputVisibleTimeout ?? 10_000;
+  const optionVisibleTimeout = options?.optionVisibleTimeout ?? 5000;
+
+  await expect(async () => {
+    await quickInput.waitFor({ state: 'visible', timeout: quickInputVisibleTimeout });
+    if ((await firstAriaOption.count()) > 0) {
+      await expect(firstAriaOption).toBeVisible({ timeout: optionVisibleTimeout });
+      return;
+    }
+    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: optionVisibleTimeout });
+  }).toPass({ timeout: options?.retryTimeout ?? 10_000 });
 };
 
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
