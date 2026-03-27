@@ -13,11 +13,7 @@ import { writeFile } from 'fs/promises';
 const nodeBuild = await build({
   ...nodeConfig,
   loader: { '.node': 'file' },
-  external: [
-    ...nodeConfig.external,
-    'jest-editor-support'
-    // @babel/core and @babel/preset-typescript/package.json are bundled
-  ],
+  external: [...nodeConfig.external, 'jest-editor-support'],
   entryPoints: ['./src/index.ts'],
   outdir: 'dist',
   metafile: true
@@ -33,14 +29,7 @@ const browserBuild = await build({
   metafile: true
 });
 
-const htmlLsExternalList = [
-  'vscode',
-  'applicationinsights',
-  '@salesforce/lightning-lsp-common',
-  'jest-editor-support'
-  // - @babel/core: all its require() calls are static; the dynamic import() for ESM config loading passes through
-  // - @babel/preset-typescript/package.json: bundled as JSON via loader: { '.json': 'json' }
-];
+const htmlLsExternalList = ['vscode', 'applicationinsights', '@salesforce/lightning-lsp-common', 'jest-editor-support'];
 
 // Bundle the LWC language server for Node.js (desktop VS Code)
 // mainFields: ['module', 'main'] prefers the ESM build of vscode-html-languageservice (static imports).
