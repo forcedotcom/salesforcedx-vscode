@@ -292,19 +292,31 @@ export abstract class BaseWorkspaceContext {
    * Configures the project
    */
   public async configureProject(): Promise<void> {
-    await this.writeSettingsJson();
-    await this.writeCodeWorkspace();
+    await this.writeSettings();
     await this.writeJsconfigJson();
     await this.writeTypings();
   }
 
-  private async writeSettingsJson(): Promise<void> {
+  private async writeSettings(): Promise<void> {
+    switch (this.type) {
+      case 'CORE_ALL':
+        await this.updateCoreCodeWorkspace();
+      case 'CORE_PARTIAL':
+        // updateCoreSettings is performed by core's setupVSCode
+        await this.updateCoreSettings();
+        break;
+      default:
+        break;
+    }
+  }
+
+  private async updateCoreSettings(): Promise<void> {
     const settingsPath = path.join(this.workspaceRoots[0], '.vscode', 'settings.json');
     const settings = getCoreSettings(this.workspaceRoots);
     await this.fileSystemAccessor.updateFileContent(settingsPath, JSON.stringify(settings, null, 2));
   }
 
-  private async writeCodeWorkspace(): Promise<void> {
+  private async updateCoreCodeWorkspace(): Promise<void> {
     const workspacePath = path.join(this.workspaceRoots[0], 'core.code-workspace');
     const workspace = getCodeWorkspace(this.workspaceRoots);
     await this.fileSystemAccessor.updateFileContent(workspacePath, JSON.stringify(workspace, null, 2));
