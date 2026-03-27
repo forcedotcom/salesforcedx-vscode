@@ -64,9 +64,9 @@ export const messages = {
     "The requested metadata was not found. This may be because it doesn't exist or you don't have access to it.",
   data_query_open_file: 'Open File',
   data_query_running_query: 'Running query with %s...',
+  data_query_complete: 'Query complete with %d records returned',
   data_query_warning_limit:
     'Warning: The query result is missing %d records due to a %d record limit. Increase the number of records returned by setting the config value "org-max-query-limit" or the environment variable "SF_ORG_MAX_QUERY_LIMIT" to %d or greater than %d.',
-  data_query_complete: 'Query complete with %d records returned',
   data_query_no_records: 'No records found',
   data_query_table_title: 'Query Results',
   soql_file_name_prompt: 'Enter a name for the new SOQL file',
