@@ -397,6 +397,15 @@ export abstract class BaseWorkspaceContext {
           const existingCompilerOptions = existingConfig.compilerOptions;
           const templateCompilerOptions = jsconfigSfdx.compilerOptions;
 
+          // Filter out any stale managed entries (typings globs) before re-adding the
+          // freshly computed typingsInclude. This prevents leftover paths when the
+          // package directory structure changes between activations.
+          const userInclude = Array.isArray(existingInclude)
+            ? existingInclude.filter(
+                (item): item is string => typeof item === 'string' && !item.includes('.sfdx/typings/lwc')
+              )
+            : [];
+
           const mergedConfig = {
             ...existingConfig,
             ...jsconfigSfdx,
@@ -404,13 +413,7 @@ export abstract class BaseWorkspaceContext {
               ...(isRecord(existingCompilerOptions) ? existingCompilerOptions : {}),
               ...(isRecord(templateCompilerOptions) ? templateCompilerOptions : {})
             },
-            include: [
-              ...(Array.isArray(existingInclude)
-                ? existingInclude.filter((item): item is string => typeof item === 'string')
-                : []),
-              ...jsconfigSfdx.include,
-              typingsInclude
-            ]
+            include: [...new Set([...userInclude, ...jsconfigSfdx.include, typingsInclude])]
           };
 
           jsconfigContent = JSON.stringify(mergedConfig, null, 4);
