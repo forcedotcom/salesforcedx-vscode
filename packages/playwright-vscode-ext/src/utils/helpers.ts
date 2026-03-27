@@ -69,7 +69,11 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
   '.a4drules', // @salesforce/templates optional project template assets (react internal/external app templates) not bundled for Apex
   'typescript-language-features', // TS extension 404s for package.json etc in web
-  'applicationinsights.azure.com' // Azure Application Insights telemetry (e.g. HTTP 439 throttling) — not critical to extension behavior
+  'applicationinsights.azure.com', // Azure Application Insights telemetry (e.g. HTTP 439 throttling) — not critical to extension behavior
+  // Salesforce OAuth userinfo endpoint (can 403/500 if session is invalid/expired in web,
+  // non-critical for these tests.  sfdx-core will query user/organization sobjects as fallback )
+  // https://github.com/forcedotcom/sfdx-core/blob/8d378c3a6f88a1d370ddc3f43954a90d7159377d/src/org/authInfo.ts#L1236
+  'services/oauth2/userinfo'
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
