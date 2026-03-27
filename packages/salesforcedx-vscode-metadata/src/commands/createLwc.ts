@@ -68,18 +68,18 @@ const promptForComponentType = Effect.fn('promptForComponentType')(function* () 
 });
 
 /** Determine component template based on priority:
- * 1. sfdx-project.json defaultLWCLanguage
+ * 1. sfdx-project.json defaultLwcLanguage
  * 2. Prompt user (TypeScript always visible) */
 const determineComponentTemplate = Effect.fn('determineComponentTemplate')(function* (project: SfProject) {
-  // Priority 1: Check defaultLWCLanguage in sfdx-project.json
+  // Priority 1: Check defaultLwcLanguage in sfdx-project.json
   const projectJson = yield* Effect.try(() => project.getSfProjectJson());
   const projectConfig = yield* Effect.try(() => projectJson.getContents());
-  const defaultLWCLanguage = projectConfig.defaultLWCLanguage;
+  const defaultLwcLanguage = projectConfig.defaultLwcLanguage;
 
-  if (defaultLWCLanguage === 'typescript') {
+  if (defaultLwcLanguage === 'typescript') {
     return Option.some('typeScript' as const);
   }
-  if (defaultLWCLanguage === 'javascript') {
+  if (defaultLwcLanguage === 'javascript') {
     return Option.some('default' as const);
   }
 

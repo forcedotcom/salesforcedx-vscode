@@ -100,7 +100,7 @@ export const messages = {
   javascript_language_description: 'Create LWC components using JavaScript',
   typescript_language_option: 'TypeScript',
   typescript_language_description: 'Create LWC components using TypeScript',
-  typescript_legacy_flag_deprecation: "The 'preview.typeScriptSupport' setting is deprecated. Please set 'defaultLWCLanguage': 'typescript' in your sfdx-project.json instead.",
+  typescript_legacy_flag_deprecation: "The 'preview.typeScriptSupport' setting is deprecated. Please set 'defaultLwcLanguage': 'typescript' in your sfdx-project.json instead.",
   apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
 
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',

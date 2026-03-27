@@ -24,11 +24,6 @@ import { getFormattedString } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import { EmptyPreChecker } from './util';
 
-// Extend ProjectOptions to include lwcLanguage (available in @salesforce/templates >= 66.5.0)
-interface ExtendedProjectOptions extends ProjectOptions {
-  lwcLanguage?: 'javascript' | 'typescript';
-}
-
 type ProjectGenerateOptions = {
   isProjectWithManifest: boolean;
 };
@@ -61,9 +56,7 @@ class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectN
   }
 
   public constructTemplateOptions(data: ProjectNameAndPathAndTemplate) {
-    // NOTE: lwcLanguage support requires @salesforce/templates >= 66.5.0 (or next version after 66.4.1)
-    // Ensure package.json dependency is updated before merging this PR
-    const templateOptions: ExtendedProjectOptions = {
+    const templateOptions: ProjectOptions = {
       projectname: data.projectName,
       template: data.projectTemplate,
       outputdir: data.projectUri,

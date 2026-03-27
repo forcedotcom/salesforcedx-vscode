@@ -70,21 +70,38 @@ Set your preferred LWC language in `sfdx-project.json`:
 
 TypeScript projects include a `tsconfig.json` with LWC-optimized settings:
 
-```json
+```jsonc
 {
+  "extends": ".sfdx/tsconfig.sfdx.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ES2022",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM"],
-    "outDir": "dist",
     "sourceMap": true,
-    "experimentalDecorators": true,
-    "strict": true
+    "erasableSyntaxOnly": true,
+    "experimentalDecorators": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["force-app/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "force-app/**/*.ts",
+    ".sfdx/typings/lwc/**/*.d.ts"
+  ],
+  "exclude": [
+    "**/__tests__/**"
+  ]
 }
 ```
+
+**Key Settings:**
+- `erasableSyntaxOnly: true` - Required for Salesforce type stripping
+- `experimentalDecorators: false` - LWC uses standard decorators
+- `extends: ".sfdx/tsconfig.sfdx.json"` - Inherits Salesforce-specific config
 
 ## Component Structure
 
@@ -122,14 +139,34 @@ describe('c-hello-world', () => {
     });
 
     it('displays greeting', () => {
-        const element = createElement('c-hello-world', {
+        // Type-safe component creation
+        const element: HelloWorld = createElement('c-hello-world', {
             is: HelloWorld
-        });
+        }) as HelloWorld;
+
+        // TypeScript ensures greeting is a string
         element.greeting = 'TypeScript';
         document.body.appendChild(element);
 
-        const message = element.shadowRoot?.querySelector('.greeting');
+        // Type-safe DOM querying with HTMLElement
+        const message: HTMLElement | null = element.shadowRoot?.querySelector<HTMLElement>('.greeting') ?? null;
         expect(message?.textContent).toBe('Hello, TypeScript!');
+    });
+
+    it('handles click event with proper typing', () => {
+        const element: HelloWorld = createElement('c-hello-world', {
+            is: HelloWorld
+        }) as HelloWorld;
+        document.body.appendChild(element);
+
+        // Type-safe button reference
+        const button: HTMLButtonElement | null = element.shadowRoot?.querySelector<HTMLButtonElement>('button') ?? null;
+
+        // Properly typed MouseEvent
+        const mockEvent: MouseEvent = new MouseEvent('click');
+        button?.dispatchEvent(mockEvent);
+
+        expect(button).not.toBeNull();
     });
 });
 ```
@@ -222,7 +259,7 @@ The `.forceignore` automatically excludes `dist/` from deployment.
 ### From Hidden Preview Flag
 
 **Old way (deprecated):**
-```json
+```jsonc
 // .vscode/settings.json
 {
   "salesforcedx-vscode-lwc.preview.typeScriptSupport": true
@@ -230,10 +267,10 @@ The `.forceignore` automatically excludes `dist/` from deployment.
 ```
 
 **New way:**
-```json
+```jsonc
 // sfdx-project.json
 {
-  "defaultLWCLanguage": "typescript"
+  "defaultLwcLanguage": "typescript"
 }
 ```
 

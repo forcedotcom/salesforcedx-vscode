@@ -109,7 +109,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       jest.restoreAllMocks();
     });
 
-    it('Should return TypeScript when defaultLWCLanguage is typescript', async () => {
+    it('Should return TypeScript when defaultLwcLanguage is typescript', async () => {
       getValueSpy.mockResolvedValue('typescript');
       const selectLwcComponentTypeInstance = new SelectLwcComponentType();
       const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu');
@@ -123,7 +123,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       expect(showMenuSpy).not.toHaveBeenCalled();
     });
 
-    it('Should return JavaScript when defaultLWCLanguage is javascript', async () => {
+    it('Should return JavaScript when defaultLwcLanguage is javascript', async () => {
       getValueSpy.mockResolvedValue('javascript');
       const selectLwcComponentTypeInstance = new SelectLwcComponentType();
       const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu');
@@ -137,7 +137,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       expect(showMenuSpy).not.toHaveBeenCalled();
     });
 
-    it('Should prompt user when defaultLWCLanguage is undefined', async () => {
+    it('Should prompt user when defaultLwcLanguage is undefined', async () => {
       getValueSpy.mockResolvedValue(undefined);
       const mockConfig = { get: jest.fn().mockReturnValue(false) };
       getConfigSpy.mockReturnValue(mockConfig);
@@ -156,7 +156,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       expect(showMenuSpy).toHaveBeenCalled();
     });
 
-    it('Should fall back to legacy flag when defaultLWCLanguage throws error', async () => {
+    it('Should fall back to legacy flag when defaultLwcLanguage throws error', async () => {
       getValueSpy.mockRejectedValue(new Error('Config not available'));
       const mockConfig = { get: jest.fn().mockReturnValue(true) };
       getConfigSpy.mockReturnValue(mockConfig);

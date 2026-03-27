@@ -156,17 +156,17 @@ export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplatePar
 
 export class SelectLwcComponentType implements ParametersGatherer<{ extension: string }> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{ extension: string }>> {
-    // Priority 1: Check if project has defaultLWCLanguage set in sfdx-project.json
+    // Priority 1: Check if project has defaultLwcLanguage set in sfdx-project.json
     try {
-      const defaultLWCLanguage = await SalesforceProjectConfig.getValue<string>('defaultLWCLanguage');
-      if (defaultLWCLanguage === 'typescript') {
+      const defaultLwcLanguage = await SalesforceProjectConfig.getValue<string>('defaultLwcLanguage');
+      if (defaultLwcLanguage === 'typescript') {
         return { type: 'CONTINUE', data: { extension: 'TypeScript' } };
-      } else if (defaultLWCLanguage === 'javascript') {
+      } else if (defaultLwcLanguage === 'javascript') {
         return { type: 'CONTINUE', data: { extension: 'JavaScript' } };
       }
     } catch (error) {
       // Project config not available, continue to fallback mechanisms
-      console.warn('Could not read defaultLWCLanguage from sfdx-project.json:', error);
+      console.warn('Could not read defaultLwcLanguage from sfdx-project.json:', error);
     }
 
     // Priority 2: Check legacy preview.typeScriptSupport flag for backward compatibility
@@ -179,7 +179,7 @@ export class SelectLwcComponentType implements ParametersGatherer<{ extension: s
         // Show deprecation warning
         void vscode.window.showInformationMessage(
           nls.localize('typescript_legacy_flag_deprecation') ??
-          'The "preview.typeScriptSupport" setting is deprecated. Please set "defaultLWCLanguage": "typescript" in your sfdx-project.json instead.'
+          'The "preview.typeScriptSupport" setting is deprecated. Please set "defaultLwcLanguage": "typescript" in your sfdx-project.json instead.'
         );
         return { type: 'CONTINUE', data: { extension: 'TypeScript' } };
       }
