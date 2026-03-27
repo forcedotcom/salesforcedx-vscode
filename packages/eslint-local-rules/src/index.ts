@@ -24,6 +24,7 @@ import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
 import { requireEffectFnSpanName } from './requireEffectFnSpanName';
+import { vscodeignoreContributesConflict } from './vscodeignoreContributesConflict';
 import { vscodeignoreRequiredPatterns } from './vscodeignoreRequiredPatterns';
 import { vscodeignoreTextProcessor } from './vscodeignoreTextProcessor';
 
@@ -51,6 +52,7 @@ const plugin = {
     'package-json-icon-paths': packageJsonIconPaths,
     'package-json-command-refs': packageJsonCommandRefs,
     'package-json-view-refs': packageJsonViewRefs,
+    'vscodeignore-contributes-conflict': vscodeignoreContributesConflict,
     'vscodeignore-required-patterns': vscodeignoreRequiredPatterns
   }
 };

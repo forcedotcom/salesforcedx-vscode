@@ -732,7 +732,8 @@ export default [
     },
     processor: 'local/vscodeignoreText',
     rules: {
-      'local/vscodeignore-required-patterns': 'error'
+      'local/vscodeignore-required-patterns': 'error',
+      'local/vscodeignore-contributes-conflict': 'error'
     }
   },
   eslintConfigPrettier
