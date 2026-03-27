@@ -1,0 +1,58 @@
+{
+  "name": "contributes-conflict-fixture",
+  "icon": "images/icon.png",
+  "contributes": {
+    "languages": [
+      {
+        "id": "myLang",
+        "configuration": "./syntaxes/myLang.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "myLang",
+        "scopeName": "source.myLang",
+        "path": "./grammars/myLang.tmLanguage"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "myLang",
+        "path": "./snippets/myLang.json"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "my-schema:**",
+        "url": "./resources/my.schema.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "my.command",
+        "title": "My Command",
+        "icon": {
+          "light": "images/light/my-icon.svg",
+          "dark": "images/dark/my-icon.svg"
+        }
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "my.walkthrough",
+        "title": "My Walkthrough",
+        "steps": [
+          {
+            "id": "my.step",
+            "title": "My Step",
+            "description": "A step",
+            "media": {
+              "image": "images/walkthrough/step1.png",
+              "altText": "Step 1"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
