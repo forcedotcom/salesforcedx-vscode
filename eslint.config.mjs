@@ -352,7 +352,10 @@ export default [
       'import/no-empty-named-blocks': 'error',
       'import/newline-after-import': 'error',
       'import/no-cycle': 'error',
-      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }],
+      'import/no-extraneous-dependencies': [
+        'error',
+        { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }
+      ],
       'import/order': [
         'error',
         {
