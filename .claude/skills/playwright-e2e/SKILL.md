@@ -43,6 +43,11 @@ See `.claude/skills/span-file-export/SKILL.md` for enable/OTLP vs file.
 
 When running Playwright tests (`npm run test:web`, `test:desktop`, etc.), never block >30s. Use `is_background: true` so tests run while the AI continues. Check terminal output or `output_file` later.
 
+## Running Full E2E Test Suite
+
+See `references/full-suite-execution.md` for complete guide on running all E2E tests locally across all 8 packages in correct dependency order with failure analysis.
+
+
 ## Disable/reenable other E2E when iterating
 
 To run only your new test in CI while iterating:

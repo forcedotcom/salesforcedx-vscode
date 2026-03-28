@@ -8,7 +8,7 @@
       "Bash(WIREIT_CACHE=none npm run test:desktop -w packages/salesforcedx-vscode-metadata -- --retries 0 test/playwright/specs/sourceDiff.headless.spec.ts)",
       "Bash(done)",
       "Bash(chmod:*)",
-      "Bash(WIREIT_CACHE=none npm run test:desktop -w packages/salesforcedx-vscode-core -- --retries 0 test/playwright/specs/createProject.headless.spec.ts)"
+      "Bash(WIREIT_CACHE=none npm run *)"
     ]
   },
   "hooks": {
