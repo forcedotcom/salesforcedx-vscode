@@ -9,10 +9,17 @@
 import { LightningElement, api } from 'lwc';
 export default class Header extends LightningElement {
   @api public isRunning = false;
+  @api public isQueryPlanRunning = false;
 
   public handleRunQuery(e: Event): void {
     e.preventDefault();
     const runEvent = new CustomEvent('header__run_query');
     this.dispatchEvent(runEvent);
+  }
+
+  public handleGetQueryPlan(e: Event): void {
+    e.preventDefault();
+    const planEvent = new CustomEvent('header__get_query_plan');
+    this.dispatchEvent(planEvent);
   }
 }

@@ -13,7 +13,13 @@
         <button class="run-button" onclick={handleRunQuery}>Run Query</button>
       </template>
       <template if:true={isRunning}>
-        <button class="btn--disabled">Running...</button>
+        <button class="btn--disabled run-button">Running...</button>
+      </template>
+      <template if:false={isQueryPlanRunning}>
+        <button class="query-plan-button" onclick={handleGetQueryPlan}>Get Query Plan</button>
+      </template>
+      <template if:true={isQueryPlanRunning}>
+        <button class="btn--disabled query-plan-button">Getting Plan...</button>
       </template>
     </div>
   </header>

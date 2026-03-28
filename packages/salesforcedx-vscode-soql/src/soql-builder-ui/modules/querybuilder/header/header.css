@@ -17,6 +17,15 @@ button {
   margin: auto 0 10px 0;
 }
 
+.run-button {
+  width: 95px;
+}
+
+.query-plan-button {
+  margin-left: 8px;
+  width: 125px;
+}
+
 @media screen and (max-width: 750px) {
   header {
     max-width: var(--soql-media-max-width);
