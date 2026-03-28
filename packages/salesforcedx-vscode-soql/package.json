@@ -163,8 +163,7 @@
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "out/**",
-        "src/soql-builder-ui/dist/**",
-        "src/soql-data-view/**"
+        "src/soql-builder-ui/dist/**"
       ],
       "output": [
         "dist"
@@ -183,8 +182,7 @@
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "out/**",
-        "src/soql-builder-ui/dist/**",
-        "src/soql-data-view/**"
+        "src/soql-builder-ui/dist/**"
       ],
       "output": [
         "dist"
@@ -379,6 +377,16 @@
       {
         "command": "sf.data.query.explain.document",
         "title": "%query_plan_document_text%"
+      },
+      {
+        "command": "soql.results.saveAsCsv",
+        "title": "%soql_results_save_as_csv%",
+        "icon": "$(save)"
+      },
+      {
+        "command": "soql.results.saveAsJson",
+        "title": "%soql_results_save_as_json%",
+        "icon": "$(save)"
       }
     ],
     "menus": {
@@ -414,6 +422,14 @@
         {
           "command": "sf.data.query.explain.document",
           "when": "resourceExtname == .soql && sf:has_target_org"
+        },
+        {
+          "command": "soql.results.saveAsCsv",
+          "when": "false"
+        },
+        {
+          "command": "soql.results.saveAsJson",
+          "when": "false"
         }
       ],
       "editor/title": [
@@ -421,6 +437,16 @@
           "when": "resourceExtname == .soql",
           "command": "soql.builder.toggle",
           "group": "navigation"
+        },
+        {
+          "when": "resourceScheme == soql-results",
+          "command": "soql.results.saveAsCsv",
+          "group": "navigation@1"
+        },
+        {
+          "when": "resourceScheme == soql-results",
+          "command": "soql.results.saveAsJson",
+          "group": "navigation@2"
         }
       ]
     },

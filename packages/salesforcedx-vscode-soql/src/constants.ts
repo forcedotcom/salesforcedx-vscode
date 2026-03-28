@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { nls } from './messages';
 
 /* ==== SOQL BUILDER ==== */
 export const HTML_FILE = 'index.html';
@@ -13,17 +12,6 @@ export const BUILDER_VIEW_TYPE = 'soqlCustom.soql';
 export const EDITOR_VIEW_TYPE = 'default';
 export const OPEN_WITH_COMMAND = 'vscode.openWith';
 export const SOQL_BUILDER_UI_PATH = ['dist', 'soql-builder-ui'];
-
-/* ==== QUERY DATA VIEW ==== */
-export const QUERY_DATA_VIEW_TYPE = 'queryDataView';
-export const QUERY_DATA_VIEW_PANEL_TITLE = nls.localize('soql_query_results');
-export const QUERY_DATA_VIEW_SCRIPT_FILENAME = 'queryDataViewController.js';
-export const QUERY_DATA_VIEW_STYLE_FILENAME = 'queryDataView.css';
-export const TABULATOR_SCRIPT_FILENAME = 'tabulator.min.js';
-export const TABULATOR_STYLE_FILENAME = 'tabulator.min.css';
-export const SAVE_ICON_FILENAME = 'icon__save.svg';
-export const DATA_VIEW_PATH = ['dist', 'soql-data-view'];
-export const DATA_VIEW_ICONS_PATH = [...DATA_VIEW_PATH, 'icons'];
 
 /* ==== QUERY DATA FILE SERVICE ==== */
 export const DATA_CSV_EXT = 'csv';

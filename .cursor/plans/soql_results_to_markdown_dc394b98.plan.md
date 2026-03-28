@@ -4,25 +4,25 @@ overview: Replace the Tabulator-based WebviewPanel for SOQL query results with a
 todos:
   - id: markdown-provider
     content: Create `queryResultsMarkdownProvider.ts` with TextDocumentContentProvider for `soql-results:` scheme and Markdown table generation
-    status: pending
+    status: completed
   - id: rewrite-service
     content: Rewrite `queryDataViewService.ts` to open virtual Markdown docs instead of WebviewPanels, register save commands
-    status: pending
+    status: completed
   - id: package-json
     content: Add `soql.results.saveAsCsv` / `soql.results.saveAsJson` commands and `editor/title` menu entries to `package.json`
-    status: pending
+    status: completed
   - id: update-editor-instance
     content: Update `soqlEditorInstance.ts` to use the new Markdown-based service
-    status: pending
+    status: completed
   - id: cleanup
     content: Delete `soql-data-view/` assets, `queryDataHtml.ts`, remove unused constants and wireit bundle inputs
-    status: pending
+    status: completed
   - id: update-tests
     content: Update/add tests for the new Markdown provider and service
-    status: pending
+    status: completed
   - id: verify
     content: 'Run verification: compile, lint, test, bundle, knip'
-    status: pending
+    status: completed
 isProject: false
 ---
 
