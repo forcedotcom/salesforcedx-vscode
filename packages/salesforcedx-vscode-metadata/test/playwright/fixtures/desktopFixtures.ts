@@ -15,16 +15,31 @@ import {
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
+  additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
+  userSettings: {
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+  }
 });
 export const dreamhouseDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: DREAMHOUSE_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
+  additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
+  userSettings: {
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+  }
 });
 export const nonTrackingDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: NON_TRACKING_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
+  additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
+  userSettings: {
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+  }
 });
-export const emptyWorkspaceDesktopTest = createDesktopTest({ fixturesDir: __dirname, emptyWorkspace: true });
+export const emptyWorkspaceDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  emptyWorkspace: true,
+  userSettings: {
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+  }
+});

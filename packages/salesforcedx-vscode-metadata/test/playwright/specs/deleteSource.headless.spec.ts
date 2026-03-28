@@ -23,6 +23,7 @@ import {
   saveScreenshot,
   ensureOutputPanelOpen,
   selectOutputChannel,
+  clearOutputChannel,
   waitForOutputChannelText,
   NOTIFICATION_LIST_ITEM,
   ensureSecondarySideBarHidden
@@ -103,6 +104,11 @@ test('Delete Source: deletes file from project and org via command palette', asy
       .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') });
     await expect(explorerFileBefore).toBeVisible();
     await saveScreenshot(page, 'step2.file-in-explorer-before-delete.png');
+
+    // Clear output so deploy output from step 1 doesn't match delete assertions
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
 
     // Execute delete command via command palette
     await executeCommandWithCommandPalette(page, nls.localize('delete_source_text'));

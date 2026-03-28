@@ -21,6 +21,7 @@ import {
   validateNoCriticalErrors,
   ensureOutputPanelOpen,
   selectOutputChannel,
+  clearOutputChannel,
   waitForOutputChannelText,
   ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
@@ -72,6 +73,7 @@ test('Project Deploy Start: deploys source to org', async ({ page }) => {
     // Prepare output channel before triggering command
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
 
     // Execute deploy via command palette
     await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_default_org_text);

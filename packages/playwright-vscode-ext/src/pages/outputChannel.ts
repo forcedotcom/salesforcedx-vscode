@@ -30,7 +30,7 @@ const ensureOutputFilterReady = async (page: Page, timeout: number) => {
   return input;
 };
 
-/** Get all text content from output panel (including scrolled content), normalized */
+/** Get all text content from the currently-visible Monaco lines, normalized */
 const getAllOutputText = async (page: Page): Promise<string> => {
   const codeArea = outputPanelCodeArea(page);
   const text = await codeArea.textContent();
@@ -52,9 +52,36 @@ const waitForOutputContent = async (page: Page, timeout: number): Promise<boolea
   }
 };
 
-// WORKAROUND: Output channel filter doesn't work on desktop electron for content that streams in
-// after the panel opens. Scroll through the output to find the text instead.
-// Remove this when VS Code fixes desktop output channel filtering for streamed content.
+/**
+ * Maximize the output panel so more lines are visible (idempotent — skips if already maximized).
+ * More visible lines means fewer page-navigation steps needed when sweeping for text.
+ */
+const maximizeOutputPanel = async (page: Page): Promise<void> => {
+  const maximizeButton = page.getByRole('button', { name: 'Maximize Panel' });
+  const isVisible = await maximizeButton.isVisible().catch(() => false);
+  if (isVisible) {
+    await maximizeButton.click();
+    // Allow layout to settle after resize
+    await page.waitForTimeout(200);
+  }
+};
+
+/** Restore panel to normal height (idempotent — skips if already restored). */
+const restoreOutputPanel = async (page: Page): Promise<void> => {
+  const restoreButton = page.getByRole('button', { name: 'Restore Panel' });
+  const isVisible = await restoreButton.isVisible().catch(() => false);
+  if (isVisible) {
+    await restoreButton.click();
+    await page.waitForTimeout(200);
+  }
+};
+
+/**
+ * Desktop workaround: filter does not reliably work on Electron for streamed content.
+ * Fast path: check visible content immediately (works when channel is clear and output is short).
+ * Bounded sweep top→bottom then bottom→top; exit as soon as text is found.
+ * Panel should be maximized before calling this so more lines are visible per step.
+ */
 const waitForOutputChannelTextDesktopWorkaround = async (
   page: Page,
   expectedText: string,
@@ -63,20 +90,31 @@ const waitForOutputChannelTextDesktopWorkaround = async (
   const codeArea = outputPanelCodeArea(page);
   // force: true — Output actions toolbar overlays the code area and intercepts pointer events
   await codeArea.click({ force: true });
-  const PAGE_STEPS = 50;
+
+  // Fewer steps needed when panel is maximized; 30 each direction covers very long output
+  const PAGE_STEPS = 30;
+
   await expect(async () => {
-    // Sweep top→bottom then bottom→top so we catch text regardless of where it appears
+    // Fast path: text may already be in the visible viewport
+    if ((await getAllOutputText(page)).includes(expectedText)) return;
+
+    // Sweep top → bottom
     await page.keyboard.press('Control+Home');
     for (let i = 0; i < PAGE_STEPS; i++) {
       if ((await getAllOutputText(page)).includes(expectedText)) return;
       await page.keyboard.press('PageDown');
     }
+
+    // Sweep bottom → top
     await page.keyboard.press('Control+End');
     for (let i = 0; i < PAGE_STEPS; i++) {
       if ((await getAllOutputText(page)).includes(expectedText)) return;
       await page.keyboard.press('PageUp');
     }
-    throw new Error(`Expected "${expectedText}" in output`);
+
+    // Diagnostic: include a sample of what was visible at the end of the sweep
+    const sample = (await getAllOutputText(page)).slice(-400).trim().replaceAll('\n', ' ↵ ');
+    throw new Error(`Expected "${expectedText}" in output. Last visible content: ${sample || '(empty)'}`);
   }).toPass({ timeout });
 };
 
@@ -86,6 +124,7 @@ const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, 
     await waitForOutputChannelTextDesktopWorkaround(page, expectedText, timeout);
     return;
   }
+  // Web: use filter input (works reliably on web)
   const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
   try {
     await expect(async () => {
@@ -96,7 +135,11 @@ const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, 
       await expect(input).toHaveValue(expectedText, { timeout: 5000 });
       await input.press('Enter');
       const combinedText = await getAllOutputText(page);
-      expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
+      const sample = combinedText.slice(-400).trim().replaceAll('\n', ' ↵ ');
+      expect(
+        combinedText.includes(expectedText),
+        `Expected "${expectedText}" in output. Last visible content: ${sample || '(empty)'}`
+      ).toBe(true);
     }).toPass({ timeout });
   } finally {
     await input.focus().catch(() => {});
@@ -180,6 +223,9 @@ export const outputChannelContains = async (
 
   if (!(await waitForOutputContent(page, timeout))) return false;
 
+  const shouldRestorePanel = isDesktop();
+  if (shouldRestorePanel) await maximizeOutputPanel(page);
+
   const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
   try {
     await waitForOutputChannelTextCommon(page, searchText, timeout);
@@ -188,6 +234,8 @@ export const outputChannelContains = async (
   } catch {
     await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return false;
+  } finally {
+    if (shouldRestorePanel) await restoreOutputPanel(page);
   }
 };
 
@@ -209,7 +257,7 @@ export const clearOutputChannel = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 2000 });
 };
 
-/** Wait for output channel to contain specific text. Repeats [clear filter, re-filter, check] until found or timeout to handle streaming content and virtualized DOM. */
+/** Wait for output channel to contain specific text. Repeats [snapshot, sweep] until found or timeout to handle streaming content and virtualized DOM. */
 export const waitForOutputChannelText = async (
   page: Page,
   opts: { expectedText: string; timeout?: number }
@@ -220,7 +268,14 @@ export const waitForOutputChannelText = async (
     throw new Error(`Output channel did not have content within ${timeout}ms`);
   }
 
-  await waitForOutputChannelTextCommon(page, expectedText, timeout);
+  // Desktop only: maximize for scroll sweep — more visible lines → fewer steps
+  const shouldRestorePanel = isDesktop();
+  if (shouldRestorePanel) await maximizeOutputPanel(page);
+  try {
+    await waitForOutputChannelTextCommon(page, expectedText, timeout);
+  } finally {
+    if (shouldRestorePanel) await restoreOutputPanel(page);
+  }
 };
 
 /**

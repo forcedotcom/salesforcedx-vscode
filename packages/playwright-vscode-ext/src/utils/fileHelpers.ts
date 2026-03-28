@@ -173,7 +173,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 
   if (isDesktop()) {
     // On macOS desktop, Control+P doesn't work reliably, use command palette instead
-    await executeCommandWithCommandPalette(page, 'Go to File');
+    await executeCommandWithCommandPalette(page, 'Go to File...');
 
     // Wait for Quick Open widget to be visible and ready
     await expect(widget).toBeVisible({ timeout: 10_000 });

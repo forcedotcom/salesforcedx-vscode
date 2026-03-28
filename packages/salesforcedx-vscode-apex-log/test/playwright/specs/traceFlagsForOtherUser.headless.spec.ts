@@ -18,7 +18,8 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -75,6 +76,8 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
     const pickerInput = userPicker.locator('input.input');
     await pickerInput.click();
     await pickerInput.fill('Integration');
+    await waitForQuickInputFirstOption(page);
+
     const integrationUserRow = page
       .locator(QUICK_INPUT_LIST_ROW)
       .filter({ hasText: /Integration User/i })
@@ -88,6 +91,8 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
 
     const debugLevelPicker = page.locator(QUICK_INPUT_WIDGET);
     await debugLevelPicker.waitFor({ state: 'visible', timeout: 10_000 });
+    await waitForQuickInputFirstOption(page);
+
     const debugLevelRow = page
       .locator(QUICK_INPUT_LIST_ROW)
       .filter({ hasText: /SFDC_DevConsole|Developer Console|Apex=/i })

@@ -19,6 +19,7 @@ import {
   validateNoCriticalErrors,
   ensureOutputPanelOpen,
   selectOutputChannel,
+  clearOutputChannel,
   waitForOutputChannelText,
   ensureSecondarySideBarHidden,
   WORKBENCH
@@ -63,6 +64,7 @@ test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
     await ensureOutputPanelOpen(page);
     await page.waitForTimeout(1000);
     await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+    await clearOutputChannel(page);
     await page.locator(WORKBENCH).click();
 
     // Execute retrieve via command palette

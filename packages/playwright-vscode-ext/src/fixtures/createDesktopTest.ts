@@ -88,6 +88,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       await fs.mkdir(userDataDir, { recursive: true });
       const effectiveUserSettings = {
         ...(!process.env.CI ? { 'salesforcedx-vscode-salesforcedx.enableFileTraces': true } : {}),
+        'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
         ...userSettings
       };
       if (Object.keys(effectiveUserSettings).length > 0) {

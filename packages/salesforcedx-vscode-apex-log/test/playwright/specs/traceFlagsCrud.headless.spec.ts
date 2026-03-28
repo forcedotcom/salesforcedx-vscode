@@ -19,7 +19,8 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -116,7 +117,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await page.keyboard.type(debugLevelDeveloperName);
     await page.keyboard.press('Enter');
 
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await waitForQuickInputFirstOption(page);
     const useDefaultsChoice = quickInput.locator(QUICK_INPUT_LIST_ROW).first();
     await expect(useDefaultsChoice).toBeAttached({ timeout: 10_000 });
     await useDefaultsChoice.evaluate(el => {

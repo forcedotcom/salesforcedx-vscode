@@ -230,13 +230,28 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 30_000 });
 };
 
-/** Closes any visible Settings tabs or the floating Settings overlay on Windows desktop */
+/** Closes any visible Settings tab or overlay on desktop. */
 export const closeSettingsTab = async (page: Page): Promise<void> => {
-  if (isWindowsDesktop()) {
-    // On Windows desktop, Settings opens as a floating overlay dialog, not a tab
+  if (isDesktop()) {
+    // Desktop can show Settings as an overlay; Escape closes it when present.
     await page.keyboard.press('Escape');
+
+    const desktopSettingsTab = page
+      .locator(TAB)
+      .filter({ hasText: /Settings/i })
+      .first();
+    const isDesktopSettingsVisible = await desktopSettingsTab.isVisible({ timeout: 1000 }).catch(() => false);
+    if (isDesktopSettingsVisible) {
+      const closeButton = desktopSettingsTab.locator(TAB_CLOSE_BUTTON);
+      const canClickClose = await closeButton.isVisible({ timeout: 1000 }).catch(() => false);
+      if (canClickClose) {
+        await closeButton.click({ force: true }).catch(() => {});
+      }
+      await desktopSettingsTab.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
+    }
     return;
   }
+
   const settingsTab = page
     .locator(TAB)
     .filter({ hasText: /Settings/i })
