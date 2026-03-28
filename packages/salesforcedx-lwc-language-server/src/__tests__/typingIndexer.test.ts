@@ -17,7 +17,17 @@ import { Minimatch } from 'minimatch';
 import * as path from 'node:path';
 import { getSfdxPackageDirsPattern } from '../baseIndexer';
 import * as typingIndexerModule from '../typingIndexer';
-import TypingIndexer, { getMetaTypings, pathBasename } from '../typingIndexer';
+import {
+  type TypingIndexerData,
+  createNewMetaTypings,
+  deleteStaleMetaTypings,
+  saveCustomLabelTypings,
+  getMetaFiles,
+  getMetaTypings,
+  diffItems,
+  initializeTypings,
+  pathBasename
+} from '../typingIndexer';
 
 const META_FILE_REL_PATHS = [
   'force-app/main/default/contentassets/logo.asset-meta.xml',
@@ -38,7 +48,7 @@ const CUSTOM_LABELS_XML = `<?xml version="1.0" encoding="UTF-8"?>
   </labels>
 </CustomLabels>`;
 
-let typingIndexer: TypingIndexer;
+let typingIndexerData: TypingIndexerData;
 
 describe('TypingIndexer', () => {
   beforeAll(async () => {
@@ -87,27 +97,23 @@ describe('TypingIndexer', () => {
       contentMap.delete(normalizePath(pathOrUri));
     });
 
-    typingIndexer = await TypingIndexer.create(
-      {
-        workspaceRoot: SFDX_WORKSPACE_ROOT
-      },
-      sfdxFileSystemAccessor
-    );
+    const result = await initializeTypings(SFDX_WORKSPACE_ROOT, sfdxFileSystemAccessor);
+    if (!result) throw new Error('initializeTypings returned undefined for SFDX workspace');
+    typingIndexerData = result;
   });
 
   describe('new', () => {
     it('initializes with the root of a workspace', async () => {
-      // workspaceRoot is normalized by getWorkspaceRoot, so normalize the expected path for comparison
-      expect(typingIndexer.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
-      await expect(
-        getSfdxPackageDirsPattern(typingIndexer.workspaceRoot, sfdxFileSystemAccessor)
-      ).resolves.toEqual('{force-app,utils,registered-empty-folder}');
+      expect(typingIndexerData.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
+      await expect(getSfdxPackageDirsPattern(typingIndexerData.workspaceRoot, sfdxFileSystemAccessor)).resolves.toEqual(
+        '{force-app,utils,registered-empty-folder}'
+      );
     });
   });
 
   describe('#createNewMetaTypings', () => {
     it('saves the meta files as t.ds files', async () => {
-      await typingIndexer.createNewMetaTypings();
+      await createNewMetaTypings(typingIndexerData);
       const filepaths: string[] = [
         'Channel1.messageChannel.d.ts',
         'bike_assets.resource.d.ts',
@@ -116,7 +122,7 @@ describe('TypingIndexer', () => {
       ];
 
       for (const filename of filepaths) {
-        const filepath = path.join(typingIndexer.typingsBaseDir, filename);
+        const filepath = path.join(typingIndexerData.typingsBaseDir, filename);
         const exists = await sfdxFileSystemAccessor.fileExists(`${filepath}`);
         expect(exists).toBeTrue();
       }
@@ -125,8 +131,8 @@ describe('TypingIndexer', () => {
 
   describe('#removeStaleTypings', () => {
     it('saves the meta files as t.ds files', async () => {
-      const typing: string = path.join(typingIndexer.typingsBaseDir, 'logo.resource.d.ts');
-      const staleTyping: string = path.join(typingIndexer.typingsBaseDir, 'extra.resource.d.ts');
+      const typing: string = path.join(typingIndexerData.typingsBaseDir, 'logo.resource.d.ts');
+      const staleTyping: string = path.join(typingIndexerData.typingsBaseDir, 'extra.resource.d.ts');
 
       void sfdxFileSystemAccessor.updateFileContent(`${typing}`, 'foobar');
       void sfdxFileSystemAccessor.updateFileContent(`${staleTyping}`, 'foobar');
@@ -138,7 +144,7 @@ describe('TypingIndexer', () => {
         return list;
       });
 
-      await typingIndexer.deleteStaleMetaTypings();
+      await deleteStaleMetaTypings(typingIndexerData);
 
       expect(await sfdxFileSystemAccessor.fileExists(`${typing}`)).toBeTrue();
       expect(await sfdxFileSystemAccessor.fileExists(`${staleTyping}`)).toBeFalse();
@@ -147,9 +153,9 @@ describe('TypingIndexer', () => {
 
   describe('#saveCustomLabelTypings', () => {
     it('saves the custom labels xml file to 1 typings file', async () => {
-      await typingIndexer.saveCustomLabelTypings();
+      await saveCustomLabelTypings(typingIndexerData);
       const customLabelPath: string = path.join(
-        typingIndexer.workspaceRoot,
+        typingIndexerData.workspaceRoot,
         '.sfdx',
         'typings',
         'lwc',
@@ -163,7 +169,7 @@ describe('TypingIndexer', () => {
 
   describe('#metaFilePaths', () => {
     test('it returns all the paths of meta files', async () => {
-      const metaFilePaths: string[] = typingIndexer.metaFiles.toSorted();
+      const metaFilePaths: string[] = (await getMetaFiles(typingIndexerData)).toSorted();
       // metaFilePaths are normalized, so normalize expected paths for comparison
       const expectedMetaFilePaths: string[] = [
         normalizePath(path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/contentassets/logo.asset-meta.xml')),
@@ -194,13 +200,13 @@ describe('TypingIndexer', () => {
         '.sfdx/typings/lwc/Channel1.messageChannel.d.ts',
         '.sfdx/typings/lwc/bike_assets.resource.d.ts',
         '.sfdx/typings/lwc/todocss.resource.d.ts'
-      ].map(item => path.resolve(`${typingIndexer.workspaceRoot}/${item}`));
+      ].map(item => path.resolve(`${typingIndexerData.workspaceRoot}/${item}`));
 
       for (const filePath of expectedMetaFileTypingPaths) {
         void sfdxFileSystemAccessor.updateFileContent(`${filePath}`, 'foobar');
       }
 
-      const metaFilePaths: string[] = await getMetaTypings(typingIndexer);
+      const metaFilePaths: string[] = await getMetaTypings(typingIndexerData);
 
       expectedMetaFileTypingPaths.forEach(expectedPath => {
         expect(metaFilePaths).toContain(expectedPath);
@@ -217,7 +223,7 @@ describe('TypingIndexer', () => {
     });
   });
 
-  describe('.diff', () => {
+  describe('.diffItems', () => {
     it('returns a list of strings that do not exist in the compare list', () => {
       const list1: string[] = [
         'force-app/main/default/contentassets/logo.asset-meta.xml',
@@ -236,12 +242,12 @@ describe('TypingIndexer', () => {
         '.sfdx/typings/lwc/foobar.resource.d.ts'
       ];
 
-      expect(TypingIndexer.diff(list1, list2)).toEqual([
+      expect(diffItems(list1, list2)).toEqual([
         'force-app/main/default/messageChannels/Channel2.messageChannel-meta.xml',
         'utils/meta/staticresources/todoutil.resource-meta.xml'
       ]);
 
-      expect(TypingIndexer.diff(list2, list1)).toEqual(['.sfdx/typings/lwc/foobar.resource.d.ts']);
+      expect(diffItems(list2, list1)).toEqual(['.sfdx/typings/lwc/foobar.resource.d.ts']);
     });
   });
 });
