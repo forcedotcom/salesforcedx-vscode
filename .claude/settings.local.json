@@ -1,16 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)",
-      "Bash(ls:*)",
-      "Bash(tee /tmp/deploy-test-full.log)",
-      "Bash(while ps:*)",
-      "Bash(do sleep:*)",
-      "Bash(done)",
-      "Bash(VSCODE_DESKTOP=1 npm run test:desktop test/playwright/specs/deployOnSave.headless.spec.ts --retries 0)",
-      "Bash(grep *)",
-      "Bash(VSCODE_DESKTOP=1 WIREIT_CACHE=none npm run test:desktop -- --retries 0 test/playwright/specs/deployOnSave.headless.spec.ts)",
-      "Bash(tee /tmp/deploy-on-save-debug.log)"
+      "Bash(npm run *)",
+      "Bash(VSCODE_DESKTOP=1 npm run test:desktop *)",
+      "Bash(VSCODE_DESKTOP=1 WIREIT_CACHE=none npm run test:desktop *)",
+      "Bash(pkill *)"
     ]
   }
 }
