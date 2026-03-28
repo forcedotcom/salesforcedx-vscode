@@ -4,7 +4,54 @@
       "Bash(npm run *)",
       "Bash(VSCODE_DESKTOP=1 npm run test:desktop *)",
       "Bash(VSCODE_DESKTOP=1 WIREIT_CACHE=none npm run test:desktop *)",
-      "Bash(pkill *)"
+      "Bash(pkill *)",
+      "Bash(WIREIT_CACHE=none npm run test:desktop -w packages/salesforcedx-vscode-metadata -- --retries 0 test/playwright/specs/sourceDiff.headless.spec.ts)",
+      "Bash(done)",
+      "Bash(chmod:*)",
+      "Bash(WIREIT_CACHE=none npm run test:desktop -w packages/salesforcedx-vscode-core -- --retries 0 test/playwright/specs/createProject.headless.spec.ts)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit(*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/mark-edit.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write(*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/mark-edit.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git * --no-verify *)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-no-verify.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/verify-stop.sh"
+          }
+        ]
+      }
     ]
   }
 }
