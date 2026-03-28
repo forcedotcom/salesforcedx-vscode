@@ -89,6 +89,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       const effectiveUserSettings = {
         ...(!process.env.CI ? { 'salesforcedx-vscode-salesforcedx.enableFileTraces': true } : {}),
         'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
+        'settingsSync.enabled': false, // Prevent Settings Sync from overwriting test settings
         ...userSettings
       };
       if (Object.keys(effectiveUserSettings).length > 0) {
