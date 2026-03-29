@@ -12,10 +12,9 @@ import * as debounce from 'debounce';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
-import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { formatQueryPlanResults, QueryPlanResponse } from '../commands/queryPlan';
+import { executeQueryPlan } from '../commands/queryPlan';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
@@ -278,21 +277,7 @@ export class SOQLEditorInstance {
             yield* self.getQueryPlanDone();
             return;
           }
-          const queryText = self.document.getText();
-          const conn = yield* Effect.promise(() => getConnection());
-          const channelSvc = yield* (yield* getServicesApi).services.ChannelService;
-          if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
-            yield* channelSvc.clearChannel;
-          }
-          const vscChannel = yield* channelSvc.getChannel;
-          yield* channelSvc.appendToChannel(nls.localize('query_plan_running', nls.localize('REST_API')));
-          const encodedQuery = encodeURIComponent(queryText);
-          const result = yield* Effect.promise(() => conn.request(`/query?explain=${encodedQuery}`)).pipe(
-            Effect.flatMap(Schema.decodeUnknown(QueryPlanResponse))
-          );
-          yield* channelSvc.appendToChannel(`\n${formatQueryPlanResults(result)}\n`);
-          yield* channelSvc.appendToChannel(nls.localize('query_plan_complete'));
-          vscChannel.show();
+          yield* Effect.promise(() => getSoqlRuntime().runPromise(executeQueryPlan(self.document.getText())));
           yield* self.getQueryPlanDone();
         }).pipe(
           Effect.catchAllCause(cause => {

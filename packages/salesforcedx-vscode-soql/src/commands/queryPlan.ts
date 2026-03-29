@@ -74,7 +74,7 @@ export const formatQueryPlanResults = (response: Schema.Schema.Type<typeof Query
   return `${table}\n${nls.localize('query_plan_notes_header')}:\n${notesLines.join('\n\n')}`;
 };
 
-const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: string) {
+export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: string) {
   const servicesApi = yield* getServicesApi;
   const channelService = yield* servicesApi.services.ChannelService;
 
