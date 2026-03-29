@@ -1,0 +1,117 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "scripts/*.{ts,js,mjs}",
+        ".github/actions/*/src/index.ts"
+      ],
+      "project": [
+        "scripts/**/*.{ts,js,mjs}",
+        ".github/actions/**/*.ts"
+      ]
+    },
+    "packages/*": {
+      "entry": [
+        "src/index.ts",
+        "test/**/*.test.ts",
+        "test/**/*.spec.ts",
+        "src/**/__tests__/**/*.test.ts",
+        "src/**/__tests__/**/*.spec.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "test/**/*.ts"
+      ],
+      "ignore": [
+        "resources/**",
+        "images/**",
+        "syntaxes/**",
+        "grammars/**",
+        "snippets/**",
+        "media/**"
+      ]
+    },
+    "packages/salesforcedx-aura-language-server": {
+      "entry": [
+        "src/index.ts",
+        "src/server.ts",
+        "test/**/*.test.ts",
+        "test/**/*.spec.ts",
+        "src/**/__tests__/**/*.test.ts",
+        "src/**/__tests__/**/*.spec.ts"
+      ]
+    },
+    "packages/salesforcedx-lwc-language-server": {
+      "entry": [
+        "src/index.ts",
+        "src/server.ts",
+        "test/**/*.test.ts",
+        "test/**/*.spec.ts",
+        "src/**/__tests__/**/*.test.ts",
+        "src/**/__tests__/**/*.spec.ts"
+      ]
+    },
+    "packages/salesforcedx-visualforce-language-server": {
+      "entry": [
+        "src/index.ts",
+        "src/server.ts",
+        "test/**/*.test.ts",
+        "test/**/*.spec.ts",
+        "src/**/__tests__/**/*.test.ts",
+        "src/**/__tests__/**/*.spec.ts"
+      ]
+    },
+    "packages/salesforcedx-visualforce-markup-language-server": {
+      "entry": [
+        "src/index.ts",
+        "src/server.ts",
+        "test/**/*.test.ts",
+        "test/**/*.spec.ts",
+        "src/**/__tests__/**/*.test.ts",
+        "src/**/__tests__/**/*.spec.ts"
+      ]
+    }
+  },
+  "ignore": [
+    "**/__mocks__/**",
+    "**/fixtures/**",
+    "**/test-workspaces/**",
+    "**/dist/**",
+    "**/out/**",
+    "**/.wireit/**",
+    "**/coverage/**",
+    "**/.vscode-test/**",
+    "**/.vscode-test-web/**",
+    "**/playwright-report/**",
+    "**/test-results/**",
+    "**/esbuild.config.mjs",
+    "**/jest.config.js",
+    "**/playwright.config.*.ts",
+    "**/src/tern/**",
+    "**/src/beautify/**"
+  ],
+  "ignoreDependencies": [
+    "@types/*",
+    "typescript",
+    "eslint",
+    "prettier",
+    "jest",
+    "@jest/*",
+    "ts-jest",
+    "wireit",
+    "shx",
+    "esbuild",
+    "esbuild-plugin-*",
+    "@vscode/test-electron",
+    "@vscode/test-web",
+    "@vscode/vsce",
+    "ovsx"
+  ],
+  "ignoreBinaries": [
+    "code",
+    "code-insiders",
+    "vsce",
+    "ovsx"
+  ]
+}
