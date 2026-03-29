@@ -71,13 +71,13 @@ test('Create Project: standard project via command palette', async ({ page, work
     await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
     await saveScreenshot(page, 'createProject.04-folder-dialog.png');
 
-    // Triple-click to select all existing path text (Control+a doesn't select-all on mac)
-    const input = quickInput.locator('input.input');
-    await input.click({ clickCount: 3 });
+    // Use .fill() to set path directly (avoids autocomplete issues with keyboard.type).
     // Trailing sep forces the simple dialog to navigate INTO the directory immediately.
     // Without it, Windows shows the parent dir with the folder highlighted, then auto-navigates
     // after a debounce — clicking "Create Project" during that transition doesn't register.
-    await page.keyboard.type(`${targetDir}${path.sep}`);
+    const input = quickInput.locator('input.input');
+    const targetPath = `${targetDir}${path.sep}`;
+    await input.fill(targetPath);
 
     // Wait for dialog to show the directory contents (not just highlight the folder name)
     await expect(quickInput.getByText('path does not exist')).not.toBeVisible({ timeout: 5000 });
