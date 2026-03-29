@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+import { deployOnSaveTest as test } from '../fixtures';
 import {
   setupConsoleMonitoring,
   createApexClass,
@@ -28,12 +28,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
   const className = `DeployOnSaveTest${Date.now()}`;
 
   await test.step('setup: workbench, settings, enable deploy-on-save', async () => {
-    await setupWorkbenchSettingsAndOutputChannel(page, {
-      extraSettings: {
-        'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'true',
-        'salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave': 'true'
-      }
-    });
+    await setupWorkbenchSettingsAndOutputChannel(page);
     // Wait for extension to fully activate (context keys like sf:has_target_org). Use a command that doesn't require a file to be open.
     await verifyCommandExists(page, packageNls.view_local_changes_text, 120_000);
   });

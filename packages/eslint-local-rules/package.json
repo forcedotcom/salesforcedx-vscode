@@ -84,6 +84,9 @@
     "@eslint/json": "^0.3.0",
     "eslint": ">=8.0.0"
   },
+  "dependencies": {
+    "minimatch": "^10.2.4"
+  },
   "devDependencies": {
     "@humanwhocodes/momoa": "^3.3.10",
     "@types/eslint": "^9.0.0",

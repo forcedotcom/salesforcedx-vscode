@@ -20,7 +20,7 @@ export const buildDocumentSelector = (schemes: string[]): DocumentSelector =>
   schemes.flatMap(scheme => LWC_DOCUMENT_SELECTOR_LANGUAGES.map(language => ({ language, scheme })));
 
 /** File system watchers to synchronize with the LWC language server. */
-export const getSynchronizeFileEvents = () => [
+const getSynchronizeFileEvents = () => [
   workspace.createFileSystemWatcher('**/*.resource'),
   workspace.createFileSystemWatcher('**/labels/CustomLabels.labels-meta.xml'),
   workspace.createFileSystemWatcher('**/staticresources/*.resource-meta.xml'),

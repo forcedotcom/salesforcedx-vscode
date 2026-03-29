@@ -26,10 +26,7 @@ tsconfig.json
 .eslint.json
 
 # unique to this package
-context
-design
 scripts/**
-syntaxes
 
 # do not reach outside the package
 ../../**

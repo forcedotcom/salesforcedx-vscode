@@ -6,4 +6,4 @@
  */
 
 // Core Playwright tests are desktop-only (no web variant)
-export { desktopTest as test } from './desktopFixtures';
+export { desktopTest as test, deployOnSaveTest, deployNoStTest } from './desktopFixtures';

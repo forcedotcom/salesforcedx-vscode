@@ -18,16 +18,28 @@ flowchart TD
     C --> D{Filter & Route Spans}
     D -->|all spans<br/>enabled via Settings| E[Console Exporter]
     D -->|all spans<br/>enabled via Settings| F[Local OTLP Exporter]
-    D -->|top-level spans<br/> automatic unless disabled| G[App Insights]
-    D -->|top-level spans<br/> pjson endpoint| H[O11y]
+    D -->|top-level spans + command spans<br/> automatic unless disabled| G[App Insights]
+    D -->|top-level spans + command spans<br/> pjson endpoint| H[O11y]
 ```
 
 ### Key Points
 
 - **All spans** can go to Console and Local OTLP (for trace/debugging/perf)
-- **Top-level spans only** go to App Insights and O11y (to reduce noise) - see [Attributes](#automatic-attributes) for details on what attributes are automatically added
+- **Top-level spans and command spans** go to App Insights and O11y (to reduce noise), except spans with `telemetryIgnore: true` - see [Attributes](#automatic-attributes) for details on what attributes are automatically added
+- **Web App Insights** uses `ApplicationInsightsWebExporter` to stream each valid top-level span as a custom event while still honoring `telemetryIgnore`
 - App Insights is **automatic** (see [Automatic Configuration](#automatic-configuration) for details). It can be disabled via VSCode Settings.
 - O11y requires configuration (see [O11y Configuration](#o11y-configuration))
+
+### App Insights Export Pipeline
+
+`ApplicationInsightsWebExporter.export` now builds a single Effect pipeline so stream operations, span exporting, and success/failure handlers run together before the SpanExporter callback returns. For each batch of spans the exporter:
+
+1. Pipes `Stream.fromIterable(spans)` through `Stream.filter(isSpanValidForProductionTelemetry)` so only the spans that belong in production telemetry are kept.
+2. Runs each filtered span through `Stream.mapEffect(exportSpan)`, pushing every span into `exportSpan` which ultimately calls `getWebAppInsightsReporter().sendDangerousTelemetryEvent` or `sendDangerousTelemetryErrorEvent`.
+3. Executes the stream with `Stream.runDrain`, then maps the succeeding effect to `resultCallback({ code: ExportResultCode.SUCCESS })`, keeping the callback inside the same pipeline as the stream.
+4. Wraps the entire pipeline in `Effect.catchAll`, which logs the failure, reports the error to console, sends failure telemetry, and calls `resultCallback({ code: ExportResultCode.FAILED, error: unknownToErrorCause(error).cause })`.
+
+Keeping the stream, exporter callback, and logging/failure telemetry in the same pipeline satisfies the SpanExporter contract while still letting the existing `exportSpan` helper handle per-span telemetry.
 
 ## Usage with Code Examples
 
@@ -118,6 +130,14 @@ yield *
   });
 ```
 
+#### Excluding a Span from Production Telemetry
+
+Use `telemetryIgnore: true` to skip a span in production exporters (App Insights Node/Web and O11y) while still keeping it in local debug exporters (Console, File, Local OTLP).
+
+```typescript
+yield * Effect.annotateCurrentSpan({ telemetryIgnore: true });
+```
+
 ### Logging
 
 When `enableConsoleTraces` is enabled, spans are exported to the console (browser console or Node.js console). This is useful for debugging and seeing what spans are being created.
@@ -156,7 +176,7 @@ The SDK layer automatically handles:
 
 - Platform detection (Node vs Web)
 - Span processor configuration based on settings
-- Top-level span filtering for App Insights and O11y (see [Architecture Philosophy](#architecture-philosophy--diagram))
+- Top-level and command span filtering for App Insights and O11y, plus `telemetryIgnore` exclusion (see [Architecture Philosophy](#architecture-philosophy--diagram))
 - Attribute injection for top-level spans (see [Automatic Attributes](#automatic-attributes))
 
 ## Settings Configuration
@@ -178,7 +198,7 @@ To enable any VS Code setting:
 
 ### Automatic Configuration
 
-**App Insights**: Automatically enabled when telemetry is enabled (see [Telemetry Settings](#telemetry-settings)). No configuration needed. Top-level spans are automatically sent to Application Insights.
+**App Insights**: Automatically enabled when telemetry is enabled (see [Telemetry Settings](#telemetry-settings)). No configuration needed. Top-level spans and command spans are automatically sent to Application Insights (the custom exporter streams them as web custom events when running in the browser), except spans annotated with `telemetryIgnore: true`.
 
 ### O11y Configuration
 

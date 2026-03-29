@@ -84,6 +84,13 @@ jobs:
         run: |
           npm run test:desktop -w salesforcedx-vscode-org -- --last-failed --reporter=html
 
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-org/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-org/test-results/spans/ 2>/dev/null || true
+
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
