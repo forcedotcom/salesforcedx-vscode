@@ -10,13 +10,13 @@
   <header>
     <div class="container">
       <template if:false={isRunning}>
-        <button class="run-button" onclick={handleRunQuery}>Run Query</button>
+        <button class="run-button" onclick={handleRunQuery} disabled={isQueryInvalid}>Run Query</button>
       </template>
       <template if:true={isRunning}>
         <button class="btn--disabled run-button">Running...</button>
       </template>
       <template if:false={isQueryPlanRunning}>
-        <button class="query-plan-button" onclick={handleGetQueryPlan}>Get Query Plan</button>
+        <button class="query-plan-button" onclick={handleGetQueryPlan} disabled={isQueryInvalid}>Get Query Plan</button>
       </template>
       <template if:true={isQueryPlanRunning}>
         <button class="btn--disabled query-plan-button">Getting Plan...</button>

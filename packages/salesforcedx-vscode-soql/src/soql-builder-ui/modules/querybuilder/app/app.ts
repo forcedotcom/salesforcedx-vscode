@@ -247,6 +247,10 @@ export default class App extends LightningElement {
     this.dismissNotifications = true;
   }
 
+  public get isQueryValid(): boolean {
+    return Boolean(this.query.sObject) && this.query.fields.length > 0;
+  }
+
   public handleRunQuery(): void {
     this.isQueryRunning = true;
     const runQueryEvent: SoqlEditorEvent = { type: MessageType.RUN_SOQL_QUERY };

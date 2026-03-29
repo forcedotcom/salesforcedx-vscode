@@ -10,6 +10,11 @@ import { LightningElement, api } from 'lwc';
 export default class Header extends LightningElement {
   @api public isRunning = false;
   @api public isQueryPlanRunning = false;
+  @api public isQueryValid = false;
+
+  public get isQueryInvalid(): boolean {
+    return !this.isQueryValid;
+  }
 
   public handleRunQuery(e: Event): void {
     e.preventDefault();

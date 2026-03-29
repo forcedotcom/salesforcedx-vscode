@@ -26,6 +26,12 @@ button {
   width: 125px;
 }
 
+button:disabled {
+  background-color: var(--vscode-list-inactiveSelectionBackground, var(--soql-color-medium-grey));
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 @media screen and (max-width: 750px) {
   header {
     max-width: var(--soql-media-max-width);
