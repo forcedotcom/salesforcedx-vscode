@@ -12,8 +12,10 @@ import * as debounce from 'debounce';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
+import { formatQueryPlanResults, QueryPlanResponse } from '../commands/queryPlan';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
@@ -65,6 +67,10 @@ type SoqlEditorEvent =
   | {
       type: 'run_query';
       payload: never;
+    }
+  | {
+      type: 'get_query_plan';
+      payload: never;
     };
 
 // TODO: This should be shared with soql-builder-ui
@@ -79,7 +85,9 @@ type MessageType =
   | 'text_soql_changed'
   | 'run_query'
   | 'connection_changed'
-  | 'run_query_done';
+  | 'run_query_done'
+  | 'get_query_plan'
+  | 'get_query_plan_done';
 
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
@@ -259,6 +267,47 @@ export class SOQLEditorInstance {
         );
       }
 
+      case 'get_query_plan': {
+        const self = this;
+        return Effect.gen(function* () {
+          const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
+          if (!isOrgSet) {
+            const message = nls.localize('info_no_default_org');
+            yield* appendToChannel(message);
+            yield* Effect.promise(() => vscode.window.showInformationMessage(message));
+            yield* self.getQueryPlanDone();
+            return;
+          }
+          const queryText = self.document.getText();
+          const conn = yield* Effect.promise(() => getConnection());
+          const channelSvc = yield* (yield* getServicesApi).services.ChannelService;
+          if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
+            yield* channelSvc.clearChannel;
+          }
+          const vscChannel = yield* channelSvc.getChannel;
+          yield* channelSvc.appendToChannel(nls.localize('query_plan_running', nls.localize('REST_API')));
+          const encodedQuery = encodeURIComponent(queryText);
+          const result = yield* Effect.promise(() => conn.request(`/query?explain=${encodedQuery}`)).pipe(
+            Effect.flatMap(Schema.decodeUnknown(QueryPlanResponse))
+          );
+          yield* channelSvc.appendToChannel(`\n${formatQueryPlanResults(result)}\n`);
+          yield* channelSvc.appendToChannel(nls.localize('query_plan_complete'));
+          vscChannel.show();
+          yield* self.getQueryPlanDone();
+        }).pipe(
+          Effect.catchAllCause(cause => {
+            const err = Cause.squash(cause);
+            return Effect.gen(function* () {
+              yield* appendToChannel(
+                nls.localize('error_run_soql_query', err instanceof Error ? err.message : String(err))
+              );
+              yield* self.getQueryPlanDone();
+            });
+          }),
+          Effect.withSpan('SOQLEditor.get_query_plan')
+        );
+      }
+
       default:
         return appendToChannel(nls.localize('error_unknown_error', event.type)).pipe(
           Effect.withSpan('SOQLEditor.unknown_message', { attributes: { messageType: event.type } })
@@ -269,6 +318,12 @@ export class SOQLEditorInstance {
   protected runQueryDone() {
     return Effect.promise<boolean>(() =>
       this.webviewPanel.webview.postMessage({ type: 'run_query_done' satisfies MessageType })
+    ).pipe(Effect.asVoid);
+  }
+
+  protected getQueryPlanDone() {
+    return Effect.promise<boolean>(() =>
+      this.webviewPanel.webview.postMessage({ type: 'get_query_plan_done' satisfies MessageType })
     ).pipe(Effect.asVoid);
   }
 
