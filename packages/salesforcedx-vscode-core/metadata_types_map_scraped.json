@@ -8573,6 +8573,149 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_carerequestconfiguration.htm",
     "parent": "Metadata"
   },
+  "CatalogedApi": {
+    "fields": [
+      {
+        "Description": "The description defined when the API is cataloged.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The content of the API schema in JSON format.",
+        "Field Name": "descriptor",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The ID of the API in the external source that it's imported from.",
+        "Field Name": "externalSourceIdentifier",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Reference to the cataloged API that this instance is specific to.",
+        "Field Name": "instances",
+        "Field Type": "CatalogedApiInstance[]"
+      },
+      {
+        "Description": "Required. The API name as it appears in API Catalog.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Indicates the source of the API specification registered with API Catalog.API Catalog supports the value Anypoint for deployment and supports other values for enumeration. See information about the values in the registrationProviderType field.",
+        "Field Name": "providerType",
+        "Field Type": "ExternalServiceRegistrationProviderType (enumeration of type string)"
+      },
+      {
+        "Description": "Required. Specifies the API type. If not specified, the API type is derived based on the descriptor content. Nillable. Values are: GraphQL gRPC REST",
+        "Field Name": "type",
+        "Field Type": "APIType (enumeration of type string)"
+      }
+    ],
+    "short_description": "Represents an API brought into API Catalog for Salesforce from an external source.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_catalogedapi.htm",
+    "parent": "Metadata"
+  },
+  "CatalogedApiInstance": {
+    "fields": [
+      {
+        "Description": "Required. The access status for the API instance. Values are: Approved Deleted NoStatus NotAccessible Pending Rejected Revoked",
+        "Field Name": "accessStatus",
+        "Field Type": "APIInstanceAccessStatus (enumeration of type string)"
+      },
+      {
+        "Description": "The content of the API schema in JSON format.",
+        "Field Name": "apiInstanceDescriptor",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The approval type for access in Anypoint Platform. Values are: AutoApproval ManualApproval NoApproval",
+        "Field Name": "approvalType",
+        "Field Type": "APIInstanceApprovalType (enumeration of type string)"
+      },
+      {
+        "Description": "The endpoint type to invoke the instance. Available in API version 66.0 and later. Values are: Callout Discovery",
+        "Field Name": "endpointType",
+        "Field Type": "APIInstanceEndpointType (enumeration of type string)"
+      },
+      {
+        "Description": "Required. The instance name as it appears in API Catalog.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The service registration in external services related to this API instance.",
+        "Field Name": "serviceRegistration",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The uniform resource identifier (URI) for the instance.",
+        "Field Name": "uri",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a MuleSoft API instance brought into API Catalog for Salesforce from Anypoint Platform.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_catalogedapi.htm",
+    "parent": "Metadata"
+  },
+  "CatalogedApiArtifactVersionInfo": {
+    "fields": [
+      {
+        "Description": "The API release notes.",
+        "Field Name": "releaseNotes",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The API revision.",
+        "Field Name": "revision",
+        "Field Type": "int"
+      },
+      {
+        "Description": "Required. The API type.",
+        "Field Name": "type",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The API version.",
+        "Field Name": "version",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents API version information in API Catalog that’s referenced by other entities.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_catalogedapiartifactversioninfo.htm",
+    "parent": "Metadata"
+  },
+  "CatalogedApiVersion": {
+    "fields": [
+      {
+        "Description": "Required. An API managed for consumption in Salesforce using API Catalog.",
+        "Field Name": "catalogedApi",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The description defined when the API is cataloged.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The ID of the API in the external source that it's imported from.",
+        "Field Name": "externalSourceIdentifier",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The API name as it appears in API Catalog.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The ID of the API version information.",
+        "Field Name": "version",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a version of an API that is consumable in Salesforce using API Catalog.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_catalogedapiversion.htm",
+    "parent": "Metadata"
+  },
   "Certificate": {
     "fields": [
       {
@@ -20855,7 +20998,7 @@
   "ExternalServiceRegistration": {
     "fields": [
       {
-        "Description": "A version of an API synced from an external source and managed for consumption in Salesforce by using API Catalog.",
+        "Description": "A version of an API brought into API Catalog from an external source and managed for consumption in Salesforce. Available in API version 65.0 and later.",
         "Field Name": "catalogedApiVersion",
         "Field Type": "string"
       },
@@ -20890,7 +21033,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "A polymorphic foreign key field that contains the name of the asset related to the external service registration. For an external service registration created for a named query, this field contains the named query API name. For an external service registration created for an Apex class that has methods exposed as REST resources or methods that are Aura-enabled, this field contains the Apex class name. Available in API version 66.0 and later.",
+        "Description": "A polymorphic foreign key field that contains the name of the asset related to the external service registration. For an external service registration created for a named query, this field contains the named query API name. For an external service registration created for an Apex class that has methods exposed as REST resources or methods that are Aura-enabled. This field contains the Apex class name. Available in API version 66.0 and later.",
         "Field Name": "registrationProviderAsset",
         "Field Type": "string"
       },
@@ -31118,7 +31261,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "The base class for all metadata types. You can’t edit this object. A component is an instance of a metadata type. Metadata is analogous to sObject, which represents all standard objects. Metadata represents all components and fields in the Metadata API. Instead of identifying each component with an ID, each custom object or custom field has a unique fullName, which must be distinct from standard object names, as it must be when you create custom objects or custom fields in the Salesforce user interface.",
+    "short_description": "The base class for all metadata types. You can’t edit this object. A component is an instance of a metadata type. Metadata is analogous to sObject , which represents all standard objects. Metadata represents all components and fields in the Metadata API. Instead of identifying each component with an ID, each custom object or custom field has a unique fullName, which must be distinct from standard object names, as it must be when you create custom objects or custom fields in the Salesforce user interface.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/metadata.htm",
     "parent": "Metadata"
   },
@@ -34091,6 +34234,11 @@
         "Description": "Users can add comments to provide additional details about a record. Maximum of 1000 characters.",
         "Field Name": "comments",
         "Field Type": "string"
+      },
+      {
+        "Description": "Defines the payment gateway type. Adyen Braintree CyberSource Paypal Stripe",
+        "Field Name": "gatewayType",
+        "Field Type": "GatewayType (enumeration of type String)"
       },
       {
         "Description": "Required. Defines whether the payment gateway ignores duplicate payment gateway calls (Yes) or whether it processes duplicate gateway calls (No). Yes No",
@@ -39711,17 +39859,17 @@
       {
         "Description": "If set to true, agents can extend their After Conversation Work (ACW) time. Available only if hasAfterConvoWorkTimer is set to true. If set to true, you must also set the acwExtensionDuration and maxExtensions fields. The default value is false. Available only for service channels of type Messaging or Voice. This field is available in API version 56.0 and later.",
         "Field Name": "hasAcwExtensionEnabled",
-        "Field Type": "Boolean"
+        "Field Type": "boolean"
       },
       {
         "Description": "If set to true, After Conversation Work (ACW) time can be configured for the channel. If set to true, you must also set the afterConvoWorkMaxTime field. The default value is false. Available only for service channels of type Messaging or Voice.For service channels of type Voice, this field is available in API version 52.0 and later. For service channels of type messaging, this field is available in API version 56.0 and later.",
         "Field Name": "hasAfterConvoWorkTimer",
-        "Field Type": "Boolean"
+        "Field Type": "boolean"
       },
       {
         "Description": "Work items in a service channel open automatically in the agent’s workspace so that the agent doesn’t have to manually accept them.",
         "Field Name": "hasAutoAcceptEnabled",
-        "Field Type": "Boolean"
+        "Field Type": "boolean"
       },
       {
         "Description": "The custom console component to open in the footer when an agent accepts a work item from this service channel.",
@@ -43499,8 +43647,18 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Enables address to be populated when work orders are generated from Maintenance Plan.",
+        "Description": "Enables Lightning SDK in the Field Service mobile app.",
+        "Field Name": "enableLsdkMode",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Allows the address to be populated when work orders are generated from a maintenance plan.",
         "Field Name": "enablePopulateWorkOrderAddress",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Turns on standby mode in the Field Service mobile app. When enabled, it helps mobile workers conserve battery and reduce distractions by pausing notifications and disabling data syncs when not actively working.",
+        "Field Name": "enableStandbyMode",
         "Field Type": "boolean"
       },
       {
@@ -43566,6 +43724,11 @@
       {
         "Description": "Allows the optimization service to access data in your Salesforce org.",
         "Field Name": "optimizationServiceAccess",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Allows the Field Service mobile app to override the default Lightning Web Component (LWC) styling with custom or branded styles. When enabled, it applies custom styling configurations (such as brand colors, themes, and visual elements) to LWCs within the mobile application.",
+        "Field Name": "overrideDefaultLwcStyling",
         "Field Type": "boolean"
       },
       {
