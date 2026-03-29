@@ -47,7 +47,7 @@ Web POSTs to local span file server (port 3003). Server must be running.
 3. Run `npm run run:web -w packages/<extension>`
 4. If settings don't appear: `rm -rf packages/salesforcedx-vscode-services/.wireit packages/salesforcedx-vscode-services/dist`
 
-`test:web` starts the span file server automatically via wireit service dep.
+`test:web` and `test:desktop` can auto-start the span file server via wireit service dep (when configured in script dependencies).
 
 ## Clear
 

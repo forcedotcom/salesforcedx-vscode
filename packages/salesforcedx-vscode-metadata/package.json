@@ -195,6 +195,7 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
