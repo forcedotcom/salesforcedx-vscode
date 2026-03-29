@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-03-22T13:26:45.883Z
-Total metadata types: 1540
+Generated on: 2026-03-29T13:31:36.682Z
+Total metadata types: 1544
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -12622,6 +12622,196 @@ Total metadata types: 1540
       <xsd:annotation>
        <xsd:documentation>Required. Specifies the custom Case Subject format from which inbound social content appears in case records. Valid values are: ProvidedString Source MessageType SocialHandle SocialNetwork Sentiment RealName Content PipeSeparator ColonSeparator HyphenSeparator</xsd:documentation>
        <xsd:appinfo>Type: CaseSubjectParticleType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="CatalogedApi">
+  <xsd:annotation>
+   <xsd:documentation>Represents an API brought into API Catalog for Salesforce from an external source.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_catalogedapi.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The description defined when the API is cataloged.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="descriptor" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The content of the API schema in JSON format.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="externalSourceIdentifier" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The ID of the API in the external source that it&apos;s imported from.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="instances" minOccurs="0" maxOccurs="unbounded" type="CatalogedApiInstance">
+      <xsd:annotation>
+       <xsd:documentation>Reference to the cataloged API that this instance is specific to.</xsd:documentation>
+       <xsd:appinfo>Type: CatalogedApiInstance[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The API name as it appears in API Catalog.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="providerType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Indicates the source of the API specification registered with API Catalog.API Catalog supports the value Anypoint for deployment and supports other values for enumeration. See information about the values in the registrationProviderType field.</xsd:documentation>
+       <xsd:appinfo>Type: ExternalServiceRegistrationProviderType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the API type. If not specified, the API type is derived based on the descriptor content. Nillable. Values are: GraphQL gRPC REST</xsd:documentation>
+       <xsd:appinfo>Type: APIType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="CatalogedApiArtifactVersionInfo">
+  <xsd:annotation>
+   <xsd:documentation>Represents API version information in API Catalog that’s referenced by other entities.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_catalogedapiartifactversioninfo.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="releaseNotes" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The API release notes.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="revision" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+      <xsd:annotation>
+       <xsd:documentation>The API revision.</xsd:documentation>
+       <xsd:appinfo>Type: int</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The API type.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="version" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The API version.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="CatalogedApiInstance">
+  <xsd:annotation>
+   <xsd:documentation>Represents a MuleSoft API instance brought into API Catalog for Salesforce from Anypoint Platform.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_catalogedapi.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="accessStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The access status for the API instance. Values are: Approved Deleted NoStatus NotAccessible Pending Rejected Revoked</xsd:documentation>
+       <xsd:appinfo>Type: APIInstanceAccessStatus (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="apiInstanceDescriptor" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The content of the API schema in JSON format.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="approvalType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The approval type for access in Anypoint Platform. Values are: AutoApproval ManualApproval NoApproval</xsd:documentation>
+       <xsd:appinfo>Type: APIInstanceApprovalType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="endpointType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The endpoint type to invoke the instance. Available in API version 66.0 and later. Values are: Callout Discovery</xsd:documentation>
+       <xsd:appinfo>Type: APIInstanceEndpointType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The instance name as it appears in API Catalog.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="serviceRegistration" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The service registration in external services related to this API instance.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="uri" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The uniform resource identifier (URI) for the instance.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="CatalogedApiVersion">
+  <xsd:annotation>
+   <xsd:documentation>Represents a version of an API that is consumable in Salesforce using API Catalog.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_catalogedapiversion.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="catalogedApi" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. An API managed for consumption in Salesforce using API Catalog.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The description defined when the API is cataloged.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="externalSourceIdentifier" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The ID of the API in the external source that it&apos;s imported from.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The API name as it appears in API Catalog.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="version" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The ID of the API version information.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -31610,7 +31800,7 @@ Total metadata types: 1540
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="catalogedApiVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>A version of an API synced from an external source and managed for consumption in Salesforce by using API Catalog.</xsd:documentation>
+       <xsd:documentation>A version of an API brought into API Catalog from an external source and managed for consumption in Salesforce. Available in API version 65.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -31652,7 +31842,7 @@ Total metadata types: 1540
      </xsd:element>
      <xsd:element name="registrationProviderAsset" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>A polymorphic foreign key field that contains the name of the asset related to the external service registration. For an external service registration created for a named query, this field contains the named query API name. For an external service registration created for an Apex class that has methods exposed as REST resources or methods that are Aura-enabled, this field contains the Apex class name. Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:documentation>A polymorphic foreign key field that contains the name of the asset related to the external service registration. For an external service registration created for a named query, this field contains the named query API name. For an external service registration created for an Apex class that has methods exposed as REST resources or methods that are Aura-enabled. This field contains the Apex class name. Available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -33523,9 +33713,21 @@ Total metadata types: 1540
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableLsdkMode" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Enables Lightning SDK in the Field Service mobile app.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enablePopulateWorkOrderAddress" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Enables address to be populated when work orders are generated from Maintenance Plan.</xsd:documentation>
+       <xsd:documentation>Allows the address to be populated when work orders are generated from a maintenance plan.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableStandbyMode" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Turns on standby mode in the Field Service mobile app. When enabled, it helps mobile workers conserve battery and reduce distractions by pausing notifications and disabling data syncs when not actively working.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -33604,6 +33806,12 @@ Total metadata types: 1540
      <xsd:element name="optimizationServiceAccess" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Allows the optimization service to access data in your Salesforce org.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="overrideDefaultLwcStyling" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Allows the Field Service mobile app to override the default Lightning Web Component (LWC) styling with custom or branded styles. When enabled, it applies custom styling configurations (such as brand colors, themes, and visual elements) to LWCs within the mobile application.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -55158,6 +55366,12 @@ Total metadata types: 1540
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="gatewayType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Defines the payment gateway type. Adyen Braintree CyberSource Paypal Stripe</xsd:documentation>
+       <xsd:appinfo>Type: GatewayType (enumeration of type String)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="idempotencySupported" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Defines whether the payment gateway ignores duplicate payment gateway calls (Yes) or whether it processes duplicate gateway calls (No). Yes No</xsd:documentation>
@@ -64279,19 +64493,19 @@ Total metadata types: 1540
      <xsd:element name="hasAcwExtensionEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If set to true, agents can extend their After Conversation Work (ACW) time. Available only if hasAfterConvoWorkTimer is set to true. If set to true, you must also set the acwExtensionDuration and maxExtensions fields. The default value is false. Available only for service channels of type Messaging or Voice. This field is available in API version 56.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: Boolean</xsd:appinfo>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="hasAfterConvoWorkTimer" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If set to true, After Conversation Work (ACW) time can be configured for the channel. If set to true, you must also set the afterConvoWorkMaxTime field. The default value is false. Available only for service channels of type Messaging or Voice.For service channels of type Voice, this field is available in API version 52.0 and later. For service channels of type messaging, this field is available in API version 56.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: Boolean</xsd:appinfo>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="hasAutoAcceptEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Work items in a service channel open automatically in the agent’s workspace so that the agent doesn’t have to manually accept them.</xsd:documentation>
-       <xsd:appinfo>Type: Boolean</xsd:appinfo>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="interactionComponent" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -73918,6 +74132,10 @@ Total metadata types: 1540
  <xsd:element name="CaseSettings" type="CaseSettings"/>
  <xsd:element name="CaseSharingRules" type="CaseSharingRules"/>
  <xsd:element name="CaseSubjectParticle" type="CaseSubjectParticle"/>
+ <xsd:element name="CatalogedApi" type="CatalogedApi"/>
+ <xsd:element name="CatalogedApiArtifactVersionInfo" type="CatalogedApiArtifactVersionInfo"/>
+ <xsd:element name="CatalogedApiInstance" type="CatalogedApiInstance"/>
+ <xsd:element name="CatalogedApiVersion" type="CatalogedApiVersion"/>
  <xsd:element name="Certificate" type="Certificate"/>
  <xsd:element name="ChannelLayout" type="ChannelLayout"/>
  <xsd:element name="ChannelLayoutItem" type="ChannelLayoutItem"/>
