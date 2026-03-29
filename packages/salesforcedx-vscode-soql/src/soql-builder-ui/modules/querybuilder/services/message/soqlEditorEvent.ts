@@ -12,7 +12,9 @@ export enum MessageType {
   TEXT_SOQL_CHANGED = 'text_soql_changed',
   RUN_SOQL_QUERY = 'run_query',
   CONNECTION_CHANGED = 'connection_changed',
-  RUN_SOQL_QUERY_DONE = 'run_query_done'
+  RUN_SOQL_QUERY_DONE = 'run_query_done',
+  GET_QUERY_PLAN = 'get_query_plan',
+  GET_QUERY_PLAN_DONE = 'get_query_plan_done'
 }
 
 export type SoqlEditorEvent = {
