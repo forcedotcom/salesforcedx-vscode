@@ -7,7 +7,8 @@
       "Bash(pkill *)",
       "Bash(done)",
       "Bash(chmod:*)",
-      "Bash(WIREIT_CACHE=none npm run *)"
+      "Bash(WIREIT_CACHE=none npm run *)",
+      "Bash(sf org:*)"
     ]
   },
   "hooks": {
