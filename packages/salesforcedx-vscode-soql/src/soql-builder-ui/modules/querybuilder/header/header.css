@@ -27,9 +27,38 @@ button {
 }
 
 button:disabled {
+  position: relative;
   background-color: var(--vscode-list-inactiveSelectionBackground, var(--soql-color-medium-grey));
   cursor: not-allowed;
+}
+
+button:disabled:hover {
+  background-color: var(--vscode-list-inactiveSelectionBackground, var(--soql-color-medium-grey));
+}
+
+button:disabled::before {
+  content: 'Create a valid SOQL query to enable this button';
+  position: absolute;
+  transform: scale(0);
+  opacity: 0;
+  transition: opacity ease-in 0.2s;
+  top: calc(100% + 6px);
+  left: calc(50% - 110px);
+  width: 220px;
+  padding: 0.5rem;
+  border-radius: 3px;
+  font-size: small;
+  background: var(--vscode-editorHoverWidget-background, #1e1e1e);
+  color: var(--vscode-editorHoverWidget-foreground, #cccccc);
+  border: 1px solid var(--vscode-editorHoverWidget-border, #454545);
+  text-align: center;
   pointer-events: none;
+  z-index: 10;
+}
+
+button:disabled:hover::before {
+  transform: scale(1);
+  opacity: 1;
 }
 
 @media screen and (max-width: 750px) {
