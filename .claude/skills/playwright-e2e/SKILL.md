@@ -46,7 +46,7 @@ When running Playwright tests (`npm run test:web`, `test:desktop`, etc.), never 
 
 ## Running Full E2E Test Suite
 
-See `references/full-suite-execution.md` for complete guide on running all E2E tests locally across all 8 packages in correct dependency order with failure analysis.
+See `references/full-suite-execution.md` for complete guide on running all E2E tests locally across all 9 packages in correct dependency order with failure analysis.
 
 
 ## Disable/reenable other E2E when iterating

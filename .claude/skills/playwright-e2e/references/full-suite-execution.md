@@ -30,9 +30,11 @@ Run packages in this exact order (dependency-based):
    - web → desktop
 6. **salesforcedx-vscode-org-browser**
    - web → desktop
-7. **salesforcedx-vscode-core**
+7. **salesforcedx-vscode-soql**
+   - web → desktop
+8. **salesforcedx-vscode-core**
    - **desktop only** (no web config)
-8. **salesforcedx-vscode-apex-replay-debugger**
+9. **salesforcedx-vscode-apex-replay-debugger**
    - **desktop only** (no web config)
 
 ## Per-Package Execution Pattern
@@ -140,7 +142,7 @@ npm run test:desktop -w packages/playwright-vscode-ext
 npm run test:web -w packages/salesforcedx-vscode-services
 npm run test:desktop -w packages/salesforcedx-vscode-services
 
-# ... continue through all 8 packages
+# ... continue through all 9 packages
 ```
 
 Each command must complete and be analyzed before proceeding to the next.
