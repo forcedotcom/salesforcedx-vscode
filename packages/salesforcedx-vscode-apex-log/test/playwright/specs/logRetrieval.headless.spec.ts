@@ -25,9 +25,9 @@ import {
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
-import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+import { waitForTraceFlagStatusBar } from '../helpers';
 
 test('Log retrieval: get logs, open folder', async ({ page }) => {
   test.setTimeout(180_000);
@@ -43,6 +43,16 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
 
   await test.step('turn on trace flag (SOAP execAnon no longer creates trace; logGet needs ApexLog records)', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser'], 30_000);
+
+    // Clean up any existing trace flags first (in case previous test failed to clean up)
+    const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR);
+    const hasExistingTrace = await statusBar.filter({ hasText: /Tracing until/ }).isVisible().catch(() => false);
+    if (hasExistingTrace) {
+      await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
+      await waitForTraceFlagStatusBar(page, /No Tracing/);
+    }
+
+    // Now create the trace flag
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser']);
     await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ })).toBeVisible({
       timeout: 60_000
@@ -104,20 +114,21 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
   });
 
   await test.step('open logs folder and verify explorer', async () => {
-    await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
-    await expect(page.getByRole('heading', { name: 'Explorer' }).first()).toBeVisible({ timeout: 10_000 });
+    // Ensure Explorer is visible (may already be open)
+    const explorerHeading = page.getByRole('heading', { name: 'Explorer' }).first();
+    const isExplorerVisible = await explorerHeading.isVisible().catch(() => false);
+    if (!isExplorerVisible) {
+      await executeCommandWithCommandPalette(page, 'View: Show Explorer');
+    }
+    await expect(explorerHeading).toBeVisible({ timeout: 10_000 });
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.openLogsFolder']);
     await expect(page.locator('[id="workbench.view.explorer"]')).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'log-retrieval.explorer.png');
   });
 
   await test.step('turn off trace flag', async () => {
-    await expect(async () => {
-      await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-      await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: messages.trace_flag_inactive })).toBeVisible({
-        timeout: 5000
-      });
-    }).toPass({ timeout: 60_000 });
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
+    await waitForTraceFlagStatusBar(page, /No Tracing/);
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

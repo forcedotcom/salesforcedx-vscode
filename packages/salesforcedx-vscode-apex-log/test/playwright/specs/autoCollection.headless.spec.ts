@@ -23,6 +23,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+import { waitForTraceFlagStatusBar } from '../helpers';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -65,9 +66,7 @@ test('Auto-collection: poll interval setting, trace flag triggers collector, dis
 
   await test.step('cleanup: delete trace flag', async () => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
-      timeout: 60_000
-    });
+    await waitForTraceFlagStatusBar(page, /No Tracing/);
     await saveScreenshot(page, 'auto-collect.cleanup.png');
   });
 

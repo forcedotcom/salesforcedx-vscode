@@ -58,21 +58,41 @@ const waitForOutputContent = async (page: Page, timeout: number): Promise<boolea
  */
 const maximizeOutputPanel = async (page: Page): Promise<void> => {
   const maximizeButton = page.getByRole('button', { name: 'Maximize Panel' });
-  const isVisible = await maximizeButton.isVisible().catch(() => false);
-  if (isVisible) {
-    await maximizeButton.click();
-    // Allow layout to settle after resize
-    await page.waitForTimeout(200);
+  try {
+    // Wait for button to be visible and stable (handles race conditions)
+    await maximizeButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+      // Button not visible means panel is already maximized
+    });
+    // Ensure element is attached and stable before clicking
+    const isAttached = await maximizeButton.isVisible().catch(() => false);
+    if (isAttached) {
+      await maximizeButton.click({ timeout: 5000 });
+      // Allow layout to settle after resize
+      await page.waitForTimeout(200);
+    }
+  } catch {
+    // Ignore errors - panel may already be maximized or button detached during transition
+    // This is an idempotent operation, so failure is acceptable
   }
 };
 
 /** Restore panel to normal height (idempotent — skips if already restored). */
 const restoreOutputPanel = async (page: Page): Promise<void> => {
   const restoreButton = page.getByRole('button', { name: 'Restore Panel' });
-  const isVisible = await restoreButton.isVisible().catch(() => false);
-  if (isVisible) {
-    await restoreButton.click();
-    await page.waitForTimeout(200);
+  try {
+    // Wait for button to be visible and stable (handles race conditions)
+    await restoreButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+      // Button not visible means panel is already restored
+    });
+    // Ensure element is attached and stable before clicking
+    const isAttached = await restoreButton.isVisible().catch(() => false);
+    if (isAttached) {
+      await restoreButton.click({ timeout: 5000 });
+      await page.waitForTimeout(200);
+    }
+  } catch {
+    // Ignore errors - panel may already be restored or button detached during transition
+    // This is an idempotent operation, so failure is acceptable
   }
 };
 
@@ -245,8 +265,17 @@ export const outputChannelContains = async (
  */
 export const clearOutputChannel = async (page: Page): Promise<void> => {
   const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
-  // force: true - notification toasts overlay the output panel and intercept pointer events
-  await clearButton.click({ force: true });
+  try {
+    // Wait for button to be visible and stable (handles race conditions with panel updates)
+    await clearButton.waitFor({ state: 'visible', timeout: 5000 });
+    // Ensure element is attached and stable before clicking
+    // force: true - notification toasts overlay the output panel and intercept pointer events
+    await clearButton.click({ force: true, timeout: 5000 });
+  } catch (error) {
+    // If button not visible, output may already be clear or panel not ready
+    // Log but don't fail - this is a setup operation
+    console.warn('[clearOutputChannel] Clear button not accessible:', error);
+  }
 
   // Wait for the clear action to take effect - output should be completely empty
   const codeArea = outputPanelCodeArea(page);

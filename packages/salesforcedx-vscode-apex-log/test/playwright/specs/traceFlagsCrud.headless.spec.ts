@@ -25,6 +25,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+import { waitForTraceFlagStatusBar } from '../helpers';
 
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
 const findInEditor = async (page: Page, query: string): Promise<void> => {
@@ -131,9 +132,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
 
   await test.step('cleanup: delete current-user trace flag', async () => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
-      timeout: 60_000
-    });
+    await waitForTraceFlagStatusBar(page, /No Tracing/);
     await saveScreenshot(page, 'trace-flags.cleanup.png');
   });
 

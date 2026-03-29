@@ -10,7 +10,8 @@ import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 const serializedSpecs = [
   '**/traceFlagsCrud.headless.spec.ts',
   '**/traceFlagsForOtherUser.headless.spec.ts',
-  '**/logRetrieval.headless.spec.ts'
+  '**/logRetrieval.headless.spec.ts',
+  '**/autoCollection.headless.spec.ts'
 ];
 
 const baseConfig = createDesktopConfig();
