@@ -48,7 +48,7 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await saveScreenshot(page, 'step1.after-command.png');
 
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 500 });
+    await quickInput.waitFor({ state: 'visible', timeout: 5000 });
     await quickInput.getByText(/Enter Apex trigger name/i).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
 
