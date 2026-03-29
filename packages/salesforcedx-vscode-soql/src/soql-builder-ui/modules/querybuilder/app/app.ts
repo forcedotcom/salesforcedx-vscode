@@ -74,6 +74,7 @@ export default class App extends LightningElement {
   public isFromLoading = false;
   public isFieldsLoading = false;
   public isQueryRunning = false;
+  public isQueryPlanRunning = false;
   public dismissNotifications = false;
 
   public constructor() {
@@ -106,9 +107,14 @@ export default class App extends LightningElement {
       this.isQueryRunning = false;
     });
 
+    this.toolingSDK.queryPlanRunState.subscribe(() => {
+      this.isQueryPlanRunning = false;
+    });
+
     this.toolingSDK.noDefaultOrg.subscribe((hasNoDefaultOrg: boolean) => {
       this.hasNoDefaultOrg = hasNoDefaultOrg;
     });
+
     this.loadSObjectDefinitions();
     this.modelService.restoreViewState();
   }
@@ -256,9 +262,19 @@ export default class App extends LightningElement {
     this.dismissNotifications = true;
   }
 
+  public get isQueryValid(): boolean {
+    return Boolean(this.query.sObject) && this.query.fields.length > 0;
+  }
+
   public handleRunQuery(): void {
     this.isQueryRunning = true;
     const runQueryEvent: SoqlEditorEvent = { type: MessageType.RUN_SOQL_QUERY };
     this.messageService.sendMessage(runQueryEvent);
+  }
+
+  public handleGetQueryPlan(): void {
+    this.isQueryPlanRunning = true;
+    const planEvent: SoqlEditorEvent = { type: MessageType.GET_QUERY_PLAN };
+    this.messageService.sendMessage(planEvent);
   }
 }

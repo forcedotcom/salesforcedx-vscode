@@ -68,7 +68,13 @@ import {
   getClassMemberLocation
 } from './tag';
 import templateLinter from './template/linter';
-import TypingIndexer from './typingIndexer';
+import {
+  type TypingIndexerData,
+  createNewMetaTypings,
+  deleteStaleMetaTypings,
+  saveCustomLabelTypings,
+  initializeTypings
+} from './typingIndexer';
 
 const propertyRegex = new RegExp(/\{(?<property>\w+)\.*.*\}/);
 const iteratorRegex = new RegExp(/iterator:(?<name>\w+)/);
@@ -136,6 +142,8 @@ export abstract class BaseServer {
   public auraDataProvider!: AuraDataProvider;
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemAccessor: LspFileSystemAccessor;
+  /** Data bag used to call typing indexer functions on file-change events. Set after delayed init. */
+  private typingIndexerData: TypingIndexerData | undefined;
   protected workspaceType: WorkspaceType;
 
   constructor() {
@@ -476,6 +484,31 @@ export abstract class BaseServer {
           message: `Error updating tsconfig.sfdx.json path mapping: ${e instanceof Error ? e.message : String(e)}`
         });
       }
+
+      if (this.typingIndexerData) {
+        const { changes } = changeEvent;
+        const hasMetaChange = changes.some(
+          e =>
+            e.uri.endsWith('.resource-meta.xml') ||
+            e.uri.endsWith('.asset-meta.xml') ||
+            e.uri.endsWith('.messageChannel-meta.xml')
+        );
+        const hasLabelChange = changes.some(e => e.uri.endsWith('CustomLabels.labels-meta.xml'));
+        try {
+          if (hasMetaChange) {
+            await createNewMetaTypings(this.typingIndexerData);
+            await deleteStaleMetaTypings(this.typingIndexerData);
+          }
+          if (hasLabelChange) {
+            await saveCustomLabelTypings(this.typingIndexerData);
+          }
+        } catch (e) {
+          await this.connection.sendNotification(ShowMessageNotification.type, {
+            type: MessageType.Error,
+            message: `Error updating typings: ${e instanceof Error ? e.message : String(e)}`
+          });
+        }
+      }
     }
   }
 
@@ -742,7 +775,7 @@ export abstract class BaseServer {
       // Update data providers to use the new indexer
       this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
       this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemAccessor, this.connection);
+      this.typingIndexerData = await initializeTypings(this.workspaceRoots[0], this.fileSystemAccessor);
       this.languageService = getLanguageService({
         customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
         useDefaultDataProvider: false

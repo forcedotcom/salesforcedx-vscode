@@ -45,16 +45,16 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
           const utilsLwcPath = normalizePath(path.join(utilsPath, 'lwc'));
           const registeredLwcPath = normalizePath(path.join(registeredEmptyPath, 'lwc'));
 
-          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', lwcPath))?.length) {
+          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', lwcPath)).length > 0) {
             roots.lwc.push(lwcPath);
           }
-          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', utilsLwcPath))?.length) {
+          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', utilsLwcPath)).length > 0) {
             roots.lwc.push(utilsLwcPath);
           }
-          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', registeredLwcPath))?.length) {
+          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', registeredLwcPath)).length > 0) {
             roots.lwc.push(registeredLwcPath);
           }
-          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', auraPath))?.length) {
+          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', auraPath)).length > 0) {
             roots.aura.push(auraPath);
           }
         }
@@ -64,11 +64,11 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         const projects = await this.fileSystemAccessor.getDirectoryListing(this.workspaceRoots[0]);
         for (const project of projects) {
           const modulesDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'modules'));
-          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', modulesDir))?.length) {
+          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', modulesDir)).length > 0) {
             roots.lwc.push(...(await findLwcNamespaceRoots(modulesDir, this.fileSystemAccessor, 2)));
           }
           const auraDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'components'));
-          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', auraDir))?.length) {
+          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', auraDir)).length > 0) {
             // The components directory itself is the Aura namespace root
             // (findNamespaceRoots only detects LWC, not Aura)
             roots.aura.push(auraDir);
@@ -79,11 +79,11 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         // optimization: search only inside modules/
         for (const ws of this.workspaceRoots) {
           const modulesDir = normalizePath(path.join(ws, 'modules'));
-          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', modulesDir))?.length) {
+          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', modulesDir)).length > 0) {
             roots.lwc.push(...(await findLwcNamespaceRoots(modulesDir, this.fileSystemAccessor, 2)));
           }
           const auraDir = normalizePath(path.join(ws, 'components'));
-          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', auraDir))?.length) {
+          if ((await this.fileSystemAccessor.findFilesWithGlobAsync('**', auraDir)).length > 0) {
             // The components directory itself is the Aura namespace root
             // (findNamespaceRoots only detects LWC, not Aura)
             roots.aura.push(auraDir);
@@ -135,7 +135,7 @@ const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceCon
     for (const ext of AURA_EXTENSIONS) {
       const pattern = `*/*${ext}`;
       const found = await context.fileSystemAccessor.findFilesWithGlobAsync(pattern, root);
-      if (found?.length) allFound.push(...found);
+      if (found.length > 0) allFound.push(...found);
     }
     if (allFound.length === 0) return [];
     return allFound.filter(p => {

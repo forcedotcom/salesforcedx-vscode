@@ -12,8 +12,11 @@
       <querybuilder-header
         class={theme}
         onheader__run_query={handleRunQuery}
+        onheader__get_query_plan={handleGetQueryPlan}
         is-running={isQueryRunning}
         has-no-default-org={hasNoDefaultOrg}
+        is-query-plan-running={isQueryPlanRunning}
+        is-query-valid={isQueryValid}
       ></querybuilder-header>
     </header>
     <article class="querybuilder-body">

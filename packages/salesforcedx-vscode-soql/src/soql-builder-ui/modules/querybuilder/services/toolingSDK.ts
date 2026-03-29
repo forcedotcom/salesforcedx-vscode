@@ -20,6 +20,9 @@ export class ToolingSDK {
     false
   );
   public noDefaultOrg: Observable<boolean> = new BehaviorSubject<boolean>(false);
+  public queryPlanRunState: Observable<boolean> = new BehaviorSubject<boolean>(
+    false
+  );
   private messageService: IMessageService;
   private latestSObjectName?: string;
 
@@ -65,6 +68,10 @@ export class ToolingSDK {
         }
         case MessageType.RUN_SOQL_QUERY_DONE: {
           this.queryRunState.next(false);
+          break;
+        }
+        case MessageType.GET_QUERY_PLAN_DONE: {
+          this.queryPlanRunState.next(false);
           break;
         }
         default:
