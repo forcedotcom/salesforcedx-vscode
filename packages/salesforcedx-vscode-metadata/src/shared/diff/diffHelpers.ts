@@ -57,13 +57,9 @@ export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(fu
 
   yield* api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
 
-  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(
-    componentSet,
-    cacheDirUri
-  );
+  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(componentSet, cacheDirUri);
 
   return typeof result === 'string' ? undefined : result;
-
 });
 
 const createMatchedPair = Effect.fn('createMatchedPair')(function* (props: {
@@ -91,13 +87,7 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
   initialUris: HashSet.HashSet<HashableUri>,
   retrievedComponents: SourceComponent[]
 ) {
-  const allRemotePaths = Array.from(
-    new Set<string>(
-      retrievedComponents
-        .flatMap(component => [component.content ?? [], component.xml ?? [], ...component.walkContent()])
-        .filter(isString)
-    )
-  );
+  const allRemotePaths = Array.from(new Set<string>(retrievedComponents.flatMap(sourceComponentToPaths)));
 
   yield* Effect.annotateCurrentSpan({ allRemotePaths, initialUris: [...initialUris].map(u => u.toString()) });
 
@@ -126,3 +116,6 @@ export const filesAreNotIdentical = Effect.fn('filesAreNotIdentical')(function* 
   );
   return buffer1 !== buffer2;
 });
+
+export const sourceComponentToPaths = (component: SourceComponent) =>
+  [component.content ?? [], component.xml ?? [], ...component.walkContent()].filter(isString);

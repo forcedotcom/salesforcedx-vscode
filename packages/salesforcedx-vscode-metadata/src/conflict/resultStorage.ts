@@ -17,6 +17,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { MissingDefaultOrgError } from '../shared/diff/diffErrors';
+import { getFileProperties } from './shared';
 
 /** One metadata component within a stored result file. lastModifiedDate is the server-reported
  * value for retrieves, or the client timestamp at deploy time (DeployResult lacks per-component dates). */
@@ -107,10 +108,7 @@ export const maybeStoreDeployResult = Effect.fn('resultStorage.maybeStoreDeployR
 /** Store retrieve result JSON. Uses lastModifiedDate from fileProperties per component. */
 export const storeRetrieveResult = Effect.fn('resultStorage.storeRetrieveResult')(function* (result: RetrieveResult) {
   const timestamp = DateTime.unsafeMake(new Date());
-  const fileProps = Array.isArray(result.response.fileProperties)
-    ? result.response.fileProperties
-    : [result.response.fileProperties];
-  const components = fileProps.map(fp => toStoredComponent(fp.type, fp.fullName, fp.lastModifiedDate));
+  const components = getFileProperties(result).map(fp => toStoredComponent(fp.type, fp.fullName, fp.lastModifiedDate));
   yield* storeResult('retrieve', components, timestamp);
 });
 

@@ -7,29 +7,28 @@
 
 import type { DiffFilePair } from '../shared/diff/diffTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve';
+import type { ComponentSet, FileProperties } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import {
   filesAreNotIdentical,
   matchUrisToComponents,
   pathsToHashableUris,
-  retrieveToCacheDirectory
+  retrieveToCacheDirectory,
+  sourceComponentToPaths
 } from '../shared/diff/diffHelpers';
 import { buildTimestampIndex } from './resultStorage';
+import { getFileProperties } from './shared';
 
 const componentKey = (type: string, fullName: string) => `${type}:${fullName}`;
 
 const dateIsNewer = (remote: string, stored: DateTime.Utc) =>
   new Date(remote).getTime() > DateTime.toEpochMillis(stored);
 
-type FileProperty = { type: string; fullName: string; lastModifiedDate?: string };
-
 const computePotentialConflictKeys = Effect.fn('conflictDetection.computePotentialConflictKeys')(function* (
-  fileProperties: FileProperty[]
+  fileProperties: FileProperties[]
 ) {
   const timestampIndex = yield* buildTimestampIndex();
   return fileProperties.reduce<Set<string>>((acc, fp) => {
@@ -45,15 +44,7 @@ const computePotentialConflictKeys = Effect.fn('conflictDetection.computePotenti
 
 /** Get local file paths from componentSet source components */
 const getLocalPathsFromComponentSet = (componentSet: ComponentSet): string[] =>
-  Array.from(
-    new Set<string>(
-      componentSet
-        .getSourceComponents()
-        .toArray()
-        .flatMap((c: SourceComponent) => [c.content, c.xml, ...(c.walkContent?.() ?? [])])
-        .filter(isString)
-    )
-  );
+  Array.from(new Set<string>(componentSet.getSourceComponents().toArray().flatMap(sourceComponentToPaths)));
 
 /**
  * Detect conflicts for non-tracking orgs using timestamps.
@@ -91,11 +82,7 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
     );
   }
 
-  const potentialConflictKeys = yield* computePotentialConflictKeys(
-    Array.isArray(retrieveResult.response.fileProperties)
-      ? retrieveResult.response.fileProperties
-      : [retrieveResult.response.fileProperties]
-  );
+  const potentialConflictKeys = yield* computePotentialConflictKeys(getFileProperties(retrieveResult));
 
   if (potentialConflictKeys.size === 0) return [] satisfies DiffFilePair[];
 
@@ -105,8 +92,7 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
         .getSourceComponents()
         .toArray()
         .filter(c => potentialConflictKeys.has(componentKey(c.type.name, c.fullName)))
-        .flatMap(c => [c.content, c.xml, ...(c.walkContent?.() ?? [])])
-        .filter(isString)
+        .flatMap(sourceComponentToPaths)
     )
   ];
 
