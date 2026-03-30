@@ -5,13 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const APEX_CLASS_NAME_MAX_LENGTH = 40;
-
 export const PASS_RESULT = 'Pass';
 export const FAIL_RESULT = 'Fail';
 export const SKIP_RESULT = 'Skip';
 export const APEX_CLASS_EXT = '.cls';
-export const APEX_TESTSUITE_EXT = '.testSuite-meta.xml';
 export const IS_TEST_REG_EXP = /@isTest/i;
 
 // Test item ID prefixes

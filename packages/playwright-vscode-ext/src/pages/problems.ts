@@ -12,7 +12,6 @@ import { executeCommandWithCommandPalette } from './commands';
 const PROBLEMS_VIEW = '[id="workbench.panel.markers"]';
 /** Rows that represent actual diagnostics (have severity icon). Tree parent rows (file groups) do not. */
 const PROBLEMS_ERROR_ROW = `${PROBLEMS_VIEW} .monaco-list-row .codicon-error`;
-const PROBLEMS_FILTER_INPUT = 'input[aria-label="Filter Problems"]';
 
 /** Opens the Problems view (idempotent). Uses command palette to focus Problems. */
 export const ensureProblemsViewOpen = async (page: Page): Promise<void> => {
@@ -32,17 +31,6 @@ export const getProblemsCount = async (page: Page): Promise<number> => {
   return rows.count();
 };
 
-/** Clears Problems view filter so diagnostics count is not masked by stale text. */
-export const clearProblemsFilter = async (page: Page): Promise<void> => {
-  await ensureProblemsViewOpen(page);
-  const input = page.locator(PROBLEMS_FILTER_INPUT).first();
-  if (!(await input.isVisible().catch(() => false))) {
-    return;
-  }
-  await input.focus();
-  await input.fill('');
-};
-
 const assertProblemsCount = async (
   page: Page,
   check: (count: number) => void,
@@ -50,7 +38,6 @@ const assertProblemsCount = async (
 ): Promise<void> => {
   const { timeout = 10_000 } = opts ?? {};
   await ensureProblemsViewOpen(page);
-  await clearProblemsFilter(page);
   await expect(async () => {
     const count = await getProblemsCount(page);
     check(count);

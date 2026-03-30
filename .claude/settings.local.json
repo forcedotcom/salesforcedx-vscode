@@ -8,7 +8,9 @@
       "Bash(done)",
       "Bash(chmod:*)",
       "Bash(WIREIT_CACHE=none npm run *)",
-      "Bash(sf org:*)"
+      "Bash(sf org:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(npx knip:*)"
     ]
   },
   "hooks": {

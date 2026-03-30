@@ -32,11 +32,6 @@ const getSynchronizeFileEvents = () => [
   workspace.createFileSystemWatcher('**/', false, true, false)
 ];
 
-export const sharedUriConverters = {
-  code2Protocol: code2ProtocolConverter,
-  protocol2Code: protocol2CodeConverter
-};
-
 export type LwcInitializationOptions = {
   workspaceType: WorkspaceType;
   /** URI of the extension's sfdx typings directory. The server reads lds.d.ts and messageservice.d.ts from here. */
@@ -49,5 +44,8 @@ export const getBaseClientOptions = (initializationOptions: LwcInitializationOpt
     fileEvents: getSynchronizeFileEvents()
   },
   initializationOptions,
-  uriConverters: sharedUriConverters
+  uriConverters: {
+    code2Protocol: code2ProtocolConverter,
+    protocol2Code: protocol2CodeConverter
+  }
 });
