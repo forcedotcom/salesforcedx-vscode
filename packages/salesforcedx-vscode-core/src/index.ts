@@ -261,14 +261,18 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     CommandEventDispatcher.getInstance()
   );
 
-  const workspaceFolders = vscode.workspace.workspaceFolders;
-  if (metadataExtension && workspaceFolders?.length) {
-    // Refresh SObject definitions if there aren't any faux classes (metadata ext registers the command)
+  if (
+    metadataExtension &&
+    salesforceProjectOpened &&
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    // Refresh SObject definitions only for an open Salesforce project
+    // when faux classes are missing (metadata extension registers the command).
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
-
-    await initSObjectDefinitions(workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
+    await initSObjectDefinitions(vscode.workspace.workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
   }
 
   void activateTracker.markActivationStop();
