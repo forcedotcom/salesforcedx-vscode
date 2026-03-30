@@ -115,6 +115,7 @@ export default [
       effect: effectPlugin
     },
     rules: {
+      'local/no-vscode-uri': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -582,7 +583,6 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
-      'local/no-vscode-uri': 'error',
 
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',

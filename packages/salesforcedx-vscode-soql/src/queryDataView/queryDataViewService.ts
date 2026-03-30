@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { Utils } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
@@ -32,7 +32,7 @@ import { FileFormat, QueryDataFileService as FileService } from './queryDataFile
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
-const getWebViewContent = async (webview: vscode.Webview, extensionUri: vscode.Uri): Promise<string> => {
+const getWebViewContent = async (webview: vscode.Webview, extensionUri: URI): Promise<string> => {
   const baseStyleUri = webview.asWebviewUri(
     Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
   );
@@ -80,7 +80,7 @@ type DataViewEvent = {
 
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
-  public static extensionUri: vscode.Uri;
+  public static extensionUri: URI;
   private queryText: string;
 
   constructor(

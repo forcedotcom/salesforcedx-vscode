@@ -9,6 +9,7 @@ import { PackageJson } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 // These unit tests check that specified dependencies in package.json do not use
 // ^ or ~ in the version range, either because those packages do not use semver
@@ -21,7 +22,7 @@ const exemptedPackages = new Set(['@salesforce/core']);
 // Helper functions for async file operations
 const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
   try {
-    const fileBuffer = await vscode.workspace.fs.readFile(vscode.Uri.file(jsonFilePath));
+    const fileBuffer = await vscode.workspace.fs.readFile(URI.file(jsonFilePath));
     const fileContent = Buffer.from(fileBuffer).toString('utf8');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(fileContent);
@@ -32,7 +33,7 @@ const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknow
 
 const checkFileExists = async (filePath: string): Promise<boolean> => {
   try {
-    await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
+    await vscode.workspace.fs.stat(URI.file(filePath));
     return true;
   } catch {
     return false;

@@ -6,11 +6,12 @@
  */
 import { isAbsolute } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 expect.extend({
     toExist: async (path: string) => {
         try {
-            await vscode.workspace.fs.stat(vscode.Uri.file(path));
+            await vscode.workspace.fs.stat(URI.file(path));
             return {
                 message: () => `expected ${path} not to exist`,
                 pass: true,

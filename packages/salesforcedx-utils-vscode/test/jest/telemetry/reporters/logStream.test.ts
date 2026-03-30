@@ -6,6 +6,7 @@
  */
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '../../../../src';
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 
@@ -57,7 +58,7 @@ describe('LogStream', () => {
     expect(writeFileSpy).toHaveBeenCalledTimes(2);
 
     // Verify the URI for both calls
-    const expectedUri = vscode.Uri.file(expectedPath);
+    const expectedUri = URI.file(expectedPath);
     expect(writeFileSpy.mock.calls[0][0].fsPath).toBe(expectedUri.fsPath);
     expect(writeFileSpy.mock.calls[1][0].fsPath).toBe(expectedUri.fsPath);
 
@@ -81,7 +82,7 @@ describe('LogStream', () => {
     expect(writeFileSpy).toHaveBeenCalledTimes(2);
 
     // Verify the URI for both calls
-    const expectedUri = vscode.Uri.file(expectedPath);
+    const expectedUri = URI.file(expectedPath);
     expect(writeFileSpy.mock.calls[0][0].fsPath).toBe(expectedUri.fsPath);
     expect(writeFileSpy.mock.calls[1][0].fsPath).toBe(expectedUri.fsPath);
 

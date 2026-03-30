@@ -15,13 +15,14 @@
  *
  * Used by both salesforcedx-vscode-lwc and salesforcedx-vscode-lightning (Aura).
  */
-import { Uri, workspace } from 'vscode';
+import { workspace } from 'vscode';
 import {
   TextDocumentEdit as TDE,
   type ApplyWorkspaceEditParams,
   type ApplyWorkspaceEditResult,
   type TextDocumentEdit
 } from 'vscode-languageserver-protocol';
+import { URI } from 'vscode-uri';
 
 export { ApplyWorkspaceEditRequest } from 'vscode-languageserver-protocol';
 
@@ -49,8 +50,9 @@ export const handleApplyEditWithFs = async (
         if (edits.length === 0) continue;
         // Server sends a single insert at (0,0) with full content for create/write
         const content = edits.map(e => e.newText).join('');
-        const vsUri = Uri.parse(uriStr);
-        const parentUri = Uri.joinPath(vsUri, '..');
+        const vsUri = URI.parse(uriStr);
+        const parentPath = vsUri.path.replace(/\/[^/]+$/, '') || '/';
+        const parentUri = vsUri.with({ path: parentPath });
         await workspace.fs.createDirectory(parentUri);
         await workspace.fs.writeFile(vsUri, new TextEncoder().encode(content));
       }

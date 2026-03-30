@@ -6,7 +6,8 @@
  */
 import { EOL } from 'node:os';
 import { sep } from 'node:path';
-import { ExtensionContext, Uri, workspace } from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
+import { URI } from 'vscode-uri';
 import {
   getExtensionHostLogActivationRecords,
   getExtensionHostLogLocation,
@@ -68,7 +69,7 @@ describe('getExtensionHostLogLocation', () => {
       logUri
     } as unknown as ExtensionContext;
     const result = getExtensionHostLogLocation(context);
-    expect(result).toEqual(Uri.file(fixPath('/path/to/exthost')));
+    expect(result).toEqual(URI.file(fixPath('/path/to/exthost')));
   });
 
   it('should return undefined if exthost directory not found', () => {

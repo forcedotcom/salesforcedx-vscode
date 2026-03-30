@@ -8,6 +8,7 @@
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { PackageJson } from '../types/packageJson';
 
 // These unit tests check that specified dependencies in package.json do not use
@@ -20,7 +21,7 @@ const exemptedPackages = new Set(['@salesforce/core']);
 
 const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
   try {
-    const content = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(jsonFilePath))).toString('utf8');
+    const content = Buffer.from(await vscode.workspace.fs.readFile(URI.file(jsonFilePath))).toString('utf8');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(content);
   } catch (e) {
@@ -30,7 +31,7 @@ const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknow
 
 const checkFileExists = async (filePath: string): Promise<boolean> => {
   try {
-    await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
+    await vscode.workspace.fs.stat(URI.file(filePath));
     return true;
   } catch {
     return false;

@@ -7,6 +7,7 @@
 import { PackageJson } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 // These unit tests check that specified dependencies in package.json do not use
 // ^ or ~ in the version range, either because those packages do not use semver
@@ -18,7 +19,7 @@ const exemptedPackages = new Set(['@salesforce/core']);
 
 const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {
     try {
-        const uri = vscode.Uri.file(jsonFilePath);
+        const uri = URI.file(jsonFilePath);
         const content = await vscode.workspace.fs.readFile(uri);
         const textContent = new TextDecoder().decode(content);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -31,7 +32,7 @@ const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknow
 /** Check if a file exists using VS Code workspace APIs */
 const pathExists = async (filePath: string): Promise<boolean> => {
     try {
-        const uri = vscode.Uri.file(filePath);
+        const uri = URI.file(filePath);
         await vscode.workspace.fs.stat(uri);
         return true;
     } catch {
@@ -59,7 +60,7 @@ const setupTestData = async (): Promise<PackageJson> => {
                     const baseDir = packageGlob.slice(0, -2);
                     const baseDirPath = path.join(monorepoRootPath, baseDir);
                     try {
-                        const uri = vscode.Uri.file(baseDirPath);
+                        const uri = URI.file(baseDirPath);
                         const entries = await vscode.workspace.fs.readDirectory(uri);
                         const matchPromises = entries.map(async ([name, type]) => {
                             if (type === vscode.FileType.Directory) {
