@@ -60,6 +60,11 @@ const updateDisplay =
     statusBarItem.show();
   };
 
+/** Helper to read polling interval config */
+const getPollingIntervalSeconds = (): number =>
+  vscode.workspace.getConfiguration('salesforcedx-vscode-metadata')
+    .get<number>('sourceTracking.pollingIntervalSeconds', 60);
+
 /** Create and initialize source tracking status bar */
 export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStatusBar')(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -75,6 +80,18 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
 
     const targetOrgRef = yield* api.services.TargetOrgRef();
+
+    // Setup dynamic polling interval that responds to config changes
+    const settingsWatcher = yield* api.services.SettingsWatcherService;
+    const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(getPollingIntervalSeconds()));
+
+    // Watch setting changes to update poll frequency dynamically
+    yield* Effect.fork(
+      Stream.fromPubSub(settingsWatcher.pubsub).pipe(
+        Stream.filter(event => event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds')),
+        Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollingIntervalSeconds())))
+      )
+    );
     const orgChangeStream = Stream.concat(
       Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), // if initial state has already been set
       targetOrgRef.changes // ongoing org changes
@@ -93,11 +110,25 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
       Stream.as('orgChange')
     );
 
+    // Dynamic poll stream that restarts when interval changes
+    const dynamicPollStream = Stream.concat(
+      Stream.make(yield* SubscriptionRef.get(pollIntervalRef)),
+      pollIntervalRef.changes
+    ).pipe(
+      Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
+      Stream.flatMap(
+        interval => Stream.fromSchedule(Schedule.fixed(interval)).pipe(
+          Stream.filter(() => vscode.window.state.active)
+        ),
+        { switch: true } // Restart schedule when interval changes
+      )
+    );
+
     const fileChangeStream = Stream.merge(
       // Subscribe to file changes TODO: maybe filter out some changes by type or uri
       Stream.fromQueue(dequeue).pipe(Stream.debounce(Duration.millis(500))),
-      // poll for remote changes TODO: make this a configurable Setting for polling frequency
-      Stream.fromSchedule(Schedule.fixed(Duration.minutes(1))).pipe(Stream.filter(() => vscode.window.state.active))
+      // Poll for remote changes with configurable interval
+      dynamicPollStream
     ).pipe(
       Stream.debounce(Duration.millis(500)),
       // we don't care about file events if source tracking is not enabled

@@ -49,6 +49,7 @@
     "test:web:debug": "npm run test:web -- --debug",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:conflicts": "playwright test --config=playwright.config.desktop.ts --project=conflicts",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -280,6 +281,12 @@
           "type": "boolean",
           "default": false,
           "description": "%conflict_detection_enabled_description%"
+        },
+        "salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds": {
+          "type": "number",
+          "default": 60,
+          "minimum": 0,
+          "description": "%source_tracking_polling_interval_description%"
         }
       }
     },
