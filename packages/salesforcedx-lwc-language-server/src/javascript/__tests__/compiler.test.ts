@@ -14,6 +14,21 @@ import { Metadata } from '../../decorators/lwcDecorators';
 import { compileDocument, compileSource, getMethods, getProperties, getClassMembers } from '../compiler';
 import { mapLwcMetadataToInternal } from '../typeMapping';
 
+let mockTransformSyncError: Error | null = null;
+
+jest.mock('@lwc/compiler', () => {
+  const actual = jest.requireActual('@lwc/compiler') as Record<string, unknown>;
+  return {
+    ...actual,
+    transformSync: (...args: unknown[]) => {
+      if (mockTransformSyncError) {
+        throw mockTransformSyncError;
+      }
+      return (actual.transformSync as Function)(...args);
+    }
+  };
+});
+
 const getDecoratorsTargets = (metadata: Metadata, elementType: string, targetType: string): ClassMember[] => {
   const props: ClassMember[] = [];
   if (metadata.decorators) {
@@ -116,6 +131,28 @@ it('displays an error for a component with other errors', () => {
       character: MAX_32BIT_INTEGER
     }
   });
+});
+
+it('does not include URL or codeDescription when error has no url', () => {
+  const result = compileSource(codeError, 'foo.js');
+  const [diagnostic] = result.diagnostics!;
+  expect(diagnostic.message).not.toContain('More Details:');
+  expect(diagnostic.codeDescription).toBeUndefined();
+});
+
+it('includes URL in message and codeDescription when error has url', () => {
+  mockTransformSyncError = Object.assign(
+    new Error('foo.js: LWC1099: Boolean public property must default to false.\n> 5 |     @api property = true;\n    |     ^'),
+    { code: 1099, location: { line: 5, column: 4 }, level: 1, url: 'https://lwc.dev/guide/reference#lwc1099' }
+  );
+
+  const result = compileSource(codeError, 'foo.js');
+  const [diagnostic] = result.diagnostics!;
+  expect(diagnostic.message).toContain('More Details: https://lwc.dev/guide/reference#lwc1099');
+  expect(diagnostic.code).toBe(1099);
+  expect(diagnostic.codeDescription).toEqual({ href: 'https://lwc.dev/guide/reference#lwc1099' });
+
+  mockTransformSyncError = null;
 });
 
 it('compileDocument returns list of javascript syntax errors', () => {

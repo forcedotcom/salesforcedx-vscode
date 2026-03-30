@@ -2,7 +2,7 @@ module.exports = {
   displayName: 'unit',
   transform: {
     '.ts': 'ts-jest',
-    'node_modules/@lwc/.+\\.js$': 'ts-jest'
+    'node_modules/@lwc/.+\\.js$': ['babel-jest', { plugins: ['@babel/plugin-transform-modules-commonjs'] }]
   },
   transformIgnorePatterns: ['node_modules/(?!@lwc/)'],
   testRegex: 'src/.*(\\.|/)(test|spec)\\.(ts|js)$',
