@@ -60,7 +60,7 @@ const lintLwcMarkup = (document: TextDocument): Diagnostic[] => {
         const { start = 0, length = 0 } = warning.location ?? { start: 0, length: 0 };
         const diagnostic: Diagnostic = {
             range: toRange(document, start, length),
-            message: warning.url ? `${warning.message}\nRef: ${warning.url}` : warning.message,
+            message: warning.url ? `${warning.message}\nMore Details: ${warning.url}` : warning.message,
             severity: LEVEL_MAPPING.get(warning.level),
             source: DIAGNOSTIC_SOURCE,
         };
