@@ -45,8 +45,8 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
                         ? SfTemplates.VisualforcePageOptions
                         : T extends SfTemplates.TemplateType.StaticResource
                           ? SfTemplates.StaticResourceOptions
-                          : T extends SfTemplates.TemplateType.WebApplication
-                            ? SfTemplates.WebApplicationOptions
+                          : T extends SfTemplates.TemplateType.UIBundle
+                            ? SfTemplates.UIBundleOptions
                             : SfTemplates.TemplateOptions;
 
 /** Params for create - templateType discriminates which options are required */
