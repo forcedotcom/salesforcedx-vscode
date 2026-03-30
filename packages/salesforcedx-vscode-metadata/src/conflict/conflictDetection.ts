@@ -10,14 +10,10 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import {
-  filesAreNotIdentical,
-  matchUrisToComponents,
-  pathsToHashableUris,
-  retrieveToCacheDirectory
-} from '../shared/diff/diffHelpers';
+import { filesAreNotIdentical, matchUrisToComponents, retrieveToCacheDirectory } from '../shared/diff/diffHelpers';
 import { ConflictDetectionFailedError } from './conflictErrors';
 
 /**
@@ -30,8 +26,8 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
   componentSet?: ComponentSet
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [sourceTrackingService, componentSetService] = yield* Effect.all(
-    [api.services.SourceTrackingService, api.services.ComponentSetService],
+  const [sourceTrackingService, componentSetService, HashableUri] = yield* Effect.all(
+    [api.services.SourceTrackingService, api.services.ComponentSetService, api.services.FsService.HashableUri],
     { concurrency: 'unbounded' }
   );
 
@@ -54,17 +50,19 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
           .map(c => `${c.type.name}:${c.fullName}`)
       )
     : null;
-  const relevant = componentMembers
-    ? allConflicts.filter(c => c.type && c.name && componentMembers.has(`${c.type}:${c.name}`))
-    : allConflicts;
-  const filePaths = relevant.flatMap(c => c.filenames ?? []).filter(isString);
 
-  if (filePaths.length === 0) return [] satisfies DiffFilePair[];
-
-  const uris = yield* Effect.all(
-    filePaths.map(p => api.services.FsService.toUri(p)),
-    { concurrency: 'unbounded' }
+  const uris = yield* Stream.fromIterable(allConflicts).pipe(
+    Stream.filter(c =>
+      componentMembers ? isString(c.type) && isString(c.name) && componentMembers.has(`${c.type}:${c.name}`) : true
+    ),
+    Stream.mapConcat(c => c.filenames ?? []),
+    Stream.filter(isString),
+    Stream.mapEffect(p => api.services.FsService.toUri(p)),
+    Stream.runCollect,
+    Effect.map(Chunk.toArray)
   );
+  if (uris.length === 0) return [] satisfies DiffFilePair[];
+
   const filteredComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(
     yield* componentSetService.getComponentSetFromUris(uris)
   );
@@ -72,15 +70,10 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
   const retrieveResult = yield* retrieveToCacheDirectory(filteredComponentSet);
   if (!retrieveResult) return [] satisfies DiffFilePair[];
 
-  const hashableUris = yield* pathsToHashableUris(filePaths);
   const retrievedComponents = retrieveResult.components.getSourceComponents().toArray();
-  const pairsSet = yield* matchUrisToComponents(hashableUris, retrievedComponents);
 
-  const differing = yield* pairsSet.pipe(
-    Stream.fromIterable,
-    Stream.filterEffect(filesAreNotIdentical),
-    Stream.runCollect
-  );
-
-  return Chunk.toArray(differing);
+  return yield* (yield* matchUrisToComponents(
+    HashSet.fromIterable(uris.map(uri => HashableUri.fromUri(uri))),
+    retrievedComponents
+  )).pipe(Stream.fromIterable, Stream.filterEffect(filesAreNotIdentical), Stream.runCollect, Effect.map(Chunk.toArray));
 });

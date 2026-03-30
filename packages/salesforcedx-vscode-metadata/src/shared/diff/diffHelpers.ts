@@ -10,6 +10,7 @@ import type { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { isNotUndefined, isString } from 'effect/Predicate';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
@@ -19,11 +20,12 @@ import { nls } from '../../messages';
 export const pathsToHashableUris = Effect.fn('pathsToHashableUris')(function* (paths: string[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = yield* api.services.FsService;
-  const uris = yield* Effect.all(
-    paths.map(p => api.services.FsService.toUri(p)),
-    { concurrency: 'unbounded' }
+  return yield* Stream.fromIterable(paths).pipe(
+    Stream.mapEffect(p => api.services.FsService.toUri(p)),
+    Stream.map(uri => fsService.HashableUri.fromUri(uri)),
+    Stream.runCollect,
+    Effect.map(HashSet.fromIterable)
   );
-  return HashSet.fromIterable(uris.map(uri => fsService.HashableUri.fromUri(uri)));
 });
 
 import { MissingDefaultOrgError } from './diffErrors';
@@ -91,20 +93,14 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
 
   yield* Effect.annotateCurrentSpan({ allRemotePaths, initialUris: [...initialUris].map(u => u.toString()) });
 
-  const values = [
-    ...initialUris.pipe(
-      HashSet.map(initialUri => ({ initialUri, fileName: Utils.basename(initialUri) })),
-      HashSet.filter(i => isNotUndefined(i.fileName)),
-      HashSet.toValues
-    )
-  ];
-  const rawPairs = yield* Effect.all(
-    values.map(v => createMatchedPair({ allRemotePaths, initialUri: v.initialUri, fileName: v.fileName })),
-    { concurrency: 'unbounded' }
+  return yield* Stream.fromIterable(initialUris).pipe(
+    Stream.map(initialUri => ({ initialUri, fileName: Utils.basename(initialUri) })),
+    Stream.filter(i => isNotUndefined(i.fileName)),
+    Stream.mapEffect(i => createMatchedPair({ allRemotePaths, initialUri: i.initialUri, fileName: i.fileName })),
+    Stream.filter(isDiffFilePair),
+    Stream.runCollect,
+    Effect.map(HashSet.fromIterable)
   );
-  const pairsByLocalUri = rawPairs.filter(isDiffFilePair);
-
-  return HashSet.fromIterable(pairsByLocalUri);
 });
 
 /** Check if two files differ in content */

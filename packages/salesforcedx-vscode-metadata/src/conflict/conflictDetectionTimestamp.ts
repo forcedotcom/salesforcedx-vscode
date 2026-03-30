@@ -34,9 +34,8 @@ const computePotentialConflictKeys = Effect.fn('conflictDetection.computePotenti
   return fileProperties.reduce<Set<string>>((acc, fp) => {
     const key = componentKey(fp.type, fp.fullName);
     const stored = timestampIndex.get(key);
-    const remoteDate = fp.lastModifiedDate;
-    if (!remoteDate) return acc;
-    const isConflict = !stored || dateIsNewer(remoteDate, stored);
+    if (!fp.lastModifiedDate) return acc;
+    const isConflict = !stored || dateIsNewer(fp.lastModifiedDate, stored);
     if (isConflict) acc.add(key);
     return acc;
   }, new Set());
