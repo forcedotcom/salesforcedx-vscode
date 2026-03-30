@@ -14,7 +14,6 @@ import * as HashSet from 'effect/HashSet';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import { filesAreNotIdentical, matchUrisToComponents, retrieveToCacheDirectory } from '../shared/diff/diffHelpers';
-import { ConflictDetectionFailedError } from './conflictErrors';
 
 /**
  * Detect conflicts for tracking orgs: get conflicts from SourceTracking,
@@ -31,29 +30,11 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
     { concurrency: 'unbounded' }
   );
 
-  const tracking = yield* sourceTrackingService.getSourceTrackingOrThrow();
-
-  const allConflicts = yield* Effect.tryPromise({
-    try: () => tracking.getConflicts(),
-    catch: e =>
-      new ConflictDetectionFailedError({
-        message: e instanceof Error ? e.message : String(e),
-        cause: e
-      })
-  });
-
-  const componentMembers = componentSet
-    ? new Set(
-        componentSet
-          .getSourceComponents()
-          .toArray()
-          .map(c => `${c.type.name}:${c.fullName}`)
-      )
-    : null;
-
-  const uris = yield* Stream.fromIterable(allConflicts).pipe(
-    Stream.filter(c =>
-      componentMembers ? isString(c.type) && isString(c.name) && componentMembers.has(`${c.type}:${c.name}`) : true
+  const uris = yield* sourceTrackingService.getConflicts().pipe(
+    Stream.fromIterableEffect,
+    Stream.filter(
+      c =>
+        !componentSet || (isString(c.type) && isString(c.name) && componentSet.has({ type: c.type, fullName: c.name }))
     ),
     Stream.mapConcat(c => c.filenames ?? []),
     Stream.filter(isString),
@@ -63,11 +44,10 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
   );
   if (uris.length === 0) return [] satisfies DiffFilePair[];
 
-  const filteredComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-    yield* componentSetService.getComponentSetFromUris(uris)
-  );
+  const retrieveResult = yield* componentSetService
+    .getComponentSetFromUris(uris)
+    .pipe(Effect.flatMap(componentSetService.ensureNonEmptyComponentSet), Effect.flatMap(retrieveToCacheDirectory));
 
-  const retrieveResult = yield* retrieveToCacheDirectory(filteredComponentSet);
   if (!retrieveResult) return [] satisfies DiffFilePair[];
 
   const retrievedComponents = retrieveResult.components.getSourceComponents().toArray();

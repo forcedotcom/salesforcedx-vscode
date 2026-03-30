@@ -66,18 +66,9 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
   );
 
   if (!ignoreConflicts) {
-    const tracking = yield* sourceTrackingService.getSourceTracking({ ignoreConflicts: false });
-    if (tracking) {
-      yield* Effect.all(
-        [
-          Effect.promise(() => tracking.reReadLocalTrackingCache()),
-          Effect.promise(() => tracking.reReadRemoteTracking())
-        ],
-        { concurrency: 'unbounded' }
-      );
-      const conflicts = yield* Effect.tryPromise(() => tracking.getConflicts()).pipe(
-        Effect.withSpan('STL.GetConflicts')
-      );
+    const hasTracking = yield* sourceTrackingService.hasTracking();
+    if (hasTracking) {
+      const conflicts = yield* sourceTrackingService.getConflicts();
       const deployedMembers = new Set(
         componentSet
           .getSourceComponents()

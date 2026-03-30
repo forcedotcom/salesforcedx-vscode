@@ -18,32 +18,24 @@ import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separat
 import { buildCombinedHoverText } from './hover';
 
 /** Refresh the status bar's data using data from tracking service */
-const refresh = (statusBarItem: vscode.StatusBarItem) =>
-  Effect.gen(function* () {
+const refresh = Effect.fn('statusBarRefresh')(
+  function* (statusBarItem: vscode.StatusBarItem) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const sourceTrackingService = yield* api.services.SourceTrackingService;
 
-    const tracking = yield* sourceTrackingService.getSourceTracking();
+    const hasTracking = yield* sourceTrackingService.hasTracking();
 
-    if (!tracking) {
+    if (!hasTracking) {
       statusBarItem.hide();
       void vscode.commands.executeCommand('setContext', 'sf:has_conflicts', false);
       return;
     }
 
-    yield* Effect.all(
-      [
-        Effect.promise(() => tracking.reReadLocalTrackingCache()),
-        Effect.promise(() => tracking.reReadRemoteTracking())
-      ],
-      { concurrency: 'unbounded' }
-    );
-    const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
+    const status = yield* sourceTrackingService.getStatus({ local: true, remote: true });
     updateDisplay(statusBarItem)(dedupeStatus(status));
-  }).pipe(
-    Effect.withSpan('statusBarRefresh'),
-    Effect.catchAll(() => Effect.succeed(undefined)) // ignore errors in refresh
-  );
+  },
+  Effect.catchAll(() => Effect.void) // ignore errors in refresh
+);
 
 /** Update the status bar display */
 const updateDisplay =
@@ -69,8 +61,7 @@ const updateDisplay =
   };
 
 /** Create and initialize source tracking status bar */
-export const createSourceTrackingStatusBar = () =>
-  Effect.gen(function* () {
+export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStatusBar')(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
 
@@ -130,4 +121,4 @@ export const createSourceTrackingStatusBar = () =>
     );
     yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
     yield* Effect.sleep(Duration.infinity); // persist the ui component until the extensionscope closes
-  });
+});

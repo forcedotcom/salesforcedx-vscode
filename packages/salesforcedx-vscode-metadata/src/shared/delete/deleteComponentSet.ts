@@ -13,33 +13,21 @@ import { nls } from '../../messages';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';
 import { DeleteSourceFailedError } from './deleteErrors';
 
-/** Check for conflicts if source-tracked */
-const maybeCheckConflicts = Effect.fn('deleteComponentSet:checkConflicts')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const tracking = yield* api.services.SourceTrackingService.getSourceTracking();
-
-  if (!tracking) {
-    return; // Not source-tracked, no conflict check needed
-  }
-
-  // Use service method to check conflicts (displays in channel and returns typed error)
-  yield* api.services.SourceTrackingService.checkConflicts(tracking);
-});
-
 /** Delete a ComponentSet, handling conflict checking, cancellation, and local file deletion */
 export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
 }) {
   const { componentSet } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, componentSetService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.ComponentSetService],
+  const [channelService, componentSetService, sourceTrackingService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.ComponentSetService, api.services.SourceTrackingService],
     { concurrency: 'unbounded' }
   );
 
   // Check for conflicts if source-tracked
-  // TODO: we should only care if the conflicts are on the components we're deleting, not all components in the project
-  yield* maybeCheckConflicts();
+  if (yield* sourceTrackingService.hasTracking()) {
+    yield* sourceTrackingService.checkConflicts();
+  }
 
   // Mark components for deletion
   const deleteSet = yield* api.services.MetadataDeleteService.markComponentsForDeletion(componentSet);

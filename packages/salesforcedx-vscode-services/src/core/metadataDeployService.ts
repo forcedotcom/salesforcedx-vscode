@@ -44,22 +44,17 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* (
       options?: SourceTrackingOptions
     ) {
-      const tracking = yield* trackingService.getSourceTracking(options);
-      if (!tracking) {
+      const hasTracking = yield* trackingService.hasTracking();
+      if (!hasTracking) {
         return yield* Effect.die(
           'Source tracking not enabled.  The command should not have appeared in the Command Palette.'
         );
       }
-      yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
-        Effect.withSpan('STL.ReReadLocalTrackingCache')
-      );
 
       if (!options?.ignoreConflicts) {
-        yield* trackingService.checkConflicts(tracking);
+        yield* trackingService.checkConflicts();
       }
-      const localComponentSets = yield* Effect.tryPromise(() => tracking.localChangesAsComponentSet(false)).pipe(
-        Effect.withSpan('STL.LocalChangesAsComponentSet')
-      );
+      const localComponentSets = yield* trackingService.getLocalChangesAsComponentSet();
 
       yield* Effect.annotateCurrentSpan({
         files: localComponentSets
@@ -135,8 +130,8 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
       if (deployOutcome.response?.status === RequestStatus.Succeeded) {
         yield* trackingService
-          .updateTrackingFromDeploy(deployOutcome)
-          .pipe(Effect.withSpan('MetadataDeployService.updateTrackingFromDeploy'));
+          .maybeUpdateTrackingFromDeploy(deployOutcome)
+          .pipe(Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy'));
       }
 
       return deployOutcome;

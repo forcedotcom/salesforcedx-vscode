@@ -21,7 +21,6 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { nls } from '../messages';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { uriToPath } from '../vscode/paths';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -174,8 +173,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       // only do tracking in the case where we retrieve to project
       if (input.merge) {
         yield* sourceTrackingService
-          .updateTrackingFromRetrieve(retrieveOutcome)
-          .pipe(Effect.withSpan('MetadataRetrieveService.updateTrackingFromRetrieve'));
+          .maybeUpdateTrackingFromRetrieve(retrieveOutcome)
+          .pipe(Effect.withSpan('MetadataRetrieveService.maybeUpdateTrackingFromRetrieve'));
       }
 
       return retrieveOutcome;
@@ -186,27 +185,20 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       members: MetadataMember[],
       options?: SourceTrackingOptions
     ) {
-      const [connection, project] = yield* Effect.all(
-        [connectionService.getConnection(), projectService.getSfProject(), workspaceService.getWorkspaceInfoOrThrow()],
+      const [connection, project, registryAccess, componentSet, hasTracking] = yield* Effect.all(
+        [
+          connectionService.getConnection(),
+          projectService.getSfProject(),
+          metadataRegistryService.getRegistryAccess(),
+          buildComponentSet(members),
+          sourceTrackingService.hasTracking(),
+          workspaceService.getWorkspaceInfoOrThrow()
+        ],
         { concurrency: 'unbounded' }
       );
-      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
-      const componentSet = yield* buildComponentSet(members);
 
-      const tracking = yield* sourceTrackingService.getSourceTracking(options);
-
-      if (tracking && !options?.ignoreConflicts) {
-        yield* Effect.promise(() =>
-          vscode.window.withProgress(
-            {
-              location: vscode.ProgressLocation.Notification,
-              title: nls.localize('checking_for_conflicts'),
-              cancellable: false
-            },
-            () => tracking.reReadLocalTrackingCache()
-          )
-        ).pipe(Effect.withSpan('STL.ReReadLocalTrackingCache'));
-        yield* sourceTrackingService.checkConflicts(tracking);
+      if (hasTracking && !options?.ignoreConflicts) {
+        yield* sourceTrackingService.checkConflicts();
       }
 
       const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
@@ -222,27 +214,20 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     ) {
       yield* Effect.annotateCurrentSpan({ components: components.size });
       const registryAccess = yield* metadataRegistryService.getRegistryAccess();
-      const [connection, project, configAggregator] = yield* Effect.all(
+      const [connection, project, configAggregator, , hasTracking] = yield* Effect.all(
         [
           connectionService.getConnection(),
           projectService.getSfProject(),
           configService.getConfigAggregator(),
-          workspaceService.getWorkspaceInfoOrThrow()
+          workspaceService.getWorkspaceInfoOrThrow(),
+          sourceTrackingService.hasTracking()
         ],
         { concurrency: 'unbounded' }
       );
 
       yield* setComponentSetProperties({ componentSet: components, project, configAggregator });
-
-      const tracking = yield* sourceTrackingService.getSourceTracking(options);
-      if (tracking) {
-        yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
-          Effect.withSpan('STL.ReReadLocalTrackingCache')
-        );
-
-        if (!options?.ignoreConflicts) {
-          yield* sourceTrackingService.checkConflicts(tracking);
-        }
+      if (hasTracking && !options?.ignoreConflicts) {
+        yield* sourceTrackingService.checkConflicts();
       }
 
       const title = `Retrieving ${components.size} component${components.size === 1 ? '' : 's'}`;
@@ -267,7 +252,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
             connectionService.getConnection(),
             projectService.getSfProject(),
             configService.getConfigAggregator(),
-            workspaceService.getWorkspaceInfoOrThrow()
+            workspaceService.getWorkspaceInfoOrThrow(),
           ],
           { concurrency: 'unbounded' }
         );

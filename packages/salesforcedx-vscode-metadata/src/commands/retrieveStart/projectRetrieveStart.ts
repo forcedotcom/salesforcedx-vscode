@@ -6,25 +6,16 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { SourceTracking } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { detectConflicts, handleConflictWithRetry } from '../../conflict/conflictFlow';
 import { nls } from '../../messages';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
-import { SourceTrackingFailedError } from './retrieveErrors';
 
-const applyDeletesAndRetrieve = Effect.fn('projectRetrieve.applyDeletesAndRetrieve')(function* (
-  tracking: SourceTracking
-) {
-  const { componentSetFromNonDeletes: componentSetToRetrieve } = yield* Effect.tryPromise({
-    try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
-    catch: e =>
-      new SourceTrackingFailedError({
-        message: nls.localize('error_source_tracking_components_failed', e instanceof Error ? e.message : String(e)),
-        cause: e
-      })
-  }).pipe(Effect.withSpan('maybeApplyRemoteDeletesToLocal'));
+const applyDeletesAndRetrieve = Effect.fn('projectRetrieve.applyDeletesAndRetrieve')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const { componentSetFromNonDeletes: componentSetToRetrieve } =
+    yield* api.services.SourceTrackingService.maybeApplyRemoteDeletesToLocal(true);
 
   yield* retrieveComponentSet({ componentSet: componentSetToRetrieve, ignoreConflicts: true });
 });
@@ -38,46 +29,27 @@ const retrieveEffect = Effect.fn('retrieveEffect')(function* (ignoreConflicts: b
     { concurrency: 'unbounded' }
   );
 
-  const tracking = yield* sourceTrackingService.getSourceTrackingOrThrow({ ignoreConflicts });
-  yield* Effect.all(
-    [Effect.promise(() => tracking.reReadLocalTrackingCache()), Effect.promise(() => tracking.reReadRemoteTracking())],
-    { concurrency: 'unbounded' }
-  );
-
-  const componentSet = yield* Effect.tryPromise({
-    try: () => tracking.remoteNonDeletesAsComponentSet({ applyIgnore: true }),
-    catch: e =>
-      new SourceTrackingFailedError({
-        message: nls.localize('error_source_tracking_components_failed', e instanceof Error ? e.message : String(e)),
-        cause: e
-      })
-  }).pipe(
-    Effect.withSpan('remoteNonDeletesAsComponentSet'),
-    Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-    Effect.tap(cs =>
-      channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
-    )
-  );
+  const componentSet = yield* sourceTrackingService
+    .getRemoteNonDeletesAsComponentSet({ applyIgnore: true })
+    .pipe(
+      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+      Effect.tap(cs =>
+        channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
+      )
+    );
 
   if (!ignoreConflicts) {
     const pairs = yield* detectConflicts(componentSet, 'retrieve');
     if (pairs.length > 0) {
       return yield* handleConflictWithRetry({
-        retryOperation: Effect.gen(function* () {
-          const t = yield* sourceTrackingService.getSourceTrackingOrThrow({ ignoreConflicts: true });
-          yield* Effect.all(
-            [Effect.promise(() => t.reReadLocalTrackingCache()), Effect.promise(() => t.reReadRemoteTracking())],
-            { concurrency: 'unbounded' }
-          );
-          yield* applyDeletesAndRetrieve(t);
-        }),
+        retryOperation: applyDeletesAndRetrieve(),
         operationType: 'retrieve',
         componentSet
       });
     }
   }
 
-  yield* applyDeletesAndRetrieve(tracking);
+  yield* applyDeletesAndRetrieve();
 });
 
 /** Retrieve remote changes from the default org */
