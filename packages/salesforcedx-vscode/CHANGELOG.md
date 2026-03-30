@@ -1,33 +1,54 @@
-# 66.3.2 - March 29, 2026
+# 66.4.0 - April 1, 2026
 
 ## Added
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-aura-language-server
 
-- Gate LSP telemetry/event forwarding so only allowlisted Jorje Feature values are sent as apexLSPLog, reducing high-volume editor telemetry toward Application Insights. ([PR #7044](https://github.com/forcedotcom/salesforcedx-vscode/pull/7044))
-
-#### salesforcedx-vscode-apex-log
-#### salesforcedx-vscode-apex-testing
-#### salesforcedx-vscode-lwc
-#### salesforcedx-vscode-metadata
-#### salesforcedx-vscode-org-browser
-#### salesforcedx-vscode-services
-#### salesforcedx-vscode-soql
-
-- We made changes under the hood ([PR #7055](https://github.com/forcedotcom/salesforcedx-vscode/pull/7055))
-
-#### salesforcedx-vscode-core
-
-- Renamed react web app templates ([PR #7070](https://github.com/forcedotcom/salesforcedx-vscode/pull/7070))
-
-
-## Fixed
+- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
 
 #### salesforcedx-lightning-lsp-common
 
-- Fixed an issue where vscode settings were overriden ([PR #7077](https://github.com/forcedotcom/salesforcedx-vscode/pull/7077))
+- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
+
+#### salesforcedx-lwc-language-server
+
+- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
+
+#### salesforcedx-vscode-expanded
+
+- Add Live Preview to Salesforce Extension Pack (Expanded) @W-21730650@ ([PR #7058](https://github.com/forcedotcom/salesforcedx-vscode/pull/7058))
+
+#### salesforcedx-vscode-lightning
+
+- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
+
+#### salesforcedx-vscode-lwc
+
+- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
 
 #### salesforcedx-vscode-soql
 
-- Report sub-query records correctly in SOQL execution table output ([PR #7034](https://github.com/forcedotcom/salesforcedx-vscode/pull/7034))
+- Add "Get Query Plan" button to SOQL Builder UI ([PR #7094](https://github.com/forcedotcom/salesforcedx-vscode/pull/7094))
+
+## Fixed
+
+#### salesforcedx-aura-language-server
+
+- Sharing generation logic - W-21716670 ([PR #7065](https://github.com/forcedotcom/salesforcedx-vscode/pull/7065))
+
+#### salesforcedx-lightning-lsp-common
+
+- Prevent dupes ([PR #7087](https://github.com/forcedotcom/salesforcedx-vscode/pull/7087))
+
+#### salesforcedx-lwc-language-server
+
+- Sharing generation logic - W-21716670 ([PR #7065](https://github.com/forcedotcom/salesforcedx-vscode/pull/7065))
+
+#### salesforcedx-vscode-core
+
+- Only run refreshSObjects definitions on sfdx projects ([PR #7095](https://github.com/forcedotcom/salesforcedx-vscode/pull/7095))
+
+#### salesforcedx-vscode-lwc
+
+- Sharing generation logic - W-21716670 ([PR #7065](https://github.com/forcedotcom/salesforcedx-vscode/pull/7065))
 
