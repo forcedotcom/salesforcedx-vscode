@@ -46,7 +46,9 @@ export const packageJsonSalesforceDepVersions: Rule.RuleModule = {
           for (const member of obj.members) {
             const dep = member.name.type === 'String' ? member.name.value : undefined;
             const version = member.value.type === 'String' ? member.value.value : undefined;
-            if (!dep?.startsWith('@salesforce/') || version === undefined) {
+            // Exempt: lwc-language-server tests require these to stay pinned (packageDependencies.test.ts)
+            const pinnedExceptions = new Set(['@salesforce/apex', '@salesforce/label', '@salesforce/schema']);
+            if (!dep?.startsWith('@salesforce/') || version === undefined || pinnedExceptions.has(dep)) {
               continue;
             }
             if (/^[\d~]/.test(version)) {

@@ -84,5 +84,21 @@ describe('package-json-salesforce-dep-versions', () => {
       const code = JSON.stringify({ name: 'test', dependencies: { vscode: '^1.80.0' } }, null, 2);
       expect(filterByRule(lintJson(code), RULE_NAME)).toHaveLength(0);
     });
+
+    it('passes when pinned-exception packages are pinned (@salesforce/apex, @salesforce/label, @salesforce/schema)', () => {
+      const code = JSON.stringify(
+        {
+          name: 'test',
+          dependencies: {
+            '@salesforce/apex': '0.0.21',
+            '@salesforce/label': '0.0.21',
+            '@salesforce/schema': '0.0.21'
+          }
+        },
+        null,
+        2
+      );
+      expect(filterByRule(lintJson(code), RULE_NAME)).toHaveLength(0);
+    });
   });
 });
