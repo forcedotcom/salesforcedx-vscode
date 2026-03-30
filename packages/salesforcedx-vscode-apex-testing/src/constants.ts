@@ -8,7 +8,6 @@
 export const PASS_RESULT = 'Pass';
 export const FAIL_RESULT = 'Fail';
 export const SKIP_RESULT = 'Skip';
-export const APEX_CLASS_EXT = '.cls';
 export const IS_TEST_REG_EXP = /@isTest/i;
 
 // Test item ID prefixes
