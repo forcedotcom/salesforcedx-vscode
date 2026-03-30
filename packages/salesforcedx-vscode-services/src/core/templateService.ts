@@ -62,10 +62,13 @@ export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<Templ
   { message: Schema.String }
 ) {}
 
-export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()('TemplatesManifestLoadError', {
-  message: Schema.String,
-  cause: Schema.optional(Schema.Unknown)
-}) {}
+export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()(
+  'TemplatesManifestLoadError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.Unknown)
+  }
+) {}
 
 const TemplateManifestSchema = Schema.parseJson(Schema.Array(Schema.String));
 
