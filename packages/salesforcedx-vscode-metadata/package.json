@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.1",
+  "version": "66.3.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -85,7 +85,8 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "../salesforcedx-vscode-services:vscode:bundle"
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -102,7 +103,8 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "../salesforcedx-vscode-services:vscode:bundle:local"
+        "../salesforcedx-vscode-services:vscode:bundle:local",
+        "../salesforcedx-vscode-apex-log:vscode:bundle:local"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -172,6 +174,7 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -192,6 +195,8 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -329,15 +334,7 @@
           "when": "sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.apex.generate.class",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.metadata.lightning.generate.lwc",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.metadata.apex.generate.trigger",
           "when": "sf:project_opened"
         },
         {
@@ -441,14 +438,6 @@
           "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
-          "command": "sf.metadata.apex.generate.trigger",
-          "when": "explorerResourceIsFolder && resourceFilename == triggers && sf:project_opened"
-        },
-        {
-          "command": "sf.apex.generate.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
-        },
-        {
           "command": "sf.metadata.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
         }
@@ -510,14 +499,6 @@
       {
         "command": "sf.metadata.source.tracking.reset.remote",
         "title": "%reset_remote_tracking_text%"
-      },
-      {
-        "command": "sf.apex.generate.class",
-        "title": "%apex_generate_class_text%"
-      },
-      {
-        "command": "sf.metadata.apex.generate.trigger",
-        "title": "%apex_generate_trigger_text%"
       },
       {
         "command": "sf.metadata.lightning.generate.lwc",

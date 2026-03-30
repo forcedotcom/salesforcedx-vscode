@@ -1,35 +1,34 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
+  EDITOR_WITH_URI,
+  ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
+  QUICK_INPUT_WIDGET,
+  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
-  waitForWorkspaceReady,
-  closeWelcomeTabs,
-  executeCommandWithCommandPalette,
   validateNoCriticalErrors,
-  saveScreenshot,
-  QUICK_INPUT_WIDGET,
-  QUICK_INPUT_LIST_ROW,
-  EDITOR_WITH_URI,
-  assertWelcomeTabExists,
-  ensureSecondarySideBarHidden,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForQuickInputFirstOption,
+  waitForVSCodeWorkbench,
+  waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
+import { test } from '../fixtures';
 
 test('Apex Generate Trigger: creates new Apex trigger via command palette', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-
-  let triggerName: string;
+  const triggerName = `GenerateTriggerTest${Date.now()}`;
 
   await test.step('setup with no org', async () => {
     await waitForVSCodeWorkbench(page);
@@ -45,13 +44,11 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
   });
 
   await test.step('create Apex trigger via command palette', async () => {
-    triggerName = `GenerateTriggerTest${Date.now()}`;
-
     await executeCommandWithCommandPalette(page, packageNls.apex_generate_trigger_text);
     await saveScreenshot(page, 'step1.after-command.png');
 
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 500 });
+    await quickInput.waitFor({ state: 'visible', timeout: 5000 });
     await quickInput.getByText(/Enter Apex trigger name/i).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
 
@@ -59,9 +56,8 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
-
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-accept-directory.png');
 

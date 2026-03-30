@@ -28,10 +28,11 @@ Shared code (helpers, locators, configuration) for tests.
 
 ## Span files (when debugging traces)
 
-Local only — span export disabled in CI/GHA.
+Available local + CI/GHA.
 
 - Output: `~/.sf/vscode-spans/` — `web-*.jsonl` (test:web), `node-*.jsonl` (test:desktop)
-- Auto-enabled when !CI (no manual enable needed)
+- Auto-enabled (no manual enable needed)
+- CI runs: copied into package `test-results/spans/` artifacts (see workflow upload/download in `references/analyze-e2e.md`)
 - Latest: `ls -lt ~/.sf/vscode-spans/`
 - Clear before run for fresh output: `rm -rf ~/.sf/vscode-spans/`
 - Format: JSONL; parse each line with `JSON.parse`
@@ -42,6 +43,11 @@ See `.claude/skills/span-file-export/SKILL.md` for enable/OTLP vs file.
 ## Running tests (AI behavior)
 
 When running Playwright tests (`npm run test:web`, `test:desktop`, etc.), never block >30s. Use `is_background: true` so tests run while the AI continues. Check terminal output or `output_file` later.
+
+## Running Full E2E Test Suite
+
+See `references/full-suite-execution.md` for complete guide on running all E2E tests locally across all 9 packages in correct dependency order with failure analysis.
+
 
 ## Disable/reenable other E2E when iterating
 

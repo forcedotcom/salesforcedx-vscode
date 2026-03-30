@@ -26,14 +26,14 @@ const ENQUEUE_DELAY_MS = 1000;
 /** File filtering - exclude files that shouldn't be deployed */
 export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [workspaceInfo, fsService] = yield* Effect.all([
-    api.services.WorkspaceService.getWorkspaceInfoOrThrow(),
-    api.services.FsService
-  ], { concurrency: 'unbounded' });
-  const [uriPath, workspacePath] = yield* Effect.all([
-    fsService.uriToPath(uri),
-    fsService.uriToPath(workspaceInfo.uri)
-  ], { concurrency: 'unbounded' });
+  const [workspaceInfo, fsService] = yield* Effect.all(
+    [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), api.services.FsService],
+    { concurrency: 'unbounded' }
+  );
+  const [uriPath, workspacePath] = yield* Effect.all(
+    [fsService.uriToPath(uri), fsService.uriToPath(workspaceInfo.uri)],
+    { concurrency: 'unbounded' }
+  );
   if (!uriPath.startsWith(workspacePath)) return false;
   const basename = uriPath.split(/[/\\]/).pop() ?? '';
 
@@ -79,7 +79,10 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
         Effect.withSpan('STL.GetConflicts')
       );
       const deployedMembers = new Set(
-        componentSet.getSourceComponents().toArray().map(c => `${c.type.name}:${c.fullName}`)
+        componentSet
+          .getSourceComponents()
+          .toArray()
+          .map(c => `${c.type.name}:${c.fullName}`)
       );
       const relevant = conflicts.filter(c => c.type && c.name && deployedMembers.has(`${c.type}:${c.name}`));
       if (relevant.length > 0) {
@@ -92,9 +95,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
 });
 
 /** Handle deploy conflicts: populate conflict view scoped to the deployed component set */
-const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(function* (
-  componentSet?: ComponentSet
-) {
+const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(function* (componentSet?: ComponentSet) {
   yield* ensureConflictView();
   const pairs = yield* detectConflictsFromTracking(componentSet);
   const mode: 'conflicts' | 'diffs' = 'conflicts';
@@ -149,7 +150,9 @@ export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnS
     Stream.filterEffect(api.services.ProjectService.isInPackageDirectories),
     Stream.tap(uri =>
       api.services.FsService.uriToPath(uri).pipe(
-        Effect.flatMap(path => channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${path}`))
+        Effect.flatMap(path =>
+          channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${path}`)
+        )
       )
     ),
     Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),

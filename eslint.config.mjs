@@ -352,7 +352,10 @@ export default [
       'import/no-empty-named-blocks': 'error',
       'import/newline-after-import': 'error',
       'import/no-cycle': 'error',
-      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }],
+      'import/no-extraneous-dependencies': [
+        'error',
+        { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }
+      ],
       'import/order': [
         'error',
         {
@@ -726,12 +729,14 @@ export default [
   },
   {
     files: ['packages/*/.vscodeignore'],
+    ignores: ['packages/salesforcedx-vscode-lwc/.vscodeignore'],
     plugins: {
       local: localPlugin
     },
     processor: 'local/vscodeignoreText',
     rules: {
-      'local/vscodeignore-required-patterns': 'error'
+      'local/vscodeignore-required-patterns': 'error',
+      'local/vscodeignore-contributes-conflict': 'error'
     }
   },
   eslintConfigPrettier

@@ -11,8 +11,6 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { createApexClassCommand } from './commands/createApexClass';
-import { createApexTriggerCommand } from './commands/createApexTrigger';
 import { createLwcCommand } from './commands/createLwc';
 import { deleteSourcePathsCommand } from './commands/deleteSourcePath';
 import { deployManifestCommand } from './commands/deployManifest';
@@ -62,8 +60,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.all(
     [
       svc.appendToChannel('Registering metadata commands'),
-      registerCommand('sf.apex.generate.class', createApexClassCommand),
-      registerCommand('sf.metadata.apex.generate.trigger', createApexTriggerCommand),
       registerCommand('sf.metadata.lightning.generate.lwc', createLwcCommand),
       registerCommand('sf.metadata.delete.source', (sourceUri?: URI, uris?: URI[]) =>
         deleteSourcePathsCommand(sourceUri, uris)

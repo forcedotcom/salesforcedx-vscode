@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.1",
+  "version": "66.3.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +34,7 @@
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.31.25",
     "@salesforce/source-tracking": "^7.8.7",
-    "@salesforce/templates": "^66.5.6",
+    "@salesforce/templates": "^66.6.2",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -182,6 +182,7 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [

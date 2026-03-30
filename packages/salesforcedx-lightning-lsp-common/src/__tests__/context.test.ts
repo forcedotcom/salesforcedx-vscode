@@ -313,6 +313,32 @@ describe('WorkspaceContext', () => {
     expect(apexContents).not.toContain('declare type');
   });
 
+  it('configureProject() does not add duplicate entries to jsconfig include on repeated calls', async () => {
+    // Use a fresh accessor + content map so this test is independent
+    const freshAccessor = new LspFileSystemAccessor();
+    const freshMap = buildContentMap(SFDX_WORKSPACE_PATH, SFDX_WORKSPACE_STRUCTURE as Record<string, string>);
+    mockAccessorWithVirtualFs(freshAccessor, freshMap);
+
+    const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, freshAccessor);
+    context.initialize('SFDX');
+
+    const jsconfigPath = path.resolve(FORCE_APP_ROOT, 'lwc', 'jsconfig.json');
+
+    await context.configureProject();
+    const afterFirst = JSON.parse(
+      Buffer.from((await freshAccessor.getFileContent(jsconfigPath)) ?? '').toString('utf8')
+    ) as JsconfigContent;
+    const lengthAfterFirst = afterFirst.include.length;
+
+    await context.configureProject();
+    const afterSecond = JSON.parse(
+      Buffer.from((await freshAccessor.getFileContent(jsconfigPath)) ?? '').toString('utf8')
+    ) as JsconfigContent;
+
+    expect(afterSecond.include.length).toBe(lengthAfterFirst);
+    expect(afterSecond.include).toEqual(afterFirst.include);
+  });
+
   it('configureCoreProject()', async () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemAccessor);
     context.initialize('CORE_PARTIAL');

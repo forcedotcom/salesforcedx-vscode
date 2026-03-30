@@ -22,6 +22,9 @@
     "useUnknownInCatchVariables": false,
     "noUnusedLocals": true,
     "allowSyntheticDefaultImports": true,
-    "plugins": [{ "name": "@salesforce/vscode-i18n/tsPlugin" }]
+    "plugins": [
+      { "name": "@effect/language-service" },
+      { "name": "@salesforce/vscode-i18n/tsPlugin" }
+    ]
   }
 }

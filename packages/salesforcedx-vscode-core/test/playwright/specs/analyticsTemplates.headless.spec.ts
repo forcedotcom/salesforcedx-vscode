@@ -18,9 +18,9 @@ import {
   validateNoCriticalErrors,
   saveScreenshot,
   QUICK_INPUT_WIDGET,
-  QUICK_INPUT_LIST_ROW,
   assertWelcomeTabExists,
-  ensureSecondarySideBarHidden
+  ensureSecondarySideBarHidden,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 
@@ -46,7 +46,7 @@ test.describe('Analytics Templates (Desktop Only)', () => {
       await page.keyboard.type(name);
       await page.keyboard.press('Enter');
 
-      await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+      await waitForQuickInputFirstOption(page);
       await page.keyboard.press('Enter');
 
       // Analytics template creates multiple files, check a few key ones in explorer

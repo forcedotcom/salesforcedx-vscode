@@ -85,6 +85,7 @@ When the VSCode UI changes, you might have to update your e2e tests. And you mig
 ### Playwright selector gotchas
 
 - quick input: target visible widget (`.filter({ visible: true }).first()`)
+- quick-pick option waits: use `waitForQuickInputFirstOption(page)` from `@salesforce/playwright-vscode-ext` (handles ARIA option rows + Monaco list rows)
 - quick input text entry: prefer filling `input.input`; avoid `keyboard.type` into ambiguous focus target
 - Problems view assertions: clear `Filter Problems` input before counting diagnostics
 - `expectProblemsCount*` helpers now clear Problems filter before assertion; use helpers over ad-hoc row counts

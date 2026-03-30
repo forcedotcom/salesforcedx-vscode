@@ -8,10 +8,22 @@
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { upsertSettings } from '../pages/settings';
-import { QUICK_INPUT_WIDGET, TAB, TAB_CLOSE_BUTTON, WORKBENCH } from './locators';
+import {
+  QUICK_INPUT_WIDGET,
+  QUICK_INPUT_LIST_ROW,
+  SETTINGS_SEARCH_INPUT,
+  TAB,
+  TAB_CLOSE_BUTTON,
+  WORKBENCH
+} from './locators';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
+type WaitForQuickInputFirstOptionOptions = {
+  quickInputVisibleTimeout?: number;
+  optionVisibleTimeout?: number;
+  retryTimeout?: number;
+};
 
 const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // VS Code Web expected missing resources
@@ -63,13 +75,18 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'webPackagePaths.js',
   'workbench.web.main.nls.js',
+  'workbench.web.main.internal.js',
   'marketplace.visualstudio.com',
   'vscode-unpkg.net', // VS Code extension marketplace CDN
   'scratchOrgInfo', // asking the org if it's a devhub during auth ?
   'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
   '.a4drules', // @salesforce/templates optional project template assets (react internal/external app templates) not bundled for Apex
   'typescript-language-features', // TS extension 404s for package.json etc in web
-  'applicationinsights.azure.com' // Azure Application Insights telemetry (e.g. HTTP 439 throttling) — not critical to extension behavior
+  'applicationinsights.azure.com', // Azure Application Insights telemetry (e.g. HTTP 439 throttling) — not critical to extension behavior
+  // Salesforce OAuth userinfo endpoint (can 403/500 if session is invalid/expired in web,
+  // non-critical for these tests.  sfdx-core will query user/organization sobjects as fallback )
+  // https://github.com/forcedotcom/sfdx-core/blob/8d378c3a6f88a1d370ddc3f43954a90d7159377d/src/org/authInfo.ts#L1236
+  'services/oauth2/userinfo'
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
@@ -147,6 +164,26 @@ export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => 
   }
 };
 
+/** Wait for the first quick-pick option using ARIA or Monaco row selectors. */
+export const waitForQuickInputFirstOption = async (
+  page: Page,
+  options?: WaitForQuickInputFirstOptionOptions
+): Promise<void> => {
+  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  const firstAriaOption = quickInput.getByRole('option').first();
+  const quickInputVisibleTimeout = options?.quickInputVisibleTimeout ?? 10_000;
+  const optionVisibleTimeout = options?.optionVisibleTimeout ?? 5000;
+
+  await expect(async () => {
+    await quickInput.waitFor({ state: 'visible', timeout: quickInputVisibleTimeout });
+    if ((await firstAriaOption.count()) > 0) {
+      await expect(firstAriaOption).toBeVisible({ timeout: optionVisibleTimeout });
+      return;
+    }
+    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: optionVisibleTimeout });
+  }).toPass({ timeout: options?.retryTimeout ?? 10_000 });
+};
+
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   const workbench = page.locator(WORKBENCH);
@@ -200,22 +237,44 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 30_000 });
 };
 
-/** Closes any visible Settings tabs or the floating Settings overlay on Windows desktop */
+/** Closes any visible Settings tab or overlay on desktop. */
 export const closeSettingsTab = async (page: Page): Promise<void> => {
-  if (isWindowsDesktop()) {
-    // On Windows desktop, Settings opens as a floating overlay dialog, not a tab
+  if (isDesktop()) {
+    // Desktop can show Settings as an overlay; Escape closes it when present.
     await page.keyboard.press('Escape');
+
+    const desktopSettingsTab = page
+      .locator(TAB)
+      .filter({ hasText: /Settings/i })
+      .first();
+    const isDesktopSettingsVisible = await desktopSettingsTab.isVisible({ timeout: 1000 }).catch(() => false);
+    if (isDesktopSettingsVisible) {
+      const closeButton = desktopSettingsTab.locator(TAB_CLOSE_BUTTON);
+      const canClickClose = await closeButton.isVisible({ timeout: 1000 }).catch(() => false);
+      if (canClickClose) {
+        await closeButton.click({ force: true }).catch(() => {});
+      }
+      await desktopSettingsTab.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
+    }
     return;
   }
+
   const settingsTab = page
     .locator(TAB)
     .filter({ hasText: /Settings/i })
     .first();
-  const isSettingsVisible = await settingsTab.isVisible().catch(() => false);
-  if (isSettingsVisible) {
+  const isTabVisible = await settingsTab.isVisible().catch(() => false);
+  if (isTabVisible) {
     const closeButton = settingsTab.locator(TAB_CLOSE_BUTTON);
     await closeButton.click();
     await settingsTab.waitFor({ state: 'detached', timeout: 5000 });
+    return;
+  }
+  // On macOS GHA with VS Code ≥1.113, Settings opens as a floating overlay (same as
+  // Windows), not a tab. No tab is found above, so press Escape to dismiss the overlay.
+  const settingsInput = page.locator(SETTINGS_SEARCH_INPUT.join(',')).first();
+  if (await settingsInput.isVisible().catch(() => false)) {
+    await page.keyboard.press('Escape');
   }
 };
 

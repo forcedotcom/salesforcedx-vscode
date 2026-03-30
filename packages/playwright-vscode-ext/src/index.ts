@@ -11,6 +11,7 @@ export {
   filterNetworkErrors,
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
+  waitForQuickInputFirstOption,
   closeWelcomeTabs,
   closeSettingsTab,
   waitForWorkspaceReady,
