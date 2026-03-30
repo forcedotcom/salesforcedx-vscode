@@ -7,6 +7,7 @@
         "matcher": "git.*--no-verify"
       }
     ],
-    "afterFileEdit": [{ "command": ".claude/hooks/mark-edit.sh" }]
+    "afterFileEdit": [{ "command": ".claude/hooks/mark-edit.sh" }],
+    "stop": [{ "command": ".claude/hooks/verify-stop.sh" }]
   }
 }
