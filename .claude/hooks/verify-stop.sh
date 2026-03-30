@@ -4,7 +4,7 @@
 # stderr → Hooks output channel
 set -e
 
-ROOT="${CLAUDE_PROJECT_DIR:-.}"
+ROOT="${CURSOR_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-.}}"
 cd "$ROOT"
 echo "[verify-stop] starting" >&2
 
@@ -27,8 +27,9 @@ run_step() {
 }
 
 # Check if this agent session made any changes.
-# We use CLAUDE_CONVERSATION_ID to track the session and a temporary file to mark if an edit occurred.
-SESSION_MARKER="/tmp/claude_edit_${CLAUDE_CONVERSATION_ID:-default}"
+SESSION_ID="${CURSOR_TRACE_ID:-$CLAUDE_CONVERSATION_ID}"
+TOOL="${CURSOR_TRACE_ID:+cursor}${CURSOR_TRACE_ID:-claude}"
+SESSION_MARKER="/tmp/${TOOL}_edit_${SESSION_ID:-default}"
 
 if [ ! -f "$SESSION_MARKER" ]; then
   echo "[verify-stop] no edits in this session, skipping verification" >&2

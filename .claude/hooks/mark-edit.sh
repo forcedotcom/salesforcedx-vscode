@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# PostToolUse hook: mark that an edit occurred in this session.
-# We use CLAUDE_CONVERSATION_ID to distinguish sessions.
-
-if [ -n "$CLAUDE_CONVERSATION_ID" ]; then
-  touch "/tmp/claude_edit_${CLAUDE_CONVERSATION_ID}"
-  echo "[afterFileEdit] marked session ${CLAUDE_CONVERSATION_ID} as dirty" >&2
+# PostToolUse / afterFileEdit hook: mark that an edit occurred in this session.
+SESSION_ID="${CURSOR_TRACE_ID:-$CLAUDE_CONVERSATION_ID}"
+TOOL="${CURSOR_TRACE_ID:+cursor}${CURSOR_TRACE_ID:-claude}"
+if [ -n "$SESSION_ID" ]; then
+  touch "/tmp/${TOOL}_edit_${SESSION_ID}"
 fi
 exit 0
