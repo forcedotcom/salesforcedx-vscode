@@ -80,7 +80,7 @@ type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate =
+type ProjectTemplate =
   | 'standard'
   | 'empty'
   | 'analytics'

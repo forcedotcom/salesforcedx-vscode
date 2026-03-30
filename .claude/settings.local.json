@@ -11,7 +11,9 @@
       "Bash(sf org:*)",
       "Bash(git check-ignore:*)",
       "Bash(npx knip:*)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(git stash:*)",
+      "WebFetch(domain:knip.dev)"
     ]
   },
   "hooks": {

@@ -20,16 +20,12 @@ import { SalesforcePackageDirectories } from '../../salesforceProject';
 
 const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
 
-export type FileNameParameter = {
+type FileNameParameter = {
   fileName: string;
 };
 
-export type OutputDirParameter = {
+type OutputDirParameter = {
   outputdir: string;
-};
-
-export type MetadataTypeParameter = {
-  type: string;
 };
 
 export class FilePathGatherer implements ParametersGatherer<string> {

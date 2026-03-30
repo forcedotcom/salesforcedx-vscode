@@ -33,7 +33,7 @@ const isVscodeFileStat = (x: unknown): x is vscode.FileStat =>
   typeof x === 'object' && x !== null && 'type' in x && 'ctime' in x && 'mtime' in x && 'size' in x;
 
 /** Client that can handle LSP requests (Node or Browser LanguageClient). */
-export type WorkspaceReadFileClient = {
+type WorkspaceReadFileClient = {
   onRequest<P, R>(method: string, handler: (params: P) => Promise<R>): void;
 };
 
