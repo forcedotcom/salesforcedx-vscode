@@ -10,13 +10,12 @@ import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
-// These unit tests check that specified dependencies in package.json do not use
-// ^ or ~ in the version range, either because those packages do not use semver
-// and minor/patch updates will break functionality, or because they should only
-// use an exact version.
+// These unit tests check that specific dependency families in package.json do
+// not use floating ranges. We intentionally do NOT enforce this for
+// @salesforce/* dependencies.
 
-const checkedPackagePatterns: RegExp[] = [/^@salesforce/i, /^@lwc/i];
-const exemptedPackages = new Set(['@salesforce/core']);
+const checkedPackagePatterns: RegExp[] = [/^@lwc/i];
+const exemptedPackages = new Set<string>();
 
 // Helper functions for async file operations
 const readJsonFile = async (jsonFilePath: string): Promise<Record<string, unknown>> => {

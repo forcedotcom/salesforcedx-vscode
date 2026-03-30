@@ -17,7 +17,7 @@
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
     "@salesforce/o11y-reporter": "^1.8.1",
-    "@salesforce/vscode-service-provider": "1.5.0",
+    "@salesforce/vscode-service-provider": "^1.5.0",
     "jsforce": "^3.10.10",
     "memfs": "^4.32.0",
     "node": "^22.19.0",

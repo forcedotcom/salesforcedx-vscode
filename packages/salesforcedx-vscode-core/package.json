@@ -27,7 +27,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.27.1",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-utils": "*",
@@ -35,7 +35,7 @@
     "@salesforce/source-deploy-retrieve": "^12.32.0",
     "@salesforce/source-tracking": "^7.8.7",
     "@salesforce/templates": "^66.7.1",
-    "@salesforce/ts-types": "2.0.12",
+    "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
