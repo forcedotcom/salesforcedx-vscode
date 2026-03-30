@@ -14,7 +14,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.27.1",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "@vscode/debugadapter": "1.68.0",

@@ -35,7 +35,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.27.1",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.20.0",
     "@salesforce/soql-common": "*",
@@ -48,7 +48,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.27.1",
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.3.0",

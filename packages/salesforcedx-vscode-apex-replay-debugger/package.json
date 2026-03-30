@@ -27,24 +27,24 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.13",
-    "salesforcedx-vscode-apex-log": "*",
+    "@salesforce/apex-node": "^8.4.18",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.20.0",
+    "salesforcedx-vscode-apex-log": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@playwright/test": "*",
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.27.1",
+    "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-core": "*",
     "salesforcedx-vscode-metadata": "*",
-    "salesforcedx-vscode-services": "*",
-    "@salesforce/playwright-vscode-ext": "*"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
