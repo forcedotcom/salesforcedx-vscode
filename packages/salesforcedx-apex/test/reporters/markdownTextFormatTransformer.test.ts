@@ -426,6 +426,51 @@ describe('MarkdownTextFormatTransformer', () => {
   });
 
   describe('code coverage display', () => {
+    it('should not markdown-escape underscores in coverage table code cells', () => {
+      const testDataWithUnderscoreMethod = {
+        ...successResult,
+        tests: [
+          {
+            ...successResult.tests[0],
+            apexClass: {
+              ...successResult.tests[0].apexClass,
+              name: 'LCOUtilsTest',
+              namespacePrefix: 'lco1'
+            },
+            methodName: 'test_LCOSDCreateController_assignDefaultPAItems',
+            perClassCoverage: [
+              {
+                apexClassOrTriggerName: 'LCOUtilsTest',
+                apexClassOrTriggerId: '001',
+                apexTestClassId: successResult.tests[0].apexClass.id,
+                apexTestMethodName:
+                  'test_LCOSDCreateController_assignDefaultPAItems',
+                numLinesCovered: 2,
+                numLinesUncovered: 98,
+                percentage: '2%'
+              }
+            ]
+          }
+        ]
+      };
+
+      const reporter = new MarkdownTextFormatTransformer(
+        testDataWithUnderscoreMethod,
+        {
+          format: 'markdown',
+          codeCoverage: true
+        }
+      );
+      createWritableAndPipeline(reporter, (result) => {
+        expect(result).to.contain('## Test Results with Coverage');
+        expect(result).to.contain(
+          '<code>lco1.LCOUtilsTest.test_LCOSDCreateController_assignDefaultPAItems</code>'
+        );
+        // Ensure underscores inside <code> tags are not markdown-escaped with a backslash.
+        expect(result).to.not.match(/<code>[^<]*\\_[^<]*<\/code>/);
+      });
+    });
+
     it('should display coverage table with correct percentages', () => {
       const testDataWithCoverage = {
         ...successResult,

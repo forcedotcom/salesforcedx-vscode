@@ -18,6 +18,7 @@ import {
 } from './markdownReportTemplate';
 import {
   escapeMarkdown,
+  escapeHtml,
   formatDuration,
   isPoorlyPerforming,
   hasPoorCoverage,
@@ -251,8 +252,9 @@ export class MarkdownTextFormatTransformer extends Readable {
             );
 
             return {
-              testName: escapeMarkdown(testName),
-              className: escapeMarkdown(fullClassName),
+              // Table rows are rendered as HTML, so HTML-escape instead of markdown-escape.
+              testName: escapeHtml(testName),
+              className: escapeHtml(fullClassName),
               outcome,
               outcomeEmoji,
               coverage: coverageStr,
@@ -310,7 +312,8 @@ export class MarkdownTextFormatTransformer extends Readable {
               const percentage = coverageItem.percentage ?? '0%';
               const uncoveredLines = coverageItem.uncoveredLines ?? [];
               return {
-                className: escapeMarkdown(className),
+                // Coverage table is rendered as HTML <code> so keep markdown escapes out.
+                className: escapeHtml(className),
                 percentage,
                 uncoveredLines:
                   uncoveredLines.length > 0 ? uncoveredLines.join(', ') : 'None'
