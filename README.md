@@ -26,6 +26,7 @@ Currently, we have the following extensions:
 - [salesforcedx-vscode-slds](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds) This extension simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting, and validation with recommended tokens and utility classes.
 - [salesforcedx-einstein-gpt](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) This extension uses generative AI to make Salesforce development in Visual Studio Code richer with features such as a Dev Assistant that helps with writing, documenting, and understanding code. It also provides inline autocompletion, and test case generation for Apex and LWC code.
 - [sfdx-code-analyzer-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.sfdx-code-analyzer-vscode) This extension scans your code using multiple rule engines to produce lists of violations that you can use to improve your code. v5 also includes all the functionality of the ESLint and Apex PMD extensions. Now, the Salesforce Code Analyzer extension statically analyzes both your Apex and JavaScript code to quickly find problems.
+- [salesforcedx-vscode-ui-preview](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-ui-preview) This extension enables you to preview Lightning Web Components directly within VS Code with automatic updates on save, allowing you to iterate quickly without deploying code.
 
 ## Be an Efficient Salesforce Developer with VS Code
 
