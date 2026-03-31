@@ -14,6 +14,40 @@ type XMLExtensionApi = {
   addXMLFileAssociations: (fileAssociations: { systemId: string; pattern: string }[]) => void;
 };
 
+const MIN_XML_SERVER_HEAP_MB = 1024;
+const XMX_REGEX = /-Xmx(\d+)([kKmMgG]?)\b/;
+
+function toMegabytes(value: number, unit: string): number {
+  switch (unit.toLowerCase()) {
+    case 'g':
+      return value * 1024;
+    case 'k':
+      return Math.floor(value / 1024);
+    case '':
+      return Math.floor(value / (1024 * 1024)); // bare number = bytes
+    default:
+      return value; // 'm'
+  }
+}
+
+/**
+ * Returns the vmargs string with -Xmx raised to MIN_XML_SERVER_HEAP_MB if it is currently
+ * below that threshold, or undefined when no change is needed.
+ */
+export function ensureMinXmlHeap(vmArgs: string | undefined): string | undefined {
+  const current = vmArgs ?? '';
+  const match = XMX_REGEX.exec(current);
+  if (!match) {
+    // No -Xmx present — append one
+    return `${current ? `${current} ` : ''}-Xmx${MIN_XML_SERVER_HEAP_MB}M`;
+  }
+  const heapMb = toMegabytes(parseInt(match[1], 10), match[2]);
+  if (heapMb >= MIN_XML_SERVER_HEAP_MB) {
+    return undefined; // already sufficient
+  }
+  return current.replace(XMX_REGEX, `-Xmx${MIN_XML_SERVER_HEAP_MB}M`);
+}
+
 /**
  * Provides XML schema support for Salesforce metadata files using RedHat XML extension
  */
@@ -55,6 +89,16 @@ export class MetadataXmlSupport {
       // Disable RedHat XML hover to prevent duplication with our custom hover provider
       const config = vscode.workspace.getConfiguration('xml');
       await config.update('preferences.showSchemaDocumentationType', 'none', vscode.ConfigurationTarget.Workspace);
+
+      // Ensure the XML language server has enough memory to avoid OOM crashes on large Salesforce
+      // projects. Write to User settings so it persists across all projects, but only if the
+      // current User-level value is absent or below the minimum heap threshold.
+      const vmArgsInspect = config.inspect<string>('server.vmargs');
+      const updatedVmArgs = ensureMinXmlHeap(vmArgsInspect?.globalValue);
+      if (updatedVmArgs !== undefined) {
+        await config.update('server.vmargs', updatedVmArgs, vscode.ConfigurationTarget.Global);
+        channelService.appendLine(nls.localize('metadata_xml_vmargs_configured'));
+      }
 
       channelService.appendLine(nls.localize('metadata_xml_redhat_extension_setup_success'));
     } catch (error) {
