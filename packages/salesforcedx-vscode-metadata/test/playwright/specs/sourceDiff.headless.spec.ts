@@ -20,6 +20,7 @@ import {
   editOpenFile,
   openFileByName,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   executeExplorerContextMenuCommand,
   saveScreenshot,
   isMacDesktop,
@@ -96,6 +97,9 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
 
     statusBarPage = new SourceTrackingStatusBarPage(page);
     await statusBarPage.waitForVisible(120_000);
+
+    // Wait for core commands to be available
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
 
     // Disable deploy-on-save so test can control when deploys happen
     await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });

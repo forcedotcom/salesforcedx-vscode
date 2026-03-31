@@ -34,7 +34,7 @@ When you add a dependency, run the bundling process to make sure that your dep i
 
 **Web:** [esbuild-plugin-copy](https://www.npmjs.com/package/esbuild-plugin-copy) for static assets; `globbyOptions: { dot: true }` when copying templates with dot files.
 
-**Web:** Manifest for extension assets — `vscode.workspace.fs.readDirectory` not supported on HTTPS extension URIs. Build-time manifest (e.g. services `generateTemplatesManifest`) + runtime `readFile` per path. See [templateService.ts](../packages/salesforcedx-vscode-services/src/core/templateService.ts).
+**Web:** Manifest for extension assets — `vscode.workspace.fs.readDirectory` not supported on HTTPS extension URIs. Build-time manifest (e.g. services `generateTemplatesManifest`) + runtime `readFile` per path. Services template hydration runs once (`Effect.once`); templates root is memoized (`Effect.cached`). See [templateService.ts](../packages/salesforcedx-vscode-services/src/core/templateService.ts).
 
 **ESBUILD_PLATFORM:** Bundle-time define (web.mjs injects `'web'` or `'node'`). Not a runtime check — value baked in at bundle; dead branches tree-shaken. Examples: [connectionService](../packages/salesforcedx-vscode-services/src/core/connectionService.ts), [templateService](../packages/salesforcedx-vscode-services/src/core/templateService.ts), [soql LSP client](../packages/salesforcedx-vscode-soql/src/lspClient/client.ts).
 

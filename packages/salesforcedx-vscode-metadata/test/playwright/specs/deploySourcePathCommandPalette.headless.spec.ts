@@ -18,6 +18,7 @@ import {
   upsertSettings,
   createApexClass,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   saveScreenshot,
   validateNoCriticalErrors,
   ensureSecondarySideBarHidden
@@ -54,6 +55,10 @@ test('Deploy Source Path: deploys via command palette (active editor)', async ({
     // upsertSettings already takes a screenshot after setting
     await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     await saveScreenshot(page, 'setup.after-disable-deploy-on-save.png');
+
+    // Wait for core commands to be available
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
+
     await saveScreenshot(page, 'setup.complete.png');
   });
 

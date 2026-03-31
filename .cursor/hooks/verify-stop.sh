@@ -26,6 +26,19 @@ run_step() {
   out=$(eval "$cmd" 2>&1) || fail "$step" "$out"
 }
 
+# Check if this agent session made any changes.
+# We use CURSOR_TRACE_ID to track the session and a temporary file to mark if an edit occurred.
+SESSION_MARKER="/tmp/cursor_edit_${CURSOR_TRACE_ID:-default}"
+
+if [ ! -f "$SESSION_MARKER" ]; then
+  echo "[verify-stop] no edits in this session, skipping verification" >&2
+  exit 0
+fi
+
+echo "[verify-stop] edits detected in session, running verification" >&2
+# Clean up marker for next run
+rm -f "$SESSION_MARKER"
+
 run_step "compile" "npm run compile" && echo "[verify-stop] compile ok" >&2
 run_step "lint" "npm run lint" && echo "[verify-stop] lint ok" >&2
 

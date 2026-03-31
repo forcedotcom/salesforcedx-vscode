@@ -131,9 +131,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     const allDotsId = `searchResultModel_${id.replaceAll('.', '_')}`;
     const firstDotId = `searchResultModel_${id.replace('.', '_')}`;
     const dataIdSelector =
-      allDotsId === firstDotId
-        ? `[data-id="${allDotsId}"]`
-        : `[data-id="${allDotsId}"], [data-id="${firstDotId}"]`;
+      allDotsId === firstDotId ? `[data-id="${allDotsId}"]` : `[data-id="${allDotsId}"], [data-id="${firstDotId}"]`;
     const row = page.locator(dataIdSelector).last();
 
     if (debugAria) {
@@ -229,6 +227,10 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
   }
+
+  // Wait for VS Code to persist settings to disk before closing the tab
+  // VS Code writes settings asynchronously, and closing too quickly cancels the write
+  await page.waitForTimeout(2000);
 
   // Close the settings overlay/tab so callers can open command palette etc.
   await closeSettingsTab(page);

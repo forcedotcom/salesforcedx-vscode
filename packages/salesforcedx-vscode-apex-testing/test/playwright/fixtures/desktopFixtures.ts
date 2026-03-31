@@ -10,7 +10,7 @@ import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vsc
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   disableOtherExtensions: false,
   userSettings: {
     'github.gitAuthentication': false,
@@ -21,7 +21,7 @@ export const desktopTest = createDesktopTest({
 
 export const noOrgDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   disableOtherExtensions: false,
   userSettings: {
     'github.gitAuthentication': false,
@@ -33,7 +33,7 @@ export const noOrgDesktopTest = createDesktopTest({
 export const emptyWorkspaceDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   emptyWorkspace: true,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   disableOtherExtensions: false,
   userSettings: {
     'github.gitAuthentication': false,
