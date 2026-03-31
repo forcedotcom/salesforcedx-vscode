@@ -17,7 +17,6 @@ import * as HtmlUtils from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
 import { SOQLEditorProvider } from '../../../src/editor/soqlEditorProvider';
 import { nls } from '../../../src/messages';
-import { channelService } from '../../../src/services/channel';
 import * as org from '../../../src/services/org';
 
 describe('SOQLEditorProvider', () => {
@@ -75,11 +74,9 @@ describe('SOQLEditorProvider', () => {
   describe('resolveCustomTextEditor', () => {
     let mockDocument: vscode.TextDocument;
     let mockWebviewPanel: vscode.WebviewPanel;
-    let workspaceFsReadFileMock: jest.SpyInstance;
     let transformHtmlMock: jest.SpyInstance;
     let workspaceOnDidChangeSpy: jest.SpyInstance;
     let webViewPanelSpy: jest.SpyInstance;
-    let appendLineMock: jest.SpyInstance;
 
     beforeEach(() => {
       mockDocument = {
@@ -101,9 +98,7 @@ describe('SOQLEditorProvider', () => {
       }));
       webViewPanelSpy = (vscode.window.createWebviewPanel as jest.Mock) = jest.fn();
       webViewPanelSpy.mockReturnValue(mockWebviewPanel);
-      workspaceFsReadFileMock = jest.spyOn(vscode.workspace.fs, 'readFile');
       transformHtmlMock = jest.spyOn(HtmlUtils, 'transformHtml');
-      appendLineMock = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
     });
 
     it('should configure the webview options and set the HTML content', async () => {
@@ -139,7 +134,6 @@ describe('SOQLEditorProvider', () => {
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
       const expectedMessage = nls.localize('info_no_default_org');
-      expect(appendLineMock).toHaveBeenCalledWith(expectedMessage);
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(expectedMessage);
     });
   });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -11,7 +11,6 @@ import * as HashSet from 'effect/HashSet';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { channelService } from '../services/channel';
 import { formatErrorMessage, getDocumentQueryInputsForPlan, getQueryInputsForPlan } from './queryUtils';
 
 const QueryPlanNote = Schema.Data(
@@ -75,15 +74,19 @@ export const formatQueryPlanResults = (response: Schema.Schema.Type<typeof Query
   return `${table}\n${nls.localize('query_plan_notes_header')}:\n${notesLines.join('\n\n')}`;
 };
 
-const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: string) {
+export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: string) {
   const servicesApi = yield* getServicesApi;
+  const channelService = yield* servicesApi.services.ChannelService;
+
   if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
-    channelService.clear();
+    yield* channelService.clearChannel;
   }
+
+  const vscChannel = yield* channelService.getChannel;
 
   try {
     const connection = yield* servicesApi.services.ConnectionService.getConnection();
-    channelService.appendLine(nls.localize('query_plan_running', nls.localize('REST_API')));
+    yield* channelService.appendToChannel(nls.localize('query_plan_running', nls.localize('REST_API')));
 
     const encodedQuery = encodeURIComponent(query);
     const path = `/query?explain=${encodedQuery}`;
@@ -91,12 +94,12 @@ const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: string)
     const result = yield* Effect.promise(() => connection.request(path)).pipe(
       Effect.flatMap(Schema.decodeUnknown(QueryPlanResponse))
     );
-    channelService.appendLine(`\n${formatQueryPlanResults(result)}\n`);
-    channelService.appendLine(nls.localize('query_plan_complete'));
+    yield* channelService.appendToChannel(`\n${formatQueryPlanResults(result)}\n`);
+    yield* channelService.appendToChannel(nls.localize('query_plan_complete'));
   } catch (error) {
-    channelService.appendLine(formatErrorMessage(error));
+    yield* channelService.appendToChannel(formatErrorMessage(error));
   } finally {
-    channelService.show();
+    vscChannel.show();
   }
 });
 

@@ -9,7 +9,7 @@ import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { dataQuery } from './commands/dataQuery';
+import { dataQuery, dataQueryDocument } from './commands/dataQuery';
 import { queryPlan, queryPlanDocument } from './commands/queryPlan';
 import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
 import { registerSoqlCodeLensProvider } from './commands/soqlCodeLensProvider';
@@ -62,8 +62,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           )
         )
       ),
-      registerCommand('sf.data.query.input', dataQuery),
       registerCommand('sf.data.query.selection', dataQuery),
+      registerCommand('sf.data.query.document', dataQueryDocument),
       registerCommand('sf.data.query.explain.selection', queryPlan),
       registerCommand('sf.data.query.explain.document', queryPlanDocument)
     ],

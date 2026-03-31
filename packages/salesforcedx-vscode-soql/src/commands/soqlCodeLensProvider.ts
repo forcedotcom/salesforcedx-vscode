@@ -15,8 +15,14 @@ const provideCodeLenses = async (document: TextDocument, _token: CancellationTok
   if (document.getText().trim().length === 0 || !(await isDefaultOrgSet())) {
     return [];
   }
+  const range = new Range(0, 0, 0, 0);
   return [
-    new CodeLens(new Range(0, 0, 0, 0), {
+    new CodeLens(range, {
+      command: 'sf.data.query.document',
+      title: nls.localize('soql_run_query_codelens'),
+      tooltip: nls.localize('soql_run_query_codelens')
+    }),
+    new CodeLens(range, {
       command: 'sf.data.query.explain.document',
       title: nls.localize('soql_query_plan_codelens'),
       tooltip: nls.localize('soql_query_plan_codelens')

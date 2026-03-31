@@ -365,12 +365,12 @@
         "title": "%soql_walkthrough_open%"
       },
       {
-        "command": "sf.data.query.input",
-        "title": "%data_query_input_text%"
-      },
-      {
         "command": "sf.data.query.selection",
         "title": "%data_query_selection_text%"
+      },
+      {
+        "command": "sf.data.query.document",
+        "title": "%data_query_document_text%"
       },
       {
         "command": "sf.data.query.explain.selection",
@@ -400,12 +400,12 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.data.query.input",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
-        },
-        {
           "command": "sf.data.query.selection",
           "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.data.query.document",
+          "when": "sf:project_opened && resourceExtname == .soql && sf:has_target_org"
         },
         {
           "command": "sf.data.query.explain.selection",
@@ -413,7 +413,7 @@
         },
         {
           "command": "sf.data.query.explain.document",
-          "when": "resourceExtname == .soql && sf:has_target_org"
+          "when": "sf:project_opened && resourceExtname == .soql && sf:has_target_org"
         }
       ],
       "editor/title": [

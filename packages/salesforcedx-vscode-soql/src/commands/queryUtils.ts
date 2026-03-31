@@ -1,83 +1,55 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-
-export type QueryAndApiInputs = {
-  query: string;
-  api: 'REST' | 'TOOLING';
-};
 
 const API_ITEMS = [
   { api: 'REST' as const, label: nls.localize('REST_API'), description: nls.localize('REST_API_description') },
   { api: 'TOOLING' as const, label: nls.localize('tooling_API'), description: nls.localize('tooling_API_description') }
 ];
 
-const normalizeQuery = (q: string): string =>
-  q
-    .replace('[', '')
-    .replace(']', '')
-    .replaceAll(/(\r\n|\n)/g, ' ')
-    .trim();
-
-export const getQueryAndApiInputs = Effect.fn('getQueryAndApiInputs')(function* () {
-  const servicesApi = yield* getServicesApi;
-  const promptService = yield* servicesApi.services.PromptService;
-  const editorService = yield* servicesApi.services.EditorService;
-
-  const query = yield* editorService.getActiveEditorText(true).pipe(
-    Effect.flatMap(promptService.considerUndefinedAsCancellation),
-    // if not text, we'll prompt the user for it
-    Effect.catchAll(() => Effect.void),
-    Effect.flatMap(q =>
-      isString(q)
-        ? Effect.succeed(q)
-        : Effect.promise(() =>
-            vscode.window.showInputBox({
-              prompt: nls.localize('parameter_gatherer_enter_soql_query')
-            })
-          ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation))
-    ),
-    Effect.map(normalizeQuery)
-  );
-
-  const api = yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
-    Effect.flatMap(s => promptService.considerUndefinedAsCancellation(s)),
-    Effect.map(s => s.api)
-  );
-
-  return { query, api };
-});
-
 const ensureTextAndNormalize = Effect.fn('ensureTextAndNormalize')(function* (text: string) {
   const servicesApi = yield* getServicesApi;
   const promptService = yield* servicesApi.services.PromptService;
-  return yield* Effect.succeed(text).pipe(Effect.map(normalizeQuery), Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  const normalized = text.replace('[', '').replace(']', '').replaceAll(/(\r\n|\n)/g, ' ').trim();
+  return yield* promptService.considerUndefinedAsCancellation(normalized);
 });
 
-export const getQueryInputsForPlan = Effect.fn('getQueryInputsForPlan')(function* () {
+const getQueryText = Effect.fn('getQueryText')(function* (useSelection: boolean) {
   const servicesApi = yield* getServicesApi;
   const editorService = yield* servicesApi.services.EditorService;
+  return yield* editorService.getActiveEditorText(useSelection).pipe(Effect.flatMap(ensureTextAndNormalize));
+});
 
-  return yield* editorService.getActiveEditorContext(true).pipe(
-    Effect.flatMap(ctx => Schema.decodeUnknown(Schema.String)(ctx.text)),
-    Effect.flatMap(ensureTextAndNormalize)
+const pickApi = Effect.fn('pickApi')(function* () {
+  const servicesApi = yield* getServicesApi;
+  const promptService = yield* servicesApi.services.PromptService;
+  return yield* Effect.promise(() => vscode.window.showQuickPick(API_ITEMS)).pipe(
+    Effect.flatMap(s => promptService.considerUndefinedAsCancellation(s)),
+    Effect.map(s => s.api)
   );
 });
 
-export const getDocumentQueryInputsForPlan = Effect.fn('getDocumentQueryInputsForPlan')(function* () {
-  const servicesApi = yield* getServicesApi;
-  const editorService = yield* servicesApi.services.EditorService;
+export const getQueryAndApiInputs = Effect.fn('getQueryAndApiInputs')(function* () {
+  return { query: yield* getQueryText(true), api: yield* pickApi() };
+});
 
-  return yield* editorService.getActiveEditorText(false).pipe(Effect.flatMap(ensureTextAndNormalize));
+export const getDocumentQueryAndApiInputs = Effect.fn('getDocumentQueryAndApiInputs')(function* () {
+  return { query: yield* getQueryText(false), api: yield* pickApi() };
+});
+
+export const getQueryInputsForPlan = Effect.fn('getQueryInputsForPlan')(function* () {
+  return yield* getQueryText(true);
+});
+
+export const getDocumentQueryInputsForPlan = Effect.fn('getDocumentQueryInputsForPlan')(function* () {
+  return yield* getQueryText(false);
 });
 
 const ERROR_PATTERNS = [

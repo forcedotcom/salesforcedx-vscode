@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { formatErrorMessage, getQueryAndApiInputs } from './queryUtils';
+import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
 
 type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
@@ -61,10 +61,12 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   );
 });
 
-export const dataQuery = Effect.fn('sf.data.query')(function* () {
+const executeDataQuery = Effect.fn('executeDataQuery')(function* (
+  query: string,
+  queryApi: 'REST' | 'TOOLING'
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
-  const { query, api: queryApi } = yield* getQueryAndApiInputs();
 
   if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
     yield* channelService.clearChannel;
@@ -91,6 +93,16 @@ export const dataQuery = Effect.fn('sf.data.query')(function* () {
     yield* channelService.appendToChannel(formatErrorMessage(error));
     vscChannel.show();
   }
+});
+
+export const dataQuery = Effect.fn('sf.data.query')(function* () {
+  const { query, api } = yield* getQueryAndApiInputs();
+  yield* executeDataQuery(query, api);
+});
+
+export const dataQueryDocument = Effect.fn('sf.data.query.document')(function* () {
+  const { query, api } = yield* getDocumentQueryAndApiInputs();
+  yield* executeDataQuery(query, api);
 });
 
 /** Shared flatten pipeline for output channel table, CSV, and Query Data View. */
