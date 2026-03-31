@@ -22,7 +22,7 @@ import {
   type ApplyWorkspaceEditResult,
   type TextDocumentEdit
 } from 'vscode-languageserver-protocol';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 
 export { ApplyWorkspaceEditRequest } from 'vscode-languageserver-protocol';
 
@@ -33,9 +33,7 @@ const isTextDocumentEdit = (change: unknown): change is TextDocumentEdit => TDE.
  * workspace.fs (no editor open). Handles documentChanges: CreateFile + TextDocumentEdit
  * as produced by LspFileSystemAccessor.updateFileContent.
  */
-export const handleApplyEditWithFs = async (
-  params: ApplyWorkspaceEditParams
-): Promise<ApplyWorkspaceEditResult> => {
+export const handleApplyEditWithFs = async (params: ApplyWorkspaceEditParams): Promise<ApplyWorkspaceEditResult> => {
   const edit = params.edit;
   const documentChanges = edit.documentChanges;
   if (!documentChanges || documentChanges.length === 0) {
@@ -51,8 +49,7 @@ export const handleApplyEditWithFs = async (
         // Server sends a single insert at (0,0) with full content for create/write
         const content = edits.map(e => e.newText).join('');
         const vsUri = URI.parse(uriStr);
-        const parentPath = vsUri.path.replace(/\/[^/]+$/, '') || '/';
-        const parentUri = vsUri.with({ path: parentPath });
+        const parentUri = Utils.joinPath(vsUri, '..');
         await workspace.fs.createDirectory(parentUri);
         await workspace.fs.writeFile(vsUri, new TextEncoder().encode(content));
       }

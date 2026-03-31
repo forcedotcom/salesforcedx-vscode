@@ -105,14 +105,14 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
-    "ejs": "^3.1.10",
     "effect": "^3.20.0",
+    "ejs": "^3.1.10",
     "minimatch": "^9.0.5",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
     "vscode-languageserver-textdocument": "^1.0.12",
-    "vscode-uri": "^2.1.2"
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@lwc/engine-dom": "8.26.2",
