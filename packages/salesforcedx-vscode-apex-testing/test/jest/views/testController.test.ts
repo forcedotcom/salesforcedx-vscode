@@ -15,6 +15,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   let mockConnectionRef: any;
   let mockReadFileResult = '';
   const mockReadFile = jest.fn(() => EffectLib.succeed(mockReadFileResult));
+  const mockMetadataRetrieve = jest.fn(() => EffectLib.succeed({ getFileResponses: () => [] }));
   const MockConnectionService = { getConnection: () => EffectLib.succeed(mockConnectionRef) };
   const mockFsService = {
     readFile: mockReadFile,
@@ -32,7 +33,10 @@ jest.mock('../../../src/services/extensionProvider', () => {
     services: {
       ConnectionService: MockConnectionService,
       FsService: mockFsService,
-      WorkspaceService: MockWorkspaceService
+      WorkspaceService: MockWorkspaceService,
+      MetadataRetrieveService: {
+        retrieve: mockMetadataRetrieve
+      }
     }
   };
   const MockAllServicesLayer = Layer.effect(
@@ -51,7 +55,8 @@ jest.mock('../../../src/services/extensionProvider', () => {
     __setMockReadFileResult: (s: string) => {
       mockReadFileResult = s;
     },
-    __mockFsServiceReadFile: mockReadFile
+    __mockFsServiceReadFile: mockReadFile,
+    __mockMetadataRetrieve: mockMetadataRetrieve
   };
 });
 
@@ -646,6 +651,57 @@ describe('ApexTestController', () => {
 
       expect(mockTestController.items.replace).toHaveBeenCalledWith([]);
       expect(discoverTestsSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('retrieveOrgOnlyClass', () => {
+    it('retrieves org-only class for apex-testing class items', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showSuccessfulExecution = jest.fn();
+      notificationService.showInformationMessage = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue({
+        uri: URI.file('/workspace/force-app/main/default/classes/OrgOnlyClass.cls')
+      });
+      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue({});
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').succeed({
+          getFileResponses: () => [{ filePath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' }]
+        })
+      );
+      const refreshSpy = jest.spyOn(controller, 'refresh').mockResolvedValue(undefined);
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect((extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve).toHaveBeenCalledWith(
+        [{ type: 'ApexClass', fullName: 'OrgOnlyClass' }],
+        { ignoreConflicts: true }
+      );
+      expect(vscode.workspace.openTextDocument).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' })
+      );
+      expect(vscode.window.showTextDocument).toHaveBeenCalled();
+      expect(refreshSpy).toHaveBeenCalled();
+      expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
+    });
+
+    it('does not retrieve for local class items', async () => {
+      const classTestItem = {
+        id: 'class:LocalClass',
+        label: 'LocalClass',
+        uri: URI.file('/workspace/force-app/main/default/classes/LocalClass.cls')
+      } as unknown as vscode.TestItem;
+
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect((extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve).not.toHaveBeenCalled();
     });
   });
 

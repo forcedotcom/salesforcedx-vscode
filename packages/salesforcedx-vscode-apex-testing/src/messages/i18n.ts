@@ -84,6 +84,9 @@ export const messages = {
   basic_unit_test_template_description: 'Minimal template',
   apex_test_template_prompt: 'Select template type',
   apex_generate_class_success: 'Apex class created successfully',
+  apex_test_retrieve_org_only_class_text: 'SFDX: Retrieve Org-Only Apex Test Class',
+  apex_test_retrieve_org_only_class_codelens_text: 'Org-Only: Download',
+  apex_test_retrieve_canceled: 'Retrieve canceled',
   apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
   apex_test_debug_org_only_warning_message:
     'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',

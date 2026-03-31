@@ -30,6 +30,7 @@ import {
 import { ApexTestingDecorationProvider } from './discoveryVfs/apexTestingDecorationProvider';
 import { APEX_TESTING_SCHEME } from './discoveryVfs/apexTestingDiscoveryFs';
 import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDiscoveryFsProvider';
+import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
 import {
   buildAllServicesLayer,
   getApexTestingRuntime,
@@ -185,6 +186,8 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
     const decorationRegistration = vscode.window.registerFileDecorationProvider(new ApexTestingDecorationProvider());
     context.subscriptions.push(decorationRegistration);
+
+    registerOrgOnlyRetrieveCodeLensProvider(context);
   }
 
   // Always register commands (they'll be no-ops if not in a project)
@@ -264,6 +267,23 @@ const registerCommands = (): vscode.Disposable => {
   const apexTestSuiteRunCmd = vscode.commands.registerCommand('sf.apex.test.suite.run', apexTestSuiteRun);
   const apexTestSuiteAddCmd = vscode.commands.registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd);
   const apexTestRunCmd = vscode.commands.registerCommand('sf.apex.test.run', apexTestRun);
+  const retrieveOrgOnlyClassCmd = vscode.commands.registerCommand(
+    'sf.apex.test.orgOnlyClass.retrieve',
+    async (target?: vscode.TestItem | vscode.Uri) => {
+      if (!target) {
+        const activeUri = vscode.window.activeTextEditor?.document.uri;
+        if (activeUri?.scheme === APEX_TESTING_SCHEME) {
+          await getTestController().retrieveOrgOnlyClassFromUri(activeUri);
+        }
+        return;
+      }
+      if ('scheme' in target) {
+        await getTestController().retrieveOrgOnlyClassFromUri(target);
+        return;
+      }
+      await getTestController().retrieveOrgOnlyClass(target);
+    }
+  );
   const openOrgOnlyTestCmd = vscode.commands.registerCommand(
     'sf.apex.test.openOrgOnlyTest',
     async (test: vscode.TestItem) => {
@@ -292,6 +312,7 @@ const registerCommands = (): vscode.Disposable => {
     apexTestMethodRunCmd,
     apexTestMethodRunDelegateCmd,
     apexDebugMethodRunDelegateCmd,
+    retrieveOrgOnlyClassCmd,
     apexTestRunCmd,
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,

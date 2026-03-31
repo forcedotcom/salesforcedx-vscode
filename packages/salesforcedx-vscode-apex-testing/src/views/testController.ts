@@ -13,6 +13,7 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
 import { getApexTestDiscoveryStore, resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryStore';
+import { APEX_TESTING_SCHEME } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
@@ -477,6 +478,121 @@ export class ApexTestController {
     if (isMethod(test.id) && test.range) {
       editor.selection = new vscode.Selection(test.range.start, test.range.start);
       editor.revealRange(test.range, vscode.TextEditorRevealType.InCenter);
+    }
+  }
+
+  public async retrieveOrgOnlyClass(test: vscode.TestItem): Promise<void> {
+    if (!isClass(test.id) || !test.uri) {
+      return;
+    }
+    await this.retrieveOrgOnlyClassFromUri(test.uri);
+  }
+
+  public async retrieveOrgOnlyClassFromUri(uri: vscode.Uri): Promise<void> {
+    const className = this.getClassNameFromApexTestingUri(uri);
+    if (!className) {
+      return;
+    }
+    const executionName = nls.localize('apex_test_retrieve_org_only_class_text');
+    try {
+      const result = await getApexTestingRuntime().runPromise(
+        Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          return yield* api.services.MetadataRetrieveService.retrieve(
+            [{ type: 'ApexClass', fullName: className }],
+            { ignoreConflicts: true }
+          );
+        })
+      );
+
+      if (typeof result === 'string') {
+        await notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled'));
+        return;
+      }
+
+      const retrievedFileUri = this.getRetrievedFileUri(result);
+      if (retrievedFileUri) {
+        const document = await vscode.workspace.openTextDocument(retrievedFileUri);
+        await vscode.window.showTextDocument(document, {
+          preview: false,
+          viewColumn: vscode.ViewColumn.Active,
+          preserveFocus: false
+        });
+        await this.closeEditorTabByUri(uri);
+      }
+
+      try {
+        await this.refresh();
+      } catch (error) {
+        console.debug('Failed to refresh Apex tests after retrieve:', error);
+      }
+
+      notificationService.showSuccessfulExecution(executionName);
+    } catch {
+      notificationService.showFailedExecution(executionName);
+    }
+  }
+
+  private getClassNameFromApexTestingUri(uri: vscode.Uri): string | undefined {
+    if (uri.scheme !== APEX_TESTING_SCHEME) {
+      return undefined;
+    }
+    const classesMarker = '/classes/';
+    const markerIndex = uri.path.indexOf(classesMarker);
+    if (markerIndex < 0) {
+      return undefined;
+    }
+    const classPath = uri.path.slice(markerIndex + classesMarker.length);
+    if (!classPath.endsWith('.cls')) {
+      return undefined;
+    }
+    return classPath.slice(0, -4).replaceAll('/', '.');
+  }
+
+  private getRetrievedFileUri(result: unknown): vscode.Uri | undefined {
+    if (typeof result !== 'object' || result === null || !('getFileResponses' in result)) {
+      return undefined;
+    }
+    const getFileResponses = Reflect.get(result, 'getFileResponses');
+    if (typeof getFileResponses !== 'function') {
+      return undefined;
+    }
+    let responses: unknown;
+    try {
+      responses = Reflect.apply(getFileResponses, result, []);
+    } catch {
+      return undefined;
+    }
+    if (!Array.isArray(responses) || responses.length === 0) {
+      return undefined;
+    }
+    for (const response of responses) {
+      if (typeof response !== 'object' || response === null) {
+        continue;
+      }
+      const filePath = Reflect.get(response, 'filePath');
+      if (typeof filePath === 'string' && filePath.length > 0) {
+        return vscode.Uri.file(filePath);
+      }
+    }
+    return undefined;
+  }
+
+  private async closeEditorTabByUri(uri: vscode.Uri): Promise<void> {
+    const tabGroupsApi = vscode.window.tabGroups;
+    if (!tabGroupsApi) {
+      return;
+    }
+    const tabsToClose: vscode.Tab[] = [];
+    for (const group of tabGroupsApi.all) {
+      for (const tab of group.tabs) {
+        if (tab.input instanceof vscode.TabInputText && tab.input.uri.toString() === uri.toString()) {
+          tabsToClose.push(tab);
+        }
+      }
+    }
+    if (tabsToClose.length > 0) {
+      await tabGroupsApi.close(tabsToClose, true);
     }
   }
 
