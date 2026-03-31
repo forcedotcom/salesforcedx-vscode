@@ -48,7 +48,7 @@ test('Create Project: standard project via command palette', async ({ page, work
 
   await test.step('select LWC language when prompted', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
 
     const languagePromptVisible = await quickInput
       .getByText(/Select default Lightning Web Component language/i)
@@ -57,7 +57,7 @@ test('Create Project: standard project via command palette', async ({ page, work
 
     if (languagePromptVisible) {
       const javascriptRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /^JavaScript$/i });
-      await javascriptRow.waitFor({ state: 'visible', timeout: 10000 });
+      await javascriptRow.waitFor({ state: 'visible', timeout: 10_000 });
       await javascriptRow.click();
       await saveScreenshot(page, 'createProject.03-language-selected.png');
       return;
