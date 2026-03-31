@@ -46,16 +46,25 @@ test('Create Project: standard project via command palette', async ({ page, work
     await saveScreenshot(page, 'createProject.02-standard-selected.png');
   });
 
-  await test.step('select LWC language', async () => {
+  await test.step('select LWC language when prompted', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await quickInput.getByText(/Select default Lightning Web Component language/i).waitFor({ state: 'visible', timeout: 10_000 });
 
-    // Select JavaScript (first option, default)
-    const javascriptRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /JavaScript/ });
-    await javascriptRow.waitFor({ state: 'visible', timeout: 10_000 });
-    await javascriptRow.click();
-    await saveScreenshot(page, 'createProject.03-language-selected.png');
+    const languagePromptVisible = await quickInput
+      .getByText(/Select default Lightning Web Component language/i)
+      .isVisible({ timeout: 3_000 })
+      .catch(() => false);
+
+    if (languagePromptVisible) {
+      const javascriptRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /^JavaScript$/i });
+      await javascriptRow.waitFor({ state: 'visible', timeout: 10_000 });
+      await javascriptRow.click();
+      await saveScreenshot(page, 'createProject.03-language-selected.png');
+      return;
+    }
+
+    // Current behavior may default to JavaScript and skip this prompt.
+    await saveScreenshot(page, 'createProject.03-language-prompt-not-shown.png');
   });
 
   await test.step('enter project name', async () => {

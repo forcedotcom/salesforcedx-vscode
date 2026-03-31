@@ -53,17 +53,21 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
 
-    // Check if component type selection prompt appears (depends on sfdx-project.json defaultLwcLanguage)
-    const componentTypePromptVisible = await quickInput
+    // Newer flows may show component type first; older flows may show name first.
+    const componentTypePromptFirst = await quickInput
       .getByText(/Select component type/i)
-      .isVisible({ timeout: 2000 })
+      .isVisible({ timeout: 2_000 })
       .catch(() => false);
-
-    if (componentTypePromptVisible) {
-      await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
-      // Select JavaScript (first option, default) by pressing Enter
-      await page.keyboard.press('Enter');
-      await saveScreenshot(page, 'step1.component-type-selected.png');
+    if (componentTypePromptFirst) {
+      await saveScreenshot(page, 'step1.component-type-prompt-visible-before-name.png');
+      const javascriptRow = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /^JavaScript$/i });
+      const hasJavaScriptRow = await javascriptRow.isVisible({ timeout: 2_000 }).catch(() => false);
+      if (hasJavaScriptRow) {
+        await javascriptRow.click();
+      } else {
+        await page.keyboard.press('Enter');
+      }
+      await saveScreenshot(page, 'step1.component-type-selected-before-name.png');
     }
 
     await quickInput.getByText(/Enter Lightning Web Component name/i).waitFor({ state: 'visible', timeout: 10_000 });
@@ -72,6 +76,23 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await page.keyboard.type(componentName);
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
+
+    // Legacy fallback: if component type appears after name entry, select JavaScript.
+    const componentTypePromptAfterName = await quickInput
+      .getByText(/Select component type/i)
+      .isVisible({ timeout: 2_000 })
+      .catch(() => false);
+    if (componentTypePromptAfterName) {
+      await saveScreenshot(page, 'step1.component-type-prompt-visible-after-name.png');
+      const javascriptRow = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /^JavaScript$/i });
+      const hasJavaScriptRow = await javascriptRow.isVisible({ timeout: 2_000 }).catch(() => false);
+      if (hasJavaScriptRow) {
+        await javascriptRow.click();
+      } else {
+        await page.keyboard.press('Enter');
+      }
+      await saveScreenshot(page, 'step1.component-type-selected-after-name.png');
+    }
 
     await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
