@@ -56,17 +56,13 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     // Newer flows may show component type first; older flows may show name first.
     const componentTypePromptFirst = await quickInput
       .getByText(/Select component type/i)
-      .isVisible({ timeout: 2_000 })
+      .isVisible({ timeout: 2000 })
       .catch(() => false);
     if (componentTypePromptFirst) {
       await saveScreenshot(page, 'step1.component-type-prompt-visible-before-name.png');
       const javascriptRow = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /^JavaScript$/i });
-      const hasJavaScriptRow = await javascriptRow.isVisible({ timeout: 2_000 }).catch(() => false);
-      if (hasJavaScriptRow) {
-        await javascriptRow.click();
-      } else {
-        await page.keyboard.press('Enter');
-      }
+      const hasJavaScriptRow = await javascriptRow.isVisible({ timeout: 2000 }).catch(() => false);
+      await (hasJavaScriptRow ? javascriptRow.click() : page.keyboard.press('Enter'));
       await saveScreenshot(page, 'step1.component-type-selected-before-name.png');
     }
 
@@ -80,17 +76,13 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     // Legacy fallback: if component type appears after name entry, select JavaScript.
     const componentTypePromptAfterName = await quickInput
       .getByText(/Select component type/i)
-      .isVisible({ timeout: 2_000 })
+      .isVisible({ timeout: 2000 })
       .catch(() => false);
     if (componentTypePromptAfterName) {
       await saveScreenshot(page, 'step1.component-type-prompt-visible-after-name.png');
       const javascriptRow = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /^JavaScript$/i });
-      const hasJavaScriptRow = await javascriptRow.isVisible({ timeout: 2_000 }).catch(() => false);
-      if (hasJavaScriptRow) {
-        await javascriptRow.click();
-      } else {
-        await page.keyboard.press('Enter');
-      }
+      const hasJavaScriptRow = await javascriptRow.isVisible({ timeout: 2000 }).catch(() => false);
+      await (hasJavaScriptRow ? javascriptRow.click() : page.keyboard.press('Enter'));
       await saveScreenshot(page, 'step1.component-type-selected-after-name.png');
     }
 
