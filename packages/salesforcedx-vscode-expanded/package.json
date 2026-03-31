@@ -67,6 +67,8 @@
     "salesforce.apex-language-server-extension",
     "redhat.vscode-xml",
     "esbenp.prettier-vscode",
-    "financialforce.lana"
+    "financialforce.lana",
+    "GraphQL.vscode-graphql",
+    "GraphQL.vscode-graphql-syntax"
   ]
 }
