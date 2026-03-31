@@ -6,7 +6,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.3.2",
+  "version": "66.4.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.28.0",
     "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.27.4",
     "salesforcedx-vscode-services": "*"
@@ -316,7 +316,7 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.metadata.apex.generate.trigger",
+          "command": "sf.apex.generate.trigger",
           "when": "sf:project_opened"
         },
         {
@@ -380,7 +380,7 @@
       ],
       "explorer/context": [
         {
-          "command": "sf.metadata.apex.generate.trigger",
+          "command": "sf.apex.generate.trigger",
           "when": "explorerResourceIsFolder && resourceFilename == triggers && sf:project_opened"
         },
         {
@@ -403,7 +403,7 @@
         "title": "%apex_generate_class_text%"
       },
       {
-        "command": "sf.metadata.apex.generate.trigger",
+        "command": "sf.apex.generate.trigger",
         "title": "%apex_generate_trigger_text%"
       },
       {

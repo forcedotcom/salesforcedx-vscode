@@ -16,6 +16,7 @@ import * as nodeFs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
+import { nls } from '../messages';
 import { uriToPath } from '../vscode/paths';
 import { ConnectionService } from './connectionService';
 import { ProjectService } from './projectService';
@@ -49,8 +50,8 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
                         ? SfTemplates.VisualforcePageOptions
                         : T extends SfTemplates.TemplateType.StaticResource
                           ? SfTemplates.StaticResourceOptions
-                          : T extends SfTemplates.TemplateType.WebApplication
-                            ? SfTemplates.WebApplicationOptions
+                          : T extends SfTemplates.TemplateType.UIBundle
+                            ? SfTemplates.UIBundleOptions
                             : SfTemplates.TemplateOptions;
 
 /** Params for create - templateType discriminates which options are required */
@@ -85,7 +86,7 @@ const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
   const ext = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
   const extensionUri = ext?.extensionUri;
   if (!extensionUri) {
-    return yield* new TemplatesRootPathNotAvailableError({ message: 'Extension context not available' });
+    return yield* new TemplatesRootPathNotAvailableError({ message: nls.localize('template_service_extension_context_not_available') });
   }
   return extensionUri;
 });
@@ -102,7 +103,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
     try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),
     catch: e =>
       new TemplatesManifestLoadError({
-        message: `Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (${e instanceof Error ? e.message : String(e)})`,
+        message: nls.localize('template_service_manifest_load_failed', e instanceof Error ? e.message : String(e)),
         cause: e
       })
   });
@@ -110,7 +111,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
     Effect.mapError(
       error =>
         new TemplatesManifestLoadError({
-          message: 'Failed to parse templates manifest from extension assets.',
+          message: nls.localize('template_service_manifest_parse_failed'),
           cause: error
         })
     )
@@ -126,7 +127,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
         },
         catch: e =>
           new TemplatesManifestLoadError({
-            message: `Failed to copy template file "${relativePath}" to memfs. (${e instanceof Error ? e.message : String(e)})`,
+            message: nls.localize('template_service_file_copy_failed', relativePath, e instanceof Error ? e.message : String(e)),
             cause: e
           })
       }).pipe(
@@ -147,7 +148,7 @@ const getApiVersionFromProject = Effect.fn('TemplateService.getApiVersionFromPro
   const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
   return yield* Effect.fromNullable(sourceApiVersion).pipe(
     Effect.map(String),
-    Effect.orElseFail(() => new MissingProjectSourceApiVersionError({ message: 'sourceApiVersion is not defined' }))
+    Effect.orElseFail(() => new MissingProjectSourceApiVersionError({ message: nls.localize('template_service_source_api_version_not_defined') }))
   );
 });
 
