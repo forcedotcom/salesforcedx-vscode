@@ -66,6 +66,7 @@ jest.mock('../../../src/utils/testUtils', () => {
     ...actual,
     getApexTests: jest.fn(),
     buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
+    getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(undefined),
     readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
   };
 });
@@ -83,6 +84,15 @@ jest.mock('../../../src/settings', () => ({
 
 jest.mock('../../../src/testDiscovery/packageResolution', () => ({
   resolvePackage2Members: jest.fn().mockResolvedValue(new Map())
+}));
+
+const mockSaveDiscoveredClasses = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../src/discoveryVfs/apexTestDiscoveryStore', () => ({
+  getApexTestDiscoveryStore: () => ({
+    saveDiscoveredClasses: mockSaveDiscoveredClasses
+  }),
+  resolveDiscoveryOrgKey: jest.fn().mockReturnValue('org123')
 }));
 
 // Mock TestService before imports
@@ -113,7 +123,6 @@ jest.mock('@salesforce/apex-node', () => ({
 import * as path from 'node:path';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import { URI } from 'vscode-uri';
-import type { Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
 import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
@@ -134,6 +143,7 @@ const mockTestController = {
   createTestRun: jest.fn(),
   createRunProfile: jest.fn(),
   refreshHandler: undefined as (() => Promise<void>) | undefined,
+  resolveHandler: undefined as ((test: vscode.TestItem | undefined) => Promise<void>) | undefined,
   dispose: jest.fn()
 } as unknown as vscode.TestController;
 
@@ -162,13 +172,13 @@ const mockTestRun = {
 
 describe('ApexTestController', () => {
   let controller: ApexTestController;
-  let mockConnection: Partial<Connection>;
+  let mockConnection: any;
   let createOrgApexClassUriSpy: jest.SpyInstance;
-  let openOrgApexClassSpy: jest.SpyInstance;
   let discoverTestsSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSaveDiscoveredClasses.mockResolvedValue(undefined);
 
     // Mock vscode.tests.createTestController
     (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
@@ -196,7 +206,10 @@ describe('ApexTestController', () => {
     // Mock connection
     mockConnection = {
       getApiVersion: jest.fn().mockReturnValue('65.0'),
-      request: jest.fn()
+      request: jest.fn(),
+      tooling: {
+        query: jest.fn().mockResolvedValue({ records: [] })
+      }
     };
 
     (coreExtensionUtils.getConnection as jest.Mock) = jest.fn().mockResolvedValue(mockConnection);
@@ -207,6 +220,7 @@ describe('ApexTestController', () => {
 
     (testUtils.getApexTests as jest.Mock) = jest.fn().mockResolvedValue([]);
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
+    (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(undefined);
     const Effect = jest.requireActual('effect/Effect');
     discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
 
@@ -255,29 +269,12 @@ describe('ApexTestController', () => {
         return URI.parse(`sf-org-apex:${baseClassName}`);
       });
 
-    openOrgApexClassSpy = jest
-      .spyOn(orgApexClassProvider, 'openOrgApexClass')
-      .mockImplementation(async (className: string, position?: any) => {
-        const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
-        const uri = URI.parse(`sf-org-apex:${baseClassName}`);
-        const document = await vscode.workspace.openTextDocument(uri);
-        const editor = await vscode.window.showTextDocument(document, {
-          preview: false,
-          viewColumn: vscode.ViewColumn.Active
-        });
-        if (position) {
-          editor.selection = new vscode.Selection(position, position);
-          editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
-        }
-      });
-
     controller = new ApexTestController();
   });
 
   afterEach(() => {
     // Restore spies
     createOrgApexClassUriSpy.mockRestore();
-    openOrgApexClassSpy.mockRestore();
   });
 
   describe('constructor', () => {
@@ -336,6 +333,7 @@ describe('ApexTestController', () => {
       await controller.discoverTests();
 
       expect(discoverTestsSpy).toHaveBeenCalled();
+      expect(mockSaveDiscoveredClasses).toHaveBeenCalledWith('org123', mockClasses, expect.any(Map));
       expect(mockTestController.createTestItem).toHaveBeenCalled();
       expect(mockTestController.items.add).toHaveBeenCalled();
     });
@@ -364,9 +362,6 @@ describe('ApexTestController', () => {
       // OrgOnlyClass does not exist locally, so buildClassToUriIndex returns empty map
       (testUtils.buildClassToUriIndex as jest.Mock).mockReset();
       (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
-      // The spy is already set up in beforeEach, just clear call history
-      createOrgApexClassUriSpy.mockClear();
-
       const createdItemsMap = new Map<string, any>();
       (mockTestController.createTestItem as jest.Mock).mockImplementation(
         (id: string, label: string, uri?: URI): vscode.TestItem => {
@@ -403,9 +398,6 @@ describe('ApexTestController', () => {
 
       await controller.discoverTests();
 
-      // Verify createOrgApexClassUri was called
-      expect(createOrgApexClassUriSpy).toHaveBeenCalledWith('OrgOnlyClass');
-
       // Find the org-only class item - use the full class name format
       const orgOnlyClassItem = createdItemsMap.get('class:OrgOnlyClass');
       const orgOnlyMethodItem = createdItemsMap.get('method:OrgOnlyClass.testMethod1');
@@ -416,7 +408,7 @@ describe('ApexTestController', () => {
       const actualUri = createdItemsMap.get('class:OrgOnlyClass')?.uri;
       expect(actualUri).toBeDefined();
       if (actualUri) {
-        expect(actualUri.toString()).toContain('sf-org-apex');
+        expect(actualUri.toString()).toContain('apex-testing:/');
       }
       expect(orgOnlyClassItem?.tags).toBeDefined();
       expect(orgOnlyClassItem?.tags?.length).toBe(1);
@@ -428,7 +420,7 @@ describe('ApexTestController', () => {
       const actualMethodUri = createdItemsMap.get('method:OrgOnlyClass.testMethod1')?.uri;
       expect(actualMethodUri).toBeDefined();
       if (actualMethodUri) {
-        expect(actualMethodUri.toString()).toContain('sf-org-apex');
+        expect(actualMethodUri.toString()).toContain('apex-testing:/');
       }
       expect(orgOnlyMethodItem?.tags).toBeDefined();
       expect(orgOnlyMethodItem?.tags?.length).toBe(1);
@@ -558,7 +550,6 @@ describe('ApexTestController', () => {
       // Clear call history for VS Code APIs and spies
       (vscode.workspace.openTextDocument as jest.Mock).mockClear();
       (vscode.window.showTextDocument as jest.Mock).mockClear();
-      openOrgApexClassSpy.mockClear();
 
       const classTestItem = {
         id: 'class:OrgOnlyClass',
@@ -588,10 +579,7 @@ describe('ApexTestController', () => {
 
       await controller.openOrgOnlyTest(classTestItem);
 
-      // Verify openOrgApexClass was called
-      expect(openOrgApexClassSpy).toHaveBeenCalledWith('OrgOnlyClass');
       // Verify the underlying VS Code APIs were called
-      // Note: The mock implementation calls these, so they should be called
       expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
       if ((vscode.workspace.openTextDocument as jest.Mock).mock.calls.length > 0) {
         const openDocCall = (vscode.workspace.openTextDocument as jest.Mock).mock.calls[0][0];
@@ -606,7 +594,6 @@ describe('ApexTestController', () => {
       // Clear call history
       (vscode.workspace.openTextDocument as jest.Mock).mockClear();
       (vscode.window.showTextDocument as jest.Mock).mockClear();
-      openOrgApexClassSpy.mockClear();
 
       const methodTestItem = {
         id: 'method:OrgOnlyClass.testMethod',
@@ -637,11 +624,6 @@ describe('ApexTestController', () => {
 
       await controller.openOrgOnlyTest(methodTestItem);
 
-      // Verify openOrgApexClass was called with the class name and position
-      expect(openOrgApexClassSpy).toHaveBeenCalledWith(
-        'OrgOnlyClass',
-        expect.objectContaining({ line: 5, character: 10 })
-      );
       // Verify the underlying VS Code APIs were called
       expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
@@ -664,6 +646,47 @@ describe('ApexTestController', () => {
 
       expect(mockTestController.items.replace).toHaveBeenCalledWith([]);
       expect(discoverTestsSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('resolveHandler', () => {
+    it('should request document symbols for class methods with default range', async () => {
+      const methodItem = {
+        id: 'method:OrgOnlyClass.testMethod1',
+        label: 'testMethod1',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls'),
+        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0))
+      } as unknown as vscode.TestItem;
+
+      const classItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls'),
+        children: {
+          forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem)
+        }
+      } as unknown as vscode.TestItem;
+
+      (testUtils.getMethodLocationsFromSymbols as jest.Mock).mockResolvedValue(
+        new Map([
+          [
+            'testMethod1',
+            new vscode.Location(
+              URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls'),
+              new vscode.Range(new vscode.Position(9, 2), new vscode.Position(9, 2))
+            )
+          ]
+        ])
+      );
+
+      await mockTestController.resolveHandler?.(classItem);
+
+      expect(testUtils.getMethodLocationsFromSymbols).toHaveBeenCalledWith(
+        classItem.uri,
+        expect.arrayContaining(['testMethod1'])
+      );
+      expect(methodItem.range?.start.line).toBe(9);
+      expect(methodItem.range?.start.character).toBe(2);
     });
   });
 

@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
+import { getApexTestDiscoveryStore, resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryStore';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
@@ -20,7 +21,7 @@ import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { notificationService } from '../utils/notificationHelpers';
-import { getOrgApexClassProvider, openOrgApexClass } from '../utils/orgApexClassProvider';
+import { getOrgApexClassProvider } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
@@ -37,7 +38,14 @@ import {
 } from '../utils/testItemUtils';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
-import { buildClassToUriIndex, isFlowTest, readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
+import {
+  buildClassToUriIndex,
+  getFullClassName,
+  getMethodLocationsFromSymbols,
+  isFlowTest,
+  readTestRunIdFile,
+  writeTestResultJsonFile
+} from '../utils/testUtils';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
@@ -159,6 +167,7 @@ export class ApexTestController {
 
       // Then populate test classes from org (all tests, not just local)
       const discoveryResult = await getApexTestingRuntime().runPromise(discoverTests());
+      await this.persistDiscoveredClasses(discoveryResult.classes);
 
       // Always populate whatever classes were discovered, even if discovery was partial
       if (discoveryResult.classes.length > 0) {
@@ -173,6 +182,52 @@ export class ApexTestController {
         void notificationService.showErrorMessage(friendlyMessage);
       }
     }
+  }
+
+  private async persistDiscoveredClasses(classes: ToolingTestClass[]): Promise<void> {
+    try {
+      const orgInfo = await getDefaultOrgInfo();
+      const orgKey = resolveDiscoveryOrgKey(orgInfo);
+      const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
+      const classBodiesByFullName = await this.fetchClassBodiesByFullName(apexClasses);
+      await getApexTestDiscoveryStore().saveDiscoveredClasses(orgKey, apexClasses, classBodiesByFullName);
+    } catch (error) {
+      console.debug('Failed to persist discovered Apex classes into apex-testing VFS:', error);
+    }
+  }
+
+  private async fetchClassBodiesByFullName(classes: ToolingTestClass[]): Promise<Map<string, string>> {
+    const classIds = classes
+      .map(cls => cls.id)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0)
+      .toSorted();
+    const bodyByFullName = new Map<string, string>();
+    if (classIds.length === 0) {
+      return bodyByFullName;
+    }
+
+    const connection = this.getConnection();
+    const chunkSize = 200;
+    for (let start = 0; start < classIds.length; start += chunkSize) {
+      const chunkIds = classIds.slice(start, start + chunkSize);
+      const inClause = chunkIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
+      const query = `SELECT Id, Name, NamespacePrefix, Body FROM ApexClass WHERE Id IN (${inClause})`;
+      const queryResult = await connection.tooling.query<{ Name: string; NamespacePrefix?: string | null; Body?: string | null }>(
+        query
+      );
+      for (const record of queryResult.records) {
+        const fullClassName = record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name;
+        bodyByFullName.set(fullClassName, record.Body ?? `// Source unavailable for ${fullClassName}`);
+      }
+    }
+
+    for (const cls of classes) {
+      const fullClassName = getFullClassName(cls);
+      if (!bodyByFullName.has(fullClassName)) {
+        bodyByFullName.set(fullClassName, `// Source unavailable for ${fullClassName}`);
+      }
+    }
+    return bodyByFullName;
   }
 
   public async onResultFileCreate(apexTestDir: URI, testResultUri: URI): Promise<void> {
@@ -223,6 +278,7 @@ export class ApexTestController {
       .map(cls => cls.id)
       .filter((id): id is string => typeof id === 'string' && id.length > 0);
     const [connection, orgInfo] = await Promise.all([this.getConnection(), getDefaultOrgInfo()]);
+    const orgKey = resolveDiscoveryOrgKey(orgInfo);
     const classIdToPackage = await resolvePackage2Members(
       connection,
       classIds,
@@ -236,6 +292,7 @@ export class ApexTestController {
       classItems: this.classItems,
       methodItems: this.methodItems,
       classNameToUri,
+      orgKey,
       orgOnlyTag: this.orgOnlyTag,
       inWorkspaceTag: this.inWorkspaceTag
     });
@@ -369,28 +426,57 @@ export class ApexTestController {
       if (isSuite(test.id)) {
         await this.resolveSuiteChildren(test);
       }
+      if (isClass(test.id)) {
+        await this.augmentMethodPositionsFromSymbols(test);
+      }
     };
+  }
+
+  private async augmentMethodPositionsFromSymbols(classItem: vscode.TestItem): Promise<void> {
+    if (!classItem.uri) {
+      return;
+    }
+    const unresolved = new Map<string, vscode.TestItem>();
+    classItem.children.forEach(child => {
+      if (!isMethod(child.id)) {
+        return;
+      }
+      const start = child.range?.start;
+      const unresolvedRange = !start || (start.line === 0 && start.character === 0);
+      if (unresolvedRange) {
+        unresolved.set(child.label, child);
+      }
+    });
+    if (unresolved.size === 0) {
+      return;
+    }
+    const locationMap = await getMethodLocationsFromSymbols(classItem.uri, [...unresolved.keys()]);
+    if (!locationMap) {
+      return;
+    }
+    for (const [methodName, location] of locationMap) {
+      const item = unresolved.get(methodName);
+      if (item) {
+        item.range = location.range;
+      }
+    }
   }
 
   /**
    * Opens an org-only test class in a virtual editor
    */
   public async openOrgOnlyTest(test: vscode.TestItem): Promise<void> {
-    const className = getTestName(test);
-
-    if (isMethod(test.id)) {
-      // For methods, extract class name and navigate to the method position
-      const classNameFromMethod = extractClassName(test.id);
-      if (classNameFromMethod) {
-        // Get the line number from the test item's range if available
-        const position = test.range?.start ?? new vscode.Position(0, 0);
-        await openOrgApexClass(classNameFromMethod, position);
-      } else {
-        await openOrgApexClass(className);
-      }
-    } else if (isClass(test.id)) {
-      // For classes, just open the class
-      await openOrgApexClass(className);
+    if (!test.uri) {
+      return;
+    }
+    const document = await vscode.workspace.openTextDocument(test.uri);
+    const editor = await vscode.window.showTextDocument(document, {
+      preview: false,
+      viewColumn: vscode.ViewColumn.Active
+    });
+    if (isMethod(test.id) && test.range) {
+      editor.selection = new vscode.Selection(test.range.start, test.range.start);
+      editor.revealRange(test.range, vscode.TextEditorRevealType.InCenter);
     }
   }
 

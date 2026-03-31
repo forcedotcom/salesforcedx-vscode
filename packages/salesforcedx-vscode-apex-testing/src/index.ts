@@ -27,6 +27,8 @@ import {
   apexTestSuiteCreate,
   apexTestSuiteRun
 } from './commands';
+import { APEX_TESTING_SCHEME } from './discoveryVfs/apexTestingDiscoveryFs';
+import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDiscoveryFsProvider';
 import {
   buildAllServicesLayer,
   getApexTestingRuntime,
@@ -172,6 +174,13 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
       orgApexClassProvider
     );
     context.subscriptions.push(providerRegistration);
+
+    const discoveryFsRegistration = vscode.workspace.registerFileSystemProvider(
+      APEX_TESTING_SCHEME,
+      getApexTestingDiscoveryFsProvider(),
+      { isCaseSensitive: true }
+    );
+    context.subscriptions.push(discoveryFsRegistration);
   }
 
   // Always register commands (they'll be no-ops if not in a project)

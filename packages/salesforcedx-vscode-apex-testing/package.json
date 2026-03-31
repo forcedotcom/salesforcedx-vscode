@@ -240,7 +240,8 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onFileSystem:memfs"
+    "onFileSystem:memfs",
+    "onFileSystem:apex-testing"
   ],
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
