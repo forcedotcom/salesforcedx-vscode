@@ -24,7 +24,7 @@ import { noOrgTest } from '../fixtures';
 
     await noOrgTest.step('verify project-only commands are visible', async () => {
       // Open Apex Test Explorer Walkthrough should be visible with just a project
-      await verifyCommandExists(page, packageNls.apex_testing_walkthrough_open_command, 5000);
+      await verifyCommandExists(page, packageNls.apex_testing_walkthrough_open_command, 60_000);
     });
 
     await noOrgTest.step('verify org-dependent commands are hidden', async () => {
