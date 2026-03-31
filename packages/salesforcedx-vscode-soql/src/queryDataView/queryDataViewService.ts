@@ -6,6 +6,7 @@
  */
 
 import type { QueryResult } from '../types';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -26,11 +27,16 @@ import {
   TABULATOR_STYLE_FILENAME
 } from '../constants';
 import { nls } from '../messages';
-import { channelService } from '../services/channel';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { FileFormat, QueryDataFileService as FileService } from './queryDataFileService';
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
+
+const appendToChannel = (message: string) =>
+  getServicesApi.pipe(
+    Effect.flatMap(api => api.services.ChannelService),
+    Effect.flatMap(svc => svc.appendToChannel(message))
+  );
 
 const getWebViewContent = async (webview: vscode.Webview, extensionUri: URI): Promise<string> => {
   const baseStyleUri = webview.asWebviewUri(
@@ -42,14 +48,14 @@ const getWebViewContent = async (webview: vscode.Webview, extensionUri: URI): Pr
   const viewControllerUri = webview.asWebviewUri(
     Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME)
   );
-  const tabulatorUri = webview.asWebviewUri(
-    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_SCRIPT_FILENAME)
-  );
-  const saveIconUri = webview.asWebviewUri(
-    Utils.joinPath(extensionUri, ...DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME)
-  );
+  const tabulatorUri = webview.asWebviewUri(Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_SCRIPT_FILENAME));
+  const saveIconUri = webview.asWebviewUri(Utils.joinPath(extensionUri, ...DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME));
 
-  return getHtml({ baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri }, extensionUri, webview);
+  return getHtml(
+    { baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri },
+    extensionUri,
+    webview
+  );
 };
 
 const saveRecordsEffect = Effect.fn('QueryDataView.save_records')(function* ({
@@ -106,11 +112,9 @@ export class QueryDataViewService {
     ).pipe(
       Effect.asVoid,
       Effect.catchAllCause(cause =>
-        Effect.sync(() => {
-          const errorType = 'data_view_post_message';
-          channelService.appendLine(nls.localize('error_unknown_error', errorType));
-          channelService.appendLine(`soql_error_${errorType}: ${String(cause)}`);
-        })
+        appendToChannel(nls.localize('error_unknown_error', 'data_view_post_message')).pipe(
+          Effect.andThen(appendToChannel(`soql_error_data_view_post_message: ${String(cause)}`))
+        )
       )
     );
   }
@@ -144,7 +148,10 @@ export class QueryDataViewService {
       dark: salesforceCloudUri
     };
 
-    this.currentPanel.webview.html = await getWebViewContent(this.currentPanel.webview, QueryDataViewService.extensionUri);
+    this.currentPanel.webview.html = await getWebViewContent(
+      this.currentPanel.webview,
+      QueryDataViewService.extensionUri
+    );
 
     // Stream-based message handling: each message dispatched as a named OTel span
     const panel = this.currentPanel;
@@ -158,9 +165,7 @@ export class QueryDataViewService {
         Stream.mapEffect(
           event =>
             this.handleMessageEffect(event).pipe(
-              Effect.catchAllCause(() =>
-                Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', event.type)))
-              )
+              Effect.catchAllCause(() => appendToChannel(nls.localize('error_unknown_error', event.type)))
             ),
           { concurrency: 'unbounded' }
         ),
@@ -179,13 +184,17 @@ export class QueryDataViewService {
         return this.updateWebviewWith(this.queryData).pipe(Effect.withSpan('QueryDataView.activate'));
 
       case 'save_records':
-        return saveRecordsEffect({ queryText: this.queryText, queryData: this.queryData, format: format!, document: this.document });
+        return saveRecordsEffect({
+          queryText: this.queryText,
+          queryData: this.queryData,
+          format: format!,
+          document: this.document
+        });
 
       default:
-        return Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', type))).pipe(
+        return appendToChannel(nls.localize('error_unknown_error', type)).pipe(
           Effect.withSpan('QueryDataView.unknown_message', { attributes: { messageType: type } })
         );
     }
   };
-
 }

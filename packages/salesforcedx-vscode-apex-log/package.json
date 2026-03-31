@@ -6,7 +6,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.3.0",
+  "version": "66.4.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -35,9 +35,9 @@
   },
   "devDependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.28.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "esbuild": "0.25.12",
+    "esbuild": "0.27.4",
     "salesforcedx-vscode-services": "*"
   },
   "scripts": {
@@ -82,12 +82,12 @@
       ]
     },
     "copy:grammars": {
-      "command": "shx mkdir -p syntaxes && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./syntaxes/",
+      "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./grammars/",
       "files": [
         "../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
       ],
       "output": [
-        "syntaxes/apex.tmLanguage"
+        "grammars/apex.tmLanguage"
       ]
     },
     "vscode:bundle": {
@@ -163,6 +163,7 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],
@@ -181,7 +182,8 @@
         "LICENSE.txt",
         "images/**",
         "resources/**",
-        "syntaxes/**"
+        "syntaxes/**",
+        "grammars/**"
       ],
       "output": [
         "*.vsix"
@@ -300,7 +302,7 @@
       {
         "language": "apex-anon",
         "scopeName": "source.apex",
-        "path": "./syntaxes/apex.tmLanguage"
+        "path": "./grammars/apex.tmLanguage"
       }
     ],
     "menus": {

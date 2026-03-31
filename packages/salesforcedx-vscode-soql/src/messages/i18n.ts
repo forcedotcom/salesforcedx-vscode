@@ -16,7 +16,6 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  soql_channel_name: 'SOQL Extension',
   progress_running_query: 'Running query',
   soql_query_results: 'SOQL Query Results',
   info_no_default_org:
@@ -32,8 +31,9 @@ export const messages = {
     'ERROR: %s. Unknown error. Open an issue and provide the error message details: https://github.com/forcedotcom/soql-tooling/issues/new/choose.',
   error_data_view_save:
     "ERROR: We can't save the file to the specified directory. Make sure you have write permissions for the directory.",
-  data_query_input_text: 'SFDX: Execute SOQL Query...',
   data_query_selection_text: 'SFDX: Execute SOQL Query with Currently Selected Text',
+  data_query_document_text: 'SFDX: Execute SOQL Query with Current File',
+  soql_run_query_codelens: 'Run Query',
   soql_query_plan_codelens: 'Get Query Plan',
   query_plan_document_text: 'SFDX: Get SOQL Query Plan with Current File',
   query_plan_table_title: 'Query Plan',
@@ -64,9 +64,9 @@ export const messages = {
     "The requested metadata was not found. This may be because it doesn't exist or you don't have access to it.",
   data_query_open_file: 'Open File',
   data_query_running_query: 'Running query with %s...',
+  data_query_complete: 'Query complete with %d records returned',
   data_query_warning_limit:
     'Warning: The query result is missing %d records due to a %d record limit. Increase the number of records returned by setting the config value "org-max-query-limit" or the environment variable "SF_ORG_MAX_QUERY_LIMIT" to %d or greater than %d.',
-  data_query_complete: 'Query complete with %d records returned',
   data_query_no_records: 'No records found',
   data_query_table_title: 'Query Results',
   soql_file_name_prompt: 'Enter a name for the new SOQL file',
@@ -75,7 +75,6 @@ export const messages = {
     'File name must start with a letter and contain only alphanumeric characters and underscores',
   soql_output_dir_default_description: '(default)',
   soql_output_dir_prompt: 'Select the target directory',
-  parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   REST_API: 'REST API',
   REST_API_description: 'Use REST API to execute the query',
   tooling_API: 'Tooling API',

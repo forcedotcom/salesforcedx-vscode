@@ -45,8 +45,8 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
                         ? SfTemplates.VisualforcePageOptions
                         : T extends SfTemplates.TemplateType.StaticResource
                           ? SfTemplates.StaticResourceOptions
-                          : T extends SfTemplates.TemplateType.WebApplication
-                            ? SfTemplates.WebApplicationOptions
+                          : T extends SfTemplates.TemplateType.UIBundle
+                            ? SfTemplates.UIBundleOptions
                             : SfTemplates.TemplateOptions;
 
 /** Params for create - templateType discriminates which options are required */
@@ -62,10 +62,13 @@ export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<Templ
   { message: Schema.String }
 ) {}
 
-export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()('TemplatesManifestLoadError', {
-  message: Schema.String,
-  cause: Schema.optional(Schema.Unknown)
-}) {}
+export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()(
+  'TemplatesManifestLoadError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.Unknown)
+  }
+) {}
 
 const TemplateManifestSchema = Schema.parseJson(Schema.Array(Schema.String));
 

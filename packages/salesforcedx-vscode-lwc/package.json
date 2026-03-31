@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.3.0",
+  "version": "66.4.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -153,7 +153,8 @@
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json",
-        "package.nls.json"
+        "package.nls.json",
+        ".vscodeignore"
       ],
       "output": []
     },

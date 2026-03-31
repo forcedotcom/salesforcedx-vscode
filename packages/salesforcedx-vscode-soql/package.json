@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.3.0",
+  "version": "66.4.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,10 +35,9 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.28.0",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.20.0",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-common": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",
@@ -49,7 +48,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.27.0",
+    "@salesforce/core": "^8.28.0",
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.3.0",
@@ -65,8 +64,7 @@
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/ts-types": "2.0.12",
+    "@salesforce/ts-types": "^2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
     "immutable": "^5.1.5",
@@ -104,9 +102,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../soql-common:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-services:compile"
       ],
       "files": [
@@ -117,9 +113,7 @@
         "package.json",
         "package.nls*.json",
         "../soql-common/out/**",
-        "../salesforcedx-utils-vscode/out/**",
         "../salesforcedx-vscode-i18n/out/**",
-        "../salesforcedx-utils/out/**",
         "../salesforcedx-vscode-services/out/**"
       ],
       "output": [
@@ -231,6 +225,7 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
+        ".vscodeignore",
         "package.json",
         "package.nls.json"
       ],
@@ -370,12 +365,12 @@
         "title": "%soql_walkthrough_open%"
       },
       {
-        "command": "sf.data.query.input",
-        "title": "%data_query_input_text%"
-      },
-      {
         "command": "sf.data.query.selection",
         "title": "%data_query_selection_text%"
+      },
+      {
+        "command": "sf.data.query.document",
+        "title": "%data_query_document_text%"
       },
       {
         "command": "sf.data.query.explain.selection",
@@ -405,12 +400,12 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.data.query.input",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
-        },
-        {
           "command": "sf.data.query.selection",
           "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.data.query.document",
+          "when": "sf:project_opened && resourceExtname == .soql && sf:has_target_org"
         },
         {
           "command": "sf.data.query.explain.selection",
@@ -418,7 +413,7 @@
         },
         {
           "command": "sf.data.query.explain.document",
-          "when": "resourceExtname == .soql && sf:has_target_org"
+          "when": "sf:project_opened && resourceExtname == .soql && sf:has_target_org"
         }
       ],
       "editor/title": [
