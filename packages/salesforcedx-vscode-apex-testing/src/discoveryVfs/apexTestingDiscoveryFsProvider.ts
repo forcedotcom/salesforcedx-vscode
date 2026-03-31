@@ -43,6 +43,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   private readonly root = createDirectoryEntry();
   private readonly changeEmitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
   public readonly onDidChangeFile = this.changeEmitter.event;
+  private readonly readOnlyErrorMessage = 'apex-testing is read-only';
 
   public watch(_uri: vscode.Uri, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
     return new vscode.Disposable(() => undefined);
@@ -65,8 +66,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   public createDirectory(uri: vscode.Uri): void {
-    this.getOrCreateDirectory(uri);
-    this.changeEmitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+    throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${uri.toString()}`);
   }
 
   public readFile(uri: vscode.Uri): Uint8Array {
@@ -77,7 +77,26 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     return entry.data;
   }
 
-  public writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean }): void {
+  public writeFile(uri: vscode.Uri, _content: Uint8Array, _options: { create: boolean; overwrite: boolean }): void {
+    throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${uri.toString()}`);
+  }
+
+  public delete(uri: vscode.Uri, _options: { recursive: boolean }): void {
+    throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${uri.toString()}`);
+  }
+
+  public rename(oldUri: vscode.Uri, newUri: vscode.Uri, _options: { overwrite: boolean }): void {
+    throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${oldUri.toString()} -> ${newUri.toString()}`);
+  }
+
+  // Internal API used by discovery persistence to update in-memory VFS state.
+  public createDirectoryInternal(uri: vscode.Uri): void {
+    this.getOrCreateDirectory(uri);
+    this.changeEmitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+  }
+
+  // Internal API used by discovery persistence to update in-memory VFS state.
+  public writeFileInternal(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean }): void {
     const parent = this.getParentDirectory(uri, false);
     const name = this.basename(uri);
     const existing = parent.entries.get(name);
@@ -100,44 +119,21 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     this.changeEmitter.fire([{ type: existing ? vscode.FileChangeType.Changed : vscode.FileChangeType.Created, uri }]);
   }
 
-  public delete(uri: vscode.Uri, options: { recursive: boolean }): void {
+  // Internal API used by discovery persistence to update in-memory VFS state.
+  public deleteInternal(uri: vscode.Uri, options: { recursive: boolean }): void {
     const parent = this.getParentDirectory(uri, false);
     const name = this.basename(uri);
     const existing = parent.entries.get(name);
     if (!existing) {
       throw vscode.FileSystemError.FileNotFound(uri);
     }
+
     if (existing.type === vscode.FileType.Directory && !options.recursive && existing.entries.size > 0) {
       throw vscode.FileSystemError.NoPermissions(`${uri.toString()} is not empty`);
     }
     parent.entries.delete(name);
     parent.mtime = now();
     this.changeEmitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
-  }
-
-  public rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): void {
-    const oldParent = this.getParentDirectory(oldUri, false);
-    const oldName = this.basename(oldUri);
-    const existing = oldParent.entries.get(oldName);
-    if (!existing) {
-      throw vscode.FileSystemError.FileNotFound(oldUri);
-    }
-
-    const newParent = this.getParentDirectory(newUri, false);
-    const newName = this.basename(newUri);
-    const destination = newParent.entries.get(newName);
-
-    if (destination && !options.overwrite) {
-      throw vscode.FileSystemError.FileExists(newUri);
-    }
-    oldParent.entries.delete(oldName);
-    newParent.entries.set(newName, existing);
-    oldParent.mtime = now();
-    newParent.mtime = now();
-    this.changeEmitter.fire([
-      { type: vscode.FileChangeType.Deleted, uri: oldUri },
-      { type: vscode.FileChangeType.Created, uri: newUri }
-    ]);
   }
 
   private toStat(entry: Entry): vscode.FileStat {

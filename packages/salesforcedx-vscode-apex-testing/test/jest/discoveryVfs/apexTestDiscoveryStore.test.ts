@@ -5,9 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
 import { ApexTestDiscoveryStore, resolveDiscoveryOrgKey } from '../../../src/discoveryVfs/apexTestDiscoveryStore';
 import { getApexTestingClassUri, getOrgIndexUri } from '../../../src/discoveryVfs/apexTestingDiscoveryFs';
+
+const createDirectoryInternal = jest.fn();
+const writeFileInternal = jest.fn();
+const readFile = jest.fn();
+const deleteInternal = jest.fn();
+
+jest.mock('../../../src/discoveryVfs/apexTestingDiscoveryFsProvider', () => ({
+  getApexTestingDiscoveryFsProvider: () => ({
+    createDirectoryInternal,
+    writeFileInternal,
+    readFile,
+    deleteInternal
+  })
+}));
 
 describe('ApexTestDiscoveryStore', () => {
   beforeEach(() => {
@@ -19,27 +32,26 @@ describe('ApexTestDiscoveryStore', () => {
     const classes = [{ id: '1', name: 'MyTest', namespacePrefix: '', testMethods: [{ name: 'testOne' }] }];
     const classBodies = new Map([['MyTest', '@isTest private class MyTest {}']]);
 
-    (vscode.workspace.fs.createDirectory as jest.Mock).mockResolvedValue(undefined);
-    (vscode.workspace.fs.writeFile as jest.Mock).mockResolvedValue(undefined);
-    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(
-      new TextEncoder().encode(JSON.stringify({ orgKey: 'org123', updatedAt: 'now', classes }))
-    );
+    readFile.mockReturnValue(new TextEncoder().encode(JSON.stringify({ orgKey: 'org123', updatedAt: 'now', classes })));
 
     await store.saveDiscoveredClasses('org123', classes, classBodies);
     const snapshot = await store.readDiscoveredClassesIndex('org123');
 
-    expect(vscode.workspace.fs.createDirectory).toHaveBeenCalled();
-    expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith(
+    expect(createDirectoryInternal).toHaveBeenCalled();
+    expect(writeFileInternal).toHaveBeenCalledWith(
       getApexTestingClassUri('org123', 'MyTest'),
-      expect.any(Uint8Array)
+      expect.any(Uint8Array),
+      { create: true, overwrite: true }
     );
-    expect(vscode.workspace.fs.readFile).toHaveBeenCalledWith(getOrgIndexUri('org123'));
+    expect(readFile).toHaveBeenCalledWith(getOrgIndexUri('org123'));
     expect(snapshot?.classes).toEqual(classes);
   });
 
   it('returns undefined when snapshot is missing', async () => {
     const store = new ApexTestDiscoveryStore();
-    (vscode.workspace.fs.readFile as jest.Mock).mockRejectedValue(new Error('not found'));
+    readFile.mockImplementation(() => {
+      throw new Error('not found');
+    });
 
     await expect(store.readDiscoveredClassesIndex('missing')).resolves.toBeUndefined();
   });

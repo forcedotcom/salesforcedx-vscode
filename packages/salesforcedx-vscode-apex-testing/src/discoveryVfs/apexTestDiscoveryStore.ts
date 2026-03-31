@@ -6,9 +6,9 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import * as vscode from 'vscode';
 import { getFullClassName } from '../utils/testUtils';
 import { getApexTestingClassUri, getOrgClassesDirUri, getOrgDiscoveryUri, getOrgIndexUri } from './apexTestingDiscoveryFs';
+import { getApexTestingDiscoveryFsProvider } from './apexTestingDiscoveryFsProvider';
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
@@ -33,6 +33,8 @@ export const resolveDiscoveryOrgKey = (orgInfo: { orgId?: string; username?: str
   orgInfo.orgId ?? orgInfo.username ?? 'unknown-org';
 
 export class ApexTestDiscoveryStore {
+  private readonly provider = getApexTestingDiscoveryFsProvider();
+
   public async saveDiscoveredClasses(
     orgKey: string,
     classes: ToolingTestClass[],
@@ -48,22 +50,25 @@ export class ApexTestDiscoveryStore {
     };
 
     await this.clearOrg(orgKey);
-    await vscode.workspace.fs.createDirectory(orgUri);
-    await vscode.workspace.fs.createDirectory(classesDirUri);
+    this.provider.createDirectoryInternal(orgUri);
+    this.provider.createDirectoryInternal(classesDirUri);
     for (const cls of classes) {
       const fullClassName = getFullClassName(cls);
       const content = classBodiesByFullName.get(fullClassName) ?? `// Source unavailable for ${fullClassName}`;
       const classUri = getApexTestingClassUri(orgKey, fullClassName);
       const parentPath = `/${classUri.path.split('/').filter(Boolean).slice(0, -1).join('/')}`;
-      await vscode.workspace.fs.createDirectory(classUri.with({ path: parentPath }));
-      await vscode.workspace.fs.writeFile(classUri, encoder.encode(content));
+      this.provider.createDirectoryInternal(classUri.with({ path: parentPath }));
+      this.provider.writeFileInternal(classUri, encoder.encode(content), { create: true, overwrite: true });
     }
-    await vscode.workspace.fs.writeFile(indexUri, encoder.encode(JSON.stringify(indexPayload, null, 2)));
+    this.provider.writeFileInternal(indexUri, encoder.encode(JSON.stringify(indexPayload, null, 2)), {
+      create: true,
+      overwrite: true
+    });
   }
 
   public async readDiscoveredClassesIndex(orgKey: string): Promise<DiscoveredApexClassesIndex | undefined> {
     try {
-      const content = await vscode.workspace.fs.readFile(getOrgIndexUri(orgKey));
+      const content = this.provider.readFile(getOrgIndexUri(orgKey));
       const parsed: unknown = JSON.parse(decoder.decode(content));
       return isDiscoveredApexClassesIndex(parsed) ? parsed : undefined;
     } catch {
@@ -73,7 +78,7 @@ export class ApexTestDiscoveryStore {
 
   public async clearOrg(orgKey: string): Promise<void> {
     try {
-      await vscode.workspace.fs.delete(getOrgDiscoveryUri(orgKey), { recursive: true, useTrash: false });
+      this.provider.deleteInternal(getOrgDiscoveryUri(orgKey), { recursive: true });
     } catch {
       // best-effort clear
     }

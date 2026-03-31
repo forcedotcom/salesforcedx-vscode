@@ -16,14 +16,14 @@ import { ApexTestingDiscoveryFsProvider } from '../../../src/discoveryVfs/apexTe
 };
 
 describe('ApexTestingDiscoveryFsProvider', () => {
-  it('writes and reads files from in-memory scheme', () => {
+  it('writes and reads files via internal APIs', () => {
     const provider = new ApexTestingDiscoveryFsProvider();
     const dir = URI.parse('apex-testing:/discovery/org123');
     const file = URI.parse('apex-testing:/discovery/org123/classes.json');
     const content = new TextEncoder().encode('{"classes":[]}');
 
-    provider.createDirectory(dir);
-    provider.writeFile(file, content, { create: true, overwrite: true });
+    provider.createDirectoryInternal(dir);
+    provider.writeFileInternal(file, content, { create: true, overwrite: true });
 
     const read = provider.readFile(file);
     const stat = provider.stat(file);
@@ -33,16 +33,27 @@ describe('ApexTestingDiscoveryFsProvider', () => {
     expect(stat.size).toBe(content.length);
   });
 
-  it('supports delete and readDirectory', () => {
+  it('supports deleteInternal and readDirectory', () => {
     const provider = new ApexTestingDiscoveryFsProvider();
     const dir = URI.parse('apex-testing:/discovery/org123');
     const file = URI.parse('apex-testing:/discovery/org123/classes.json');
 
-    provider.createDirectory(dir);
-    provider.writeFile(file, new TextEncoder().encode('abc'), { create: true, overwrite: true });
+    provider.createDirectoryInternal(dir);
+    provider.writeFileInternal(file, new TextEncoder().encode('abc'), { create: true, overwrite: true });
     expect(provider.readDirectory(dir)).toEqual([['classes.json', vscode.FileType.File]]);
 
-    provider.delete(file, { recursive: false });
+    provider.deleteInternal(file, { recursive: false });
     expect(provider.readDirectory(dir)).toEqual([]);
+  });
+
+  it('rejects user-facing mutating operations as read-only', () => {
+    const provider = new ApexTestingDiscoveryFsProvider();
+    const dir = URI.parse('apex-testing:/discovery/org123');
+    const file = URI.parse('apex-testing:/discovery/org123/classes.json');
+
+    expect(() => provider.createDirectory(dir)).toThrow();
+    expect(() => provider.writeFile(file, new TextEncoder().encode('x'), { create: true, overwrite: true })).toThrow();
+    expect(() => provider.delete(file, { recursive: true })).toThrow();
+    expect(() => provider.rename(file, URI.parse('apex-testing:/discovery/org123/next.json'), { overwrite: true })).toThrow();
   });
 });
