@@ -8,7 +8,9 @@
       "Bash(done)",
       "Bash(chmod:*)",
       "Bash(WIREIT_CACHE=none npm run *)",
-      "Bash(sf org:*)"
+      "Bash(sf org:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:code.visualstudio.com)"
     ],
     "autoApprove": [
       "PostToolUse",
