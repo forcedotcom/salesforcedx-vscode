@@ -4,65 +4,52 @@
 
 #### salesforcedx-aura-language-server
 
-- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
-
 #### salesforcedx-lightning-lsp-common
 
-- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
-
 #### salesforcedx-lwc-language-server
-
-- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
-
-#### salesforcedx-vscode-core
-
-- Add defaultLwcLanguage to sfdx-project.json schema ([PR #7109](https://github.com/forcedotcom/salesforcedx-vscode/pull/7109))
-
-- Update @salesforce/templates to v66.7.1 for the UiBundle naming change ([PR #7100](https://github.com/forcedotcom/salesforcedx-vscode/pull/7100))
-
-#### salesforcedx-vscode-expanded
-
-- Add Live Preview to Salesforce Extension Pack (Expanded) @W-21730650@ ([PR #7058](https://github.com/forcedotcom/salesforcedx-vscode/pull/7058))
 
 #### salesforcedx-vscode-lightning
 
-- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
-
 #### salesforcedx-vscode-lwc
 
-- Move LSP ready UX to language status items ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
-
-#### salesforcedx-vscode-soql
-
-- Add "Run Query" code lens in .soql files and a new command SFDX: Execute SOQL Query with Current File ([PR #7089](https://github.com/forcedotcom/salesforcedx-vscode/pull/7089))
-
-- Add "Get Query Plan" button to SOQL Builder UI ([PR #7094](https://github.com/forcedotcom/salesforcedx-vscode/pull/7094))
-
-## Fixed
-
-#### salesforcedx-aura-language-server
-
-- Sharing generation logic - W-21716670 ([PR #7065](https://github.com/forcedotcom/salesforcedx-vscode/pull/7065))
-
-#### salesforcedx-lightning-lsp-common
-
-- Prevent dupes ([PR #7087](https://github.com/forcedotcom/salesforcedx-vscode/pull/7087))
-
-#### salesforcedx-lwc-language-server
-
-- Sharing generation logic - W-21716670 ([PR #7065](https://github.com/forcedotcom/salesforcedx-vscode/pull/7065))
+- We replaced LWC and Aura server-ready popup notifications with a shared custom ready notification and in-editor language status items. ([PR #7054](https://github.com/forcedotcom/salesforcedx-vscode/pull/7054))
 
 #### salesforcedx-vscode-core
 
-- Bump @salesforce/templates to ^66.7.4 W-21814993 ([PR #7107](https://github.com/forcedotcom/salesforcedx-vscode/pull/7107))
+- We added `defaultLwcLanguage` as a valid key to the sfdx-project.json schema. ([PR #7109](https://github.com/forcedotcom/salesforcedx-vscode/pull/7109))
 
-- Bump SDR to include XML entity expansion fix ([PR #7106](https://github.com/forcedotcom/salesforcedx-vscode/pull/7106))
+- We renamed `WebApplication` to `UiBundle` for the **React External App** and **React Internal App** templates in **SFDX: Create Project**. ([PR #7100](https://github.com/forcedotcom/salesforcedx-vscode/pull/7100))
 
-- Escape html in md reports on windows ([PR #7091](https://github.com/forcedotcom/salesforcedx-vscode/pull/7091))
+#### salesforcedx-vscode-expanded
 
-- Only run refreshSObjects definitions on sfdx projects ([PR #7095](https://github.com/forcedotcom/salesforcedx-vscode/pull/7095))
+- We added the Salesforce Live Preview extension to the Salesforce Extension Pack Expanded. This extension enables developers to preview Lightning Web Components directly within VS Code with automatic updates on save. ([PR #7058](https://github.com/forcedotcom/salesforcedx-vscode/pull/7058))
+
+#### salesforcedx-vscode-soql
+
+- We added a "Run Query" code lens in `.soql` files and a new command **SFDX: Execute SOQL Query with Current File** in the command palette, and removed the **SFDX: Execute SOQL Query...** command. ([PR #7089](https://github.com/forcedotcom/salesforcedx-vscode/pull/7089))
+
+- We added a "Get Query Plan" button to the SOQL Builder UI. Now users can get query plans directly after building a query in the builder view. ([PR #7094](https://github.com/forcedotcom/salesforcedx-vscode/pull/7094))
+
+## Fixed
+
+#### salesforcedx-lightning-lsp-common
+
+- We fixed a bug where jsconfig.json files keep being modified with duplicated lines added to them upon start of VSCode. ([PR #7087](https://github.com/forcedotcom/salesforcedx-vscode/pull/7087), [ISSUE #7084](https://github.com/forcedotcom/salesforcedx-vscode/issues/7084))
+
+#### salesforcedx-aura-language-server
+
+#### salesforcedx-lwc-language-server
 
 #### salesforcedx-vscode-lwc
 
-- Sharing generation logic - W-21716670 ([PR #7065](https://github.com/forcedotcom/salesforcedx-vscode/pull/7065))
+- We fixed a bug where the updates to CustomLabels.labels-meta.xml were not automatically updating `.sfdx/typings/lwc/customlabels.d.ts`. ([PR #7065](https://github.com/forcedotcom/salesforcedx-vscode/pull/7065))
 
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #7107](https://github.com/forcedotcom/salesforcedx-vscode/pull/7107))
+
+- We fixed a bug where source path based deploy/retrieve ignores the sourceApiVersion set in sfdx-project.json. ([PR #7106](https://github.com/forcedotcom/salesforcedx-vscode/pull/7106))
+
+- We fixed a bug where Apex test methods containing underscore `_` symbol show prefixed with a `\` symbol. ([PR #7091](https://github.com/forcedotcom/salesforcedx-vscode/pull/7091), [ISSUE #7075](https://github.com/forcedotcom/salesforcedx-vscode/issues/7075))
+
+- We fixed a bug where the .sfdx folder could be created outside a Salesforce project during extension startup. ([PR #7095](https://github.com/forcedotcom/salesforcedx-vscode/pull/7095))
