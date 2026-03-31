@@ -79,7 +79,7 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       registerCommand('sf.apex.log.get', logGetCommand),
       registerCommand('sf.apex.log.openFolder', openLogsFolderCommand),
       registerCommand('sf.apex.generate.class', createApexClassCommand),
-      registerCommand('sf.metadata.apex.generate.trigger', createApexTriggerCommand),
+      registerCommand('sf.apex.generate.trigger', createApexTriggerCommand),
       registerCommand('sf.apex.generate.unit.test.class', (outputDir?: URI) =>
         apexGenerateUnitTestClassCommand(undefined, outputDir)
       ),

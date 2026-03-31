@@ -316,7 +316,7 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.metadata.apex.generate.trigger",
+          "command": "sf.apex.generate.trigger",
           "when": "sf:project_opened"
         },
         {
@@ -380,7 +380,7 @@
       ],
       "explorer/context": [
         {
-          "command": "sf.metadata.apex.generate.trigger",
+          "command": "sf.apex.generate.trigger",
           "when": "explorerResourceIsFolder && resourceFilename == triggers && sf:project_opened"
         },
         {
@@ -403,7 +403,7 @@
         "title": "%apex_generate_class_text%"
       },
       {
-        "command": "sf.metadata.apex.generate.trigger",
+        "command": "sf.apex.generate.trigger",
         "title": "%apex_generate_trigger_text%"
       },
       {
