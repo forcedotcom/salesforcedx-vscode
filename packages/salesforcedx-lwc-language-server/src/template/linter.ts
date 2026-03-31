@@ -64,7 +64,7 @@ const lintLwcMarkup = (document: TextDocument): Diagnostic[] => {
             severity: LEVEL_MAPPING.get(warning.level),
             source: DIAGNOSTIC_SOURCE,
         };
-        if (warning.url && warning.code != null) {
+        if (warning.url) {
             diagnostic.code = warning.code;
             diagnostic.codeDescription = { href: warning.url };
         }

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { CompilerError } from '@lwc/errors';
 import { collectBundleMetadata, BundleConfig, ScriptFile } from '@lwc/metadata';
 import { ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
@@ -14,7 +15,7 @@ import { Metadata } from '../../decorators/lwcDecorators';
 import { compileDocument, compileSource, getMethods, getProperties, getClassMembers } from '../compiler';
 import { mapLwcMetadataToInternal } from '../typeMapping';
 
-let mockTransformSyncError: Error | null = null;
+let mockTransformSyncError: CompilerError | null = null;
 
 jest.mock('@lwc/compiler', () => {
   const actual = jest.requireActual('@lwc/compiler') as Record<string, unknown>;
@@ -142,7 +143,7 @@ it('does not include URL or codeDescription when error has no url', () => {
 
 it('includes URL in message and codeDescription when error has url', () => {
   mockTransformSyncError = Object.assign(
-    new Error('foo.js: LWC1099: Boolean public property must default to false.\n> 5 |     @api property = true;\n    |     ^'),
+    new CompilerError('foo.js: LWC1099: Boolean public property must default to false.\n> 5 |     @api property = true;\n    |     ^'),
     { code: 1099, location: { line: 5, column: 4 }, level: 1, url: 'https://lwc.dev/guide/reference#lwc1099' }
   );
 
