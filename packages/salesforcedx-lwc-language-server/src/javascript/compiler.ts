@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { transformSync } from '@lwc/compiler';
-import { CompilerDiagnostic } from '@lwc/errors';
+import { CompilerDiagnostic, CompilerError } from '@lwc/errors';
 import { BundleConfig, ScriptFile, collectBundleMetadata } from '@lwc/metadata';
 import { AttributeInfo, ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
 import type { SourceLocation } from 'babel-types';
@@ -80,7 +80,7 @@ const toDiagnostic = (err: CompilerDiagnostic): Diagnostic => {
     source: DIAGNOSTIC_SOURCE,
     message: err.url ? `${extractMessageFromBabelError(message)}\nMore Details: ${err.url}` : extractMessageFromBabelError(message)
   };
-  if (err.url && err.code != null) {
+  if (err.url) {
     diagnostic.code = err.code;
     diagnostic.codeDescription = { href: err.url };
   }
@@ -97,10 +97,10 @@ export const compileSource = (source: string, fileName = 'foo.js'): CompilerResu
   try {
     transformSync(source, fileName, transformOptions);
   } catch (err) {
-    return {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      diagnostics: [toDiagnostic(err as CompilerDiagnostic)]
-    };
+    if (err instanceof CompilerError) {
+      return { diagnostics: [toDiagnostic(err)] };
+    }
+    throw err;
   }
 
   const options: BundleConfig = {
