@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { handleConflictWithRetry } from '../conflict/conflictFlow';
+import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 
@@ -24,38 +24,34 @@ import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 //
 // When editing a file and "Retrieve This Source from Org" is executed,
 // sourceUri is passed, but uris is undefined.
-export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand')(function* (
-  sourceUri: URI | undefined,
-  uris: URI[] | undefined
-) {
+export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand')(
+  function* (sourceUri: URI | undefined, uris: URI[] | undefined) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const resolvedSourceUri =
-      sourceUri ??
-      (yield* api.services.EditorService.getActiveEditorUri().pipe(
-        Effect.catchTag('NoActiveEditorError', () =>
-          Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_select_file_or_directory'))).pipe(
-            Effect.as(undefined)
-          )
-        )
-      ));
+    const resolvedSourceUri = sourceUri ?? (yield* api.services.EditorService.getActiveEditorUri());
 
-    if (!resolvedSourceUri) {
-      return;
-    }
+    if (!resolvedSourceUri) return;
 
-    const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
     const componentSetService = yield* api.services.ComponentSetService;
-    const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromUris(Array.from(resolvedUris))
+    const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
+    const componentSet = yield* Effect.succeed(Array.from(resolvedUris)).pipe(
+      Effect.flatMap(componentSetService.getComponentSetFromUris),
+      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+      Effect.tap(cs => detectConflicts(cs, 'retrieve'))
     );
 
-    yield* retrieveComponentSet({ componentSet }).pipe(
-      Effect.catchTag('SourceTrackingConflictError', () =>
-        handleConflictWithRetry({
-          retryOperation: retrieveComponentSet({ componentSet, ignoreConflicts: true }),
-          operationType: 'retrieve',
-          componentSet
-        })
-      )
-    );
-  });
+    // we can ignore conflicts because we already did the detectConflicts check
+    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
+  },
+  Effect.catchTag('NoActiveEditorError', () =>
+    Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_select_file_or_directory'))).pipe(
+      Effect.as(undefined)
+    )
+  ),
+  Effect.catchTag('ConflictsDetectedError', err =>
+    handleConflictWithRetry({
+      pairs: err.pairs,
+      operationType: err.operationType,
+      retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
+    })
+  )
+);

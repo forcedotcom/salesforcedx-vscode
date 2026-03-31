@@ -132,20 +132,8 @@ export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnS
   // Start the stream processor that batches and deploys
   yield* Stream.fromQueue(saveQueue).pipe(
     Stream.filterEffect(() => getDeployOnSaveEnabled()),
-    Stream.tap(uri =>
-      api.services.FsService.uriToPath(uri).pipe(
-        Effect.flatMap(path => channelService.appendToChannel(`Deploy on save service received URI: ${path}`))
-      )
-    ),
     Stream.filterEffect(shouldDeploy),
     Stream.filterEffect(api.services.ProjectService.isInPackageDirectories),
-    Stream.tap(uri =>
-      api.services.FsService.uriToPath(uri).pipe(
-        Effect.flatMap(path =>
-          channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${path}`)
-        )
-      )
-    ),
     Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
     Stream.runForEach(chunk =>
       deployQueuedFiles(Chunk.toReadonlyArray(chunk)).pipe(

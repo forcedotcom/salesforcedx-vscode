@@ -8,16 +8,17 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { handleConflictWithRetry } from '../conflict/conflictFlow';
+import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const componentSet = yield* (yield* api.services.ComponentSetService).ensureNonEmptyComponentSet(
-    yield* api.services.MetadataDeployService.getComponentSetForDeploy({ ignoreConflicts })
+  return yield* api.services.MetadataDeployService.getComponentSetForDeploy({ ignoreConflicts }).pipe(
+    Effect.flatMap((yield* api.services.ComponentSetService).ensureNonEmptyComponentSet),
+    Effect.tap(cs => detectConflicts(cs, 'deploy')),
+    Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
   );
-  yield* deployComponentSet({ componentSet });
 });
 
 /** Deploy local changes to the default org */
@@ -28,17 +29,11 @@ export const projectDeployStartCommand = (ignoreConflicts = false) =>
         void vscode.window.showInformationMessage(nls.localize('no_local_changes_to_deploy'));
       })
     ),
-    Effect.catchTag('SourceTrackingConflictError', () =>
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const componentSet = yield* (yield* api.services.ComponentSetService).ensureNonEmptyComponentSet(
-          yield* api.services.MetadataDeployService.getComponentSetForDeploy({ ignoreConflicts: true })
-        );
-        return yield* handleConflictWithRetry({
-          retryOperation: deployEffect(true),
-          operationType: 'deploy',
-          componentSet
-        });
+    Effect.catchTag('ConflictsDetectedError', err =>
+      handleConflictWithRetry({
+        pairs: err.pairs,
+        operationType: err.operationType,
+        retryOperation: deployEffect(true)
       })
     )
   );

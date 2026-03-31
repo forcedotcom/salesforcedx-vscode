@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { DiffFilePair } from '../shared/diff/diffTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { nls } from '../messages';
 import { getDetectConflictsForDeployAndRetrieve } from '../settings/deployOnSaveSettings';
 import { detectConflictsFromTracking } from './conflictDetection';
@@ -20,46 +21,39 @@ import { conflictTreeProvider, ensureConflictView } from './conflictView';
 
 export type HandleConflictWithRetryOptions<A, E, R> = {
   retryOperation: Effect.Effect<A, E, R>;
+  pairs: DiffFilePair[];
   operationType: 'deploy' | 'retrieve';
-  componentSet: ComponentSet;
 };
 
-/** Unified conflict detection: tracking orgs use tracking; non-tracking use timestamps when setting enabled. */
+/** Unified conflict detection: tracking orgs use tracking; non-tracking use timestamps when setting enabled. Yields ConflictsDetectedError when conflicts are found. */
 export const detectConflicts = Effect.fn('detectConflicts')(function* (
-  componentSet: ComponentSet,
+  componentSet: NonEmptyComponentSet,
   operationType: 'deploy' | 'retrieve'
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 
-  if (orgInfo.tracksSource === true) {
-    return yield* detectConflictsFromTracking(componentSet);
-  }
-  return getDetectConflictsForDeployAndRetrieve()
-    ? yield* detectConflictsFromTimestamps(componentSet, operationType)
-    : [];
+  const pairs =
+    orgInfo.tracksSource === true
+      ? yield* detectConflictsFromTracking(componentSet)
+      : getDetectConflictsForDeployAndRetrieve()
+        ? yield* detectConflictsFromTimestamps(componentSet, operationType)
+        : [];
+
+  if (pairs.length > 0) return yield* new ConflictsDetectedError({ pairs, componentSet, operationType });
 });
 
 /**
- * On conflict: detect diffs, show modal, if Override retry with retryEffect, else cancel.
+ * On conflict: show modal, if Override retry with retryEffect, else cancel.
  * Use for deploy/retrieve where retry with skipConflictCheck/ignoreConflicts is supported.
  */
 export const handleConflictWithRetry = Effect.fn('handleConflictWithRetry')(function* <A, E, R>(
   options: HandleConflictWithRetryOptions<A, E, R>
 ) {
   yield* ensureConflictView();
-  const pairs = yield* detectConflicts(options.componentSet, options.operationType);
-  if (pairs.length === 0) {
-    return yield* new ConflictsDetectedError({
-      message: nls.localize(
-        options.operationType === 'deploy' ? 'deploy_source_conflicts_detected' : 'retrieve_source_conflicts_detected',
-        'Could not load conflict details'
-      )
-    });
-  }
 
   const result = yield* handleConflictsModal({
-    pairs,
+    pairs: options.pairs,
     mode: 'conflicts',
     stateRef: getConflictStateRef(),
     treeProviderFire: () => conflictTreeProvider.fireChange(),
@@ -78,5 +72,5 @@ export const handleConflictWithRetry = Effect.fn('handleConflictWithRetry')(func
     emptyLabel: nls.localize('conflict_detect_no_conflicts')
   });
 
-  return result === 'continue' ? yield* options.retryOperation : Effect.void;
+  return result === 'continue' ? yield* options.retryOperation : yield* Effect.void;
 });

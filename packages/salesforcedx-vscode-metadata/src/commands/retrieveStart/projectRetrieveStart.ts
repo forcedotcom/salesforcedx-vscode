@@ -20,37 +20,32 @@ const applyDeletesAndRetrieve = Effect.fn('projectRetrieve.applyDeletesAndRetrie
   yield* retrieveComponentSet({ componentSet: componentSetToRetrieve, ignoreConflicts: true });
 });
 
-const retrieveEffect = Effect.fn('retrieveEffect')(function* (ignoreConflicts: boolean) {
-  yield* Effect.annotateCurrentSpan({ ignoreConflicts });
+const retrieveEffect = Effect.fn('retrieveEffect')(
+  function* (ignoreConflicts: boolean) {
+    yield* Effect.annotateCurrentSpan({ ignoreConflicts });
 
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [sourceTrackingService, channelService, componentSetService] = yield* Effect.all(
-    [api.services.SourceTrackingService, api.services.ChannelService, api.services.ComponentSetService],
-    { concurrency: 'unbounded' }
-  );
-
-  const componentSet = yield* sourceTrackingService
-    .getRemoteNonDeletesAsComponentSet({ applyIgnore: true })
-    .pipe(
-      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-      Effect.tap(cs =>
-        channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
-      )
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const [sourceTrackingService, channelService, componentSetService] = yield* Effect.all(
+      [api.services.SourceTrackingService, api.services.ChannelService, api.services.ComponentSetService],
+      { concurrency: 'unbounded' }
     );
 
-  if (!ignoreConflicts) {
-    const pairs = yield* detectConflicts(componentSet, 'retrieve');
-    if (pairs.length > 0) {
-      return yield* handleConflictWithRetry({
-        retryOperation: applyDeletesAndRetrieve(),
-        operationType: 'retrieve',
-        componentSet
-      });
-    }
-  }
+    const componentSet = yield* sourceTrackingService
+      .getRemoteNonDeletesAsComponentSet({ applyIgnore: true })
+      .pipe(
+        Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+        Effect.tap(cs =>
+          channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
+        )
+      );
 
-  yield* applyDeletesAndRetrieve();
-});
+    if (!ignoreConflicts) yield* detectConflicts(componentSet, 'retrieve');
+    yield* applyDeletesAndRetrieve();
+  },
+  Effect.catchTag('ConflictsDetectedError', err =>
+    handleConflictWithRetry({ pairs: err.pairs, operationType: err.operationType, retryOperation: applyDeletesAndRetrieve() })
+  )
+);
 
 /** Retrieve remote changes from the default org */
 export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>

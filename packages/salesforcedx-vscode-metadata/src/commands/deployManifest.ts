@@ -8,25 +8,33 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
+import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { ManifestSelectionRequiredError } from './manifestErrors';
 
-export const deployManifestCommand = Effect.fn('deployManifestCommand')(function* (manifestUri?: URI) {
-  yield* Effect.annotateCurrentSpan({ manifestUri });
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const resolved =
-    manifestUri ??
-    (yield* api.services.EditorService.getActiveEditorUri().pipe(
-      Effect.catchTag('NoActiveEditorError', () =>
-        new ManifestSelectionRequiredError({ message: nls.localize('deploy_select_manifest') })
-      )
-    ));
+export const deployManifestCommand = Effect.fn('deployManifestCommand')(
+  function* (manifestUri?: URI) {
+    yield* Effect.annotateCurrentSpan({ manifestUri });
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const resolved = manifestUri ?? (yield* api.services.EditorService.getActiveEditorUri());
 
-  const componentSetService = yield* api.services.ComponentSetService;
-  const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-    yield* componentSetService.getComponentSetFromManifest(resolved)
-  );
-
-  yield* deployComponentSet({ componentSet });
-});
+    return yield* Effect.succeed(resolved).pipe(
+      Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
+      Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
+      Effect.tap(cs => detectConflicts(cs, 'deploy')),
+      Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
+    );
+  },
+  Effect.catchTag(
+    'NoActiveEditorError',
+    () => new ManifestSelectionRequiredError({ message: nls.localize('deploy_select_manifest') })
+  ),
+  Effect.catchTag('ConflictsDetectedError', err =>
+    handleConflictWithRetry({
+      pairs: err.pairs,
+      operationType: err.operationType,
+      retryOperation: deployComponentSet({ componentSet: err.componentSet })
+    })
+  )
+);

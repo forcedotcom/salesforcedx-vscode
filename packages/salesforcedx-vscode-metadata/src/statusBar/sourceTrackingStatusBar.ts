@@ -68,7 +68,6 @@ const getPollingIntervalSeconds = (): number =>
 /** Create and initialize source tracking status bar */
 export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStatusBar')(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const channelService = yield* api.services.ChannelService;
 
     const statusBarItem = vscode.window.createStatusBarItem(
       'source-tracking-status-bar',
@@ -96,7 +95,6 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
       Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), // if initial state has already been set
       targetOrgRef.changes // ongoing org changes
     ).pipe(
-      Stream.tap(orgInfo => channelService.appendToChannel(`target org change: ${JSON.stringify(orgInfo)}`)),
       Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),
       Stream.tap(orgInfo =>
         Effect.sync(() => {

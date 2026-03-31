@@ -8,35 +8,35 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
-import { handleConflictWithRetry } from '../conflict/conflictFlow';
+import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 import { ManifestSelectionRequiredError } from './manifestErrors';
 
 /** Retrieve from the default org using a manifest file */
-export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(function* (manifestUri?: URI) {
+export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
+  function* (manifestUri?: URI) {
     yield* Effect.annotateCurrentSpan({ manifestUri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const resolved =
-      manifestUri ??
-      (yield* api.services.EditorService.getActiveEditorUri().pipe(
-        Effect.catchTag('NoActiveEditorError', () =>
-        new ManifestSelectionRequiredError({ message: nls.localize('retrieve_select_manifest') })
-      )
-      ));
+    const resolved = manifestUri ?? (yield* api.services.EditorService.getActiveEditorUri());
 
-    const componentSetService = yield* api.services.ComponentSetService;
-    const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromManifest(resolved)
+    const componentSet = yield* Effect.succeed(resolved).pipe(
+      Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
+      Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
+      Effect.tap(cs => detectConflicts(cs, 'retrieve'))
     );
 
-    yield* retrieveComponentSet({ componentSet }).pipe(
-      Effect.catchTag('SourceTrackingConflictError', () =>
-        handleConflictWithRetry({
-          retryOperation: retrieveComponentSet({ componentSet, ignoreConflicts: true }),
-          operationType: 'retrieve',
-          componentSet
-        })
-      )
-    );
-  });
+    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
+  },
+  Effect.catchTag(
+    'NoActiveEditorError',
+    () => new ManifestSelectionRequiredError({ message: nls.localize('retrieve_select_manifest') })
+  ),
+  Effect.catchTag('ConflictsDetectedError', err =>
+    handleConflictWithRetry({
+      pairs: err.pairs,
+      operationType: err.operationType,
+      retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
+    })
+  )
+);

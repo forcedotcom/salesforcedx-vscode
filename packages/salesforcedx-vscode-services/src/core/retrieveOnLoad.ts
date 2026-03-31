@@ -7,9 +7,8 @@
 
 import { FileResponse, type MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
+import { isNotUndefined, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { ChannelService } from '../vscode/channelService';
 import { FsService } from '../vscode/fsService';
@@ -44,7 +43,7 @@ export const parseRetrieveOnLoad = (value: string): MetadataMember[] =>
       const fullName = parts[1]?.trim() ?? '';
       return parts.length === 2 && type.length > 0 && fullName.length > 0 ? { type, fullName } : undefined;
     })
-    .filter((item): item is MetadataMember => item !== undefined);
+    .filter(isNotUndefined);
 
 /** Get unique file suffixes for metadata types */
 const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: MetadataMember[]) {
@@ -83,7 +82,7 @@ export const retrieveOnLoadEffect = () =>
       `Retrieving metadata on load: ${members.map(m => `${m.type}:${m.fullName}`).join(', ')}`
     );
 
-    const result = yield* MetadataRetrieveService.retrieve(members);
+    const result = yield* MetadataRetrieveService.retrieve(members, { ignoreConflicts: true });
 
     if (typeof result === 'string') {
       return yield* channelService.appendToChannel(`Retrieve canceled: ${result}`);
@@ -96,17 +95,9 @@ export const retrieveOnLoadEffect = () =>
     );
 
     const fsService = yield* FsService;
-    yield* Effect.forEach(
-      fileResponses,
-      filePath =>
-        fsService
-          .showTextDocument(
-            URI.from({ scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file', path: filePath }),
-            { preview: false }
-          )
-          .pipe(Effect.catchAll(error => channelService.appendToChannel(`Could not open file: ${String(error)}`))),
-      { concurrency: 'unbounded' }
-    );
+    yield* Effect.forEach(fileResponses, filePath => fsService.showTextDocument(filePath, { preview: false }), {
+      concurrency: 'unbounded'
+    });
   }).pipe(
     Effect.withSpan('retrieveOnLoadEffect'),
     Effect.catchAll(error =>

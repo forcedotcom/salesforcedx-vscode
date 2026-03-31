@@ -23,7 +23,7 @@ Run packages in this exact order (dependency-based):
 2. **salesforcedx-vscode-services**
    - web → desktop
 3. **salesforcedx-vscode-metadata**
-   - web → desktop
+   - web → desktop → desktop:conflicts (separate project, requires non-tracking and tracking scratch orgs)
 4. **salesforcedx-vscode-apex-log**
    - web → desktop
 5. **salesforcedx-vscode-apex-testing**
@@ -55,7 +55,13 @@ For each package:
    ```
    Wait for completion. If failure, invoke Failure Analysis Protocol (below).
 
-5. **Move to next package** only after both web and desktop complete successfully (or are skipped).
+5. **Check for `test:desktop:conflicts` script** in `package.json`. If present, run it after desktop:
+   ```bash
+   npm run test:desktop:conflicts -w packages/<name>
+   ```
+   This runs a separate playwright project (`conflicts`) scoped to `specs-conflicts/`. Sequential workers, 120s timeout.
+
+6. **Move to next package** only after all phases complete successfully (or are skipped).
 
 ## Failure Analysis Protocol
 
@@ -141,6 +147,11 @@ npm run test:desktop -w packages/playwright-vscode-ext
 # Package 2: services
 npm run test:web -w packages/salesforcedx-vscode-services
 npm run test:desktop -w packages/salesforcedx-vscode-services
+
+# Package 3: metadata (has conflicts project)
+npm run test:web -w packages/salesforcedx-vscode-metadata
+npm run test:desktop -w packages/salesforcedx-vscode-metadata
+npm run test:desktop:conflicts -w packages/salesforcedx-vscode-metadata
 
 # ... continue through all 9 packages
 ```

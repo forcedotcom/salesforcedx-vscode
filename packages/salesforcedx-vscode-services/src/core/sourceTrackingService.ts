@@ -204,10 +204,8 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     });
 
     /** Get status of local and/or remote changes (acquires semaphores based on options) */
-    const getStatus = Effect.fn('SourceTrackingService.getStatus')(function* (options:
-      | { local: true; remote?: never }
-      | { remote: true; local?: never }
-      | { local: true; remote: true }
+    const getStatus = Effect.fn('SourceTrackingService.getStatus')(function* (
+      options: { local: true; remote?: never } | { remote: true; local?: never } | { local: true; remote: true }
     ) {
       const tracking = yield* getOrCreateTracking();
 
