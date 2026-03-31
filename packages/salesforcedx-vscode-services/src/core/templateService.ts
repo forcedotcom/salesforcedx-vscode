@@ -49,8 +49,8 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
                         ? SfTemplates.VisualforcePageOptions
                         : T extends SfTemplates.TemplateType.StaticResource
                           ? SfTemplates.StaticResourceOptions
-                          : T extends SfTemplates.TemplateType.WebApplication
-                            ? SfTemplates.WebApplicationOptions
+                          : T extends SfTemplates.TemplateType.UIBundle
+                            ? SfTemplates.UIBundleOptions
                             : SfTemplates.TemplateOptions;
 
 /** Params for create - templateType discriminates which options are required */
@@ -131,9 +131,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
           })
       }).pipe(
         Effect.as(0),
-        Effect.catchTag('TemplatesManifestLoadError', error =>
-          Effect.logWarning(error.message).pipe(Effect.as(1))
-        )
+        Effect.catchTag('TemplatesManifestLoadError', error => Effect.logWarning(error.message).pipe(Effect.as(1)))
       )
     ),
     Stream.runFold(0, (count, failed) => count + failed)
@@ -182,7 +180,9 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
     const getTemplatesRootCached = yield* Effect.cached(getTemplatesRoot());
     const ensureTemplatesInFsOnce = yield* Effect.once(
       getTemplatesRootCached.pipe(
-        Effect.flatMap(({ templatesRootUri, templatesRootPath }) => ensureTemplatesInFs(templatesRootUri, templatesRootPath))
+        Effect.flatMap(({ templatesRootUri, templatesRootPath }) =>
+          ensureTemplatesInFs(templatesRootUri, templatesRootPath)
+        )
       )
     );
 
