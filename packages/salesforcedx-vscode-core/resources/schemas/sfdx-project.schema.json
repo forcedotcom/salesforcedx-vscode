@@ -283,6 +283,15 @@
       "default": "48.0",
       "type": "string"
     },
+    "defaultLwcLanguage": {
+      "title": "Default LWC Language",
+      "description": "Default language for Lightning Web Components in this project. When set to \"typescript\", generates TypeScript configuration files and TypeScript-aware ESLint config. Defaults to \"javascript\" if not specified.",
+      "type": "string",
+      "enum": [
+        "javascript",
+        "typescript"
+      ]
+    },
     "sfdcLoginUrl": {
       "title": "SFDC Login URL",
       "description": "The login URL that the force:auth commands use. If not specified, the default is login.salesforce.com. Override the default value if you want users to authorize to a specific Salesforce instance. For example, if you want to authorize into a sandbox org, set this parameter to test.salesforce.com.",
