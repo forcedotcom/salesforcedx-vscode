@@ -72,18 +72,6 @@ export const messages = {
   apex_test_error_resource_not_found_message:
     'The requested resource was not found. The org may be unavailable or the test run may have expired.',
   apex_test_error_api_message: 'The org returned an error: %s',
-  apex_generate_unit_test_class_text: 'SFDX: Create Apex Unit Test Class',
-  apex_test_class_output_dir_prompt: 'Select output directory',
-  apex_test_class_name_cannot_be_default: 'Class name cannot be "default"',
-  apex_test_class_name_empty_error: 'Class name cannot be empty',
-  apex_test_class_name_format_error:
-    'Class name must start with a letter and contain only alphanumeric characters and underscores',
-  apex_test_class_name_max_length_error: 'Class name cannot exceed %d characters',
-  apex_test_class_name_prompt: 'Enter Apex test class name',
-  apex_unit_test_template_description: 'Template with sample test method',
-  basic_unit_test_template_description: 'Minimal template',
-  apex_test_template_prompt: 'Select template type',
-  apex_generate_class_success: 'Apex class created successfully',
   apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
   apex_test_debug_org_only_warning_message:
     'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',

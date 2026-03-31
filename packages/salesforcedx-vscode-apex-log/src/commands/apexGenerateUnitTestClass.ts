@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -9,9 +9,9 @@ import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@sal
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { Utils, URI } from 'vscode-uri';
-import { APEX_CLASS_NAME_MAX_LENGTH } from '../constants';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
+import { promptForApexTypeName } from './sfTemplateProjectHelpers';
 
 type SfProject = Effect.Effect.Success<
   ReturnType<SalesforceVSCodeServicesApi['services']['ProjectService']['getSfProject']>
@@ -26,59 +26,16 @@ type ApexGenerateUnitTestClassParams = {
   readonly template?: ApexTestTemplate;
 };
 
-const fromProject = Effect.fn('getApiVersion.fromProject')(function* (project: SfProject) {
-  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return String(projectJson.get<string>('sourceApiVersion'));
-});
-
-const fromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
-  const connectionService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ConnectionService;
-  const connection = yield* connectionService.getConnection();
-  return connection.version;
-});
-
-const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) {
-  return yield* fromProject(project).pipe(
-    Effect.orElse(() => fromConnection()),
-    Effect.catchAll(err =>
-      Effect.log('Could not determine API version, using default', { error: err }).pipe(Effect.as('65.0'))
-    )
-  );
-});
-
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
   const defaultPkg = project.getDefaultPackage();
   const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
-
   return yield* promptService.promptForOutputDir({
     defaultUri,
-    pickerPlaceHolder: nls.localize('apex_test_class_output_dir_prompt')
+    pickerPlaceHolder: nls.localize('output_dir_prompt')
   });
-});
-
-const promptForClassName = Effect.fn('promptForClassName')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  return yield* Effect.promise(() =>
-    vscode.window.showInputBox({
-      prompt: nls.localize('apex_test_class_name_prompt'),
-      validateInput: (value: string) => {
-        if (!value || value.trim().length === 0) return nls.localize('apex_test_class_name_empty_error');
-        if (value.toLowerCase() === 'default') return nls.localize('apex_test_class_name_cannot_be_default');
-        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value)) return nls.localize('apex_test_class_name_format_error');
-        if (value.length > APEX_CLASS_NAME_MAX_LENGTH)
-          return nls.localize('apex_test_class_name_max_length_error', APEX_CLASS_NAME_MAX_LENGTH);
-        return undefined;
-      }
-    })
-  ).pipe(
-    Effect.map(n => n?.trim()),
-    Effect.flatMap(promptService.considerUndefinedAsCancellation)
-  );
 });
 
 const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
@@ -96,11 +53,11 @@ const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
           description: nls.localize('basic_unit_test_template_description')
         }
       ],
-      { placeHolder: nls.localize('apex_test_template_prompt') }
+      { placeHolder: nls.localize('template_type_prompt') }
     )
   ).pipe(
     Effect.flatMap(selected => promptService.considerUndefinedAsCancellation(selected)),
-    Effect.map(s => s?.label)
+    Effect.map(selected => selected.label)
   );
 });
 
@@ -115,13 +72,14 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
   const project = yield* api.services.ProjectService.getSfProject();
 
   const template = params?.template ?? (yield* promptForTemplate());
-
-  const className = params?.name ?? (yield* promptForClassName());
-
+  const className =
+    params?.name ??
+    (yield* promptForApexTypeName({
+      prompt: nls.localize('apex_test_class_name_prompt')
+    }));
   const outputDirUri = params?.outputDir ?? outputDirectory ?? (yield* promptForOutputDir(project));
 
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const apiVersion = yield* getApiVersion(project);
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
@@ -129,12 +87,11 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
     cwd: yield* fsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.ApexClass,
     outputdir: outputDirUri,
-    options: { template, classname: className, apiversion: apiVersion }
+    options: { template, classname: className }
   });
+
   const channelService = yield* api.services.ChannelService;
-
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
-
   yield* api.services.FsService.showTextDocument(uris[0]);
 
   return result;

@@ -48,7 +48,7 @@ const promptForComponentType = Effect.fn('promptForComponentType')(function* () 
     )
   ).pipe(
     Effect.flatMap(selected => promptService.considerUndefinedAsCancellation(selected)),
-    Effect.map(selected => selected?.value)
+    Effect.map(selected => selected.value)
   );
 });
 
@@ -105,6 +105,4 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   const actualDirUri = Utils.joinPath(outputDirUri, camelCaseName);
   const mainFileUri = Utils.joinPath(actualDirUri, `${camelCaseName}${ext}`);
   yield* fsService.showTextDocument(mainFileUri);
-
-  return undefined;
 });

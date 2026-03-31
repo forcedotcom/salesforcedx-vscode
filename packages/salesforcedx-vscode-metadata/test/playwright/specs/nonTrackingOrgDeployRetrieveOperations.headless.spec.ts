@@ -22,6 +22,7 @@ import {
   validateNoCriticalErrors,
   ensureOutputPanelOpen,
   selectOutputChannel,
+  clearOutputChannel,
   waitForOutputChannelText,
   isDesktop,
   NOTIFICATION_LIST_ITEM,
@@ -49,6 +50,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
       await ensureSecondarySideBarHidden(page);
+
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
       // Disable deploy-on-save so test can control when deploys happen
@@ -63,6 +65,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
     await test.step('deploy class to org', async () => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Salesforce Metadata');
+      await clearOutputChannel(page);
       await openFileByName(page, `${className}.cls`);
 
       await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
@@ -89,6 +92,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
     await test.step('retrieve class from org', async () => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Salesforce Metadata');
+      await clearOutputChannel(page);
       await openFileByName(page, `${className}.cls`);
 
       await executeCommandWithCommandPalette(page, packageNls.retrieve_this_source_text);
@@ -100,6 +104,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
     await test.step('delete class from org', async () => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Salesforce Metadata');
+      await clearOutputChannel(page);
       await openFileByName(page, `${className}.cls`);
 
       await executeCommandWithCommandPalette(page, packageNls.delete_source_text);

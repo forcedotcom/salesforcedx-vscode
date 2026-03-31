@@ -17,6 +17,7 @@ Fix docs when code/config/scripts change. Run in background; fix directly; repor
    - Command IDs, API changes, new features, removed exports
    - package.json scripts/commands, esbuild config, scripts/
    - .vscodeignore, .vscode (launch/tasks/extensions), tsconfig, .esbuild-web-extra-settings.json, .github workflows
+   - **Comments**: check lines immediately above code changes; ensure they match new logic. Don't add new comments, just correct existing
 2. **Broken links** in docs
 3. **Duplication** — replace with cross-links
 

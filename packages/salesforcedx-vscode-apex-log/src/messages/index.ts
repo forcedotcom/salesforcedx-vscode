@@ -7,5 +7,6 @@
 
 import { createNls } from '@salesforce/vscode-i18n';
 import { messages as enMessages } from './i18n';
+import { messages as jaMessages } from './i18n.ja';
 
-export const nls = createNls({ instanceName: 'salesforcedx-vscode-apex-log', messages: enMessages });
+export const nls = createNls({ instanceName: 'salesforcedx-vscode-apex-log', messages: enMessages, jaMessages });

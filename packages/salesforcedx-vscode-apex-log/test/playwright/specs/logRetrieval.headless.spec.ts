@@ -21,11 +21,13 @@ import {
   setupNetworkMonitoring,
   TAB,
   validateNoCriticalErrors,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+import { waitForTraceFlagStatusBar } from '../helpers';
 
 test('Log retrieval: get logs, open folder', async ({ page }) => {
   test.setTimeout(180_000);
@@ -41,6 +43,16 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
 
   await test.step('turn on trace flag (SOAP execAnon no longer creates trace; logGet needs ApexLog records)', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser'], 30_000);
+
+    // Clean up any existing trace flags first (in case previous test failed to clean up)
+    const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR);
+    const hasExistingTrace = await statusBar.filter({ hasText: /Tracing until/ }).isVisible().catch(() => false);
+    if (hasExistingTrace) {
+      await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
+      await waitForTraceFlagStatusBar(page, /No Tracing/);
+    }
+
+    // Now create the trace flag
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser']);
     await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ })).toBeVisible({
       timeout: 60_000
@@ -55,8 +67,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 5000 });
     await page.keyboard.type(scriptName);
     await page.keyboard.press('Enter');
-    // Wait for directory QuickPick list rows (InputBox has none; QuickPick has 2 options)
-    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
+    await waitForQuickInputFirstOption(page);
     await page.keyboard.press('Enter');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
@@ -81,8 +92,13 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.logGet']);
     const widget = page.locator(QUICK_INPUT_WIDGET);
     await expect(widget).toBeVisible({ timeout: 30_000 });
-    const firstRow = widget.locator(QUICK_INPUT_LIST_ROW).first();
-    await expect(firstRow).toBeVisible({ timeout: 30_000 });
+    await waitForQuickInputFirstOption(page, {
+      quickInputVisibleTimeout: 30_000,
+      optionVisibleTimeout: 30_000,
+      retryTimeout: 30_000
+    });
+    const firstAriaOption = widget.getByRole('option').first();
+    const firstRow = (await firstAriaOption.count()) > 0 ? firstAriaOption : widget.locator(QUICK_INPUT_LIST_ROW).first();
     await firstRow.evaluate(el => {
       el.scrollIntoView({ block: 'center', behavior: 'instant' });
       (el as HTMLElement).click();
@@ -98,8 +114,13 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
   });
 
   await test.step('open logs folder and verify explorer', async () => {
-    await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
-    await expect(page.getByRole('heading', { name: 'Explorer' }).first()).toBeVisible({ timeout: 10_000 });
+    // Ensure Explorer is visible (may already be open)
+    const explorerHeading = page.getByRole('heading', { name: 'Explorer' }).first();
+    const isExplorerVisible = await explorerHeading.isVisible().catch(() => false);
+    if (!isExplorerVisible) {
+      await executeCommandWithCommandPalette(page, 'View: Show Explorer');
+    }
+    await expect(explorerHeading).toBeVisible({ timeout: 10_000 });
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.openLogsFolder']);
     await expect(page.locator('[id="workbench.view.explorer"]')).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'log-retrieval.explorer.png');
@@ -107,9 +128,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
 
   await test.step('turn off trace flag', async () => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
-      timeout: 60_000
-    });
+    await waitForTraceFlagStatusBar(page, /No Tracing/);
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

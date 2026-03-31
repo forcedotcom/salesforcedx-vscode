@@ -28,7 +28,6 @@ export { projectRetrieveStart } from './projectRetrieveStart';
 export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/viewChanges';
 export {
   analyticsGenerateTemplate,
-  apexGenerateTrigger,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,

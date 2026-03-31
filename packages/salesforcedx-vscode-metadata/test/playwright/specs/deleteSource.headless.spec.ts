@@ -18,10 +18,12 @@ import {
   upsertSettings,
   createApexClass,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   validateNoCriticalErrors,
   saveScreenshot,
   ensureOutputPanelOpen,
   selectOutputChannel,
+  clearOutputChannel,
   waitForOutputChannelText,
   NOTIFICATION_LIST_ITEM,
   ensureSecondarySideBarHidden
@@ -59,6 +61,9 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     await saveScreenshot(page, 'setup.after-disable-deploy-on-save.png');
     await saveScreenshot(page, 'setup.complete.png');
+
+    // Wait for core commands to be available
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
   });
 
   await test.step('create and deploy apex class', async () => {
@@ -99,6 +104,11 @@ test('Delete Source: deletes file from project and org via command palette', asy
       .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') });
     await expect(explorerFileBefore).toBeVisible();
     await saveScreenshot(page, 'step2.file-in-explorer-before-delete.png');
+
+    // Clear output so deploy output from step 1 doesn't match delete assertions
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
 
     // Execute delete command via command palette
     await executeCommandWithCommandPalette(page, nls.localize('delete_source_text'));

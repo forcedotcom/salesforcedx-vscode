@@ -7,11 +7,6 @@
       "jest",
       "node",
       "vscode"
-    ],
-    "plugins": [
-      {
-        "name": "@effect/language-service"
-      }
     ]
   },
   "exclude": [

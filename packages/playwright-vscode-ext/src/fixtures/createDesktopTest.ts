@@ -30,7 +30,9 @@ const CLOSE_TIMEOUT_MS = 5000;
 const forceKillProcessGroup = (proc: ChildProcess): void => {
   const { pid } = proc;
   if (typeof pid !== 'number') return;
-  try { process.kill(-pid, 'SIGKILL'); } catch {}
+  try {
+    process.kill(-pid, 'SIGKILL');
+  } catch {}
   proc.stdin?.destroy();
   proc.stdout?.destroy();
   proc.stderr?.destroy();
@@ -87,16 +89,15 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
       const effectiveUserSettings = {
+        'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
+        'settingsSync.enabled': false, // Prevent Settings Sync from overwriting test settings
         'salesforcedx-vscode-salesforcedx.enableFileTraces': true,
         ...userSettings
       };
       if (Object.keys(effectiveUserSettings).length > 0) {
         const userSettingsDir = path.join(userDataDir, 'User');
         await fs.mkdir(userSettingsDir, { recursive: true });
-        await fs.writeFile(
-          path.join(userSettingsDir, 'settings.json'),
-          JSON.stringify(effectiveUserSettings, null, 2)
-        );
+        await fs.writeFile(path.join(userSettingsDir, 'settings.json'), JSON.stringify(effectiveUserSettings, null, 2));
       }
       const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
       await fs.mkdir(extensionsDir, { recursive: true });
@@ -151,7 +152,10 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             forceKillProcessGroup(proc);
             // Wait for Node.js to register the exit (pipes closed → 'close' event → 'exit' event)
             await new Promise<void>(resolve => {
-              if (proc.exitCode !== null) { resolve(); return; }
+              if (proc.exitCode !== null) {
+                resolve();
+                return;
+              }
               proc.on('close', () => resolve());
               setTimeout(resolve, 10_000);
             });
@@ -166,7 +170,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           } catch {}
           // Force-kill if close didn't work (Windows timeout fallback)
           if (proc?.exitCode === null && process.platform === 'win32') {
-            try { process.kill(proc.pid!, 'SIGKILL'); } catch {}
+            try {
+              process.kill(proc.pid!, 'SIGKILL');
+            } catch {}
           }
         }
         console.log('[teardown] done');

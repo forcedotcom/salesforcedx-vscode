@@ -22,7 +22,6 @@ This extension provides Apex test execution and management features for VS Code.
 - `sf.apex.test.suite.run` - Run Apex Test Suite
 - `sf.apex.test.suite.create` - Create Apex Test Suite
 - `sf.apex.test.suite.add` - Add Tests to Apex Test Suite
-- `sf.apex.generate.unit.test.class` - Generate Apex Unit Test Class
 - `sf.apex.testing.walkthrough.open` - Open Apex Test Explorer Walkthrough (Getting Started)
 
 ## Requirements

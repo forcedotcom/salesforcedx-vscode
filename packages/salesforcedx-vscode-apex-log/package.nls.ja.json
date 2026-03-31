@@ -1,4 +1,7 @@
 {
+  "apex_generate_class_text": "SFDX: Apex クラスを作成",
+  "apex_generate_trigger_text": "SFDX: Apex トリガを作成",
+  "apex_generate_unit_test_class_text": "SFDX: Apex ユニットテストクラスを作成",
   "apexLog.command.executeDocument": "SFDX: エディタのコンテンツを使用して匿名 Apex を実行",
   "apexLog.command.executeSelection": "SFDX: 現在選択されているテキストを使用して匿名 Apex を実行",
   "apexLog.command.logGet": "SFDX: Apex デバッグログを取得"

@@ -2,7 +2,6 @@
   "alias_list_text": "SFDX: List All Aliases",
   "analytics_generate_template_text": "SFDX: Create Sample Analytics Template",
   "apex_generate_class_text": "SFDX: Create Apex Class",
-  "apex_generate_trigger_text": "SFDX: Create Apex Trigger",
   "apex_generate_unit_test_class_text": "SFDX: Create Apex Unit Test Class",
   "config_list_text": "SFDX: List All Config Variables",
   "conflict_detect_open_file": "Open File",

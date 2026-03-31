@@ -22,6 +22,11 @@ import { emptyWorkspaceTest as test } from '../fixtures';
     const networkErrors = setupNetworkMonitoring(page);
 
     await test.step('verify all apex log commands are hidden', async () => {
+      // Moved template commands
+      await verifyCommandDoesNotExist(page, packageNls.apex_generate_class_text);
+      await verifyCommandDoesNotExist(page, packageNls.apex_generate_trigger_text);
+      await verifyCommandDoesNotExist(page, packageNls.apex_generate_unit_test_class_text);
+
       // Create Anonymous Apex Script
       await verifyCommandDoesNotExist(page, packageNls['apexLog.command.createAnonymousApexScript']);
 

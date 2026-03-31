@@ -9,7 +9,6 @@ import { expect } from '@playwright/test';
 import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -17,6 +16,7 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
+  waitForQuickInputFirstOption,
   waitForExtensionsActivated
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
@@ -47,9 +47,7 @@ test('SOQL Builder: create query and toggle between builder and text editor', as
     await saveScreenshot(page, 'step1.file-name-entered.png');
 
     // Select the default directory (first item in the quick pick)
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    const firstDirOption = quickInput.locator(QUICK_INPUT_LIST_ROW).first();
-    await firstDirOption.waitFor({ state: 'visible', timeout: 10_000 });
+    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.dir-selected.png');
 

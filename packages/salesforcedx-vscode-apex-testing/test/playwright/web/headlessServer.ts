@@ -11,7 +11,7 @@ if (require.main === module) {
   void createHeadlessServer({
     extensionName: 'Apex Testing',
     callerDirname: __dirname,
-    additionalExtensionDirs: ['salesforcedx-vscode-metadata']
+    additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log']
   });
   setupSignalHandlers();
 }

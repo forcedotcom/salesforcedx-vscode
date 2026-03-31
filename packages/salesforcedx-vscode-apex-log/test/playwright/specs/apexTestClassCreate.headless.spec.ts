@@ -6,23 +6,21 @@
  */
 
 import { expect } from '@playwright/test';
-
 import {
   assertWelcomeTabExists,
   closeWelcomeTabs,
+  EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  EDITOR_WITH_URI,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
+  waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
@@ -30,7 +28,6 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-
   const className = `CreateTestClass${Date.now()}`;
 
   await test.step('setup with no org', async () => {
@@ -51,7 +48,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   });
 
   await test.step('select template in QuickPick', async () => {
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step.template-selected.png');
   });
@@ -66,7 +63,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   });
 
   await test.step('select output directory in QuickPick', async () => {
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step.directory-prompt-visible.png');
     await page.keyboard.press('Enter');
     await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'hidden', timeout: 10_000 });

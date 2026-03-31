@@ -25,6 +25,11 @@ import { noOrgTest } from '../fixtures';
     await noOrgTest.step('verify project-only commands are visible', async () => {
       // Create Anonymous Apex Script should be visible with just a project
       await verifyCommandExists(page, packageNls['apexLog.command.createAnonymousApexScript'], 30_000);
+
+      // Moved template commands should be visible with just a project
+      await verifyCommandExists(page, packageNls.apex_generate_class_text, 30_000);
+      await verifyCommandExists(page, packageNls.apex_generate_trigger_text, 30_000);
+      await verifyCommandExists(page, packageNls.apex_generate_unit_test_class_text, 30_000);
     });
 
     await noOrgTest.step('verify org-dependent commands are hidden', async () => {

@@ -1,0 +1,57 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(VSCODE_DESKTOP=1 npm run test:desktop *)",
+      "Bash(VSCODE_DESKTOP=1 WIREIT_CACHE=none npm run test:desktop *)",
+      "Bash(pkill *)",
+      "Bash(done)",
+      "Bash(chmod:*)",
+      "Bash(WIREIT_CACHE=none npm run *)",
+      "Bash(sf org:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit(*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/mark-edit.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write(*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/mark-edit.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git * --no-verify *)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-no-verify.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/verify-stop.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

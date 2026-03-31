@@ -4,12 +4,7 @@
     "outDir": "out",
     "rootDir": "src",
     "declaration": true,
-    "skipLibCheck": true,
-    "plugins": [
-      {
-        "name": "@effect/language-service"
-      }
-    ]
+    "skipLibCheck": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "out", "../salesforcedx-vscode-services"]

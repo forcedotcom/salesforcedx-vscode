@@ -1,6 +1,6 @@
 ---
 name: services-extension-consumption
-description: Guidelines for consuming salesforcedx-vscode-services extension API. Use when working with extensions that have extensionDependency on salesforcedx-vscode-services, registering commands, using Workspace/Connection/Project/Settings/FS/Channel/Media services, or implementing file/config watchers.
+description: Guidelines for consuming salesforcedx-vscode-services extension API. Use when working with extensions that have extensionDependency on salesforcedx-vscode-services, registering commands, using Workspace/Connection/Project/Settings/FS/Channel/Media services, quickpick/quickInput, or implementing file/config watchers.
 ---
 
 # Consuming salesforcedx-vscode-services
@@ -87,14 +87,19 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
 
 ## Registering Commands
 
-Use `registerCommandWithLayer` pre-loaded with AllServicesLayer:
+Use `registerCommandWithLayer` (for layers) or `registerCommandWithRuntime` (for runtimes):
 
 ```typescript
 import { myCommandEffect } from './commands/myCommand';
 
 const api = yield * (yield * ExtensionProviderService).getServicesApi;
-const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
 
+// Using Layer
+const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+yield * registerCommand('sf.my.command', myCommandEffect);
+
+// Using Runtime
+const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
 yield * registerCommand('sf.my.command', myCommandEffect);
 ```
 
@@ -103,6 +108,7 @@ Commands auto:
 - Register with ExtensionContext subscriptions
 - Wrap with error handling
 - Trace with observability spans
+- Handle Cancellation
 
 ## Basic Services
 
@@ -116,6 +122,7 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [SettingsService](references/settings-service.md) - Settings read/write
 - [FsService](references/fs-service.md) - File ops (web-compatible) and uri/path conversion
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
+- [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
 
 ## Watchers
 
