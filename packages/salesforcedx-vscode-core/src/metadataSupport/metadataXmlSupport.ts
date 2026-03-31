@@ -17,7 +17,7 @@ type XMLExtensionApi = {
 const MIN_XML_SERVER_HEAP_MB = 1024;
 const XMX_REGEX = /-Xmx(\d+)([kKmMgG]?)\b/;
 
-function toMegabytes(value: number, unit: string): number {
+const toMegabytes = (value: number, unit: string): number => {
   switch (unit.toLowerCase()) {
     case 'g':
       return value * 1024;
@@ -28,13 +28,13 @@ function toMegabytes(value: number, unit: string): number {
     default:
       return value; // 'm'
   }
-}
+};
 
 /**
  * Returns the vmargs string with -Xmx raised to MIN_XML_SERVER_HEAP_MB if it is currently
  * below that threshold, or undefined when no change is needed.
  */
-export function ensureMinXmlHeap(vmArgs: string | undefined): string | undefined {
+export const ensureMinXmlHeap = (vmArgs: string | undefined): string | undefined => {
   const current = vmArgs ?? '';
   const match = XMX_REGEX.exec(current);
   if (!match) {
@@ -46,7 +46,7 @@ export function ensureMinXmlHeap(vmArgs: string | undefined): string | undefined
     return undefined; // already sufficient
   }
   return current.replace(XMX_REGEX, `-Xmx${MIN_XML_SERVER_HEAP_MB}M`);
-}
+};
 
 /**
  * Provides XML schema support for Salesforce metadata files using RedHat XML extension
