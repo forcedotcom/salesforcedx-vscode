@@ -270,8 +270,13 @@ export const closeSettingsTab = async (page: Page): Promise<void> => {
     await settingsTab.waitFor({ state: 'detached', timeout: 5000 });
     return;
   }
-  // On macOS GHA with VS Code ≥1.113, Settings opens as a floating overlay (same as
-  // Windows), not a tab. No tab is found above, so press Escape to dismiss the overlay.
+  // Settings may open as a floating modal overlay (not a tab) — close button or Escape dismisses it.
+  const modalCloseButton = page.getByRole('button', { name: /Close Modal Editor/i }).first();
+  if (await modalCloseButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await modalCloseButton.click({ force: true }).catch(() => {});
+    return;
+  }
+  // Fallback: settings search input visible means overlay is open — press Escape to dismiss.
   const settingsInput = page.locator(SETTINGS_SEARCH_INPUT.join(',')).first();
   if (await settingsInput.isVisible().catch(() => false)) {
     await page.keyboard.press('Escape');
