@@ -11,7 +11,6 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, HTML_FILE, SOQL_BUILDER_UI_PATH } from '../constants';
 import { nls } from '../messages';
-import { channelService } from '../services/channel';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { isDefaultOrgSet } from '../services/org';
 import { transformHtml } from './htmlUtils';
@@ -47,7 +46,12 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
     if (!(await isDefaultOrgSet())) {
       const message = nls.localize('info_no_default_org');
-      channelService.appendLine(message);
+      getSoqlRuntime().runFork(
+        getServicesApi.pipe(
+          Effect.flatMap(api => api.services.ChannelService),
+          Effect.flatMap(svc => svc.appendToChannel(message))
+        )
+      );
       vscode.window.showInformationMessage(message);
     }
   }

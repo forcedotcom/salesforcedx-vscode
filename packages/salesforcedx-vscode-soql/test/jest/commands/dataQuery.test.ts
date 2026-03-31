@@ -5,11 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-jest.mock('../../../src/services/channel', () => ({
-  channelService: { appendLine: jest.fn() },
-  OUTPUT_CHANNEL: {}
-}));
-
 import * as Effect from 'effect/Effect';
 
 const mockChannel = {
