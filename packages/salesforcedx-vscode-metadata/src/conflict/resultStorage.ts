@@ -120,7 +120,13 @@ export const buildTimestampIndex = Effect.fn('resultStorage.buildTimestampIndex'
 
   const byKey = yield* Stream.fromIterableEffect(api.services.FsService.readDirectory(dirUri)).pipe(
     Stream.filter(uri => uri.toString().endsWith('.json')),
-    Stream.mapEffect(uri => api.services.FsService.readFile(uri)),
+    Stream.mapEffect(uri =>
+      api.services.FsService.readFile(uri).pipe(
+        Effect.tapError(e => Effect.logWarning('skipping unreadable result file', e)),
+        Effect.option
+      )
+    ),
+    Stream.filterMap(o => o),
     Stream.map(text => Schema.decodeUnknownOption(StoredResultJsonSchema)(text)),
     Stream.filterMap(o => o),
     Stream.mapConcat(stored =>

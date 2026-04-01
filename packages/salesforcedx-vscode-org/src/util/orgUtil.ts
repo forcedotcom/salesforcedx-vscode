@@ -15,11 +15,7 @@ import {
   Config
 } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import {
-  notificationService,
-  workspaceUtils,
-  ConfigAggregatorProvider
-} from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, workspaceUtils, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
@@ -47,10 +43,21 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
   const defaultOrgRef = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
-  const results = yield* Stream.fromIterable(yield* Effect.promise(() => AuthInfo.listAllAuthorizations())).pipe(
+  const results = yield* Stream.fromIterableEffect(
+    Effect.tryPromise({ try: () => AuthInfo.listAllAuthorizations(), catch: e => e }).pipe(
+      Effect.tapError(e => Effect.logWarning('listAllAuthorizations failed', e)),
+      Effect.orElseSucceed(() => [])
+    )
+  ).pipe(
     // only scratch org can expire
     Stream.filter(o => Boolean(o.isScratchOrg)),
-    Stream.mapEffect(o => Effect.promise(() => getAuthFieldsFor(o.username))),
+    Stream.mapEffect(o =>
+      Effect.tryPromise({ try: () => getAuthFieldsFor(o.username), catch: e => e }).pipe(
+        Effect.tapError(e => Effect.logWarning(`skipping org ${o.username}: getAuthFieldsFor failed`, e)),
+        Effect.option
+      )
+    ),
+    Stream.filterMap(o => o),
     Stream.tap(o =>
       // special warning about when default orgs expire
       defaultOrgRef.username && o.username === defaultOrgRef.username && orgIsExpired(o)

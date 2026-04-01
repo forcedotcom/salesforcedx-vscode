@@ -66,9 +66,7 @@ const getUserIdOrFail = Effect.gen(function* () {
   const ref = yield* getDefaultOrgRef();
   const { userId } = yield* SubscriptionRef.get(ref);
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- yield* must be in statement position
-  return userId
-    ? userId
-    : yield* new UserIdNotFoundError({ message: 'Could not determine user ID for trace flag' });
+  return userId ? userId : yield* new UserIdNotFoundError({ message: 'Could not determine user ID for trace flag' });
 });
 
 export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceFlagService', {
@@ -109,7 +107,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       const idToName = yield* Stream.fromIterable(
         Object.entries(byPrefix).filter((entry): entry is [string, string[]] => entry[1] !== undefined)
       ).pipe(
-        Stream.flatMap(([prefix, ids]) =>
+        Stream.mapConcatEffect(([prefix, ids]) =>
           Match.value(prefix).pipe(
             Match.when('005', () =>
               queryIdName(`SELECT Id, Name FROM User WHERE Id IN (${idListToInClause(ids)})`, false)
@@ -124,9 +122,12 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           )
         ),
         Stream.mapEffect(result =>
-          Schema.decodeUnknown(Schema.Array(Schema.Struct({ Id: Schema.String, Name: Schema.String })))(result)
+          Schema.decodeUnknown(Schema.Struct({ Id: Schema.String, Name: Schema.String }))(result).pipe(
+            Effect.tapError(e => Effect.logWarning('traceFlagService: skipping undecodable query result', e)),
+            Effect.option
+          )
         ),
-        Stream.flatMap(Stream.fromIterable),
+        Stream.filterMap(o => o),
         Stream.runFold(new Map<string, string>(), (map, row) => map.set(row.Id, row.Name))
       );
 
