@@ -197,6 +197,7 @@ describe('orgUtil tests', () => {
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendLineSpy).toHaveBeenCalled();
     expect(appendLineSpy.mock.calls[0][0]).toContain(orgName1);
+    expect(appendLineSpy.mock.calls[0][0]).toContain('foo');
     expect(showChannelOutputSpy).toHaveBeenCalled();
   });
 
@@ -248,7 +249,9 @@ describe('orgUtil tests', () => {
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendLineSpy).toHaveBeenCalled();
     expect(appendLineSpy.mock.calls[0][0]).toContain(orgName1);
+    expect(appendLineSpy.mock.calls[0][0]).toContain('foo');
     expect(appendLineSpy.mock.calls[0][0]).toContain(orgName2);
+    expect(appendLineSpy.mock.calls[0][0]).toContain('bar');
     expect(showChannelOutputSpy).toHaveBeenCalled();
   });
 

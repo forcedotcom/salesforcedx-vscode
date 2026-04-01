@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as PubSub from 'effect/PubSub';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -77,7 +76,6 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   );
   statusBarItem.name = 'Salesforce: Source Tracking';
   const fileWatcherService = yield* api.services.FileWatcherService;
-  const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
 
   const targetOrgRef = yield* api.services.TargetOrgRef();
 
@@ -125,7 +123,7 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
 
   const fileChangeStream = Stream.merge(
     // Subscribe to file changes TODO: maybe filter out some changes by type or uri
-    Stream.fromQueue(dequeue).pipe(Stream.debounce(Duration.millis(500))),
+    Stream.fromPubSub(fileWatcherService.pubsub).pipe(Stream.debounce(Duration.millis(500))),
     // Poll for remote changes with configurable interval
     dynamicPollStream
   ).pipe(
