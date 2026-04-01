@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.4.1",
+  "version": "66.4.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,9 +27,9 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.13",
+    "@salesforce/apex-node": "^8.4.18",
     "@salesforce/effect-ext-utils": "*",
-    "@salesforce/types": "1.7.1",
+    "@salesforce/types": "^1.7.1",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.20.0",
     "vscode-uri": "^3.1.0"
@@ -201,6 +201,7 @@
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -222,6 +223,7 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -255,12 +257,7 @@
     "menus": {
       "view/title": [],
       "view/item/context": [],
-      "explorer/context": [
-        {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
-        }
-      ],
+      "explorer/context": [],
       "commandPalette": [
         {
           "command": "sf.apex.test.last.class.run",
@@ -301,10 +298,6 @@
         {
           "command": "sf.apex.test.refresh",
           "when": "false"
-        },
-        {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "sf:project_opened"
         },
         {
           "command": "sf.apex.testing.walkthrough.open",
@@ -352,10 +345,6 @@
       {
         "command": "sf.apex.test.refresh",
         "title": "%apex_test_refresh_title%"
-      },
-      {
-        "command": "sf.apex.generate.unit.test.class",
-        "title": "%apex_generate_unit_test_class_text%"
       },
       {
         "command": "sf.apex.testing.walkthrough.open",

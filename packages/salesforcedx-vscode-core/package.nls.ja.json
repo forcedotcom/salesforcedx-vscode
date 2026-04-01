@@ -2,7 +2,6 @@
   "alias_list_text": "SFDX: すべてのエイリアスを一覧表示",
   "analytics_generate_template_text": "SFDX: サンプルの Analytics テンプレートを作成",
   "apex_generate_class_text": "SFDX: Apex クラスを作成",
-  "apex_generate_trigger_text": "SFDX: Apex トリガを作成",
   "config_list_text": "SFDX: すべての設定変数を一覧表示",
   "conflict_detect_open_file": "ファイルを開く",
   "conflict_detect_resolve_view": "Org Differences",

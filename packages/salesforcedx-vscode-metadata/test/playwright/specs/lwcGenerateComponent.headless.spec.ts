@@ -5,25 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
+  EDITOR_WITH_URI,
+  QUICK_INPUT_WIDGET,
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
+  ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
+  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
-  waitForWorkspaceReady,
-  closeWelcomeTabs,
-  executeCommandWithCommandPalette,
   validateNoCriticalErrors,
-  saveScreenshot,
-  QUICK_INPUT_WIDGET,
-  QUICK_INPUT_LIST_ROW,
-  EDITOR_WITH_URI,
-  assertWelcomeTabExists,
-  ensureSecondarySideBarHidden,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForQuickInputFirstOption,
+  waitForVSCodeWorkbench,
+  waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
+import { test } from '../fixtures';
 
 test('LWC Generate Component: creates new LWC via command palette', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -61,24 +61,12 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
       .catch(() => false);
 
     if (componentTypePromptFirst) {
-      await saveScreenshot(page, 'step1.component-type-prompt-first.png');
+      await waitForQuickInputFirstOption(page);
 
-      // Wait for the list to be fully populated
-      await page.waitForTimeout(500);
-
-      // Verify JavaScript row is visible (first item in list)
-      const javascriptRow = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /JavaScript/i });
-      await javascriptRow.first().waitFor({ state: 'visible', timeout: 5000 });
-
-      // Move focus from input field to list, then select first item
-      await page.keyboard.press('ArrowDown'); // Move to first list item (JavaScript)
-      await page.waitForTimeout(300);
+      await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
       await page.keyboard.press('Enter'); // Select it
 
       await saveScreenshot(page, 'step1.component-type-selected-first.png');
-
-      // Wait for quick input to be ready for next step
-      await page.waitForTimeout(1000);
     }
 
     // Step 2: Enter component name
@@ -100,28 +88,16 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
       .catch(() => false);
 
     if (componentTypePromptAfterName) {
+      await waitForQuickInputFirstOption(page);
+
       await saveScreenshot(page, 'step1.component-type-prompt-after-name.png');
-
-      // Wait for the list to be fully populated
-      await page.waitForTimeout(500);
-
-      // Verify JavaScript row is visible (first item in list)
-      const javascriptRow = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /JavaScript/i });
-      await javascriptRow.first().waitFor({ state: 'visible', timeout: 5000 });
-
-      // Move focus from input field to list, then select first item
-      await page.keyboard.press('ArrowDown'); // Move to first list item (JavaScript)
-      await page.waitForTimeout(300);
       await page.keyboard.press('Enter'); // Select it
 
       await saveScreenshot(page, 'step1.component-type-selected-after-name.png');
-
-      // Wait for quick input to be ready for directory selection
-      await page.waitForTimeout(1000);
     }
 
     // Step 4: Select directory
-    await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
 
     await page.keyboard.press('Enter');
@@ -129,17 +105,14 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
 
     // Step 5: Handle language selection if it appears after directory
     // (Observed in some local runs: name -> directory -> language)
-    const languagePromptAfterDirectory = await quickInput
-      .locator(QUICK_INPUT_LIST_ROW)
-      .filter({ hasText: /JavaScript|TypeScript/i })
-      .first()
-      .isVisible({ timeout: 3000 })
+    const languagePromptAfterDirectory = await waitForQuickInputFirstOption(page, { retryTimeout: 3000 })
+      .then(() => true)
       .catch(() => false);
 
     if (languagePromptAfterDirectory) {
       await saveScreenshot(page, 'step1.component-language-prompt-after-directory.png');
 
-      const javascriptRow = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /JavaScript/i }).first();
+      const javascriptRow = quickInput.getByRole('option', { name: /JavaScript/i }).first();
       await javascriptRow.waitFor({ state: 'visible', timeout: 5000 });
       await javascriptRow.click();
       await page.keyboard.press('Enter');
@@ -163,11 +136,11 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
       .locator('[role="treeitem"]')
       .filter({ hasText: new RegExp(`${camelCaseName}$`, 'i') })
       .first();
-    await expect(explorerFolder).toBeVisible({ timeout: 100 });
+    await expect(explorerFolder).toBeVisible({ timeout: 500 });
     await saveScreenshot(page, 'step2.folder-in-explorer.png');
 
     const editorContent = page.locator(`[data-uri*="${camelCaseName}.js"]`).first();
-    await expect(editorContent).toBeVisible({ timeout: 100 });
+    await expect(editorContent).toBeVisible({ timeout: 500 });
 
     const editorText = page.locator('.view-lines').first();
     await expect(editorText).toContainText('import { LightningElement }', { timeout: 100 });

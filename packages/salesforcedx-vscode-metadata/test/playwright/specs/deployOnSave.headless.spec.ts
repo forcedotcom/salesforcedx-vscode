@@ -7,7 +7,6 @@
 
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
-
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -23,11 +22,13 @@ import {
   createApexClass,
   editOpenFile,
   validateNoCriticalErrors,
-  ensureSecondarySideBarHidden
+  ensureSecondarySideBarHidden,
+  saveScreenshot
 } from '@salesforce/playwright-vscode-ext';
 import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
-import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { DEPLOY_TIMEOUT } from '../../constants';
+import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
+import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 
 test('Deploy On Save: automatically deploys when file is saved', async ({ page }) => {
   test.setTimeout(DEPLOY_TIMEOUT);
@@ -50,13 +51,18 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
       timeout: 30_000
     });
 
-    // Enable deploy-on-save (web already enabled by default, desktop needs this)
-    const isDesktop = process.env.VSCODE_DESKTOP === '1';
-    if (isDesktop) {
-      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true' });
-    }
+    const statusBar = new SourceTrackingStatusBarPage(page);
+    await statusBar.waitForVisible(120_000);
+
+    // Enable deploy-on-save using settings UI
+    // Note: useMetadataExtensionCommands is set in desktop fixtures to ensure deploy-on-save service processes saves
+    await upsertSettings(page, {
+      [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true'
+    });
 
     // Verify deploy-on-save service is initialized by checking output channel
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
     await waitForOutputChannelText(page, { expectedText: 'Deploy on save service initialized', timeout: 30_000 });
   });
 
@@ -67,19 +73,22 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
 
   await test.step('edit class and save to trigger deploy', async () => {
     await editOpenFile(page, 'Deploy on save test comment');
+    await saveScreenshot(page, 'after-edit-and-save.png');
   });
 
   await test.step('verify deploy triggers and completes', async () => {
-    // Wait for deploy to complete - deploy-on-save doesn't show progress notifications
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
-    // Wait for deploy-on-save to trigger (service has 1s delay, then deploy starts)
+    // Deploy should start within 5 seconds (1s service delay + deploy start)
+    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 5000);
+    await saveScreenshot(page, 'deploy-notification-appeared.png');
+
+    // Wait for deploy to complete (notification disappears)
+    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
+    await saveScreenshot(page, 'deploy-complete.png');
+
+    // Also verify in output channel
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
-
-    // so we verify completion via output channel instead
-    // Match the actual completion message which includes counts
-    await waitForOutputChannelText(page, { expectedText: 'components deployed', timeout: DEPLOY_TIMEOUT });
+    await waitForOutputChannelText(page, { expectedText: 'components deployed', timeout: 10_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

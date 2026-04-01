@@ -11,14 +11,14 @@ export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   // some of the necessary configs are over there
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
 });
 
 export const deployOnSaveTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   userSettings: {
     'salesforcedx-vscode-core.useMetadataExtensionCommands': false,
     'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': true,
@@ -29,7 +29,7 @@ export const deployOnSaveTest = createDesktopTest({
 export const deployNoStTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   userSettings: {
     'salesforcedx-vscode-core.useMetadataExtensionCommands': false,
     'salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve': false
@@ -38,7 +38,7 @@ export const deployNoStTest = createDesktopTest({
 
 export const createProjectTest = createDesktopTest({
   fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   // use vscode's dialog box instead of the native OS, so playwright can interact with it
   userSettings: { 'files.simpleDialog.enable': true }
 });
@@ -46,6 +46,6 @@ export const createProjectTest = createDesktopTest({
 /** Workspace path is an empty temp folder (no `sfdx-project.json`) — folder is open, not “close workspace” */
 export const folderWithoutSfdxProjectTest = createDesktopTest({
   fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   emptyWorkspace: true
 });

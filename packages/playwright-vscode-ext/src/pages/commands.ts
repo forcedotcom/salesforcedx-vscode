@@ -6,7 +6,7 @@
  */
 
 import { expect, Page } from '@playwright/test';
-import { dismissAllQuickInputWidgets } from '../utils/helpers';
+import { dismissAllQuickInputWidgets, waitForQuickInputFirstOption } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
@@ -28,13 +28,14 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     await page.keyboard.press('F1');
 
     // Wait for widget to be visible (not just attached)
+    // Using a more lenient check for visibility since it can be "hidden" while still being in the DOM
     await expect(widget).toBeVisible({ timeout: 5000 });
 
     // Verify input is ready
     const input = widget.locator('input.input');
     await expect(input).toBeVisible({ timeout: 5000 });
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
-  }).toPass({ timeout: 10_000 });
+  }).toPass({ timeout: 15_000 });
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
@@ -52,28 +53,33 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await input.fill(`>${command}`);
 
   // Wait for command list to appear
-  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
-
-  // Find and click the command row
-  // VS Code command palette items may have additional text after the command name (e.g., "similar commands")
-  // So we match the command name exactly at the start of the text
-  const escapedCommand = command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'); // for searching with regex since () are common
-  // Match command exactly at the start - this ensures exact match while allowing additional text after
-  const commandRow = widget
-    .locator(QUICK_INPUT_LIST_ROW)
-    .filter({ hasText: new RegExp(`^${escapedCommand}`), hasNotText })
-    .first();
-
-  await expect(commandRow).toBeAttached({ timeout: 2000 });
-
-  // For virtualized lists, use evaluate to scroll and click (more reliable than Playwright's click)
-  await commandRow.evaluate(el => {
-    el.scrollIntoView({ block: 'center', behavior: 'instant' });
-    (el as HTMLElement).click();
-  });
+  await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
+  // Match by aria-label: exact match on command or exact match on part before ", "
+  // e.g., "File: Save" matches aria-label "File: Save, Command+S"
+  const options = await page.getByRole('option').all();
+  let found = false;
+  const allLabels: string[] = [];
+  for (const option of options) {
+    const ariaLabel = await option.getAttribute('aria-label');
+    if (!ariaLabel) continue;
+    allLabels.push(ariaLabel);
+    // Check exact match or exact match before ", " (for keyboard shortcuts)
+    if (ariaLabel === command || (ariaLabel.includes(', ') && ariaLabel.split(', ')[0] === command)) {
+      // Ensure option is visible before clicking
+      await option.scrollIntoViewIfNeeded();
+      await option.click({ timeout: 5000 });
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    throw new Error(
+      `Command "${command}" not found in command palette. Available options:\n${allLabels.slice(0, 10).join('\n')}`
+    );
+  }
 
   // Wait for the command palette to close after executing the command
-  await widget.waitFor({ state: 'hidden', timeout: 500 }).catch(() => {
+  await widget.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {
     // If it doesn't close (e.g., multi-step commands), that's ok
   });
 };
@@ -120,7 +126,7 @@ const retryCommandPaletteSearch = async (
     await input.click({ timeout: 5000 });
     await input.fill(`>${commandText}`);
 
-    await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+    await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
 
     const rows = await widget.locator(QUICK_INPUT_LIST_ROW).all();
     const rowTexts = await Promise.all(

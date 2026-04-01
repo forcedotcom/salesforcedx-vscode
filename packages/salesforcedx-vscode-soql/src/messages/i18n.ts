@@ -16,7 +16,6 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  soql_channel_name: 'SOQL Extension',
   progress_running_query: 'Running query',
   soql_query_results: 'SOQL Query Results',
   info_no_default_org:
@@ -32,8 +31,9 @@ export const messages = {
     'ERROR: %s. Unknown error. Open an issue and provide the error message details: https://github.com/forcedotcom/soql-tooling/issues/new/choose.',
   error_data_view_save:
     "ERROR: We can't save the file to the specified directory. Make sure you have write permissions for the directory.",
-  data_query_input_text: 'SFDX: Execute SOQL Query...',
   data_query_selection_text: 'SFDX: Execute SOQL Query with Currently Selected Text',
+  data_query_document_text: 'SFDX: Execute SOQL Query with Current File',
+  soql_run_query_codelens: 'Run Query',
   soql_query_plan_codelens: 'Get Query Plan',
   query_plan_document_text: 'SFDX: Get SOQL Query Plan with Current File',
   query_plan_table_title: 'Query Plan',
@@ -75,7 +75,6 @@ export const messages = {
     'File name must start with a letter and contain only alphanumeric characters and underscores',
   soql_output_dir_default_description: '(default)',
   soql_output_dir_prompt: 'Select the target directory',
-  parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   REST_API: 'REST API',
   REST_API_description: 'Use REST API to execute the query',
   tooling_API: 'Tooling API',

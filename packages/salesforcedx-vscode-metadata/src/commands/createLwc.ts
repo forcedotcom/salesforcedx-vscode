@@ -16,7 +16,6 @@ import { nls } from '../messages';
 
 class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
 
-
 /** Prompt user to select output directory from available package directories (lwc subdir) */
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -118,9 +117,7 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   if (!outputDirUri) return undefined;
 
   // Determine template with error recovery - if project config fails, prompt user
-  const templateOpt = yield* determineComponentTemplate(project).pipe(
-    Effect.catchAll(() => promptForComponentType())
-  );
+  const templateOpt = yield* determineComponentTemplate(project).pipe(Effect.catchAll(() => promptForComponentType()));
   if (Option.isNone(templateOpt)) return undefined;
   const template = templateOpt.value;
 
@@ -158,6 +155,4 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   const actualDirUri = Utils.joinPath(outputDirUri, camelCaseName);
   const mainFileUri = Utils.joinPath(actualDirUri, `${camelCaseName}${ext}`);
   yield* fsService.showTextDocument(mainFileUri);
-
-  return undefined;
 });

@@ -6,6 +6,7 @@
  */
 
 import type { QueryResult } from '../types';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -26,11 +27,16 @@ import {
   TABULATOR_STYLE_FILENAME
 } from '../constants';
 import { nls } from '../messages';
-import { channelService } from '../services/channel';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { FileFormat, QueryDataFileService as FileService } from './queryDataFileService';
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
+
+const appendToChannel = (message: string) =>
+  getServicesApi.pipe(
+    Effect.flatMap(api => api.services.ChannelService),
+    Effect.flatMap(svc => svc.appendToChannel(message))
+  );
 
 const getWebViewContent = async (webview: vscode.Webview, extensionUri: vscode.Uri): Promise<string> => {
   const baseStyleUri = webview.asWebviewUri(
@@ -106,11 +112,9 @@ export class QueryDataViewService {
     ).pipe(
       Effect.asVoid,
       Effect.catchAllCause(cause =>
-        Effect.sync(() => {
-          const errorType = 'data_view_post_message';
-          channelService.appendLine(nls.localize('error_unknown_error', errorType));
-          channelService.appendLine(`soql_error_${errorType}: ${String(cause)}`);
-        })
+        appendToChannel(nls.localize('error_unknown_error', 'data_view_post_message')).pipe(
+          Effect.andThen(appendToChannel(`soql_error_data_view_post_message: ${String(cause)}`))
+        )
       )
     );
   }
@@ -159,7 +163,7 @@ export class QueryDataViewService {
           event =>
             this.handleMessageEffect(event).pipe(
               Effect.catchAllCause(() =>
-                Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', event.type)))
+                appendToChannel(nls.localize('error_unknown_error', event.type))
               )
             ),
           { concurrency: 'unbounded' }
@@ -182,7 +186,7 @@ export class QueryDataViewService {
         return saveRecordsEffect({ queryText: this.queryText, queryData: this.queryData, format: format!, document: this.document });
 
       default:
-        return Effect.sync(() => channelService.appendLine(nls.localize('error_unknown_error', type))).pipe(
+        return appendToChannel(nls.localize('error_unknown_error', type)).pipe(
           Effect.withSpan('QueryDataView.unknown_message', { attributes: { messageType: type } })
         );
     }
