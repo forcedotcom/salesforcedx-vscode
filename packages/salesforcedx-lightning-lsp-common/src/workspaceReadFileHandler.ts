@@ -33,7 +33,7 @@ const isVscodeFileStat = (x: unknown): x is vscode.FileStat =>
   typeof x === 'object' && x !== null && 'type' in x && 'ctime' in x && 'mtime' in x && 'size' in x;
 
 /** Client that can handle LSP requests (Node or Browser LanguageClient). */
-export type WorkspaceReadFileClient = {
+type WorkspaceReadFileClient = {
   onRequest<P, R>(method: string, handler: (params: P) => Promise<R>): void;
 };
 
@@ -87,7 +87,7 @@ export const registerWorkspaceReadFileHandler = (
     yield* logTo(log, `[stat] request uri=${uri.toString()}`);
     const fs = yield* getFs;
     const vstat = yield* fs.stat(uri.toString());
-    if (!isVscodeFileStat(vstat)) yield* Effect.fail(new Error('Invalid stat result'));
+    if (!isVscodeFileStat(vstat)) return yield* Effect.fail(new Error('Invalid stat result'));
     const stat = vscodeStatToFileStat(vstat);
     yield* logTo(log, `[stat] success uri=${uri.toString()} type=${stat.type} size=${stat.size}`);
     return { stat };

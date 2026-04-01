@@ -88,7 +88,7 @@ type LwcLanguage = {
   lwcLanguage?: 'javascript' | 'typescript';
 };
 
-export type ProjectTemplate =
+type ProjectTemplate =
   | 'standard'
   | 'empty'
   | 'analytics'
@@ -229,8 +229,7 @@ class SelectLwcLanguage implements ParametersGatherer<LwcLanguage> {
       return { type: 'CANCEL' };
     }
 
-    const lwcLanguage =
-      selection.label === nls.localize('typescript_language_option') ? 'typescript' : 'javascript';
+    const lwcLanguage = selection.label === nls.localize('typescript_language_option') ? 'typescript' : 'javascript';
     return { type: 'CONTINUE', data: { lwcLanguage } };
   }
 }
@@ -261,7 +260,7 @@ const workspaceChecker = new EmptyPreChecker();
 const pathExistsChecker = new PathExistsChecker();
 
 /** Optional args when invoking Create Project; when provided, the corresponding prompt is skipped. */
-export type ProjectGenerateArgs = {
+type ProjectGenerateArgs = {
   projectTemplate?: ProjectTemplate;
   projectName?: string;
   projectUri?: string;

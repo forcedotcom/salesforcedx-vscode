@@ -57,7 +57,18 @@ If a service method like `ensureNonEmptyComponentSet` can fail with `EmptyCompon
 
 ## Knip false positives
 
-Knip flags these as "unused" - ignore. TypeScript needs them for declaration emit, not runtime imports.
+Knip flags these as "unused exports" when the error class is defined and used within the same file but exported for TS4023 reasons. Fix by adding `/** @effectError */` JSDoc to the export:
+
+```typescript
+/** @effectError */
+export class NoFilesRetrievedError extends Schema.TaggedError<NoFilesRetrievedError>()('NoFilesRetrievedError', {
+  message: Schema.String
+}) {}
+```
+
+`knip.json` is configured with `"tags": ["-effectError"]` which suppresses these from the report.
+
+**Do NOT add `@effectError` to errors exported from `salesforcedx-vscode-services`** — those are consumed by other packages and knip correctly sees them as used.
 
 ## Checklist
 

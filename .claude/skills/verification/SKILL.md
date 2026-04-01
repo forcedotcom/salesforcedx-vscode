@@ -18,7 +18,7 @@ Do each of these steps, in order. Do not move to a step unless all previous are 
    - Run from root: `npm run test:web -w <package-name> -- --retries 0` / `npm run test:desktop -w <package-name> -- --retries 0` (use `--` to forward params to the underlying command)
    - Skip if not in these packages
 
-7. `npx knip` - check for dead code related to your changes
+7. `npx knip --no-config-hints --include exports,types,nsExports,nsTypes` - check for unused exports related to your changes
 
 - **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests. Exception for [ts4023 reasons](../ts4023-effect-errors/SKILL.md)
 - Don't leave any exports that are only used within the same file

@@ -32,7 +32,7 @@ import { MissingDefaultOrgError } from './diffErrors';
 import { createDiffFilePair, isDiffFilePair, type DiffFilePair } from './diffTypes';
 
 /** Get cache directory URI for retrieved metadata */
-export const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
+const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [workspaceInfo, defaultOrgRef] = yield* Effect.all(
     [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), Effect.succeed(api.services.TargetOrgRef)],

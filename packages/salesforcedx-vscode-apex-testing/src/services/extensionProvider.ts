@@ -61,7 +61,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
  * Use buildAllServicesLayer(context) to provide a working ExtensionContextService.
  */
 
-export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;

@@ -66,7 +66,7 @@ const getIconForOrgType = (type: OrgType): string => {
   }
 };
 /** QuickPickItem for org selection with metadata for handling */
-export interface OrgQuickPickItem extends vscode.QuickPickItem {
+interface OrgQuickPickItem extends vscode.QuickPickItem {
   orgUsername?: string;
   orgAlias?: string;
   commandId?: string;
@@ -175,7 +175,10 @@ export const buildOrgQuickPickItems = (
   const filtered = filter ? authorizations.filter(filter) : authorizations;
   return authorizationsToQuickPickItems(filtered, defaultConfig).flatMap((item, index, array) => {
     if (item.orgType && (index === 0 || item.orgType !== array[index - 1].orgType)) {
-      const separator: vscode.QuickPickItem = { kind: vscode.QuickPickItemKind.Separator, label: orgTypeToLabel(item.orgType) };
+      const separator: vscode.QuickPickItem = {
+        kind: vscode.QuickPickItemKind.Separator,
+        label: orgTypeToLabel(item.orgType)
+      };
       return [separator, item];
     }
     return [item];
@@ -194,10 +197,7 @@ export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse
     org.aliases?.length ? org : { ...org, aliases: aliasesByUsername.get(org.username) ?? [] }
   );
 
-  const quickPickList = [
-    ...ACTION_ITEMS,
-    ...buildOrgQuickPickItems(freshAuthorizations, defaultConfig)
-  ];
+  const quickPickList = [...ACTION_ITEMS, ...buildOrgQuickPickItems(freshAuthorizations, defaultConfig)];
 
   const selection = await vscode.window.showQuickPick(quickPickList, {
     placeHolder: nls.localize('org_select_text'),

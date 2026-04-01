@@ -23,6 +23,7 @@ import { ProjectService } from './projectService';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 export type SourceTrackingOptions = { ignoreConflicts?: boolean };
+/** @effectError */
 export class SourceTrackingError extends Schema.TaggedError<SourceTrackingError>()('SourceTrackingError', {
   cause: Schema.Unknown
 }) {}

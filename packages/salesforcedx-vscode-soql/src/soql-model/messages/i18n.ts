@@ -24,7 +24,8 @@ export const messages = {
   error_incompleteLimit: 'Incomplete LIMIT clause. The LIMIT keyword must be followed by a number.',
   error_emptyWhere: 'Incomplete WHERE clause. The WHERE clause must contain a condition.',
   error_incompleteNestedCondition: 'Incomplete condition. A closing parenthesis is required.',
-  error_incompleteAndOrCondition: 'Incomplete condition. Conditions before and after the AND or OR keyword are required.',
+  error_incompleteAndOrCondition:
+    'Incomplete condition. Conditions before and after the AND or OR keyword are required.',
   error_incompleteNotCondition: 'Incomplete condition. NOT must be followed by a condition.',
   error_unrecognizedCompareValue: 'Unrecognized comparison value.',
   error_unrecognizedCompareOperator: 'Unrecognized comparison operator.',
@@ -65,7 +66,5 @@ export const messages = {
   unmodeled_calculatedcondition: 'Calculated condition field',
   unmodeled_distancecondition: 'DISTANCE condition',
   unmodeled_incolonexpressioncondition: 'Colon expression as IN value',
-  unmodeled_insemijoincondition: 'Subquery as IN value',
+  unmodeled_insemijoincondition: 'Subquery as IN value'
 } as const;
-
-export type MessageKey = keyof typeof messages;

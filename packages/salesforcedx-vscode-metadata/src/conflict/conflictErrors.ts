@@ -14,18 +14,3 @@ export class ConflictsDetectedError extends Data.TaggedError('ConflictsDetectedE
   readonly componentSet: NonEmptyComponentSet;
   readonly operationType: 'deploy' | 'retrieve';
 }> {}
-
-export class ConflictDetectionFailedError extends Data.TaggedError('ConflictDetectionFailedError')<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
-
-export class InvalidResultJsonError extends Data.TaggedError('InvalidResultJsonError')<{
-  readonly message: string;
-  readonly uri: string;
-}> {}
-
-export class InvalidResultShapeError extends Data.TaggedError('InvalidResultShapeError')<{
-  readonly message: string;
-  readonly uri: string;
-}> {}

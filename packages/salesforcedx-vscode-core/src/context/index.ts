@@ -22,4 +22,3 @@ export const workspaceContextUtils = {
   setupWorkspaceOrgType,
   getOrgShape
 };
-export { OrgType } from './workspaceOrgType';

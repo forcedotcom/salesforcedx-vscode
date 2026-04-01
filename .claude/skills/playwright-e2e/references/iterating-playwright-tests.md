@@ -18,6 +18,17 @@ WIREIT_CACHE=none npm run test:desktop -w <package> -- --retries 0 test/playwrig
 ```
 `WIREIT_CACHE=none` is always required when running a subset — wireit's cache key is based on input file fingerprints, not CLI args, so it serves the cached full-suite result otherwise.
 
+## Agent shell env
+
+Cursor sets env vars that break desktop tests. Always run first:
+```bash
+unset PLAYWRIGHT_BROWSERS_PATH ELECTRON_RUN_AS_NODE CI
+```
+
+- `PLAYWRIGHT_BROWSERS_PATH` — redirected to empty sandbox; Playwright CDP driver missing → `electron.launch` succeeds but `setViewportSize` and all CDP calls hang silently
+- `ELECTRON_RUN_AS_NODE=1` — inherited from Cursor's Electron process → `electron.launch` fails with `bad option: --remote-debugging-port=0`
+- `CI=1` — changes teardown to force-kill (not fatal but noisy)
+
 **Port conflict (web):** If a previous web server is still on port 3001, playwright fails immediately with `http://localhost:3001 is already used`. Fix: `lsof -ti :3001 | xargs kill -9`
 
 3. edit github workflows if needed

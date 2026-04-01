@@ -33,7 +33,7 @@ export const getProblemsCount = async (page: Page): Promise<number> => {
 };
 
 /** Clears Problems view filter so diagnostics count is not masked by stale text. */
-export const clearProblemsFilter = async (page: Page): Promise<void> => {
+const clearProblemsFilter = async (page: Page): Promise<void> => {
   await ensureProblemsViewOpen(page);
   const input = page.locator(PROBLEMS_FILTER_INPUT).first();
   if (!(await input.isVisible().catch(() => false))) {
@@ -69,7 +69,6 @@ export const expectProblemsCount = (page: Page, expectedCount: number, opts?: { 
 export const expectProblemsCountAtLeast = (page: Page, minCount: number, opts?: { timeout?: number }) =>
   assertProblemsCount(
     page,
-    count =>
-      expect(count, `Expected at least ${minCount} problem(s), got ${count}`).toBeGreaterThanOrEqual(minCount),
+    count => expect(count, `Expected at least ${minCount} problem(s), got ${count}`).toBeGreaterThanOrEqual(minCount),
     opts
   );

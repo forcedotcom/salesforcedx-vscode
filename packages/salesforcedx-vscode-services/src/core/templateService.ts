@@ -67,6 +67,7 @@ export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<Templ
   { message: Schema.String }
 ) {}
 
+/** @effectError */
 export class TemplatesManifestLoadError extends Schema.TaggedError<TemplatesManifestLoadError>()(
   'TemplatesManifestLoadError',
   {

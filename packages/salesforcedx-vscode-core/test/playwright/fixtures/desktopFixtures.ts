@@ -15,26 +15,6 @@ export const desktopTest = createDesktopTest({
   userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
 });
 
-export const deployOnSaveTest = createDesktopTest({
-  fixturesDir: __dirname,
-  orgAlias: MINIMAL_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
-  userSettings: {
-    'salesforcedx-vscode-core.useMetadataExtensionCommands': false,
-    'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': true,
-    'salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave': true
-  }
-});
-
-export const deployNoStTest = createDesktopTest({
-  fixturesDir: __dirname,
-  orgAlias: MINIMAL_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
-  userSettings: {
-    'salesforcedx-vscode-core.useMetadataExtensionCommands': false,
-    'salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve': false
-  }
-});
 
 export const createProjectTest = createDesktopTest({
   fixturesDir: __dirname,
