@@ -36,11 +36,8 @@ Once in a TypeScript project, the extension automatically creates TypeScript com
 
 ### Manual Language Selection
 
-If your project doesn't have `defaultLwcLanguage` configured, you'll be prompted to choose:
-- JavaScript
-- TypeScript
-
-The extension will remember your choice for the current session.
+If your project doesn't have `defaultLwcLanguage` configured, JavaScript is used by default.
+Set `defaultLwcLanguage` to `"typescript"` to generate TypeScript components by default.
 
 ## Project Configuration
 
@@ -64,7 +61,7 @@ Set your preferred LWC language in `sfdx-project.json`:
 **Supported values:**
 - `"typescript"` - Generate TypeScript components by default
 - `"javascript"` - Generate JavaScript components by default
-- Field not present - Prompt user to choose language each time
+- Field not present - Default to JavaScript
 
 ### TypeScript Configuration
 
@@ -277,7 +274,7 @@ The `preview.typeScriptSupport` flag is no longer needed. TypeScript is now a fi
 }
 ```
 
-If the field is missing, you'll be prompted to choose JavaScript or TypeScript each time.
+If the field is missing, JavaScript is used by default.
 
 ### IntelliSense Not Working
 

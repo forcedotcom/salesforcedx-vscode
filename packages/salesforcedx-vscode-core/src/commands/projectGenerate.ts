@@ -199,7 +199,7 @@ class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
 class SelectLwcLanguage implements ParametersGatherer<LwcLanguage> {
   private readonly initialLwcLanguage?: 'javascript' | 'typescript';
 
-  constructor(initialLwcLanguage?: 'javascript' | 'typescript') {
+  constructor(initialLwcLanguage: 'javascript' | 'typescript' = 'javascript') {
     this.initialLwcLanguage = initialLwcLanguage;
   }
 
@@ -229,8 +229,7 @@ class SelectLwcLanguage implements ParametersGatherer<LwcLanguage> {
       return { type: 'CANCEL' };
     }
 
-    const lwcLanguage =
-      selection.label === nls.localize('typescript_language_option') ? 'typescript' : 'javascript';
+    const lwcLanguage = selection.label === nls.localize('typescript_language_option') ? 'typescript' : 'javascript';
     return { type: 'CONTINUE', data: { lwcLanguage } };
   }
 }
