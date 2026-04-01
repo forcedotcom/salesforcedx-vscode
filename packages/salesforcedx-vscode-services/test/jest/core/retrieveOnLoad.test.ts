@@ -224,11 +224,11 @@ describe('filterFileResponses', () => {
     expect(filesToOpen).not.toContainEqual(URI.file('/path/to/TestPage.page-meta.xml'));
   });
 
-  it('should filter out files that do not match any allowed suffix', async () => {
+  it('should filter out files with unrecognized suffix', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];
     const fileResponses: FileResponse[] = [
       createFileResponse('ApexClass', 'Foo', '/path/to/Foo.cls'),
-      createFileResponse('CustomTab', 'SomeTab', '/path/to/SomeTab.tab-meta.xml')
+      createFileResponse('ApexClass', 'Foo', '/path/to/Foo.xyz-meta.xml')
     ];
 
     const { filesToOpen } = await Effect.runPromise(
@@ -236,12 +236,12 @@ describe('filterFileResponses', () => {
     );
 
     expect(filesToOpen).toEqual([URI.file('/path/to/Foo.cls')]);
-    expect(filesToOpen).not.toContainEqual(URI.file('/path/to/SomeTab.tab-meta.xml'));
+    expect(filesToOpen).not.toContainEqual(URI.file('/path/to/Foo.xyz-meta.xml'));
   });
 
-  it('should return empty arrays when no file responses match', async () => {
+  it('should return empty arrays when no file responses have recognized suffixes', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];
-    const fileResponses: FileResponse[] = [createFileResponse('CustomTab', 'MyTab', '/path/to/MyTab.tab-meta.xml')];
+    const fileResponses: FileResponse[] = [createFileResponse('ApexClass', 'Foo', '/path/to/Foo.xyz-meta.xml')];
 
     const { filesToOpen, foldersToReveal } = await Effect.runPromise(
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))

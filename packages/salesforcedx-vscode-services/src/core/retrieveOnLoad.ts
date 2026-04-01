@@ -21,13 +21,22 @@ import { MetadataRegistryService } from './metadataRegistryService';
 import { MetadataRetrieveService } from './metadataRetrieveService';
 import { fileResponseHasPath } from './sdrGuards';
 
+const isNotMatchingContentXmlFile = Effect.fn('isNotMatchingContentXmlFile')(function* (r: FileResponse) {
+  const registry = yield* MetadataRegistryService.getRegistryAccess();
+  return yield* Effect.succeed(
+    isNotUndefined(r.filePath) &&
+      !(
+        registry.getTypeByName(r.type).strategies?.adapter === 'matchingContentFile' && r.filePath.endsWith('-meta.xml')
+      )
+  );
+});
+
 export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
   fileResponses: FileResponse[],
   members: MetadataMember[]
 ) {
   const { isSDRSuccess } = yield* ComponentSetService;
   const registry = yield* MetadataRegistryService.getRegistryAccess();
-  const allowedSuffixes = yield* getAllowedSuffixes(members);
 
   const bundleTypes = new Set(
     members
@@ -45,8 +54,8 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
 
   const filesToOpen = yield* normalized.pipe(
     Stream.filter(r => !bundleTypes.has(r.type)),
+    Stream.filterEffect(isNotMatchingContentXmlFile),
     Stream.map(r => r.filePath),
-    Stream.filter(p => allowedSuffixes.some(suffix => p.endsWith(suffix))),
     Stream.mapEffect(p => fsService.toUri(p)),
     Stream.runCollect,
     Effect.map(Chunk.toReadonlyArray)
@@ -76,24 +85,6 @@ export const parseRetrieveOnLoad = (value: string): MetadataMember[] =>
       return parts.length === 2 && type.length > 0 && fullName.length > 0 ? { type, fullName } : undefined;
     })
     .filter(isNotUndefined);
-
-/** Get unique file suffixes for non-bundle metadata types */
-const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: MetadataMember[]) {
-  const registry = yield* MetadataRegistryService.getRegistryAccess();
-
-  const suffixes = Array.from(new Set(members.map(member => member.type)))
-    .map(mdType => registry.getTypeByName(mdType))
-    .filter(metadataType => metadataType.strategies?.adapter !== 'bundle')
-    .map(metadataType =>
-      metadataType.strategies?.adapter === 'matchingContentFile'
-        ? metadataType.suffix // we want to open, for example, Foo.cls but not Foo-meta.xml
-        : `${metadataType.suffix}-meta.xml`
-    )
-    .filter(isString);
-
-  yield* Effect.annotateCurrentSpan({ suffixes });
-  return suffixes;
-});
 
 /** Effect to retrieve metadata on load based on setting */
 export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
