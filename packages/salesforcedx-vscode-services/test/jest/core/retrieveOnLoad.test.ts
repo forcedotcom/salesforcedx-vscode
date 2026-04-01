@@ -18,6 +18,7 @@ import { URI } from 'vscode-uri';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
 import { ComponentSetService, type NonEmptyComponentSet } from '../../../src/core/componentSetService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
+import { FsService } from '../../../src/vscode/fsService';
 
 /** Create a mock ComponentSetService that only provides the type guards needed for tests */
 const createMockComponentSetService = (): Layer.Layer<ComponentSetService, never, never> =>
@@ -118,7 +119,7 @@ describe('parseRetrieveOnLoad', () => {
 });
 
 describe('filterFileResponses', () => {
-  const testLayer = Layer.mergeAll(createMockComponentSetService(), createMockMetadataRegistryService());
+  const testLayer = Layer.mergeAll(createMockComponentSetService(), createMockMetadataRegistryService(), FsService.Default);
 
   it('should include .cls files for ApexClass and not include cls-meta.xml', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];
@@ -127,19 +128,23 @@ describe('filterFileResponses', () => {
       createFileResponse('ApexClass', 'Foo', '/path/to/Foo.cls-meta.xml')
     ];
 
-    const result = await Effect.runPromise(filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer)));
+    const { filesToOpen } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
 
-    expect(result).toEqual(['/path/to/Foo.cls']);
-    expect(result).not.toContain('/path/to/Foo.cls-meta.xml');
+    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/to/Foo.cls']);
+    expect(filesToOpen.map(u => u.fsPath)).not.toContain('/path/to/Foo.cls-meta.xml');
   });
 
   it('should include .tab-meta.xml for CustomTab', async () => {
     const members = [{ type: 'CustomTab', fullName: 'Foo' }];
     const fileResponses: FileResponse[] = [createFileResponse('CustomTab', 'Foo', '/path/to/Foo.tab-meta.xml')];
 
-    const result = await Effect.runPromise(filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer)));
+    const { filesToOpen } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
 
-    expect(result).toEqual(['/path/to/Foo.tab-meta.xml']);
+    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/to/Foo.tab-meta.xml']);
   });
 
   it('should filter out failed file responses', async () => {
@@ -156,9 +161,11 @@ describe('filterFileResponses', () => {
       }
     ];
 
-    const result = await Effect.runPromise(filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer)));
+    const { filesToOpen } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
 
-    expect(result).toEqual(['/path/to/Foo.cls']);
+    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/to/Foo.cls']);
   });
 
   it('should filter out file responses without filePath', async () => {
@@ -172,18 +179,22 @@ describe('filterFileResponses', () => {
       } as FileResponse
     ];
 
-    const result = await Effect.runPromise(filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer)));
+    const { filesToOpen } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
 
-    expect(result).toEqual(['/path/to/Foo.cls']);
+    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/to/Foo.cls']);
   });
 
   it('should normalize Windows backslashes to forward slashes', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];
     const fileResponses: FileResponse[] = [createFileResponse('ApexClass', 'Foo', 'C:\\path\\to\\Foo.cls')];
 
-    const result = await Effect.runPromise(filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer)));
+    const { filesToOpen } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
 
-    expect(result).toEqual(['C:/path/to/Foo.cls']);
+    expect(filesToOpen.map(u => u.fsPath)).toEqual(['c:/path/to/Foo.cls']);
   });
 
   it('should handle multiple metadata types', async () => {
@@ -200,11 +211,14 @@ describe('filterFileResponses', () => {
       createFileResponse('ApexPage', 'TestPage', '/path/to/TestPage.page-meta.xml')
     ];
 
-    const result = await Effect.runPromise(filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer)));
+    const { filesToOpen } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
 
-    expect(result).toEqual(['/path/to/Foo.cls', '/path/to/MyTab.tab-meta.xml', '/path/to/TestPage.page']);
-    expect(result).not.toContain('/path/to/Foo.cls-meta.xml');
-    expect(result).not.toContain('/path/to/TestPage.page-meta.xml');
+    const paths = filesToOpen.map(u => u.fsPath);
+    expect(paths).toEqual(['/path/to/Foo.cls', '/path/to/MyTab.tab-meta.xml', '/path/to/TestPage.page']);
+    expect(paths).not.toContain('/path/to/Foo.cls-meta.xml');
+    expect(paths).not.toContain('/path/to/TestPage.page-meta.xml');
   });
 
   it('should filter out files that do not match any allowed suffix', async () => {
@@ -214,27 +228,72 @@ describe('filterFileResponses', () => {
       createFileResponse('CustomTab', 'SomeTab', '/path/to/SomeTab.tab-meta.xml')
     ];
 
-    const result = await Effect.runPromise(filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer)));
+    const { filesToOpen } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
 
-    expect(result).toEqual(['/path/to/Foo.cls']);
-    expect(result).not.toContain('/path/to/SomeTab.tab-meta.xml');
+    const paths = filesToOpen.map(u => u.fsPath);
+    expect(paths).toEqual(['/path/to/Foo.cls']);
+    expect(paths).not.toContain('/path/to/SomeTab.tab-meta.xml');
   });
 
-  it('should return empty array when no file responses match', async () => {
+  it('should return empty arrays when no file responses match', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];
     const fileResponses: FileResponse[] = [createFileResponse('CustomTab', 'MyTab', '/path/to/MyTab.tab-meta.xml')];
 
-    const result = await Effect.runPromise(filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer)));
+    const { filesToOpen, foldersToReveal } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
 
-    expect(result).toEqual([]);
+    expect(filesToOpen).toEqual([]);
+    expect(foldersToReveal).toEqual([]);
   });
 
   it('should handle empty file responses array', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];
     const fileResponses: FileResponse[] = [];
 
-    const result = await Effect.runPromise(filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer)));
+    const { filesToOpen, foldersToReveal } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
 
-    expect(result).toEqual([]);
+    expect(filesToOpen).toEqual([]);
+    expect(foldersToReveal).toEqual([]);
+  });
+
+  it('should place LWC bundle responses in foldersToReveal, deduplicated by parent folder', async () => {
+    const members = [{ type: 'LightningComponentBundle', fullName: 'foo' }];
+    const fileResponses: FileResponse[] = [
+      createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.js'),
+      createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.html'),
+      createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.css'),
+      createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.js-meta.xml')
+    ];
+
+    const { filesToOpen, foldersToReveal } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
+
+    expect(filesToOpen).toEqual([]);
+    expect(foldersToReveal.map(u => u.fsPath)).toEqual(['/path/lwc/foo']);
+  });
+
+  it('should split mixed members: non-bundle files to open, bundle folders to reveal', async () => {
+    const members = [
+      { type: 'ApexClass', fullName: 'Bar' },
+      { type: 'LightningComponentBundle', fullName: 'foo' }
+    ];
+    const fileResponses: FileResponse[] = [
+      createFileResponse('ApexClass', 'Bar', '/path/classes/Bar.cls'),
+      createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.js'),
+      createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.html')
+    ];
+
+    const { filesToOpen, foldersToReveal } = await Effect.runPromise(
+      filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
+    );
+
+    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/classes/Bar.cls']);
+    expect(foldersToReveal.map(u => u.fsPath)).toEqual(['/path/lwc/foo']);
   });
 });

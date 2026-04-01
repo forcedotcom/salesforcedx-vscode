@@ -8,7 +8,9 @@
 import { FileResponse, type MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { ChannelService } from '../vscode/channelService';
 import { FsService } from '../vscode/fsService';
@@ -23,12 +25,39 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
   members: MetadataMember[]
 ) {
   const { isSDRSuccess } = yield* ComponentSetService;
+  const registry = yield* MetadataRegistryService.getRegistryAccess();
   const allowedSuffixes = yield* getAllowedSuffixes(members);
-  return fileResponses
-    .filter(isSDRSuccess)
-    .filter(fileResponseHasPath)
-    .map(fileResponse => fileResponse.filePath?.replaceAll('\\', '/'))
-    .filter(filePath => allowedSuffixes.some(suffix => filePath.endsWith(suffix)));
+
+  const bundleTypes = new Set(
+    members
+      .map(m => registry.getTypeByName(m.type))
+      .filter(t => t.strategies?.adapter === 'bundle')
+      .map(t => t.name)
+  );
+
+  const fsService = yield* FsService;
+
+  const normalized = Stream.fromIterable(fileResponses).pipe(
+    Stream.filter(isSDRSuccess),
+    Stream.filter(fileResponseHasPath)
+  );
+
+  const filesToOpen = yield* normalized.pipe(
+    Stream.filter(r => !bundleTypes.has(r.type)),
+    Stream.map(r => r.filePath),
+    Stream.filter(p => allowedSuffixes.some(suffix => p.endsWith(suffix))),
+    Stream.mapEffect(p => fsService.toUri(p)),
+    Stream.runCollect
+  );
+
+  const foldersToReveal = yield* normalized.pipe(
+    Stream.filter(r => bundleTypes.has(r.type)),
+    Stream.mapEffect(r => fsService.toUri(r.filePath)),
+    Stream.map(uri => Utils.dirname(uri)),
+    Stream.runCollect
+  );
+
+  return { filesToOpen, foldersToReveal };
 });
 
 /** Parse retrieve on load setting into MetadataMember array */
@@ -45,12 +74,13 @@ export const parseRetrieveOnLoad = (value: string): MetadataMember[] =>
     })
     .filter(isNotUndefined);
 
-/** Get unique file suffixes for metadata types */
+/** Get unique file suffixes for non-bundle metadata types */
 const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: MetadataMember[]) {
   const registry = yield* MetadataRegistryService.getRegistryAccess();
 
   const suffixes = Array.from(new Set(members.map(member => member.type)))
     .map(mdType => registry.getTypeByName(mdType))
+    .filter(metadataType => metadataType.strategies?.adapter !== 'bundle')
     .map(metadataType =>
       metadataType.strategies?.adapter === 'matchingContentFile'
         ? metadataType.suffix // we want to open, for example, Foo.cls but not Foo-meta.xml
@@ -63,8 +93,8 @@ const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: M
 });
 
 /** Effect to retrieve metadata on load based on setting */
-export const retrieveOnLoadEffect = () =>
-  Effect.gen(function* () {
+export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
+  function* () {
     const retrieveOnLoadValue = yield* SettingsService.getRetrieveOnLoad();
 
     if (retrieveOnLoadValue.length === 0) {
@@ -88,25 +118,29 @@ export const retrieveOnLoadEffect = () =>
       return yield* channelService.appendToChannel(`Retrieve canceled: ${result}`);
     }
 
-    const fileResponses = yield* filterFileResponses(result.getFileResponses(), members);
+    const { filesToOpen, foldersToReveal } = yield* filterFileResponses(result.getFileResponses(), members);
 
     yield* channelService.appendToChannel(
-      `Retrieve on load completed. ${fileResponses.length} files retrieved successfully.`
+      `Retrieve on load completed. ${filesToOpen.length} files retrieved, ${foldersToReveal.length} bundle folders revealed.`
     );
 
     const fsService = yield* FsService;
-    yield* Effect.forEach(fileResponses, filePath => fsService.showTextDocument(filePath, { preview: false }), {
+    yield* Effect.forEach(filesToOpen, uri => fsService.showTextDocument(uri, { preview: false }), {
       concurrency: 'unbounded'
     });
-  }).pipe(
-    Effect.withSpan('retrieveOnLoadEffect'),
-    Effect.catchAll(error =>
-      Effect.gen(function* () {
-        const errorMessage = nls.localize('retrieve_on_load_failed', String(error));
-        yield* (yield* ChannelService).appendToChannel(errorMessage);
-        yield* Effect.sync(() => {
-          void vscode.window.showErrorMessage(errorMessage);
-        });
+    yield* Effect.forEach(foldersToReveal, uri =>
+      Effect.sync(() => {
+        void vscode.commands.executeCommand('revealInExplorer', uri);
       })
-    )
-  );
+    );
+  },
+  Effect.catchAll(error =>
+    Effect.gen(function* () {
+      const errorMessage = nls.localize('retrieve_on_load_failed', String(error));
+      yield* (yield* ChannelService).appendToChannel(errorMessage);
+      yield* Effect.sync(() => {
+        void vscode.window.showErrorMessage(errorMessage);
+      });
+    })
+  )
+);
