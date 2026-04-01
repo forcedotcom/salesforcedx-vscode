@@ -14,6 +14,7 @@ import {
   prepareNoFolderOpenForPaletteTests,
   verifyCommandExists,
   saveScreenshot,
+  waitForQuickInputFirstOption,
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW
 } from '@salesforce/playwright-vscode-ext';
@@ -28,6 +29,13 @@ test('Create Project: standard project via command palette', async ({ page, work
 
   await test.step('close workspace to reach empty state', async () => {
     await prepareNoFolderOpenForPaletteTests(page);
+
+    // Closing workspace disables extensions - click reload button to re-enable
+    const reloadButton = page.getByRole('button', { name: /Reload and Enable Extensions/i });
+    await reloadButton.waitFor({ state: 'visible', timeout: 10_000 });
+    await reloadButton.click();
+    await page.waitForTimeout(3000); // Wait for extensions to reload
+
     await saveScreenshot(page, 'createProject.01-empty-workspace.png');
   });
 
@@ -37,8 +45,11 @@ test('Create Project: standard project via command palette', async ({ page, work
 
   await test.step('run Create Project, select Standard template', async () => {
     await executeCommandWithCommandPalette(page, packageNls.project_generate_text);
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 45_000 });
+    await waitForQuickInputFirstOption(page, {
+      quickInputVisibleTimeout: 30_000,
+      optionVisibleTimeout: 15_000,
+      retryTimeout: 60_000
+    });
 
     const standardRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Standard/ });
     await standardRow.waitFor({ state: 'visible', timeout: 20_000 });
@@ -60,13 +71,13 @@ test('Create Project: standard project via command palette', async ({ page, work
     await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
     await saveScreenshot(page, 'createProject.04-folder-dialog.png');
 
-    // Triple-click to select all existing path text (Control+a doesn't select-all on mac)
-    const input = quickInput.locator('input.input');
-    await input.click({ clickCount: 3 });
+    // Use .fill() to set path directly (avoids autocomplete issues with keyboard.type).
     // Trailing sep forces the simple dialog to navigate INTO the directory immediately.
     // Without it, Windows shows the parent dir with the folder highlighted, then auto-navigates
     // after a debounce — clicking "Create Project" during that transition doesn't register.
-    await page.keyboard.type(`${targetDir}${path.sep}`);
+    const input = quickInput.locator('input.input');
+    const targetPath = `${targetDir}${path.sep}`;
+    await input.fill(targetPath);
 
     // Wait for dialog to show the directory contents (not just highlight the folder name)
     await expect(quickInput.getByText('path does not exist')).not.toBeVisible({ timeout: 5000 });

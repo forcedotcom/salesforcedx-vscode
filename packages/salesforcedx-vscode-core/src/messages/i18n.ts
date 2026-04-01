@@ -97,7 +97,6 @@ export const messages = {
   project_generate_react_b2x_template:
     'For customers or partners signing in outside your org (B2C). Sample app: Property Rental App.',
   project_generate_agent_template: 'Agent project template',
-  apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
 
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',

@@ -18,7 +18,8 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -33,7 +34,9 @@ const findInEditor = async (page: Page, query: string): Promise<void> => {
   await expect(findInput).toBeVisible({ timeout: 10_000 });
   await findInput.fill(query);
   const findDialog = page.getByRole('dialog', { name: /Find/ });
-  await expect(findDialog.getByText(/(\d+|\?) of \d+/).filter({ hasNotText: /No results/ })).toBeVisible({ timeout: 10_000 });
+  await expect(findDialog.getByText(/(\d+|\?) of \d+/).filter({ hasNotText: /No results/ })).toBeVisible({
+    timeout: 10_000
+  });
   await page.keyboard.press('Escape');
 };
 
@@ -73,7 +76,12 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
     const pickerInput = userPicker.locator('input.input');
     await pickerInput.click();
     await pickerInput.fill('Integration');
-    const integrationUserRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Integration User/i }).first();
+    await waitForQuickInputFirstOption(page);
+
+    const integrationUserRow = page
+      .locator(QUICK_INPUT_LIST_ROW)
+      .filter({ hasText: /Integration User/i })
+      .first();
     await expect(integrationUserRow).toBeVisible({ timeout: 45_000 });
     await integrationUserRow.evaluate(el => {
       el.scrollIntoView({ block: 'center', behavior: 'instant' });
@@ -83,6 +91,8 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
 
     const debugLevelPicker = page.locator(QUICK_INPUT_WIDGET);
     await debugLevelPicker.waitFor({ state: 'visible', timeout: 10_000 });
+    await waitForQuickInputFirstOption(page);
+
     const debugLevelRow = page
       .locator(QUICK_INPUT_LIST_ROW)
       .filter({ hasText: /SFDC_DevConsole|Developer Console|Apex=/i })
