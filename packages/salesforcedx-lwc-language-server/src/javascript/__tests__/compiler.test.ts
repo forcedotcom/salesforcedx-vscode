@@ -135,10 +135,18 @@ it('displays an error for a component with other errors', () => {
 });
 
 it('does not include URL or codeDescription when error has no url', () => {
+  mockTransformSyncError = Object.assign(
+    new CompilerError('foo.js: LWC1099: Boolean public property must default to false.\n> 5 |     @api property = true;\n    |     ^'),
+    { code: 1099, location: { line: 5, column: 4 }, level: 1 }
+    // no url property
+  );
+
   const result = compileSource(codeError, 'foo.js');
   const [diagnostic] = result.diagnostics!;
   expect(diagnostic.message).not.toContain('More Details:');
   expect(diagnostic.codeDescription).toBeUndefined();
+
+  mockTransformSyncError = null;
 });
 
 it('includes URL in message and codeDescription when error has url', () => {
