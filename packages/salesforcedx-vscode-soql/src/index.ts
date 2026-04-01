@@ -45,14 +45,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     context.subscriptions.push(SOQLEditorProvider.register(context));
     QueryDataViewService.register(context);
     registerSoqlCodeLensProvider(context);
-
-    const ensureSoqlLanguage = (document: vscode.TextDocument): void => {
-      if (document.fileName.endsWith('.soql') && document.languageId !== 'soql') {
-        void vscode.languages.setTextDocumentLanguage(document, 'soql');
-      }
-    };
-    vscode.workspace.textDocuments.forEach(ensureSoqlLanguage);
-    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(ensureSoqlLanguage));
   });
 
   const registerCommand = api.services.registerCommandWithRuntime(getSoqlRuntime());
