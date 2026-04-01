@@ -2,6 +2,8 @@
 
 This extension provides code-editing features for the Lightning Web Components programming model, which is part of the Lightning Component framework. It uses the default HTML language server from VS Code to provide syntax highlighting, code completion, and an outline view of your files.
 
+**TypeScript Support:** This extension fully supports creating and developing Lightning Web Components using TypeScript. See the [TypeScript LWC Support Guide](../../docs/TYPESCRIPT_LWC_SUPPORT.md) for details.
+
 **DO NOT INSTALL THIS EXTENSION DIRECTLY. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
 ## Documentation

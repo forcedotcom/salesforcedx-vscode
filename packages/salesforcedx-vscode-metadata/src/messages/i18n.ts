@@ -36,8 +36,12 @@ export const messages = {
   lwc_component_name_format_error:
     'Component name must start with a letter and contain only alphanumeric characters and underscores',
   lwc_component_name_prompt: 'Enter Lightning Web Component name',
+  lwc_component_name_placeholder: 'e.g. myComponent',
   lwc_output_dir_prompt: 'Select output directory',
   lwc_select_component_type: 'Select component type',
+  lwc_already_exists: 'Component already exists. Do you want to overwrite it?',
+  overwrite_button: 'Overwrite',
+  cancel_button: 'Cancel',
   lwc_generate_success: 'Lightning Web Component created successfully',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',

@@ -44,6 +44,10 @@ You can find more information about using the Salesforce Extensions for VS Code 
 
 For information about using the extensions, consult the README.md file for each package.
 
+### TypeScript Support for Lightning Web Components
+
+Salesforce Extensions now fully support creating and developing Lightning Web Components using TypeScript. For details, see the [TypeScript LWC Support Guide](docs/TYPESCRIPT_LWC_SUPPORT.md).
+
 ## Project Governance & Support
 
 - [License (BSD-3-Clause)](LICENSE.txt)

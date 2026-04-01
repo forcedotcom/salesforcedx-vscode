@@ -5,25 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
+  EDITOR_WITH_URI,
+  QUICK_INPUT_WIDGET,
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
+  ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
+  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
-  waitForWorkspaceReady,
-  closeWelcomeTabs,
-  executeCommandWithCommandPalette,
   validateNoCriticalErrors,
-  saveScreenshot,
-  QUICK_INPUT_WIDGET,
-  EDITOR_WITH_URI,
-  assertWelcomeTabExists,
-  ensureSecondarySideBarHidden,
   verifyCommandExists,
-  waitForQuickInputFirstOption
+  waitForQuickInputFirstOption,
+  waitForVSCodeWorkbench,
+  waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
+import { test } from '../fixtures';
 
 test('LWC Generate Component: creates new LWC via command palette', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -50,19 +50,26 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await executeCommandWithCommandPalette(page, packageNls.lightning_generate_lwc_text);
     await saveScreenshot(page, 'step1.after-command.png');
 
-    // this is going to change very soon when it goes GA (and we'll need to get it from sfdx-project.json
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    const componentTypePromptVisible = await quickInput
-      .getByText(/Select component type/i)
-      .isVisible({ timeout: 500 })
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+
+    // Step 1: Handle component type/language selection if it appears first
+    // (This can appear based on project configuration - defaultLwcLanguage in sfdx-project.json)
+    const componentTypePromptFirst = await quickInput
+      .getByText(/Select (LWC component type|component type)/i)
+      .isVisible({ timeout: 5000 })
       .catch(() => false);
-    if (componentTypePromptVisible) {
+
+    if (componentTypePromptFirst) {
       await waitForQuickInputFirstOption(page);
 
       await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
-      await page.keyboard.press('Enter');
+      await page.keyboard.press('Enter'); // Select it
+
+      await saveScreenshot(page, 'step1.component-type-selected-first.png');
     }
 
+    // Step 2: Enter component name
     await quickInput.getByText(/Enter Lightning Web Component name/i).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
 
@@ -70,13 +77,51 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
+    // Step 3: Handle component type/language selection if it appears after name
+    // (Fallback for older behavior or different configurations)
+    // Wait a bit for the prompt to appear after pressing Enter on the name
+    await page.waitForTimeout(1000);
+
+    const componentTypePromptAfterName = await quickInput
+      .getByText(/Select component type/i)
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
+
+    if (componentTypePromptAfterName) {
+      await waitForQuickInputFirstOption(page);
+
+      await saveScreenshot(page, 'step1.component-type-prompt-after-name.png');
+      await page.keyboard.press('Enter'); // Select it
+
+      await saveScreenshot(page, 'step1.component-type-selected-after-name.png');
+    }
+
+    // Step 4: Select directory
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
 
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-accept-directory.png');
 
-    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 5000 });
+    // Step 5: Handle language selection if it appears after directory
+    // (Observed in some local runs: name -> directory -> language)
+    const languagePromptAfterDirectory = await waitForQuickInputFirstOption(page, { retryTimeout: 3000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (languagePromptAfterDirectory) {
+      await saveScreenshot(page, 'step1.component-language-prompt-after-directory.png');
+
+      const javascriptRow = quickInput.getByRole('option', { name: /JavaScript/i }).first();
+      await javascriptRow.waitFor({ state: 'visible', timeout: 5000 });
+      await javascriptRow.click();
+      await page.keyboard.press('Enter');
+
+      await saveScreenshot(page, 'step1.component-language-selected-after-directory.png');
+    }
+
+    // Step 6: Wait for editor to open with the new component
+    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 20_000 });
     await saveScreenshot(page, 'step1.editor-opened.png');
   });
 
