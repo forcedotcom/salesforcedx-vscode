@@ -85,6 +85,7 @@ It also includes the following community-built extensions.
 - [Apex Log Analyzer](https://marketplace.visualstudio.com/items?itemName=financialforce.lana) is an analyzer for Salesforce debug logs aimed at making performance analysis much easier and quicker. You may also find it generally useful for quickly understanding how your code is executing.
 - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) is an opinionated code formatter. It enforces a consistent style by parsing your code and re-printing it with its own rules that take the maximum line length into account, wrapping code when necessary.
 - [XML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml) provides support for creating and editing XML documents.
+- [GraphQL Syntax Highlighting](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql-syntax) provides syntax highlighting for GraphQL files.
 
 ---
 
