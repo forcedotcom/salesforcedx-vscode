@@ -72,4 +72,4 @@
 
 #### salesforcedx-vscode-org
 
-- The soon-to-expire scratch orgs list in the Output tab now shows each org's alias and username. ([PR #7118](https://github.com/forcedotcom/salesforcedx-vscode/pull/7118))
+- The soon-to-expire scratch orgs list in the Output tab now shows each org's alias and username. ([PR #7118](https://github.com/forcedotcom/salesforcedx-vscode/pull/7118), [ISSUE #7099](https://github.com/forcedotcom/salesforcedx-vscode/issues/7099))
