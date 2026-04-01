@@ -16,7 +16,9 @@
     "dist"
   ],
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "playwright.config.web.ts",
+    "test/playwright/**/*.ts"
   ],
   "references": [
     {
@@ -33,6 +35,9 @@
     },
     {
       "path": "../salesforcedx-vscode-i18n"
+    },
+    {
+      "path": "../playwright-vscode-ext"
     }
   ]
 }

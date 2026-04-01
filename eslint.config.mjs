@@ -354,7 +354,7 @@ export default [
       'import/no-cycle': 'error',
       'import/no-extraneous-dependencies': [
         'error',
-        { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }
+        { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**', '**/playwright.config*.ts'] }
       ],
       'import/order': [
         'error',
