@@ -10,6 +10,7 @@ import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-ret
 import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -43,13 +44,7 @@ const StoredResultJsonSchema = Schema.parseJson(StoredResultSchema);
 /** Intermediate row used while building the timestamp index. Flattens each component with its
  * resolved lastModifiedDate (server value when available, else file timestamp) and the parent
  * file's timestamp (fileTimestamp — for newest-first sorting so first-write-wins per key). */
-const TimestampRowSchema = Schema.Struct({
-  key: Schema.String,
-  lastModifiedDate: Schema.DateTimeUtc,
-  fileTimestamp: Schema.DateTimeUtc
-});
-
-type TimestampRow = Schema.Schema.Type<typeof TimestampRowSchema>;
+type TimestampRow = { key: string; lastModifiedDate: DateTime.Utc; fileTimestamp: DateTime.Utc };
 
 const componentKey = (metadataType: string, fullName: string) => `${metadataType}:${fullName}`;
 
@@ -126,16 +121,21 @@ export const buildTimestampIndex = Effect.fn('resultStorage.buildTimestampIndex'
   const byKey = yield* Stream.fromIterableEffect(api.services.FsService.readDirectory(dirUri)).pipe(
     Stream.filter(uri => uri.toString().endsWith('.json')),
     Stream.mapEffect(uri => api.services.FsService.readFile(uri)),
-    Stream.flatMap(text => Schema.decodeUnknown(StoredResultJsonSchema)(text)),
+    Stream.map(text => Schema.decodeUnknownOption(StoredResultJsonSchema)(text)),
+    Stream.filterMap(o => o),
     Stream.mapConcat(stored =>
-      stored.components.map(c => ({
-        key: componentKey(c.metadataType, c.fullName),
-        // falling back to the file-level timestamp when a component lacks its own lastModifiedDate.
-        lastModifiedDate: c.lastModifiedDate ?? DateTime.formatIso(stored.timestamp),
-        fileTimestamp: DateTime.formatIso(stored.timestamp)
-      }))
+      stored.components.map(
+        (c): TimestampRow => ({
+          key: componentKey(c.metadataType, c.fullName),
+          // falling back to the file-level timestamp when a component lacks its own lastModifiedDate.
+          lastModifiedDate: Option.getOrElse(
+            DateTime.make(c.lastModifiedDate ?? DateTime.formatIso(stored.timestamp)),
+            () => stored.timestamp
+          ),
+          fileTimestamp: stored.timestamp
+        })
+      )
     ),
-    Stream.map(row => Schema.decodeSync(TimestampRowSchema)(row)),
     Stream.runCollect,
     Effect.map(chunk => Chunk.toReadonlyArray(chunk).toSorted(byFileTimestampDesc)),
     // Group by component key; first entry wins because rows are sorted newest-first.
