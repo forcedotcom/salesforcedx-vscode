@@ -34,7 +34,7 @@
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.32.1",
     "@salesforce/source-tracking": "^7.8.8",
-    "@salesforce/templates": "^66.7.4",
+    "@salesforce/templates": "^66.7.7",
     "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -182,6 +182,7 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -309,10 +310,6 @@
           "when": "explorerResourceIsFolder && sf:internal_dev"
         },
         {
-          "command": "sf.apex.generate.trigger",
-          "when": "explorerResourceIsFolder && resourceFilename == triggers && sf:project_opened"
-        },
-        {
           "command": "sf.diff",
           "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
@@ -425,10 +422,6 @@
         {
           "command": "sf.rename.lightning.component",
           "when": "false"
-        },
-        {
-          "command": "sf.apex.generate.trigger",
-          "when": "sf:project_opened"
         },
         {
           "command": "sf.retrieve.source.path",
@@ -616,10 +609,6 @@
       {
         "command": "sf.project.generate.with.manifest",
         "title": "%project_generate_with_manifest_text%"
-      },
-      {
-        "command": "sf.apex.generate.trigger",
-        "title": "%apex_generate_trigger_text%"
       },
       {
         "command": "sf.retrieve.source.path",

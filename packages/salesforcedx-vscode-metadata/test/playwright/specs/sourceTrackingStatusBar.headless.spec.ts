@@ -16,6 +16,7 @@ import {
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
   executeCommandWithCommandPalette,
+  verifyCommandExists,
   upsertSettings,
   createApexClass,
   editOpenFile,
@@ -46,6 +47,10 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
 
     const statusBar = new SourceTrackingStatusBarPage(page);
     await statusBar.waitForVisible(120_000);
+
+    // Wait for core commands to be available
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
+
     return statusBar;
   });
 

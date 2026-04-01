@@ -14,6 +14,7 @@ import {
   prepareNoFolderOpenForPaletteTests,
   verifyCommandExists,
   saveScreenshot,
+  waitForQuickInputFirstOption,
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW
 } from '@salesforce/playwright-vscode-ext';
@@ -28,6 +29,13 @@ test('Create Project: standard project via command palette', async ({ page, work
 
   await test.step('close workspace to reach empty state', async () => {
     await prepareNoFolderOpenForPaletteTests(page);
+
+    // Closing workspace disables extensions - click reload button to re-enable
+    const reloadButton = page.getByRole('button', { name: /Reload and Enable Extensions/i });
+    await reloadButton.waitFor({ state: 'visible', timeout: 10_000 });
+    await reloadButton.click();
+    await page.waitForTimeout(3000); // Wait for extensions to reload
+
     await saveScreenshot(page, 'createProject.01-empty-workspace.png');
   });
 
@@ -37,8 +45,11 @@ test('Create Project: standard project via command palette', async ({ page, work
 
   await test.step('run Create Project, select Standard template', async () => {
     await executeCommandWithCommandPalette(page, packageNls.project_generate_text);
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 45_000 });
+    await waitForQuickInputFirstOption(page, {
+      quickInputVisibleTimeout: 30_000,
+      optionVisibleTimeout: 15_000,
+      retryTimeout: 60_000
+    });
 
     const standardRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Standard/ });
     await standardRow.waitFor({ state: 'visible', timeout: 20_000 });
@@ -46,11 +57,23 @@ test('Create Project: standard project via command palette', async ({ page, work
     await saveScreenshot(page, 'createProject.02-standard-selected.png');
   });
 
+  await test.step('select LWC language when prompted', async () => {
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+
+    const javascriptOption = quickInput.getByRole('option', { name: /^JavaScript\b/i });
+    const typescriptOption = quickInput.getByRole('option', { name: /^TypeScript\b/i });
+    await javascriptOption.waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(typescriptOption).toBeVisible({ timeout: 10_000 });
+    await javascriptOption.click();
+    await saveScreenshot(page, 'createProject.03-language-selected.png');
+  });
+
   await test.step('enter project name', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await page.keyboard.type(PROJECT_NAME);
-    await saveScreenshot(page, 'createProject.03-name-entered.png');
+    await saveScreenshot(page, 'createProject.04-name-entered.png');
     await page.keyboard.press('Enter');
   });
 
@@ -58,20 +81,20 @@ test('Create Project: standard project via command palette', async ({ page, work
     // files.simpleDialog.enable=true replaces native OS dialog with VS Code quick-input folder picker
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
-    await saveScreenshot(page, 'createProject.04-folder-dialog.png');
+    await saveScreenshot(page, 'createProject.05-folder-dialog.png');
 
-    // Triple-click to select all existing path text (Control+a doesn't select-all on mac)
-    const input = quickInput.locator('input.input');
-    await input.click({ clickCount: 3 });
+    // Use .fill() to set path directly (avoids autocomplete issues with keyboard.type).
     // Trailing sep forces the simple dialog to navigate INTO the directory immediately.
     // Without it, Windows shows the parent dir with the folder highlighted, then auto-navigates
     // after a debounce — clicking "Create Project" during that transition doesn't register.
-    await page.keyboard.type(`${targetDir}${path.sep}`);
+    const input = quickInput.locator('input.input');
+    const targetPath = `${targetDir}${path.sep}`;
+    await input.fill(targetPath);
 
     // Wait for dialog to show the directory contents (not just highlight the folder name)
     await expect(quickInput.getByText('path does not exist')).not.toBeVisible({ timeout: 5000 });
     await expect(input).toHaveValue(new RegExp(`${targetDir.replaceAll('\\', '\\\\')}[/\\\\]$`), { timeout: 5000 });
-    await saveScreenshot(page, 'createProject.05-folder-path-set.png');
+    await saveScreenshot(page, 'createProject.06-folder-path-set.png');
 
     // Click "Create Project" button (openLabel from extension's showOpenDialog call)
     const createButton = quickInput.getByRole('button', { name: 'Create Project' });
@@ -87,6 +110,6 @@ test('Create Project: standard project via command palette', async ({ page, work
     }).toPass({ timeout: 120_000 });
 
     await fs.access(path.join(projectDir, 'force-app'));
-    await saveScreenshot(page, 'createProject.06-verified.png');
+    await saveScreenshot(page, 'createProject.07-verified.png');
   });
 });
