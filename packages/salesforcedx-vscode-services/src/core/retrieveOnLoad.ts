@@ -6,6 +6,7 @@
  */
 
 import { FileResponse, type MetadataMember } from '@salesforce/source-deploy-retrieve';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
@@ -47,14 +48,16 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
     Stream.map(r => r.filePath),
     Stream.filter(p => allowedSuffixes.some(suffix => p.endsWith(suffix))),
     Stream.mapEffect(p => fsService.toUri(p)),
-    Stream.runCollect
+    Stream.runCollect,
+    Effect.map(Chunk.toReadonlyArray)
   );
 
   const foldersToReveal = yield* normalized.pipe(
     Stream.filter(r => bundleTypes.has(r.type)),
     Stream.mapEffect(r => fsService.toUri(r.filePath)),
     Stream.map(uri => Utils.dirname(uri)),
-    Stream.runCollect
+    Stream.runCollect,
+    Effect.map(Chunk.toReadonlyArray)
   );
 
   return { filesToOpen, foldersToReveal };

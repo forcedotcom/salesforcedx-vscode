@@ -132,8 +132,8 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/to/Foo.cls']);
-    expect(filesToOpen.map(u => u.fsPath)).not.toContain('/path/to/Foo.cls-meta.xml');
+    expect(filesToOpen).toEqual([URI.file('/path/to/Foo.cls')]);
+    expect(filesToOpen).not.toContainEqual(URI.file('/path/to/Foo.cls-meta.xml'));
   });
 
   it('should include .tab-meta.xml for CustomTab', async () => {
@@ -144,7 +144,7 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/to/Foo.tab-meta.xml']);
+    expect(filesToOpen).toEqual([URI.file('/path/to/Foo.tab-meta.xml')]);
   });
 
   it('should filter out failed file responses', async () => {
@@ -165,7 +165,7 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/to/Foo.cls']);
+    expect(filesToOpen).toEqual([URI.file('/path/to/Foo.cls')]);
   });
 
   it('should filter out file responses without filePath', async () => {
@@ -183,10 +183,10 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/to/Foo.cls']);
+    expect(filesToOpen).toEqual([URI.file('/path/to/Foo.cls')]);
   });
 
-  it('should normalize Windows backslashes to forward slashes', async () => {
+  it('should produce a URI for Windows paths', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];
     const fileResponses: FileResponse[] = [createFileResponse('ApexClass', 'Foo', 'C:\\path\\to\\Foo.cls')];
 
@@ -194,7 +194,7 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen.map(u => u.fsPath)).toEqual(['c:/path/to/Foo.cls']);
+    expect(filesToOpen).toEqual([URI.file('C:\\path\\to\\Foo.cls')]);
   });
 
   it('should handle multiple metadata types', async () => {
@@ -215,10 +215,13 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    const paths = filesToOpen.map(u => u.fsPath);
-    expect(paths).toEqual(['/path/to/Foo.cls', '/path/to/MyTab.tab-meta.xml', '/path/to/TestPage.page']);
-    expect(paths).not.toContain('/path/to/Foo.cls-meta.xml');
-    expect(paths).not.toContain('/path/to/TestPage.page-meta.xml');
+    expect(filesToOpen).toEqual([
+      URI.file('/path/to/Foo.cls'),
+      URI.file('/path/to/MyTab.tab-meta.xml'),
+      URI.file('/path/to/TestPage.page')
+    ]);
+    expect(filesToOpen).not.toContainEqual(URI.file('/path/to/Foo.cls-meta.xml'));
+    expect(filesToOpen).not.toContainEqual(URI.file('/path/to/TestPage.page-meta.xml'));
   });
 
   it('should filter out files that do not match any allowed suffix', async () => {
@@ -232,9 +235,8 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    const paths = filesToOpen.map(u => u.fsPath);
-    expect(paths).toEqual(['/path/to/Foo.cls']);
-    expect(paths).not.toContain('/path/to/SomeTab.tab-meta.xml');
+    expect(filesToOpen).toEqual([URI.file('/path/to/Foo.cls')]);
+    expect(filesToOpen).not.toContainEqual(URI.file('/path/to/SomeTab.tab-meta.xml'));
   });
 
   it('should return empty arrays when no file responses match', async () => {
@@ -245,8 +247,8 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen).toEqual([]);
-    expect(foldersToReveal).toEqual([]);
+    expect(filesToOpen).toHaveLength(0);
+    expect(foldersToReveal).toHaveLength(0);
   });
 
   it('should handle empty file responses array', async () => {
@@ -257,11 +259,11 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen).toEqual([]);
-    expect(foldersToReveal).toEqual([]);
+    expect(filesToOpen).toHaveLength(0);
+    expect(foldersToReveal).toHaveLength(0);
   });
 
-  it('should place LWC bundle responses in foldersToReveal, deduplicated by parent folder', async () => {
+  it('should place LWC bundle responses in foldersToReveal as parent folder URIs', async () => {
     const members = [{ type: 'LightningComponentBundle', fullName: 'foo' }];
     const fileResponses: FileResponse[] = [
       createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.js'),
@@ -274,8 +276,9 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen).toEqual([]);
-    expect(foldersToReveal.map(u => u.fsPath)).toEqual(['/path/lwc/foo']);
+    const folderUri = URI.file('/path/lwc/foo');
+    expect(filesToOpen).toHaveLength(0);
+    expect(foldersToReveal).toEqual([folderUri, folderUri, folderUri, folderUri]);
   });
 
   it('should split mixed members: non-bundle files to open, bundle folders to reveal', async () => {
@@ -293,7 +296,8 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen.map(u => u.fsPath)).toEqual(['/path/classes/Bar.cls']);
-    expect(foldersToReveal.map(u => u.fsPath)).toEqual(['/path/lwc/foo']);
+    const folderUri = URI.file('/path/lwc/foo');
+    expect(filesToOpen).toEqual([URI.file('/path/classes/Bar.cls')]);
+    expect(foldersToReveal).toEqual([folderUri, folderUri]);
   });
 });
