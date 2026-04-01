@@ -149,3 +149,4 @@ packages/salesforcedx-vscode-lightning/tern/
 # Generated resources (build:icons in salesforcedx-vscode-services)
 packages/salesforcedx-vscode-services/resources/
 .edit-marker
+npm-packages-offline-cache/

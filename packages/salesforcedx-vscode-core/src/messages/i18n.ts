@@ -76,6 +76,13 @@ export const messages = {
   project_generate_react_b2x_template:
     'For customers or partners signing in outside your org (B2C). Sample app: Property Rental App.',
   project_generate_agent_template: 'Agent project template',
+  select_lwc_language_prompt: 'Select default Lightning Web Component language',
+  javascript_language_option: 'JavaScript',
+  javascript_language_description: 'Create LWC components using JavaScript',
+  typescript_language_option: 'TypeScript',
+  typescript_language_description: 'Create LWC components using TypeScript',
+  typescript_legacy_flag_deprecation:
+    "The 'preview.typeScriptSupport' setting is deprecated. Please set 'defaultLwcLanguage': 'typescript' in your sfdx-project.json instead.",
 
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',

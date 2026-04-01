@@ -5,31 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
+  EDITOR_WITH_URI,
+  ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
+  QUICK_INPUT_WIDGET,
+  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
-  waitForWorkspaceReady,
-  closeWelcomeTabs,
-  executeCommandWithCommandPalette,
   validateNoCriticalErrors,
-  saveScreenshot,
-  QUICK_INPUT_WIDGET,
-  EDITOR_WITH_URI,
-  assertWelcomeTabExists,
-  ensureSecondarySideBarHidden,
   verifyCommandExists,
-  waitForQuickInputFirstOption
+  waitForQuickInputFirstOption,
+  waitForVSCodeWorkbench,
+  waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
+import { test } from '../fixtures';
 
 test('LWC Generate Component: creates new LWC via command palette', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-
-  let componentName: string;
+  const componentName = `generateLwcTest${Date.now()}`;
 
   await test.step('setup with no org', async () => {
     await waitForVSCodeWorkbench(page);
@@ -45,56 +44,49 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
   });
 
   await test.step('create LWC via command palette', async () => {
-    componentName = `GenerateLwcTest${Date.now()}`;
-
     await executeCommandWithCommandPalette(page, packageNls.lightning_generate_lwc_text);
     await saveScreenshot(page, 'step1.after-command.png');
 
-    // this is going to change very soon when it goes GA (and we'll need to get it from sfdx-project.json
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    const componentTypePromptVisible = await quickInput
-      .getByText(/Select component type/i)
-      .isVisible({ timeout: 500 })
-      .catch(() => false);
-    if (componentTypePromptVisible) {
-      await waitForQuickInputFirstOption(page);
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
 
-      await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
-      await page.keyboard.press('Enter');
-    }
+    // Step 1: Select component type (JavaScript/TypeScript)
+    await waitForQuickInputFirstOption(page);
+    await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
+    await page.keyboard.press('Enter');
+    await saveScreenshot(page, 'step1.component-type-selected.png');
 
+    // Step 2: Enter component name
     await quickInput.getByText(/Enter Lightning Web Component name/i).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
-
     await page.keyboard.type(componentName);
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
+    // Step 3: Select output directory
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
-
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-accept-directory.png');
 
-    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 5000 });
+    // Step 4: Wait for editor to open with the new component
+    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 20_000 });
     await saveScreenshot(page, 'step1.editor-opened.png');
   });
 
   await test.step('verify component was created correctly', async () => {
-    // @salesforce/templates uses camelCase for LWC dir and filename
-    const camelCaseName = `${componentName.substring(0, 1).toLowerCase()}${componentName.substring(1)}`;
-    const editorTab = page.locator('[role="tab"]').filter({ hasText: new RegExp(`${camelCaseName}\\.js`, 'i') });
+    const editorTab = page.locator('[role="tab"]').filter({ hasText: new RegExp(`${componentName}\\.js`, 'i') });
     await expect(editorTab).toBeVisible({ timeout: 1000 });
     await saveScreenshot(page, 'step2.tab-visible.png');
 
     const explorerFolder = page
       .locator('[role="treeitem"]')
-      .filter({ hasText: new RegExp(`${camelCaseName}$`, 'i') })
+      .filter({ hasText: new RegExp(`${componentName}$`, 'i') })
       .first();
     await expect(explorerFolder).toBeVisible({ timeout: 500 });
     await saveScreenshot(page, 'step2.folder-in-explorer.png');
 
-    const editorContent = page.locator(`[data-uri*="${camelCaseName}.js"]`).first();
+    const editorContent = page.locator(`[data-uri*="${componentName}.js"]`).first();
     await expect(editorContent).toBeVisible({ timeout: 500 });
 
     const editorText = page.locator('.view-lines').first();
@@ -102,11 +94,11 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await saveScreenshot(page, 'step2.component-content-verified.png');
 
     // Explorer: folder auto-expanded when .js opened. Same on web and desktop.
-    await expect(page.getByRole('treeitem', { name: new RegExp(`${camelCaseName}\\.html$`, 'i') })).toBeVisible({
+    await expect(page.getByRole('treeitem', { name: new RegExp(`${componentName}\\.html$`, 'i') })).toBeVisible({
       timeout: 2000
     });
     await expect(
-      page.getByRole('treeitem', { name: new RegExp(`${camelCaseName}\\.js-meta\\.xml$`, 'i') })
+      page.getByRole('treeitem', { name: new RegExp(`${componentName}\\.js-meta\\.xml$`, 'i') })
     ).toBeVisible({ timeout: 2000 });
     await expect(page.getByRole('treeitem', { name: '__tests__' })).toBeVisible({ timeout: 2000 });
     await saveScreenshot(page, 'step2.all-files-verified.png');

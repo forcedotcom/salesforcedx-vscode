@@ -5,17 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SfProject } from '@salesforce/core/project';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
-import { Utils, URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-
-const LWC_EXTENSION_NAME = 'salesforcedx-vscode-lwc';
-const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
-
-const getHasTypeScriptSupport = (): boolean =>
-  vscode.workspace.getConfiguration(LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
 
 const promptForComponentName = Effect.fn('promptForComponentName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -23,14 +19,15 @@ const promptForComponentName = Effect.fn('promptForComponentName')(function* () 
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('lwc_component_name_prompt'),
+      placeHolder: nls.localize('lwc_component_name_placeholder'),
       validateInput: (value: string) => {
         if (!value || value.trim().length === 0) return nls.localize('lwc_component_name_empty_error');
-        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value)) return nls.localize('lwc_component_name_format_error');
+        if (!/^[a-z][A-Za-z0-9_]*$/.test(value)) return nls.localize('lwc_component_name_format_error');
         return undefined;
       }
     })
   ).pipe(
-    Effect.map(n => n?.trim()),
+    Effect.map(raw => raw?.trim()),
     Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 });
@@ -44,11 +41,24 @@ const promptForComponentType = Effect.fn('promptForComponentType')(function* () 
         { label: 'JavaScript', value: 'default' as const },
         { label: 'TypeScript', value: 'typeScript' as const }
       ],
-      { placeHolder: nls.localize('lwc_select_component_type') ?? 'Select component type' }
+      { placeHolder: nls.localize('lwc_select_component_type') }
     )
   ).pipe(
     Effect.flatMap(selected => promptService.considerUndefinedAsCancellation(selected)),
     Effect.map(selected => selected.value)
+  );
+});
+
+/** Determine component template based on priority:
+ * 1. sfdx-project.json defaultLwcLanguage
+ * 2. Prompt user (TypeScript always visible) */
+const determineComponentTemplate = Effect.fn('determineComponentTemplate')(function* (project: SfProject) {
+  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
+  return yield* Match.value(projectJson.get('defaultLwcLanguage')).pipe(
+    Match.when('typescript', () => Effect.succeed('typeScript' as const)),
+    Match.when('javascript', () => Effect.succeed('default' as const)),
+    Match.when(Match.undefined, () => promptForComponentType()),
+    Match.exhaustive
   );
 });
 
@@ -60,13 +70,11 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
   const project = yield* api.services.ProjectService.getSfProject();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
-  const hasTsSupport = getHasTypeScriptSupport();
-  const template = hasTsSupport ? yield* promptForComponentType() : ('default' as const);
-
+  const template = yield* determineComponentTemplate(project);
   const componentName = yield* promptForComponentName();
 
-  const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
-  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'lwc');
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'lwc');
+
   const outputDirUri =
     outputDirParam ??
     (yield* promptService.promptForOutputDir({
@@ -82,6 +90,7 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
 
   const componentDirUri = Utils.joinPath(outputDirUri, componentName);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [componentDirUri] });
+
   const fsService = yield* api.services.FsService;
 
   yield* api.services.TemplateService.create({
@@ -96,13 +105,7 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
     }
   });
 
-  const channelService = yield* api.services.ChannelService;
-  yield* channelService.appendToChannel(nls.localize('lwc_generate_success'));
-
   const ext = template === 'typeScript' ? '.ts' : '.js';
-  // @salesforce/templates uses camelCase for LWC dir and filename (lightningComponentGenerator.js:69)
-  const camelCaseName = `${componentName.substring(0, 1).toLowerCase()}${componentName.substring(1)}`;
-  const actualDirUri = Utils.joinPath(outputDirUri, camelCaseName);
-  const mainFileUri = Utils.joinPath(actualDirUri, `${camelCaseName}${ext}`);
+  const mainFileUri = Utils.joinPath(outputDirUri, componentName, `${componentName}${ext}`);
   yield* fsService.showTextDocument(mainFileUri);
 });

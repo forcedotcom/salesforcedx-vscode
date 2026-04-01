@@ -43,7 +43,7 @@
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/source-deploy-retrieve": "^12.32.1",
     "@salesforce/source-tracking": "^7.8.8",
-    "@salesforce/templates": "^66.7.4",
+    "@salesforce/templates": "^66.7.7",
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.20.0",

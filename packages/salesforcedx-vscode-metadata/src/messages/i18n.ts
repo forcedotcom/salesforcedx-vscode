@@ -34,11 +34,11 @@ export const messages = {
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
   lwc_component_name_empty_error: 'Component name cannot be empty',
   lwc_component_name_format_error:
-    'Component name must start with a letter and contain only alphanumeric characters and underscores',
+    'Component name must start with a lowercase letter and contain only alphanumeric characters and underscores',
   lwc_component_name_prompt: 'Enter Lightning Web Component name',
+  lwc_component_name_placeholder: 'e.g. myComponent',
   lwc_output_dir_prompt: 'Select output directory',
   lwc_select_component_type: 'Select component type',
-  lwc_generate_success: 'Lightning Web Component created successfully',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',
@@ -58,9 +58,7 @@ export const messages = {
   retrieve_completed_with_errors_message: 'Retrieve completed with errors. Check output for details.',
   no_remote_changes_to_retrieve: 'No remote changes to retrieve.',
   no_local_changes_to_deploy: 'No local changes to deploy.',
-  retrieve_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before retrieving. \n Conflicts: %s',
   deploy_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before deploying. \n Conflicts: %s',
-  error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s',
   delete_source_text: 'SFDX: Delete from Project and Org',
   delete_source_select_file_or_directory:
     'You can run SFDX: Delete from Project and Org only on a source file or directory.',

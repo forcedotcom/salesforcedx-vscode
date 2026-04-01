@@ -33,7 +33,8 @@ run_step() {
   out=$(eval "$cmd" 2>&1) || fail "$step" "$out"
 }
 
-# Check if this agent session made any changes
+# Check if this agent session made any changes.
+# mark-edit.sh (.claude/hooks) touches this file via PostToolUse on every Edit/Write.
 SESSION_MARKER="$ROOT/.claude/.edit-marker"
 
 if [ ! -f "$SESSION_MARKER" ]; then
