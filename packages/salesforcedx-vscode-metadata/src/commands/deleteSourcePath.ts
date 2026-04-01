@@ -15,6 +15,42 @@ import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
 
+export const refreshApexTestExplorer = () =>
+  Effect.tryPromise(() => vscode.commands.executeCommand('sf.apex.test.refresh')).pipe(
+    Effect.catchAll(() => Effect.void)
+  );
+
+const APEX_TEST_SUITE_FILE_REG_EXP = /\.testsuite-meta\.xml$/i;
+const APEX_CLASS_FILE_REG_EXP = /\.cls$/i;
+const APEX_TEST_CLASS_CONTENT_REG_EXP = /@isTest|\btestMethod\b/i;
+
+const isApexTestSuiteUri = (uri: URI): boolean => APEX_TEST_SUITE_FILE_REG_EXP.test(uri.path);
+
+const isApexClassUri = (uri: URI): boolean => APEX_CLASS_FILE_REG_EXP.test(uri.path);
+
+const isApexTestClassUri = (uri: URI) =>
+  Effect.gen(function* () {
+    if (!isApexClassUri(uri)) {
+      return false;
+    }
+
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const fsService = yield* api.services.FsService;
+    const content = yield* fsService.readFile(uri).pipe(Effect.catchAll(() => Effect.succeed('')));
+
+    return APEX_TEST_CLASS_CONTENT_REG_EXP.test(content);
+  });
+
+export const shouldRefreshApexTestExplorer = (uris: URI[]) =>
+  Effect.forEach(uris, uri =>
+    Effect.gen(function* () {
+      if (isApexTestSuiteUri(uri)) {
+        return true;
+      }
+      return yield* isApexTestClassUri(uri);
+    })
+  ).pipe(Effect.map(matches => matches.some(Boolean)));
+
 const showDeleteConfirmation = () =>
   Effect.promise(async () => {
     const PROCEED = nls.localize('confirm_delete_source_button_text');
@@ -26,12 +62,14 @@ const showDeleteConfirmation = () =>
 
 const deletePaths = (uris: URI[]) =>
   Effect.gen(function* () {
+    const shouldRefreshTests = yield* shouldRefreshApexTestExplorer(uris);
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
     const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
       yield* componentSetService.getComponentSetFromUris(uris)
     );
     yield* deleteComponentSet({ componentSet });
+    return shouldRefreshTests;
   });
 
 /** Delete source paths from the default org */
@@ -68,6 +106,7 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(function*
 
   // Delete the paths
   yield* deletePaths(resolvedUris).pipe(
+    Effect.tap(shouldRefreshTests => (shouldRefreshTests ? refreshApexTestExplorer() : Effect.void)),
     Effect.catchTag('SourceTrackingConflictError', (error: SourceTrackingConflictError) => {
       const message = `${nls.localize('delete_source_conflicts_detected')} Conflicts: ${error.conflicts.join(', ')}`;
       return Effect.all([

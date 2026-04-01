@@ -2,7 +2,7 @@
 
 **In VS Code:** Command Palette → **SFDX: Open Apex Test Explorer Walkthrough** (or **Help → Welcome → Walkthroughs** when a Salesforce project is open).
 
-Use the **Testing** view (flask icon) with the **Apex Tests** controller. You need a Salesforce project, default org authorized, and the Apex Testing extension active. Tests are discovered from the org (Tooling API); refresh after deploys or org changes.
+Use the **Testing** view (flask icon) with the **Apex Tests** controller. You need a Salesforce project, default org authorized, and the Apex Testing extension active. Tests are discovered from the org (Tooling API); refresh after deploys or org changes. Some metadata operations, including a successful **Delete from Project and Org**, trigger this refresh automatically.
 
 ## See tests available in the org
 

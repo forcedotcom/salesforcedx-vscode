@@ -45,6 +45,9 @@ import { createOperationOutput } from './baseDeployRetrieve';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 type MixedDeployDelete = { deploy: string[]; delete: FileResponseSuccess[] };
+const APEX_TEST_CLASS_CONTENT_REG_EXP = /@isTest|\btestMethod\b/i;
+const APEX_TEST_SUITE_TYPE = 'ApexTestSuite';
+const APEX_CLASS_TYPE = 'ApexClass';
 
 export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: string }> {
   private org: Org;
@@ -78,6 +81,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
 
     progress?.report({ message: 'Deploying delete to org...' });
     await this.delete(response.data.filePath);
+    const shouldRefreshApexTests = await this.shouldRefreshApexTestExplorer();
 
     // Follow CLI pattern: resolveSuccess, deleteFilesLocally, updateTracking
     progress?.report({ message: 'Processing deployment results...' });
@@ -93,9 +97,35 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
     progress?.report({ message: 'Formatting results...' });
     await this.displayResults();
 
+    if (shouldRefreshApexTests) {
+      await this.refreshApexTestExplorer();
+    }
+
     // Return true to trigger LibraryCommandletExecutor's success notification
     return true;
   }
+
+  private shouldRefreshApexTestExplorer = async (): Promise<boolean> => {
+    const sourceComponents = this.componentSet?.getSourceComponents().toArray() ?? [];
+    if (sourceComponents.some(component => component.type.name === APEX_TEST_SUITE_TYPE)) {
+      return true;
+    }
+
+    const apexClassContents = await Promise.all(
+      sourceComponents
+        .filter(component => component.type.name === APEX_CLASS_TYPE)
+        .map(async component => (component.content ? readFile(component.content).catch(() => '') : ''))
+    );
+    return apexClassContents.some(content => APEX_TEST_CLASS_CONTENT_REG_EXP.test(content));
+  };
+
+  private refreshApexTestExplorer = async (): Promise<void> => {
+    try {
+      await vscode.commands.executeCommand('sf.apex.test.refresh');
+    } catch {
+      // Apex testing extension may not be active.
+    }
+  };
 
   private async preChecks(filePath: string): Promise<void> {
     if (this.isSourceTracked) {

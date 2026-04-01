@@ -81,6 +81,7 @@ describe('DeleteSource', () => {
   let vscodeWindowShowInformationMessageSpy: jest.SpyInstance;
   let getUriFromActiveEditorSpy: jest.SpyInstance;
   let notificationServiceShowErrorMessageSpy: jest.SpyInstance;
+  let vscodeCommandsExecuteCommandSpy: jest.SpyInstance;
 
   const testFilePath = path.join('workspace', 'force-app', 'main', 'default', 'classes', 'Test.cls');
   const testUri = URI.file(testFilePath);
@@ -182,6 +183,7 @@ describe('DeleteSource', () => {
     vscodeWindowShowInformationMessageSpy = jest
       .spyOn(vscode.window, 'showInformationMessage')
       .mockResolvedValue('confirm_delete_source_button_text' as any);
+    vscodeCommandsExecuteCommandSpy = jest.spyOn(vscode.commands, 'executeCommand').mockResolvedValue(undefined as any);
     getUriFromActiveEditorSpy = jest.spyOn(getUriFromActiveEditor, 'getUriFromActiveEditor').mockResolvedValue(testUri);
     // Setup mocked utility functions using jest.spyOn
     jest.spyOn(sfdxUtils, 'createDirectory').mockResolvedValue(undefined);
@@ -243,6 +245,41 @@ describe('DeleteSource', () => {
       });
       expect(mockTracking.updateLocalTracking).toHaveBeenCalled();
       expect(mockTracking.updateRemoteTracking).toHaveBeenCalled();
+      expect(vscodeCommandsExecuteCommandSpy).not.toHaveBeenCalledWith('sf.apex.test.refresh');
+    });
+
+    it('should refresh apex test explorer after deleting a test suite', async () => {
+      const executor = new DeleteSourceExecutor(true, mockOrg, mockProject);
+      const mockSuiteSourceComponent = {
+        type: { name: 'ApexTestSuite' }
+      } as any;
+      mockComponentSet.getSourceComponents = jest.fn().mockReturnValue({
+        toArray: jest.fn().mockReturnValue([mockSuiteSourceComponent])
+      });
+
+      const successfulDeployResult = {
+        response: { status: RequestStatus.Succeeded, success: true },
+        getFileResponses: jest.fn().mockReturnValue([
+          {
+            state: ComponentStatus.Deleted,
+            filePath: testFilePath,
+            fullName: 'MySuite',
+            type: 'ApexTestSuite'
+          }
+        ])
+      };
+
+      mockComponentSet.deploy = jest.fn().mockImplementation(
+        () =>
+          ({
+            pollStatus: jest.fn().mockResolvedValue(successfulDeployResult)
+          }) as any
+      );
+
+      const result = await executor.run({ type: 'CONTINUE', data: { filePath: testFilePath } });
+
+      expect(result).toBe(true);
+      expect(vscodeCommandsExecuteCommandSpy).toHaveBeenCalledWith('sf.apex.test.refresh');
     });
 
     it('should handle conflicts in source-tracked orgs', async () => {

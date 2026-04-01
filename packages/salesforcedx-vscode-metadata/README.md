@@ -22,6 +22,8 @@ This extension is part of the Salesforce Extensions for VS Code package.
 
 Documentation coming soon.
 
+When **Delete from Project and Org** completes successfully, the extension also triggers an Apex Test Explorer refresh so Apex test discovery stays in sync with org changes.
+
 ## Contributing
 
 Please see the [contributing guide](../../CONTRIBUTING.md) for details on how to contribute to this project.
