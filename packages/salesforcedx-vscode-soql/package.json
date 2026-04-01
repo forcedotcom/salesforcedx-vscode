@@ -494,6 +494,7 @@
     ]
   },
   "activationEvents": [
-    "onLanguage:soql"
+    "onLanguage:soql",
+    "workspaceContains:**/*.soql"
   ]
 }
