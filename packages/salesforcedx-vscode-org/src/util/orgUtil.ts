@@ -50,7 +50,12 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
   const results = yield* Stream.fromIterable(yield* Effect.promise(() => AuthInfo.listAllAuthorizations())).pipe(
     // only scratch org can expire
     Stream.filter(o => Boolean(o.isScratchOrg)),
-    Stream.mapEffect(o => Effect.promise(() => getAuthFieldsFor(o.username))),
+    // Preserve alias from OrgAuthorization since AuthFields.alias may not be populated
+    Stream.mapEffect(o =>
+      Effect.promise(() => getAuthFieldsFor(o.username)).pipe(
+        Effect.map(fields => ({ ...fields, alias: fields.alias ?? o.aliases?.[0] }))
+      )
+    ),
     Stream.tap(o =>
       // special warning about when default orgs expire
       defaultOrgRef.username && o.username === defaultOrgRef.username && orgIsExpired(o)
@@ -61,9 +66,10 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
     Stream.filter(o => !orgIsExpired(o)),
     Stream.filter(orgExpiresSoon),
     // TODO: type guards or some Schema based check instead of !
-    Stream.map(o =>
-      nls.localize('pending_org_expiration_expires_on_message', o.alias ?? o.username!, o.expirationDate!)
-    ),
+    Stream.map(o => {
+      const displayName = o.alias ? `${o.alias} - ${o.username!}` : o.username!;
+      return nls.localize('pending_org_expiration_expires_on_message', displayName, o.expirationDate!);
+    }),
     Stream.runCollect
   );
 
@@ -381,7 +387,7 @@ const processOrgForDisplay = async (
     const status = authFields.expirationDate
       ? 'Active' // For scratch orgs, we assume they're active if not expired
       : // For non-scratch orgs, test the actual connection
-        ((await determineConnectedStatusForNonScratchOrg(orgAuth.username)) ?? 'Connected');
+      ((await determineConnectedStatusForNonScratchOrg(orgAuth.username)) ?? 'Connected');
     // Determine expiration date display
     return {
       '': determineOrgMarkers(orgAuth, defaultConfig),
