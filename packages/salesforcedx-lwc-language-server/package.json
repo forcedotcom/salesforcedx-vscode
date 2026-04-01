@@ -76,10 +76,10 @@
     }
   },
   "dependencies": {
-    "@lwc/compiler": "8.16.0",
-    "@lwc/errors": "8.16.0",
+    "@lwc/compiler": "9.0.3",
+    "@lwc/errors": "9.0.3",
     "@lwc/metadata": "12.2.0",
-    "@lwc/template-compiler": "8.28.2",
+    "@lwc/template-compiler": "9.0.3",
     "@salesforce/apex": "^0.0.21",
     "@salesforce/label": "^0.0.21",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
