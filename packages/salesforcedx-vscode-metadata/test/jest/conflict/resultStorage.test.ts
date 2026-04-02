@@ -209,7 +209,7 @@ describe('buildTimestampIndexFromDir', () => {
       readFile: (uri: string | URI) => {
         readCalls.push(uri.toString());
         const content = files[uri.toString()];
-        return content !== undefined ? Effect.succeed(content) : Effect.die(`unexpected readFile: ${uri}`);
+        return content !== undefined ? Effect.succeed(content) : Effect.die(`unexpected readFile: ${uri.toString()}`);
       },
       HashableUri,
       safeDelete: (uri: string | URI) =>
