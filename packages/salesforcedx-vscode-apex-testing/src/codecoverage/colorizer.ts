@@ -8,8 +8,8 @@
 import { CodeCoverageResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { Range, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
-import { Utils } from 'vscode-uri';
+import { Range, TextDocument, TextEditor, window, workspace } from 'vscode';
+import { URI, Utils } from 'vscode-uri';
 import { IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
@@ -23,7 +23,7 @@ const APEX = 'apex';
 const IS_CLS_OR_TRIGGER = /(\.cls|\.trigger)$/;
 
 /** Path segment for apex test results (works in Desktop and Web). */
-const getApexTestResultsUri = (): Uri => {
+const getApexTestResultsUri = (): URI => {
   const folder = workspace.workspaceFolders?.[0]?.uri;
   if (!folder) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
@@ -53,7 +53,7 @@ type CoverageItem = {
   lines: { [key: string]: number };
 };
 
-const fileExists = async (uri: Uri): Promise<boolean> => {
+const fileExists = async (uri: URI): Promise<boolean> => {
   try {
     await workspace.fs.stat(uri);
     return true;
@@ -62,7 +62,7 @@ const fileExists = async (uri: Uri): Promise<boolean> => {
   }
 };
 
-const readFileUri = async (uri: Uri): Promise<string> => {
+const readFileUri = async (uri: URI): Promise<string> => {
   const data = await workspace.fs.readFile(uri);
   return new TextDecoder().decode(data);
 };

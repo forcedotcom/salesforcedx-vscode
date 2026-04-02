@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Location, Uri } from 'vscode';
+import { Location } from 'vscode';
+import { URI } from 'vscode-uri';
 
 /**
  * Test type is 'lwc' for all LWC Jest tests.
@@ -67,7 +68,7 @@ export type RawTestResult = {
 export type TestFileInfo = {
   kind: TestInfoKind.TEST_FILE;
   testType: TestType;
-  testUri: Uri;
+  testUri: URI;
   testLocation?: Location;
   testResult?: TestResult;
   testCasesInfo?: TestCaseInfo[];
@@ -82,7 +83,7 @@ export type TestFileInfo = {
 export type TestCaseInfo = {
   kind: TestInfoKind.TEST_CASE;
   testType: TestType;
-  testUri: Uri;
+  testUri: URI;
   testLocation?: Location;
   testResult?: TestResult;
   testName: string;
@@ -96,7 +97,7 @@ export type TestCaseInfo = {
 export type TestDirectoryInfo = {
   kind: TestInfoKind.TEST_DIRECTORY;
   testType: TestType;
-  testUri: Uri;
+  testUri: URI;
   testResult?: TestResult;
 };
 

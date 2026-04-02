@@ -9,7 +9,7 @@ import type { DirFileNameSelection, LocalComponent } from '../../util/types';
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { CompositeParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningEventOptions, TemplateType } from '@salesforce/templates';
-import { Uri } from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
 import { MetadataTypeGatherer, SelectFileName, SelectOutputDir } from '../util';
@@ -56,7 +56,7 @@ export const lightningGenerateEvent = (): void => {
   void commandlet.run();
 };
 
-export const internalLightningGenerateEvent = (sourceUri: Uri): void => {
+export const internalLightningGenerateEvent = (sourceUri: URI): void => {
   const createTemplateExecutor = new LibraryLightningGenerateEventExecutor();
   const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),

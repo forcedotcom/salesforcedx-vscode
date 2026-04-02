@@ -9,7 +9,7 @@ import type { DirFileNameSelection, LocalComponent } from '../../util/types';
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { CompositeParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningAppOptions, TemplateType } from '@salesforce/templates';
-import { Uri } from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
 import { MetadataTypeGatherer, SelectFileName, SelectOutputDir } from '../util';
@@ -56,7 +56,7 @@ export const lightningGenerateApp = (): void => {
   void commandlet.run();
 };
 
-export const internalLightningGenerateApp = (sourceUri: Uri): void => {
+export const internalLightningGenerateApp = (sourceUri: URI): void => {
   const createTemplateExecutor = new LibraryLightningGenerateAppExecutor();
   const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),

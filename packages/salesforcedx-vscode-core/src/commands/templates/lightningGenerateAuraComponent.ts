@@ -9,7 +9,7 @@ import type { DirFileNameSelection, LocalComponent } from '../../util/types';
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { CompositeParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
-import { Uri } from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
 import {
@@ -63,7 +63,7 @@ export const lightningGenerateAuraComponent = (): void => {
   void commandlet.run();
 };
 
-export const internalLightningGenerateAuraComponent = (sourceUri: Uri): void => {
+export const internalLightningGenerateAuraComponent = (sourceUri: URI): void => {
   const createTemplateExecutor = new LibraryLightningGenerateAuraComponentExecutor();
 
   const commandlet = new SfCommandlet(

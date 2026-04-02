@@ -8,7 +8,7 @@
 import type { DirFileNameSelection } from '../../util/types';
 import { CompositeParametersGatherer, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
-import { Uri } from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
 import { SelectFileName } from '../util';
@@ -45,7 +45,7 @@ class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<Dir
   }
 }
 
-export const internalLightningGenerateLwc = (sourceUri: Uri): void => {
+export const internalLightningGenerateLwc = (sourceUri: URI): void => {
   const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();
   const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),

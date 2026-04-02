@@ -4,10 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionContext, Uri, workspace } from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 import type { BaseLanguageClient } from 'vscode-languageclient';
 import type { LanguageClient as BrowserLanguageClient } from 'vscode-languageclient/browser';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import { Utils } from 'vscode-uri';
 import * as codeCompletion from './codeCompletion';
 import * as queryValidation from './queryValidation';
 
@@ -26,7 +27,7 @@ export const startLanguageClient = async (extensionContext: ExtensionContext): P
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // In the web bundle, esbuild aliases vscode-languageclient/node -> /browser, so LanguageClient
     // is the browser version at runtime. Cast to get the correct browser constructor signature.
-    const workerUri = Uri.joinPath(extensionContext.extensionUri, 'dist', 'serverWorker.js');
+    const workerUri = Utils.joinPath(extensionContext.extensionUri, 'dist', 'serverWorker.js');
     const worker = new Worker(workerUri.toString(true));
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     client = new (LanguageClient as unknown as typeof BrowserLanguageClient)(

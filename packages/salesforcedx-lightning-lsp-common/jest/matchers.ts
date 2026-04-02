@@ -7,6 +7,7 @@
 
 import { isAbsolute } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 declare global {
   namespace jest {
@@ -22,7 +23,7 @@ expect.extend({
   toExist: async (path: string) => {
     let pass: boolean;
     try {
-      await vscode.workspace.fs.stat(vscode.Uri.file(path));
+      await vscode.workspace.fs.stat(URI.file(path));
       pass = true;
     } catch {
       pass = false;

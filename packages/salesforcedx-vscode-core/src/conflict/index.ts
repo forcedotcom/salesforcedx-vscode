@@ -6,7 +6,8 @@
  */
 
 import * as path from 'node:path';
-import { commands, Disposable, ExtensionContext, Uri, window } from 'vscode';
+import { commands, Disposable, ExtensionContext, window } from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictView } from './conflictView';
@@ -28,8 +29,8 @@ export const registerConflictView = (): Disposable =>
   );
 
 const conflictDiff = (file: ConflictFile) => {
-  const local = Uri.file(path.join(file.localPath, file.localRelPath));
-  const remote = Uri.file(path.join(file.remotePath, file.remoteRelPath));
+  const local = URI.file(path.join(file.localPath, file.localRelPath));
+  const remote = URI.file(path.join(file.remotePath, file.remoteRelPath));
 
   const title = nls.localize('conflict_detect_diff_title', file.remoteLabel, file.fileName, file.fileName);
   void commands.executeCommand('vscode.diff', remote, local, title);
@@ -38,7 +39,7 @@ const conflictDiff = (file: ConflictFile) => {
 const openResource = (node: ConflictNode): void => {
   const file = node.conflict;
   if (file) {
-    const local = Uri.file(path.join(file.localPath, file.localRelPath));
+    const local = URI.file(path.join(file.localPath, file.localRelPath));
     void window.showTextDocument(local).then(() => {});
   }
 };

@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { commands, Uri, window } from 'vscode';
+import { commands, window } from 'vscode';
+import { URI } from 'vscode-uri';
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 
@@ -21,7 +22,7 @@ export const telemetryWithOptOutMessage = async () => {
   await window.showInformationMessage(showMessage, showButtonText).then(selection => {
     // Open disable telemetry link
     if (selection && selection === showButtonText) {
-      void commands.executeCommand('vscode.open', Uri.parse(TELEMETRY_OPT_OUT_LINK));
+      void commands.executeCommand('vscode.open', URI.parse(TELEMETRY_OPT_OUT_LINK));
     }
   });
 };

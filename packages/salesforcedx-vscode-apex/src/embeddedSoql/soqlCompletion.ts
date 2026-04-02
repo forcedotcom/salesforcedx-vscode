@@ -20,12 +20,11 @@ import {
   EndOfLine,
   Position,
   TextDocument,
-  Uri,
   workspace
 } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
-
 import { Middleware } from 'vscode-languageclient/node';
+import { URI } from 'vscode-uri';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
@@ -101,7 +100,7 @@ const doSOQLCompletion = async (
   const originalUri = document.uri.path;
   virtualDocumentContents.set(originalUri, getSOQLVirtualContent(document, position, soqlBlock));
 
-  const vdocUri = Uri.parse(`embedded-soql://soql/${originalUri}.soql`);
+  const vdocUri = URI.parse(`embedded-soql://soql/${originalUri}.soql`);
   const soqlCompletions = await commands.executeCommand<CompletionList>(
     'vscode.executeCompletionItemProvider',
     vdocUri,

@@ -11,6 +11,7 @@ import * as fsPromises from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { findLwcNamespaceRoots } from '../namespaceUtils';
 import { LspFileSystemAccessor } from '../providers/lspFileSystemAccessor';
 import { normalizePath, type NormalizedPath } from '../utils';
@@ -66,7 +67,7 @@ describe('findNamespaceRoots', () => {
   afterEach(async () => {
     // Clean up temporary directory
     try {
-      await vscode.workspace.fs.delete(vscode.Uri.file(tempDir), { recursive: true, useTrash: false });
+      await vscode.workspace.fs.delete(URI.file(tempDir), { recursive: true, useTrash: false });
     } catch {
       // Ignore cleanup errors
     }
