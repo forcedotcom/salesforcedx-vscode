@@ -90,6 +90,11 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const activeOpRef = yield* api.services.ActiveMetadataOperationRef();
 
+  // Reusable stream transformer: suppress any stream while a metadata operation is in flight
+  const suppressDuringOperation = Stream.filterEffect(() =>
+    SubscriptionRef.get(activeOpRef).pipe(Effect.andThen(count => count === 0))
+  );
+
   // Setup dynamic polling interval that responds to config changes
   const settingsWatcher = yield* api.services.SettingsWatcherService;
   const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(getPollingIntervalSeconds()));
@@ -117,6 +122,7 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     ),
     Stream.map(orgInfo => orgInfo.orgId),
     Stream.changes,
+    suppressDuringOperation,
     Stream.as('orgChange')
   );
 
@@ -144,26 +150,17 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
       SubscriptionRef.get(targetOrgRef).pipe(Effect.andThen(orgInfo => Boolean(orgInfo.tracksSource)))
     ),
     // suppress events while a metadata operation is running
-    Stream.filterEffect(() => SubscriptionRef.get(activeOpRef).pipe(Effect.andThen(count => count === 0))),
-    Stream.as('refresh')
+    suppressDuringOperation
   );
 
-  // Show spinner immediately when any operation starts (count transitions to > 0)
-  yield* Effect.fork(
-    activeOpRef.changes.pipe(
-      Stream.filter(count => count > 0),
-      Stream.runForEach(() => Effect.sync(() => showRefreshingState(statusBarItem)))
-    )
-  );
-
-  // Trigger a refresh when an operation completes (count transitions to 0)
+  // Show spinner while in-flight; emit 'operationComplete' when it drains to 0
   const operationCompleteStream = activeOpRef.changes.pipe(
-    Stream.filter(count => count === 0),
-    Stream.as('operationComplete')
+    Stream.tap(count => (count > 0 ? Effect.sync(() => showRefreshingState(statusBarItem)) : Effect.void)),
+    Stream.filter(count => count === 0)
   );
 
   yield* Effect.fork(
-    Stream.merge(Stream.merge(orgChangeStream, fileChangeStream), operationCompleteStream).pipe(
+    Stream.mergeAll({ concurrency: 'unbounded' })([orgChangeStream, fileChangeStream, operationCompleteStream]).pipe(
       Stream.debounce(Duration.millis(500)),
       Stream.runForEach(() => refresh(statusBarItem))
     )
