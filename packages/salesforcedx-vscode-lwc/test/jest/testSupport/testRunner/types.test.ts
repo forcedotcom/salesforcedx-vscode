@@ -6,14 +6,14 @@
  */
 
 import * as path from 'node:path';
-import { Uri } from 'vscode';
+import { URI } from 'vscode-uri';
 import { isTestCaseInfo, TestCaseInfo, TestFileInfo, TestInfoKind, TestType } from '../../../../src/testSupport/types';
 
 describe('test support types Unit Tests.', () => {
   const mockUriPath = path.join('/');
   const mockURI = {
     fsPath: mockUriPath
-  } as Uri;
+  } as unknown as URI;
   describe('test isTestCase', () => {
     it('Should return true for a TestCase', async () => {
       const testName = 'Testing is Fun!';
