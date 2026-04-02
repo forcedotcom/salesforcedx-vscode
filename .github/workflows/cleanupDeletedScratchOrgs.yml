@@ -23,17 +23,21 @@ jobs:
           cache: npm
 
       - name: Install Salesforce CLI
-        run: |
-          npm install -g @salesforce/cli
-          sf --version
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm install -g @salesforce/cli
+          retry_wait_seconds: 30
+
+      - name: Verify Salesforce CLI
+        run: sf --version
 
       - name: Authenticate with Salesforce
-        run: |
-          echo "Authenticating with Salesforce org..."
-          sf org login sfdx-url \
-            --sfdx-url-file <(echo "$SFDX_AUTH_URL") \
-            --alias vscodeOrg \
-            --set-default
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "Authenticating with Salesforce org..." && echo "$SFDX_AUTH_URL" | sf org login sfdx-url --alias vscodeOrg --set-default --sfdx-url-stdin'
+          retry_wait_seconds: 30
 
       - name: Query existing deleted scratch orgs
         id: query-deleted
