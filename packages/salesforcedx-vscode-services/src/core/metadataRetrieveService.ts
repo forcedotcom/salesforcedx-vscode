@@ -24,6 +24,7 @@ import { URI } from 'vscode-uri';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { uriToPath } from '../vscode/paths';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
@@ -203,7 +204,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
 
       const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
       return yield* performRetrieveOperation({ componentSet, connection, registryAccess, title, merge: true, project });
-    });
+    }, withActiveMetadataOperationPipeline);
 
     /** Retrieve metadata using a ComponentSet directly.
      * Sets project directory and API versions on the ComponentSet before retrieving.
@@ -239,7 +240,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         merge: true,
         project
       });
-    });
+    }, withActiveMetadataOperationPipeline);
 
     /** Retrieve metadata using a ComponentSet directly to a custom output directory.
      * Sets project directory and API versions on the ComponentSet before retrieving.

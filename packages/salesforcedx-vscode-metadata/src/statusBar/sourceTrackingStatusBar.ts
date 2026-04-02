@@ -13,6 +13,7 @@ import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
 
@@ -35,6 +36,15 @@ const refresh = Effect.fn('statusBarRefresh')(
   },
   Effect.catchAll(() => Effect.void) // ignore errors in refresh
 );
+
+/** Show a transient refreshing state while a metadata operation is in flight */
+const showRefreshingState = (statusBarItem: vscode.StatusBarItem): void => {
+  statusBarItem.text = '$(sync~spin) Refreshing';
+  statusBarItem.tooltip = new vscode.MarkdownString(nls.localize('source_tracking_status_bar_refreshing'));
+  statusBarItem.command = undefined;
+  statusBarItem.backgroundColor = undefined;
+  statusBarItem.show();
+};
 
 /** Update the status bar display */
 const updateDisplay =
@@ -78,6 +88,7 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   const fileWatcherService = yield* api.services.FileWatcherService;
 
   const targetOrgRef = yield* api.services.TargetOrgRef();
+  const activeOpRef = yield* api.services.ActiveMetadataOperationRef();
 
   // Setup dynamic polling interval that responds to config changes
   const settingsWatcher = yield* api.services.SettingsWatcherService;
@@ -132,11 +143,27 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     Stream.filterEffect(() =>
       SubscriptionRef.get(targetOrgRef).pipe(Effect.andThen(orgInfo => Boolean(orgInfo.tracksSource)))
     ),
+    // suppress events while a metadata operation is running
+    Stream.filterEffect(() => SubscriptionRef.get(activeOpRef).pipe(Effect.andThen(count => count === 0))),
     Stream.as('refresh')
   );
 
+  // Show spinner immediately when any operation starts (count transitions to > 0)
   yield* Effect.fork(
-    Stream.merge(orgChangeStream, fileChangeStream).pipe(
+    activeOpRef.changes.pipe(
+      Stream.filter(count => count > 0),
+      Stream.runForEach(() => Effect.sync(() => showRefreshingState(statusBarItem)))
+    )
+  );
+
+  // Trigger a refresh when an operation completes (count transitions to 0)
+  const operationCompleteStream = activeOpRef.changes.pipe(
+    Stream.filter(count => count === 0),
+    Stream.as('operationComplete')
+  );
+
+  yield* Effect.fork(
+    Stream.merge(Stream.merge(orgChangeStream, fileChangeStream), operationCompleteStream).pipe(
       Stream.debounce(Duration.millis(500)),
       Stream.runForEach(() => refresh(statusBarItem))
     )
