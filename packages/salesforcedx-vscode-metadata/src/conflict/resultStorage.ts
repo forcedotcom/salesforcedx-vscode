@@ -20,10 +20,11 @@ import type { HashableUri } from 'salesforcedx-vscode-services';
 import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { MissingDefaultOrgError } from '../shared/diff/diffErrors';
+import { getStaleUris } from './resultStorageCleanup';
 import { getFileProperties } from './shared';
 
 /** One metadata component within a stored result file. lastModifiedDate is the server-reported
- * value for retrieves, or the client timestamp at deploy time (DeployResult lacks per-component dates). */
+ * value for retrieves, or the server completedDate (falling back to client timestamp) for deploys. */
 const StoredComponentSchema = Schema.Struct({
   metadataType: Schema.String,
   fullName: Schema.String,
@@ -33,6 +34,7 @@ const StoredComponentSchema = Schema.Struct({
 /** On-disk JSON shape: one file per deploy/retrieve, recording which components were included
  * and when the operation happened. Stored under .sfdx/fileResponses/{orgId}/. */
 const StoredResultSchema = Schema.Struct({
+  /** the timestamp from the deploy/retrieve operation */
   timestamp: Schema.DateTimeUtc,
   operation: Schema.Literal('deploy', 'retrieve'),
   components: Schema.Array(StoredComponentSchema)
@@ -89,27 +91,37 @@ const storeResult = Effect.fn('resultStorage.storeResult')(function* (
   );
 });
 
-/** Store deploy result JSON if the org doesn't track source and the deploy succeeded.
- * Uses client timestamp per component (DeployResult has no per-component lastModifiedDate). */
+const isSucceeded = (status: string | undefined) => status === 'Succeeded' || status === 'SucceededPartial';
+
+const orgTracksSource = Effect.fn('resultStorage.orgTracksSource')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  return orgInfo.tracksSource === true;
+});
+
+/** Store deploy result JSON if the deploy succeeded and the org doesn't track source.
+ * Uses completedDate from deployResult, falling back to client timestamp. */
 export const maybeStoreDeployResult = Effect.fn('resultStorage.maybeStoreDeployResult')(function* (
   result: DeployResult
 ) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
-  if (orgInfo.tracksSource === true) return;
+  if (!isSucceeded(result.response?.status) || (yield* orgTracksSource())) return;
 
-  const status = result.response?.status?.toString();
-  if (status !== 'Succeeded' && status !== 'SucceededPartial') return;
-
-  const timestamp = DateTime.unsafeMake(new Date());
+  const timestamp = result.response?.completedDate
+    ? DateTime.unsafeMake(new Date(result.response.completedDate))
+    : DateTime.unsafeMake(new Date());
   const components = result
-    .getFileResponses()
+    .getFileResponses() // we don't have timestamps on fileResponse
     .map(fr => toStoredComponent(fr.type, fr.fullName, DateTime.formatIso(timestamp)));
   yield* storeResult('deploy', components, timestamp);
 });
 
-/** Store retrieve result JSON. Uses lastModifiedDate from fileProperties per component. */
-export const storeRetrieveResult = Effect.fn('resultStorage.storeRetrieveResult')(function* (result: RetrieveResult) {
+/** Store retrieve result JSON if the retrieve succeeded and the org doesn't track source.
+ * Uses lastModifiedDate from fileProperties per component. */
+export const maybeStoreRetrieveResult = Effect.fn('resultStorage.maybeStoreRetrieveResult')(function* (
+  result: RetrieveResult
+) {
+  if (!isSucceeded(result.response?.status) || (yield* orgTracksSource())) return;
+
   const timestamp = DateTime.unsafeMake(new Date());
   const components = getFileProperties(result).map(fp => toStoredComponent(fp.type, fp.fullName, fp.lastModifiedDate));
   yield* storeResult('retrieve', components, timestamp);
@@ -164,26 +176,19 @@ export const buildTimestampIndexFromDir = Effect.fn('resultStorage.buildTimestam
     Stream.runCollect,
     Effect.map(chunk => Chunk.toReadonlyArray(chunk).toSorted(byFileTimestampDesc)),
     // Group by component key; first entry wins because rows are sorted newest-first.
-    Effect.map(sortedArray => Object.groupBy(sortedArray, (x: TimestampRow) => x.key))
+    Effect.map(sortedArray => Object.groupBy(sortedArray, (x: TimestampRow) => x.key)),
+    // Delete stale files in the background — best-effort, must not block the caller.
+    Effect.tap(bk => Effect.forkDaemon(Effect.forEach(getStaleUris(bk, allJsonUris), uri => fs.safeDelete(uri))))
   );
 
-  const index = new Map(Object.entries(byKey).map(([key, rows]) => [key, rows![0].lastModifiedDate]));
-
-  // A file is stale if none of its components appear as the winner for any key.
-  // Delete stale files in the background — this is best-effort and must not block the caller.
-  const winningUris = HashSet.fromIterable(Object.values(byKey).map(rows => rows![0].sourceUri));
-  const staleUris = HashSet.difference(allJsonUris, winningUris);
-  yield* Effect.forkDaemon(Effect.forEach(staleUris, uri => fs.safeDelete(uri)));
-
-  return index;
+  return new Map(Object.entries(byKey).map(([key, rows]) => [key, rows![0].lastModifiedDate]));
 });
 
 /** Load every stored result file, flatten components into rows sorted newest-first,
  * then group by component key keeping only the most recent lastModifiedDate per component.
  * Returns Map<"MetadataType:FullName", DateTime.Utc> for O(1) conflict lookups. */
 export const buildTimestampIndex = Effect.fn('resultStorage.buildTimestampIndex')(function* () {
-  const dirUri = yield* getFileResponsesDirUri();
-  return yield* buildTimestampIndexFromDir(dirUri);
+  return yield* getFileResponsesDirUri().pipe(Effect.flatMap(buildTimestampIndexFromDir));
 });
 
 const byFileTimestampDesc = Order.reverse(

@@ -8,9 +8,8 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { storeRetrieveResult } from '../../conflict/resultStorage';
+import { maybeStoreRetrieveResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
 
@@ -36,10 +35,7 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(result));
 
-  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
-  if (orgInfo.tracksSource !== true) {
-    yield* storeRetrieveResult(result);
-  }
+  yield* maybeStoreRetrieveResult(result);
 
   const { isSDRFailure } = yield* api.services.ComponentSetService;
   if (result.getFileResponses().some(isSDRFailure)) {
