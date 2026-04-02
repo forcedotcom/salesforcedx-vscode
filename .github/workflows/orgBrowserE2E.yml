@@ -83,14 +83,6 @@ jobs:
           command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
-      - name: Auth to dev hub (global)
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
-          retry_wait_seconds: 30
-
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
@@ -209,6 +201,14 @@ jobs:
           max_attempts: 3
           command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
           retry_wait_seconds: 60
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
 
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
