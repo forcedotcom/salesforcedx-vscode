@@ -115,7 +115,7 @@
     "vscode-uri": "^2.1.2"
   },
   "devDependencies": {
-    "@lwc/engine-dom": "8.26.2",
+    "@lwc/engine-dom": "8.28.2",
     "@types/ejs": "^3.1.5",
     "@types/vscode": "1.90.0",
     "find-node-modules": "^2.1.3",

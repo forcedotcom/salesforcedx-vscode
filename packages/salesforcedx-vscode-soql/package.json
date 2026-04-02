@@ -50,7 +50,7 @@
   "devDependencies": {
     "@salesforce/core": "^8.28.0",
     "@babel/preset-typescript": "^7.0.0",
-    "@lwc/engine-dom": "^9.0.0",
+    "@lwc/engine-dom": "^8.28.2",
     "@lwc/eslint-plugin-lwc": "^3.3.0",
     "@lwc/jest-preset": "^19.0.0",
     "@lwc/rollup-plugin": "^9.0.0",
