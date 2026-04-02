@@ -10,12 +10,14 @@ import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-ret
 import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { Utils } from 'vscode-uri';
+import type { HashableUri } from 'salesforcedx-vscode-services';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { MissingDefaultOrgError } from '../shared/diff/diffErrors';
 import { getFileProperties } from './shared';
@@ -43,8 +45,14 @@ const StoredResultJsonSchema = Schema.parseJson(StoredResultSchema);
 
 /** Intermediate row used while building the timestamp index. Flattens each component with its
  * resolved lastModifiedDate (server value when available, else file timestamp) and the parent
- * file's timestamp (fileTimestamp — for newest-first sorting so first-write-wins per key). */
-type TimestampRow = { key: string; lastModifiedDate: DateTime.Utc; fileTimestamp: DateTime.Utc };
+ * file's timestamp (fileTimestamp — for newest-first sorting so first-write-wins per key).
+ * sourceUri tracks the origin file for stale-file detection. */
+type TimestampRow = {
+  key: string;
+  lastModifiedDate: DateTime.Utc;
+  fileTimestamp: DateTime.Utc;
+  sourceUri: HashableUri;
+};
 
 const componentKey = (metadataType: string, fullName: string) => `${metadataType}:${fullName}`;
 
@@ -107,40 +115,51 @@ export const storeRetrieveResult = Effect.fn('resultStorage.storeRetrieveResult'
   yield* storeResult('retrieve', components, timestamp);
 });
 
-/** Load every stored result file, flatten components into rows sorted newest-first,
- * then group by component key keeping only the most recent lastModifiedDate per component.
- * Returns Map<"MetadataType:FullName", DateTime.Utc> for O(1) conflict lookups. */
-export const buildTimestampIndex = Effect.fn('resultStorage.buildTimestampIndex')(function* () {
+/** Core index-building logic. Reads all .json files under dirUri, builds the timestamp index,
+ * then forks background cleanup to delete files whose components were all superseded by newer files.
+ * Exported for unit testing — provide a mock ExtensionProviderService that returns a mock FsService. */
+export const buildTimestampIndexFromDir = Effect.fn('resultStorage.buildTimestampIndexFromDir')(function* (
+  dirUri: URI
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const dirUri = yield* getFileResponsesDirUri();
-  const exists = yield* api.services.FsService.fileOrFolderExists(dirUri);
-  if (!exists) {
-    return new Map<string, DateTime.Utc>();
-  }
+  const fs = yield* api.services.FsService;
 
-  const byKey = yield* Stream.fromIterableEffect(api.services.FsService.readDirectory(dirUri)).pipe(
-    Stream.filter(uri => uri.toString().endsWith('.json')),
+  const exists = yield* fs.fileOrFolderExists(dirUri);
+  if (!exists) return new Map<string, DateTime.Utc>();
+
+  const allJsonUris = HashSet.fromIterable(
+    (yield* fs.readDirectory(dirUri)).filter(u => u.toString().endsWith('.json')).map(u => fs.HashableUri.fromUri(u))
+  );
+
+  const byKey = yield* Stream.fromIterable(allJsonUris).pipe(
     Stream.mapEffect(uri =>
-      api.services.FsService.readFile(uri).pipe(
+      fs.readFile(uri).pipe(
         Effect.tapError(e => Effect.logWarning('skipping unreadable result file', e)),
-        Effect.option
+        Effect.option,
+        // Attach sourceUri so each row remembers which file it came from.
+        Effect.map(textOpt => ({
+          uri,
+          stored: Option.flatMap(textOpt, text => Schema.decodeUnknownOption(StoredResultJsonSchema)(text))
+        }))
       )
     ),
-    Stream.filterMap(o => o),
-    Stream.map(text => Schema.decodeUnknownOption(StoredResultJsonSchema)(text)),
-    Stream.filterMap(o => o),
-    Stream.mapConcat(stored =>
-      stored.components.map(
-        (c): TimestampRow => ({
-          key: componentKey(c.metadataType, c.fullName),
-          // falling back to the file-level timestamp when a component lacks its own lastModifiedDate.
-          lastModifiedDate: Option.getOrElse(
-            DateTime.make(c.lastModifiedDate ?? DateTime.formatIso(stored.timestamp)),
-            () => stored.timestamp
-          ),
-          fileTimestamp: stored.timestamp
-        })
-      )
+    Stream.mapConcat(({ uri, stored }) =>
+      Option.match(stored, {
+        onNone: () => [],
+        onSome: s =>
+          s.components.map(
+            (c): TimestampRow => ({
+              key: componentKey(c.metadataType, c.fullName),
+              // falling back to the file-level timestamp when a component lacks its own lastModifiedDate.
+              lastModifiedDate: Option.getOrElse(
+                DateTime.make(c.lastModifiedDate ?? DateTime.formatIso(s.timestamp)),
+                () => s.timestamp
+              ),
+              fileTimestamp: s.timestamp,
+              sourceUri: uri
+            })
+          )
+      })
     ),
     Stream.runCollect,
     Effect.map(chunk => Chunk.toReadonlyArray(chunk).toSorted(byFileTimestampDesc)),
@@ -148,7 +167,23 @@ export const buildTimestampIndex = Effect.fn('resultStorage.buildTimestampIndex'
     Effect.map(sortedArray => Object.groupBy(sortedArray, (x: TimestampRow) => x.key))
   );
 
-  return new Map(Object.entries(byKey).map(([key, rows]) => [key, rows![0].lastModifiedDate]));
+  const index = new Map(Object.entries(byKey).map(([key, rows]) => [key, rows![0].lastModifiedDate]));
+
+  // A file is stale if none of its components appear as the winner for any key.
+  // Delete stale files in the background — this is best-effort and must not block the caller.
+  const winningUris = HashSet.fromIterable(Object.values(byKey).map(rows => rows![0].sourceUri));
+  const staleUris = HashSet.difference(allJsonUris, winningUris);
+  yield* Effect.forkDaemon(Effect.forEach(staleUris, uri => fs.safeDelete(uri)));
+
+  return index;
+});
+
+/** Load every stored result file, flatten components into rows sorted newest-first,
+ * then group by component key keeping only the most recent lastModifiedDate per component.
+ * Returns Map<"MetadataType:FullName", DateTime.Utc> for O(1) conflict lookups. */
+export const buildTimestampIndex = Effect.fn('resultStorage.buildTimestampIndex')(function* () {
+  const dirUri = yield* getFileResponsesDirUri();
+  return yield* buildTimestampIndexFromDir(dirUri);
 });
 
 const byFileTimestampDesc = Order.reverse(
