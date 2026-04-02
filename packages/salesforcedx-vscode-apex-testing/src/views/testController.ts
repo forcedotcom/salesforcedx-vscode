@@ -596,9 +596,8 @@ export class ApexTestController {
       return;
     }
 
-    // Group methods by their parent class to avoid calling debug command multiple times for the same class
-    const classesToDebug = new Set<string>();
-    const methodsToDebug = new Map<string, string[]>();
+    const classIdsToDebug = new Set<string>();
+    const methodsToDebug = new Map<string, Set<string>>();
 
     for (const test of testsToDebug) {
       try {
@@ -607,12 +606,9 @@ export class ApexTestController {
           const testName = getTestName(test);
           const className = extractClassName(test.id);
           if (className) {
-            // If we're debugging multiple methods from the same class, group them
-            // and debug the class once instead of each method individually
-            const existingMethods = methodsToDebug.get(className) ?? [];
-            existingMethods.push(testName);
+            const existingMethods = methodsToDebug.get(className) ?? new Set<string>();
+            existingMethods.add(testName);
             methodsToDebug.set(className, existingMethods);
-            classesToDebug.add(className);
           } else {
             // Fallback: debug single method if we can't extract class name
             await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: testName });
@@ -620,7 +616,7 @@ export class ApexTestController {
         } else if (isClass(test.id)) {
           // Debug class (all methods in class)
           const className = getTestName(test);
-          classesToDebug.add(className);
+          classIdsToDebug.add(className);
         } else if (isSuite(test.id)) {
           // Suites cannot be debugged - only individual classes or methods can be debugged
           run.errored(test, new vscode.TestMessage(nls.localize('apex_test_suite_debug_not_supported_message')));
@@ -631,8 +627,7 @@ export class ApexTestController {
       }
     }
 
-    // Debug each class only once
-    for (const className of classesToDebug) {
+    for (const className of classIdsToDebug) {
       try {
         await vscode.commands.executeCommand('sf.test.view.debugTests', { name: className });
       } catch (error) {
@@ -642,6 +637,30 @@ export class ApexTestController {
             run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
           } else if (isMethod(test.id) && extractClassName(test.id) === className) {
             run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
+          }
+        }
+      }
+    }
+
+    for (const [className, methods] of methodsToDebug) {
+      // If class-level debug is explicitly selected, skip method-level debug for the same class.
+      if (classIdsToDebug.has(className)) {
+        continue;
+      }
+
+      for (const methodName of methods) {
+        try {
+          await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: methodName });
+        } catch (error) {
+          const friendlyMessage = toUserFriendlyApexTestError(error);
+          for (const test of testsToDebug) {
+            if (
+              isMethod(test.id) &&
+              extractClassName(test.id) === className &&
+              getTestName(test) === methodName
+            ) {
+              run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
+            }
           }
         }
       }
