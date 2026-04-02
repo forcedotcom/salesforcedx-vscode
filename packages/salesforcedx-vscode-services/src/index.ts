@@ -11,6 +11,7 @@ import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
+import { getActiveMetadataOperationRef } from './core/activeMetadataOperationRef';
 import { AliasService } from './core/alias';
 import { AliasFileWatcherService, watchDefaultOrgAliases } from './core/aliasFileWatcher';
 import { ApexLogService } from './core/apexLogService';
@@ -118,6 +119,7 @@ export type SalesforceVSCodeServicesApi = {
     SettingsService: typeof SettingsService;
     SettingsWatcherService: typeof SettingsWatcherService;
     SourceTrackingService: typeof SourceTrackingService;
+    ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
     TransmogrifierService: typeof TransmogrifierService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
@@ -378,6 +380,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       SettingsService,
       SettingsWatcherService,
       SourceTrackingService,
+      ActiveMetadataOperationRef: getActiveMetadataOperationRef,
       TargetOrgRef: getDefaultOrgRef,
       TransmogrifierService,
       TraceFlagItemStruct,

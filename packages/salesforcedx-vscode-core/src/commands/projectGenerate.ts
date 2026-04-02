@@ -199,7 +199,7 @@ class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
 class SelectLwcLanguage implements ParametersGatherer<LwcLanguage> {
   private readonly initialLwcLanguage?: 'javascript' | 'typescript';
 
-  constructor(initialLwcLanguage?: 'javascript' | 'typescript') {
+  constructor(initialLwcLanguage: 'javascript' | 'typescript' = 'javascript') {
     this.initialLwcLanguage = initialLwcLanguage;
   }
 

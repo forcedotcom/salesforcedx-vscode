@@ -135,10 +135,8 @@ import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 
 const fileWatcher = yield * api.services.FileWatcherService;
-const dequeue = yield * PubSub.subscribe(fileWatcher.pubsub);
 
-yield *
-  Stream.fromQueue(dequeue).pipe(
+yield* Stream.fromPubSub(fileWatcher.pubsub).pipe(
     Stream.filter(event => /* match event.uri to your pattern */),
     Stream.runForEach(event =>
       Effect.sync(() => {

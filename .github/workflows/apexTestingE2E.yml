@@ -61,12 +61,19 @@ jobs:
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
-        run: npm i -g @salesforce/cli
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli
+          retry_wait_seconds: 30
 
       - name: Auth to dev hub (global)
         if: steps.try-run.outcome == 'failure'
-        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
-        shell: bash
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
 
       - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'
@@ -89,6 +96,15 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
           npm run test:web -w salesforcedx-vscode-apex-testing -- --reporter=html
+
+      - name: Recreate scratch org before retry
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
@@ -176,16 +192,27 @@ jobs:
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
-        run: npm i -g @salesforce/cli
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli
+          retry_wait_seconds: 30
 
       - name: Auth to dev hub (global)
         if: steps.try-run.outcome == 'failure'
-        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
-        shell: bash
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        run: npx playwright install chromium --with-deps
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
 
       - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'
@@ -209,6 +236,15 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
           npm run test:desktop -w salesforcedx-vscode-apex-testing -- --reporter=html
+
+      - name: Recreate scratch org before retry
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'

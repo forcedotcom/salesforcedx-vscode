@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { ConnectionService } from './connectionService';
 import { ProjectService } from './projectService';
 import { unknownToErrorCause } from './shared';
@@ -135,7 +136,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       }
 
       return deployOutcome;
-    });
+    }, withActiveMetadataOperationPipeline);
 
     return { deploy, getComponentSetForDeploy };
   })

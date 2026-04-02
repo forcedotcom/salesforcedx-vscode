@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { transformSync } from '@lwc/compiler';
+import { CompilerDiagnostic, CompilerError } from '@lwc/errors';
 import { BundleConfig, ScriptFile, collectBundleMetadata } from '@lwc/metadata';
 import { AttributeInfo, ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
 import type { SourceLocation } from 'babel-types';
@@ -65,29 +66,27 @@ const extractMessageFromBabelError = (message: string): string => {
   return message.substring(start, end);
 };
 
-// TODO: proper type for 'err' (i.e. SyntaxError)
-const toDiagnostic = (err: any): Diagnostic => {
-  // TODO: 'err' doesn't have end loc, squiggling until the end of the line until babel 7 is released
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+const toDiagnostic = (err: CompilerDiagnostic): Diagnostic => {
   const message = err.message;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-  let location = err.location;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  location ??= extractLocationFromBabelError(message);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  const location = err.location ?? extractLocationFromBabelError(message);
   const startLine: number = location.line - 1;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const startCharacter: number = location.column;
   // https://github.com/forcedotcom/salesforcedx-vscode/issues/2074
   // Limit the end character to max 32 bit integer so that it doesn't overflow other language servers
   const range = Range.create(startLine, startCharacter, startLine, MAX_32BIT_INTEGER);
-  return {
+  const diagnostic: Diagnostic = {
     range,
     severity: DiagnosticSeverity.Error,
     source: DIAGNOSTIC_SOURCE,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    message: extractMessageFromBabelError(message)
+    message: err.url
+      ? `${extractMessageFromBabelError(message)}\nMore Details: ${err.url}`
+      : extractMessageFromBabelError(message)
   };
+  if (err.url) {
+    diagnostic.code = err.code;
+    diagnostic.codeDescription = { href: err.url };
+  }
+  return diagnostic;
 };
 
 export const compileSource = (source: string, fileName = 'foo.js'): CompilerResult => {
@@ -100,9 +99,10 @@ export const compileSource = (source: string, fileName = 'foo.js'): CompilerResu
   try {
     transformSync(source, fileName, transformOptions);
   } catch (err) {
-    return {
-      diagnostics: [toDiagnostic(err)]
-    };
+    if (err instanceof CompilerError) {
+      return { diagnostics: [toDiagnostic(err)] };
+    }
+    throw err;
   }
 
   const options: BundleConfig = {

@@ -32,6 +32,7 @@ export const messages = {
   source_tracking_status_bar_click_to_retrieve: '💡 Click to retrieve these changes from the org',
   source_tracking_status_bar_click_to_view_details: '💡 Click to view full details in the output channel',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
+  source_tracking_status_bar_refreshing: 'Refreshing source tracking...',
   lwc_component_name_empty_error: 'Component name cannot be empty',
   lwc_component_name_format_error:
     'Component name must start with a lowercase letter and contain only alphanumeric characters and underscores',

@@ -109,6 +109,9 @@ export const filesAreNotIdentical = Effect.fn('filesAreNotIdentical')(function* 
   const [buffer1, buffer2] = yield* Effect.all(
     [api.services.FsService.readFile(pair.remoteUri), api.services.FsService.readFile(pair.localUri)],
     { concurrency: 'unbounded' }
+  ).pipe(
+    Effect.tapError(e => Effect.logWarning('filesAreNotIdentical: readFile failed, skipping pair', e)),
+    Effect.orElseSucceed(() => ['', ''] as const)
   );
   return buffer1 !== buffer2;
 });
