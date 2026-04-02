@@ -553,6 +553,113 @@ describe('ApexTestController', () => {
     });
   });
 
+  describe('debugTests method and class selection', () => {
+    it('should debug only the selected method when a single method is selected', async () => {
+      const methodTestItem = {
+        id: 'method:BugTest.myUnitTest2',
+        label: 'myUnitTest2',
+        uri: URI.file('/workspace/BugTest.cls'),
+        tags: [],
+        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      await (controller as any).debugTests([methodTestItem], mockTestRun);
+
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
+        name: 'BugTest.myUnitTest2'
+      });
+      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', {
+        name: 'BugTest'
+      });
+    });
+
+    it('should prefer class-level debug when class and method from same class are selected', async () => {
+      const classTestItem = {
+        id: 'class:BugTest',
+        label: 'BugTest',
+        uri: URI.file('/workspace/BugTest.cls'),
+        tags: [],
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      const methodTestItem = {
+        id: 'method:BugTest.myUnitTest2',
+        label: 'myUnitTest2',
+        uri: URI.file('/workspace/BugTest.cls'),
+        tags: [],
+        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      await (controller as any).debugTests([classTestItem, methodTestItem], mockTestRun);
+
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
+        name: 'BugTest'
+      });
+      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
+        name: 'myUnitTest2'
+      });
+    });
+
+    it('should debug each selected method when multiple methods from the same class are selected', async () => {
+      const methodOne = {
+        id: 'method:BugTest.myUnitTest1',
+        label: 'myUnitTest1',
+        uri: URI.file('/workspace/BugTest.cls'),
+        tags: [],
+        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      const methodTwo = {
+        id: 'method:BugTest.myUnitTest2',
+        label: 'myUnitTest2',
+        uri: URI.file('/workspace/BugTest.cls'),
+        tags: [],
+        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      await (controller as any).debugTests([methodOne, methodTwo], mockTestRun);
+
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
+        name: 'BugTest.myUnitTest1'
+      });
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
+        name: 'BugTest.myUnitTest2'
+      });
+      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', {
+        name: 'BugTest'
+      });
+    });
+  });
+
   describe('openOrgOnlyTest', () => {
     it('should open org-only class test', async () => {
       // Clear call history for VS Code APIs and spies
