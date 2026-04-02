@@ -134,7 +134,6 @@ export class SOQLEditorInstance {
           Stream.make(undefined),
           targetOrgRef.changes.pipe(Stream.as(undefined))
         ).pipe(
-          Stream.tap(org => Effect.sync(() => console.log(`Target org changed to ${String(org)}`))),
           Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
           Stream.changes,
           Stream.runForEach(isOrgSet =>
