@@ -29,21 +29,20 @@ export const createLwc = async (page: Page, componentName: string): Promise<void
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
 
-  // Select the default template
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
-  await page.keyboard.press('Enter');
-
-  // Type the component name
+  // First prompt: input box for the component name (TypeScript support is off by default,
+  // so promptForComponentType() is skipped and promptForComponentName() runs first).
   await quickInput.getByText(/Enter Lightning Web Component name/i).waitFor({ state: 'visible', timeout: 10_000 });
   await page.keyboard.type(componentName);
   await page.keyboard.press('Enter');
 
-  // Accept the default output directory
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
+  // Second prompt: Quick Pick to select the output directory — accept the default
+  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
   await page.keyboard.press('Enter');
 
-  // Wait for the JS file to open in the editor
-  const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${componentName}.js"]`);
+  // Wait for the component's JS file to open in the editor
+  // @salesforce/templates camelCases the name (e.g. MyComp → myComp)
+  const camelName = `${componentName[0].toLowerCase()}${componentName.slice(1)}`;
+  const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${camelName}.js"]`);
   await jsEditor.waitFor({ state: 'visible', timeout: 15_000 });
 };
 
@@ -60,18 +59,23 @@ export const waitForLwcLspReady = async (page: Page, timeout = 90_000): Promise<
 };
 
 /**
- * Opens a file by name using the Go to File quick open (Ctrl+P).
- * Navigates to the first result that matches the exact filename.
+ * Opens a file by clicking its entry in the Explorer sidebar.
+ *
+ * VS Code web's "Go to File" (Ctrl+P) only searches files that have already been opened in the
+ * editor — it cannot search the full workspace filesystem. The Explorer sidebar, however, always
+ * reflects the complete workspace tree. After `createLwc` runs, VS Code reveals the created JS
+ * file in the Explorer, so the parent folder is already expanded and sibling files (e.g. the HTML
+ * file) are immediately visible as tree items.
  */
 export const openLwcFile = async (page: Page, fileName: string): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Go to File');
+  await executeCommandWithCommandPalette(page, 'View: Show Explorer');
 
-  const widget = page.locator(QUICK_INPUT_WIDGET);
-  await expect(widget).toBeVisible({ timeout: 10_000 });
+  // The treeitem's accessible name is the bare filename in the Explorer panel
+  const treeItem = page.getByRole('treeitem', { name: fileName }).first();
+  await expect(treeItem, `Explorer should show "${fileName}" in the file tree`).toBeVisible({ timeout: 15_000 });
 
-  await page.keyboard.type(fileName);
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
-  await page.keyboard.press('Enter');
+  // Double-click to open in a permanent tab (single-click opens preview mode)
+  await treeItem.dblclick();
 
   const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${fileName}"]`);
   await editor.waitFor({ state: 'visible', timeout: 10_000 });
