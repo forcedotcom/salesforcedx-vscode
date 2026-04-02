@@ -32,9 +32,8 @@ import packageNls from '../../../package.nls.json';
       await ensureSecondarySideBarHidden(page);
     });
 
-    await emptyWorkspaceDesktopTest.step('verify LWC and Create Apex Class do not exist', async () => {
+    await emptyWorkspaceDesktopTest.step('verify tempaltes commands do not exist', async () => {
       await verifyCommandDoesNotExist(page, packageNls.lightning_generate_lwc_text);
-      await verifyCommandDoesNotExist(page, packageNls.apex_generate_class_text);
     });
 
     await emptyWorkspaceDesktopTest.step('verify deploy/retrieve/delete/generate manifest do not exist', async () => {

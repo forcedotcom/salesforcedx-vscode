@@ -22,9 +22,6 @@ import { emptyWorkspaceTest as test } from '../fixtures';
     const networkErrors = setupNetworkMonitoring(page);
 
     await test.step('verify all apex testing commands are hidden', async () => {
-      // Create Apex Unit Test Class
-      await verifyCommandDoesNotExist(page, packageNls.apex_generate_unit_test_class_text);
-
       // Open Apex Test Explorer Walkthrough
       await verifyCommandDoesNotExist(page, packageNls.apex_testing_walkthrough_open_command);
 

@@ -20,7 +20,7 @@ export const ensureProblemsViewOpen = async (page: Page): Promise<void> => {
   if (await view.isVisible().catch(() => false)) {
     return;
   }
-  await executeCommandWithCommandPalette(page, 'Problems: Focus on Problems');
+  await executeCommandWithCommandPalette(page, 'Problems: Focus on Problems View');
   await expect(view).toBeVisible({ timeout: 10_000 });
 };
 
