@@ -64,7 +64,7 @@ main {
 }
 
 .info-notification__message {
-  background-color: var(--soql-purple);
+  background-color: var(--soql-electric-blue);
   color: var(--soql-white);
   font-size: small;
   padding: 1rem;
