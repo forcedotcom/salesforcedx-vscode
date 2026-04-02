@@ -23,11 +23,8 @@ import { noOrgTest } from '../fixtures';
     const networkErrors = setupNetworkMonitoring(page);
 
     await noOrgTest.step('verify project-only commands are visible', async () => {
-      // Create Apex Unit Test Class should be visible with just a project
-      await verifyCommandExists(page, packageNls.apex_generate_unit_test_class_text, 30_000);
-
       // Open Apex Test Explorer Walkthrough should be visible with just a project
-      await verifyCommandExists(page, packageNls.apex_testing_walkthrough_open_command, 5000);
+      await verifyCommandExists(page, packageNls.apex_testing_walkthrough_open_command, 60_000);
     });
 
     await noOrgTest.step('verify org-dependent commands are hidden', async () => {

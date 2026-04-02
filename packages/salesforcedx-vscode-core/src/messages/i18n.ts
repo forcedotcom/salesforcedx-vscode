@@ -97,7 +97,13 @@ export const messages = {
   project_generate_react_b2x_template:
     'For customers or partners signing in outside your org (B2C). Sample app: Property Rental App.',
   project_generate_agent_template: 'Agent project template',
-  apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
+  select_lwc_language_prompt: 'Select default Lightning Web Component language',
+  javascript_language_option: 'JavaScript',
+  javascript_language_description: 'Create LWC components using JavaScript',
+  typescript_language_option: 'TypeScript',
+  typescript_language_description: 'Create LWC components using TypeScript',
+  typescript_legacy_flag_deprecation:
+    "The 'preview.typeScriptSupport' setting is deprecated. Please set 'defaultLwcLanguage': 'typescript' in your sfdx-project.json instead.",
 
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
@@ -542,6 +548,8 @@ export const messages = {
     'Salesforce metadata XML IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
   metadata_xml_deprecated_redhat_extension:
     'Salesforce metadata XML IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
+  metadata_xml_vmargs_configured:
+    'Configured xml.server.vmargs to -Xmx1024M in User settings to prevent Out Of Memory errors.',
   metadata_xml_fail_redhat_extension: 'Failed to setup Red Hat XML extension for metadata XML support'
 } as const;
 

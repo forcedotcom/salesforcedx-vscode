@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.4.2",
+  "version": "66.4.4",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -67,6 +67,7 @@
     "salesforce.apex-language-server-extension",
     "redhat.vscode-xml",
     "esbenp.prettier-vscode",
-    "financialforce.lana"
+    "financialforce.lana",
+    "GraphQL.vscode-graphql-syntax"
   ]
 }

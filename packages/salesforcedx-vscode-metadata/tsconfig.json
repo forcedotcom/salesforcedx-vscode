@@ -3,12 +3,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
-    "resolveJsonModule": true,
-    "plugins": [
-      {
-        "name": "@effect/language-service"
-      }
-    ]
+    "resolveJsonModule": true
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "include": [
