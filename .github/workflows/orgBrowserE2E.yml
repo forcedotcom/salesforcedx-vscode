@@ -61,20 +61,41 @@ jobs:
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
-        run: |
-          npm i -g @salesforce/cli
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli
+          retry_wait_seconds: 30
 
       - name: Clone dreamhouse
         if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+          retry_wait_seconds: 60
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
 
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
           sf project deploy start
           sf org assign permset -n dreamhouse
@@ -167,24 +188,33 @@ jobs:
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
-        run: |
-          npm i -g @salesforce/cli
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli
+          retry_wait_seconds: 30
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        run: npx playwright install chromium --with-deps
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
 
       - name: Clone dreamhouse
         if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+          retry_wait_seconds: 60
 
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
           sf project deploy start
           sf org assign permset -n dreamhouse
