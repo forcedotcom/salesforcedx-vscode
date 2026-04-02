@@ -23,6 +23,9 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+import { waitForTraceFlagStatusBar } from '../helpers';
+
+test.describe.configure({ mode: 'serial' });
 
 const LOG_POLL_INTERVAL_SETTING = 'salesforcedx-vscode-apex-log.logPollIntervalSeconds';
 
@@ -35,6 +38,11 @@ test('Auto-collection: poll interval setting, trace flag triggers collector, dis
     await setupMinimalOrgAndAuth(page);
     await closeSettingsTab(page);
     await ensureSecondarySideBarHidden(page);
+
+    // makes sure apex-log is loaded
+    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
+      timeout: 60_000
+    });
   });
 
   await test.step('set logPollIntervalSeconds to 10', async () => {
@@ -58,9 +66,7 @@ test('Auto-collection: poll interval setting, trace flag triggers collector, dis
 
   await test.step('cleanup: delete trace flag', async () => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
-      timeout: 60_000
-    });
+    await waitForTraceFlagStatusBar(page, /No Tracing/);
     await saveScreenshot(page, 'auto-collect.cleanup.png');
   });
 

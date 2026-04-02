@@ -130,4 +130,4 @@ export const createSourceTrackingStatusBar = () =>
     );
     yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
     yield* Effect.sleep(Duration.infinity); // persist the ui component until the extensionscope closes
-  }).pipe(Effect.provide(AllServicesLayer));
+  });

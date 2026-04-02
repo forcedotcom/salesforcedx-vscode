@@ -19,11 +19,13 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+import { waitForTraceFlagStatusBar } from '../helpers';
 
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
 const findInEditor = async (page: Page, query: string): Promise<void> => {
@@ -34,7 +36,9 @@ const findInEditor = async (page: Page, query: string): Promise<void> => {
   await expect(findInput).toBeVisible({ timeout: 10_000 });
   await findInput.fill(query);
   const findDialog = page.getByRole('dialog', { name: /Find/ });
-  await expect(findDialog.getByText(/(\d+|\?) of \d+/).filter({ hasNotText: /No results/ })).toBeVisible({ timeout: 10_000 });
+  await expect(findDialog.getByText(/(\d+|\?) of \d+/).filter({ hasNotText: /No results/ })).toBeVisible({
+    timeout: 10_000
+  });
   await page.keyboard.press('Escape');
 };
 
@@ -62,7 +66,10 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
 
   await test.step('cleanup stale trace flags from prior runs', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsOpen'], 30_000);
-    const removeLink = page.locator('.codelens-decoration a').filter({ hasText: /^Remove$/ }).first();
+    const removeLink = page
+      .locator('.codelens-decoration a')
+      .filter({ hasText: /^Remove$/ })
+      .first();
     await expect(async () => {
       await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsOpen']);
       await expect(page.locator('.tab').filter({ hasText: /traceFlags\.json/ })).toBeVisible({ timeout: 10_000 });
@@ -87,7 +94,12 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     });
 
     await openTraceFlagsAndExpectContent(page, '"DEVELOPER_LOG"');
-    await expect(page.locator('.codelens-decoration a').filter({ hasText: /^Remove$/ }).first()).toBeVisible({
+    await expect(
+      page
+        .locator('.codelens-decoration a')
+        .filter({ hasText: /^Remove$/ })
+        .first()
+    ).toBeVisible({
       timeout: 30_000
     });
     await saveScreenshot(page, 'trace-flag.created.png');
@@ -106,7 +118,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await page.keyboard.type(debugLevelDeveloperName);
     await page.keyboard.press('Enter');
 
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await waitForQuickInputFirstOption(page);
     const useDefaultsChoice = quickInput.locator(QUICK_INPUT_LIST_ROW).first();
     await expect(useDefaultsChoice).toBeAttached({ timeout: 10_000 });
     await useDefaultsChoice.evaluate(el => {
@@ -120,9 +132,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
 
   await test.step('cleanup: delete current-user trace flag', async () => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
-      timeout: 60_000
-    });
+    await waitForTraceFlagStatusBar(page, /No Tracing/);
     await saveScreenshot(page, 'trace-flags.cleanup.png');
   });
 
