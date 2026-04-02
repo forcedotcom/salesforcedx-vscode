@@ -125,9 +125,7 @@ export class SOQLEditorInstance {
     );
     this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(messageFiber)) });
 
-    const { onConnectionChanged } = this;
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
+    const { onConnectionChanged, onNoDefaultOrg } = this;
     const connectionFiber = getSoqlRuntime().runFork(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -140,7 +138,7 @@ export class SOQLEditorInstance {
           Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
           Stream.changes,
           Stream.runForEach(isOrgSet =>
-            isOrgSet ? onConnectionChanged() : self.sendMessageToUi('no_default_org')
+            isOrgSet ? onConnectionChanged() : onNoDefaultOrg()
           )
         );
       })
@@ -167,13 +165,12 @@ export class SOQLEditorInstance {
   }
 
   protected updateWebview(document: vscode.TextDocument) {
-    const self = this;
-    return Effect.gen(function* () {
-      if (self.pendingWebviewUpdate) {
-        self.pendingWebviewUpdate = false;
-        return;
+    return Effect.suspend(() => {
+      if (this.pendingWebviewUpdate) {
+        this.pendingWebviewUpdate = false;
+        return Effect.void;
       }
-      yield* self.sendMessageToUi('text_soql_changed', document.getText());
+      return this.sendMessageToUi('text_soql_changed', document.getText());
     });
   }
 
@@ -194,14 +191,13 @@ export class SOQLEditorInstance {
   private handleMessageEffect = (event: SoqlEditorEvent) => {
     switch (event.type) {
       case 'ui_activated': {
-        const self = this;
-        return Effect.gen(function* () {
-          const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
-          if (!isOrgSet) {
-            yield* self.sendMessageToUi('no_default_org');
-          }
-          yield* self.updateWebview(self.document);
-        }).pipe(Effect.withSpan('SOQLEditor.ui_activated'));
+        return Effect.promise(() => isDefaultOrgSet()).pipe(
+          Effect.flatMap(isOrgSet =>
+            isOrgSet ? Effect.void : this.sendMessageToUi('no_default_org')
+          ),
+          Effect.andThen(this.updateWebview(this.document)),
+          Effect.withSpan('SOQLEditor.ui_activated')
+        );
       }
 
       case 'ui_soql_changed': {
@@ -244,17 +240,19 @@ export class SOQLEditorInstance {
         );
 
       case 'run_query': {
-        const self = this;
+        const runQueryDone = () => this.runQueryDone();
+        const { document } = this;
+        const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
         return Effect.gen(function* () {
           const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
           if (!isOrgSet) {
             const message = nls.localize('info_no_default_org');
             yield* appendToChannel(message);
             yield* Effect.promise(() => vscode.window.showInformationMessage(message));
-            yield* self.runQueryDone();
+            yield* runQueryDone();
             return;
           }
-          const queryText = self.document.getText();
+          const queryText = document.getText();
           const conn = yield* Effect.promise(() => getConnection());
           const queryData = yield* Effect.promise(() =>
             vscode.window.withProgress(
@@ -266,44 +264,39 @@ export class SOQLEditorInstance {
               () => runQuery(conn)(queryText)
             )
           );
-          yield* Effect.promise(() => self.openQueryDataView(queryData));
-          yield* self.runQueryDone();
+          yield* Effect.promise(() => openQueryDataView(queryData));
+          yield* runQueryDone();
         }).pipe(
           Effect.catchAllCause(cause => {
             const err = Cause.squash(cause);
-            return Effect.gen(function* () {
-              yield* appendToChannel(
-                nls.localize('error_run_soql_query', err instanceof Error ? err.message : String(err))
-              );
-              yield* self.runQueryDone();
-            });
+            return appendToChannel(
+              nls.localize('error_run_soql_query', err instanceof Error ? err.message : String(err))
+            ).pipe(Effect.andThen(this.runQueryDone()));
           }),
           Effect.withSpan('SOQLEditor.run_query')
         );
       }
 
       case 'get_query_plan': {
-        const self = this;
+        const getQueryPlanDone = () => this.getQueryPlanDone();
+        const { document } = this;
         return Effect.gen(function* () {
           const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
           if (!isOrgSet) {
             const message = nls.localize('info_no_default_org');
             yield* appendToChannel(message);
             yield* Effect.promise(() => vscode.window.showInformationMessage(message));
-            yield* self.getQueryPlanDone();
+            yield* getQueryPlanDone();
             return;
           }
-          yield* Effect.promise(() => getSoqlRuntime().runPromise(executeQueryPlan(self.document.getText())));
-          yield* self.getQueryPlanDone();
+          yield* Effect.promise(() => getSoqlRuntime().runPromise(executeQueryPlan(document.getText())));
+          yield* getQueryPlanDone();
         }).pipe(
           Effect.catchAllCause(cause => {
             const err = Cause.squash(cause);
-            return Effect.gen(function* () {
-              yield* appendToChannel(
-                nls.localize('error_run_soql_query', err instanceof Error ? err.message : String(err))
-              );
-              yield* self.getQueryPlanDone();
-            });
+            return appendToChannel(
+              nls.localize('error_run_soql_query', err instanceof Error ? err.message : String(err))
+            ).pipe(Effect.andThen(this.getQueryPlanDone()));
           }),
           Effect.withSpan('SOQLEditor.get_query_plan')
         );
@@ -351,4 +344,5 @@ export class SOQLEditorInstance {
   }
 
   public onConnectionChanged = () => this.sendMessageToUi('connection_changed');
+  private readonly onNoDefaultOrg = () => this.sendMessageToUi('no_default_org');
 }
