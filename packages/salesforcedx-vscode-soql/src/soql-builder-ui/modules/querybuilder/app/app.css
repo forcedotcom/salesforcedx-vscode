@@ -47,8 +47,8 @@ main {
 }
 
 .warning-notification__message {
-  background-color: var(--soql-red);
-  color: var(--soql-white);
+  background-color: var(--vscode-statusBarItem-errorBackground, var(--soql-red));
+  color: var(--vscode-statusBarItem-errorForeground, var(--soql-white));
   font-size: small;
   padding: 1rem;
   border-radius: 3px;
