@@ -92,7 +92,7 @@ export const messages = {
   conflict_detect_diff_command_title: 'Compare Files',
   conflict_detect_open_file: 'Open File',
   conflict_detect_resolve_view: 'Org Differences',
-  conflicts_view_title_text: 'Conflicts',
+  conflicts_view_title_text: 'Org Differences',
   conflict_detect_conflicts_during_deploy:
     'Conflicts were detected while deploying metadata to your org. What would you like to do?',
   conflict_detect_conflicts_during_retrieve:

@@ -32,7 +32,7 @@ export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* 
           .join('\n')}\n`
       : '';
 
-  const summary = `\n${succeeded.length} files${succeeded.length === 1 ? '' : 's'} retrieved${failed.length > 0 ? `, ${failed.length} failed` : ''}\n`;
+  const summary = `\n${succeeded.length} file${succeeded.length === 1 ? '' : 's'} retrieved${failed.length > 0 ? `, ${failed.length} failed` : ''}\n`;
 
   return successSection + failureSection + summary;
 });
