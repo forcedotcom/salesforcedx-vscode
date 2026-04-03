@@ -65,6 +65,7 @@
     "salesforce.sfdx-code-analyzer-vscode",
     "salesforce.salesforcedx-vscode-ui-preview",
     "salesforce.apex-language-server-extension",
+    "salesforce.salesforcedx-metadata-visualizer-vscode",
     "redhat.vscode-xml",
     "esbenp.prettier-vscode",
     "financialforce.lana",
