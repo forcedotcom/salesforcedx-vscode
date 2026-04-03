@@ -33,7 +33,7 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
   effect: Effect.gen(function* () {
     const registryService = yield* MetadataRegistryService;
     const fsService = yield* FsService;
-    /** Mark components for deletion */
+
     const markComponentsForDeletion = Effect.fn('MetadataDeleteService.markComponentsForDeletion')(function* (
       componentSet: ComponentSet
     ) {
@@ -54,7 +54,6 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
       return deleteSet;
     });
 
-    /** Delete local files after successful deploy */
     const deleteLocalFiles = Effect.fn('MetadataDeleteService.deleteLocalFiles')(function* (
       componentSet: ComponentSet,
       deployResult: DeployResult
@@ -93,6 +92,12 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
       );
     });
 
-    return { markComponentsForDeletion, deleteLocalFiles };
+    return {
+      /** Mark components for deletion */
+      markComponentsForDeletion,
+
+      /** Delete local files after successful deploy */
+      deleteLocalFiles
+    };
   })
 }) {}

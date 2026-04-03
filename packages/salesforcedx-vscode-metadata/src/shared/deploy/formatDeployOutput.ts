@@ -12,19 +12,26 @@ import { URI } from 'vscode-uri';
 /** Format deploy results for output */
 export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (result: DeployResult) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { isSDRSuccess, isSDRFailure } = yield* api.services.ComponentSetService;
-  const fileResponses = result.getFileResponses();
-  const succeeded = fileResponses.filter(isSDRSuccess);
-  const failed = fileResponses.filter(isSDRFailure);
+  const { isSDRSuccess, isSDRFailure, getComponentState } = yield* api.services.ComponentSetService;
+  const failed = result.getFileResponses().filter(isSDRFailure);
+
+  const { deploys = [], deleted = [] } = Object.groupBy(result.getFileResponses().filter(isSDRSuccess), fr =>
+    getComponentState(fr) === 'Deleted' ? 'deleted' : 'deploys'
+  );
 
   const successSection =
-    succeeded.length > 0
-      ? `\n=== Deployed Source ===\n${succeeded.map(r => `${r.state} ${r.type} ${URI.file(r.filePath).toString()}`).join('\n')}\n`
+    deploys.length > 0
+      ? `\n=== Deployed Source (${deploys.length}) ===\n${deploys.map(r => `${r.state} ${r.type} ${URI.file(r.filePath).toString()}`).join('\n')}\n`
+      : '';
+
+  const deletedSection =
+    deleted.length > 0
+      ? `\n=== Deleted Source (${deleted.length}) ===\n${deleted.map(r => `${r.state} ${r.type} ${URI.file(r.filePath).toString()}`).join('\n')}\n`
       : '';
 
   const failureSection =
     failed.length > 0
-      ? `\n=== Deploy Errors ===\n${failed
+      ? `\n=== Deploy Errors (${failed.length}) ===\n${failed
           .map(r => {
             const error = 'error' in r ? r.error : 'Unknown error';
             return `ERROR: ${r.filePath ?? r.fullName}: ${error}`;
@@ -32,7 +39,5 @@ export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (res
           .join('\n')}\n`
       : '';
 
-  const summary = `\n${succeeded.length} file${succeeded.length === 1 ? '' : 's'} deployed${failed.length > 0 ? `, ${failed.length} failed` : ''}\n`;
-
-  return successSection + failureSection + summary;
+  return successSection + deletedSection + failureSection;
 });
