@@ -295,6 +295,12 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "conflicts",
+        "contents": "%conflicts_view_welcome_message%"
+      }
+    ],
     "languages": [
       {
         "id": "forcesourcemanifest",

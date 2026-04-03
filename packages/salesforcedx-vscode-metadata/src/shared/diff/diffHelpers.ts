@@ -105,16 +105,17 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
   );
 });
 
-/** Check if two files differ in content */
+/** Check if two files differ in content, ignoring whitespace */
 export const filesAreNotIdentical = Effect.fn('filesAreNotIdentical')(function* (pair: DiffFilePair) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [buffer1, buffer2] = yield* Effect.all(
+  const [buffer1, buffer2] = (yield* Effect.all(
     [api.services.FsService.readFile(pair.remoteUri), api.services.FsService.readFile(pair.localUri)],
     { concurrency: 'unbounded' }
   ).pipe(
     Effect.tapError(e => Effect.logWarning('filesAreNotIdentical: readFile failed, skipping pair', e)),
     Effect.orElseSucceed(() => ['', ''] as const)
-  );
+    // normalize whitespace
+  )).map((s: string) => s.replaceAll(/\s+/g, ''));
   return buffer1 !== buffer2;
 });
 
