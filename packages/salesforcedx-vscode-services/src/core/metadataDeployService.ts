@@ -21,7 +21,7 @@ import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRe
 import { ConnectionService } from './connectionService';
 import { ProjectService } from './projectService';
 import { unknownToErrorCause } from './shared';
-import { type SourceTrackingOptions, SourceTrackingService } from './sourceTrackingService';
+import { SourceTrackingService } from './sourceTrackingService';
 
 export class MetadataDeployError extends Schema.TaggedError<MetadataDeployError>()('FailedToDeployMetadataError', {
   message: Schema.String,
@@ -43,19 +43,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     const projectService = yield* ProjectService;
 
     /** Get ComponentSet of local changes for deploy */
-    const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* (
-      options?: SourceTrackingOptions
-    ) {
-      const hasTracking = yield* trackingService.hasTracking();
-      if (!hasTracking) {
-        return yield* Effect.die(
-          'Source tracking not enabled.  The command should not have appeared in the Command Palette.'
-        );
-      }
-
-      if (!options?.ignoreConflicts) {
-        yield* trackingService.checkConflicts();
-      }
+    const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* () {
       const localComponentSets = yield* trackingService.getLocalChangesAsComponentSet();
 
       yield* Effect.annotateCurrentSpan({

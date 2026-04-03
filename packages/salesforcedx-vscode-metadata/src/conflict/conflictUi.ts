@@ -58,6 +58,9 @@ export const handleConflictsModal = Effect.fn('handleConflictsModal')(function* 
     treeProviderFire();
     return 'continue' satisfies ConflictModalResult;
   }
+  if (choice === undefined) {
+    return yield* new api.services.UserCancellationError();
+  }
 
   yield* SubscriptionRef.update(stateRef, () => ({
     title,
