@@ -8,6 +8,7 @@
 import type { DiffFilePair } from '../shared/diff/diffTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { nls } from '../messages';
@@ -22,22 +23,23 @@ import { conflictTreeProvider, ensureConflictView } from './conflictView';
 export type HandleConflictWithRetryOptions<A, E, R> = {
   retryOperation: Effect.Effect<A, E, R>;
   pairs: DiffFilePair[];
-  operationType: 'deploy' | 'retrieve';
+  operationType: 'deploy' | 'retrieve' | 'delete';
 };
 
 /** Unified conflict detection: tracking orgs use tracking; non-tracking use timestamps when setting enabled. Yields ConflictsDetectedError when conflicts are found. */
 export const detectConflicts = Effect.fn('detectConflicts')(function* (
   componentSet: NonEmptyComponentSet,
-  operationType: 'deploy' | 'retrieve'
+  operationType: 'deploy' | 'retrieve' | 'delete'
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 
+  const timestampOperationType = operationType === 'delete' ? 'deploy' : operationType;
   const pairs =
     orgInfo.tracksSource === true
       ? yield* detectConflictsFromTracking(componentSet)
       : getDetectConflictsForDeployAndRetrieve()
-        ? yield* detectConflictsFromTimestamps(componentSet, operationType)
+        ? yield* detectConflictsFromTimestamps(componentSet, timestampOperationType)
         : [];
 
   if (pairs.length > 0) return yield* new ConflictsDetectedError({ pairs, componentSet, operationType });
@@ -52,23 +54,33 @@ export const handleConflictWithRetry = Effect.fn('handleConflictWithRetry')(func
 ) {
   yield* ensureConflictView();
 
+  const { warningMessage, viewConflictsText, overrideText } = Match.value(options.operationType).pipe(
+    Match.when('deploy', () => ({
+      warningMessage: nls.localize('conflict_detect_conflicts_during_deploy'),
+      viewConflictsText: nls.localize('conflict_detect_show_conflicts_deploy'),
+      overrideText: nls.localize('conflict_detect_override_deploy')
+    })),
+    Match.when('retrieve', () => ({
+      warningMessage: nls.localize('conflict_detect_conflicts_during_retrieve'),
+      viewConflictsText: nls.localize('conflict_detect_show_conflicts_retrieve'),
+      overrideText: nls.localize('conflict_detect_override_retrieve')
+    })),
+    Match.when('delete', () => ({
+      warningMessage: nls.localize('conflict_detect_conflicts_during_delete'),
+      viewConflictsText: nls.localize('conflict_detect_show_conflicts_delete'),
+      overrideText: nls.localize('conflict_detect_override_delete')
+    })),
+    Match.exhaustive
+  );
+
   const result = yield* handleConflictsModal({
     pairs: options.pairs,
     mode: 'conflicts',
     stateRef: getConflictStateRef(),
     treeProviderFire: () => conflictTreeProvider.fireChange(),
-    warningMessage:
-      options.operationType === 'deploy'
-        ? nls.localize('conflict_detect_conflicts_during_deploy')
-        : nls.localize('conflict_detect_conflicts_during_retrieve'),
-    viewConflictsText:
-      options.operationType === 'deploy'
-        ? nls.localize('conflict_detect_show_conflicts_deploy')
-        : nls.localize('conflict_detect_show_conflicts_retrieve'),
-    overrideText:
-      options.operationType === 'deploy'
-        ? nls.localize('conflict_detect_override_deploy')
-        : nls.localize('conflict_detect_override_retrieve'),
+    warningMessage,
+    viewConflictsText,
+    overrideText,
     emptyLabel: nls.localize('conflict_detect_no_conflicts')
   });
 

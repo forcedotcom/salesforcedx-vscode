@@ -27,9 +27,7 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
     { concurrency: 'unbounded' }
   );
 
-  yield* channelService.appendToChannel(
-    `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
-  );
+  yield* channelService.appendToChannel('Starting metadata deployment...');
 
   const result = yield* api.services.MetadataDeployService.deploy(componentSet);
 

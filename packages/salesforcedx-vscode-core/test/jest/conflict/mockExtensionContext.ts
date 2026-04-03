@@ -17,8 +17,8 @@ import {
   LanguageModelChat,
   Memento,
   SecretStorage,
-  Uri
 } from 'vscode';
+import { URI } from 'vscode-uri';
 
 class MockMemento implements Memento {
   private keyValues: string[] = [];
@@ -108,11 +108,11 @@ export class MockExtensionContext implements ExtensionContext {
   }
   public secrets: SecretStorage;
   public extension: Extension<any>;
-  public storageUri: Uri | undefined;
-  public globalStorageUri = Uri.parse('file://globalStorage');
-  public logUri = Uri.parse('file://logs');
+  public storageUri: URI | undefined;
+  public globalStorageUri = URI.parse('file://globalStorage');
+  public logUri = URI.parse('file://logs');
   public extensionMode: ExtensionMode;
-  public extensionUri = Uri.parse('file://test');
+  public extensionUri = URI.parse('file://test');
   public environmentVariableCollection = new MockEnvironmentVariableCollection();
   public subscriptions: { dispose(): any }[] = [];
   public workspaceState: Memento;

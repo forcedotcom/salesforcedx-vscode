@@ -25,6 +25,14 @@ const createMockComponentSetService = (): Layer.Layer<ComponentSetService, never
   Layer.succeed(
     ComponentSetService,
     new ComponentSetService({
+      getComponentState: (component: FileResponseSuccess) =>
+        component.state === ComponentStatus.Changed
+          ? 'Changed'
+          : component.state === ComponentStatus.Created
+            ? 'Created'
+            : component.state === ComponentStatus.Deleted
+              ? 'Deleted'
+              : 'Unchanged',
       isSDRSuccess: (fileResponse: FileResponse): fileResponse is FileResponseSuccess =>
         fileResponse.state !== ComponentStatus.Failed,
       isSDRFailure: (fileResponse: FileResponse): fileResponse is FileResponseFailure =>

@@ -7,6 +7,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import { URI } from 'vscode-uri';
 
 /** Format retrieve results for output */
 export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* (result: RetrieveResult) {
@@ -18,12 +19,12 @@ export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* 
 
   const successSection =
     succeeded.length > 0
-      ? `\n=== Retrieved Source ===\n${succeeded.map(r => `${r.state} ${r.type} ${r.fullName}`).join('\n')}\n`
+      ? `\n=== Retrieved Source (${succeeded.length}) ===\n${succeeded.map(r => `${r.state} ${r.type} ${URI.file(r.filePath).toString()}`).join('\n')}\n`
       : '';
 
   const failureSection =
     failed.length > 0
-      ? `\n=== Retrieve Errors ===\n${failed
+      ? `\n=== Retrieve Errors (${failed.length}) ===\n${failed
           .map(r => {
             const error = 'error' in r ? r.error : 'Unknown error';
             return `ERROR: ${r.filePath ?? r.fullName}: ${error}`;
@@ -31,7 +32,5 @@ export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* 
           .join('\n')}\n`
       : '';
 
-  const summary = `\n${succeeded.length} component${succeeded.length === 1 ? '' : 's'} retrieved${failed.length > 0 ? `, ${failed.length} failed` : ''}\n`;
-
-  return successSection + failureSection + summary;
+  return successSection + failureSection;
 });

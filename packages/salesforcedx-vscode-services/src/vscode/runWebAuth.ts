@@ -21,7 +21,7 @@ export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
       const config = vscode.workspace.getConfiguration();
       yield* Effect.all(
         Object.entries(configMap).map(([k, v]) =>
-          Effect.promise(() => config.update(k, v, vscode.ConfigurationTarget.Global))
+          Effect.promise(() => config.update(k, v, vscode.ConfigurationTarget.Workspace))
         )
       );
     }

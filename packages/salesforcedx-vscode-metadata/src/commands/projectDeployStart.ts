@@ -14,9 +14,9 @@ import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.MetadataDeployService.getComponentSetForDeploy({ ignoreConflicts }).pipe(
+  return yield* api.services.MetadataDeployService.getComponentSetForDeploy().pipe(
     Effect.flatMap((yield* api.services.ComponentSetService).ensureNonEmptyComponentSet),
-    Effect.tap(cs => detectConflicts(cs, 'deploy')),
+    Effect.tap(cs => (ignoreConflicts ? Effect.void : detectConflicts(cs, 'deploy'))),
     Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
   );
 });

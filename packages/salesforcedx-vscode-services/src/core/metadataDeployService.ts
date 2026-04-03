@@ -10,16 +10,18 @@ import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
+import * as Match from 'effect/Match';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { ConnectionService } from './connectionService';
 import { ProjectService } from './projectService';
 import { unknownToErrorCause } from './shared';
-import { type SourceTrackingOptions, SourceTrackingService } from './sourceTrackingService';
+import { SourceTrackingService } from './sourceTrackingService';
 
 export class MetadataDeployError extends Schema.TaggedError<MetadataDeployError>()('FailedToDeployMetadataError', {
   message: Schema.String,
@@ -41,19 +43,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     const projectService = yield* ProjectService;
 
     /** Get ComponentSet of local changes for deploy */
-    const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* (
-      options?: SourceTrackingOptions
-    ) {
-      const hasTracking = yield* trackingService.hasTracking();
-      if (!hasTracking) {
-        return yield* Effect.die(
-          'Source tracking not enabled.  The command should not have appeared in the Command Palette.'
-        );
-      }
-
-      if (!options?.ignoreConflicts) {
-        yield* trackingService.checkConflicts();
-      }
+    const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* () {
       const localComponentSets = yield* trackingService.getLocalChangesAsComponentSet();
 
       yield* Effect.annotateCurrentSpan({
@@ -90,10 +80,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
             const deployResult = await vscode.window.withProgress(
               {
                 location: vscode.ProgressLocation.Notification,
-                title:
-                  components.size === 1
-                    ? nls.localize('deploying_one_component')
-                    : nls.localize('deploying_n_components', String(components.size)),
+                title: getDeployMessage(components),
                 cancellable: true
               },
               async (_, token) => {
@@ -135,8 +122,25 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       }
 
       return deployOutcome;
-    });
+    }, withActiveMetadataOperationPipeline);
 
     return { deploy, getComponentSetForDeploy };
   })
 }) {}
+
+const getDeployMessage = (components: ComponentSet): string => {
+  const byType = Map.groupBy(components.getSourceComponents().toArray(), c =>
+    !c.isMarkedForDelete() || c.getDestructiveChangesType() === undefined ? 'deploy' : 'delete'
+  );
+  const deployMsg = Match.value(byType.get('deploy')?.length ?? 0).pipe(
+    Match.when(0, () => undefined),
+    Match.when(1, () => nls.localize('deploying_one_component')),
+    Match.orElse(n => nls.localize('deploying_n_components', n))
+  );
+  const deleteMsg = Match.value(byType.get('delete')?.length ?? 0).pipe(
+    Match.when(0, () => undefined),
+    Match.when(1, () => nls.localize('deleting_one_component')),
+    Match.orElse(n => nls.localize('deleting_n_components', n))
+  );
+  return [deployMsg, deleteMsg].filter(isString).join('; ');
+};

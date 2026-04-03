@@ -33,6 +33,7 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
 
     const componentSetService = yield* api.services.ComponentSetService;
     const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
+    yield* api.services.ProjectService.ensureInPackageDirectories(resolvedUris);
     const componentSet = yield* Effect.succeed(Array.from(resolvedUris)).pipe(
       Effect.flatMap(componentSetService.getComponentSetFromUris),
       Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),

@@ -32,6 +32,7 @@ export const messages = {
   source_tracking_status_bar_click_to_retrieve: '💡 Click to retrieve these changes from the org',
   source_tracking_status_bar_click_to_view_details: '💡 Click to view full details in the output channel',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
+  source_tracking_status_bar_refreshing: 'Refreshing source tracking...',
   lwc_component_name_empty_error: 'Component name cannot be empty',
   lwc_component_name_format_error:
     'Component name must start with a lowercase letter and contain only alphanumeric characters and underscores',
@@ -66,8 +67,7 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-  delete_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before deleting.',
-  delete_source_operation_failed: 'Delete operation failed',
+  delete_source_operation_failed: 'Delete operation failed: %s',
   delete_completed_with_errors_message: 'Delete completed with errors. Check output for details.',
   delete_failed: 'Failed to delete: %s',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
@@ -81,8 +81,6 @@ export const messages = {
   source_diff_unsupported_type: 'Diff for this metadata type is currently not supported',
   source_diff_title: '%s//%s ↔ local//%s',
   source_diff_failed: 'Diff failed: %s',
-  source_diff_failed_for_file: 'Diff failed for %s: %s',
-  source_diff_cancelled: 'Diff cancelled by user',
   source_diff_no_results: 'No components retrieved from org',
   source_diff_no_matching_files: 'No matching files found to diff',
   source_diff_all_files_match: 'All Files Match',
@@ -93,19 +91,23 @@ export const messages = {
   conflict_detect_diff_command_title: 'Compare Files',
   conflict_detect_open_file: 'Open File',
   conflict_detect_resolve_view: 'Org Differences',
-  conflicts_view_title_text: 'Conflicts',
+  conflicts_view_title_text: 'Org Differences',
   conflict_detect_conflicts_during_deploy:
     'Conflicts were detected while deploying metadata to your org. What would you like to do?',
   conflict_detect_conflicts_during_retrieve:
     'Conflicts are detected while retrieving metadata from your org. What would you like to do?',
   conflict_detect_override_deploy: 'Override Conflicts and Deploy',
   conflict_detect_override_retrieve: 'Override Conflicts and Retrieve',
+  conflict_detect_override_delete: 'Override Conflicts and Delete',
   conflict_detect_show_conflicts_deploy: 'View Conflicts and Cancel Deploy',
   conflict_detect_show_conflicts_retrieve: 'View Conflicts and Cancel Retrieve',
+  conflict_detect_show_conflicts_delete: 'View Conflicts and Cancel Delete',
+  conflict_detect_conflicts_during_delete:
+    'Conflicts were detected while deleting metadata from your org. What would you like to do?',
   conflict_detect_no_conflicts: 'No conflicts',
   conflict_detect_no_differences: 'No differences',
   conflict_detection_enabled_description:
-    'When enabled, check for conflicts before deploy/retrieve on orgs that don\'t support source tracking. Orgs with tracking always check conflicts.',
+    "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
 
   // SObject refresh
   sobjects_refresh: 'SFDX: Refresh SObject Definitions',

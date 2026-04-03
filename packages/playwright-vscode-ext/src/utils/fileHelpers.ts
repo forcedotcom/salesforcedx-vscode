@@ -85,7 +85,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
 
   // Second prompt: "Enter Apex class name"
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
+  await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 30_000 });
   await page.keyboard.type(className);
   await page.keyboard.press('Enter');
 

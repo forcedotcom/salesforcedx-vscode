@@ -6,16 +6,16 @@
  */
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
-import { FileType, Uri, workspace } from 'vscode';
+import { FileType, workspace } from 'vscode';
+import { URI } from 'vscode-uri';
 import { toUriEffect } from './services/extensionProvider';
 
 // utility methods shared with the vscode extension
 
 /** Resolve path to URI via extension API (FsService.toUri). */
-const toUri = async (filePath: string): Promise<Uri> => {
+const toUri = async (filePath: string): Promise<URI> => {
   const uri = await Effect.runPromise(toUriEffect(filePath));
-  // FsService returns vscode-uri URI; workspace.fs expects vscode.Uri
-  return Uri.parse(uri.toString());
+  return URI.parse(uri.toString());
 };
 
 const SFDX_PROJECT = 'sfdx-project.json';

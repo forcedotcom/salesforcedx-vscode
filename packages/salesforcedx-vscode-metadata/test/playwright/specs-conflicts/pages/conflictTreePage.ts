@@ -7,26 +7,37 @@
 
 import { expect, type Page } from '@playwright/test';
 
+const itemRegex = (fileName: string) =>
+  new RegExp(`${fileName.replaceAll('.', '\\.')}(?![-.\\w])`);
+
 export class ConflictTreePage {
   constructor(private readonly page: Page) {}
 
+  private conflictsTree() {
+    return this.page.getByRole('tree', { name: 'Conflicts' });
+  }
+
   public async waitForItem(fileName: string, timeout = 10_000): Promise<void> {
     await expect(
-      this.page.getByRole('treeitem', { name: new RegExp(`${fileName.replaceAll('.', '\\.')}(?![-.\\w])`) }),
+      this.conflictsTree().getByRole('treeitem', { name: itemRegex(fileName) }),
       `Conflict tree should show ${fileName}`
     ).toBeVisible({ timeout });
   }
 
   public async clickItem(fileName: string): Promise<void> {
-    await this.page
-      .getByRole('treeitem', { name: new RegExp(`${fileName.replaceAll('.', '\\.')}(?![-.\\w])`) })
+    await this.conflictsTree()
+      .getByRole('treeitem', { name: itemRegex(fileName) })
       .click();
   }
 
   public async waitForItemGone(fileName: string, timeout = 30_000): Promise<void> {
-    await expect(
-      this.page.getByRole('treeitem', { name: new RegExp(`${fileName.replaceAll('.', '\\.')}(?![-.\\w])`) }),
-      `Conflict tree should no longer show ${fileName}`
-    ).not.toBeVisible({ timeout });
+    await expect(async () => {
+      const tree = this.conflictsTree();
+      if (!(await tree.isVisible().catch(() => false))) return;
+      await expect(
+        tree.getByRole('treeitem', { name: itemRegex(fileName) }),
+        `Conflict tree should no longer show ${fileName}`
+      ).not.toBeVisible({ timeout: 2000 });
+    }).toPass({ timeout });
   }
 }

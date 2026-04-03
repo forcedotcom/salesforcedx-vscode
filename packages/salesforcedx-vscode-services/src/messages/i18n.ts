@@ -17,7 +17,9 @@
  */
 export const messages = {
   deploying_one_component: 'Deploying 1 component',
-  deploying_n_components: 'Deploying %s components',
+  deploying_n_components: 'Deploying %d components',
+  deleting_one_component: 'Deleting 1 component',
+  deleting_n_components: 'Deleting %d components',
   retrieve_on_load_failed: 'Retrieve on load failed: %s',
   view_suggestions: 'View Suggestions',
   // Media/icon descriptions (accessibility)
