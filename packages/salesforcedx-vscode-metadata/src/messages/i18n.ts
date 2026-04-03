@@ -82,7 +82,6 @@ export const messages = {
   source_diff_unsupported_type: 'Diff for this metadata type is currently not supported',
   source_diff_title: '%s//%s ↔ local//%s',
   source_diff_failed: 'Diff failed: %s',
-  source_diff_failed_for_file: 'Diff failed for %s: %s',
   source_diff_cancelled: 'Diff cancelled by user',
   source_diff_no_results: 'No components retrieved from org',
   source_diff_no_matching_files: 'No matching files found to diff',

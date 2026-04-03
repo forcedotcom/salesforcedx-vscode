@@ -13,7 +13,7 @@ import type { FsService } from 'salesforcedx-vscode-services/src/vscode/fsServic
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getConflictStateRef } from '../conflict/conflictTreeProvider';
-import { conflictTreeProvider, ensureConflictView } from '../conflict/conflictView';
+import { CONFLICTS_VIEW_ID, conflictTreeProvider, ensureConflictView } from '../conflict/conflictView';
 import { nls } from '../messages';
 import { diffComponentSet } from '../shared/diff/diffComponentSet';
 
@@ -40,7 +40,6 @@ const getAllFileUrisFromMaybeDirectory: (
 
 /** Diff source paths from the default org */
 const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: URI, uris: URI[]) {
-  yield* ensureConflictView();
   yield* Effect.annotateCurrentSpan({ sourceUri, uris });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = yield* api.services.FsService;
@@ -52,18 +51,32 @@ const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: U
   );
   yield* Effect.annotateCurrentSpan({ allUris });
 
-  const diffsOpen = yield* diffComponentSet({
-    componentSet,
-    initialUris: hashableUris
-  });
-  if (diffsOpen.length > 0) {
+  const diffsOpen = (yield* diffComponentSet({ componentSet, initialUris: hashableUris })).toSorted((a, b) =>
+    a.fileName.localeCompare(b.fileName)
+  );
+  const firstPair = diffsOpen[0];
+
+  if (firstPair) {
+    yield* Effect.sync(() =>
+      void vscode.commands.executeCommand(
+        'vscode.diff',
+        firstPair.remoteUri,
+        firstPair.localUri,
+        nls.localize('source_diff_title', 'remote', firstPair.fileName, firstPair.fileName)
+      )
+    );
+  }
+
+  if (diffsOpen.length >= 2) {
+    yield* ensureConflictView();
     yield* SubscriptionRef.update(getConflictStateRef(), () => ({
-      title: `${diffsOpen.length} file difference${diffsOpen.length === 1 ? '' : 's'}`,
+      title: `${diffsOpen.length} file differences`,
       mode: 'diffs' as const,
       entries: diffsOpen,
       emptyLabel: nls.localize('conflict_detect_no_differences')
     }));
     conflictTreeProvider.fireChange();
+    yield* Effect.sync(() => void vscode.commands.executeCommand(`${CONFLICTS_VIEW_ID}.focus`));
   }
 });
 
@@ -87,6 +100,8 @@ export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
   if (!resolvedSourceUri) {
     return;
   }
+
+  yield* api.services.ProjectService.ensureInPackageDirectories([resolvedSourceUri, ...(uris ?? [])]);
 
   yield* Effect.annotateCurrentSpan({ resolvedSourceUri });
   const resolvedUris = uris?.length ? uris : [resolvedSourceUri];

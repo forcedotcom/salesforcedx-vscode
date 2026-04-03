@@ -291,7 +291,7 @@
         {
           "id": "conflicts",
           "name": "%conflicts_view_title_text%",
-          "when": "sf:project_opened && sf:has_conflicts"
+          "when": "sf:project_opened && sf:has_target_org"
         }
       ]
     },
@@ -462,11 +462,11 @@
       "explorer/context": [
         {
           "command": "sf.metadata.delete.source",
-          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest' && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.source.path",
-          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest' && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
@@ -474,7 +474,7 @@
         },
         {
           "command": "sf.metadata.retrieve.source.path",
-          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.retrieve.in.manifest",
@@ -486,7 +486,7 @@
         },
         {
           "command": "sf.metadata.source.diff",
-          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.lightning.generate.lwc",

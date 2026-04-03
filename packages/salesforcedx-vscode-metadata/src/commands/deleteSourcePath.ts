@@ -58,13 +58,14 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(function*
     return;
   }
 
+  const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
+  yield* api.services.ProjectService.ensureInPackageDirectories(resolvedUris);
+
   // User confirmation
   const confirmed = yield* showDeleteConfirmation();
   if (!confirmed) {
     return;
   }
-
-  const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
 
   // Delete the paths
   yield* deletePaths(resolvedUris).pipe(

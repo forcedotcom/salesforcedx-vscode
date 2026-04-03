@@ -20,7 +20,7 @@ import {
   setConflictStateRef
 } from './conflictTreeProvider';
 
-const CONFLICTS_VIEW_ID = 'conflicts';
+export const CONFLICTS_VIEW_ID = 'conflicts';
 
 export let conflictTreeProvider: ConflictTreeProvider;
 
@@ -49,9 +49,7 @@ export const conflictDiffCommandEffect = (entry: DiffFilePair | ConflictTreeItem
   return pair && isDiffFilePair(pair)
     ? Effect.sync(() => {
         const title = nls.localize('conflict_detect_diff_title', 'remote', pair.fileName, pair.fileName);
-        void vscode.commands.executeCommand('vscode.diff', pair.remoteUri, pair.localUri, title, {
-          viewColumn: vscode.ViewColumn.Beside
-        });
+        void vscode.commands.executeCommand('vscode.diff', pair.remoteUri, pair.localUri, title);
       })
     : Effect.void;
 };

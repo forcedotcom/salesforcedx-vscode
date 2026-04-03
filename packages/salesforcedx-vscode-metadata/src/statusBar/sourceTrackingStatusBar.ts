@@ -27,7 +27,6 @@ const refresh = Effect.fn('statusBarRefresh')(
 
     if (!hasTracking) {
       statusBarItem.hide();
-      void vscode.commands.executeCommand('setContext', 'sf:has_conflicts', false);
       return;
     }
 
@@ -64,8 +63,6 @@ const updateDisplay =
     statusBarItem.tooltip = buildCombinedHoverText(separateChanges(dedupedStatus), counts);
     statusBarItem.command = getCommand(counts);
     statusBarItem.backgroundColor = calculateBackground(counts);
-    void vscode.commands.executeCommand('setContext', 'sf:has_conflicts', counts.conflicts > 0);
-
     statusBarItem.show();
   };
 

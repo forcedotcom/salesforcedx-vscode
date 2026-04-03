@@ -17,6 +17,7 @@ import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 const deployUris = Effect.fn('deploySourcePath.deployUris')(
   function* (uris: Set<URI>) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    yield* api.services.ProjectService.ensureInPackageDirectories(Array.from(uris));
     const componentSetService = yield* api.services.ComponentSetService;
     return yield* Effect.succeed(Array.from(uris)).pipe(
       Effect.flatMap(componentSetService.getComponentSetFromUris),

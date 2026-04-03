@@ -7,6 +7,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { DeployResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import { URI } from 'vscode-uri';
 
 /** Format deploy results for output */
 export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (result: DeployResult) {
@@ -18,7 +19,7 @@ export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (res
 
   const successSection =
     succeeded.length > 0
-      ? `\n=== Deployed Source ===\n${succeeded.map(r => `${r.state} ${r.type} ${r.fullName}`).join('\n')}\n`
+      ? `\n=== Deployed Source ===\n${succeeded.map(r => `${r.state} ${r.type} ${URI.file(r.filePath).toString()}`).join('\n')}\n`
       : '';
 
   const failureSection =
@@ -31,7 +32,7 @@ export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (res
           .join('\n')}\n`
       : '';
 
-  const summary = `\n${succeeded.length} component${succeeded.length === 1 ? '' : 's'} deployed${failed.length > 0 ? `, ${failed.length} failed` : ''}\n`;
+  const summary = `\n${succeeded.length} file${succeeded.length === 1 ? '' : 's'} deployed${failed.length > 0 ? `, ${failed.length} failed` : ''}\n`;
 
   return successSection + failureSection + summary;
 });
