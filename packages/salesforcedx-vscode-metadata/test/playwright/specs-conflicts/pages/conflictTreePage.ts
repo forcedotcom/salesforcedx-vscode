@@ -14,7 +14,7 @@ export class ConflictTreePage {
   constructor(private readonly page: Page) {}
 
   private conflictsTree() {
-    return this.page.getByRole('tree', { name: 'Conflicts' });
+    return this.page.getByRole('tree', { name: 'Org Differences' });
   }
 
   public async waitForItem(fileName: string, timeout = 10_000): Promise<void> {
