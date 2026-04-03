@@ -12,5 +12,5 @@ import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 export class ConflictsDetectedError extends Data.TaggedError('ConflictsDetectedError')<{
   readonly pairs: DiffFilePair[];
   readonly componentSet: NonEmptyComponentSet;
-  readonly operationType: 'deploy' | 'retrieve';
+  readonly operationType: 'deploy' | 'retrieve' | 'delete';
 }> {}

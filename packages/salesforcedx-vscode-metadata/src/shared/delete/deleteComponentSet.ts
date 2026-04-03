@@ -13,21 +13,16 @@ import { nls } from '../../messages';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';
 import { DeleteSourceFailedError } from './deleteErrors';
 
-/** Delete a ComponentSet, handling conflict checking, cancellation, and local file deletion */
+/** Delete a ComponentSet, handling cancellation, and local file deletion */
 export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
 }) {
   const { componentSet } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, componentSetService, sourceTrackingService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.ComponentSetService, api.services.SourceTrackingService],
+  const [channelService, componentSetService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
   );
-
-  // Check for conflicts if source-tracked
-  if (yield* sourceTrackingService.hasTracking()) {
-    yield* sourceTrackingService.checkConflicts();
-  }
 
   // Mark components for deletion
   const deleteSet = yield* api.services.MetadataDeleteService.markComponentsForDeletion(componentSet);
@@ -41,21 +36,23 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
     return yield* channelService.appendToChannel('Delete cancelled by user');
   }
 
-  // Check if deploy failed
-  // I'd love to use the value but because status is a <expletive> enum (instead of a string union) you'd have to import all of SDR to get it
-  // or export is as part of the services API
-  if (result.response?.status.toString() !== 'Succeeded') {
+  console.log(result.response);
+
+  const { isSDRFailure } = componentSetService;
+
+  if (result.getFileResponses().some(isSDRFailure)) {
     return yield* new DeleteSourceFailedError({
-      cause: new Error(nls.localize('delete_source_operation_failed')),
+      cause: new Error(
+        nls.localize('delete_source_operation_failed', result.response?.errorMessage ?? 'Unknown error')
+      ),
       result
     });
   }
 
   // Delete local files after successful deploy
-  yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet, result);
+  yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet);
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
-  const { isSDRFailure } = componentSetService;
   if (result.getFileResponses().some(isSDRFailure)) {
     yield* Effect.sync(() => {
       void vscode.window.showErrorMessage(nls.localize('delete_completed_with_errors_message'));

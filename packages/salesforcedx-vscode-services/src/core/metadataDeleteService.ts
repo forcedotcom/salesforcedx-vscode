@@ -8,9 +8,7 @@
 import {
   ComponentSet,
   DestructiveChangesType,
-  RequestStatus,
   SourceComponent,
-  type DeployResult,
   type MetadataComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
@@ -55,14 +53,8 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
     });
 
     const deleteLocalFiles = Effect.fn('MetadataDeleteService.deleteLocalFiles')(function* (
-      componentSet: ComponentSet,
-      deployResult: DeployResult
+      componentSet: ComponentSet
     ) {
-      // Only proceed if deploy was successful
-      if (deployResult.response?.status !== RequestStatus.Succeeded) {
-        return;
-      }
-
       const components = componentSet.getSourceComponents().toArray();
 
       // Handle custom labels specially

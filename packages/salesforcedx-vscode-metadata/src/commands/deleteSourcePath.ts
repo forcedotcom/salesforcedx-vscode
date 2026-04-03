@@ -7,9 +7,9 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { SourceTrackingConflictError } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
@@ -28,10 +28,11 @@ const deletePaths = (uris: URI[]) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
-    const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromUris(uris)
+    return yield* componentSetService.getComponentSetFromUris(uris).pipe(
+      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+      Effect.tap(cs => detectConflicts(cs, 'delete')),
+      Effect.flatMap(cs => deleteComponentSet({ componentSet: cs }))
     );
-    yield* deleteComponentSet({ componentSet });
   });
 
 /** Delete source paths from the default org */
@@ -69,16 +70,13 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(function*
 
   // Delete the paths
   yield* deletePaths(resolvedUris).pipe(
-    Effect.catchTag('SourceTrackingConflictError', (error: SourceTrackingConflictError) => {
-      const message = `${nls.localize('delete_source_conflicts_detected')} Conflicts: ${error.conflicts.join(', ')}`;
-      return Effect.all([
-        channelService.appendToChannel(message),
-        channelService.getChannel.pipe(Effect.map(channel => channel.show())),
-        Effect.sync(() => {
-          void vscode.window.showErrorMessage(message);
-        })
-      ]);
-    }),
+    Effect.catchTag('ConflictsDetectedError', err =>
+      handleConflictWithRetry({
+        pairs: err.pairs,
+        operationType: err.operationType,
+        retryOperation: deleteComponentSet({ componentSet: err.componentSet })
+      })
+    ),
     Effect.catchTag('DeleteSourceFailedError', (error: DeleteSourceFailedError) => {
       const errorMessage = error.cause?.message ?? nls.localize('delete_failed', 'Unknown error');
       return Effect.all([

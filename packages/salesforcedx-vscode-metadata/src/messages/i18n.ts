@@ -67,8 +67,7 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-  delete_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before deleting.',
-  delete_source_operation_failed: 'Delete operation failed',
+  delete_source_operation_failed: 'Delete operation failed: %s',
   delete_completed_with_errors_message: 'Delete completed with errors. Check output for details.',
   delete_failed: 'Failed to delete: %s',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
@@ -99,8 +98,12 @@ export const messages = {
     'Conflicts are detected while retrieving metadata from your org. What would you like to do?',
   conflict_detect_override_deploy: 'Override Conflicts and Deploy',
   conflict_detect_override_retrieve: 'Override Conflicts and Retrieve',
+  conflict_detect_override_delete: 'Override Conflicts and Delete',
   conflict_detect_show_conflicts_deploy: 'View Conflicts and Cancel Deploy',
   conflict_detect_show_conflicts_retrieve: 'View Conflicts and Cancel Retrieve',
+  conflict_detect_show_conflicts_delete: 'View Conflicts and Cancel Delete',
+  conflict_detect_conflicts_during_delete:
+    'Conflicts were detected while deleting metadata from your org. What would you like to do?',
   conflict_detect_no_conflicts: 'No conflicts',
   conflict_detect_no_differences: 'No differences',
   conflict_detection_enabled_description:
