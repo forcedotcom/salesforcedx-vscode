@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isLWC, LWC_SERVER_READY_NOTIFICATION, type WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  isLWC,
+  LWC_SERVER_READY_NOTIFICATION,
+  type WorkspaceType
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
@@ -87,19 +91,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
   }
 
   // Start the LWC Language Server
-  const serverPath = extensionContext.extension.packageJSON.serverPath;
-  let serverModule: string;
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    // For web mode, use the browser bundle and convert to URI
-    const baseUri = URI.from(extensionContext.extensionUri);
-    serverModule = Utils.joinPath(baseUri, 'dist', 'web', 'lwcServer.js').toString();
-  } else {
-    // For Node.js mode, use the file system path
-    // Dynamically import path only in Node.js mode to avoid bundling issues in web mode
-    const { join } = await import('node:path');
-    serverModule = extensionContext.asAbsolutePath(join(...serverPath));
-  }
-
   try {
     const sfdxTypingsDir = Utils.joinPath(
       URI.from(extensionContext.extensionUri),
@@ -107,7 +98,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
       'sfdx',
       'typings'
     ).toString();
-    const client = await createLanguageClient(serverModule, { workspaceType, sfdxTypingsDir });
+    const client = await createLanguageClient(extensionContext.extensionUri, { workspaceType, sfdxTypingsDir });
 
     // Create language status item to show indexing progress
     const statusBarItem = new LwcLspStatusBarItem();
