@@ -15,7 +15,7 @@ describe('test support types Unit Tests.', () => {
     fsPath: mockUriPath
   } as Uri;
   describe('test isTestCase', () => {
-    it('Should return true for a TestCase', async () => {
+    it('Should return true for a TestCase', () => {
       const testName = 'Testing is Fun!';
       const testExecutionInfo: TestCaseInfo = {
         kind: TestInfoKind.TEST_CASE,
@@ -25,7 +25,7 @@ describe('test support types Unit Tests.', () => {
       };
       expect(isTestCaseInfo(testExecutionInfo)).toBeTruthy();
     });
-    it('Should return false for a TestFile', async () => {
+    it('Should return false for a TestFile', () => {
       const testExecutionInfo: TestFileInfo = {
         kind: TestInfoKind.TEST_FILE,
         testType: TestType.LWC,

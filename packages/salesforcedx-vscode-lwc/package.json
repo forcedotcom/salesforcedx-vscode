@@ -44,6 +44,7 @@
     "which": "1.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "*",
     "@salesforce/playwright-vscode-ext": "*",
     "@types/uuid": "^3.4.8",
     "@types/which": "^1.3.1"
@@ -134,7 +135,7 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts",
+      "command": "playwright test --config=playwright.config.web.ts --workers=1",
       "env": {
         "PLAYWRIGHT_WORKERS": {
           "external": true

@@ -101,8 +101,9 @@ export const lwcTestDebugActiveTextEditorTest = async () => {
 export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
   const { sfDebugSessionId } = configuration;
-  const startTime = TimingUtils.getCurrentTime();
-  debugSessionStartTimes.set(sfDebugSessionId, startTime);
+  if (typeof sfDebugSessionId === 'string') {
+    debugSessionStartTimes.set(sfDebugSessionId, TimingUtils.getCurrentTime());
+  }
 };
 
 /**
@@ -111,7 +112,8 @@ export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
  */
 export const handleDidTerminateDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
-  const startTime = debugSessionStartTimes.get(configuration.sfDebugSessionId);
+  const { sfDebugSessionId } = configuration;
+  const startTime = typeof sfDebugSessionId === 'string' ? debugSessionStartTimes.get(sfDebugSessionId) : undefined;
   if (Array.isArray(startTime)) {
     telemetryService.sendCommandEvent(LWC_TEST_DEBUG_LOG_NAME, startTime, {
       workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()

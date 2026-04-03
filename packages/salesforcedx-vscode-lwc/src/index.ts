@@ -86,19 +86,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
     return;
   }
 
-  // Start the LWC Language Server
-  const serverPath = extensionContext.extension.packageJSON.serverPath;
-  let serverModule: string;
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    // For web mode, use the browser bundle and convert to URI
-    const baseUri = URI.from(extensionContext.extensionUri);
-    serverModule = Utils.joinPath(baseUri, 'dist', 'web', 'lwcServer.js').toString();
-  } else {
-    // For Node.js mode, use the file system path
-    // Dynamically import path only in Node.js mode to avoid bundling issues in web mode
-    const { join } = await import('node:path');
-    serverModule = extensionContext.asAbsolutePath(join(...serverPath));
-  }
+  // Start the LWC Language Server. Web uses a URI-based worker bundle; Node uses an absolute path.
+  const serverModule =
+    process.env.ESBUILD_PLATFORM === 'web'
+      ? Utils.joinPath(URI.from(extensionContext.extensionUri), 'dist', 'web', 'lwcServer.js').toString()
+      : extensionContext.asAbsolutePath('dist/lwcServer.js');
 
   try {
     const sfdxTypingsDir = Utils.joinPath(

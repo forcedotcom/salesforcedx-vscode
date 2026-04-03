@@ -7,6 +7,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import * as vscode from 'vscode';
 import { CancellationToken, TextDocument, extensions } from 'vscode';
 import { provideLwcTestCodeLens } from '../../../../src/testSupport/codeLens/provideLwcTestCodeLens';
 
@@ -20,7 +21,7 @@ describe('provideLwcTestCodeLens', () => {
         fsPath: '/test/path/testFile.test.js'
       },
       getText: jest.fn()
-    } as any;
+    } as unknown as TextDocument;
     mockToken = {} as CancellationToken;
   });
 
@@ -66,7 +67,7 @@ describe('Outer Suite', () => {
         fsPath: tempFile
       },
       getText: jest.fn().mockReturnValue('')
-    } as any;
+    } as unknown as TextDocument;
 
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
@@ -84,7 +85,7 @@ describe('Outer Suite', () => {
     const getExtensionSpy = jest.spyOn(extensions, 'getExtension');
     getExtensionSpy.mockImplementation((extensionId: string) => {
       if (extensionId === 'firsttris.vscode-jest-runner') {
-        return mockJestRunnerExtension as any;
+        return mockJestRunnerExtension as unknown as vscode.Extension<unknown>;
       }
       return undefined; // Other extensions are not present
     });

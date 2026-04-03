@@ -9,7 +9,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { lwcTestIndexer } from '../testIndexer';
-import { TestExecutionInfo } from '../types';
+import { LwcJestTestResults, TestExecutionInfo } from '../types';
 
 /**
  * Test result watcher to watch for creating/updating test results,
@@ -66,7 +66,8 @@ class TestResultsWatcher implements vscode.Disposable {
   private async updateTestResultsFromTestResultsJson(testResultsUri: URI) {
     try {
       const testResultsContent = await readFile(testResultsUri.fsPath);
-      const testResults = JSON.parse(testResultsContent);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const testResults: LwcJestTestResults = JSON.parse(testResultsContent);
       lwcTestIndexer.updateTestResults(testResults);
     } catch (error) {
       console.error(error);

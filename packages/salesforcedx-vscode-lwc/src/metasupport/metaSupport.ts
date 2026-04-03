@@ -72,7 +72,8 @@ export class MetaSupport {
     if (redHatExtension === undefined) {
       return channelService.appendLine(nls.localize('lightning_lwc_no_redhat_extension_found'));
     }
-    const pluginVersionNumber = redHatExtension.packageJSON['version'];
+    const pkg: unknown = redHatExtension.packageJSON;
+    const pluginVersionNumber: unknown = typeof pkg === 'object' && pkg !== null ? Reflect.get(pkg, 'version') : undefined;
 
     if (typeof pluginVersionNumber !== 'string') {
       channelService.appendLine(nls.localize('lightning_lwc_no_redhat_extension_found'));

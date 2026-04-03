@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 
 // strip-ansi: import fails (TS2306/TS1479); require works for both v5 and v7
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-const stripAnsi = require('strip-ansi');
+const stripAnsi: (input: string) => string = require('strip-ansi');
 
 type ParsedNodeWithAncestorTitles = Pick<ParsedNode, Exclude<keyof ParsedNode, 'children'>> & {
   name?: string;

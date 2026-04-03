@@ -32,20 +32,20 @@ test('LWC LSP Go to Definition navigates from JS to LightningElement type defini
   const consoleErrors = setupConsoleMonitoring(page);
 
   await test.step('create Lightning Web Component', async () => {
-    await createLwc(page, 'lwc1');
+    await createLwc(page, 'gtdJsComp');
   });
 
   await test.step('wait for LWC LSP to finish indexing', async () => {
     // Open the HTML file first so the status item appears, then switch back to JS
-    await openLwcFile(page, 'lwc1.html');
+    await openLwcFile(page, 'gtdJsComp.html');
     await waitForLwcLspReady(page);
-    await openLwcFile(page, 'lwc1.js');
+    await openLwcFile(page, 'gtdJsComp.js');
   });
 
   await test.step('position cursor on "LightningElement" in the extends clause', async () => {
     // Default template line 3: "export default class Lwc1 extends LightningElement {"
     // "LightningElement" starts at column 35; place cursor inside the word
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="lwc1.js"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="gtdJsComp.js"]`);
     await editor.click();
     await goToLineCol(page, 3, 38);
   });

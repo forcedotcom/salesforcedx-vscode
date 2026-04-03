@@ -16,6 +16,12 @@ type HeadlessServerOptions = {
   callerDirname: string;
   /** Additional extension directory names to load (services is always included automatically) */
   additionalExtensionDirs?: string[];
+  /**
+   * Absolute path to a local directory to mount and open as the VS Code workspace folder.
+   * Without this, VS Code opens with no folder — extensions that require a workspace will
+   * exit early. Create the directory (with sfdx-project.json etc.) before calling this.
+   */
+  folderPath?: string;
 };
 
 /** Creates and starts a headless VS Code web server for testing an extension with services */
@@ -45,6 +51,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       extensionDevelopmentPath,
       extensionPaths,
       testRunnerDataDir,
+      ...(options.folderPath ? { folderPath: options.folderPath } : {}),
       browserOptions: [
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor',

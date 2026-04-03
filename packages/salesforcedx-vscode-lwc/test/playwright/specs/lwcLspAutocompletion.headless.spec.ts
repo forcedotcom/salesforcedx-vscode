@@ -32,18 +32,18 @@ test('LWC LSP provides autocompletion for lightning-* base components in HTML te
   const consoleErrors = setupConsoleMonitoring(page);
 
   await test.step('create Lightning Web Component', async () => {
-    await createLwc(page, 'lwc1');
+    await createLwc(page, 'autoComp');
   });
 
   await test.step('wait for LWC LSP to finish indexing', async () => {
-    await openLwcFile(page, 'lwc1.html');
+    await openLwcFile(page, 'autoComp.html');
     await waitForLwcLspReady(page);
   });
 
   await test.step('position cursor inside the template body to type a new element', async () => {
     // Default template: line 1 "<template>", line 2 "</template>"
     // Move to line 1 end and insert a new line to type in
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="lwc1.html"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="autoComp.html"]`);
     await editor.click();
     await goToLineCol(page, 1, 11); // end of "<template>"
     await page.keyboard.press('Enter');
@@ -77,7 +77,7 @@ test('LWC LSP provides autocompletion for lightning-* base components in HTML te
     await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
 
     // The inserted line should contain the accepted component name
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="lwc1.html"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="autoComp.html"]`);
     await expect(editor).toContainText('lightning-accordion', { timeout: 5000 });
   });
 

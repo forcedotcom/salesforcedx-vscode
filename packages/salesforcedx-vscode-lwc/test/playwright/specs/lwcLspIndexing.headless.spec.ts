@@ -30,12 +30,12 @@ test('LWC LSP finishes indexing and shows status in status bar', async ({ page }
   const consoleErrors = setupConsoleMonitoring(page);
 
   await test.step('create Lightning Web Component', async () => {
-    await createLwc(page, 'lwc1');
+    await createLwc(page, 'indexComp');
   });
 
   await test.step('open LWC HTML file to activate language status item', async () => {
     // The language status item (lwcLanguageServerStatus) only appears for LWC html/js/ts files
-    await openLwcFile(page, 'lwc1.html');
+    await openLwcFile(page, 'indexComp.html');
   });
 
   await test.step('wait for LWC LSP to finish indexing', async () => {

@@ -7,42 +7,98 @@
 import { expect, type Page } from '@playwright/test';
 import {
   EDITOR_WITH_URI,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   STATUS_BAR_ITEM_LABEL,
-  executeCommandWithCommandPalette,
-  verifyCommandExists
+  executeCommandWithCommandPalette
 } from '@salesforce/playwright-vscode-ext';
 
 /** Text shown in the LWC language status item when the LSP has finished indexing. */
 export const LWC_LSP_READY_TEXT = 'Indexing complete';
 
 /**
- * Creates a Lightning Web Component named `componentName` using the SFDX: Create
- * Lightning Web Component command, accepting the default template and output directory.
- * Waits for the component's JS file to open in the editor before returning.
+ * Opens a pre-created Lightning Web Component's JS file in the editor.
+ *
+ * Components are pre-created on disk by the headless server (`headlessServer.ts`) so tests
+ * do not depend on the "SFDX: Create Lightning Web Component" command (which is unreliable
+ * in VS Code web because @salesforce/templates writes to memfs, not the virtual workspace FS).
+ *
+ * VS Code web opens the default "Code Builder" workspace and adds our project as a second
+ * root workspace folder named `mount` (aria-level=1). This helper uses keyboard navigation
+ * in the Explorer tree to expand the folder hierarchy and open the component's JS file,
+ * avoiding coordinate-based clicks that are unreliable on Monaco List's virtual DOM.
+ *
+ * Navigation plan (after collapsing all folders to a known state):
+ * 1. End → mount → ArrowRight×2 → force-app → main → default → lwc → component → .js file
  */
 export const createLwc = async (page: Page, componentName: string): Promise<void> => {
-  await verifyCommandExists(page, 'SFDX: Create Lightning Web Component', 30_000);
-  await executeCommandWithCommandPalette(page, 'SFDX: Create Lightning Web Component');
-
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-
-  // First prompt: input box for the component name (TypeScript support is off by default,
-  // so promptForComponentType() is skipped and promptForComponentName() runs first).
-  await quickInput.getByText(/Enter Lightning Web Component name/i).waitFor({ state: 'visible', timeout: 10_000 });
-  await page.keyboard.type(componentName);
-  await page.keyboard.press('Enter');
-
-  // Second prompt: Quick Pick to select the output directory — accept the default
-  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
-  await page.keyboard.press('Enter');
-
-  // Wait for the component's JS file to open in the editor
-  // @salesforce/templates camelCases the name (e.g. MyComp → myComp)
+  // @salesforce/templates camelCases the component name (e.g. MyComp → myComp)
   const camelName = `${componentName[0].toLowerCase()}${componentName.slice(1)}`;
-  const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${camelName}.js"]`);
+  const jsFileName = `${camelName}.js`;
+
+  await executeCommandWithCommandPalette(page, 'View: Show Explorer');
+
+  // The Welcome tab renders in a sandboxed iframe. When keyboard events are sent while that
+  // iframe has DOM focus, they never reach VS Code's global keybinding system (so Ctrl+Shift+E
+  // can't focus the Explorer). Click the Explorer heading — a native element in the main frame —
+  // to break out of the iframe focus, then use Ctrl+Shift+E to tell VS Code's workbench to
+  // route keyboard input to the file tree.
+  const explorerHeading = page.getByRole('heading', { name: 'Explorer', level: 2 });
+  await explorerHeading.waitFor({ state: 'visible', timeout: 5000 });
+  await explorerHeading.click();
+  await page.waitForTimeout(100);
+  await page.keyboard.press('Control+Shift+E');
+  await page.waitForTimeout(300);
+
+  // Known initial state (observed consistently across all test runs):
+  //   Code Builder [expanded, 12 children] + mount [expanded, 2 children (force-app + sfdx-project.json)]
+  //   → 16 total visible items
+  //   `End` → last visible item = mount/sfdx-project.json (index 15)
+  //   `ArrowUp` → mount/force-app (index 14)
+  await page.keyboard.press('End');
+  await page.waitForTimeout(200);
+  await page.keyboard.press('ArrowUp');
+  await page.waitForTimeout(100);
+
+  /**
+   * Expand the currently focused folder (ArrowRight when collapsed = expand in place)
+   * then move into its first child (second ArrowRight = descend).
+   */
+  const expandIntoFirstChild = async () => {
+    await page.keyboard.press('ArrowRight'); // expand (folder must be collapsed)
+    await page.waitForTimeout(400); // wait for tree to re-render children
+    await page.keyboard.press('ArrowRight'); // move focus to first child
+    await page.waitForTimeout(200);
+  };
+
+  // Expand each folder and descend into its first child
+  await expandIntoFirstChild(); // force-app → main
+  await expandIntoFirstChild(); // main → default
+  await expandIntoFirstChild(); // default → lwc
+  await expandIntoFirstChild(); // lwc → first component (autoComp, alphabetically)
+
+  // The LWC components are sorted alphabetically; navigate down to the target
+  const sortedComponents = ['autoComp', 'gtdHtmlComp', 'gtdJsComp', 'indexComp'];
+  const componentIndex = sortedComponents.indexOf(camelName);
+  for (let i = 0; i < componentIndex; i++) {
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(100);
+  }
+
+  // Expand the component folder, move to first child (.html alphabetically)
+  await page.keyboard.press('ArrowRight'); // expand component folder
+  await page.waitForTimeout(400);
+  await page.keyboard.press('ArrowRight'); // move to first child: camelName.html
+  await page.waitForTimeout(200);
+
+  // Files inside the component: camelName.html, camelName.js, camelName.js-meta.xml (alphabetical)
+  // One ArrowDown takes us from .html → .js
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(100);
+
+  // Open the JS file with Enter (single-press opens it in the editor)
+  await page.keyboard.press('Enter');
+
+  const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${jsFileName}"]`);
   await jsEditor.waitFor({ state: 'visible', timeout: 15_000 });
 };
 

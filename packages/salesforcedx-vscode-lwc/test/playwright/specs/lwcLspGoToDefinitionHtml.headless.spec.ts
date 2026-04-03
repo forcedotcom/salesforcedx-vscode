@@ -33,13 +33,13 @@ test('LWC LSP Go to Definition navigates from HTML property binding to JS class 
   const consoleErrors = setupConsoleMonitoring(page);
 
   await test.step('create Lightning Web Component', async () => {
-    await createLwc(page, 'lwc1');
+    await createLwc(page, 'gtdHtmlComp');
   });
 
-  await test.step('add a tracked property to lwc1.js', async () => {
+  await test.step('add a tracked property to gtdHtmlComp.js', async () => {
     // Modify the JS file to expose a "greeting" property so the HTML template can reference it.
     // The file opens automatically after creation; add the property on the line before the closing brace.
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="lwc1.js"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="gtdHtmlComp.js"]`);
     await editor.click();
 
     // Move to the end of the file and insert the property before the closing brace
@@ -53,9 +53,9 @@ test('LWC LSP Go to Definition navigates from HTML property binding to JS class 
     await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
   });
 
-  await test.step('add {greeting} binding to lwc1.html', async () => {
-    await openLwcFile(page, 'lwc1.html');
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="lwc1.html"]`);
+  await test.step('add {greeting} binding to gtdHtmlComp.html', async () => {
+    await openLwcFile(page, 'gtdHtmlComp.html');
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="gtdHtmlComp.html"]`);
     await editor.click();
 
     // Replace the empty template body with a paragraph that binds the greeting property
@@ -78,7 +78,7 @@ test('LWC LSP Go to Definition navigates from HTML property binding to JS class 
   await test.step('position cursor on the {greeting} binding in the HTML template', async () => {
     // After editing: line 2 is "    <p>{greeting}</p>"
     // "greeting" starts at column 9 (4-space indent + "<p>{" = 8, then "g" at 9)
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="lwc1.html"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="gtdHtmlComp.html"]`);
     await editor.click();
     await goToLineCol(page, 2, 10);
   });
@@ -87,10 +87,10 @@ test('LWC LSP Go to Definition navigates from HTML property binding to JS class 
     await executeCommandWithCommandPalette(page, 'Go to Definition');
   });
 
-  await test.step('verify navigation opened lwc1.js (where the greeting property is defined)', async () => {
+  await test.step('verify navigation opened gtdHtmlComp.js (where the greeting property is defined)', async () => {
     const activeTab = page.locator(TAB).filter({ has: page.locator('[aria-selected="true"]') }).first();
     await expect(activeTab, 'Go to Definition should navigate to the JS file containing the property').toContainText(
-      'lwc1.js',
+      'gtdHtmlComp.js',
       { timeout: 15_000 }
     );
   });
