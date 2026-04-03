@@ -64,8 +64,8 @@ main {
 }
 
 .info-notification__message {
-  background-color: var(--soql-electric-blue);
-  color: var(--soql-white);
+  background-color: var(--vscode-activityBarBadge-background, var(--soql-info-blue));
+  color: var(--vscode-activityBarBadge-foreground, var(--soql-white));
   font-size: small;
   padding: 1rem;
   border-radius: 3px;
