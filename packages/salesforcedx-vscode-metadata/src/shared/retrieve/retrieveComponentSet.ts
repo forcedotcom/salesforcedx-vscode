@@ -27,12 +27,6 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, { ignoreConflicts });
 
-  // Handle cancellation
-  if (typeof result === 'string') {
-    yield* channelService.appendToChannel('Retrieve cancelled by user');
-    return;
-  }
-
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(result));
 
   yield* maybeStoreRetrieveResult(result);

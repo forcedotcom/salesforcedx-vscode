@@ -60,7 +60,7 @@ export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(fu
 
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(componentSet, cacheDirUri);
 
-  return typeof result === 'string' ? undefined : result;
+  return result;
 });
 
 const getParentDir = (uri: HashableUri) => Utils.basename(Utils.dirname(uri));

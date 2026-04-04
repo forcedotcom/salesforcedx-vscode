@@ -12,6 +12,7 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 
 // shared logic for both the editor command and the uri command
 const deployUris = Effect.fn('deploySourcePath.deployUris')(
@@ -41,6 +42,7 @@ export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiv
     const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
     return yield* deployUris(new Set([activeEditorUri]));
   },
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
       Effect.as(undefined)
@@ -60,11 +62,11 @@ export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiv
 // sourceUri is passed, but uris is undefined.
 
 /** Deploy source paths to the default org */
-export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySourcePaths')(function* (
-  sourceUri: URI,
-  uris: URI[] = []
-) {
-  yield* Effect.annotateCurrentSpan({ sourceUri, uris });
-  const urisSet = new Set([sourceUri, ...uris]);
-  return yield* deployUris(urisSet);
-});
+export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySourcePaths')(
+  function* (sourceUri: URI, uris: URI[] = []) {
+    yield* Effect.annotateCurrentSpan({ sourceUri, uris });
+    const urisSet = new Set([sourceUri, ...uris]);
+    return yield* deployUris(urisSet);
+  },
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text')))
+);

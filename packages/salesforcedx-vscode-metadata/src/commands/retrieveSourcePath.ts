@@ -12,6 +12,7 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
+import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 
 /** Retrieve source paths from the default org */
 // When a single file is selected and "Retrieve Source from Org" is executed,
@@ -43,6 +44,7 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
     // we can ignore conflicts because we already did the detectConflicts check
     yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
   },
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text'))),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_select_file_or_directory'))).pipe(
       Effect.as(undefined)

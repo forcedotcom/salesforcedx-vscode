@@ -76,6 +76,7 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
             const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(baseMessage, viewSuggestions));
             if (selection === viewSuggestions) channel.show();
           } else {
+            yield* channelService.appendToChannel(baseMessage);
             yield* Effect.sync(() => void vscode.window.showErrorMessage(baseMessage));
           }
         })

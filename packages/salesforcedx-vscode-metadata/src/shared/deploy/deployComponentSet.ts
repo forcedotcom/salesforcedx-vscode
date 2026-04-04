@@ -31,12 +31,6 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
 
   const result = yield* api.services.MetadataDeployService.deploy(componentSet);
 
-  // Handle cancellation
-  if (typeof result === 'string') {
-    yield* channelService.appendToChannel('Deploy cancelled by user');
-    return;
-  }
-
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
   yield* maybeStoreDeployResult(result);

@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -24,6 +25,14 @@ const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreCo
 /** Deploy local changes to the default org */
 export const projectDeployStartCommand = (ignoreConflicts = false) =>
   deployEffect(ignoreConflicts).pipe(
+    withConfigurableSuccessNotification(
+      nls.localize(
+        'command_succeeded_text',
+        ignoreConflicts
+          ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
+          : nls.localize('project_deploy_start_default_org_text')
+      )
+    ),
     Effect.catchTag('EmptyComponentSetError', () =>
       Effect.sync(() => {
         void vscode.window.showInformationMessage(nls.localize('no_local_changes_to_deploy'));

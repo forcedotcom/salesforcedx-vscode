@@ -61,24 +61,21 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
   const ignoreConflicts = getIgnoreConflicts();
   yield* channelService.appendToChannel(`Deploy on save triggered (ignoreConflicts: ${ignoreConflicts})`);
 
-  const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-    yield* componentSetService.getComponentSetFromUris(uris)
-  );
+  const componentSet = yield* componentSetService
+    .getComponentSetFromUris(uris)
+    .pipe(Effect.flatMap(componentSetService.ensureNonEmptyComponentSet));
 
-  if (!ignoreConflicts) {
-    const hasTracking = yield* sourceTrackingService.hasTracking();
-    if (hasTracking) {
-      const conflicts = yield* sourceTrackingService.getConflicts();
-      const deployedMembers = new Set(
-        componentSet
-          .getSourceComponents()
-          .toArray()
-          .map(c => `${c.type.name}:${c.fullName}`)
-      );
-      const relevant = conflicts.filter(c => c.type && c.name && deployedMembers.has(`${c.type}:${c.name}`));
-      if (relevant.length > 0) {
-        return yield* handleDeployConflict(componentSet);
-      }
+  if (!ignoreConflicts && (yield* sourceTrackingService.hasTracking())) {
+    const conflicts = yield* sourceTrackingService.getConflicts();
+    const deployedMembers = new Set(
+      componentSet
+        .getSourceComponents()
+        .toArray()
+        .map(c => `${c.type.name}:${c.fullName}`)
+    );
+    const relevant = conflicts.filter(c => c.type && c.name && deployedMembers.has(`${c.type}:${c.name}`));
+    if (relevant.length > 0) {
+      return yield* handleDeployConflict(componentSet);
     }
   }
 
