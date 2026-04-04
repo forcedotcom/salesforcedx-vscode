@@ -8,6 +8,7 @@
 
 import { LightningElement, api } from 'lwc';
 export default class Header extends LightningElement {
+  @api public hasNoDefaultOrg = false;
   @api public isRunning = false;
   @api public isQueryPlanRunning = false;
   @api public isQueryValid = false;

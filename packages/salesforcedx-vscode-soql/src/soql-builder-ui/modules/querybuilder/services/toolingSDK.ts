@@ -19,6 +19,7 @@ export class ToolingSDK {
   public queryRunState: Observable<boolean> = new BehaviorSubject<boolean>(
     false
   );
+  public noDefaultOrg: Observable<boolean> = new BehaviorSubject<boolean>(false);
   public queryPlanRunState: Observable<boolean> = new BehaviorSubject<boolean>(
     false
   );
@@ -54,10 +55,15 @@ export class ToolingSDK {
           break;
         }
         case MessageType.CONNECTION_CHANGED: {
+          this.noDefaultOrg.next(false);
           this.loadSObjectDefinitions();
           if (this.latestSObjectName) {
             this.loadSObjectMetatada(this.latestSObjectName);
           }
+          break;
+        }
+        case MessageType.NO_DEFAULT_ORG: {
+          this.noDefaultOrg.next(true);
           break;
         }
         case MessageType.RUN_SOQL_QUERY_DONE: {
