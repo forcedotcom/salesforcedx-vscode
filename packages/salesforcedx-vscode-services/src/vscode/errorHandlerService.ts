@@ -54,8 +54,8 @@ export const getErrorMessage = (error: unknown): string => {
 /**
  * Service for handling errors in commands and effects.
  * Shows error notifications to the user via VS Code's notification system.
- * When errors have actions (like SfError), logs details to output channel
- * and shows a "View Details" button.
+ * Always logs the error message to the output channel.
+ * When errors have actions (like SfError), also shows a "View Details" button.
  */
 export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('ErrorHandlerService', {
   effect: Effect.gen(function* () {
