@@ -31,13 +31,6 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   const result = yield* api.services.MetadataDeployService.deploy(deleteSet);
 
-  // Handle cancellation
-  if (typeof result === 'string') {
-    return yield* channelService.appendToChannel('Delete cancelled by user');
-  }
-
-  console.log(result.response);
-
   const { isSDRFailure } = componentSetService;
 
   if (result.getFileResponses().some(isSDRFailure)) {

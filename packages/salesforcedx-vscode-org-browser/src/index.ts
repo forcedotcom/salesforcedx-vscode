@@ -16,8 +16,12 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
-import { nls } from './messages';
-import { AllServicesLayer, buildAllServicesLayer, getOrgBrowserRuntime, setAllServicesLayer } from './services/extensionProvider';
+import {
+  AllServicesLayer,
+  buildAllServicesLayer,
+  getOrgBrowserRuntime,
+  setAllServicesLayer
+} from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
@@ -70,15 +74,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         Effect.promise(() => vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`))
       ),
       registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem) =>
-        retrieveEffect(node, treeProvider).pipe(
-          Effect.tap(result =>
-            typeof result === 'string'
-              ? Effect.sync(() => {
-                  void vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));
-                })
-              : Effect.void
-          )
-        )
+        retrieveEffect(node, treeProvider)
       )
     ],
     { concurrency: 'unbounded' }

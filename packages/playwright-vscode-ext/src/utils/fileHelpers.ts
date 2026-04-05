@@ -131,7 +131,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
 /**
  * Deploys the currently active editor (or selected source) to the org via "SFDX: Deploy This Source to Org".
  * Waits for the deploy progress notification to appear. Completion: if waitViaOutputChannel is true (e.g. Apex
- * testing), waits for "deployed" in the Salesforce Metadata output channel; otherwise waits for the notification
+ * testing), waits for "Deployed Source" in the Salesforce Metadata output channel; otherwise waits for the notification
  * to disappear.
  */
 export const deployCurrentSourceToOrg = async (
@@ -153,7 +153,7 @@ export const deployCurrentSourceToOrg = async (
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', deployCompleteTimeoutMs);
     await waitForOutputChannelText(page, {
-      expectedText: 'deployed',
+      expectedText: 'Deployed Source',
       timeout: deployCompleteTimeoutMs
     });
   } else {

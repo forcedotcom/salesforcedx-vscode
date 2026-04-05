@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { detectConflicts, handleConflictWithRetry } from '../../conflict/conflictFlow';
 import { nls } from '../../messages';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
+import { withConfigurableSuccessNotification } from '../../utils/withConfigurableSuccessNotification';
 
 const applyDeletesAndRetrieve = Effect.fn('projectRetrieve.applyDeletesAndRetrieve')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -30,26 +31,36 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
       { concurrency: 'unbounded' }
     );
 
-    const componentSet = yield* sourceTrackingService
-      .getRemoteNonDeletesAsComponentSet({ applyIgnore: true })
-      .pipe(
-        Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-        Effect.tap(cs =>
-          channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
-        )
-      );
+    const componentSet = yield* sourceTrackingService.getRemoteNonDeletesAsComponentSet({ applyIgnore: true }).pipe(
+      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+      Effect.tap(cs =>
+        channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
+      )
+    );
 
     if (!ignoreConflicts) yield* detectConflicts(componentSet, 'retrieve');
     yield* applyDeletesAndRetrieve();
   },
   Effect.catchTag('ConflictsDetectedError', err =>
-    handleConflictWithRetry({ pairs: err.pairs, operationType: err.operationType, retryOperation: applyDeletesAndRetrieve() })
+    handleConflictWithRetry({
+      pairs: err.pairs,
+      operationType: err.operationType,
+      retryOperation: applyDeletesAndRetrieve()
+    })
   )
 );
 
 /** Retrieve remote changes from the default org */
 export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
   retrieveEffect(ignoreConflicts).pipe(
+    withConfigurableSuccessNotification(
+      nls.localize(
+        'command_succeeded_text',
+        ignoreConflicts
+          ? nls.localize('project_retrieve_start_ignore_conflicts_default_org_text')
+          : nls.localize('project_retrieve_start_default_org_text')
+      )
+    ),
     Effect.catchTag('EmptyComponentSetError', () =>
       Effect.sync(() => {
         void vscode.window.showInformationMessage(nls.localize('no_remote_changes_to_retrieve'));

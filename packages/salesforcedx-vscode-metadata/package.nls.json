@@ -30,6 +30,7 @@
   "conflict_detect_open_file": "Open File",
   "conflict_detection_enabled_description": "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
   "source_tracking_polling_interval_description": "Interval in seconds to poll for remote source tracking changes. Set to 0 to disable polling.",
+  "show_success_notification_description": "Show an information notification on successful deploy, retrieve, or delete.",
   "sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "sobject_refresh_all": "All SObjects",
   "sobject_refresh_custom": "Custom SObjects",

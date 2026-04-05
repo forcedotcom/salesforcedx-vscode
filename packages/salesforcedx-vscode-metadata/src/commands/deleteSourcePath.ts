@@ -14,15 +14,19 @@ import { nls } from '../messages';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
+import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 
-const showDeleteConfirmation = () =>
-  Effect.promise(async () => {
-    const PROCEED = nls.localize('confirm_delete_source_button_text');
-    const CANCEL = nls.localize('cancel_delete_source_button_text');
-    const prompt = nls.localize('delete_source_confirmation_message');
-    const response = await vscode.window.showInformationMessage(prompt, PROCEED, CANCEL);
-    return response === PROCEED;
-  });
+/** throws the standard UserCancellationError if the user cancels the deletion */
+const showDeleteConfirmation = Effect.fn('showDeleteConfirmation')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const PROCEED = nls.localize('confirm_delete_source_button_text');
+  const CANCEL = nls.localize('cancel_delete_source_button_text');
+  const prompt = nls.localize('delete_source_confirmation_message');
+  const response = yield* Effect.promise(
+    async () => await vscode.window.showInformationMessage(prompt, PROCEED, CANCEL)
+  );
+  return response === PROCEED ? (true as const) : yield* new api.services.UserCancellationError();
+});
 
 const deletePaths = (uris: URI[]) =>
   Effect.gen(function* () {
@@ -36,69 +40,44 @@ const deletePaths = (uris: URI[]) =>
   });
 
 /** Delete source paths from the default org */
-export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(function* (
-  sourceUri: URI | undefined,
-  uris: URI[] | undefined
-) {
-  yield* Effect.annotateCurrentSpan({ sourceUri, uris });
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
+  function* (sourceUri: URI | undefined, uris: URI[] | undefined) {
+    yield* Effect.annotateCurrentSpan({ sourceUri, uris });
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const channelService = yield* api.services.ChannelService;
 
-  // Resolve source URI from parameter or active editor
-  const resolvedSourceUri =
-    sourceUri ??
-    (yield* api.services.EditorService.getActiveEditorUri().pipe(
-      Effect.catchTag('NoActiveEditorError', () =>
-        Effect.sync(() => {
-          void vscode.window.showErrorMessage(nls.localize('delete_source_select_file_or_directory'));
-        }).pipe(Effect.as(undefined))
+    // Resolve source URI from parameter or active editor
+    const resolvedSourceUri = sourceUri ?? (yield* api.services.EditorService.getActiveEditorUri());
+    const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
+    yield* api.services.ProjectService.ensureInPackageDirectories(resolvedUris);
+
+    // User confirmation
+    yield* showDeleteConfirmation();
+
+    // Delete the paths
+    yield* deletePaths(resolvedUris).pipe(
+      Effect.catchTag('ConflictsDetectedError', err =>
+        handleConflictWithRetry({
+          pairs: err.pairs,
+          operationType: err.operationType,
+          retryOperation: deleteComponentSet({ componentSet: err.componentSet })
+        })
+      ),
+      // add the error output to the chanel, let the regular error handler do the rest
+      Effect.tapErrorTag('DeleteSourceFailedError', (error: DeleteSourceFailedError) =>
+        Effect.all([
+          ...(error.result
+            ? [formatDeployOutput(error.result).pipe(Effect.flatMap(o => channelService.appendToChannel(o)))]
+            : []),
+          channelService.getChannel.pipe(Effect.map(channel => channel.show()))
+        ])
       )
-    ));
-
-  if (!resolvedSourceUri) {
-    return;
-  }
-
-  const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
-  yield* api.services.ProjectService.ensureInPackageDirectories(resolvedUris);
-
-  // User confirmation
-  const confirmed = yield* showDeleteConfirmation();
-  if (!confirmed) {
-    return;
-  }
-
-  // Delete the paths
-  yield* deletePaths(resolvedUris).pipe(
-    Effect.catchTag('ConflictsDetectedError', err =>
-      handleConflictWithRetry({
-        pairs: err.pairs,
-        operationType: err.operationType,
-        retryOperation: deleteComponentSet({ componentSet: err.componentSet })
-      })
-    ),
-    Effect.catchTag('DeleteSourceFailedError', (error: DeleteSourceFailedError) => {
-      const errorMessage = error.cause?.message ?? nls.localize('delete_failed', 'Unknown error');
-      return Effect.all([
-        channelService.appendToChannel(errorMessage),
-        ...(error.result
-          ? [formatDeployOutput(error.result).pipe(Effect.flatMap(o => channelService.appendToChannel(o)))]
-          : []),
-        channelService.getChannel.pipe(Effect.map(channel => channel.show())),
-        Effect.sync(() => {
-          void vscode.window.showErrorMessage(errorMessage);
-        })
-      ]);
-    }),
-    Effect.catchAll(error => {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return Effect.all([
-        channelService.appendToChannel(`Delete failed: ${errorMessage}`),
-        channelService.getChannel.pipe(Effect.map(channel => channel.show())),
-        Effect.sync(() => {
-          void vscode.window.showErrorMessage(errorMessage);
-        })
-      ]);
+    );
+  },
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('delete_source_text'))),
+  Effect.catchTag('NoActiveEditorError', () =>
+    Effect.sync(() => {
+      void vscode.window.showErrorMessage(nls.localize('delete_source_select_file_or_directory'));
     })
-  );
-});
+  )
+);

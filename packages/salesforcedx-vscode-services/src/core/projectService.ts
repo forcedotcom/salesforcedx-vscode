@@ -105,8 +105,11 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
           .map(dir => dir.replace(/\/$/, ''))
           .some(
             dir =>
-              // Use URI.path which is normalized (always uses /) regardless of OS
-              uri.path.startsWith(`${dir}/`) || uri.path === dir
+              // Use URI.path which is normalized (always uses /) regardless of OS.
+              // Compare case-insensitively: VS Code provides uppercase drive letters on
+              // Windows (e.g. /C:/...) while vscode-uri normalizes to lowercase (/c:/...).
+              uri.path.toLowerCase().startsWith(`${dir.toLowerCase()}/`) ||
+              uri.path.toLowerCase() === dir.toLowerCase()
           )
       );
     });

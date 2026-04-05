@@ -11,6 +11,7 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
+import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { ManifestSelectionRequiredError } from './manifestErrors';
 
 /** Retrieve from the default org using a manifest file */
@@ -28,6 +29,9 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
 
     yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
   },
+  withConfigurableSuccessNotification(
+    nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text'))
+  ),
   Effect.catchTag(
     'NoActiveEditorError',
     () => new ManifestSelectionRequiredError({ message: nls.localize('retrieve_select_manifest') })

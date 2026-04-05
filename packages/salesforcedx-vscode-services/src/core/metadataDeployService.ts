@@ -6,7 +6,6 @@
  */
 
 import { ComponentSet, RequestStatus } from '@salesforce/source-deploy-retrieve';
-import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -15,7 +14,7 @@ import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { SuccessfulCancelResult } from '../vscode/cancellation';
+import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { ConnectionService } from './connectionService';
@@ -106,14 +105,11 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       const deployOutcome = yield* Effect.matchCauseEffect(Fiber.join(deployFiber), {
         onFailure: cause =>
           Cause.isInterruptedOnly(cause)
-            ? Effect.succeed(Brand.nominal<SuccessfulCancelResult>()('User canceled'))
+            ? Effect.fail<UserCancellationError | MetadataDeployError>(new UserCancellationError())
             : Effect.failCause(cause),
         onSuccess: outcome => Effect.succeed(outcome)
       });
 
-      if (typeof deployOutcome === 'string') {
-        return deployOutcome;
-      }
       yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
       if (deployOutcome.response?.status === RequestStatus.Succeeded) {
         yield* trackingService

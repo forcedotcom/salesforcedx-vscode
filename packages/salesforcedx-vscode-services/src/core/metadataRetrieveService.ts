@@ -14,15 +14,14 @@ import {
   type RegistryAccess
 } from '@salesforce/source-deploy-retrieve';
 
-import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { uriToPath } from '../vscode/paths';
+import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
@@ -158,15 +157,12 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
         onFailure: cause =>
           Cause.isInterruptedOnly(cause)
-            ? Effect.succeed(Brand.nominal<SuccessfulCancelResult>()('User canceled'))
+            ? Effect.fail<UserCancellationError | MetadataRetrieveError>(new UserCancellationError())
             : Effect.failCause(cause),
         onSuccess: outcome => Effect.succeed(outcome)
       });
 
       yield* Effect.annotateCurrentSpan({ retrieveOutcome });
-      if (typeof retrieveOutcome === 'string') {
-        return retrieveOutcome;
-      }
 
       yield* Effect.annotateCurrentSpan({
         fileResponses: retrieveOutcome.getFileResponses().map(r => r.filePath)
@@ -253,7 +249,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
             connectionService.getConnection(),
             projectService.getSfProject(),
             configService.getConfigAggregator(),
-            workspaceService.getWorkspaceInfoOrThrow(),
+            workspaceService.getWorkspaceInfoOrThrow()
           ],
           { concurrency: 'unbounded' }
         );
