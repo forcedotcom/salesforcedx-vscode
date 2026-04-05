@@ -8,6 +8,7 @@
 import { FileResponse, type MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
@@ -65,8 +66,10 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
     Stream.filter(r => bundleTypes.has(r.type)),
     Stream.mapEffect(r => fsService.toUri(r.filePath)),
     Stream.map(uri => Utils.dirname(uri)),
+    Stream.map(uri => fsService.HashableUri.fromUri(uri)),
     Stream.runCollect,
-    Effect.map(Chunk.toReadonlyArray)
+    Effect.map(HashSet.fromIterable),
+    Effect.map(HashSet.toValues)
   );
 
   return { filesToOpen, foldersToReveal };

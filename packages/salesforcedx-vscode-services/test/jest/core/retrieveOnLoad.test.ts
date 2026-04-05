@@ -284,9 +284,9 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    const folderUri = URI.file('/path/lwc/foo');
     expect(filesToOpen).toHaveLength(0);
-    expect(foldersToReveal).toEqual([folderUri, folderUri, folderUri, folderUri]);
+    expect(foldersToReveal).toHaveLength(1);
+    expect(foldersToReveal[0].toString()).toBe(URI.file('/path/lwc/foo').toString());
   });
 
   it('should split mixed members: non-bundle files to open, bundle folders to reveal', async () => {
@@ -304,8 +304,8 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses, members).pipe(Effect.provide(testLayer))
     );
 
-    const folderUri = URI.file('/path/lwc/foo');
     expect(filesToOpen).toEqual([URI.file('/path/classes/Bar.cls')]);
-    expect(foldersToReveal).toEqual([folderUri, folderUri]);
+    expect(foldersToReveal).toHaveLength(1);
+    expect(foldersToReveal[0].toString()).toBe(URI.file('/path/lwc/foo').toString());
   });
 });
