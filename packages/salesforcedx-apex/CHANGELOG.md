@@ -1,3 +1,12 @@
+## [8.4.19](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.18...8.4.19) (2026-04-05)
+
+
+### Bug Fixes
+
+* **deps:** bump lodash from 4.17.23 to 4.18.1 ([8fbeeff](https://github.com/forcedotcom/salesforcedx-apex/commit/8fbeeff4dea00013242de0d74acea898fe7ca66e))
+
+
+
 ## [8.4.18](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.17...8.4.18) (2026-03-30)
 
 
