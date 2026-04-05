@@ -89,7 +89,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       metadataNls.project_deploy_start_ignore_conflicts_default_org_text as string
     );
     await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30000 });
-    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: 120000 });
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120000 });
     await saveScreenshot(page, 'setup.classes-created.png');
   });
 

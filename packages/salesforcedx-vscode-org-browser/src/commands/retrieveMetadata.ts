@@ -85,18 +85,17 @@ const confirmOverwrite = Effect.fn('confirmRetrieveOverwrite')(function* (
   projectComponentSet: ComponentSet,
   members: MetadataMember[]
 ) {
+  const overwriteCount = getOverwriteCount(projectComponentSet, members);
+  if (overwriteCount === 0) return;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const yesButton = nls.localize('yes_button');
-  const response = yield* Effect.promise(async () => {
-    const overwriteCount = getOverwriteCount(projectComponentSet, members);
-    if (overwriteCount === 0) return true;
-    const typeName = members[0]?.type ?? 'Unknown';
-    const answer = await vscode.window.showWarningMessage(
+  const typeName = members[0]?.type ?? 'Unknown';
+  const answer = yield* Effect.promise(() =>
+    vscode.window.showWarningMessage(
       nls.localize('confirm_overwrite', String(overwriteCount), typeName),
       yesButton,
       nls.localize('no_button')
-    );
-    return answer;
-  });
-  return response === yesButton ? (true as const) : yield* new api.services.UserCancellationError();
+    )
+  );
+  if (answer !== yesButton) return yield* new api.services.UserCancellationError();
 });
