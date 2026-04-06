@@ -213,7 +213,7 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
     yield* Effect.all(
       [
         Effect.forkIn(subscribeLifecycleWarnings(), scope),
-        retrieveOnLoadEffect(),
+        Effect.forkIn(retrieveOnLoadEffect(), scope),
         Effect.forkIn(watchSettingsService(), scope)
       ],
       { concurrency: 'unbounded' }
