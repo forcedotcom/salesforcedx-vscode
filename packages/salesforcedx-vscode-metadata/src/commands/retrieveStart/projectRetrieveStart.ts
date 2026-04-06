@@ -10,15 +10,27 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { detectConflicts, handleConflictWithRetry } from '../../conflict/conflictFlow';
 import { nls } from '../../messages';
+import { formatRetrieveOutput } from '../../shared/retrieve/formatRetrieveOutput';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
 import { withConfigurableSuccessNotification } from '../../utils/withConfigurableSuccessNotification';
 
-const applyDeletesAndRetrieve = Effect.fn('projectRetrieve.applyDeletesAndRetrieve')(function* () {
+/**
+ * Apply remote deletes and retrieve non-deletes. Skips retrieve when only deletes exist.
+ * Always surfaces fileResponsesFromDelete in output.
+ */
+const applyAndRetrieve = Effect.fn('projectRetrieve.applyAndRetrieve')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { componentSetFromNonDeletes: componentSetToRetrieve } =
-    yield* api.services.SourceTrackingService.maybeApplyRemoteDeletesToLocal(true);
+  const channelService = yield* api.services.ChannelService;
+  const { componentSetFromNonDeletes, fileResponsesFromDelete } =
+    yield* api.services.SourceTrackingService.maybeApplyRemoteDeletesToLocal();
 
-  yield* retrieveComponentSet({ componentSet: componentSetToRetrieve, ignoreConflicts: true });
+  yield* componentSetFromNonDeletes.size > 0
+    ? retrieveComponentSet({
+        componentSet: componentSetFromNonDeletes,
+        ignoreConflicts: true,
+        fileResponsesFromDelete
+      })
+    : channelService.appendToChannel(yield* formatRetrieveOutput(undefined, fileResponsesFromDelete));
 });
 
 const retrieveEffect = Effect.fn('retrieveEffect')(
@@ -31,21 +43,33 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
       { concurrency: 'unbounded' }
     );
 
-    const componentSet = yield* sourceTrackingService.getRemoteNonDeletesAsComponentSet({ applyIgnore: true }).pipe(
-      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+    const [nonDeletesCS, deletesCS] = yield* Effect.all(
+      [
+        sourceTrackingService.getRemoteNonDeletesAsComponentSet({ applyIgnore: true }),
+        sourceTrackingService.getRemoteDeletesAsComponentSet()
+      ],
+      { concurrency: 'unbounded' }
+    );
+
+    // Merge delete members into non-deletes ComponentSet for a combined conflict check + non-empty guard.
+    // deletesCS members are added so detectConflictsFromTracking filters include locally-modified files
+    // that were remotely deleted.
+    [...deletesCS].map(member => nonDeletesCS.add(member));
+
+    const combinedCS = yield* componentSetService.ensureNonEmptyComponentSet(nonDeletesCS).pipe(
       Effect.tap(cs =>
         channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
       )
     );
 
-    if (!ignoreConflicts) yield* detectConflicts(componentSet, 'retrieve');
-    yield* applyDeletesAndRetrieve();
+    if (!ignoreConflicts) yield* detectConflicts(combinedCS, 'retrieve');
+    yield* applyAndRetrieve();
   },
   Effect.catchTag('ConflictsDetectedError', err =>
     handleConflictWithRetry({
       pairs: err.pairs,
       operationType: err.operationType,
-      retryOperation: applyDeletesAndRetrieve()
+      retryOperation: applyAndRetrieve()
     })
   )
 );

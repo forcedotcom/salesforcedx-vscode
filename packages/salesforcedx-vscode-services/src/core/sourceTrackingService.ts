@@ -5,9 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
-import { type SourceTracking } from '@salesforce/source-tracking';
+import {
+  ComponentSet,
+  ComponentStatus,
+  type DeployResult,
+  type FileResponse,
+  type RetrieveResult
+} from '@salesforce/source-deploy-retrieve';
+import { ChangeResult, type SourceTracking } from '@salesforce/source-tracking';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
@@ -41,6 +49,10 @@ export class SourceTrackingConflictError extends Schema.TaggedError<SourceTracki
   }
 ) {}
 const toSourceTrackingError = (error: unknown) => new SourceTrackingError({ cause: unknownToErrorCause(error).cause });
+
+const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
+type ResolvedChangeResult = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
+const isResolvedChangeResult = (c: ChangeResult): c is ResolvedChangeResult => Schema.is(ResolvedChangeResultSchema)(c);
 
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   accessors: true,
@@ -191,6 +203,29 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       }
     );
 
+    /** Get remote deletes as ComponentSet (remote tracking files only).
+     * Uses ChangeResult format (not SourceComponent) so it returns entries even when local files don't exist. */
+    const getRemoteDeletesAsComponentSet = Effect.fn('SourceTrackingService.getRemoteDeletesAsComponentSet')(
+      function* () {
+        const tracking = yield* getOrCreateTracking();
+        const registry = yield* metadataRegistryService.getRegistryAccess();
+
+        return yield* remoteSemaphore.withPermits(1)(
+          Effect.gen(function* () {
+            yield* rereadRemote(tracking);
+            const changeResults = yield* Effect.tryPromise({
+              try: () => tracking.getChanges({ origin: 'remote', state: 'delete', format: 'ChangeResult' }),
+              catch: toSourceTrackingError
+            }).pipe(Effect.withSpan('STL.RemoteDeletesAsComponentSet'));
+            return new ComponentSet(
+              changeResults.filter(isResolvedChangeResult).map(c => ({ type: c.type, fullName: c.name })),
+              registry
+            );
+          })
+        );
+      }
+    );
+
     /** Reset remote tracking (remote tracking files only) */
     const resetRemoteTracking = Effect.fn('SourceTrackingService.resetRemoteTracking')(function* () {
       const tracking = yield* getOrCreateTracking();
@@ -238,24 +273,68 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       );
     });
 
-    /** Apply remote deletes to local and get non-deletes component set (both tracking files) */
-    const maybeApplyRemoteDeletesToLocal = Effect.fn('SourceTrackingService.maybeApplyRemoteDeletesToLocal')(function* (
-      apply: true
-    ) {
-      const tracking = yield* getOrCreateTracking();
+    /** Apply remote deletes to local and get non-deletes component set (both tracking files).
+     * Also updates remote tracking for deletes where no local file exists (STL skips these). */
+    const maybeApplyRemoteDeletesToLocal = Effect.fn('SourceTrackingService.maybeApplyRemoteDeletesToLocal')(
+      function* () {
+        const tracking = yield* getOrCreateTracking();
 
-      return yield* localSemaphore.withPermits(1)(
-        remoteSemaphore.withPermits(1)(
-          Effect.gen(function* () {
-            yield* rereadBoth(tracking);
-            return yield* Effect.tryPromise({
-              try: () => tracking.maybeApplyRemoteDeletesToLocal(apply),
-              catch: toSourceTrackingError
-            }).pipe(Effect.withSpan('STL.MaybeApplyRemoteDeletesToLocal'));
-          })
-        )
-      );
-    });
+        return yield* localSemaphore.withPermits(1)(
+          remoteSemaphore.withPermits(1)(
+            Effect.gen(function* () {
+              yield* rereadBoth(tracking);
+
+              // Get all remote deletes as ChangeResult before applying — works even when local files don't exist
+              const allRemoteDeletes = yield* Effect.tryPromise({
+                try: () => tracking.getChanges({ origin: 'remote', state: 'delete', format: 'ChangeResult' }),
+                catch: toSourceTrackingError
+              });
+
+              const result = yield* Effect.tryPromise({
+                try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
+                catch: toSourceTrackingError
+              }).pipe(Effect.withSpan('STL.MaybeApplyRemoteDeletesToLocal'));
+
+              // STL only calls updateRemoteTracking for deletes it could resolve to local files.
+              // For deletes with no local file, manually acknowledge them so they leave tracking.
+              const handledTypeNames = HashSet.fromIterable(
+                result.fileResponsesFromDelete.map(r => Data.struct({ type: r.type, fullName: r.fullName }))
+              );
+
+              const unhandled = allRemoteDeletes
+                .filter(isResolvedChangeResult)
+                .filter(c => !HashSet.has(handledTypeNames, Data.struct({ type: c.type, fullName: c.name })));
+
+              if (unhandled.length > 0) {
+                yield* Effect.tryPromise({
+                  try: () =>
+                    tracking.updateRemoteTracking(
+                      unhandled.map(c => ({ type: c.type, fullName: c.name, state: ComponentStatus.Deleted })),
+                      true // skipPolling — same as STL's deleteFilesAndUpdateTracking
+                    ),
+                  catch: toSourceTrackingError
+                }).pipe(Effect.withSpan('STL.AcknowledgeUnhandledRemoteDeletes'));
+              }
+
+              // Surface unhandled deletes as synthetic FileResponse entries so the output channel
+              // shows them even when there was no local file to delete.
+              // filePath is empty string (falsy) so formatRetrieveOutput falls back to fullName for display.
+              const syntheticDeletes: FileResponse[] = unhandled.map(c => ({
+                type: c.type,
+                fullName: c.name,
+                state: ComponentStatus.Deleted,
+                filePath: ''
+              }));
+
+              return {
+                componentSetFromNonDeletes: result.componentSetFromNonDeletes,
+                fileResponsesFromDelete: [...result.fileResponsesFromDelete, ...syntheticDeletes]
+              };
+            })
+          )
+        );
+      }
+    );
 
     /** Get conflicts without UI side effects (both tracking files) */
     const getConflicts = Effect.fn('SourceTrackingService.getConflicts')(function* () {
@@ -359,6 +438,9 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
 
       /** Get remote non-deletes as ComponentSet (auto-rereads remote tracking) */
       getRemoteNonDeletesAsComponentSet,
+
+      /** Get remote deletes as ComponentSet (auto-rereads remote tracking) */
+      getRemoteDeletesAsComponentSet,
 
       /** Reset remote tracking files */
       resetRemoteTracking,
