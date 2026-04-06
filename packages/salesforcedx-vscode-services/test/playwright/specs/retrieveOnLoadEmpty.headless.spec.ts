@@ -17,7 +17,7 @@ import {
   waitForOutputChannelText,
   outputChannelContains,
   createMinimalOrg,
-  filterErrors,
+  validateNoCriticalErrors,
   waitForVSCodeWorkbench,
   ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
@@ -50,11 +50,5 @@ test('handles empty retrieveOnLoad setting gracefully', async ({ page }) => {
     expect(hasRetrieving, 'Should not attempt retrieval with empty setting').toBe(false);
   });
 
-  await test.step('validate no errors from empty setting', async () => {
-    const criticalConsole = filterErrors(consoleErrors);
-    expect(
-      criticalConsole,
-      `Console errors: ${criticalConsole.map((e: { text: string }) => e.text).join(' | ')}`
-    ).toHaveLength(0);
-  });
+  await validateNoCriticalErrors(test, consoleErrors);
 });

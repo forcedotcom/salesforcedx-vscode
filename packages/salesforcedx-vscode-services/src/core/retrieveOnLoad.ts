@@ -21,6 +21,7 @@ import { MetadataRegistryService } from './metadataRegistryService';
 import { MetadataRetrieveService } from './metadataRetrieveService';
 import { fileResponseHasPath } from './sdrGuards';
 
+// exclude apex meta-xml files
 const isNotMatchingContentXmlFile = Effect.fn('isNotMatchingContentXmlFile')(function* (r: FileResponse) {
   const registry = yield* MetadataRegistryService.getRegistryAccess();
   return yield* Effect.succeed(
@@ -30,6 +31,10 @@ const isNotMatchingContentXmlFile = Effect.fn('isNotMatchingContentXmlFile')(fun
       )
   );
 });
+
+// just open the top-level object file
+const isNotCustomObjectDecomposedChild = (r: FileResponse) =>
+  r.type !== 'CustomObject' || Boolean(r.filePath?.endsWith('object-meta.xml'));
 
 export const filterFileResponses = Effect.fn('filterFileResponses')(function* (fileResponses: FileResponse[]) {
   const { isSDRSuccess } = yield* ComponentSetService;
@@ -44,6 +49,7 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (f
   const filesToOpen = normalized.pipe(
     Stream.filter(r => r.type !== 'LightningComponentBundle'),
     Stream.filterEffect(isNotMatchingContentXmlFile),
+    Stream.filter(isNotCustomObjectDecomposedChild),
     Stream.map(r => r.filePath),
     Stream.mapEffect(p => fsService.toUri(p))
   );
@@ -97,12 +103,12 @@ export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
 
     const filesToOpen = yield* filterFileResponses(result.getFileResponses().filter(componentSetService.isSDRSuccess));
 
-    yield* channelService.appendToChannel(`Retrieve on load completed. ${filesToOpen.length} files retrieved.`);
+    yield* channelService.appendToChannel(
+      `Retrieve on load completed. ${filesToOpen.length} files retrieved successfully.`
+    );
 
     const fsService = yield* FsService;
-    yield* Effect.forEach(filesToOpen, uri => fsService.showTextDocument(uri, { preview: false }), {
-      concurrency: 'unbounded'
-    });
+    yield* Effect.forEach(filesToOpen, uri => fsService.showTextDocument(uri, { preview: false }));
   },
   Effect.catchAll(error =>
     Effect.gen(function* () {
