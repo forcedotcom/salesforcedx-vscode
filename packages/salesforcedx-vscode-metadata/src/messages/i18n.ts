@@ -30,7 +30,8 @@ export const messages = {
   source_tracking_status_bar_conflicts: 'Conflicts',
   source_tracking_status_bar_click_to_push: '💡 Click to deploy these changes to the org',
   source_tracking_status_bar_click_to_retrieve: '💡 Click to retrieve these changes from the org',
-  source_tracking_status_bar_click_to_deploy_then_retrieve: '💡 Click to deploy local changes then retrieve remote changes',
+  source_tracking_status_bar_click_to_deploy_then_retrieve:
+    '💡 Click to deploy local changes then retrieve remote changes',
   source_tracking_status_bar_click_to_view_conflicts: '💡 Click to view conflicts',
   source_tracking_status_bar_view_changes: 'View Changes',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
@@ -48,7 +49,6 @@ export const messages = {
   deploy_select_file_or_directory: 'You can run SFDX: Deploy This Source to Org only on a source file or directory.',
   deploy_select_manifest: 'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
 
-  // Deploy on save
   deploy_on_save_error_no_target_org:
     'Error running deploy on save: No default org is set. Run "SFDX: Authorize an Org", then deploy the changes that you just saved.',
   deploy_on_save_error_generic: 'Deploy on save failed: %s',

@@ -338,7 +338,8 @@
           "minimum": 0,
           "description": "%source_tracking_polling_interval_description%"
         },
-        "salesforcedx-vscode-metadata.show-success-notification": {
+        "salesforcedx-vscode-metadata.showSuccessNotification": {
+          "title": "%show_success_notification_title%",
           "type": "boolean",
           "default": false,
           "description": "%show_success_notification_description%"

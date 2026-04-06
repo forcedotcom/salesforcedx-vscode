@@ -9,7 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 
 const SECTION = 'salesforcedx-vscode-metadata';
-const KEY = 'show-success-notification';
+const KEY = 'showSuccessNotification';
 
 /** put this Tap on an Effect's pipe to optionally show a success toast based on the value of the config.*/
 export const withConfigurableSuccessNotification =
