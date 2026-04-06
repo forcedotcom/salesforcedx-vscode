@@ -8,7 +8,6 @@
 import { FileResponse, type MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import * as HashSet from 'effect/HashSet';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
@@ -32,19 +31,8 @@ const isNotMatchingContentXmlFile = Effect.fn('isNotMatchingContentXmlFile')(fun
   );
 });
 
-export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
-  fileResponses: FileResponse[],
-  members: MetadataMember[]
-) {
+export const filterFileResponses = Effect.fn('filterFileResponses')(function* (fileResponses: FileResponse[]) {
   const { isSDRSuccess } = yield* ComponentSetService;
-  const registry = yield* MetadataRegistryService.getRegistryAccess();
-
-  const bundleTypes = new Set(
-    members
-      .map(m => registry.getTypeByName(m.type))
-      .filter(t => t.strategies?.adapter === 'bundle')
-      .map(t => t.name)
-  );
 
   const fsService = yield* FsService;
 
@@ -53,26 +41,29 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
     Stream.filter(fileResponseHasPath)
   );
 
-  const filesToOpen = yield* normalized.pipe(
-    Stream.filter(r => !bundleTypes.has(r.type)),
+  const filesToOpen = normalized.pipe(
+    Stream.filter(r => r.type !== 'LightningComponentBundle'),
     Stream.filterEffect(isNotMatchingContentXmlFile),
     Stream.map(r => r.filePath),
-    Stream.mapEffect(p => fsService.toUri(p)),
-    Stream.runCollect,
-    Effect.map(Chunk.toReadonlyArray)
+    Stream.mapEffect(p => fsService.toUri(p))
   );
 
-  const foldersToReveal = yield* normalized.pipe(
-    Stream.filter(r => bundleTypes.has(r.type)),
-    Stream.mapEffect(r => fsService.toUri(r.filePath)),
+  const lwcFiles = normalized.pipe(
+    Stream.filter(r => r.type === 'LightningComponentBundle'),
+    Stream.map(r => r.filePath),
+    Stream.mapEffect(fsService.toUri),
     Stream.map(uri => Utils.dirname(uri)),
-    Stream.map(uri => fsService.HashableUri.fromUri(uri)),
-    Stream.runCollect,
-    Effect.map(HashSet.fromIterable),
-    Effect.map(HashSet.toValues)
+    Stream.changes, // we just need one folder for all of that LWC's files
+    Stream.tap(uri =>
+      Effect.sync(() => {
+        void vscode.commands.executeCommand('revealInExplorer', uri);
+      })
+    ),
+    // we just ran it for the side effect, don't try to open the directories
+    Stream.filter(() => false)
   );
 
-  return { filesToOpen, foldersToReveal };
+  return yield* Stream.merge(filesToOpen, lwcFiles).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray));
 });
 
 /** Parse retrieve on load setting into MetadataMember array */
@@ -100,7 +91,7 @@ export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
 
     const members = parseRetrieveOnLoad(retrieveOnLoadValue);
     const channelService = yield* ChannelService;
-
+    const componentSetService = yield* ComponentSetService;
     if (members.length === 0) {
       return yield* channelService.appendToChannel('No valid metadata members found in retrieveOnLoad setting');
     }
@@ -111,25 +102,14 @@ export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
 
     const result = yield* MetadataRetrieveService.retrieve(members, { ignoreConflicts: true });
 
-    if (typeof result === 'string') {
-      return yield* channelService.appendToChannel(`Retrieve canceled: ${result}`);
-    }
+    const filesToOpen = yield* filterFileResponses(result.getFileResponses().filter(componentSetService.isSDRSuccess));
 
-    const { filesToOpen, foldersToReveal } = yield* filterFileResponses(result.getFileResponses(), members);
-
-    yield* channelService.appendToChannel(
-      `Retrieve on load completed. ${filesToOpen.length} files retrieved, ${foldersToReveal.length} bundle folders revealed.`
-    );
+    yield* channelService.appendToChannel(`Retrieve on load completed. ${filesToOpen.length} files retrieved.`);
 
     const fsService = yield* FsService;
     yield* Effect.forEach(filesToOpen, uri => fsService.showTextDocument(uri, { preview: false }), {
       concurrency: 'unbounded'
     });
-    yield* Effect.forEach(foldersToReveal, uri =>
-      Effect.sync(() => {
-        void vscode.commands.executeCommand('revealInExplorer', uri);
-      })
-    );
   },
   Effect.catchAll(error =>
     Effect.gen(function* () {
