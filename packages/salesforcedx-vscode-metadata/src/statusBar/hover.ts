@@ -64,6 +64,9 @@ export const buildCombinedHoverText = (
 /** Get click hint based on counts */
 const getClickHint = (counts: SourceTrackingCounts): string =>
   Match.value(counts).pipe(
+    Match.when({ conflicts: (n: number) => n > 0 }, () =>
+      nls.localize('source_tracking_status_bar_click_to_view_conflicts')
+    ),
     Match.when({ remote: (n: number) => n > 0, local: 0, conflicts: 0 }, () =>
       nls.localize('source_tracking_status_bar_click_to_retrieve')
     ),

@@ -31,6 +31,7 @@ export const messages = {
   source_tracking_status_bar_click_to_push: '💡 Click to deploy these changes to the org',
   source_tracking_status_bar_click_to_retrieve: '💡 Click to retrieve these changes from the org',
   source_tracking_status_bar_click_to_deploy_then_retrieve: '💡 Click to deploy local changes then retrieve remote changes',
+  source_tracking_status_bar_click_to_view_conflicts: '💡 Click to view conflicts',
   source_tracking_status_bar_view_changes: 'View Changes',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
   source_tracking_status_bar_refreshing: 'Refreshing source tracking...',
