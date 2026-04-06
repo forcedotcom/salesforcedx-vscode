@@ -90,7 +90,7 @@ export const getCommand = (counts: SourceTrackingCounts): string | undefined => 
   } else if (counts.conflicts > 0) {
     return 'sf.metadata.view.conflicts';
   } else if (counts.remote > 0 && counts.local > 0) {
-    return 'sf.metadata.view.all.changes';
+    return 'sf.metadata.project.deploy.then.retrieve';
   }
   return undefined;
 };
