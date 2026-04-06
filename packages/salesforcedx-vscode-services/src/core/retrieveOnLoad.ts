@@ -52,15 +52,8 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (f
     Stream.filter(r => r.type === 'LightningComponentBundle'),
     Stream.map(r => r.filePath),
     Stream.mapEffect(fsService.toUri),
-    Stream.map(uri => Utils.dirname(uri)),
-    Stream.changes, // we just need one folder for all of that LWC's files
-    Stream.tap(uri =>
-      Effect.sync(() => {
-        void vscode.commands.executeCommand('revealInExplorer', uri);
-      })
-    ),
-    // we just ran it for the side effect, don't try to open the directories
-    Stream.filter(() => false)
+    // get ths js file which is always present and matches the component name
+    Stream.filter(uri => `${Utils.basename(Utils.dirname(uri))}.js` === Utils.basename(uri))
   );
 
   return yield* Stream.merge(filesToOpen, lwcFiles).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray));

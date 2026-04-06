@@ -256,8 +256,7 @@ describe('filterFileResponses', () => {
     expect(filesToOpen).toHaveLength(0);
   });
 
-  it('should reveal LWC bundle folder in Explorer and not include any LWC files in result', async () => {
-    const { commands } = await import('vscode');
+  it('should include only the main LWC .js file (basename matches parent folder)', async () => {
     const fileResponses: FileResponse[] = [
       createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.js'),
       createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.html'),
@@ -269,12 +268,11 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen).toHaveLength(0);
-    expect(commands.executeCommand).toHaveBeenCalledWith('revealInExplorer', expect.objectContaining({ path: '/path/lwc/foo' }));
+    expect(filesToOpen).toHaveLength(1);
+    expect(filesToOpen[0].toString()).toBe(URI.file('/path/lwc/foo/foo.js').toString());
   });
 
-  it('should open non-bundle files and reveal LWC folder, not include LWC files in result', async () => {
-    const { commands } = await import('vscode');
+  it('should include non-bundle files alongside the LWC main .js file', async () => {
     const fileResponses: FileResponse[] = [
       createFileResponse('ApexClass', 'Bar', '/path/classes/Bar.cls'),
       createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.js'),
@@ -285,7 +283,8 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen).toEqual([URI.file('/path/classes/Bar.cls')]);
-    expect(commands.executeCommand).toHaveBeenCalledWith('revealInExplorer', expect.objectContaining({ path: '/path/lwc/foo' }));
+    expect(filesToOpen).toContainEqual(URI.file('/path/classes/Bar.cls'));
+    expect(filesToOpen).toContainEqual(URI.file('/path/lwc/foo/foo.js'));
+    expect(filesToOpen).not.toContainEqual(URI.file('/path/lwc/foo/foo.html'));
   });
 });
