@@ -13,6 +13,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { sampleProjectName } from '../constants';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
+import { nls } from '../messages';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { FsProvider } from './fileSystemProvider';
@@ -56,7 +57,7 @@ export const fileSystemSetup = (context: vscode.ExtensionContext) =>
 
     // Replace the existing workspace with ours
     vscode.workspace.updateWorkspaceFolders(0, 0, {
-      name: 'Code Builder',
+      name: nls.localize('workspace_folder_name'),
       uri: URI.parse(`${fsPrefix}:/${sampleProjectName}`)
     });
 
