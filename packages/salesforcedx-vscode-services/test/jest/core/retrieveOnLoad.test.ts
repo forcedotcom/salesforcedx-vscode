@@ -9,7 +9,6 @@ import {
   ComponentStatus,
   RegistryAccess,
   type FileResponse,
-  type FileResponseFailure,
   type FileResponseSuccess
 } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
@@ -18,6 +17,7 @@ import { URI } from 'vscode-uri';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
 import { ComponentSetService, type NonEmptyComponentSet } from '../../../src/core/componentSetService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
+import { isSDRSuccess, isSDRFailure, toComponentStatusChangeType } from '../../../src/core/sdrGuards';
 import { FsService } from '../../../src/vscode/fsService';
 
 /** Create a mock ComponentSetService that only provides the type guards needed for tests */
@@ -25,18 +25,9 @@ const createMockComponentSetService = (): Layer.Layer<ComponentSetService, never
   Layer.succeed(
     ComponentSetService,
     new ComponentSetService({
-      getComponentState: (component: FileResponseSuccess) =>
-        component.state === ComponentStatus.Changed
-          ? 'Changed'
-          : component.state === ComponentStatus.Created
-            ? 'Created'
-            : component.state === ComponentStatus.Deleted
-              ? 'Deleted'
-              : 'Unchanged',
-      isSDRSuccess: (fileResponse: FileResponse): fileResponse is FileResponseSuccess =>
-        fileResponse.state !== ComponentStatus.Failed,
-      isSDRFailure: (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
-        fileResponse.state === ComponentStatus.Failed,
+      getComponentState: (component: FileResponseSuccess) => toComponentStatusChangeType(component.state),
+      isSDRSuccess,
+      isSDRFailure,
       ensureNonEmptyComponentSet: () => Effect.succeed({} as NonEmptyComponentSet),
       getComponentSetFromUris: () => Effect.succeed({} as never),
       getComponentSetFromManifest: (_manifestUri: URI) => Effect.succeed({} as never),
