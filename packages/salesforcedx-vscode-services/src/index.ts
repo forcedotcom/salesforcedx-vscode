@@ -267,7 +267,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
             SettingsService.Default,
             ChannelService.Default,
             IndexedDBStorageServiceShared,
-            isItReadOnlyLayer
+            isItReadOnlyLayer,
+            ServicesSdkLayer()
           )
         ),
         Scope.extend(extensionScope)
