@@ -32,6 +32,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
+    "effect": "^3.20.0",
     "find-java-home": "1.2.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -41,7 +42,8 @@
     "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -107,7 +109,8 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "copy:grammars"
+        "copy:grammars",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
