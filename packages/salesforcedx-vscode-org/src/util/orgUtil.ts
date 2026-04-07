@@ -16,7 +16,7 @@ import {
 } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { notificationService, workspaceUtils, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
-import { ICONS, invalidateCachedConnections } from '@salesforce/vscode-services';
+import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import * as Option from 'effect/Option';
@@ -116,7 +116,12 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // including the default one used by AuthInfo.listAllAuthorizations().
   await StateAggregator.clearInstanceAsync();
 
-  await Effect.runPromise(invalidateCachedConnections);
+  await getOrgRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      yield* api.services.ConnectionService.invalidateCachedConnections();
+    })
+  );
 
   // Trigger Apex Test Controller to discover tests after org auth/set-default. Delay so config
   // and TargetOrgRef can propagate before refresh runs.

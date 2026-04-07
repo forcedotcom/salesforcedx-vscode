@@ -161,7 +161,6 @@ export type {
   FailedToResolveUsernameError,
   NoTargetOrgConfiguredError
 } from './core/connectionService';
-export { invalidateCachedConnections } from './core/connectionService';
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
 export type { MetadataDeleteError } from './core/metadataDeleteService';

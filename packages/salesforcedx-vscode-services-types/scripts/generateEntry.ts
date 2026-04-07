@@ -20,7 +20,6 @@ const generateEntry = (): void => {
 // This file is auto-generated. Do not edit manually.
 export type { SalesforceVSCodeServicesApi } from '../../salesforcedx-vscode-services/out/src/index';
 export { DefaultOrgInfoSchema } from '../../salesforcedx-vscode-services/out/src/core/schemas/defaultOrgInfo';
-export { invalidateCachedConnections } from '../../salesforcedx-vscode-services/out/src/core/connectionService';
 export { ICONS, type IconId } from './icons';
 `;
 

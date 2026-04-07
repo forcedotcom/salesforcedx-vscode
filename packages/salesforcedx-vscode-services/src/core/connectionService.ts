@@ -165,14 +165,6 @@ const connectionCache = Effect.runSync(
   })
 );
 
-/**
- * Drops cached JSForce `Connection` instances so the next `ConnectionService.getConnection()` reloads `AuthInfo`
- * from disk. Without this, desktop builds reuse connections for up to 30 minutes after tokens change (e.g. web
- * re-login), which surfaces as INVALID_SESSION_ID in Metadata/Tooling APIs while commands that create a fresh
- * `Connection` (such as Display Org Details) still appear connected.
- */
-export const invalidateCachedConnections = connectionCache.invalidateAll;
-
 type IdentityResult = { username: string; userId: string };
 
 const identityCache = new Map<string, IdentityResult>();
@@ -242,7 +234,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       return conn;
     });
 
-    return { getConnection };
+    /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
+    const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
+      yield* connectionCache.invalidateAll;
+    });
+
+    return { getConnection, invalidateCachedConnections };
   })
 }) {}
 

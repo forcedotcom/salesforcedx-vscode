@@ -14,6 +14,14 @@ const connection = yield* api.services.ConnectionService.getConnection();
 
 Returns `Connection` from `@salesforce/core`.
 
+### invalidateCachedConnections
+
+After auth files or tokens change on disk, drop cached JSForce connections so the next `getConnection()` reloads `AuthInfo`:
+
+```typescript
+yield* api.services.ConnectionService.invalidateCachedConnections();
+```
+
 ## Errors
 
 - `NoTargetOrgConfiguredError` - No target org

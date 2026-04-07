@@ -12,7 +12,7 @@ import * as Stream from 'effect/Stream';
 import { join, normalize, sep } from 'node:path';
 import { FileWatcherService } from '../vscode/fileWatcherService';
 import { ConfigService } from './configService';
-import { ConnectionService, invalidateCachedConnections } from './connectionService';
+import { ConnectionService } from './connectionService';
 import { clearDefaultOrgRef } from './defaultOrgRef';
 
 /** Check if a file path is a config file (global or project-specific) */
@@ -43,7 +43,7 @@ export const watchConfigFiles = () =>
         Stream.tap(() =>
           Effect.gen(function* () {
             yield* configService.invalidateConfigAggregator();
-            yield* invalidateCachedConnections;
+            yield* ConnectionService.invalidateCachedConnections();
           })
         ),
         // get connection will cause defaultOrgRef to update, clear the ref if there's any error where we won't have an org connection.
