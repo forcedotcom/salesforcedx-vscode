@@ -11,17 +11,11 @@ import type { SfProject } from '@salesforce/core/project';
 import {
   ComponentSet,
   type ComponentSet as ComponentSetType,
-  type FileResponse,
-  type FileResponseFailure,
   type FileResponseSuccess,
-  ComponentStatus,
-  SourceComponent,
-  type MetadataComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
-import * as Match from 'effect/Match';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { HashableUri } from '../vscode/hashableUri';
@@ -29,6 +23,7 @@ import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { FailedToResolveSfProjectError, ProjectService } from './projectService';
+import { isSDRFailure, isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
 
 /** A ComponentSet that is guaranteed to be non-empty */
@@ -53,29 +48,7 @@ export class FailedToBuildComponentSetError extends Schema.TaggedError<FailedToB
   }
 ) {}
 
-/** Type guard to check if a MetadataComponent is a SourceComponent */
-export const isSourceComponent = (component: MetadataComponent): component is SourceComponent =>
-  component instanceof SourceComponent;
-
-/** Type guard to check if a FileResponse is successful */
-const isSDRSuccess = (fileResponse: FileResponse): fileResponse is FileResponseSuccess =>
-  fileResponse.state !== ComponentStatus.Failed;
-
-/** Type guard to check if a FileResponse is a failure */
-const isSDRFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
-  fileResponse.state === ComponentStatus.Failed;
-
-type ComponentState = 'Changed' | 'Created' | 'Unchanged' | 'Deleted';
-
-const getComponentState = (component: FileResponseSuccess) =>
-  Match.value(component.state).pipe(
-    Match.withReturnType<ComponentState>(),
-    Match.when(ComponentStatus.Changed, () => 'Changed'),
-    Match.when(ComponentStatus.Created, () => 'Created'),
-    Match.when(ComponentStatus.Unchanged, () => 'Unchanged'),
-    Match.when(ComponentStatus.Deleted, () => 'Deleted'),
-    Match.exhaustive
-  );
+const getComponentState = (component: FileResponseSuccess) => toComponentStatusChangeType(component.state);
 
 export class ComponentSetService extends Effect.Service<ComponentSetService>()('ComponentSetService', {
   accessors: true,
