@@ -23,6 +23,7 @@ export {
   TELEMETRY_GLOBAL_USER_ID,
   TELEMETRY_GLOBAL_WEB_USER_ID
 } from './constants';
+export { SALESFORCE_VSCODE_ORG_EXTENSION_ID, type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
