@@ -5,20 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentSet, RequestStatus } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Match from 'effect/Match';
+import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Sink from 'effect/Sink';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { FsService } from '../vscode/fsService';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { ConnectionService } from './connectionService';
+import { MetadataChangeNotificationService } from './metadataChangeNotificationService';
 import { ProjectService } from './projectService';
+import { isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
 import { SourceTrackingService } from './sourceTrackingService';
 
@@ -31,6 +37,8 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
   accessors: true,
   dependencies: [
     ConnectionService.Default,
+    FsService.Default,
+    MetadataChangeNotificationService.Default,
     ProjectService.Default,
     WorkspaceService.Default,
     SourceTrackingService.Default
@@ -38,8 +46,10 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
   effect: Effect.gen(function* () {
     const trackingService = yield* SourceTrackingService;
     const connectionService = yield* ConnectionService;
+    const fsService = yield* FsService;
     const workspaceService = yield* WorkspaceService;
     const projectService = yield* ProjectService;
+    const notificationService = yield* MetadataChangeNotificationService;
 
     /** Get ComponentSet of local changes for deploy */
     const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* () {
@@ -55,6 +65,24 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       });
       return localComponentSets[0] ?? new ComponentSet();
     });
+
+    const publishDeployNotifications = Effect.fn('MetadataDeployService.publishDeployNotifications')(
+      (deployOutcome: DeployResult) =>
+        Stream.fromIterable(deployOutcome.getFileResponses()).pipe(
+          Stream.filter(isSDRSuccess),
+          Stream.mapEffect(r =>
+            Effect.gen(function* () {
+              return {
+                metadataType: r.type,
+                fullName: r.fullName,
+                changeType: toComponentStatusChangeType(r.state),
+                fileUri: Option.fromNullable(r.filePath !== undefined ? yield* fsService.toUri(r.filePath) : undefined)
+              };
+            })
+          ),
+          Stream.run(Sink.fromPubSub(notificationService.pubsub))
+        )
+    );
 
     /** Deploy metadata to the default org */
     const deploy = Effect.fn('MetadataDeployService.deploy')(function* (components: ComponentSet) {
@@ -111,10 +139,19 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       });
 
       yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
-      if (deployOutcome.response?.status === RequestStatus.Succeeded) {
-        yield* trackingService
-          .maybeUpdateTrackingFromDeploy(deployOutcome)
-          .pipe(Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy'));
+      if (
+        deployOutcome.response?.status === RequestStatus.Succeeded ||
+        deployOutcome.response?.status === RequestStatus.SucceededPartial
+      ) {
+        yield* Effect.all(
+          [
+            trackingService
+              .maybeUpdateTrackingFromDeploy(deployOutcome)
+              .pipe(Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy')),
+            publishDeployNotifications(deployOutcome)
+          ],
+          { concurrency: 'unbounded' }
+        );
       }
 
       return deployOutcome;
@@ -123,6 +160,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     return { deploy, getComponentSetForDeploy };
   })
 }) {}
+
 
 const getDeployMessage = (components: ComponentSet): string => {
   const byType = Map.groupBy(components.getSourceComponents().toArray(), c =>

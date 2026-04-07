@@ -14,8 +14,8 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { FsService } from '../vscode/fsService';
-import { isSourceComponent } from './componentSetService';
 import { MetadataRegistryService } from './metadataRegistryService';
+import { isSourceComponent } from './sdrGuards';
 
 export class MetadataDeleteError extends Schema.TaggedError<MetadataDeleteError>()('MetadataDeleteError', {
   message: Schema.String,

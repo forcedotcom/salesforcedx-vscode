@@ -16,7 +16,7 @@ export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (res
   const failed = result.getFileResponses().filter(isSDRFailure);
 
   const { deploys = [], deleted = [] } = Object.groupBy(result.getFileResponses().filter(isSDRSuccess), fr =>
-    getComponentState(fr) === 'Deleted' ? 'deleted' : 'deploys'
+    getComponentState(fr) === 'deleted' ? 'deleted' : 'deploys'
   );
 
   const successSection =

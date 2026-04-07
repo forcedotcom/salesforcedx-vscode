@@ -22,6 +22,7 @@ import { ConnectionService } from './core/connectionService';
 import { getDefaultOrgRef } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
+import { MetadataChangeNotificationService } from './core/metadataChangeNotificationService';
 import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
@@ -72,6 +73,7 @@ export type SalesforceVSCodeServicesApi = {
       | FileWatcherService
       | FsService
       | MediaService
+      | MetadataChangeNotificationService
       | MetadataDeleteService
       | MetadataDeployService
       | MetadataDescribeService
@@ -107,6 +109,7 @@ export type SalesforceVSCodeServicesApi = {
     FsService: typeof FsService;
     getErrorMessage: typeof getErrorMessage;
     MediaService: typeof MediaService;
+    MetadataChangeNotificationService: typeof MetadataChangeNotificationService;
     MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
@@ -300,6 +303,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     FileWatcherService.Default,
     FsService.Default,
     MediaService.Default,
+    MetadataChangeNotificationService.Default,
     MetadataDescribeService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,
@@ -369,6 +373,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       FsService,
       getErrorMessage,
       MediaService,
+      MetadataChangeNotificationService,
       MetadataDeleteService,
       MetadataDescribeService,
       MetadataDeployService,
@@ -425,6 +430,12 @@ export {
 } from './core/metadataDeleteService';
 export { type ApexLogListItem, type ApexLogService, type ListLogsOptions } from './core/apexLogService';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
+export {
+  MetadataChangeNotificationService,
+  MetadataChangeEvent,
+  type MetadataChangeEvent as MetadataChangeEventType
+} from './core/metadataChangeNotificationService';
+export type { MetadataChangeType } from './core/sdrGuards';
 export {
   MetadataDeployService,
   type MetadataDeployService as MetadataDeployServiceType
