@@ -144,6 +144,14 @@ export const withConfigurableSuccessNotification =
     );
 ```
 
+## Invoking `sf.org.login.web`
+
+Cross-extension / `executeCommand`: `vscode.commands.executeCommand('sf.org.login.web', instanceUrl?, reauthAliasOrUsername?)`.
+
+- No args: interactive flow (palette).
+- With `instanceUrl`: skips org-type quick pick.
+- Second arg applies only when `instanceUrl` was provided: trimmed non-empty string becomes the auth alias (access-token re-auth); else alias defaults to `reauth-vscodeOrg`.
+
 ## Basic Services
 
 Accessor pattern: call methods directly, don't assign to variable first.

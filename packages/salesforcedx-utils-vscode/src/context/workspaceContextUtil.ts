@@ -122,16 +122,21 @@ export class WorkspaceContextUtil {
           // Create and execute the login prompt with cleanup
           const loginPromise = (async () => {
             try {
+              const loginButton = nls.localize('error_access_token_expired_login_button');
               const selection = await vscode.window.showErrorMessage(
                 nls.localize('error_access_token_expired'),
                 {
                   modal: true,
                   detail: nls.localize('error_access_token_expired_detail')
                 },
-                nls.localize('error_access_token_expired_login_button')
+                loginButton
               );
-              if (selection === 'Login') {
-                await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+              if (selection === loginButton) {
+                await vscode.commands.executeCommand(
+                  'sf.org.login.web',
+                  connectionDetails.connection.instanceUrl,
+                  this._alias ?? username
+                );
               }
             } finally {
               clearSharedLoginPrompt(username);
