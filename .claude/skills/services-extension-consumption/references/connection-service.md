@@ -33,5 +33,6 @@ const connection = yield* api.services.ConnectionService.getConnection();
 - Web: uses settings (instanceUrl, accessToken, apiVersion)
 - Desktop: resolves username/alias from config
 - Cached by username/instanceUrl
-- Auto-updates default org ref in background
+- Auto-updates default org ref (`maybeUpdateDefaultOrgRef`)
+- Ref username: User SOQL when possible; empty → `conn.getUsername()` / AuthInfo `username`
 - Requires `ConfigService`, `SettingsService`

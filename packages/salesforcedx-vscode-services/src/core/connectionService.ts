@@ -262,7 +262,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
   const orgIdChanged = existingOrgInfo.orgId !== orgId;
-  const [{ username, userId }, devHubOrgId, cliId] = yield* Effect.all(
+  const [{ username: queriedUsername, userId: queriedUserId }, devHubOrgId, cliId] = yield* Effect.all(
     [
       orgIdChanged || existingOrgInfo.username === undefined || existingOrgInfo.userId === undefined
         ? orgId
@@ -276,6 +276,12 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     ],
     { concurrency: 'unbounded' }
   );
+
+  // User SOQL can fail or return nothing (query/API edge cases) while AuthInfo still has the login username.
+  // Without this fallback, TargetOrgRef stays username-less and the org picker / display-org commands misreport "no default org".
+  const authUsername = conn.getUsername() ?? conn.getAuthInfoFields().username;
+  const username = queriedUsername ?? authUsername ?? undefined;
+  const userId = queriedUserId;
 
   const aliases =
     username && (orgIdChanged || existingOrgInfo.username !== username)

@@ -238,6 +238,11 @@ yield *
   );
 ```
 
+Ref behavior (concise):
+
+- Default-org update: username from User SOQL when present; else AuthInfo login username on the connection.
+- `TargetOrgRef` snapshot without username: optional `ConfigUtil.getUsername()` (project default) before treating as no target org — see `salesforcedx-vscode-org` `orgDisplay`.
+
 ## Complete Example Pattern
 
 ```typescript
