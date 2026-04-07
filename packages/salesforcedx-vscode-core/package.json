@@ -205,7 +205,6 @@
   "main": "./out/src",
   "contributes": {
     "menus": {
-      "editor/context": [],
       "explorer/context": [
         {
           "command": "sf.internal.lightning.generate.lwc",
