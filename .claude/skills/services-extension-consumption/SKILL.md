@@ -110,6 +110,40 @@ Commands auto:
 - Trace with observability spans
 - Handle Cancellation
 
+### Success handling
+
+`Effect.fn` accepts middleware args after the generator. Put success-side middleware **before** `catchTag`/`catchAll` — otherwise caught errors become successes.
+
+```typescript
+export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiveEditor')(
+  function* () {
+    // ...core logic...
+  },
+  // runs only on success — placed before catchTag
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', label)),
+  // catches errors — placed after success middleware
+  Effect.catchTag('NoActiveEditorError', () =>
+    Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
+      Effect.as(undefined)
+    )
+  )
+);
+```
+
+`withConfigurableSuccessNotification` wraps the effect with `Effect.tap`, so it only fires when the effect succeeds:
+
+```typescript
+export const withConfigurableSuccessNotification =
+  (message: string) =>
+  <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+    Effect.tap(effect, () =>
+      Effect.sync(() => {
+        const show = vscode.workspace.getConfiguration(SECTION).get<boolean>(KEY, false);
+        if (show) void vscode.window.showInformationMessage(message);
+      })
+    );
+```
+
 ## Basic Services
 
 Accessor pattern: call methods directly, don't assign to variable first.
@@ -135,10 +169,8 @@ import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 
 const fileWatcher = yield * api.services.FileWatcherService;
-const dequeue = yield * PubSub.subscribe(fileWatcher.pubsub);
 
-yield *
-  Stream.fromQueue(dequeue).pipe(
+yield* Stream.fromPubSub(fileWatcher.pubsub).pipe(
     Stream.filter(event => /* match event.uri to your pattern */),
     Stream.runForEach(event =>
       Effect.sync(() => {

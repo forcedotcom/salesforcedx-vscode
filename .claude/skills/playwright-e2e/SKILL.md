@@ -40,6 +40,18 @@ Available local + CI/GHA.
 
 See `.claude/skills/span-file-export/SKILL.md` for enable/OTLP vs file.
 
+## Checking for Scratch Orgs
+
+If you aren't sure if orgs are set up locally,
+
+```bash
+sf org list
+```
+
+Look for the required org aliases (e.g., `minimalTestOrg`, `nonTrackingTestOrg`, `orgBrowserDreamhouseTestOrg`). If missing, create them using the appropriate setup commands from `references/local-setup.md`.
+
+**Pro tip**: Use `sf org list --json | jq '.result.scratchOrgs[] | select(.alias) | .alias'` to list only scratch org aliases.
+
 ## Running tests (AI behavior)
 
 When running Playwright tests (`npm run test:web`, `test:desktop`, etc.), never block >30s. Use `is_background: true` so tests run while the AI continues. Check terminal output or `output_file` later.
@@ -47,7 +59,6 @@ When running Playwright tests (`npm run test:web`, `test:desktop`, etc.), never 
 ## Running Full E2E Test Suite
 
 See `references/full-suite-execution.md` for complete guide on running all E2E tests locally across all 9 packages in correct dependency order with failure analysis.
-
 
 ## Disable/reenable other E2E when iterating
 

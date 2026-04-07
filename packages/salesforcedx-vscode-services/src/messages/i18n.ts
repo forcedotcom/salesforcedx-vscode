@@ -16,9 +16,10 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  checking_for_conflicts: 'Checking for conflicts',
   deploying_one_component: 'Deploying 1 component',
-  deploying_n_components: 'Deploying %s components',
+  deploying_n_components: 'Deploying %d components',
+  deleting_one_component: 'Deleting 1 component',
+  deleting_n_components: 'Deleting %d components',
   retrieve_on_load_failed: 'Retrieve on load failed: %s',
   view_suggestions: 'View Suggestions',
   // Media/icon descriptions (accessibility)
@@ -36,7 +37,8 @@ export const messages = {
   choose_different_folder: 'Choose a different folder...',
   select_folder: 'Select',
   template_service_extension_context_not_available: 'Extension context not available',
-  template_service_manifest_load_failed: 'Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (%s)',
+  template_service_manifest_load_failed:
+    'Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (%s)',
   template_service_manifest_parse_failed: 'Failed to parse templates manifest from extension assets.',
   template_service_file_copy_failed: 'Failed to copy template file "%s" to memfs. (%s)',
   template_service_source_api_version_not_defined: 'sourceApiVersion is not defined',

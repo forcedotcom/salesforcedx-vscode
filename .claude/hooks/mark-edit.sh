@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# PostToolUse hook: mark that an edit occurred in this session.
-# We use CLAUDE_CONVERSATION_ID to distinguish sessions.
+# PostToolUse / afterFileEdit hook: mark that an edit occurred in this session.
+# Consume stdin (JSON input from hook system)
+cat > /dev/null
 
-if [ -n "$CLAUDE_CONVERSATION_ID" ]; then
-  touch "/tmp/claude_edit_${CLAUDE_CONVERSATION_ID}"
-  echo "[afterFileEdit] marked session ${CLAUDE_CONVERSATION_ID} as dirty" >&2
-fi
+ROOT=$(git rev-parse --show-toplevel)
+MARKER="$ROOT/.claude/.edit-marker"
+touch "$MARKER"
 exit 0
