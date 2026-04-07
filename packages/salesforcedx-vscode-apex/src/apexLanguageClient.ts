@@ -67,8 +67,8 @@ export class ApexLanguageClient extends LanguageClient {
    * Stops the language client.
    * @returns A promise that resolves when the client has stopped.
    */
-  public async stop(): Promise<void> {
-    await super.stop();
+  public async stop(timeout = 2000): Promise<void> {
+    await super.stop(timeout);
   }
 
   /**
