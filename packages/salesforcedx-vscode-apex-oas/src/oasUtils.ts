@@ -31,6 +31,7 @@ import GenerationInteractionLogger from './oas/generationInteractionLogger';
 import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
 
 const DOT_SFDX = '.sfdx';
+
 const TEMPLATES_DIR = path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX, 'resources', 'templates');
 
 const gil = GenerationInteractionLogger.getInstance();

@@ -5,9 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
-import { type SourceTracking } from '@salesforce/source-tracking';
+import {
+  ComponentSet,
+  ComponentStatus,
+  type DeployResult,
+  type FileResponse,
+  type RetrieveResult
+} from '@salesforce/source-deploy-retrieve';
+import { ChangeResult, type SourceTracking } from '@salesforce/source-tracking';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
+import * as Option from 'effect/Option';
+import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ChannelService } from '../vscode/channelService';
@@ -38,6 +48,12 @@ export class SourceTrackingConflictError extends Schema.TaggedError<SourceTracki
     conflicts: Schema.Array(Schema.String)
   }
 ) {}
+const toSourceTrackingError = (error: unknown) => new SourceTrackingError({ cause: unknownToErrorCause(error).cause });
+
+const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
+type ResolvedChangeResult = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
+const isResolvedChangeResult = (c: ChangeResult): c is ResolvedChangeResult => Schema.is(ResolvedChangeResultSchema)(c);
+
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   accessors: true,
   dependencies: [
@@ -54,78 +70,295 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     const configService = yield* ConfigService;
     const metadataRegistryService = yield* MetadataRegistryService;
 
-    /** Creates a SourceTracking instance with optional configuration.  Returns undefined if source tracking is not enabled */
-    const getTracking = (options?: SourceTrackingOptions) =>
-      Effect.gen(function* () {
-        const [connection, project, registryAccess, ref, configAggregator] = yield* Effect.all(
-          [
-            connectionService.getConnection(),
-            projectService.getSfProject(),
-            metadataRegistryService.getRegistryAccess(),
-            SubscriptionRef.get(yield* getDefaultOrgRef()),
-            configService.getConfigAggregator()
-          ],
-          { concurrency: 'unbounded' }
-        );
-        yield* Effect.annotateCurrentSpan({
-          supportsSourceTracking: ref.tracksSource,
-          ignoreConflicts: options?.ignoreConflicts
-        });
+    // Semaphores for concurrency control (1 permit each for sequential access)
+    const localSemaphore = yield* Effect.makeSemaphore(1);
+    const remoteSemaphore = yield* Effect.makeSemaphore(1);
 
-        if (ref.tracksSource !== true) {
-          return yield* Effect.succeed(undefined);
-        }
+    // Lazy singleton for SourceTracking instance with org ID validation
+    const trackingRef = yield* Ref.make<Option.Option<{ tracking: SourceTracking; orgId: string }>>(Option.none());
 
-        const [org, { SourceTracking }] = yield* Effect.all(
-          [
-            getOrgFromConnection(connection, configAggregator),
-            Effect.promise(() => import('@salesforce/source-tracking')).pipe(
-              Effect.withSpan('import @salesforce/source-tracking')
-            )
-          ],
-          { concurrency: 'unbounded' }
-        );
+    /** Gets or creates the SourceTracking singleton. Validates cached instance matches current org. Throws SourceTrackingNotEnabledError if tracking is not enabled. */
+    const getOrCreateTracking = Effect.fn('SourceTrackingService.getOrCreateTracking')(function* () {
+      const cached = yield* Ref.get(trackingRef);
+      const ref = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const currentOrgId = ref.orgId;
 
-        return yield* Effect.tryPromise({
-          try: async () =>
-            SourceTracking.create({
-              org,
-              project,
-              subscribeSDREvents: false,
-              ignoreConflicts: options?.ignoreConflicts ?? false,
-              registry: registryAccess
-            }),
-          catch: error => new SourceTrackingError({ cause: unknownToErrorCause(error).cause })
-        }).pipe(Effect.withSpan('STL create'));
-      }).pipe(Effect.withSpan('getTracking'));
+      // Check if cached instance matches current org
+      if (Option.isSome(cached) && cached.value.orgId === currentOrgId) {
+        return cached.value.tracking;
+      }
 
-    /** Gets a SourceTracking instance with optional configuration.  Throws a SourceTrackingNotEnabledError if source tracking is not enabled */
-    const getSourceTrackingOrThrow = Effect.fn('SourceTrackingService.getSourceTrackingOrThrow')(function* (
-      options?: SourceTrackingOptions
-    ) {
-      const tracking = yield* getTracking(options);
+      // Different org or no cache - create new instance
+      const tracking = yield* getTracking();
       if (!tracking) {
-        return yield* Effect.fail(new SourceTrackingNotEnabledError({ message: 'Source tracking is not enabled' }));
+        return yield* new SourceTrackingNotEnabledError({ message: 'Source tracking is not enabled' });
+      }
+
+      // Cache it with current org ID
+      if (currentOrgId) {
+        yield* Ref.set(trackingRef, Option.some({ tracking, orgId: currentOrgId }));
       }
       return tracking;
     });
 
     /** Creates a SourceTracking instance with optional configuration.  Returns undefined if source tracking is not enabled */
-    const getSourceTracking = Effect.fn('SourceTrackingService.getSourceTracking')(function* (
-      options?: SourceTrackingOptions
-    ) {
-      return yield* getTracking(options);
+    const getTracking = Effect.fn('SourceTrackingService.getTracking')(function* (options?: SourceTrackingOptions) {
+      const [connection, project, registryAccess, ref, configAggregator] = yield* Effect.all(
+        [
+          connectionService.getConnection(),
+          projectService.getSfProject(),
+          metadataRegistryService.getRegistryAccess(),
+          SubscriptionRef.get(yield* getDefaultOrgRef()),
+          configService.getConfigAggregator()
+        ],
+        { concurrency: 'unbounded' }
+      );
+      yield* Effect.annotateCurrentSpan({
+        supportsSourceTracking: ref.tracksSource,
+        ignoreConflicts: options?.ignoreConflicts
+      });
+
+      if (ref.tracksSource !== true) {
+        return yield* Effect.void;
+      }
+
+      const [org, { SourceTracking }] = yield* Effect.all(
+        [
+          getOrgFromConnection(connection, configAggregator),
+          Effect.promise(() => import('@salesforce/source-tracking')).pipe(
+            Effect.withSpan('import @salesforce/source-tracking')
+          )
+        ],
+        { concurrency: 'unbounded' }
+      );
+
+      return yield* Effect.tryPromise({
+        try: async () =>
+          SourceTracking.create({
+            org,
+            project,
+            subscribeSDREvents: false,
+            ignoreConflicts: options?.ignoreConflicts ?? false,
+            registry: registryAccess
+          }),
+        catch: toSourceTrackingError
+      }).pipe(Effect.withSpan('STL create'));
     });
 
-    /** Check for conflicts and display them in the channel, failing if conflicts are found */
-    const checkConflicts = Effect.fn('SourceTrackingService.checkConflicts')(function* (tracking: SourceTracking) {
-      const conflicts = yield* Effect.tryPromise({
-        try: () => tracking.getConflicts(),
-        catch: error => new SourceTrackingError({ cause: unknownToErrorCause(error).cause })
-      }).pipe(Effect.withSpan('STL.GetConflicts'));
+    /** Checks if source tracking is enabled without creating an instance */
+    const hasTracking = Effect.fn('SourceTrackingService.hasTracking')(function* () {
+      const ref = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      return ref.tracksSource === true;
+    });
+
+    /** Helper: Re-read local tracking with error handling */
+    const rereadLocal = (tracking: SourceTracking) =>
+      Effect.tryPromise({
+        try: () => tracking.reReadLocalTrackingCache(),
+        catch: toSourceTrackingError
+      }).pipe(Effect.withSpan('STL.ReReadLocalTrackingCache'));
+
+    /** Helper: Re-read remote tracking with error handling */
+    const rereadRemote = (tracking: SourceTracking) =>
+      Effect.tryPromise({
+        try: () => tracking.reReadRemoteTracking(),
+        catch: toSourceTrackingError
+      }).pipe(Effect.withSpan('STL.ReReadRemoteTracking'));
+
+    /** Helper: Re-read both local and remote tracking with error handling */
+    const rereadBoth = (tracking: SourceTracking) =>
+      Effect.all([rereadLocal(tracking), rereadRemote(tracking)], { concurrency: 'unbounded' });
+
+    /** Get local changes as ComponentSet array (local tracking files only) */
+    const getLocalChangesAsComponentSet = Effect.fn('SourceTrackingService.getLocalChangesAsComponentSet')(
+      function* () {
+        const tracking = yield* getOrCreateTracking();
+
+        return yield* localSemaphore.withPermits(1)(
+          Effect.gen(function* () {
+            yield* rereadLocal(tracking);
+            return yield* Effect.tryPromise({
+              try: () => tracking.localChangesAsComponentSet(false),
+              catch: toSourceTrackingError
+            }).pipe(Effect.withSpan('STL.LocalChangesAsComponentSet'));
+          })
+        );
+      }
+    );
+
+    /** Get remote non-deletes as ComponentSet (remote tracking files only) */
+    const getRemoteNonDeletesAsComponentSet = Effect.fn('SourceTrackingService.getRemoteNonDeletesAsComponentSet')(
+      function* (options: { applyIgnore: boolean }) {
+        const tracking = yield* getOrCreateTracking();
+
+        return yield* remoteSemaphore.withPermits(1)(
+          Effect.gen(function* () {
+            yield* rereadRemote(tracking);
+            return yield* Effect.tryPromise({
+              try: () => tracking.remoteNonDeletesAsComponentSet(options),
+              catch: toSourceTrackingError
+            }).pipe(Effect.withSpan('STL.RemoteNonDeletesAsComponentSet'));
+          })
+        );
+      }
+    );
+
+    /** Get remote deletes as ComponentSet (remote tracking files only).
+     * Uses ChangeResult format (not SourceComponent) so it returns entries even when local files don't exist. */
+    const getRemoteDeletesAsComponentSet = Effect.fn('SourceTrackingService.getRemoteDeletesAsComponentSet')(
+      function* () {
+        const tracking = yield* getOrCreateTracking();
+        const registry = yield* metadataRegistryService.getRegistryAccess();
+
+        return yield* remoteSemaphore.withPermits(1)(
+          Effect.gen(function* () {
+            yield* rereadRemote(tracking);
+            const changeResults = yield* Effect.tryPromise({
+              try: () => tracking.getChanges({ origin: 'remote', state: 'delete', format: 'ChangeResult' }),
+              catch: toSourceTrackingError
+            }).pipe(Effect.withSpan('STL.RemoteDeletesAsComponentSet'));
+            return new ComponentSet(
+              changeResults.filter(isResolvedChangeResult).map(c => ({ type: c.type, fullName: c.name })),
+              registry
+            );
+          })
+        );
+      }
+    );
+
+    /** Reset remote tracking (remote tracking files only) */
+    const resetRemoteTracking = Effect.fn('SourceTrackingService.resetRemoteTracking')(function* () {
+      const tracking = yield* getOrCreateTracking();
+
+      return yield* remoteSemaphore.withPermits(1)(
+        Effect.tryPromise({
+          try: () => tracking.resetRemoteTracking(),
+          catch: toSourceTrackingError
+        }).pipe(Effect.withSpan('STL.ResetRemoteTracking'))
+      );
+    });
+
+    /** Get status of local and/or remote changes (acquires semaphores based on options) */
+    const getStatus = Effect.fn('SourceTrackingService.getStatus')(function* (
+      options: { local: true; remote?: never } | { remote: true; local?: never } | { local: true; remote: true }
+    ) {
+      const tracking = yield* getOrCreateTracking();
+
+      // Take only the permits we need, concurrently
+      yield* Effect.all(
+        [options.local ? localSemaphore.take(1) : Effect.void, options.remote ? remoteSemaphore.take(1) : Effect.void],
+        { concurrency: 'unbounded' }
+      );
+
+      return yield* Effect.gen(function* () {
+        yield* Effect.all(
+          [...(options.local ? [rereadLocal(tracking)] : []), ...(options.remote ? [rereadRemote(tracking)] : [])],
+          { concurrency: 'unbounded' }
+        );
+
+        return yield* Effect.tryPromise({
+          try: () => tracking.getStatus({ local: options.local === true, remote: options.remote === true }),
+          catch: toSourceTrackingError
+        }).pipe(Effect.withSpan('STL.GetStatus'));
+      }).pipe(
+        Effect.ensuring(
+          Effect.all(
+            [
+              options.local ? localSemaphore.release(1) : Effect.void,
+              options.remote ? remoteSemaphore.release(1) : Effect.void
+            ],
+            { concurrency: 'unbounded' }
+          )
+        )
+      );
+    });
+
+    /** Apply remote deletes to local and get non-deletes component set (both tracking files).
+     * Also updates remote tracking for deletes where no local file exists (STL skips these). */
+    const maybeApplyRemoteDeletesToLocal = Effect.fn('SourceTrackingService.maybeApplyRemoteDeletesToLocal')(
+      function* () {
+        const tracking = yield* getOrCreateTracking();
+
+        return yield* localSemaphore.withPermits(1)(
+          remoteSemaphore.withPermits(1)(
+            Effect.gen(function* () {
+              yield* rereadBoth(tracking);
+
+              // Get all remote deletes as ChangeResult before applying — works even when local files don't exist
+              const allRemoteDeletes = yield* Effect.tryPromise({
+                try: () => tracking.getChanges({ origin: 'remote', state: 'delete', format: 'ChangeResult' }),
+                catch: toSourceTrackingError
+              });
+
+              const result = yield* Effect.tryPromise({
+                try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
+                catch: toSourceTrackingError
+              }).pipe(Effect.withSpan('STL.MaybeApplyRemoteDeletesToLocal'));
+
+              // STL only calls updateRemoteTracking for deletes it could resolve to local files.
+              // For deletes with no local file, manually acknowledge them so they leave tracking.
+              const handledTypeNames = HashSet.fromIterable(
+                result.fileResponsesFromDelete.map(r => Data.struct({ type: r.type, fullName: r.fullName }))
+              );
+
+              const unhandled = allRemoteDeletes
+                .filter(isResolvedChangeResult)
+                .filter(c => !HashSet.has(handledTypeNames, Data.struct({ type: c.type, fullName: c.name })));
+
+              if (unhandled.length > 0) {
+                yield* Effect.tryPromise({
+                  try: () =>
+                    tracking.updateRemoteTracking(
+                      unhandled.map(c => ({ type: c.type, fullName: c.name, state: ComponentStatus.Deleted })),
+                      true // skipPolling — same as STL's deleteFilesAndUpdateTracking
+                    ),
+                  catch: toSourceTrackingError
+                }).pipe(Effect.withSpan('STL.AcknowledgeUnhandledRemoteDeletes'));
+              }
+
+              // Surface unhandled deletes as synthetic FileResponse entries so the output channel
+              // shows them even when there was no local file to delete.
+              // filePath is empty string (falsy) so formatRetrieveOutput falls back to fullName for display.
+              const syntheticDeletes: FileResponse[] = unhandled.map(c => ({
+                type: c.type,
+                fullName: c.name,
+                state: ComponentStatus.Deleted,
+                filePath: ''
+              }));
+
+              return {
+                componentSetFromNonDeletes: result.componentSetFromNonDeletes,
+                fileResponsesFromDelete: [...result.fileResponsesFromDelete, ...syntheticDeletes]
+              };
+            })
+          )
+        );
+      }
+    );
+
+    /** Get conflicts without UI side effects (both tracking files) */
+    const getConflicts = Effect.fn('SourceTrackingService.getConflicts')(function* () {
+      const tracking = yield* getOrCreateTracking();
+
+      return yield* localSemaphore.withPermits(1)(
+        remoteSemaphore.withPermits(1)(
+          Effect.gen(function* () {
+            yield* rereadBoth(tracking);
+            return yield* Effect.tryPromise({
+              try: () => tracking.getConflicts(),
+              catch: toSourceTrackingError
+            }).pipe(Effect.withSpan('STL.GetConflicts'));
+          })
+        )
+      );
+    });
+
+    /** Check for conflicts and display them in the channel, failing if conflicts are found (both tracking files) */
+    const checkConflicts = Effect.fn('SourceTrackingService.checkConflicts')(function* () {
+      const conflicts = yield* getConflicts();
 
       if (!conflicts?.length) {
-        return yield* Effect.succeed(undefined);
+        return yield* Effect.void;
       }
       yield* Effect.annotateCurrentSpan({
         conflicts: true
@@ -137,57 +370,98 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       );
       const channel = yield* channelService.getChannel;
       channel.show();
-      return yield* Effect.fail(
-        new SourceTrackingConflictError({
-          conflicts: conflictDetails
-        })
+      return yield* new SourceTrackingConflictError({ conflicts: conflictDetails });
+    });
+
+    /** Maybe update tracking from retrieve result (both tracking files). No-op if tracking is not enabled. */
+    const maybeUpdateTrackingFromRetrieve = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromRetrieve')(
+      function* (result: RetrieveResult) {
+        yield* Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) });
+
+        // Check if tracking is enabled before attempting to get instance
+        const enabled = yield* hasTracking();
+        if (!enabled) {
+          return yield* Effect.void;
+        }
+
+        const tracking = yield* getOrCreateTracking();
+        return yield* localSemaphore.withPermits(1)(
+          remoteSemaphore.withPermits(1)(
+            Effect.tryPromise({
+              try: () => tracking.updateTrackingFromRetrieve(result),
+              catch: toSourceTrackingError
+            }).pipe(
+              Effect.withSpan('STL.UpdateTrackingFromRetrieve'),
+              Effect.tapError(error => Effect.logError(error))
+            )
+          )
+        );
+      }
+    );
+
+    /** Maybe update tracking from deploy result (both tracking files). No-op if tracking is not enabled. */
+    const maybeUpdateTrackingFromDeploy = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromDeploy')(function* (
+      result: DeployResult
+    ) {
+      // Check if tracking is enabled before attempting to get instance
+      const enabled = yield* hasTracking();
+      if (!enabled) {
+        return yield* Effect.void;
+      }
+
+      const tracking = yield* getOrCreateTracking();
+      return yield* Effect.all(
+        [
+          localSemaphore.withPermits(1)(
+            remoteSemaphore.withPermits(1)(
+              Effect.tryPromise({
+                try: () => tracking.updateTrackingFromDeploy(result),
+                catch: toSourceTrackingError
+              }).pipe(
+                Effect.withSpan('STL.UpdateTrackingFromDeploy'),
+                Effect.tapError(error => Effect.logError(error))
+              )
+            )
+          ),
+          Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) })
+        ],
+        { concurrency: 'unbounded' }
       );
     });
 
-    /** safe to pass a result to.  If tracking is not enabled, this will be a no-op */
-    const updateTrackingFromRetrieve = Effect.fn('SourceTrackingService.updateTrackingFromRetrieve')(function* (
-      result: RetrieveResult
-    ) {
-      yield* Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) });
-      const tracking = yield* getTracking({ ignoreConflicts: true });
-      return tracking
-        ? yield* Effect.tryPromise({
-            try: () => tracking.updateTrackingFromRetrieve(result),
-            catch: error => new SourceTrackingError({ cause: unknownToErrorCause(error).cause })
-          }).pipe(
-            Effect.withSpan('trackingUpdate'),
-            Effect.tapError(error => Effect.logError(error))
-          )
-        : yield* Effect.succeed(undefined);
-    });
-
-    /** safe to pass a result to.  If tracking is not enabled, this will be a no-op */
-    const updateTrackingFromDeploy = Effect.fn('SourceTrackingService.updateTrackingFromDeploy')(function* (
-      result: DeployResult
-    ) {
-      const tracking = yield* getTracking({ ignoreConflicts: true });
-      return tracking
-        ? yield* Effect.all(
-            [
-              Effect.tryPromise({
-                try: () => tracking.updateTrackingFromDeploy(result),
-                catch: error => new SourceTrackingError({ cause: unknownToErrorCause(error).cause })
-              })
-                .pipe(Effect.withSpan('trackingUpdate in STL'))
-                .pipe(Effect.tapError(error => Effect.logError(error))),
-              Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) })
-            ],
-            { concurrency: 'unbounded' }
-          )
-        : yield* Effect.succeed(undefined);
-    });
-
     return {
-      getSourceTrackingOrThrow,
-      getSourceTracking,
+      /** Check if source tracking is enabled for the current org without creating a tracking instance */
+      hasTracking,
+
+      /** Get local changes as ComponentSet (auto-rereads local tracking) */
+      getLocalChangesAsComponentSet,
+
+      /** Get remote non-deletes as ComponentSet (auto-rereads remote tracking) */
+      getRemoteNonDeletesAsComponentSet,
+
+      /** Get remote deletes as ComponentSet (auto-rereads remote tracking) */
+      getRemoteDeletesAsComponentSet,
+
+      /** Reset remote tracking files */
+      resetRemoteTracking,
+
+      /** Get status of local and/or remote changes (auto-rereads based on options) */
+      getStatus,
+
+      /** Apply remote deletes to local and return non-deletes ComponentSet (auto-rereads both) */
+      maybeApplyRemoteDeletesToLocal,
+
+      /** Get conflicts without UI side effects (auto-rereads both) */
+      getConflicts,
+
+      /** Check for conflicts and display them in the channel, failing if found (auto-rereads both) */
       checkConflicts,
-      updateTrackingFromRetrieve,
-      updateTrackingFromDeploy
+
+      /** Update tracking from retrieve result. No-op if tracking is disabled. */
+      maybeUpdateTrackingFromRetrieve,
+
+      /** Update tracking from deploy result. No-op if tracking is disabled. */
+      maybeUpdateTrackingFromDeploy
     };
   })
 }) {}
