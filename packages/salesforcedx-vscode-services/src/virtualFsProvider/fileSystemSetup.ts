@@ -40,38 +40,37 @@ const waitForWorkspaceFolders = () =>
   );
 
 /** Sets up the virtual file system for the extension */
-export const fileSystemSetup = (context: vscode.ExtensionContext) =>
-  Effect.gen(function* () {
-    const fsProvider = new FsProvider();
-    fsProviderRef.current = fsProvider;
+export const fileSystemSetup = Effect.fn('fileSystemSetup')(function* (context: vscode.ExtensionContext) {
+  const fsProvider = new FsProvider();
+  fsProviderRef.current = fsProvider;
 
-    // Load state from IndexedDB first
-    yield* (yield* IndexedDBStorageService).loadState();
+  // Load state from IndexedDB first
+  yield* (yield* IndexedDBStorageService).loadState();
 
-    // Register the file system provider
-    context.subscriptions.push(
-      vscode.workspace.registerFileSystemProvider(fsPrefix, fsProvider, {
-        isCaseSensitive: true
-      })
-    );
+  // Register the file system provider
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider(fsPrefix, fsProvider, {
+      isCaseSensitive: true
+    })
+  );
 
-    // Replace the existing workspace with ours
-    vscode.workspace.updateWorkspaceFolders(0, 0, {
-      name: nls.localize('workspace_folder_name'),
-      uri: URI.parse(`${fsPrefix}:/${sampleProjectName}`)
-    });
+  // Replace the existing workspace with ours
+  vscode.workspace.updateWorkspaceFolders(0, 0, {
+    name: nls.localize('workspace_folder_name'),
+    uri: URI.parse(`${fsPrefix}:/${sampleProjectName}`)
+  });
 
-    yield* startWatch();
-    yield* projectFiles(fsProvider);
-    yield* waitForWorkspaceFolders();
+  yield* startWatch();
+  yield* projectFiles(fsProvider);
+  yield* waitForWorkspaceFolders();
 
-    const settingsService = yield* SettingsService;
+  const settingsService = yield* SettingsService;
 
-    if (yield* settingsService.getValue('salesforce-web-console', 'protectedOrg', false)) {
-      console.log('protected org');
-      vscode.commands.executeCommand('setContext', 'sf:protectedOrg', true);
-      const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
-      // protected org: make apex read only
-      fsProvider.readOnly = [registryAccess.getTypeByName('ApexClass'), registryAccess.getTypeByName('ApexTrigger')];
-    }
-  }).pipe(Effect.withSpan('fileSystemSetup'));
+  if (yield* settingsService.getValue('salesforce-web-console', 'protectedOrg', false)) {
+    console.log('protected org');
+    vscode.commands.executeCommand('setContext', 'sf:protectedOrg', true);
+    const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
+    // protected org: make apex read only
+    fsProvider.readOnly = [registryAccess.getTypeByName('ApexClass'), registryAccess.getTypeByName('ApexTrigger')];
+  }
+});
