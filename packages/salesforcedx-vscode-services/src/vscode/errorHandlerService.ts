@@ -29,9 +29,15 @@ const getActions = (error: unknown): string[] => {
 
 /** Get the base error message, preferring inner cause message */
 const getBaseMessage = (error: unknown): string => {
-  if (!(error instanceof Error)) return String(error);
-  const innerCause = hasCause(error) ? error.cause : undefined;
-  return innerCause instanceof Error ? getBaseMessage(innerCause) : error.message;
+  if (error instanceof Error) {
+    const innerCause = hasCause(error) ? error.cause : undefined;
+    return innerCause instanceof Error ? getBaseMessage(innerCause) : error.message;
+  }
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const msg = Reflect.get(error, 'message');
+    if (typeof msg === 'string') return msg;
+  }
+  return String(error);
 };
 
 /**
@@ -48,8 +54,8 @@ export const getErrorMessage = (error: unknown): string => {
 /**
  * Service for handling errors in commands and effects.
  * Shows error notifications to the user via VS Code's notification system.
- * When errors have actions (like SfError), logs details to output channel
- * and shows a "View Details" button.
+ * Always logs the error message to the output channel.
+ * When errors have actions (like SfError), also shows a "View Details" button.
  */
 export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('ErrorHandlerService', {
   effect: Effect.gen(function* () {
@@ -70,6 +76,7 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
             const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(baseMessage, viewSuggestions));
             if (selection === viewSuggestions) channel.show();
           } else {
+            yield* channelService.appendToChannel(baseMessage);
             yield* Effect.sync(() => void vscode.window.showErrorMessage(baseMessage));
           }
         })

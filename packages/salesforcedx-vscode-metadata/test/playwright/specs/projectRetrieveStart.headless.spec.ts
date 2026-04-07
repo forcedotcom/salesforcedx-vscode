@@ -76,7 +76,7 @@ test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
     await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
     await saveScreenshot(page, 'step1.retrieve-started.png');
 
-    await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
+    await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: RETRIEVE_TIMEOUT });
     await saveScreenshot(page, 'step1.retrieve-complete.png');
 
     // Retrieve operation completed successfully (verified via output channel)

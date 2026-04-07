@@ -57,7 +57,7 @@ const fileEventProcessor = Effect.gen(function* () {
   const updater = updateIDB(yield* IndexedDBStorageService);
   yield* Stream.fromQueue(fileEventQueue, { maxChunkSize: 1 }).pipe(
     Stream.schedule(Schedule.fixed(10)), // a very low priority queue
-    Stream.runForEach(updater)
+    Stream.runForEach(e => updater(e).pipe(Effect.catchAll(err => Effect.logWarning('updateIDB failed', err))))
   );
 }).pipe(Effect.provide(IndexedDBStorageService.Default));
 

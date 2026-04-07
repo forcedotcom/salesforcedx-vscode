@@ -19,12 +19,14 @@ type DesktopConfigOptions = {
 };
 
 /** Creates a standardized Playwright desktop (Electron) config for VS Code extension testing */
-export const createDesktopConfig = (options: DesktopConfigOptions = {}) =>
-  defineConfig({
+export const createDesktopConfig = (options: DesktopConfigOptions = {}) => {
+  const workers =
+    options.workers ?? (process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : undefined);
+  return defineConfig({
     testDir: options.testDir ?? './test/playwright/specs',
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
-    ...(options.workers ? { workers: options.workers } : {}),
+    ...(workers ? { workers } : {}),
     reporter: process.env.CI
       ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit-desktop.xml' }]]
       : [['html', { open: 'never' }], ['list']],
@@ -34,7 +36,7 @@ export const createDesktopConfig = (options: DesktopConfigOptions = {}) =>
       actionTimeout: 15_000,
       viewport: { width: 1920, height: 1080 }
     },
-    timeout: process.env.DEBUG_MODE ? 0 : options.timeout ?? 60 * 1000,
+    timeout: process.env.DEBUG_MODE ? 0 : (options.timeout ?? 60 * 1000),
     maxFailures: process.env.CI ? 3 : 0,
     globalSetup: require.resolve('./downloadVSCode'),
     projects: [
@@ -47,3 +49,4 @@ export const createDesktopConfig = (options: DesktopConfigOptions = {}) =>
       }
     ]
   });
+};

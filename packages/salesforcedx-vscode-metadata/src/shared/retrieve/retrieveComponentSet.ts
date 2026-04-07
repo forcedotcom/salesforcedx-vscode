@@ -6,10 +6,10 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import type { ComponentSet, FileResponse } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { maybeStoreRetrieveResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
 
@@ -17,8 +17,9 @@ import { formatRetrieveOutput } from './formatRetrieveOutput';
 export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* (options: {
   componentSet: ComponentSet;
   ignoreConflicts?: boolean;
+  fileResponsesFromDelete?: FileResponse[];
 }) {
-  const { componentSet, ignoreConflicts } = options;
+  const { componentSet, ignoreConflicts, fileResponsesFromDelete } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -27,13 +28,9 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, { ignoreConflicts });
 
-  // Handle cancellation
-  if (typeof result === 'string') {
-    yield* channelService.appendToChannel('Retrieve cancelled by user');
-    return;
-  }
+  yield* channelService.appendToChannel(yield* formatRetrieveOutput(result, fileResponsesFromDelete));
 
-  yield* channelService.appendToChannel(yield* formatRetrieveOutput(result));
+  yield* maybeStoreRetrieveResult(result);
 
   const { isSDRFailure } = yield* api.services.ComponentSetService;
   if (result.getFileResponses().some(isSDRFailure)) {
