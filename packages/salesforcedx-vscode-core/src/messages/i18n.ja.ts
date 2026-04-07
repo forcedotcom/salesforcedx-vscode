@@ -35,12 +35,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   retrieve_this_source_text: 'SFDX: このソースを組織から取得',
 
   delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
-  delete_source_manifest_unsupported_message:
-    'SFDX: 組織およびプロジェクトから削除 はマニフェストファイルでサポートされていません。削除するソースファイルやディレクトリを選択してください。',
-  delete_source_confirmation_message:
-    'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
-  confirm_delete_source_button_text: 'ソースを削除',
-  cancel_delete_source_button_text: 'キャンセル',
 
   view_all_changes_text: 'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
@@ -82,39 +76,11 @@ export const messages: Partial<Record<MessageKey, string>> = {
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
-  error_fetching_auth_info_text:
-    '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織に接続できませんでした。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
-  error_no_package_directories_found_on_setup_text:
-    '保存時のプッシュまたはデプロイ設定中にエラー: sfdx-project.json ファイルに "packageDirectories" プロパティが含まれていません。このプロパティを追加するか、もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
-  error_no_package_directories_paths_found_text:
-    '保存時のプッシュまたはデプロイ設定中にエラー: sfdx-project.json ファイルの "packageDirectories" プロパティに "path" の値が含まれていません。"path" プロパティへ値を追加するか、もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
-  error_push_or_deploy_on_save_no_target_org:
-    '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
-  error_source_path_not_in_package_directory_text:
-    'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
-  missing_default_org: 'デフォルトの組織が未設定',
   error_parsing_sfdx_project_file: 'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
 
   custom_output_directory: 'ディレクトリを選択',
   lightning_generate_lwc_text: 'SFDX: Lightning Web コンポーネントを作成',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
-
-  conflict_detect_error: '競合を検出中にエラーが発生しました。%s',
-  conflict_detect_override_deploy: '競合を上書き',
-  conflict_detect_show_conflicts_deploy: '競合を表示',
-
-  conflict_detect_no_target_org: 'このプロジェクトにはデフォルトのユーザ名がありません',
-  conflict_detect_view_init: '競合検出ビューが初期化されていません',
-  conflict_detect_not_enabled:
-    '組織との差分を表示するために、Detect Conflicts for Deploy and Retrieve 設定を有効化してください',
-
-  conflict_detect_no_conflicts: '競合がありません',
-
-  conflict_detect_diff_command_title: 'ファイルを比較',
-
-  source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
-
-  source_diff_title: '%s//%s ↔ ローカル //%s',
 
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
@@ -124,16 +90,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
   parameter_gatherer_file_name_max_length_validation_error_message: 'ファイル名は {0} 文字を超えることはできません',
 
-  conflict_detect_execution_name: '競合検出',
-  conflict_detect_initialization_error: 'メタデータキャッシュの初期化中に予期せぬエラーが発生しました',
-  conflict_detect_conflict_header_timestamp: '競合:\n    %d 個のファイルに競合が見つかりました:\n',
-  conflict_detect_no_differences: '差分がありません',
-  conflict_detect_remote_last_modified_date: '組織の最終更新日: %s \n',
-  conflict_detect_local_last_modified_date: 'ローカルの最終同期日: %s',
-
-  source_diff_folder_title: '%s - ファイル差分',
-  lib_retrieve_result_title: '取得されたソース',
-  lib_retrieve_message_title: '取得警告',
   component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています',
   rename_component_input_dup_file_name_error:
     'このファイル名は現在のコンポーネントディレクトリで既に使用されています。別の名前を選択して再試行してください。',
@@ -143,7 +99,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
     '警告: 古い名前への参照は更新されません。手動で更新し、すべての変更が完了したら再デプロイしてください。',
   rename_component_error:
     'コンポーネントの名前を変更できませんでした。手動でコンポーネントの名前を変更してから、変更を再デプロイしてみてください。',
-  source_status: 'ソースステータス',
   rename_not_supported: '複数コンポーネントの名前変更はサポートされていません',
   input_no_component_name: '入力にコンポーネント名が含まれていません',
   component_empty: 'コンポーネントは空にできません',

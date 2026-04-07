@@ -9,31 +9,46 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 
-const deployUris = (uris: Set<URI>) =>
-  Effect.gen(function* () {
+// shared logic for both the editor command and the uri command
+const deployUris = Effect.fn('deploySourcePath.deployUris')(
+  function* (uris: Set<URI>) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    yield* api.services.ProjectService.ensureInPackageDirectories(Array.from(uris));
     const componentSetService = yield* api.services.ComponentSetService;
-    const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromUris(Array.from(uris))
+    return yield* Effect.succeed(Array.from(uris)).pipe(
+      Effect.flatMap(componentSetService.getComponentSetFromUris),
+      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+      Effect.tap(cs => detectConflicts(cs, 'deploy')),
+      Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
     );
-    yield* deployComponentSet({ componentSet });
-  });
+  },
+  Effect.catchTag('ConflictsDetectedError', err =>
+    handleConflictWithRetry({
+      pairs: err.pairs,
+      operationType: err.operationType,
+      retryOperation: deployComponentSet({ componentSet: err.componentSet })
+    })
+  )
+);
 
-export const deployActiveEditorCommand = () =>
-  Effect.gen(function* () {
+export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiveEditor')(
+  function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
     return yield* deployUris(new Set([activeEditorUri]));
-  }).pipe(
-    Effect.catchTag('NoActiveEditorError', () =>
-      Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
-        Effect.as(undefined)
-      )
+  },
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))),
+  Effect.catchTag('NoActiveEditorError', () =>
+    Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
+      Effect.as(undefined)
     )
-  );
+  )
+);
 
 // When a single file is selected and "Deploy Source from Org" is executed,
 // sourceUri is passed, and the uris array contains a single element, the same
@@ -47,8 +62,11 @@ export const deployActiveEditorCommand = () =>
 // sourceUri is passed, but uris is undefined.
 
 /** Deploy source paths to the default org */
-export const deploySourcePathsCommand = (sourceUri: URI, uris: URI[] = []) =>
-  Effect.gen(function* () {
+export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySourcePaths')(
+  function* (sourceUri: URI, uris: URI[] = []) {
     yield* Effect.annotateCurrentSpan({ sourceUri, uris });
-    return yield* deployUris(new Set([sourceUri, ...uris]));
-  });
+    const urisSet = new Set([sourceUri, ...uris]);
+    return yield* deployUris(urisSet);
+  },
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text')))
+);

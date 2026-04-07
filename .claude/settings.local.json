@@ -8,26 +8,24 @@
       "Bash(done)",
       "Bash(chmod:*)",
       "Bash(WIREIT_CACHE=none npm run *)",
-      "Bash(sf org:*)"
+      "Bash(sf org:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:code.visualstudio.com)"
+    ],
+    "autoApprove": [
+      "PostToolUse",
+      "Stop",
+      "PreToolUse"
     ]
   },
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Edit(*)",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/mark-edit.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write(*)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/mark-edit.sh"
+            "command": "cd $(git rev-parse --show-toplevel) && .claude/hooks/mark-edit.sh"
           }
         ]
       }
@@ -38,7 +36,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/block-no-verify.sh"
+            "command": "cd $(git rev-parse --show-toplevel) && .claude/hooks/block-no-verify.sh"
           }
         ]
       }
@@ -48,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/verify-stop.sh"
+            "command": "cd $(git rev-parse --show-toplevel) && .claude/hooks/verify-stop.sh"
           }
         ]
       }

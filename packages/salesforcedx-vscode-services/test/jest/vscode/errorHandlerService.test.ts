@@ -56,7 +56,7 @@ describe('ErrorHandlerService', () => {
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Simple error');
         expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('Simple error');
         expect(mockChannel.show).not.toHaveBeenCalled();
       });
 
@@ -67,7 +67,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Error message');
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('Error message');
       });
     });
 
@@ -81,7 +81,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error');
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('Inner error');
       });
 
       it('should handle deeply nested cause chain', async () => {
@@ -95,7 +95,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Deepest error');
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('Deepest error');
       });
     });
 
@@ -106,7 +106,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('String error');
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('String error');
       });
     });
 
@@ -158,7 +158,7 @@ describe('ErrorHandlerService', () => {
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Base error');
         expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('Base error');
         expect(mockChannel.show).not.toHaveBeenCalled();
       });
     });
@@ -206,7 +206,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error from TaggedError');
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('Inner error from TaggedError');
       });
 
       it('should handle TaggedError with cause and actions', async () => {
@@ -268,7 +268,7 @@ describe('ErrorHandlerService', () => {
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Base error');
         expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('Base error');
       });
 
       it('should handle non-Error object with actions property', async () => {
@@ -281,9 +281,9 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         // getActions returns [] for non-Error objects
-        // String() on non-Error objects returns "[object Object]"
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('[object Object]');
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        // getBaseMessage reads message from plain objects when present
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Not an Error');
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('Not an Error');
       });
 
       it('should handle Cause.die', async () => {
@@ -293,7 +293,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Defect error');
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('Defect error');
       });
     });
   });

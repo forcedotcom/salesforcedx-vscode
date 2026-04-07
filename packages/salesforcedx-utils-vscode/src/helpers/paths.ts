@@ -29,31 +29,6 @@ export const getTestResultsFolder = async (vscodePath: string, testType: string)
   return pathToTestResultsFolder;
 };
 
-/**
- * Creates a project relative path version of an absolute path.
- *
- * @param fsPath Absolute file path
- * @param packageDirs Package directory paths
- * @returns Relative path for the project
- */
-export const getRelativeProjectPath = (fsPath: string = '', packageDirs: string[]) => {
-  let packageDirIndex;
-  for (let packageDir of packageDirs) {
-    if (!packageDir.startsWith(path.sep)) {
-      packageDir = path.sep + packageDir;
-    }
-    if (!packageDir.endsWith(path.sep)) {
-      packageDir = packageDir + path.sep;
-    }
-    packageDirIndex = fsPath.indexOf(packageDir);
-    if (packageDirIndex !== -1) {
-      packageDirIndex += 1;
-      break;
-    }
-  }
-  return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
-};
-
 export const fileExtensionsMatch = (sourceUri: URI, targetExtension: string): boolean => {
   const extension = sourceUri.path.split('.').pop()?.toLowerCase();
   return extension === targetExtension.toLowerCase();

@@ -23,7 +23,9 @@ Run packages in this exact order (dependency-based):
 2. **salesforcedx-vscode-services**
    - web → desktop
 3. **salesforcedx-vscode-metadata**
-   - web → desktop
+   - web → web:conflicts → desktop → desktop:conflicts
+   - `web` runs `specs/` (parallel project); `web:conflicts` runs `specs-conflicts/tracking/` (sequential, requires tracking scratch org)
+   - `desktop:conflicts` additionally requires non-tracking scratch org
 4. **salesforcedx-vscode-apex-log**
    - web → desktop
 5. **salesforcedx-vscode-apex-testing**
@@ -43,9 +45,11 @@ For each package:
 
 1. **Check for web config**: `ls packages/<name>/playwright.config.web.ts`
 2. **If web config exists**, run web tests:
+
    ```bash
    npm run test:web -w packages/<name>
    ```
+
    Wait for completion. If failure, invoke Failure Analysis Protocol (below).
 
 3. **Check for desktop config**: `ls packages/<name>/playwright.config.desktop.ts`
@@ -55,13 +59,31 @@ For each package:
    ```
    Wait for completion. If failure, invoke Failure Analysis Protocol (below).
 
-5. **Move to next package** only after both web and desktop complete successfully (or are skipped).
+**Check for `test:web:conflicts` script** in `package.json`. If present, run it after web:
+
+```bash
+npm run test:web:conflicts -w packages/<name>
+```
+
+This runs the `conflicts` project in `playwright.config.web.ts` scoped to `specs-conflicts/tracking/`. Sequential workers, requires tracking scratch org.
+
+6. **Check for `test:desktop:conflicts` script** in `package.json`. If present, run it after desktop:
+
+   ```bash
+   npm run test:desktop:conflicts -w packages/<name>
+   ```
+
+   This runs a separate playwright project (`conflicts`) scoped to `specs-conflicts/`. Sequential workers, 120s timeout.
+
+7. # **Move to next package** only after all phases complete successfully (or are skipped).
+8. **Move to next package** only after both web and desktop complete successfully (or are skipped).
 
 ## Failure Analysis Protocol
 
 When a test fails:
 
 ### Step 1: Check for Flakiness
+
 - Run `git log --since="7 days ago" -- <test-file>.spec.ts` to see if test was modified recently
 - Run `git log --since="7 days ago" -- <source-directory>` to see if tested code changed recently
 - **If no recent changes**: Retry the specific failed test once:
@@ -71,21 +93,25 @@ When a test fails:
   (WIREIT_CACHE=none is REQUIRED for individual test runs - see `references/iterating-playwright-tests.md`)
 
 ### Step 2: Gather Context
+
 - Read test output/error from command execution
 - Identify failed test file and line number
 - Find test-results directory: `packages/<package-name>/test-results/`
 
 ### Step 3: Ask User
+
 Ask user: "Test failed. Would you like me to analyze screenshots, traces, and spans?"
 
 ### Step 4: Analyze Artifacts (if user says yes)
 
 **Screenshots**:
+
 - Location: `packages/<package-name>/test-results/`
 - Read screenshot files matching test name
 - Describe what UI state is shown
 
 **Span files**:
+
 - Location: `~/.sf/vscode-spans/`
 - Find latest: `ls -lt ~/.sf/vscode-spans/`
 - Web tests: `web-*.jsonl` files
@@ -94,14 +120,17 @@ Ask user: "Test failed. Would you like me to analyze screenshots, traces, and sp
 - Parse and check for timing issues, errors, or unexpected spans
 
 **Playwright reports**:
+
 - HTML report: `test-results/playwright-report/index.html`
 - Mention to user they can open in browser for interactive view
 
 **Reference error patterns**:
+
 - Check `references/iterating-playwright-tests.md` "Things to ignore" section
 - Filter out expected errors (TS extension activation, disabled extensions notification)
 
 ### Step 5: Synthesize Analysis
+
 - Identify what test was trying to do
 - Compare expected vs actual from screenshots
 - Check span timing for timeouts/performance issues
@@ -113,6 +142,7 @@ Ask user: "Test failed. Would you like me to analyze screenshots, traces, and sp
   - Test assumption wrong
 
 ### Step 6: Present to User
+
 - Show analysis with evidence (screenshot descriptions, error messages, span data)
 - Propose potential fixes or investigations
 - **Ask how to proceed**:
@@ -141,6 +171,12 @@ npm run test:desktop -w packages/playwright-vscode-ext
 # Package 2: services
 npm run test:web -w packages/salesforcedx-vscode-services
 npm run test:desktop -w packages/salesforcedx-vscode-services
+
+# Package 3: metadata (has web + desktop conflicts projects)
+npm run test:web -w packages/salesforcedx-vscode-metadata
+npm run test:web:conflicts -w packages/salesforcedx-vscode-metadata
+npm run test:desktop -w packages/salesforcedx-vscode-metadata
+npm run test:desktop:conflicts -w packages/salesforcedx-vscode-metadata
 
 # ... continue through all 9 packages
 ```

@@ -9,7 +9,9 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
+import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
+import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
 import { formatDeployOutput } from './formatDeployOutput';
 
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
@@ -17,28 +19,26 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   componentSet: NonEmptyComponentSet;
 }) {
   const { componentSet } = options;
+  clearDeployDiagnostics();
+
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, componentSetService] = yield* Effect.all(
     [api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
   );
 
-  yield* channelService.appendToChannel(
-    `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
-  );
+  yield* channelService.appendToChannel('Starting metadata deployment...');
 
   const result = yield* api.services.MetadataDeployService.deploy(componentSet);
 
-  // Handle cancellation
-  if (typeof result === 'string') {
-    yield* channelService.appendToChannel('Deploy cancelled by user');
-    return;
-  }
-
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
+  yield* maybeStoreDeployResult(result);
+
   const { isSDRFailure } = componentSetService;
-  if (result.getFileResponses().some(isSDRFailure)) {
+  const failedResponses = result.getFileResponses().filter(isSDRFailure);
+  if (failedResponses.length > 0) {
+    yield* applyDeployDiagnostics(failedResponses);
     yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
     // we don't wait for the promise to complete (showErrorMessage being dismissed by the user)
     yield* Effect.sync(() => {

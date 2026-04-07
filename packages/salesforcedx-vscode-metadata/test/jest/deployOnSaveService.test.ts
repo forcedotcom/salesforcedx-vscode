@@ -12,6 +12,8 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { URI } from 'vscode-uri';
 import { shouldDeploy } from '../../src/services/deployOnSaveService';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
+import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { uriToPath } from 'salesforcedx-vscode-services/src/vscode/paths';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 
@@ -64,12 +66,16 @@ const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): Worksp
   });
 };
 
+const createMockFsService = (): InstanceType<typeof FsService> =>
+  ({ uriToPath: (uri: URI) => Effect.succeed(uriToPath(uri)) }) as InstanceType<typeof FsService>;
+
 const createMockExtensionProvider = (): ExtensionProviderService => ({
   getServicesApi: Effect.sync(
     () =>
       ({
         services: {
           ChannelService,
+          FsService,
           WorkspaceService
         }
       }) as unknown as SalesforceVSCodeServicesApi
@@ -91,6 +97,7 @@ describe('shouldDeploy', () => {
       const result = await Effect.runPromise(
         shouldDeploy(uri).pipe(
           Effect.provideService(ChannelService, mockChannelService),
+          Effect.provideService(FsService, createMockFsService()),
           Effect.provideService(WorkspaceService, mockWorkspaceService),
           Effect.provideService(ExtensionProviderService, mockExtensionProvider)
         )
@@ -108,6 +115,7 @@ describe('shouldDeploy', () => {
       const result = await Effect.runPromise(
         shouldDeploy(uri).pipe(
           Effect.provideService(ChannelService, mockChannelService),
+          Effect.provideService(FsService, createMockFsService()),
           Effect.provideService(WorkspaceService, mockWorkspaceService),
           Effect.provideService(ExtensionProviderService, mockExtensionProvider)
         )
@@ -125,6 +133,7 @@ describe('shouldDeploy', () => {
       const result = await Effect.runPromise(
         shouldDeploy(uri).pipe(
           Effect.provideService(ChannelService, mockChannelService),
+          Effect.provideService(FsService, createMockFsService()),
           Effect.provideService(WorkspaceService, mockWorkspaceService),
           Effect.provideService(ExtensionProviderService, mockExtensionProvider)
         )
@@ -142,6 +151,7 @@ describe('shouldDeploy', () => {
       const result = await Effect.runPromise(
         shouldDeploy(uri).pipe(
           Effect.provideService(ChannelService, mockChannelService),
+          Effect.provideService(FsService, createMockFsService()),
           Effect.provideService(WorkspaceService, mockWorkspaceService),
           Effect.provideService(ExtensionProviderService, mockExtensionProvider)
         )
@@ -159,6 +169,7 @@ describe('shouldDeploy', () => {
       const result = await Effect.runPromise(
         shouldDeploy(uri).pipe(
           Effect.provideService(ChannelService, mockChannelService),
+          Effect.provideService(FsService, createMockFsService()),
           Effect.provideService(WorkspaceService, mockWorkspaceService),
           Effect.provideService(ExtensionProviderService, mockExtensionProvider)
         )
@@ -181,6 +192,7 @@ describe('shouldDeploy', () => {
       const result = await Effect.runPromise(
         shouldDeploy(uri).pipe(
           Effect.provideService(ChannelService, mockChannelService),
+          Effect.provideService(FsService, createMockFsService()),
           Effect.provideService(WorkspaceService, mockWorkspaceService),
           Effect.provideService(ExtensionProviderService, mockExtensionProvider)
         )
@@ -198,6 +210,7 @@ describe('shouldDeploy', () => {
       const result = await Effect.runPromise(
         shouldDeploy(uri).pipe(
           Effect.provideService(ChannelService, mockChannelService),
+          Effect.provideService(FsService, createMockFsService()),
           Effect.provideService(WorkspaceService, mockWorkspaceService),
           Effect.provideService(ExtensionProviderService, mockExtensionProvider)
         )
@@ -215,6 +228,7 @@ describe('shouldDeploy', () => {
       const result = await Effect.runPromise(
         shouldDeploy(uri).pipe(
           Effect.provideService(ChannelService, mockChannelService),
+          Effect.provideService(FsService, createMockFsService()),
           Effect.provideService(WorkspaceService, mockWorkspaceService),
           Effect.provideService(ExtensionProviderService, mockExtensionProvider)
         )

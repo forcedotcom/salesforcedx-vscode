@@ -69,7 +69,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)
   'testResults', // Test results folder access before it's created (non-critical)
   'workspaceStorage', // Workspace storage access errors during initialization (non-critical)
-  'Illegal assignment from String to Integer' // Execute anonymous compile error (intentionally triggered in E2E)
+  'Illegal assignment from String to Integer', // Execute anonymous compile error (intentionally triggered in E2E)
+  'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
+  'PerfSampleError' // Electron perf sampling noise (non-critical, unrelated to extension behavior)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [

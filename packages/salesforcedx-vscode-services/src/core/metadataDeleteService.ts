@@ -8,9 +8,7 @@
 import {
   ComponentSet,
   DestructiveChangesType,
-  RequestStatus,
   SourceComponent,
-  type DeployResult,
   type MetadataComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
@@ -33,7 +31,7 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
   effect: Effect.gen(function* () {
     const registryService = yield* MetadataRegistryService;
     const fsService = yield* FsService;
-    /** Mark components for deletion */
+
     const markComponentsForDeletion = Effect.fn('MetadataDeleteService.markComponentsForDeletion')(function* (
       componentSet: ComponentSet
     ) {
@@ -54,16 +52,9 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
       return deleteSet;
     });
 
-    /** Delete local files after successful deploy */
     const deleteLocalFiles = Effect.fn('MetadataDeleteService.deleteLocalFiles')(function* (
-      componentSet: ComponentSet,
-      deployResult: DeployResult
+      componentSet: ComponentSet
     ) {
-      // Only proceed if deploy was successful
-      if (deployResult.response?.status !== RequestStatus.Succeeded) {
-        return;
-      }
-
       const components = componentSet.getSourceComponents().toArray();
 
       // Handle custom labels specially
@@ -93,6 +84,12 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
       );
     });
 
-    return { markComponentsForDeletion, deleteLocalFiles };
+    return {
+      /** Mark components for deletion */
+      markComponentsForDeletion,
+
+      /** Delete local files after successful deploy */
+      deleteLocalFiles
+    };
   })
 }) {}

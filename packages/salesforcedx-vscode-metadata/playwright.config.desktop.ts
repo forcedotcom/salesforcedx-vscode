@@ -5,5 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
+import { defineConfig } from '@playwright/test';
 
-export default createDesktopConfig();
+const baseConfig = createDesktopConfig();
+
+export default defineConfig({
+  ...baseConfig,
+  projects: [
+    {
+      name: 'parallel',
+      testDir: './test/playwright/specs'
+    },
+    {
+      name: 'conflicts',
+      testDir: './test/playwright/specs-conflicts',
+      workers: 1,
+      fullyParallel: false,
+      timeout: 120_000
+    }
+  ]
+});

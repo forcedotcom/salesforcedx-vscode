@@ -9,17 +9,7 @@
     },
     "edition": {
       "description": "The Salesforce edition of the scratch org.",
-      "type": "string",
-      "enum": [
-        "developer",
-        "enterprise",
-        "group",
-        "partner-developer",
-        "partner-enterprise",
-        "partner-group",
-        "partner-professional",
-        "professional"
-      ]
+      "type": "string"
     },
     "country": {
       "description": "Dev Hub's country. If you want to override this value, enter the two-character, upper-case ISO-3166 country code (Alpha-2 code). You can find a full list of these codes at several sites, such as: https://www.iso.org/obp/ui/#search. This value sets the locale of the scratch org.",

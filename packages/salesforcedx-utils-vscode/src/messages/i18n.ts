@@ -39,12 +39,6 @@ export const messages = {
     'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/salesforcecli',
   channel_end_with_error: 'ended with error %s',
   channel_end: 'Ended',
-  no_local_or_remote_changes_found: 'No local or remote changes found.',
-  state: 'STATE',
-  full_name: 'FULL NAME',
-  type: 'TYPE',
-  project_path: 'PROJECT PATH',
-  ignored: 'IGNORED',
   warning_using_global_username:
     'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.'
 } as const;

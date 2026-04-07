@@ -21,6 +21,7 @@ import {
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
+import * as Match from 'effect/Match';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { HashableUri } from '../vscode/hashableUri';
@@ -63,6 +64,18 @@ const isSDRSuccess = (fileResponse: FileResponse): fileResponse is FileResponseS
 /** Type guard to check if a FileResponse is a failure */
 const isSDRFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
   fileResponse.state === ComponentStatus.Failed;
+
+type ComponentState = 'Changed' | 'Created' | 'Unchanged' | 'Deleted';
+
+const getComponentState = (component: FileResponseSuccess) =>
+  Match.value(component.state).pipe(
+    Match.withReturnType<ComponentState>(),
+    Match.when(ComponentStatus.Changed, () => 'Changed'),
+    Match.when(ComponentStatus.Created, () => 'Created'),
+    Match.when(ComponentStatus.Unchanged, () => 'Unchanged'),
+    Match.when(ComponentStatus.Deleted, () => 'Deleted'),
+    Match.exhaustive
+  );
 
 export class ComponentSetService extends Effect.Service<ComponentSetService>()('ComponentSetService', {
   accessors: true,
@@ -201,6 +214,7 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
     });
 
     return {
+      getComponentState,
       isSDRSuccess,
       isSDRFailure,
       ensureNonEmptyComponentSet,
