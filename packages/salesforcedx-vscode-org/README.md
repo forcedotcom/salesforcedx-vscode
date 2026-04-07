@@ -12,6 +12,8 @@ This extension provides Salesforce org and authorization management commands for
 - **Log Out from Default Org** - Remove authorization for the current default org
 - **Log Out from All Authorized Orgs** - Remove all stored org authorizations
 
+If you authorized with a session ID and your access token expires, choosing **Login** on the extension prompt runs web login again and reuses your org alias or username so the refreshed authorization updates the same org entry instead of adding a separate re-authentication alias.
+
 When **Authorize an Org** fails because local port `1717` is already in use, the extension now shows an explicit troubleshooting message and a **Show Output** action so you can inspect the full CLI error details.
 
 #### Port 1717 Troubleshooting for Authorize an Org

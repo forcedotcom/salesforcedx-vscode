@@ -116,10 +116,10 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   }
 }
 
-export const orgLoginWeb = async (instanceUrl: string): Promise<void> => {
+export const orgLoginWeb = async (instanceUrl?: string, reauthAliasOrUsername?: string): Promise<void> => {
   const commandlet = new SfCommandlet(
     sfProjectPreconditionChecker,
-    new AuthParamsGatherer(instanceUrl),
+    new AuthParamsGatherer(instanceUrl, reauthAliasOrUsername),
     new OrgLoginWebExecutor()
   );
   await commandlet.run();

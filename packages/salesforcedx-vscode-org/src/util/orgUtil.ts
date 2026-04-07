@@ -116,6 +116,13 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // including the default one used by AuthInfo.listAllAuthorizations().
   await StateAggregator.clearInstanceAsync();
 
+  await getOrgRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      yield* api.services.ConnectionService.invalidateCachedConnections();
+    })
+  );
+
   // Trigger Apex Test Controller to discover tests after org auth/set-default. Delay so config
   // and TargetOrgRef can propagate before refresh runs.
   const REFRESH_DELAY_MS = 800;
