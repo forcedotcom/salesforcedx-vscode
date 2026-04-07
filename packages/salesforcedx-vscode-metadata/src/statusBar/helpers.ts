@@ -81,7 +81,12 @@ export const separateChanges = (status: StatusOutputRow[]): SourceTrackingDetail
   };
 };
 
-/** Get command based on counts.  If there are only local or remote changes, it'll do that.  If there are both, it'll open the changes.  If conflicts, open conflict view. */
+/**
+ * Get command based on counts.
+ * If there are only local or remote changes, it'll do that.
+ * If there are both, it'll deploy then retrieve.
+ * If conflicts, open conflict view.
+ * */
 export const getCommand = (counts: SourceTrackingCounts): string | undefined => {
   if (counts.remote > 0 && counts.local === 0 && counts.conflicts === 0) {
     return 'sf.metadata.project.retrieve.start';
