@@ -16,7 +16,7 @@ import {
 } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { notificationService, workspaceUtils, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
-import { ICONS } from '@salesforce/vscode-services';
+import { ICONS, invalidateCachedConnections } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import * as Option from 'effect/Option';
@@ -115,6 +115,8 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // authorization info. Called without args to clear ALL cached instances,
   // including the default one used by AuthInfo.listAllAuthorizations().
   await StateAggregator.clearInstanceAsync();
+
+  await Effect.runPromise(invalidateCachedConnections);
 
   // Trigger Apex Test Controller to discover tests after org auth/set-default. Delay so config
   // and TargetOrgRef can propagate before refresh runs.
