@@ -220,7 +220,7 @@
       "test": [
         {
           "id": "sf.lightning.lwc.test.view",
-          "when": "sf:project_opened || sf:internal_dev",
+          "when": "(!isWeb || (isWeb && sf:code_builder_enabled)) && (sf:project_opened || sf:internal_dev)",
           "name": "%lightning_lwc_test_view_name%"
         }
       ]
