@@ -6,12 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
-
-class ResetRemoteTrackingError extends Data.TaggedError('ResetRemoteTrackingError')<{
-  readonly cause: Error;
-}> {}
 
 export const resetRemoteTrackingCommand = Effect.fn('resetRemoteTracking')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -20,17 +15,9 @@ export const resetRemoteTrackingCommand = Effect.fn('resetRemoteTracking')(funct
     { concurrency: 'unbounded' }
   );
 
-  const tracking = yield* sourceTrackingService.getSourceTrackingOrThrow();
-
   yield* channelService.appendToChannel('Resetting remote tracking...');
 
-  const resetCount = yield* Effect.tryPromise({
-    try: () => tracking.resetRemoteTracking(),
-    catch: error =>
-      new ResetRemoteTrackingError({
-        cause: error instanceof Error ? error : new Error(String(error))
-      })
-  }).pipe(Effect.withSpan('resetRemoteTracking'));
+  const resetCount = yield* sourceTrackingService.resetRemoteTracking();
 
   yield* channelService.appendToChannel(
     `Successfully reset remote tracking. ${resetCount} file${resetCount === 1 ? '' : 's'} updated.`

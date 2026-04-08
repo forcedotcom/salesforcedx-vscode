@@ -7,10 +7,12 @@
 
 import { Global, SfProject } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
+import * as Chunk from 'effect/Chunk';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { toUri } from '../vscode/uriUtils';
@@ -103,11 +105,29 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
           .map(dir => dir.replace(/\/$/, ''))
           .some(
             dir =>
-              // Use URI.path which is normalized (always uses /) regardless of OS
-              uri.path.startsWith(`${dir}/`) || uri.path === dir
+              // Use URI.path which is normalized (always uses /) regardless of OS.
+              // Compare case-insensitively: VS Code provides uppercase drive letters on
+              // Windows (e.g. /C:/...) while vscode-uri normalizes to lowercase (/c:/...).
+              uri.path.toLowerCase().startsWith(`${dir.toLowerCase()}/`) ||
+              uri.path.toLowerCase() === dir.toLowerCase()
           )
       );
     });
+
+    /** Fail with NotInPackageDirectoryError if any of the given URIs are outside package directories */
+    const ensureInPackageDirectories = Effect.fn('ProjectService.ensureInPackageDirectories')(function* (uris: URI[]) {
+      const outOfPackage = yield* Stream.fromIterable(uris).pipe(
+        Stream.filterEffect(uri => isInPackageDirectories(uri).pipe(Effect.map(b => !b))),
+        Stream.runCollect
+      );
+      yield* Chunk.isEmpty(outOfPackage)
+        ? Effect.void
+        : new NotInPackageDirectoryError({
+            message: 'Only files in a Salesforce package directory can be used with this command',
+            uris: Chunk.toReadonlyArray(outOfPackage)
+          });
+    });
+
     const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
       const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
       return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, TOOLS_DIR);
@@ -146,6 +166,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       isSalesforceProject,
       getSfProject,
       isInPackageDirectories,
+      ensureInPackageDirectories,
       getSoqlMetadataPath,
       getSoqlStandardObjectsPath,
       getSoqlCustomObjectsPath,
@@ -158,3 +179,8 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
 }) {}
 
 export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}
+
+export class NotInPackageDirectoryError extends Data.TaggedError('NotInPackageDirectoryError')<{
+  readonly message: string;
+  readonly uris: readonly URI[];
+}> {}

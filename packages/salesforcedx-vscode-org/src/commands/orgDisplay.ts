@@ -7,6 +7,7 @@
 
 import { Column, createTable, ExtensionProviderService, Row, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
+  ConfigUtil,
   FlagParameter,
   ContinueResponse,
   EmptyParametersGatherer,
@@ -31,10 +32,14 @@ const getTargetUsernameEffect = Effect.fn('getTargetUsernameEffect')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const currentOrgInfo = yield* SubscriptionRef.get(targetOrgRef);
-  if (!currentOrgInfo.username) {
-    return yield* new NoTargetOrgError({ message: nls.localize('error_no_target_org') });
+  if (currentOrgInfo.username) {
+    return currentOrgInfo.username;
   }
-  return currentOrgInfo.username;
+  const fromProjectConfig = yield* Effect.promise(() => ConfigUtil.getUsername());
+  if (fromProjectConfig) {
+    return fromProjectConfig;
+  }
+  return yield* new NoTargetOrgError({ message: nls.localize('error_no_target_org') });
 });
 
 const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {

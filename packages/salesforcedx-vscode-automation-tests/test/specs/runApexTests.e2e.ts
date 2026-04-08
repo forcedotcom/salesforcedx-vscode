@@ -32,6 +32,7 @@ import {
   replaceLineInFile,
   verifyOutputPanelText,
   waitForAndGetCodeLens,
+  waitForNotificationToGoAway,
   zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
@@ -47,6 +48,8 @@ import {
 } from '../utils/apexTestsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
+
+/** Progress notification from metadata deploy (`deploying_one_component` / `deploying_n_components`). */
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
@@ -87,14 +90,9 @@ describe('Run Apex Tests', () => {
       'RunApexTests - Error creating Apex class 3 and test'
     );
 
-    // Dismiss all notifications so the push one can be seen
     await dismissAllNotifications();
-
-    // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
-
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+    await waitForNotificationToGoAway(/Deploying 6 components/i, Duration.TEN_MINUTES);
   });
 
   beforeEach(function () {
@@ -401,11 +399,8 @@ describe('Run Apex Tests', () => {
     // Create Apex class AccountService
     await createApexClassWithBugs(classesFolderPath);
 
-    // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
-
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+    await waitForNotificationToGoAway(/Deploying 2 components/i, Duration.TEN_MINUTES);
 
     // Run SFDX: Run Apex tests.
     prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
@@ -432,11 +427,8 @@ describe('Run Apex Tests', () => {
     await replaceLineInFile(accountServicePath, 6, '\t\t\tTickerSymbol = tickerSymbol');
     await pause(Duration.seconds(1));
 
-    // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
-
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+    await waitForNotificationToGoAway(/Deploying 1 component/i, Duration.TEN_MINUTES);
 
     // Run SFDX: Run Apex tests to verify fix
     prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));

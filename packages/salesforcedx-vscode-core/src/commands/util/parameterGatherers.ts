@@ -13,7 +13,6 @@ import {
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { coerceMessageKey, nls } from '../../messages';
 import { SalesforcePackageDirectories, SalesforceProjectConfig } from '../../salesforceProject';
 
@@ -28,24 +27,6 @@ export type OutputDirParameter = {
 export type MetadataTypeParameter = {
   type: string;
 };
-
-type ApexTestTemplateParameter = {
-  template: string;
-};
-
-export class FilePathGatherer implements ParametersGatherer<string> {
-  private filePath: string;
-  constructor(uri: URI) {
-    this.filePath = uri.fsPath;
-  }
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    if (workspaceUtils.hasRootWorkspace()) {
-      return { type: 'CONTINUE', data: this.filePath };
-    }
-    return { type: 'CANCEL' };
-  }
-}
 
 export class SelectFileName implements ParametersGatherer<FileNameParameter> {
   private maxFileNameLength: number;
@@ -87,8 +68,14 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
     let packageDirs: string[] = [];
     try {
       packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
-    } catch (e) {
-      if (e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
+    } catch (e: unknown) {
+      if (
+        e &&
+        typeof e === 'object' &&
+        'name' in e &&
+        e.name !== 'NoPackageDirectoryPathsFound' &&
+        e.name !== 'NoPackageDirectoriesFound'
+      ) {
         throw e;
       }
     }
@@ -147,6 +134,10 @@ export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
   }
 }
 
+export type ApexTestTemplateParameter = {
+  template: string;
+};
+
 export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplateParameter> {
   constructor(template: string) {
     super({ template });
@@ -178,7 +169,7 @@ export class SelectLwcComponentType implements ParametersGatherer<{ extension: s
         // Show deprecation warning
         void vscode.window.showInformationMessage(
           nls.localize('typescript_legacy_flag_deprecation') ??
-          'The "preview.typeScriptSupport" setting is deprecated. Please set "defaultLwcLanguage": "typescript" in your sfdx-project.json instead.'
+            'The "preview.typeScriptSupport" setting is deprecated. Please set "defaultLwcLanguage": "typescript" in your sfdx-project.json instead.'
         );
         return { type: 'CONTINUE', data: { extension: 'TypeScript' } };
       }

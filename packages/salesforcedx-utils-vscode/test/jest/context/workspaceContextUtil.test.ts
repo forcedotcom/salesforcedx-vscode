@@ -8,7 +8,6 @@
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { ConfigUtil } from '../../../src/config/configUtil';
-import { SALESFORCE_VSCODE_ORG_EXTENSION_ID } from '../../../src/context/orgExtensionUtils';
 import { WorkspaceContextUtil, WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages/messages';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';

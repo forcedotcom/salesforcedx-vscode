@@ -9,7 +9,7 @@ import type { ChannelService } from '../commands/channelService';
 import * as vscode from 'vscode';
 
 /** Must match the org extension id in its `package.json` (`publisher`.`name`). */
-export const SALESFORCE_VSCODE_ORG_EXTENSION_ID = 'salesforce.salesforcedx-vscode-org';
+const SALESFORCE_VSCODE_ORG_EXTENSION_ID = 'salesforce.salesforcedx-vscode-org';
 
 /** Public API returned by Salesforce Org Management `activate()` (same shape as Core extension `channelService`). */
 export type SalesforceVSCodeOrgApi = {
