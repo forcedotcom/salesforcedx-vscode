@@ -16,6 +16,7 @@ import {
   createSuiteId,
   extractClassName,
   extractSuiteName,
+  filterTestItemsByRequestExclude,
   gatherTests,
   getTestName,
   isClass,
@@ -397,6 +398,26 @@ describe('testItemUtils', () => {
       expect(result[0].id).toBe('method:MyClass.testMethod1');
     });
 
+    it('should exclude a class node and all expanded methods (VS Code filter uses parent in exclude)', () => {
+      const method1 = createMockTestItem('method:MyClass.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:MyClass.testMethod2', 'testMethod2');
+      const classItem = createMockTestItem('class:MyClass', 'MyClass', [method1, method2]);
+      const methodOther = createMockTestItem('method:OtherClass.testA', 'testA');
+      const classOther = createMockTestItem('class:OtherClass', 'OtherClass', [methodOther]);
+      const controllerItems = createMockTestItemCollection([classItem, classOther]);
+      const request = {
+        include: undefined,
+        exclude: [classItem],
+        profile: undefined,
+        preserveFocus: undefined
+      } as unknown as vscode.TestRunRequest;
+
+      const result = gatherTests(request, controllerItems, new Map());
+      expect(result.map(r => r.id)).toContain('method:OtherClass.testA');
+      expect(result.map(r => r.id)).not.toContain('method:MyClass.testMethod1');
+      expect(result.map(r => r.id)).not.toContain('method:MyClass.testMethod2');
+    });
+
     it('should gather all items when include is not provided', () => {
       const suiteItem = createMockTestItem('suite:MySuite', 'MySuite');
       const classItem = createMockTestItem('class:MyClass', 'MyClass');
@@ -474,6 +495,40 @@ describe('testItemUtils', () => {
       expect(result).toHaveLength(2);
       expect(result.map(r => r.id)).toContain('method:A.method1');
       expect(result.map(r => r.id)).toContain('method:A.method2');
+    });
+  });
+
+  describe('filterTestItemsByRequestExclude', () => {
+    it('removes methods when their class subtree is in exclude (simulates post–suite-expansion re-add)', () => {
+      const createMockTestItem = (id: string, label: string, children: vscode.TestItem[] = []): vscode.TestItem => {
+        const childrenMap = new Map(children.map(c => [c.id, c]));
+        return {
+          id,
+          label,
+          uri: undefined,
+          children: {
+            size: children.length,
+            forEach: (callback: (item: vscode.TestItem) => void) => {
+              children.forEach(callback);
+            },
+            get: (childId: string) => childrenMap.get(childId),
+            add: jest.fn(),
+            replace: jest.fn(),
+            values: () => childrenMap.values(),
+            keys: () => childrenMap.keys(),
+            entries: () => childrenMap.entries(),
+            [Symbol.iterator]: () => childrenMap[Symbol.iterator]()
+          }
+        } as unknown as vscode.TestItem;
+      };
+
+      const methodA = createMockTestItem('method:A.a', 'a');
+      const methodB = createMockTestItem('method:B.b', 'b');
+      const classB = createMockTestItem('class:B', 'B', [methodB]);
+
+      const filtered = filterTestItemsByRequestExclude([methodA, methodB], [classB]);
+      expect(filtered).toHaveLength(1);
+      expect(filtered[0].id).toBe('method:A.a');
     });
   });
 });
