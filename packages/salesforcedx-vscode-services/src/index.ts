@@ -45,6 +45,7 @@ import { watchDefaultOrgContext } from './vscode/context';
 import { watchApexTestContext, watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
+import { watchLwcAuraExtensionActivation } from './vscode/extensionActivator';
 import { setExtensionContext } from './vscode/extensionContext';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
@@ -233,6 +234,8 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       Effect.forkIn(watchPackageDirectoriesContext(), scope),
       // watch active editor changes to update apex test context
       Effect.forkIn(watchApexTestContext(), scope),
+      // watch active editor to activate LWC/Aura extensions on demand
+      Effect.forkIn(watchLwcAuraExtensionActivation(), scope),
       // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
       Effect.forkIn(watchDefaultOrgAliases(), scope)
     ],
