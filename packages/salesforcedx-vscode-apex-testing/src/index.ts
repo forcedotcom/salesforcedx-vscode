@@ -90,8 +90,12 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 });
 
 export const activate = (context: vscode.ExtensionContext) => {
+  // Register before async activation: if this runs only after initializeOutputChannel / project checks,
+  // the Testing view can render first with no TestController and show "Install Test Extensions".
+  getTestController();
   setAllServicesLayer(buildAllServicesLayer(context));
   const extensionScope = getApexTestingRuntime().runSync(getExtensionScope());
+
   return getApexTestingRuntime().runPromise(
     activateEffect(context).pipe(
       Scope.extend(extensionScope),

@@ -9,6 +9,7 @@
   "apex_test_method_run_text": "SFDX: Apex テストメソッドを実行",
   "configuration_title": "Salesforce Apex Testing 設定",
   "test_view_name": "Apex テスト",
+  "apex_testing_view_welcome_web": "このワークスペースでテストが見つかりませんでした。Apex テストを利用する場合は、デフォルトの組織にデプロイされているか確認してください。**補足:** Marketplace からテスト拡張機能を追加でインストールできるのはデスクトップ版の VS Code のみで、このブラウザー環境では利用できません。",
   "apex_test_run_concise": "失敗したテスト結果のみを表示します。",
   "apex_test_payload_build_failed_message": "テストペイロードのビルドに失敗しました",
   "apex_test_suite_name_not_determined_message": "スイート実行のスイート名を特定できませんでした",
