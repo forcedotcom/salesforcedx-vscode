@@ -23,6 +23,7 @@ export {
   TELEMETRY_GLOBAL_USER_ID,
   TELEMETRY_GLOBAL_WEB_USER_ID
 } from './constants';
+export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
@@ -45,12 +46,7 @@ export {
   stat,
   writeFile
 } from './helpers/fs';
-export {
-  fileExtensionsMatch,
-  getTestResultsFolder,
-  projectPaths,
-  TOOLS
-} from './helpers/paths';
+export { fileExtensionsMatch, getTestResultsFolder, projectPaths, TOOLS } from './helpers/paths';
 export {
   extractJson,
   fileUtils,

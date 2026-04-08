@@ -27,6 +27,11 @@ export class ChannelService {
     return ChannelService.instances[channelName];
   }
 
+  /** Underlying channel; safe to pass to `ExtensionContext.subscriptions` (same instance as `getInstance`). */
+  public static getChannel(channelName: string): OutputChannel {
+    return ChannelService.getInstance(channelName).channel;
+  }
+
   public streamCommandOutput(execution: CommandExecution) {
     this.streamCommandStartStop(execution);
     execution.stderrSubject.subscribe(data => this.channel.append(stripAnsi(data.toString())));

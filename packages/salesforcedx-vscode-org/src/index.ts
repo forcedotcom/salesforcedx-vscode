@@ -6,10 +6,11 @@
  */
 
 import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from './channels';
+import { channelService, OUTPUT_CHANNEL } from './channels';
 import {
   configSet,
   orgCreate,
@@ -65,7 +66,7 @@ const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
 });
 
-export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeOrgApi> => {
   console.log('Salesforce Org Management extension activated');
 
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -73,6 +74,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await Effect.runPromise(
     activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer)).pipe(Scope.extend(extensionScope))
   );
+
+  const api: SalesforceVSCodeOrgApi = {
+    channelService
+  };
+  return api;
 };
 
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
@@ -89,3 +95,5 @@ export const deactivate = (): void => {
   Effect.runSync(closeExtensionScope());
   console.log('Salesforce Org Management extension deactivated');
 };
+
+export type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
