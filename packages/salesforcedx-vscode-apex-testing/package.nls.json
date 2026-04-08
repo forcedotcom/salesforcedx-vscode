@@ -43,7 +43,7 @@
   "apex_testing_walkthrough_step3_title": "View and run Apex test suites",
   "apex_testing_walkthrough_step3_description": "At the top of **Apex Tests**, open **Apex Test Suites**. Expand a suite once to load its classes, then **Run Test** on the suite. You can also use **SFDX: Run Apex Test Suite** from the Command Palette.",
   "apex_testing_walkthrough_step4_title": "Filter by tag, text, or exclude (!)",
-  "apex_testing_walkthrough_step4_description": "Use the filter box on the Testing view: type text to match names, `@in-workspace` / `@org-only` / `@test-suite` for tags, and prefix with `!` to exclude matches. Choose **Run In-Workspace Tests** from the run profile dropdown to execute only in-workspace tests.",
+  "apex_testing_walkthrough_step4_description": "Use the filter box on the Testing view: type text to match names, `@in-workspace` / `@org-only` / `@test-suite` for tags, and prefix with `!` to exclude matches. The main **Run** action runs in-workspace tests (or everything visible when a filter is applied). Choose **Run All Tests in Org** from the run profile dropdown to run the entire org.",
   "apex_testing_walkthrough_step5_title": "See results in the Test Results tab",
   "apex_testing_walkthrough_step5_description": "After a run, the tree shows pass/fail; expand failures for details. Open the **Test Results** panel for the full output. Enable **salesforcedx-vscode-apex-testing.test-run-concise** if you want the UI to emphasize failures.",
   "apex_testing_walkthrough_step1_alt": "Test Explorer showing Apex Test Suites, namespaces, and test classes expanded with methods.",
