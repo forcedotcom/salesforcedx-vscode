@@ -9,10 +9,9 @@ The stop hook runs compile, lint, effect LS, test, and vscode:bundle automatical
 
 Run these **only if the stop hook doesn't catch them**:
 
-1. **Knip / unused exports** — `npx knip` (see [ts4023 exceptions](../ts4023-effect-errors/SKILL.md))
+1. **Knip / unused exports** — `npm run check:knip` (see [ts4023 exceptions](../ts4023-effect-errors/SKILL.md))
    - Fix ALL unused exports unless test-only or ts4023 exception
    - Remove exports only used within the same file
-   - If fails with `ERR_MODULE_NOT_FOUND`: `rm -rf ~/.npm/_npx` then re-run with `-y`
 
 2. **Dupes** — `npm run check:dupes`, check `jscpd-report` for flagged changes
 
