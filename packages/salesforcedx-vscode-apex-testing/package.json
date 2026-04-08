@@ -352,6 +352,12 @@
         "category": "%apex_testing_walkthrough_category%"
       }
     ],
+    "viewsWelcome": [
+      {
+        "view": "workbench.view.testing",
+        "contents": "%apex_testing_view_welcome_web%"
+      }
+    ],
     "walkthroughs": [
       {
         "id": "sf.apex.testing.explorer",
