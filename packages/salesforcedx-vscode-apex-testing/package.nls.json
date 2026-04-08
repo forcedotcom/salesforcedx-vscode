@@ -9,7 +9,7 @@
   "apex_test_method_run_text": "SFDX: Run Apex Test Method",
   "configuration_title": "Salesforce Apex Testing Configuration",
   "test_view_name": "Apex Tests",
-  "apex_testing_view_welcome_web": "If you have Apex tests in your workspace and they don't appear in the Test Explorer, make sure they are deployed to your default org. \n**Note:** Installing additional test extensions from the Marketplace is only supported in VS Code on desktop, not in this web environment.",
+  "apex_testing_view_welcome_web": "Note: If you have Apex tests in your workspace and they don't appear in the Test Explorer, make sure they are deployed to your default org.",
   "apex_test_run_concise": "Display only failed test results.",
   "apex_test_payload_build_failed_message": "Failed to build test payload",
   "apex_test_suite_name_not_determined_message": "Suite name could not be determined for suite execution",
