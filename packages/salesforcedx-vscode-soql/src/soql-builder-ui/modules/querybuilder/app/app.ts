@@ -55,6 +55,16 @@ export default class App extends LightningElement {
   public get showSyntaxErrorNotification(): boolean {
     return this.hasUnrecoverableError;
   }
+  public get showNoDefaultOrgNotification(): boolean {
+    return this.hasNoDefaultOrg;
+  }
+  public get showBlockedQueryBuilder(): boolean {
+    return !this.hasNoDefaultOrg && this.shouldBlockQueryBuilder;
+  }
+  public get showQueryBuilderForm(): boolean {
+    return !this.hasNoDefaultOrg && !this.shouldBlockQueryBuilder;
+  }
+  public hasNoDefaultOrg = false;
   public hasUnsupportedMessage = false;
   public hasRecoverableFieldsError = false;
   public hasRecoverableFromError = false;
@@ -100,6 +110,11 @@ export default class App extends LightningElement {
     this.toolingSDK.queryPlanRunState.subscribe(() => {
       this.isQueryPlanRunning = false;
     });
+
+    this.toolingSDK.noDefaultOrg.subscribe((hasNoDefaultOrg: boolean) => {
+      this.hasNoDefaultOrg = hasNoDefaultOrg;
+    });
+
     this.loadSObjectDefinitions();
     this.modelService.restoreViewState();
   }

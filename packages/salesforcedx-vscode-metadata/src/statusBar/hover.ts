@@ -50,6 +50,12 @@ export const buildCombinedHoverText = (
     md.appendMarkdown('\n\n---\n\n');
   }
 
+  if (counts.remote > 0 && counts.local > 0 && counts.conflicts === 0) {
+    md.appendMarkdown(
+      `[${nls.localize('source_tracking_status_bar_view_changes')}](command:sf.metadata.view.all.changes)\n\n`
+    );
+  }
+
   md.appendMarkdown(getClickHint(counts));
 
   return md;
@@ -58,14 +64,17 @@ export const buildCombinedHoverText = (
 /** Get click hint based on counts */
 const getClickHint = (counts: SourceTrackingCounts): string =>
   Match.value(counts).pipe(
+    Match.when({ conflicts: (n: number) => n > 0 }, () =>
+      nls.localize('source_tracking_status_bar_click_to_view_conflicts')
+    ),
     Match.when({ remote: (n: number) => n > 0, local: 0, conflicts: 0 }, () =>
       nls.localize('source_tracking_status_bar_click_to_retrieve')
     ),
     Match.when({ local: (n: number) => n > 0, remote: 0, conflicts: 0 }, () =>
       nls.localize('source_tracking_status_bar_click_to_push')
     ),
-    Match.when({ remote: (n: number) => n > 0, local: (n: number) => n > 0 }, () =>
-      nls.localize('source_tracking_status_bar_click_to_view_details')
+    Match.when({ remote: (n: number) => n > 0, local: (n: number) => n > 0, conflicts: 0 }, () =>
+      nls.localize('source_tracking_status_bar_click_to_deploy_then_retrieve')
     ),
     Match.orElse(() => nls.localize('source_tracking_status_bar_no_changes'))
   );

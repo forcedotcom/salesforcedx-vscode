@@ -9,7 +9,6 @@ import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as util from 'node:util';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, TelemetryService } from '..';
-import { ChannelService } from '../commands/channelService';
 import { ConfigUtil } from '../config/configUtil';
 import {
   addKnownBadConnection,
@@ -21,6 +20,7 @@ import {
 } from '../helpers/authUtils';
 import { projectPaths } from '../helpers/paths';
 import { nls } from '../messages/messages';
+import { getSalesforceVSCodeOrgExtension } from './orgExtensionUtils';
 
 export type OrgUserInfo = {
   username?: string;
@@ -72,6 +72,21 @@ export class WorkspaceContextUtil {
     return this.instance;
   }
 
+  private static appendAccessTokenErrorToOrgManagement = async (text: string): Promise<void> => {
+    const orgExtension = await getSalesforceVSCodeOrgExtension();
+
+    if (orgExtension) {
+      try {
+        orgExtension.exports.channelService.appendLine(text);
+        orgExtension.exports.channelService.showChannelOutput();
+      } catch {
+        // Do not fall back to ChannelService here: a second copy of utils can create a duplicate Org Management channel.
+      }
+    }
+
+    console.error('Error refreshing access token: ', text);
+  };
+
   public async getConnection(): Promise<Connection> {
     if (!this._username) {
       throw new Error(nls.localize('error_no_target_org'));
@@ -104,9 +119,9 @@ export class WorkspaceContextUtil {
           return connectionDetails.connection;
         }
       } catch (e) {
-        const channel = ChannelService.getInstance('Salesforce Org Management');
-        channel.appendLine(`Error refreshing access token: ${util.inspect(e, { depth: null, showHidden: true })}`);
-        channel.showChannelOutput();
+        await WorkspaceContextUtil.appendAccessTokenErrorToOrgManagement(
+          `Error refreshing access token: ${util.inspect(e, { depth: null, showHidden: true })}`
+        );
 
         this.sessionConnections.delete(this._username);
 
@@ -122,16 +137,21 @@ export class WorkspaceContextUtil {
           // Create and execute the login prompt with cleanup
           const loginPromise = (async () => {
             try {
+              const loginButton = nls.localize('error_access_token_expired_login_button');
               const selection = await vscode.window.showErrorMessage(
                 nls.localize('error_access_token_expired'),
                 {
                   modal: true,
                   detail: nls.localize('error_access_token_expired_detail')
                 },
-                nls.localize('error_access_token_expired_login_button')
+                loginButton
               );
-              if (selection === 'Login') {
-                await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+              if (selection === loginButton) {
+                await vscode.commands.executeCommand(
+                  'sf.org.login.web',
+                  connectionDetails.connection.instanceUrl,
+                  this._alias ?? username
+                );
               }
             } finally {
               clearSharedLoginPrompt(username);

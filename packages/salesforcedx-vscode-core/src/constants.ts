@@ -18,19 +18,12 @@ export const EXT_PACK_STATUS_EVENT_NAME = 'extensionPackStatus';
 
 // sfdxCore setting config values
 export const ALL_EXCEPTION_CATCHER_ENABLED = 'allExceptionCatcherEnabled';
-export const CONFLICT_DETECTION_ENABLED = 'detectConflictsForDeployAndRetrieve';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
-export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
-export const PREFER_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.preferDeployOnSave';
-export const PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS = 'push-or-deploy-on-save.ignoreConflictsOnPush';
-export const DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL = 'push-or-deploy-on-save.showOutputPanel';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-startup';
-export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE = 'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
 export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
-export const USE_METADATA_EXTENSION_COMMANDS = 'useMetadataExtensionCommands';
 
 export const APEX_FILE_NAME_EXTENSION = '.apex';
 export const SOQL_FILE_NAME_EXTENSION = '.soql';
@@ -38,7 +31,3 @@ export const AURA_PATH = '/force-app/main/default/aura/';
 export const APEX_CLASSES_PATH = '/force-app/main/default/classes/';
 export const LWC_PATH = '/force-app/main/default/lwc/';
 export const FUNCTIONS_PATH = '/functions/';
-
-// Commands
-export const PROJECT_RETRIEVE_START_LOG_NAME = 'project_retrieve_start_default_scratch_org';
-export const PROJECT_DEPLOY_START_LOG_NAME = 'project_deploy_start_default_scratch_org';

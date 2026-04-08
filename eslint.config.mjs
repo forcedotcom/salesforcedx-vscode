@@ -181,7 +181,7 @@ export default [
       'unicorn/prefer-single-call': 'error',
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
-      'unicorn/prefer-ternary': ['error', 'only-single-line'],
+      'unicorn/prefer-ternary': ['error'],
       'unicorn/filename-case': [
         'error',
         {
@@ -195,7 +195,7 @@ export default [
           '',
           {
             pattern: ' \\* Copyright \\(c\\) \\d{4}, salesforce\\.com, inc\\.',
-            template: ' * Copyright (c) 2025, salesforce.com, inc.'
+            template: ' * Copyright (c) 2026, salesforce.com, inc.'
           },
           ' * All rights reserved.',
           ' * Licensed under the BSD 3-Clause license.',

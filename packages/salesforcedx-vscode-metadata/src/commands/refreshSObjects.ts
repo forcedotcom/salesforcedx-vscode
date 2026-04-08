@@ -7,31 +7,17 @@
 import type { SObjectCategory, SObjectRefreshSource } from '../sobjects/types/general';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { CORE_EXTENSION_ID } from '../constants';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getMetadataRuntime } from '../services/extensionProvider';
 import { FAILURE_CODE, SUCCESS_CODE } from '../sobjects/constants';
 import { getMinNames, getMinObjects } from '../sobjects/minObjectRetriever';
 import { streamAndWriteSobjectArtifacts, writeSobjectArtifacts } from './sobjectArtifactWriter';
 
 /** Command ID for cross-extension refresh completion notification */
 export const SOBJECT_REFRESH_COMPLETE_CMD = 'sf.internal.sobjectrefresh.complete';
-
-/**
- * Single persistent runtime for artifact writing — built once on first refresh,
- * reused for all subsequent invocations to avoid rebuilding TransmogrifierService
- * and other stateful services
- */
-const createArtifactRuntime = () => ManagedRuntime.make(AllServicesLayer);
-// eslint-disable-next-line functional/no-let
-let _artifactRuntime: ReturnType<typeof createArtifactRuntime> | undefined;
-const getArtifactRuntime = () => {
-  _artifactRuntime ??= createArtifactRuntime();
-  return _artifactRuntime;
-};
 
 const refreshSemaphore = Effect.runSync(Effect.makeSemaphore(1));
 
@@ -80,7 +66,7 @@ const executeRefresh = Effect.fn('executeRefresh')(
                   source: source ?? 'manual',
                   progress
                 });
-          return getArtifactRuntime().runPromise(artifactEffect);
+          return getMetadataRuntime().runPromise(artifactEffect);
         }
       )
     );

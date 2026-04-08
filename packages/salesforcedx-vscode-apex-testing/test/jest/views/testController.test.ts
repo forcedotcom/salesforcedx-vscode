@@ -100,7 +100,8 @@ const mockTestServiceMethods = {
 jest.mock('@salesforce/apex-node', () => ({
   TestService: jest.fn().mockImplementation(() => mockTestServiceMethods),
   TestLevel: {
-    RunSpecifiedTests: 'RunSpecifiedTests'
+    RunSpecifiedTests: 'RunSpecifiedTests',
+    RunAllTestsInOrg: 'RunAllTestsInOrg'
   },
   ResultFormat: {
     json: 'json'
@@ -117,6 +118,7 @@ import type { Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
 import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
+import * as pathHelpers from '../../../src/utils/pathHelpers';
 import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
@@ -286,8 +288,183 @@ describe('ApexTestController', () => {
       expect(mockTestController.createRunProfile).toHaveBeenCalledTimes(3);
     });
 
+    it('should register workspace-first run as default and org-wide run as secondary (no profile tags)', () => {
+      const calls = (mockTestController.createRunProfile as jest.Mock).mock.calls;
+      expect(calls[0][1]).toBe(vscode.TestRunProfileKind.Run);
+      expect(calls[0][3]).toBe(true);
+      expect(calls[0][4]).toBeUndefined();
+      expect(calls[1][1]).toBe(vscode.TestRunProfileKind.Run);
+      expect(calls[1][3]).toBe(false);
+      expect(calls[1][4]).toBeUndefined();
+      expect(calls[2][1]).toBe(vscode.TestRunProfileKind.Debug);
+    });
+
     it('should set up refresh handler', () => {
       expect(mockTestController.refreshHandler).toBeDefined();
+    });
+  });
+
+  describe('run profile handlers (workspace-first vs all-org)', () => {
+    const cancellationToken = {
+      isCancellationRequested: false,
+      onCancellationRequested: { dispose: jest.fn() }
+    } as unknown as vscode.CancellationToken;
+
+    let getTestResultsFolderSpy: jest.SpiedFunction<typeof pathHelpers.getTestResultsFolder>;
+
+    beforeEach(() => {
+      getTestResultsFolderSpy = jest
+        .spyOn(pathHelpers, 'getTestResultsFolder')
+        .mockResolvedValue(URI.file(path.join('/tmp', 'apex-test-results')));
+      mockTestServiceMethods.buildAsyncPayload.mockResolvedValue({
+        testLevel: 'RunSpecifiedTests',
+        skipCodeCoverage: true
+      });
+      mockTestServiceMethods.runTestAsynchronous.mockResolvedValue({
+        tests: [],
+        summary: { outcome: 'Passed', testsRan: 1 }
+      });
+      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockTestRun);
+    });
+
+    afterEach(() => {
+      getTestResultsFolderSpy.mockRestore();
+    });
+
+    it('workspace-first implicit full run uses RunSpecifiedTests when in-workspace methods are gathered', async () => {
+      const inWorkspaceTag = (controller as unknown as { inWorkspaceTag: vscode.TestTag }).inWorkspaceTag;
+      const methodItem = {
+        id: 'method:WSClass.testOne',
+        label: 'testOne',
+        tags: [inWorkspaceTag],
+        uri: URI.file('/workspace/WSClass.cls'),
+        range: undefined,
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          forEach: jest.fn(),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      Object.assign(mockTestController.items, {
+        forEach: (cb: (item: vscode.TestItem) => void) => {
+          cb(methodItem);
+        }
+      });
+
+      mockTestServiceMethods.runTestAsynchronous.mockClear();
+
+      await (
+        controller as unknown as {
+          runTests: (
+            request: vscode.TestRunRequest,
+            token: vscode.CancellationToken,
+            isDebug: boolean,
+            runScope: 'workspace-first' | 'all-org'
+          ) => Promise<void>;
+        }
+      ).runTests(
+        { include: undefined, exclude: undefined, profile: undefined } as vscode.TestRunRequest,
+        cancellationToken,
+        false,
+        'workspace-first'
+      );
+
+      expect(mockTestServiceMethods.runTestAsynchronous).toHaveBeenCalled();
+      const payload = mockTestServiceMethods.runTestAsynchronous.mock.calls[0][0] as { testLevel?: string };
+      expect(payload.testLevel).toBe('RunSpecifiedTests');
+    });
+
+    it('all-org implicit full run uses RunAllTestsInOrg', async () => {
+      const inWorkspaceTag = (controller as unknown as { inWorkspaceTag: vscode.TestTag }).inWorkspaceTag;
+      const methodItem = {
+        id: 'method:WSClass.testOne',
+        label: 'testOne',
+        tags: [inWorkspaceTag],
+        uri: URI.file('/workspace/WSClass.cls'),
+        range: undefined,
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          forEach: jest.fn(),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      Object.assign(mockTestController.items, {
+        forEach: (cb: (item: vscode.TestItem) => void) => {
+          cb(methodItem);
+        }
+      });
+
+      mockTestServiceMethods.runTestAsynchronous.mockClear();
+
+      await (
+        controller as unknown as {
+          runTests: (
+            request: vscode.TestRunRequest,
+            token: vscode.CancellationToken,
+            isDebug: boolean,
+            runScope: 'workspace-first' | 'all-org'
+          ) => Promise<void>;
+        }
+      ).runTests(
+        { include: undefined, exclude: undefined, profile: undefined } as vscode.TestRunRequest,
+        cancellationToken,
+        false,
+        'all-org'
+      );
+
+      expect(mockTestServiceMethods.runTestAsynchronous).toHaveBeenCalled();
+      const payload = mockTestServiceMethods.runTestAsynchronous.mock.calls[0][0] as { testLevel?: string };
+      expect(payload.testLevel).toBe('RunAllTestsInOrg');
+    });
+
+    it('workspace-first run does not strip tests when request.include is non-empty (explicit or filter-driven selection)', async () => {
+      const inWorkspaceTag = (controller as unknown as { inWorkspaceTag: vscode.TestTag }).inWorkspaceTag;
+      const orgOnlyTag = (controller as unknown as { orgOnlyTag: vscode.TestTag }).orgOnlyTag;
+      const orgMethod = {
+        id: 'method:OrgOnly.testOne',
+        label: 'testOne',
+        tags: [orgOnlyTag],
+        uri: URI.parse('sf-org-apex:OrgOnly'),
+        range: undefined,
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          forEach: jest.fn(),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      mockTestServiceMethods.runTestAsynchronous.mockClear();
+
+      await (
+        controller as unknown as {
+          runTests: (
+            request: vscode.TestRunRequest,
+            token: vscode.CancellationToken,
+            isDebug: boolean,
+            runScope: 'workspace-first' | 'all-org'
+          ) => Promise<void>;
+        }
+      ).runTests(
+        {
+          include: [orgMethod],
+          exclude: undefined,
+          profile: undefined
+        } as unknown as vscode.TestRunRequest,
+        cancellationToken,
+        false,
+        'workspace-first'
+      );
+
+      expect(mockTestServiceMethods.runTestAsynchronous).toHaveBeenCalled();
+      const payload = mockTestServiceMethods.runTestAsynchronous.mock.calls[0][0] as { testLevel?: string };
+      expect(payload.testLevel).toBe('RunSpecifiedTests');
+      expect(orgMethod.tags?.includes(orgOnlyTag)).toBe(true);
+      expect(orgMethod.tags?.includes(inWorkspaceTag)).toBe(false);
     });
   });
 

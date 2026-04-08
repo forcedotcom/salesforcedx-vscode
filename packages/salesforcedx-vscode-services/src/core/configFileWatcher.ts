@@ -8,7 +8,6 @@ import { Config } from '@salesforce/core/config';
 import { Global } from '@salesforce/core/global';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 import { join, normalize, sep } from 'node:path';
 import { FileWatcherService } from '../vscode/fileWatcherService';
@@ -35,14 +34,18 @@ export const watchConfigFiles = () =>
       const projectConfigPattern = `${Global.SF_STATE_FOLDER}${sep}${configFileName}`;
 
       const fileWatcherService = yield* FileWatcherService;
-      const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
       const configService = yield* ConfigService;
 
       // Subscribe to file changes and clear defaultOrgRef when config files change
-      yield* Stream.fromQueue(dequeue).pipe(
+      yield* Stream.fromPubSub(fileWatcherService.pubsub).pipe(
         Stream.filter(event => isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)),
         Stream.debounce(Duration.millis(5)),
-        Stream.tap(() => configService.invalidateConfigAggregator()),
+        Stream.tap(() =>
+          Effect.gen(function* () {
+            yield* configService.invalidateConfigAggregator();
+            yield* ConnectionService.invalidateCachedConnections();
+          })
+        ),
         // get connection will cause defaultOrgRef to update, clear the ref if there's any error where we won't have an org connection.
         Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => clearDefaultOrgRef())))
       );
