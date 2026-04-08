@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -16,15 +16,22 @@ export type SalesforceVSCodeOrgApi = {
   channelService: Pick<ChannelService, 'appendLine' | 'showChannelOutput'>;
 };
 
-export const getSalesforceVSCodeOrgExtension = async (): Promise<vscode.Extension<SalesforceVSCodeOrgApi>> => {
+/** Resolves when the org extension is present and activated; otherwise `undefined` (no throw). */
+export const getSalesforceVSCodeOrgExtension = async (): Promise<
+  vscode.Extension<SalesforceVSCodeOrgApi> | undefined
+> => {
   const salesforceVSCodeOrgExtension = vscode.extensions.getExtension<SalesforceVSCodeOrgApi>(
     SALESFORCE_VSCODE_ORG_EXTENSION_ID
   );
   if (!salesforceVSCodeOrgExtension) {
-    throw new Error('Could not fetch a SalesforceVSCodeOrgApi instance');
+    return undefined;
   }
   if (!salesforceVSCodeOrgExtension.isActive) {
-    await salesforceVSCodeOrgExtension.activate();
+    try {
+      await salesforceVSCodeOrgExtension.activate();
+    } catch {
+      return undefined;
+    }
   }
   return salesforceVSCodeOrgExtension;
 };

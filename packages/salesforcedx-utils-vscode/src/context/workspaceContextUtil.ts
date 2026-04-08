@@ -73,16 +73,18 @@ export class WorkspaceContextUtil {
   }
 
   private static appendAccessTokenErrorToOrgManagement = async (text: string): Promise<void> => {
-    const salesforceVSCodeOrgExtension = await getSalesforceVSCodeOrgExtension();
+    const orgExtension = await getSalesforceVSCodeOrgExtension();
 
-    try {
-      salesforceVSCodeOrgExtension.exports.channelService.appendLine(text);
-      salesforceVSCodeOrgExtension.exports.channelService.showChannelOutput();
-    } catch {
-      // activation or append failed
+    if (orgExtension) {
+      try {
+        orgExtension.exports.channelService.appendLine(text);
+        orgExtension.exports.channelService.showChannelOutput();
+      } catch {
+        // Do not fall back to ChannelService here: a second copy of utils can create a duplicate Org Management channel.
+      }
     }
 
-    console.error(text);
+    console.error('Error refreshing access token: ', text);
   };
 
   public async getConnection(): Promise<Connection> {
