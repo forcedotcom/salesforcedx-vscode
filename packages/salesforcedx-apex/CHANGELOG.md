@@ -1,3 +1,12 @@
+## [8.4.21](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.20...8.4.21) (2026-04-08)
+
+
+### Bug Fixes
+
+* handle missing access to PackageLicense W-21939917 ([#634](https://github.com/forcedotcom/salesforcedx-apex/issues/634)) ([623f975](https://github.com/forcedotcom/salesforcedx-apex/commit/623f975bda0bc2aa61e20abd58cc2512c327addc))
+
+
+
 ## [8.4.20](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.19...8.4.20) (2026-04-05)
 
 
