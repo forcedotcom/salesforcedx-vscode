@@ -42,26 +42,59 @@ export function calculatePercentage(dividend: number, divisor: number): string {
   return percentage;
 }
 
-export async function queryNamespaces(
-  connection: Connection
-): Promise<NamespaceInfo[]> {
-  const installedNsQuery = 'SELECT NamespacePrefix FROM PackageLicense';
-  const installedNsPromise = connection.query(installedNsQuery);
-  const orgNsQuery = 'SELECT NamespacePrefix FROM Organization';
-  const orgNsPromise = connection.query(orgNsQuery);
+type NsPrefixRecord = { NamespacePrefix: string };
+type InstalledSubscriberRecord = { SubscriberPackage: NsPrefixRecord };
 
-  const allNamespaces = await Promise.all([installedNsPromise, orgNsPromise]);
-  const installedNamespaces = allNamespaces[0].records.map((record) => ({
-    installedNs: true,
+const resolveInstalledNsRecords = async (
+  connection: Connection
+): Promise<NsPrefixRecord[]> => {
+  try {
+    return (
+      await connection.query<NsPrefixRecord>(
+        'SELECT NamespacePrefix FROM PackageLicense'
+      )
+    ).records;
+  } catch {
+    try {
+      return (
+        await connection.tooling.query<InstalledSubscriberRecord>(
+          'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage'
+        )
+      ).records.map((rec) => ({
+        NamespacePrefix: rec.SubscriberPackage.NamespacePrefix
+      }));
+    } catch {
+      return [];
+    }
+  }
+};
+
+const toNamespaceInfo =
+  (installedNs: boolean) =>
+  (record: NsPrefixRecord): NamespaceInfo => ({
+    installedNs,
     namespace: record.NamespacePrefix
-  }));
-  const orgNamespaces = allNamespaces[1].records.map((record) => ({
-    installedNs: false,
-    namespace: record.NamespacePrefix
-  }));
+  });
+
+export const queryNamespaces = async (
+  connection: Connection
+): Promise<NamespaceInfo[]> => {
+  const [installedResult, orgResult] = await Promise.allSettled([
+    resolveInstalledNsRecords(connection),
+    connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM Organization')
+  ]);
+
+  const installedNamespaces =
+    installedResult.status === 'fulfilled'
+      ? installedResult.value.map(toNamespaceInfo(true))
+      : [];
+  const orgNamespaces =
+    orgResult.status === 'fulfilled'
+      ? orgResult.value.records.map(toNamespaceInfo(false))
+      : [];
 
   return [...orgNamespaces, ...installedNamespaces];
-}
+};
 
 export const queryAll = async <R>(
   connection: Connection,
