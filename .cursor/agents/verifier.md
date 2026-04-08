@@ -10,7 +10,7 @@ The stop hook (`verify-stop.sh`) already runs compile, lint, effect LS, test, an
 
 Run from the repo root:
 
-1. **knip** — `npx -y knip`
+1. **knip** — `npx -y knip --no-config-hints --include exports,types,nsExports,nsTypes`
 
 **Wireit:** Wireit "all cached" / no-op output is success, not failure. Do not treat cache hits as problems.
 

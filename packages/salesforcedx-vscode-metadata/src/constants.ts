@@ -7,8 +7,6 @@
 
 export const EXTENSION_NAME = 'salesforcedx-vscode-metadata';
 
-export const APEX_CLASS_NAME_MAX_LENGTH = 40;
-
 // Configuration keys
 export const CORE_CONFIG_SECTION = 'salesforcedx-vscode-core';
 export const CORE_EXTENSION_ID = 'salesforce.salesforcedx-vscode-core';
