@@ -54,7 +54,7 @@
     "@lwc/eslint-plugin-lwc": "^3.3.0",
     "@lwc/jest-preset": "^19.0.0",
     "@lwc/rollup-plugin": "^9.0.0",
-    "@lwc/synthetic-shadow": "^9.0.0",
+    "@lwc/synthetic-shadow": "^9.1.1",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-babel": "^6.0.0",
     "@rollup/plugin-commonjs": "^29.0.0",
