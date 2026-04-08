@@ -355,8 +355,7 @@
     "viewsWelcome": [
       {
         "view": "workbench.view.testing",
-        "contents": "%apex_testing_view_welcome_web%",
-        "when": "isWeb"
+        "contents": "%apex_testing_view_welcome_web%"
       }
     ],
     "walkthroughs": [
