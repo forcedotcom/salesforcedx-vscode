@@ -27,7 +27,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.18",
+    "@salesforce/apex-node": "^8.4.20",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
