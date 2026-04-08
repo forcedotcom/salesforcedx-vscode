@@ -291,7 +291,14 @@ export class ApexTestController {
     try {
       // Ensure connection and testService are initialized
       await this.ensureInitialized();
-      const suites = await this.getTestService().retrieveAllSuites();
+
+      let suites: { id: string; TestSuiteName: string }[] = [];
+      try {
+        suites = await this.getTestService().retrieveAllSuites();
+      } catch (error) {
+        console.error('Error retrieving suites:', error);
+        return;
+      }
 
       if (suites.length === 0) {
         return;
@@ -328,12 +335,7 @@ export class ApexTestController {
     const runHandler = (request: vscode.TestRunRequest, token: vscode.CancellationToken) =>
       this.runTests(request, token, false);
     // Run all tests (default profile)
-    this.controller.createRunProfile(
-      nls.localize('run_tests_title'),
-      vscode.TestRunProfileKind.Run,
-      runHandler,
-      true
-    );
+    this.controller.createRunProfile(nls.localize('run_tests_title'), vscode.TestRunProfileKind.Run, runHandler, true);
     // Run only in-workspace tests (profile with tag; editor restricts request.include to eligible tests)
     this.controller.createRunProfile(
       nls.localize('run_tests_in_workspace_title'),
@@ -654,12 +656,11 @@ export class ApexTestController {
         } catch (error) {
           const friendlyMessage = toUserFriendlyApexTestError(error);
           for (const test of testsToDebug) {
-            if (
-              isMethod(test.id) &&
-              extractClassName(test.id) === className &&
-              getTestName(test) === methodName
-            ) {
-              run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
+            if (isMethod(test.id) && extractClassName(test.id) === className && getTestName(test) === methodName) {
+              run.errored(
+                test,
+                new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage))
+              );
             }
           }
         }
