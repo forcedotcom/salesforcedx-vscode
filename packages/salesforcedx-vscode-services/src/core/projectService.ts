@@ -11,6 +11,7 @@ import * as Chunk from 'effect/Chunk';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
@@ -46,10 +47,13 @@ const resolveSfProject = (fsPath: string) =>
 
 // Global cache - created once at module level, not scoped to any consumer
 const globalSfProjectCache = Effect.runSync(
-  Cache.make({
-    capacity: 10, // Maximum number of cached SfProject instances
-    timeToLive: Duration.minutes(10), // Projects expire after 10 minutes (project structure changes are infrequent)
-    lookup: resolveSfProject // Lookup function that resolves SfProject for given fsPath
+  Cache.makeWith({
+    capacity: 10,
+    timeToLive: Exit.match({
+      onSuccess: () => Duration.minutes(10), // Projects expire after 10 minutes (project structure changes are infrequent)
+      onFailure: () => Duration.zero
+    }),
+    lookup: resolveSfProject
   }).pipe(Effect.withSpan('sfProjectCache'))
 );
 
