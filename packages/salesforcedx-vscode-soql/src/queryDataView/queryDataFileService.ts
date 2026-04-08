@@ -21,7 +21,14 @@ export enum FileFormat {
   CSV = 'csv'
 }
 
-const invalidExportFileNameCharRe = /[/\\<>:"|?*\x00-\x1f]/;
+/**
+ * Matches a single character that must not appear in an export file name (user input before `.csv` / `.json`).
+ * Character class maps to:
+ * - `/` `\` — path separators (would embed directories or escape the intended folder)
+ * - `<` `>` `:` `"` `|` `?` `*` — reserved in Windows file names (and problematic on other OSes)
+ * - `\x00`–`\x1f` — ASCII C0 control codes (NUL through Unit Separator), not allowed in portable file names
+ */
+const invalidFileNameCharRegExp = /[/\\<>:"|?*\x00-\x1f]/;
 
 const stripTrailingExtension = (base: string, ext: string): string => {
   const suffix = `.${ext}`;
@@ -53,7 +60,7 @@ const validateExportResultsFileNameInput = (value: string, fileExtension: string
   if (base === '.' || base === '..') {
     return nls.localize('soql_export_results_file_name_format_error');
   }
-  if (invalidExportFileNameCharRe.test(base)) {
+  if (invalidFileNameCharRegExp.test(base)) {
     return nls.localize('soql_export_results_file_name_format_error');
   }
   return undefined;
