@@ -34,7 +34,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/apex-tmlanguage": "^1.8.3",
+    "@salesforce/apex-tmlanguage": "^2.0.2",
     "@salesforce/core": "^8.28.0",
     "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.27.4",
@@ -82,12 +82,14 @@
       ]
     },
     "copy:grammars": {
-      "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./grammars/",
+      "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./grammars/ && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage ./grammars/",
       "files": [
-        "../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+        "../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage",
+        "../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage"
       ],
       "output": [
-        "grammars/apex.tmLanguage"
+        "grammars/apex.tmLanguage",
+        "grammars/soql.tmLanguage"
       ]
     },
     "vscode:bundle": {

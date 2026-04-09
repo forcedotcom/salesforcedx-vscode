@@ -28,7 +28,6 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.4.18",
-    "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
@@ -62,6 +61,7 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "copy:grammars",
         "copy:jar",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
@@ -109,7 +109,6 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "copy:grammars",
         "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [

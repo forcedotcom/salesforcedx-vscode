@@ -12,7 +12,7 @@ This project depends on several Salesforce libraries. To develop or debug agains
 | [@salesforce/apex-node](https://github.com/forcedotcom/salesforcedx-apex)                   | [forcedotcom/salesforcedx-apex](https://github.com/forcedotcom/salesforcedx-apex)           | [@salesforce/apex-node](https://www.npmjs.com/package/@salesforce/apex-node)                           |
 | [@salesforce/templates](https://github.com/forcedotcom/salesforcedx-templates)              | [forcedotcom/salesforcedx-templates](https://github.com/forcedotcom/salesforcedx-templates) | [@salesforce/templates](https://www.npmjs.com/package/@salesforce/templates)                           |
 
-Related: `@salesforce/apex` (module resolver for LWC; source repo not in package metadata), `@salesforce/apex-tmlanguage` ([forcedotcom/apex-tmLanguage](https://github.com/forcedotcom/apex-tmLanguage)).
+Related: `@salesforce/apex` (LWC module resolver; repo not in metadata). `@salesforce/apex-tmlanguage` ([forcedotcom/apex-tmLanguage](https://github.com/forcedotcom/apex-tmLanguage)): only `salesforcedx-vscode-apex-log` depends on it; that package's `copy:grammars` writes `apex.tmLanguage` and `soql.tmLanguage` there. In `salesforcedx-vscode-apex`, `compile` depends on `copy:grammars`, which copies those artifacts plus `syntaxes/apex.configuration.json` from apex-log (`vscode:bundle` does not list `copy:grammars` separately). `salesforcedx-vscode-soql` runs its own `copy:grammars` as a Wireit dependency of `vscode:bundle` from apex-log.
 
 ## Running Extensions with Local Library Builds
 

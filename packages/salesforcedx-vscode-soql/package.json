@@ -34,7 +34,6 @@
     "soql builder"
   ],
   "dependencies": {
-    "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/core": "^8.28.0",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.20.0",
@@ -122,9 +121,12 @@
       ]
     },
     "copy:grammars": {
-      "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage ./grammars/",
+      "command": "shx mkdir -p grammars && shx cp ../salesforcedx-vscode-apex-log/grammars/soql.tmLanguage ./grammars/",
+      "dependencies": [
+        "../salesforcedx-vscode-apex-log:copy:grammars"
+      ],
       "files": [
-        "../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage"
+        "../salesforcedx-vscode-apex-log/grammars/soql.tmLanguage"
       ],
       "output": [
         "grammars/soql.tmLanguage"

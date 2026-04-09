@@ -1,6 +1,6 @@
 ---
 name: pr-draft
-description: Draft PRs with conventional commit-style titles and Gus work item refs. Use when drafting PRs, PR titles, PR descriptions, opening PRs, or Git2Gus workflows.
+description: Draft PRs with leading [W-XXXXXXXX] in titles (never trailing WI), conventional commit-style remainder, GUS refs in body. Use when drafting PRs, PR titles, PR descriptions, opening PRs, or Git2Gus workflows.
 ---
 
 # PR Draft
@@ -36,11 +36,13 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 
 ## Title format
 
-`type(scope): description W-XXXXXXXX`
+`[W-XXXXXXXX] type(scope): description`
 
-- **Types**: feat, fix, docs, style, refactor, perf, test, ci, chore
+- **Work item first:** The GUS work item must be the leading token in **square brackets** (`[W-21735053]`). This is the `Name` field from GUS, not the Salesforce Record ID (e.g., `a07...`). If you just created the record, query the `Name` first.
+- **Types**: feat, fix, docs, style, refactor, perf, test, ci, chore, build
 - **Scope**: optional
-- **Work item**: `W-XXXXXXXX` at end. This is the 8-digit `Name` field from GUS (e.g., `W-21735053`). NEVER use the Salesforce Record ID (e.g., `a07...`) in the title. If you just created the record, query the `Name` first.
+- Example: `[W-21735053] build(extensions): consolidate apex-tmlanguage via apex-log`
+- **Avoid:** trailing WI — `type(scope): description W-21735053`
 
 ## Body format
 
