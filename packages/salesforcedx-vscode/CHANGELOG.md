@@ -4,33 +4,37 @@
 
 #### salesforcedx-lwc-language-server
 
-- Add url to lwc error clean W-21761767 ([PR #7123](https://github.com/forcedotcom/salesforcedx-vscode/pull/7123))
+- We added a URL to LWC error messages for easier debugging. ([PR #7123](https://github.com/forcedotcom/salesforcedx-vscode/pull/7123))
 
 #### salesforcedx-vscode-apex
 
-- Pass registry-derived scan excludes to Jorje LSP init ([PR #7135](https://github.com/forcedotcom/salesforcedx-vscode/pull/7135))
+- The Apex Language Server now uses the `MetadataRegistryService` to determine which folders to scan, skipping folders that cannot contain Apex files to reduce indexing time. ([PR #7135](https://github.com/forcedotcom/salesforcedx-vscode/pull/7135))
+- We improved detection of orphaned Apex Language Server processes. Detected orphans are now automatically shut down in the background after approximately 30 seconds, rather than prompting the user to terminate them. ([PR #7135](https://github.com/forcedotcom/salesforcedx-vscode/pull/7135))
 
 #### salesforcedx-vscode-apex-testing
 
-- Workspace-first Test Explorer run and filter excludes W-21918752 ([PR #7137](https://github.com/forcedotcom/salesforcedx-vscode/pull/7137))
+- The Test Explorer's default **Run** button now runs only in-workspace tests. **Run All Tests in Org** has been moved to a secondary profile in the run dropdown. We also fixed a bug where Test Explorer exclusion filters were not consistently applied when test suites were expanded. ([PR #7137](https://github.com/forcedotcom/salesforcedx-vscode/pull/7137))
 
 #### salesforcedx-vscode-core
 
-- Conflicts view in metadata extension W-20189832 ([PR #7009](https://github.com/forcedotcom/salesforcedx-vscode/pull/7009))
+- We introduced a new **Org Differences** view that displays conflicts and diffs between your project and org during deploy, retrieve, and delete operations. When a conflict is detected, you can view the conflicting files, override them, or cancel the operation. ([PR #7009](https://github.com/forcedotcom/salesforcedx-vscode/pull/7009))
+- We added a new status bar icon that shows the sync state between your project and org at a glance. It turns red when conflicts are present — hover to see which files are affected, and click to deploy local changes, retrieve remote changes, or open the **Org Differences** view. ([PR #7009](https://github.com/forcedotcom/salesforcedx-vscode/pull/7009))
+- Conflict detection is now smarter: only components in the current deploy/retrieve/delete set are checked for conflicts, and whitespace-only differences are no longer flagged. ([PR #7009](https://github.com/forcedotcom/salesforcedx-vscode/pull/7009))
+- We added a new **Show Success Notification** setting that controls whether a notification toast appears after a successful deploy, retrieve, or delete operation. ([PR #7009](https://github.com/forcedotcom/salesforcedx-vscode/pull/7009))
 
 #### salesforcedx-vscode-expanded
 
-- Add metadata visualizer extension to the expanded extension pack ([PR #7129](https://github.com/forcedotcom/salesforcedx-vscode/pull/7129))
+- We added the **Salesforce Metadata Visualizer** extension to the Salesforce Extension Pack (Expanded). ([PR #7129](https://github.com/forcedotcom/salesforcedx-vscode/pull/7129))
 
 #### salesforcedx-vscode-soql
 
-- Hide SOQL Builder UI dropdowns and "Run Query" button with warning box when no default org is set ([PR #7092](https://github.com/forcedotcom/salesforcedx-vscode/pull/7092))
+- The SOQL Builder UI now hides its query builder dropdowns and **Run Query** button, and shows a warning when no default org is set. ([PR #7092](https://github.com/forcedotcom/salesforcedx-vscode/pull/7092))
 
 ## Fixed
 
 #### salesforcedx-aura-language-server
 
-- Reindex error in aura ([PR #7133](https://github.com/forcedotcom/salesforcedx-vscode/pull/7133))
+- We fixed an issue where the Aura Language Server was producing an error notification when reindexing Aura components. ([PR #7133](https://github.com/forcedotcom/salesforcedx-vscode/pull/7133))
 
 #### salesforcedx-vscode-apex
 
@@ -38,42 +42,33 @@
 
 #### salesforcedx-vscode-apex-replay-debugger
 
-- Bump apex for better handling of no-access-to-pacakgeLicense object ([PR #7155](https://github.com/forcedotcom/salesforcedx-vscode/pull/7155))
-
-- Restore dynamic JDWP debug port selection ([PR #7130](https://github.com/forcedotcom/salesforcedx-vscode/pull/7130))
+- When an org lacks access to `PackageLicense`, we added a fallback to the `InstalledSubscriberPackage` tooling query. ([PR #7155](https://github.com/forcedotcom/salesforcedx-vscode/pull/7155))
+- We made some changes under the hood. ([PR #7130](https://github.com/forcedotcom/salesforcedx-vscode/pull/7130))
 
 #### salesforcedx-vscode-apex-testing
 
 #### salesforcedx-vscode-metadata
 
-- Run selected method for debug flow ([PR #7127](https://github.com/forcedotcom/salesforcedx-vscode/pull/7127))
-
-- Refresh Apex Test Explorer after metadata changes W-21859306 ([PR #7140](https://github.com/forcedotcom/salesforcedx-vscode/pull/7140))
-
-- Web IDE LWC Tests view + Apex Test Explorer welcome ([PR #7152](https://github.com/forcedotcom/salesforcedx-vscode/pull/7152))
+- We fixed a bug where debugging a single test method in the Apex Test Explorer incorrectly ran the entire class instead of only the selected method. ([PR #7127](https://github.com/forcedotcom/salesforcedx-vscode/pull/7127), [ISSUE #7120](https://github.com/forcedotcom/salesforcedx-vscode/issues/7120))
+- We fixed a bug where the Apex Test Explorer did not refresh after metadata changes. ([PR #7140](https://github.com/forcedotcom/salesforcedx-vscode/pull/7140))
+- We added a message to the Apex Testing sidebar reminding users to deploy their Apex tests to the default org if no tests appear. ([PR #7152](https://github.com/forcedotcom/salesforcedx-vscode/pull/7152))
 
 #### salesforcedx-vscode-core
 
-- Bump @salesforce/templates to ^66.7.10 ([PR #7145](https://github.com/forcedotcom/salesforcedx-vscode/pull/7145))
-
-- Eliminate pjson access plus simplify - W-21220961 ([PR #7073](https://github.com/forcedotcom/salesforcedx-vscode/pull/7073))
-
-- Updating ui bundles to the latest @W-21835637@ ([PR #7124](https://github.com/forcedotcom/salesforcedx-vscode/pull/7124))
+- We made some changes under the hood. ([PR #7145](https://github.com/forcedotcom/salesforcedx-vscode/pull/7145), [PR #7073](https://github.com/forcedotcom/salesforcedx-vscode/pull/7073), [PR #7124](https://github.com/forcedotcom/salesforcedx-vscode/pull/7124))
 
 #### salesforcedx-vscode-org
 
 #### salesforcedx-utils-vscode
 
-- Dedupe Org Management output channel W-21941859 ([PR #7144](https://github.com/forcedotcom/salesforcedx-vscode/pull/7144))
-
-- Web re-auth, TargetOrgRef, and stale Connection cache ([PR #7141](https://github.com/forcedotcom/salesforcedx-vscode/pull/7141))
+- We fixed a bug where duplicate **Org Management** output channels were created. ([PR #7144](https://github.com/forcedotcom/salesforcedx-vscode/pull/7144))
+- We fixed a bug in Agentforce Vibes IDE where, after re-authorizing via the login popup, the status bar continued to show **No Default Org Set**, and attempting to set the newly authorized org as the default produced `Error: No authorization information found for reauth-vscodeOrg`. ([PR #7141](https://github.com/forcedotcom/salesforcedx-vscode/pull/7141))
 
 #### salesforcedx-vscode-services
 
-- Fs watcher simplification ([PR #7138](https://github.com/forcedotcom/salesforcedx-vscode/pull/7138))
-
-- Create lwc typescript works again from vsixes ([PR #7126](https://github.com/forcedotcom/salesforcedx-vscode/pull/7126))
+- We made some changes under the hood. ([PR #7138](https://github.com/forcedotcom/salesforcedx-vscode/pull/7138))
+- We fixed a bug where creating Typescript LWC components was failing. ([PR #7126](https://github.com/forcedotcom/salesforcedx-vscode/pull/7126))
 
 #### salesforcedx-vscode-soql
 
-- Separate name and directory for web CSV/JSON export ([PR #7143](https://github.com/forcedotcom/salesforcedx-vscode/pull/7143))
+- We mde some changes under the hood. ([PR #7143](https://github.com/forcedotcom/salesforcedx-vscode/pull/7143))
