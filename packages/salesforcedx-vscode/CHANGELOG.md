@@ -32,39 +32,23 @@
 
 - Reindex error in aura ([PR #7133](https://github.com/forcedotcom/salesforcedx-vscode/pull/7133))
 
-#### salesforcedx-utils-vscode
-
-- Dedupe Org Management output channel W-21941859 ([PR #7144](https://github.com/forcedotcom/salesforcedx-vscode/pull/7144))
-
-- Web re-auth, TargetOrgRef, and stale Connection cache ([PR #7141](https://github.com/forcedotcom/salesforcedx-vscode/pull/7141))
-
-#### salesforcedx-vscode
-
-- Separate name and directory for web CSV/JSON export ([PR #7143](https://github.com/forcedotcom/salesforcedx-vscode/pull/7143))
-
 #### salesforcedx-vscode-apex
 
-- Bump apex for better handling of no-access-to-pacakgeLicense object ([PR #7155](https://github.com/forcedotcom/salesforcedx-vscode/pull/7155))
-
-- Restore dynamic JDWP debug port selection ([PR #7130](https://github.com/forcedotcom/salesforcedx-vscode/pull/7130))
-
 #### salesforcedx-vscode-apex-oas
-
-- Bump apex for better handling of no-access-to-pacakgeLicense object ([PR #7155](https://github.com/forcedotcom/salesforcedx-vscode/pull/7155))
 
 #### salesforcedx-vscode-apex-replay-debugger
 
 - Bump apex for better handling of no-access-to-pacakgeLicense object ([PR #7155](https://github.com/forcedotcom/salesforcedx-vscode/pull/7155))
 
-- Run selected method for debug flow ([PR #7127](https://github.com/forcedotcom/salesforcedx-vscode/pull/7127))
+- Restore dynamic JDWP debug port selection ([PR #7130](https://github.com/forcedotcom/salesforcedx-vscode/pull/7130))
 
 #### salesforcedx-vscode-apex-testing
 
-- Bump apex for better handling of no-access-to-pacakgeLicense object ([PR #7155](https://github.com/forcedotcom/salesforcedx-vscode/pull/7155))
-
-- Refresh Apex Test Explorer after metadata changes W-21859306 ([PR #7140](https://github.com/forcedotcom/salesforcedx-vscode/pull/7140))
+#### salesforcedx-vscode-metadata
 
 - Run selected method for debug flow ([PR #7127](https://github.com/forcedotcom/salesforcedx-vscode/pull/7127))
+
+- Refresh Apex Test Explorer after metadata changes W-21859306 ([PR #7140](https://github.com/forcedotcom/salesforcedx-vscode/pull/7140))
 
 #### salesforcedx-vscode-core
 
@@ -74,15 +58,9 @@
 
 - Updating ui bundles to the latest @W-21835637@ ([PR #7124](https://github.com/forcedotcom/salesforcedx-vscode/pull/7124))
 
-#### salesforcedx-vscode-expanded
-
-- Separate name and directory for web CSV/JSON export ([PR #7143](https://github.com/forcedotcom/salesforcedx-vscode/pull/7143))
-
-#### salesforcedx-vscode-metadata
-
-- Refresh Apex Test Explorer after metadata changes W-21859306 ([PR #7140](https://github.com/forcedotcom/salesforcedx-vscode/pull/7140))
-
 #### salesforcedx-vscode-org
+
+#### salesforcedx-utils-vscode
 
 - Dedupe Org Management output channel W-21941859 ([PR #7144](https://github.com/forcedotcom/salesforcedx-vscode/pull/7144))
 
@@ -90,15 +68,10 @@
 
 #### salesforcedx-vscode-services
 
-- Refresh Apex Test Explorer after metadata changes W-21859306 ([PR #7140](https://github.com/forcedotcom/salesforcedx-vscode/pull/7140))
-
 - Fs watcher simplification ([PR #7138](https://github.com/forcedotcom/salesforcedx-vscode/pull/7138))
-
-- Web re-auth, TargetOrgRef, and stale Connection cache ([PR #7141](https://github.com/forcedotcom/salesforcedx-vscode/pull/7141))
 
 - Create lwc typescript works again from vsixes ([PR #7126](https://github.com/forcedotcom/salesforcedx-vscode/pull/7126))
 
 #### salesforcedx-vscode-soql
 
 - Separate name and directory for web CSV/JSON export ([PR #7143](https://github.com/forcedotcom/salesforcedx-vscode/pull/7143))
-
