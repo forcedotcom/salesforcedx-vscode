@@ -50,6 +50,8 @@
 
 - Refresh Apex Test Explorer after metadata changes W-21859306 ([PR #7140](https://github.com/forcedotcom/salesforcedx-vscode/pull/7140))
 
+- Web IDE LWC Tests view + Apex Test Explorer welcome ([PR #7152](https://github.com/forcedotcom/salesforcedx-vscode/pull/7152))
+
 #### salesforcedx-vscode-core
 
 - Bump @salesforce/templates to ^66.7.10 ([PR #7145](https://github.com/forcedotcom/salesforcedx-vscode/pull/7145))
