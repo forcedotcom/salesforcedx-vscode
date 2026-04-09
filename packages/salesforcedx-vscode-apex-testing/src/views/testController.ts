@@ -295,7 +295,14 @@ export class ApexTestController {
     try {
       // Ensure connection and testService are initialized
       await this.ensureInitialized();
-      const suites = await this.getTestService().retrieveAllSuites();
+
+      let suites: { id: string; TestSuiteName: string }[] = [];
+      try {
+        suites = await this.getTestService().retrieveAllSuites();
+      } catch (error) {
+        console.error('Error retrieving suites:', error);
+        return;
+      }
 
       if (suites.length === 0) {
         return;
@@ -556,9 +563,7 @@ export class ApexTestController {
         const codeCoverage = settings.retrieveTestCodeCoverage();
         // RunAllTestsInOrg only for the explicit "all org" profile on an implicit full run
         const runAllTestsInOrg =
-          runScope === 'all-org' &&
-          isImplicitFullRun &&
-          (!request.exclude || request.exclude.length === 0);
+          runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
         await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun, runAllTestsInOrg);
       }
 
