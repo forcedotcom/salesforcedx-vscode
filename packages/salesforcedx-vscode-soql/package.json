@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.5.0",
+  "version": "66.5.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
