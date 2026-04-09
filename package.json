@@ -36,6 +36,7 @@
     "@octokit/core": "^5",
     "@octokit/webhooks-types": "7.6.1",
     "@playwright/test": "^1.49.0",
+    "@salesforce/apex-tmlanguage": "^2.0.2",
     "@salesforce/dev-config": "^4.3.2",
     "@salesforce/salesforcedx-vscode-test-tools": "*",
     "@secretlint/node": "11.2.5",

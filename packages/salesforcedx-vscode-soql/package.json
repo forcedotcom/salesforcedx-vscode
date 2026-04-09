@@ -121,12 +121,9 @@
       ]
     },
     "copy:grammars": {
-      "command": "shx mkdir -p grammars && shx cp ../salesforcedx-vscode-apex-log/grammars/soql.tmLanguage ./grammars/",
-      "dependencies": [
-        "../salesforcedx-vscode-apex-log:copy:grammars"
-      ],
+      "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage ./grammars/",
       "files": [
-        "../salesforcedx-vscode-apex-log/grammars/soql.tmLanguage"
+        "../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage"
       ],
       "output": [
         "grammars/soql.tmLanguage"

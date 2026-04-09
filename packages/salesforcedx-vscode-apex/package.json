@@ -92,13 +92,10 @@
       ]
     },
     "copy:grammars": {
-      "command": "shx mkdir -p grammars syntaxes && shx cp ../salesforcedx-vscode-apex-log/grammars/apex.tmLanguage ./grammars/ && shx cp ../salesforcedx-vscode-apex-log/syntaxes/apex.configuration.json ./syntaxes/",
-      "dependencies": [
-        "../salesforcedx-vscode-apex-log:copy:grammars"
-      ],
+      "command": "shx mkdir -p grammars syntaxes && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./grammars/ && shx cp ../../extension-assets/syntaxes/apex.configuration.json ./syntaxes/",
       "files": [
-        "../salesforcedx-vscode-apex-log/grammars/apex.tmLanguage",
-        "../salesforcedx-vscode-apex-log/syntaxes/apex.configuration.json"
+        "../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage",
+        "../../extension-assets/syntaxes/apex.configuration.json"
       ],
       "output": [
         "grammars/apex.tmLanguage",

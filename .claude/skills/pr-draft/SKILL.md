@@ -1,6 +1,6 @@
 ---
 name: pr-draft
-description: Draft PRs with leading [W-XXXXXXXX] in titles (never trailing WI), conventional commit-style remainder, GUS refs in body. Use when drafting PRs, PR titles, PR descriptions, opening PRs, or Git2Gus workflows.
+description: Draft PRs with trailing " - W-XXXXXXXX" in titles, conventional commit-style before it, GUS refs in body. Use when drafting PRs, PR titles, PR descriptions, opening PRs, or Git2Gus workflows.
 ---
 
 # PR Draft
@@ -36,13 +36,13 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 
 ## Title format
 
-`[W-XXXXXXXX] type(scope): description`
+`type(scope): description - W-XXXXXXXX`
 
-- **Work item first:** The GUS work item must be the leading token in **square brackets** (`[W-21735053]`). This is the `Name` field from GUS, not the Salesforce Record ID (e.g., `a07...`). If you just created the record, query the `Name` first.
+- **Work item last:** Append a space, hyphen, space, then the GUS `Name` (` - W-21735053`). This is the `Name` field from GUS, not the Salesforce Record ID (e.g., `a07...`). If you just created the record, query the `Name` first.
 - **Types**: feat, fix, docs, style, refactor, perf, test, ci, chore, build
 - **Scope**: optional
-- Example: `[W-21735053] build(extensions): consolidate apex-tmlanguage via apex-log`
-- **Avoid:** trailing WI — `type(scope): description W-21735053`
+- Example: `build(extensions): consolidate apex-tmlanguage - W-21735053`
+- **Avoid:** leading brackets — `[W-21735053] build(extensions): …`; bare trailing WI without ` - ` — `build(extensions): … W-21735053`
 
 ## Body format
 
