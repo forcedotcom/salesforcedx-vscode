@@ -11,6 +11,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { isDiffFilePair, type DiffFilePair } from '../shared/diff/diffTypes';
+import { resolveDiffUrisForWorkbench } from '../shared/diff/sourceDiffVirtualDocument';
 import { detectConflictsFromTracking } from './conflictDetection';
 import { ConflictTreeItem } from './conflictTreeItem';
 import {
@@ -47,9 +48,12 @@ export const ensureConflictView = Effect.fn('ensureConflictView')(function* () {
 export const conflictDiffCommandEffect = (entry: DiffFilePair | ConflictTreeItem) => {
   const pair = isDiffFilePair(entry) ? entry : entry?.pair;
   return pair && isDiffFilePair(pair)
-    ? Effect.sync(() => {
+    ? Effect.gen(function* () {
         const title = nls.localize('conflict_detect_diff_title', 'remote', pair.fileName, pair.fileName);
-        void vscode.commands.executeCommand('vscode.diff', pair.remoteUri, pair.localUri, title);
+        const { left, right } = yield* Effect.promise(() =>
+          resolveDiffUrisForWorkbench(pair.remoteUri, pair.localUri)
+        );
+        yield* Effect.sync(() => void vscode.commands.executeCommand('vscode.diff', left, right, title));
       })
     : Effect.void;
 };

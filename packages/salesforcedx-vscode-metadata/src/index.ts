@@ -38,9 +38,11 @@ import {
   getMetadataRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
+import { registerSourceDiffVirtualDocumentProvider } from './shared/diff/sourceDiffVirtualDocument';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
+  registerSourceDiffVirtualDocumentProvider(context);
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
   await getMetadataRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));

@@ -16,6 +16,7 @@ import { getConflictStateRef } from '../conflict/conflictTreeProvider';
 import { CONFLICTS_VIEW_ID, conflictTreeProvider, ensureConflictView } from '../conflict/conflictView';
 import { nls } from '../messages';
 import { diffComponentSet } from '../shared/diff/diffComponentSet';
+import { resolveDiffUrisForWorkbench } from '../shared/diff/sourceDiffVirtualDocument';
 
 // TODO: this might belong on fsService as an option for readDirectory
 /** Recursively get all file URIs from a directory */
@@ -57,14 +58,11 @@ const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: U
   const firstPair = diffsOpen[0];
 
   if (firstPair) {
-    yield* Effect.sync(() =>
-      void vscode.commands.executeCommand(
-        'vscode.diff',
-        firstPair.remoteUri,
-        firstPair.localUri,
-        nls.localize('source_diff_title', 'remote', firstPair.fileName, firstPair.fileName)
-      )
+    const title = nls.localize('source_diff_title', 'remote', firstPair.fileName, firstPair.fileName);
+    const { left, right } = yield* Effect.promise(() =>
+      resolveDiffUrisForWorkbench(firstPair.remoteUri, firstPair.localUri)
     );
+    yield* Effect.sync(() => void vscode.commands.executeCommand('vscode.diff', left, right, title));
   }
 
   if (diffsOpen.length >= 2) {

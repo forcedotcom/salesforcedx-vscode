@@ -17,6 +17,7 @@ import { Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { MissingDefaultOrgError } from './diffErrors';
 import { createDiffFilePair, isDiffFilePair, type DiffFilePair } from './diffTypes';
+import { rebaseFileUriToWorkspaceFolder } from './rebaseFileUriToWorkspaceFolder';
 
 /** Convert file paths to HashableUri set. Uses FsService.toUri for correct scheme (memfs in web). */
 export const pathsToHashableUris = Effect.fn('pathsToHashableUris')(function* (paths: string[]) {
@@ -69,6 +70,8 @@ const createMatchedPair = Effect.fn('createMatchedPair')(function* (props: {
   remoteUris: HashSet.HashSet<HashableUri>;
   projectUri: HashableUri;
 }) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fsService = yield* api.services.FsService;
   const { projectUri, remoteUris } = props;
   const projectFileName = Utils.basename(projectUri);
   const projectParentDir = getParentDir(projectUri);
@@ -76,7 +79,11 @@ const createMatchedPair = Effect.fn('createMatchedPair')(function* (props: {
     p => Utils.basename(p) === projectFileName && getParentDir(p) === projectParentDir
   );
   return matchedRemoteUri
-    ? createDiffFilePair({ localUri: projectUri, remoteUri: matchedRemoteUri, fileName: projectFileName })
+    ? createDiffFilePair({
+        localUri: fsService.HashableUri.fromUri(rebaseFileUriToWorkspaceFolder(projectUri)),
+        remoteUri: fsService.HashableUri.fromUri(rebaseFileUriToWorkspaceFolder(matchedRemoteUri)),
+        fileName: projectFileName
+      })
     : yield* Effect.void;
 });
 
