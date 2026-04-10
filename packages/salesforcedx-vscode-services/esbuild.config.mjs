@@ -88,10 +88,10 @@ const buildWebConfig = async () => {
       console.error(`[esbuild] Failed to get web config from org ${process.env.ESBUILD_WEB_ORG_ALIAS}:`, error.message);
       throw error;
     }
-  }
 
-  // Enable file traces — span files in ~/.sf/vscode-spans/
-  configMap['salesforcedx-vscode-salesforcedx.enableFileTraces'] = true;
+    // Enable file traces — span files in ~/.sf/vscode-spans/
+    configMap['salesforcedx-vscode-salesforcedx.enableFileTraces'] = true;
+  }
 
   // Read extra settings if ESBUILD_WEB_LOCAL is set
   if (process.env.ESBUILD_WEB_LOCAL) {
