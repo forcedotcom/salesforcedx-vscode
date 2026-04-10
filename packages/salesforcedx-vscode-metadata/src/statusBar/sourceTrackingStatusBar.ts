@@ -156,10 +156,28 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     Stream.filter(count => count === 0)
   );
 
+  // When a metadata operation starts, interrupt any in-progress refresh so it releases semaphores
+  // immediately. The operationCompleteStream will trigger a fresh refresh when the operation finishes.
+  const operationStartStream = activeOpRef.changes.pipe(Stream.filter(count => count > 0));
+
   yield* Effect.fork(
-    Stream.mergeAll({ concurrency: 'unbounded' })([orgChangeStream, fileChangeStream, operationCompleteStream]).pipe(
+    Stream.mergeAll({ concurrency: 'unbounded' })([
+      orgChangeStream,
+      fileChangeStream,
+      operationCompleteStream,
+      operationStartStream
+    ]).pipe(
       Stream.debounce(Duration.millis(500)),
-      Stream.runForEach(() => refresh(statusBarItem))
+      Stream.flatMap(
+        () =>
+          Stream.fromEffect(
+            SubscriptionRef.get(activeOpRef).pipe(
+              Effect.andThen(count => (count === 0 ? refresh(statusBarItem) : Effect.void))
+            )
+          ),
+        { switch: true }
+      ),
+      Stream.runDrain
     )
   );
 
