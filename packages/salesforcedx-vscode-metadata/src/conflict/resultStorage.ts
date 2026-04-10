@@ -145,7 +145,7 @@ export const buildTimestampIndexFromDir = Effect.fn('resultStorage.buildTimestam
 
   const byKey = yield* Stream.fromIterable(allJsonUris).pipe(
     Stream.mapEffect(uri =>
-      fs.readFile(uri).pipe(
+      fs.readFile(uri.toUri()).pipe(
         Effect.tapError(e => Effect.logWarning('skipping unreadable result file', e)),
         Effect.option,
         // Attach sourceUri so each row remembers which file it came from.
@@ -178,7 +178,7 @@ export const buildTimestampIndexFromDir = Effect.fn('resultStorage.buildTimestam
     // Group by component key; first entry wins because rows are sorted newest-first.
     Effect.map(sortedArray => Object.groupBy(sortedArray, (x: TimestampRow) => x.key)),
     // Delete stale files in the background — best-effort, must not block the caller.
-    Effect.tap(bk => Effect.forkDaemon(Effect.forEach(getStaleUris(bk, allJsonUris), uri => fs.safeDelete(uri))))
+    Effect.tap(bk => Effect.forkDaemon(Effect.forEach(getStaleUris(bk, allJsonUris), uri => fs.safeDelete(uri.toUri()))))
   );
 
   return new Map(Object.entries(byKey).map(([key, rows]) => [key, rows![0].lastModifiedDate]));
