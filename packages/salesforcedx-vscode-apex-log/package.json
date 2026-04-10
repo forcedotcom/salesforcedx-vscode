@@ -6,7 +6,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.5.1",
+  "version": "66.5.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
