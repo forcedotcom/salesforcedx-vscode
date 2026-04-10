@@ -109,7 +109,7 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
 export const filesAreNotIdentical = Effect.fn('filesAreNotIdentical')(function* (pair: DiffFilePair) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [buffer1, buffer2] = (yield* Effect.all(
-    [api.services.FsService.readFile(pair.remoteUri), api.services.FsService.readFile(pair.localUri)],
+    [api.services.FsService.readFile(pair.remoteUri.toUri()), api.services.FsService.readFile(pair.localUri.toUri())],
     { concurrency: 'unbounded' }
   ).pipe(
     Effect.tapError(e => Effect.logWarning('filesAreNotIdentical: readFile failed, skipping pair', e)),
