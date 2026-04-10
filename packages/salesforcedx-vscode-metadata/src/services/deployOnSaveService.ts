@@ -20,7 +20,6 @@ import { conflictTreeProvider, ensureConflictView } from '../conflict/conflictVi
 import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
-import { withActiveMetadataOperation } from '../utils/withActiveMetadataOperation';
 
 const ENQUEUE_DELAY_MS = 1000;
 
@@ -67,7 +66,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
     .pipe(Effect.flatMap(componentSetService.ensureNonEmptyComponentSet));
 
   if (!ignoreConflicts && (yield* sourceTrackingService.hasTracking())) {
-    const conflicts = yield* withActiveMetadataOperation(sourceTrackingService.getConflicts());
+    const conflicts = yield* sourceTrackingService.getConflicts();
     const deployedMembers = new Set(
       componentSet
         .getSourceComponents()
@@ -86,7 +85,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
 /** Handle deploy conflicts: populate conflict view scoped to the deployed component set */
 const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(function* (componentSet?: ComponentSet) {
   yield* ensureConflictView();
-  const pairs = yield* withActiveMetadataOperation(detectConflictsFromTracking(componentSet));
+  const pairs = yield* detectConflictsFromTracking(componentSet);
   const mode: 'conflicts' | 'diffs' = 'conflicts';
   yield* SubscriptionRef.update(getConflictStateRef(), () => ({
     title: `${pairs.length} file difference${pairs.length === 1 ? '' : 's'}`,

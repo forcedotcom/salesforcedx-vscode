@@ -269,7 +269,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           merge: false,
           outputPath
         });
-      }
+      },
+      withActiveMetadataOperationPipeline
     );
 
     return {

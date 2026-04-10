@@ -13,7 +13,6 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { nls } from '../messages';
 import { getDetectConflictsForDeployAndRetrieve } from '../settings/deployOnSaveSettings';
-import { withActiveMetadataOperation } from '../utils/withActiveMetadataOperation';
 import { detectConflictsFromTracking } from './conflictDetection';
 import { detectConflictsFromTimestamps } from './conflictDetectionTimestamp';
 import { ConflictsDetectedError } from './conflictErrors';
@@ -27,9 +26,7 @@ export type HandleConflictWithRetryOptions<A, E, R> = {
   operationType: 'deploy' | 'retrieve' | 'delete';
 };
 
-/** Unified conflict detection: tracking orgs use tracking; non-tracking use timestamps when setting enabled.
- * Yields ConflictsDetectedError when conflicts are found.
- * Wrapped in withActiveMetadataOperation so the status bar suppresses polling during conflict checks. */
+/** Unified conflict detection: tracking orgs use tracking; non-tracking use timestamps when setting enabled. Yields ConflictsDetectedError when conflicts are found. */
 export const detectConflicts = Effect.fn('detectConflicts')(function* (
   componentSet: NonEmptyComponentSet,
   operationType: 'deploy' | 'retrieve' | 'delete'
@@ -38,14 +35,12 @@ export const detectConflicts = Effect.fn('detectConflicts')(function* (
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 
   const timestampOperationType = operationType === 'delete' ? 'deploy' : operationType;
-  const pairs = yield* withActiveMetadataOperation(
-    Effect.gen(function* () {
-      if (orgInfo.tracksSource === true) return yield* detectConflictsFromTracking(componentSet);
-      if (getDetectConflictsForDeployAndRetrieve())
-        return yield* detectConflictsFromTimestamps(componentSet, timestampOperationType);
-      return [] satisfies DiffFilePair[];
-    })
-  );
+  const pairs =
+    orgInfo.tracksSource === true
+      ? yield* detectConflictsFromTracking(componentSet)
+      : getDetectConflictsForDeployAndRetrieve()
+        ? yield* detectConflictsFromTimestamps(componentSet, timestampOperationType)
+        : [];
 
   if (pairs.length > 0) return yield* new ConflictsDetectedError({ pairs, componentSet, operationType });
 });

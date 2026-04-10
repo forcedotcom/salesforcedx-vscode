@@ -11,7 +11,6 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { isDiffFilePair, type DiffFilePair } from '../shared/diff/diffTypes';
-import { withActiveMetadataOperation } from '../utils/withActiveMetadataOperation';
 import { detectConflictsFromTracking } from './conflictDetection';
 import { ConflictTreeItem } from './conflictTreeItem';
 import {
@@ -63,7 +62,7 @@ export const conflictOpenCommandEffect = (node: ConflictTreeItem) => {
 /** Detect conflicts, populate tree, focus view. Used when status bar clicked with conflicts. */
 export const openConflictViewCommand = Effect.fn('openConflictView')(function* () {
   yield* ensureConflictView();
-  const pairs = yield* withActiveMetadataOperation(detectConflictsFromTracking());
+  const pairs = yield* detectConflictsFromTracking();
   const stateRef = getConflictStateRef();
   const title = `${pairs.length} file${pairs.length === 1 ? '' : 's'} in conflict`;
   yield* SubscriptionRef.update(stateRef, () => ({

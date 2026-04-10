@@ -23,6 +23,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
@@ -351,7 +352,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
           })
         )
       );
-    });
+    }, withActiveMetadataOperationPipeline);
 
     /** Check for conflicts and display them in the channel, failing if conflicts are found (both tracking files) */
     const checkConflicts = Effect.fn('SourceTrackingService.checkConflicts')(function* () {
