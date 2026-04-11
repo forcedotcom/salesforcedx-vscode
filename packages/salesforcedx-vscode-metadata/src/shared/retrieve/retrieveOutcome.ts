@@ -5,12 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  type FileResponse,
-  type RetrieveResult,
-  RequestStatus
-} from '@salesforce/source-deploy-retrieve';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Data from 'effect/Data';
+import * as Effect from 'effect/Effect';
+import type { RequestStatusValue } from 'salesforcedx-vscode-services';
 
 /** Retrieve finished but the org reported failures (file responses and/or retrieve status). */
 export class RetrieveCompletedWithErrorsError extends Data.TaggedError('RetrieveCompletedWithErrorsError')<{
@@ -21,15 +20,21 @@ export class RetrieveCompletedWithErrorsError extends Data.TaggedError('Retrieve
   }
 }
 
+const RETRIEVE_FAILURE_STATUSES: ReadonlySet<RequestStatusValue> = new Set([
+  'Failed',
+  'FinalizingFailed',
+  'SucceededPartial'
+]);
+
 /**
  * Whether retrieve should be treated as failed for UX (no success toast, surface
  * {@link RetrieveCompletedWithErrorsError}). File-level failures are primary; also
  * handle API status when SDR does not surface every issue as a failed file response.
  */
-export const retrieveHasErrors = (
-  result: RetrieveResult,
-  isSDRFailure: (fr: FileResponse) => boolean
-): boolean => {
+export const retrieveHasErrors = Effect.fn('retrieveHasErrors')(function* (result: RetrieveResult) {
+  const { isSDRFailure, toRequestStatus } = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
+    .ComponentSetService;
+
   if (result.getFileResponses().some(isSDRFailure)) {
     return true;
   }
@@ -40,12 +45,5 @@ export const retrieveHasErrors = (
   if (resp.success === false) {
     return true;
   }
-  switch (resp.status) {
-    case RequestStatus.Failed:
-    case RequestStatus.FinalizingFailed:
-    case RequestStatus.SucceededPartial:
-      return true;
-    default:
-      return false;
-  }
-};
+  return RETRIEVE_FAILURE_STATUSES.has(toRequestStatus(resp.status));
+});

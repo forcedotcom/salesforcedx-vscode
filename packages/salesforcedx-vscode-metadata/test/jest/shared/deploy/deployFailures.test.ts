@@ -5,11 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentStatus, type DeployResult } from '@salesforce/source-deploy-retrieve';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ComponentStatus, type DeployResult, type FileResponseFailure } from '@salesforce/source-deploy-retrieve';
+import * as Effect from 'effect/Effect';
+import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import { isSDRFailure, makeFileResponseFailure } from 'salesforcedx-vscode-services/src/core/sdrGuards';
 import { getMergedDeployFailures } from '../../../../src/shared/deploy/getMergedDeployFailures';
 
+const mockExtensionProvider: ExtensionProviderService = {
+  getServicesApi: Effect.succeed({
+    services: {
+      ComponentSetService: Effect.succeed({ isSDRFailure, makeFileResponseFailure })
+    }
+  } as unknown as SalesforceVSCodeServicesApi)
+};
+
+const run = <A>(effect: Effect.Effect<A, unknown, unknown>) =>
+  Effect.runPromise(
+    effect.pipe(Effect.provideService(ExtensionProviderService, mockExtensionProvider)) as Effect.Effect<A, never, never>
+  );
+
 describe('getMergedDeployFailures', () => {
-  it('adds componentFailures from the API when missing from file responses', () => {
+  it('adds componentFailures from the API when missing from file responses', async () => {
     const result = {
       getFileResponses: () => [],
       response: {
@@ -24,20 +41,20 @@ describe('getMergedDeployFailures', () => {
       }
     } as unknown as DeployResult;
 
-    const merged = getMergedDeployFailures(result);
+    const merged = await run(getMergedDeployFailures(result));
     expect(merged).toHaveLength(1);
     expect(merged[0].error).toBe('Enable the org permission to deploy UI bundles.');
     expect(merged[0].type).toBe('LightningUIBundle');
     expect(merged[0].state).toBe(ComponentStatus.Failed);
   });
 
-  it('does not duplicate a failure already present in file responses', () => {
-    const fileFailure = {
+  it('does not duplicate a failure already present in file responses', async () => {
+    const fileFailure: FileResponseFailure = {
       fullName: 'MyBundle',
       type: 'LightningUIBundle',
-      state: ComponentStatus.Failed as const,
+      state: ComponentStatus.Failed,
       error: 'from file response',
-      problemType: 'Error' as const,
+      problemType: 'Error',
       filePath: '/proj/force-app/main/default/...'
     };
     const result = {
@@ -54,18 +71,18 @@ describe('getMergedDeployFailures', () => {
       }
     } as unknown as DeployResult;
 
-    const merged = getMergedDeployFailures(result);
+    const merged = await run(getMergedDeployFailures(result));
     expect(merged).toHaveLength(1);
     expect(merged[0].error).toBe('from file response');
   });
 
-  it('returns only file failures when componentFailures count does not exceed file failures', () => {
-    const fileFailure = {
+  it('returns only file failures when componentFailures count does not exceed file failures', async () => {
+    const fileFailure: FileResponseFailure = {
       fullName: 'A',
       type: 'CustomObject',
-      state: ComponentStatus.Failed as const,
+      state: ComponentStatus.Failed,
       error: 'e',
-      problemType: 'Error' as const
+      problemType: 'Error'
     };
     const result = {
       getFileResponses: () => [fileFailure],
@@ -81,7 +98,7 @@ describe('getMergedDeployFailures', () => {
       }
     } as unknown as DeployResult;
 
-    const merged = getMergedDeployFailures(result);
+    const merged = await run(getMergedDeployFailures(result));
     expect(merged).toHaveLength(1);
     expect(merged[0].fullName).toBe('A');
   });

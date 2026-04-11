@@ -24,7 +24,6 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
-
   yield* channelService.appendToChannel('Starting metadata deployment...');
 
   const result = yield* api.services.MetadataDeployService.deploy(componentSet);
@@ -33,7 +32,7 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
 
   yield* maybeStoreDeployResult(result);
 
-  const failedResponses = getMergedDeployFailures(result);
+  const failedResponses = yield* getMergedDeployFailures(result);
   const failedWithPaths = failedResponses.filter(
     (fr): fr is typeof fr & { filePath: string } => typeof fr.filePath === 'string' && fr.filePath.length > 0
   );
@@ -42,8 +41,6 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
       yield* applyDeployDiagnostics(failedWithPaths);
     }
     yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-    yield* Effect.fail(
-      new DeployCompletedWithErrorsError({ userMessage: nls.localize('deploy_completed_with_errors_message') })
-    );
+    return yield* new DeployCompletedWithErrorsError({ userMessage: nls.localize('deploy_completed_with_errors_message') });
   }
 });
