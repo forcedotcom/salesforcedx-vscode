@@ -8,10 +8,10 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
 import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
+import { DeployCompletedWithErrorsError } from './deployErrors';
 import { formatDeployOutput } from './formatDeployOutput';
 import { getMergedDeployFailures } from './getMergedDeployFailures';
 
@@ -42,9 +42,8 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
       yield* applyDeployDiagnostics(failedWithPaths);
     }
     yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-    // we don't wait for the promise to complete (showErrorMessage being dismissed by the user)
-    yield* Effect.sync(() => {
-      void vscode.window.showErrorMessage(nls.localize('deploy_completed_with_errors_message'));
-    });
+    yield* Effect.fail(
+      new DeployCompletedWithErrorsError({ userMessage: nls.localize('deploy_completed_with_errors_message') })
+    );
   }
 });
