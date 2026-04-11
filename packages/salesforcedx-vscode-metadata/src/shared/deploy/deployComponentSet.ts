@@ -8,11 +8,12 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
 import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
+import { DeployCompletedWithErrorsError } from './deployErrors';
 import { formatDeployOutput } from './formatDeployOutput';
+import { getMergedDeployFailures } from './getMergedDeployFailures';
 
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const deployComponentSet = Effect.fn('deployComponentSet')(function* (options: {
@@ -22,10 +23,7 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   clearDeployDiagnostics();
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, componentSetService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.ComponentSetService],
-    { concurrency: 'unbounded' }
-  );
+  const channelService = yield* api.services.ChannelService;
 
   yield* channelService.appendToChannel('Starting metadata deployment...');
 
@@ -35,14 +33,17 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
 
   yield* maybeStoreDeployResult(result);
 
-  const { isSDRFailure } = componentSetService;
-  const failedResponses = result.getFileResponses().filter(isSDRFailure);
+  const failedResponses = getMergedDeployFailures(result);
+  const failedWithPaths = failedResponses.filter(
+    (fr): fr is typeof fr & { filePath: string } => typeof fr.filePath === 'string' && fr.filePath.length > 0
+  );
   if (failedResponses.length > 0) {
-    yield* applyDeployDiagnostics(failedResponses);
+    if (failedWithPaths.length > 0) {
+      yield* applyDeployDiagnostics(failedWithPaths);
+    }
     yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-    // we don't wait for the promise to complete (showErrorMessage being dismissed by the user)
-    yield* Effect.sync(() => {
-      void vscode.window.showErrorMessage(nls.localize('deploy_completed_with_errors_message'));
-    });
+    yield* Effect.fail(
+      new DeployCompletedWithErrorsError({ userMessage: nls.localize('deploy_completed_with_errors_message') })
+    );
   }
 });

@@ -20,6 +20,7 @@ import { conflictTreeProvider, ensureConflictView } from '../conflict/conflictVi
 import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { DeployCompletedWithErrorsError } from '../shared/deploy/deployErrors';
 
 const ENQUEUE_DELAY_MS = 1000;
 
@@ -106,6 +107,12 @@ const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(func
 const handleDeployError = Effect.fn('deployOnSave:handleDeployError')(function* (err: unknown) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
+
+  if (err instanceof DeployCompletedWithErrorsError) {
+    void vscode.window.showErrorMessage(err.userMessage);
+    return;
+  }
+
   const errorMessage = err instanceof Error ? err.message : JSON.stringify(err, null, 2);
 
   if (errorMessage.includes('NoTargetOrgSet') || errorMessage.includes('No default org')) {
