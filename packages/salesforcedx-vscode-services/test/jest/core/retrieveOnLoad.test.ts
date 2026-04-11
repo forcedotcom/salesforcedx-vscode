@@ -17,7 +17,7 @@ import { URI } from 'vscode-uri';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
 import { ComponentSetService, type NonEmptyComponentSet } from '../../../src/core/componentSetService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
-import { isSDRSuccess, isSDRFailure, toComponentStatusChangeType } from '../../../src/core/sdrGuards';
+import { isSDRSuccess, isSDRFailure, makeFileResponseFailure, toComponentStatusChangeType, toRequestStatus } from '../../../src/core/sdrGuards';
 import { FsService } from '../../../src/vscode/fsService';
 
 /** Create a mock ComponentSetService that only provides the type guards needed for tests */
@@ -28,6 +28,8 @@ const createMockComponentSetService = (): Layer.Layer<ComponentSetService, never
       getComponentState: (component: FileResponseSuccess) => toComponentStatusChangeType(component.state),
       isSDRSuccess,
       isSDRFailure,
+      makeFileResponseFailure,
+      toRequestStatus,
       ensureNonEmptyComponentSet: () => Effect.succeed({} as NonEmptyComponentSet),
       getComponentSetFromUris: () => Effect.succeed({} as never),
       getComponentSetFromManifest: (_manifestUri: URI) => Effect.succeed({} as never),
