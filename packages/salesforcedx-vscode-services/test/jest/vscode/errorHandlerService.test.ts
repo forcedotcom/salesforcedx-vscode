@@ -226,6 +226,48 @@ describe('ErrorHandlerService', () => {
       });
     });
 
+    describe('metadata completed-with-errors (deploy/retrieve partial failure)', () => {
+      it('should show notification but not duplicate deploy summary in output channel', async () => {
+        class DeployCompletedWithErrorsError extends Data.TaggedError('DeployCompletedWithErrorsError')<{
+          readonly userMessage: string;
+        }> {
+          public override get message(): string {
+            return this.userMessage;
+          }
+        }
+
+        const err = new DeployCompletedWithErrorsError({
+          userMessage: 'Deploy completed with errors. Check output for details.'
+        });
+        const cause = Cause.fail(err);
+
+        await Effect.runPromise(errorHandler.handleCause(cause));
+
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Deploy completed with errors. Check output for details.');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+      });
+
+      it('should show notification but not duplicate retrieve summary in output channel', async () => {
+        class RetrieveCompletedWithErrorsError extends Data.TaggedError('RetrieveCompletedWithErrorsError')<{
+          readonly userMessage: string;
+        }> {
+          public override get message(): string {
+            return this.userMessage;
+          }
+        }
+
+        const err = new RetrieveCompletedWithErrorsError({
+          userMessage: 'Retrieve completed with errors. Check output for details.'
+        });
+        const cause = Cause.fail(err);
+
+        await Effect.runPromise(errorHandler.handleCause(cause));
+
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Retrieve completed with errors. Check output for details.');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
+      });
+    });
+
     describe('nested cause chains', () => {
       it('should collect all actions from nested chain', async () => {
         const level3Error = new Error('Level 3') as Error & { actions: string[] };

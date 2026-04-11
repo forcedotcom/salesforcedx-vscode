@@ -28,6 +28,15 @@ const getActions = (error: unknown): string[] => {
 };
 
 /** Get the base error message, preferring inner cause message */
+/** Deploy/retrieve partial failures already log details via formatDeployOutput/formatRetrieveOutput; avoid duplicating the summary in the channel. */
+const isMetadataCompletedWithErrorsSummaryError = (error: unknown): boolean => {
+  if (typeof error !== 'object' || error === null || !('_tag' in error)) return false;
+  const tag = Reflect.get(error, '_tag');
+  return (
+    tag === 'DeployCompletedWithErrorsError' || tag === 'RetrieveCompletedWithErrorsError'
+  );
+};
+
 const getBaseMessage = (error: unknown): string => {
   if (error instanceof Error) {
     const innerCause = hasCause(error) ? error.cause : undefined;
@@ -54,7 +63,7 @@ export const getErrorMessage = (error: unknown): string => {
 /**
  * Service for handling errors in commands and effects.
  * Shows error notifications to the user via VS Code's notification system.
- * Always logs the error message to the output channel.
+ * Logs the error message to the output channel except for deploy/retrieve completed-with-errors (details are already in the channel).
  * When errors have actions (like SfError), also shows a "View Details" button.
  */
 export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('ErrorHandlerService', {
@@ -76,7 +85,9 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
             const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(baseMessage, viewSuggestions));
             if (selection === viewSuggestions) channel.show();
           } else {
-            yield* channelService.appendToChannel(baseMessage);
+            if (!isMetadataCompletedWithErrorsSummaryError(error)) {
+              yield* channelService.appendToChannel(baseMessage);
+            }
             yield* Effect.sync(() => void vscode.window.showErrorMessage(baseMessage));
           }
         })
