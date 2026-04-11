@@ -13,6 +13,7 @@
   "include": [
     "src/**/*.ts",
     "playwright.config.web.ts",
+    "playwright.config.desktop.ts",
     "test/playwright/**/*.ts"
   ],
   "references": [

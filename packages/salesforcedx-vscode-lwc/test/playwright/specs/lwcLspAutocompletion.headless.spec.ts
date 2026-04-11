@@ -18,11 +18,13 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
 import { createLwc, goToLineCol, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
+import { applyLwcWebScratchAuth } from '../utils/lwcWebScratchAuth';
 
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await assertWelcomeTabExists(page);
   await closeWelcomeTabs(page);
+  await applyLwcWebScratchAuth(page);
   await ensureSecondarySideBarHidden(page);
 });
 

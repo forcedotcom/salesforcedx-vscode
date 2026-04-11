@@ -4,9 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from '@playwright/test';
 import {
-  STATUS_BAR_ITEM_LABEL,
   assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
@@ -15,12 +13,14 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
-import { LWC_LSP_READY_TEXT, createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
+import { createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
+import { applyLwcWebScratchAuth } from '../utils/lwcWebScratchAuth';
 
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await assertWelcomeTabExists(page);
   await closeWelcomeTabs(page);
+  await applyLwcWebScratchAuth(page);
   await ensureSecondarySideBarHidden(page);
 });
 
@@ -40,9 +40,6 @@ test('LWC LSP finishes indexing and shows status in status bar', async ({ page }
 
   await test.step('wait for LWC LSP to finish indexing', async () => {
     await waitForLwcLspReady(page);
-    // Confirm the status bar shows the ready text
-    const statusBarItem = page.locator(STATUS_BAR_ITEM_LABEL).filter({ hasText: LWC_LSP_READY_TEXT });
-    await expect(statusBarItem).toBeVisible({ timeout: 5000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors);

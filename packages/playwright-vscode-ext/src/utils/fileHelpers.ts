@@ -164,35 +164,24 @@ export const deployCurrentSourceToOrg = async (
 };
 
 /**
- * Open a file using Quick Open.
- * Big caveat: on the web, this'll only work with files that have already been opened, in the editor (not just call didOpen on it!)
- * that's a limitation of web fs on vscode because search/find files doesn't work yet.
+ * Open a file using Quick Open (**Go to File...** from the command palette).
+ *
+ * **Web:** Do not use Ctrl+P here — it often behaves like “recently opened” only, so sibling files
+ * (e.g. `foo.html` when only `foo.js` was opened) never appear. **Go to File...** uses workspace
+ * discovery and matches desktop behavior.
  */
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
 
-  if (isDesktop()) {
-    // On macOS desktop, Control+P doesn't work reliably, use command palette instead
-    await executeCommandWithCommandPalette(page, 'Go to File...');
+  await executeCommandWithCommandPalette(page, 'Go to File...');
 
-    // Wait for Quick Open widget to be visible and ready
-    await expect(widget).toBeVisible({ timeout: 10_000 });
-    const input = widget.locator('input.input');
-    await expect(input).toBeVisible({ timeout: 5000 });
-    await input.click({ timeout: 5000 });
+  await expect(widget).toBeVisible({ timeout: 10_000 });
+  const input = widget.locator('input.input');
+  await expect(input).toBeVisible({ timeout: 5000 });
+  await input.click({ timeout: 5000 });
 
-    // Clear any existing text and ensure input is focused
-    await page.keyboard.press('Control+a');
-    await page.keyboard.press('Delete');
-  } else {
-    // On web Control+P works fine as long as file has been opened in the editor first
-    await page.locator(WORKBENCH).click();
-    await page.keyboard.press('Control+p');
-    await widget.waitFor({ state: 'visible', timeout: 10_000 });
-    // Ensure input is focused and ready (matching original behavior)
-    const input = widget.locator('input.input');
-    await expect(input).toBeVisible({ timeout: 5000 });
-  }
+  await page.keyboard.press('Control+a');
+  await page.keyboard.press('Delete');
 
   // Type the filename
   await page.keyboard.type(fileName);

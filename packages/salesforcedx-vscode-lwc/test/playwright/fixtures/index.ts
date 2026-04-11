@@ -6,7 +6,11 @@
  */
 import { test as webTest } from '@playwright/test';
 
-export const test = webTest;
+import { desktopTest } from './desktopFixtures';
+
+const isDesktop = process.env.VSCODE_DESKTOP === '1';
+
+export const test = isDesktop ? desktopTest : webTest;
 
 test.afterEach(async ({ page }, testInfo) => {
   if (process.env.DEBUG_MODE && testInfo.status !== 'passed') {

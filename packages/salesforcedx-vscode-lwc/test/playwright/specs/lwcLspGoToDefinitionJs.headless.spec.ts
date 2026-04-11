@@ -18,11 +18,13 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
 import { createLwc, goToLineCol, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
+import { applyLwcWebScratchAuth } from '../utils/lwcWebScratchAuth';
 
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await assertWelcomeTabExists(page);
   await closeWelcomeTabs(page);
+  await applyLwcWebScratchAuth(page);
   await ensureSecondarySideBarHidden(page);
 });
 
@@ -55,12 +57,14 @@ test('LWC LSP Go to Definition navigates from JS to LightningElement type defini
   });
 
   await test.step('verify navigation opened the LightningElement type definition', async () => {
-    // The LWC base type definitions live in a file typically named "types.d.ts"
-    const activeTab = page.locator(TAB).filter({ has: page.locator('[aria-selected="true"]') }).first();
-    await expect(activeTab, 'Go to Definition should open the LightningElement type definition file').toContainText(
-      'types.d.ts',
-      { timeout: 15_000 }
-    );
+    // Typings ship as engine.d.ts and/or types.d.ts; web may open a new tab or keep JS focused until peek resolves.
+    const dtsTarget = page
+      .locator(`${EDITOR_WITH_URI}[data-uri*="engine.d.ts"]`)
+      .or(page.locator(`${EDITOR_WITH_URI}[data-uri*="types.d.ts"]`))
+      .or(page.locator(TAB).filter({ hasText: /engine\.d\.ts|types\.d\.ts/ }));
+    await expect(dtsTarget.first(), 'Go to Definition should surface LightningElement typings').toBeVisible({
+      timeout: 20_000
+    });
   });
 
   await validateNoCriticalErrors(test, consoleErrors);

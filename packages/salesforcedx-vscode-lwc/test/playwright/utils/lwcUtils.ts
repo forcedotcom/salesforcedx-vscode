@@ -4,137 +4,210 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import {
+  DIRTY_EDITOR,
   EDITOR_WITH_URI,
   QUICK_INPUT_WIDGET,
   STATUS_BAR_ITEM_LABEL,
-  executeCommandWithCommandPalette
+  WORKBENCH,
+  closeWelcomeTabs,
+  ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
+  isDesktop,
+  openFileByName,
+  verifyCommandExists,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
+import { LWC_GTD_HTML_COMP_SEED_HTML, LWC_GTD_HTML_COMP_SEED_JS } from './createLwcTestWorkspace';
 
 /** Text shown in the LWC language status item when the LSP has finished indexing. */
 export const LWC_LSP_READY_TEXT = 'Indexing complete';
 
+const toPascalCase = (camel: string): string =>
+  camel.length === 0 ? camel : `${camel[0].toUpperCase()}${camel.slice(1)}`;
+
+const replaceEditorContentAndSave = async (
+  page: Page,
+  editor: ReturnType<Page['locator']>,
+  content: string
+): Promise<void> => {
+  await editor.click();
+  await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+  await executeCommandWithCommandPalette(page, 'Select All');
+  await page.keyboard.press('Delete');
+  await page.evaluate((t: string) => navigator.clipboard.writeText(t), content);
+  await executeCommandWithCommandPalette(page, 'Paste');
+  await executeCommandWithCommandPalette(page, 'File: Save');
+  await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+};
+
+const pickNonStickyTreeItem = async (items: Locator, description: string): Promise<Locator> => {
+  const count = await items.count();
+  for (let i = 0; i < count; i++) {
+    const candidate = items.nth(i);
+    const isSticky = await candidate.evaluate(el => el.classList.contains('monaco-tree-sticky-row'));
+    if (!isSticky) {
+      return candidate;
+    }
+  }
+  throw new Error(`No non-sticky Files Explorer tree item for ${description}`);
+};
+
 /**
- * Opens a pre-created Lightning Web Component's JS file in the editor.
- *
- * Components are pre-created on disk by the headless server (`headlessServer.ts`) so tests
- * do not depend on the "SFDX: Create Lightning Web Component" command (which is unreliable
- * in VS Code web because @salesforce/templates writes to memfs, not the virtual workspace FS).
- *
- * VS Code web opens the default "Code Builder" workspace and adds our project as a second
- * root workspace folder named `mount` (aria-level=1). This helper uses keyboard navigation
- * in the Explorer tree to expand the folder hierarchy and open the component's JS file,
- * avoiding coordinate-based clicks that are unreliable on Monaco List's virtual DOM.
- *
- * Navigation plan (after collapsing all folders to a known state):
- * 1. End → mount → ArrowRight×2 → force-app → main → default → lwc → component → .js file
+ * Web / multi-root: LWC files sit under `force-app/main/default/lwc/<bundle>/`. Collapsed parents keep leaf rows out of
+ * the tree, so expand the path before single-clicking a file (matches needing to “open” `force-app` in the UI).
  */
-export const createLwc = async (page: Page, componentName: string): Promise<void> => {
-  // @salesforce/templates camelCases the component name (e.g. MyComp → myComp)
+const expandWebExplorerPathToLwcFile = async (page: Page, fileName: string): Promise<void> => {
+  const dot = fileName.lastIndexOf('.');
+  const bundleDir = dot === -1 ? fileName : fileName.slice(0, dot);
+  const segments = ['force-app', 'main', 'default', 'lwc', bundleDir];
+  const mountRows = page.getByRole('treeitem', { name: /^mount(\/|,|$)/ });
+  if ((await mountRows.count()) > 0) {
+    segments.unshift('mount');
+  }
+  for (const segment of segments) {
+    const escaped = segment.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rows = page.getByRole('treeitem', { name: new RegExp(`^${escaped}(/|,|$)`) });
+    let row: Locator;
+    const rowCount = await rows.count();
+    if (segment === 'force-app' && segments[0] === 'mount' && rowCount > 1) {
+      const last = rows.nth(rowCount - 1);
+      row = (await last.evaluate(el => el.classList.contains('monaco-tree-sticky-row')))
+        ? await pickNonStickyTreeItem(rows, `"${segment}"`)
+        : last;
+    } else {
+      row = await pickNonStickyTreeItem(rows, `"${segment}"`);
+    }
+    await row.waitFor({ state: 'visible', timeout: 15_000 });
+    await row.scrollIntoViewIfNeeded();
+    const expanded = await row.getAttribute('aria-expanded');
+    if (expanded !== 'true') {
+      const twistie = row.locator('.monaco-tl-twistie').first();
+      const twistieCount = await twistie.count();
+      await (twistieCount > 0 ? twistie.click() : row.click());
+      await expect(row).toHaveAttribute('aria-expanded', 'true', { timeout: 10_000 });
+    }
+  }
+};
+
+/**
+ * On VS Code for Web, Quick Open often omits files that exist in Explorer until that file has been opened once
+ * from the tree (the file search index lags the Explorer view after SFDX create). Match manual workflow: single-click
+ * the file in Files Explorer so the editor opens reliably in E2E.
+ */
+const openLwcFileViaExplorerSingleClick = async (page: Page, fileName: string): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  await expandWebExplorerPathToLwcFile(page, fileName);
+  const allTreeItems = page.getByRole('treeitem', { name: fileName, exact: true });
+  const count = await allTreeItems.count();
+  let treeItem: Locator | undefined;
+  for (let i = 0; i < count; i++) {
+    const candidate = allTreeItems.nth(i);
+    const isSticky = await candidate.evaluate(el => el.classList.contains('monaco-tree-sticky-row'));
+    if (!isSticky) {
+      treeItem = candidate;
+      break;
+    }
+  }
+  if (!treeItem) {
+    throw new Error(`No non-sticky Files Explorer tree item found for "${fileName}"`);
+  }
+  await treeItem.waitFor({ state: 'visible', timeout: 15_000 });
+  await treeItem.scrollIntoViewIfNeeded();
+  await treeItem.click({ timeout: 5000 });
+};
+
+/**
+ * Opens a file in the editor.
+ *
+ * **Desktop:** **Go to File…** via `openFileByName`.
+ * **Web:** Single-click in Files Explorer (see `openLwcFileViaExplorerSingleClick`) — Quick Open is unreliable for
+ * newly created LWC siblings until they have been opened from Explorer once.
+ */
+export const openLwcFile = async (page: Page, fileName: string): Promise<void> => {
+  await (isDesktop() ? openFileByName(page, fileName) : openLwcFileViaExplorerSingleClick(page, fileName));
+  const editor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${fileName}"]`);
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+};
+
+/**
+ * Web: VS Code test-web “Test Files” workspace often does not surface Node-pre-seeded nested files in Explorer.
+ * Create bundles with **SFDX: Create Lightning Web Component** (same FS the UI uses), then open the `.js` editor.
+ */
+const createLwcViaSfdxCommandWeb = async (page: Page, componentName: string): Promise<void> => {
   const camelName = `${componentName[0].toLowerCase()}${componentName.slice(1)}`;
   const jsFileName = `${camelName}.js`;
 
-  await executeCommandWithCommandPalette(page, 'View: Show Explorer');
+  await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
 
-  // The Welcome tab renders in a sandboxed iframe. When keyboard events are sent while that
-  // iframe has DOM focus, they never reach VS Code's global keybinding system (so Ctrl+Shift+E
-  // can't focus the Explorer). Click the Explorer heading — a native element in the main frame —
-  // to break out of the iframe focus, then use Ctrl+Shift+E to tell VS Code's workbench to
-  // route keyboard input to the file tree.
-  const explorerHeading = page.getByRole('heading', { name: 'Explorer', level: 2 });
-  await explorerHeading.waitFor({ state: 'visible', timeout: 5000 });
-  await explorerHeading.click();
-  await page.waitForTimeout(100);
-  await page.keyboard.press('Control+Shift+E');
-  await page.waitForTimeout(300);
+  await verifyCommandExists(page, 'SFDX: Create Lightning Web Component', 90_000);
+  await executeCommandWithCommandPalette(page, 'SFDX: Create Lightning Web Component');
 
-  // Known initial state (observed consistently across all test runs):
-  //   Code Builder [expanded, 12 children] + mount [expanded, 2 children (force-app + sfdx-project.json)]
-  //   → 16 total visible items
-  //   `End` → last visible item = mount/sfdx-project.json (index 15)
-  //   `ArrowUp` → mount/force-app (index 14)
-  await page.keyboard.press('End');
-  await page.waitForTimeout(200);
-  await page.keyboard.press('ArrowUp');
-  await page.waitForTimeout(100);
-
-  /**
-   * Expand the currently focused folder (ArrowRight when collapsed = expand in place)
-   * then move into its first child (second ArrowRight = descend).
-   */
-  const expandIntoFirstChild = async () => {
-    await page.keyboard.press('ArrowRight'); // expand (folder must be collapsed)
-    await page.waitForTimeout(400); // wait for tree to re-render children
-    await page.keyboard.press('ArrowRight'); // move focus to first child
-    await page.waitForTimeout(200);
-  };
-
-  // Expand each folder and descend into its first child
-  await expandIntoFirstChild(); // force-app → main
-  await expandIntoFirstChild(); // main → default
-  await expandIntoFirstChild(); // default → lwc
-  await expandIntoFirstChild(); // lwc → first component (autoComp, alphabetically)
-
-  // The LWC components are sorted alphabetically; navigate down to the target
-  const sortedComponents = ['autoComp', 'gtdHtmlComp', 'gtdJsComp', 'indexComp'];
-  const componentIndex = sortedComponents.indexOf(camelName);
-  for (let i = 0; i < componentIndex; i++) {
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(100);
-  }
-
-  // Expand the component folder, move to first child (.html alphabetically)
-  await page.keyboard.press('ArrowRight'); // expand component folder
-  await page.waitForTimeout(400);
-  await page.keyboard.press('ArrowRight'); // move to first child: camelName.html
-  await page.waitForTimeout(200);
-
-  // Files inside the component: camelName.html, camelName.js, camelName.js-meta.xml (alphabetical)
-  // One ArrowDown takes us from .html → .js
-  await page.keyboard.press('ArrowDown');
-  await page.waitForTimeout(100);
-
-  // Open the JS file with Enter (single-press opens it in the editor)
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  await widget.waitFor({ state: 'visible', timeout: 15_000 });
+  await widget.getByText(/Enter Lightning Web Component name/i).waitFor({ state: 'visible', timeout: 15_000 });
+  const nameInput = widget.locator('input.input');
+  await nameInput.click({ timeout: 5000 });
+  await page.keyboard.type(toPascalCase(componentName));
   await page.keyboard.press('Enter');
 
-  const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${jsFileName}"]`);
-  await jsEditor.waitFor({ state: 'visible', timeout: 15_000 });
+  await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
+  await page.keyboard.press('Enter');
+
+  await page.waitForTimeout(400);
+  const jsOption = page.getByRole('option', { name: /^JavaScript$/i }).first();
+  if (await jsOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await jsOption.click();
+  }
+
+  const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${jsFileName}"]`);
+  await jsEditor.waitFor({ state: 'visible', timeout: 45_000 });
+
+  if (componentName === 'gtdHtmlComp') {
+    await replaceEditorContentAndSave(page, jsEditor, LWC_GTD_HTML_COMP_SEED_JS);
+    await openLwcFile(page, `${camelName}.html`);
+    const htmlEditor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${camelName}.html"]`);
+    await htmlEditor.waitFor({ state: 'visible', timeout: 15_000 });
+    await replaceEditorContentAndSave(page, htmlEditor, LWC_GTD_HTML_COMP_SEED_HTML);
+    await openLwcFile(page, jsFileName);
+    await jsEditor.waitFor({ state: 'visible', timeout: 10_000 });
+  }
+};
+
+/**
+ * Opens a pre-created Lightning Web Component's JS file in the editor.
+ *
+ * **Desktop:** workspace bundles are pre-seeded on disk → `openFileByName`.
+ * **Web:** empty playground + **SFDX: Create Lightning Web Component** for this bundle (see `createLwcWebPlaygroundWorkspace`).
+ */
+export const createLwc = async (page: Page, componentName: string): Promise<void> => {
+  if (isDesktop()) {
+    const camelName = `${componentName[0].toLowerCase()}${componentName.slice(1)}`;
+    const jsFileName = `${camelName}.js`;
+    await closeWelcomeTabs(page);
+    await openFileByName(page, jsFileName);
+    const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${jsFileName}"]`);
+    await jsEditor.waitFor({ state: 'visible', timeout: 15_000 });
+    return;
+  }
+
+  await createLwcViaSfdxCommandWeb(page, componentName);
 };
 
 /**
  * Waits for the LWC Language Server to finish indexing files.
- * The LSP status item shows "Indexing complete" in the status bar when ready.
- * Must be called with an LWC HTML or JS file active in the editor so the status item is visible.
+ * `createLanguageStatusItem` surfaces as the **Editor Language Status** control (status bar button), not `.statusbar-item-label`.
+ * Keep a fallback on the legacy label selector for older layouts.
  */
 export const waitForLwcLspReady = async (page: Page, timeout = 90_000): Promise<void> => {
-  // The LwcLspStatusBarItem uses languages.createLanguageStatusItem which renders in the status bar.
-  // It shows the text defined in lwc_language_server_loaded i18n key once indexing is complete.
-  const statusBarItem = page.locator(STATUS_BAR_ITEM_LABEL).filter({ hasText: LWC_LSP_READY_TEXT });
-  await expect(statusBarItem, `LWC LSP should show "${LWC_LSP_READY_TEXT}" in status bar`).toBeVisible({ timeout });
-};
-
-/**
- * Opens a file by clicking its entry in the Explorer sidebar.
- *
- * VS Code web's "Go to File" (Ctrl+P) only searches files that have already been opened in the
- * editor — it cannot search the full workspace filesystem. The Explorer sidebar, however, always
- * reflects the complete workspace tree. After `createLwc` runs, VS Code reveals the created JS
- * file in the Explorer, so the parent folder is already expanded and sibling files (e.g. the HTML
- * file) are immediately visible as tree items.
- */
-export const openLwcFile = async (page: Page, fileName: string): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'View: Show Explorer');
-
-  // The treeitem's accessible name is the bare filename in the Explorer panel
-  const treeItem = page.getByRole('treeitem', { name: fileName }).first();
-  await expect(treeItem, `Explorer should show "${fileName}" in the file tree`).toBeVisible({ timeout: 15_000 });
-
-  // Double-click to open in a permanent tab (single-click opens preview mode)
-  await treeItem.dblclick();
-
-  const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${fileName}"]`);
-  await editor.waitFor({ state: 'visible', timeout: 10_000 });
+  const editorLanguageStatus = page.locator(WORKBENCH).getByRole('button', { name: new RegExp(LWC_LSP_READY_TEXT) });
+  const legacyStatusBarLabel = page.locator(STATUS_BAR_ITEM_LABEL).filter({ hasText: LWC_LSP_READY_TEXT });
+  await expect(
+    editorLanguageStatus.or(legacyStatusBarLabel).first(),
+    `LWC LSP should show "${LWC_LSP_READY_TEXT}" when indexing is done`
+  ).toBeVisible({ timeout });
 };
 
 /**
@@ -148,4 +221,9 @@ export const goToLineCol = async (page: Page, line: number, col: number): Promis
   await page.keyboard.type(`${line}:${col}`);
   await page.keyboard.press('Enter');
   await widget.waitFor({ state: 'hidden', timeout: 5000 });
+};
+
+/** Moves the cursor to the last line (VS Code clamps the line number to the file length). */
+export const goToEndOfFile = async (page: Page): Promise<void> => {
+  await goToLineCol(page, 99_999, 1);
 };
