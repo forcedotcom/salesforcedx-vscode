@@ -437,7 +437,7 @@ export {
   MetadataChangeEvent,
   type MetadataChangeEvent as MetadataChangeEventType
 } from './core/metadataChangeNotificationService';
-export type { MetadataChangeType } from './core/sdrGuards';
+export type { MetadataChangeType, RequestStatusValue } from './core/sdrGuards';
 export {
   MetadataDeployService,
   type MetadataDeployService as MetadataDeployServiceType

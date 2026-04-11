@@ -44,7 +44,6 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
     // we can ignore conflicts because we already did the detectConflicts check
     yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
   },
-  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text'))),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_select_file_or_directory'))).pipe(
       Effect.as(undefined)
@@ -56,5 +55,6 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
       operationType: err.operationType,
       retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
     })
-  )
+  ),
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text')))
 );

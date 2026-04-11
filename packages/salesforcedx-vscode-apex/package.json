@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.5.0",
+  "version": "66.5.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,8 +27,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.18",
-    "@salesforce/apex-tmlanguage": "^1.8.3",
+    "@salesforce/apex-node": "^8.4.21",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
@@ -62,6 +61,7 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "copy:grammars",
         "copy:jar",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
@@ -92,13 +92,10 @@
       ]
     },
     "copy:grammars": {
-      "command": "shx mkdir -p grammars syntaxes && shx cp ../salesforcedx-vscode-apex-log/grammars/apex.tmLanguage ./grammars/ && shx cp ../salesforcedx-vscode-apex-log/syntaxes/apex.configuration.json ./syntaxes/",
-      "dependencies": [
-        "../salesforcedx-vscode-apex-log:copy:grammars"
-      ],
+      "command": "shx mkdir -p grammars syntaxes && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage ./grammars/ && shx cp ../../extension-assets/syntaxes/apex.configuration.json ./syntaxes/",
       "files": [
-        "../salesforcedx-vscode-apex-log/grammars/apex.tmLanguage",
-        "../salesforcedx-vscode-apex-log/syntaxes/apex.configuration.json"
+        "../../node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage",
+        "../../extension-assets/syntaxes/apex.configuration.json"
       ],
       "output": [
         "grammars/apex.tmLanguage",
@@ -109,7 +106,6 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "copy:grammars",
         "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
