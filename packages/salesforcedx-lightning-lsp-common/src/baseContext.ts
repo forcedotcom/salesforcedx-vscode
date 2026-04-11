@@ -111,24 +111,32 @@ export const updateForceIgnoreFile = async (
     // File doesn't exist, start with empty content
   }
 
-  // Add standard forceignore patterns for JavaScript projects
-  if (!forceignoreContent.includes('**/jsconfig.json')) {
-    forceignoreContent += '\n**/jsconfig.json';
-  }
-  if (!forceignoreContent.includes('**/.eslintrc.json')) {
-    forceignoreContent += '\n**/.eslintrc.json';
+  const originalContent = forceignoreContent;
+
+  /** Append a line without stripping or reformatting existing bytes; preserve leading/trailing blank lines. */
+  const appendPatternIfMissing = (pattern: string): void => {
+    if (forceignoreContent.includes(pattern)) {
+      return;
+    }
+    if (forceignoreContent.length === 0) {
+      forceignoreContent = pattern;
+      return;
+    }
+    forceignoreContent += forceignoreContent.endsWith('\n') ? pattern : `\n${pattern}`;
+  };
+
+  appendPatternIfMissing('**/jsconfig.json');
+  appendPatternIfMissing('**/.eslintrc.json');
+  if (addTsConfig) {
+    appendPatternIfMissing('**/tsconfig.json');
+    appendPatternIfMissing('**/*.ts');
   }
 
-  if (addTsConfig && !forceignoreContent.includes('**/tsconfig.json')) {
-    forceignoreContent += '\n**/tsconfig.json';
+  if (forceignoreContent === originalContent) {
+    return;
   }
 
-  if (addTsConfig && !forceignoreContent.includes('**/*.ts')) {
-    forceignoreContent += '\n**/*.ts';
-  }
-
-  // Always write the forceignore file, even if it's empty
-  await fileSystemAccessor.updateFileContent(forceignorePath, forceignoreContent.trim());
+  await fileSystemAccessor.updateFileContent(forceignorePath, forceignoreContent);
 };
 
 export const getModulesDirs = async (
