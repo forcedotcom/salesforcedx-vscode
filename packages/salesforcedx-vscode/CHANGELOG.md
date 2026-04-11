@@ -1,4 +1,4 @@
-# 66.5.2 - April 9, 2026
+# 66.5.3 - April 10, 2026
 
 ## Added
 
@@ -70,9 +70,9 @@
 - We made some changes under the hood. ([PR #7138](https://github.com/forcedotcom/salesforcedx-vscode/pull/7138))
 - We fixed a bug where creating Typescript LWC components was failing. ([PR #7126](https://github.com/forcedotcom/salesforcedx-vscode/pull/7126))
 - Strip subclass for vscode RPC serialization W-21972447 ([PR #7159](https://github.com/forcedotcom/salesforcedx-vscode/pull/7159))
+- CBW esbuild web config returns undefined when no org alias set W-21985385 ([PR #7164](https://github.com/forcedotcom/salesforcedx-vscode/pull/7164))
 
 #### salesforcedx-vscode-soql
 
-- We mde some changes under the hood. ([PR #7143](https://github.com/forcedotcom/salesforcedx-vscode/pull/7143))# 66.5.2 - April 12, 2026
-
+- We made some changes under the hood. ([PR #7143](https://github.com/forcedotcom/salesforcedx-vscode/pull/7143))# 66.5.2 - April 12, 2026
 
