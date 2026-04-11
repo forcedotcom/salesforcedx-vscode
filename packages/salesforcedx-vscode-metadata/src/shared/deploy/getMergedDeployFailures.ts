@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ComponentStatus,
-  type DeployMessage,
-  type DeployResult,
-  type FileResponseFailure
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type {
+  DeployMessage,
+  DeployResult,
+  FileResponseFailure
 } from '@salesforce/source-deploy-retrieve';
+import * as Effect from 'effect/Effect';
 
 const makeKey = (type: string, name: string): string => `${type}#${name}`;
 
@@ -23,10 +24,11 @@ const toDeployMessageArray = (raw: DeployMessage | DeployMessage[] | undefined):
  * Merge file-level failures with `response.details.componentFailures`, matching
  * plugin-deploy-retrieve `DeployResultFormatter.getFileResponseFailures` / `sf project deploy start`.
  */
-export const getMergedDeployFailures = (result: DeployResult): FileResponseFailure[] => {
-  const failures = result
-    .getFileResponses()
-    .filter((fr): fr is FileResponseFailure => fr.state === ComponentStatus.Failed);
+export const getMergedDeployFailures = Effect.fn('getMergedDeployFailures')(function* (result: DeployResult) {
+  const { isSDRFailure, makeFileResponseFailure } = yield* (yield* (yield* ExtensionProviderService).getServicesApi)
+    .services.ComponentSetService;
+
+  const failures = result.getFileResponses().filter(isSDRFailure);
   const deployMessages = toDeployMessageArray(result.response?.details?.componentFailures);
 
   if (deployMessages.length <= failures.length) {
@@ -39,15 +41,16 @@ export const getMergedDeployFailures = (result: DeployResult): FileResponseFailu
     if (m.componentType && failureKeySet.has(makeKey(m.componentType, m.fullName))) {
       return acc;
     }
-    acc.push({
-      fullName: m.fullName,
-      type: m.componentType ?? 'UNKNOWN',
-      state: ComponentStatus.Failed,
-      error: m.problem ?? 'UNKNOWN',
-      problemType: m.problemType ?? 'Error'
-    });
+    acc.push(
+      makeFileResponseFailure({
+        fullName: m.fullName,
+        type: m.componentType ?? 'UNKNOWN',
+        error: m.problem ?? 'UNKNOWN',
+        problemType: m.problemType ?? 'Error'
+      })
+    );
     return acc;
   }, []);
 
   return [...failures, ...extras];
-};
+});

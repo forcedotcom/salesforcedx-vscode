@@ -23,7 +23,7 @@ import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { FailedToResolveSfProjectError, ProjectService } from './projectService';
-import { isSDRFailure, isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
+import { isSDRFailure, isSDRSuccess, makeFileResponseFailure, toComponentStatusChangeType, toRequestStatus } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
 
 /** A ComponentSet that is guaranteed to be non-empty */
@@ -190,6 +190,8 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
       getComponentState,
       isSDRSuccess,
       isSDRFailure,
+      makeFileResponseFailure,
+      toRequestStatus,
       ensureNonEmptyComponentSet,
       getComponentSetFromUris,
       getComponentSetFromManifest,

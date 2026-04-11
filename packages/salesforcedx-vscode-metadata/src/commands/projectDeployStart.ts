@@ -25,6 +25,13 @@ const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreCo
 /** Deploy local changes to the default org */
 export const projectDeployStartCommand = (ignoreConflicts = false) =>
   deployEffect(ignoreConflicts).pipe(
+    Effect.catchTag('ConflictsDetectedError', err =>
+      handleConflictWithRetry({
+        pairs: err.pairs,
+        operationType: err.operationType,
+        retryOperation: deployEffect(true)
+      })
+    ),
     withConfigurableSuccessNotification(
       nls.localize(
         'command_succeeded_text',
@@ -36,13 +43,6 @@ export const projectDeployStartCommand = (ignoreConflicts = false) =>
     Effect.catchTag('EmptyComponentSetError', () =>
       Effect.sync(() => {
         void vscode.window.showInformationMessage(nls.localize('no_local_changes_to_deploy'));
-      })
-    ),
-    Effect.catchTag('ConflictsDetectedError', err =>
-      handleConflictWithRetry({
-        pairs: err.pairs,
-        operationType: err.operationType,
-        retryOperation: deployEffect(true)
       })
     )
   );

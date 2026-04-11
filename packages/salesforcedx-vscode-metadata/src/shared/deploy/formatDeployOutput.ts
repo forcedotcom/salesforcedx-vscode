@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
+import type { DeployResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { getMergedDeployFailures } from './getMergedDeployFailures';
@@ -14,14 +14,11 @@ import { getMergedDeployFailures } from './getMergedDeployFailures';
 export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (result: DeployResult) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const { isSDRSuccess, getComponentState } = yield* api.services.ComponentSetService;
-  const failed = getMergedDeployFailures(result);
-  const hideSuccessSections = result.response?.status === RequestStatus.Failed;
+  const failed = yield* getMergedDeployFailures(result);
 
-  const { deploys = [], deleted = [] } = hideSuccessSections
-    ? { deploys: [], deleted: [] }
-    : Object.groupBy(result.getFileResponses().filter(isSDRSuccess), fr =>
-        getComponentState(fr) === 'deleted' ? 'deleted' : 'deploys'
-      );
+  const { deploys = [], deleted = [] } = Object.groupBy(result.getFileResponses().filter(isSDRSuccess), fr =>
+    getComponentState(fr) === 'deleted' ? 'deleted' : 'deploys'
+  );
 
   const successSection =
     deploys.length > 0

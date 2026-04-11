@@ -29,9 +29,6 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
 
     yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
   },
-  withConfigurableSuccessNotification(
-    nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text'))
-  ),
   Effect.catchTag(
     'NoActiveEditorError',
     () => new ManifestSelectionRequiredError({ message: nls.localize('retrieve_select_manifest') })
@@ -42,5 +39,8 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
       operationType: err.operationType,
       retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
     })
+  ),
+  withConfigurableSuccessNotification(
+    nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text'))
   )
 );

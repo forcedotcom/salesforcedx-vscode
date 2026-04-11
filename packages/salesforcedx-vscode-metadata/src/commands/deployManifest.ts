@@ -27,7 +27,6 @@ export const deployManifestCommand = Effect.fn('deployManifestCommand')(
       Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
     );
   },
-  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_in_manifest_text'))),
   Effect.catchTag(
     'NoActiveEditorError',
     () => new ManifestSelectionRequiredError({ message: nls.localize('deploy_select_manifest') })
@@ -38,5 +37,6 @@ export const deployManifestCommand = Effect.fn('deployManifestCommand')(
       operationType: err.operationType,
       retryOperation: deployComponentSet({ componentSet: err.componentSet })
     })
-  )
+  ),
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_in_manifest_text')))
 );

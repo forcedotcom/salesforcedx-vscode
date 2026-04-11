@@ -56,13 +56,16 @@ export const calculateBackground = (counts: SourceTrackingCounts): vscode.ThemeC
   return undefined;
 };
 
+const classifyRow = (row: StatusOutputRow): keyof SourceTrackingDetails =>
+  row.conflict ? 'conflicts' : row.origin === 'local' ? 'localChanges' : 'remoteChanges';
+
 const separateChangesByOriginAndConflict = (status: StatusOutputRow[]): SourceTrackingDetails => {
-  const nonIgnored = status.filter(row => !row.ignored);
-  const nonConflicts = nonIgnored.filter(row => !row.conflict);
-  const localChanges = nonConflicts.filter(row => row.origin === 'local');
-  const remoteChanges = nonConflicts.filter(row => row.origin === 'remote');
-  const conflicts = nonIgnored.filter(row => row.conflict);
-  return { localChanges, remoteChanges, conflicts };
+  const grouped = Object.groupBy(status, classifyRow);
+  return {
+    localChanges: grouped.localChanges ?? [],
+    remoteChanges: grouped.remoteChanges ?? [],
+    conflicts: grouped.conflicts ?? []
+  };
 };
 
 /** Calculate counts from status output rows */

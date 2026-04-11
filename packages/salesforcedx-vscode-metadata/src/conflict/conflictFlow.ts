@@ -46,8 +46,8 @@ export const detectConflicts = Effect.fn('detectConflicts')(function* (
 });
 
 /**
- * On conflict: show modal, if Override retry with retryEffect, else cancel.
- * Use for deploy/retrieve where retry with skipConflictCheck/ignoreConflicts is supported.
+ * On conflict: show modal; Override runs retryEffect; View conflicts fails with UserCancellationError
+ * (same as dismiss — command registration handles it without an error toast).
  */
 export const handleConflictWithRetry = Effect.fn('handleConflictWithRetry')(function* <A, E, R>(
   options: HandleConflictWithRetryOptions<A, E, R>
@@ -84,5 +84,8 @@ export const handleConflictWithRetry = Effect.fn('handleConflictWithRetry')(func
     emptyLabel: nls.localize('conflict_detect_no_conflicts')
   });
 
-  return result === 'continue' ? yield* options.retryOperation : yield* Effect.void;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return result === 'continue'
+    ? yield* options.retryOperation
+    : yield* new api.services.UserCancellationError();
 });
