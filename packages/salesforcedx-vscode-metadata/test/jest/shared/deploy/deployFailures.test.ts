@@ -6,7 +6,7 @@
  */
 
 import { ComponentStatus, type DeployResult } from '@salesforce/source-deploy-retrieve';
-import { getMergedDeployFailures } from 'salesforcedx-vscode-services/src/core/deployMergedFailures';
+import { getMergedDeployFailures } from '../../../../src/shared/deploy/getMergedDeployFailures';
 
 describe('getMergedDeployFailures', () => {
   it('adds componentFailures from the API when missing from file responses', () => {

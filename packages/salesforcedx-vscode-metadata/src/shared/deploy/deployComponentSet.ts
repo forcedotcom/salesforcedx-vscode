@@ -7,12 +7,13 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { getMergedDeployFailures, type NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
 import { formatDeployOutput } from './formatDeployOutput';
+import { getMergedDeployFailures } from './getMergedDeployFailures';
 
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const deployComponentSet = Effect.fn('deployComponentSet')(function* (options: {

@@ -7,8 +7,8 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import { getMergedDeployFailures } from 'salesforcedx-vscode-services';
 import { URI } from 'vscode-uri';
+import { getMergedDeployFailures } from './getMergedDeployFailures';
 
 /** Format deploy results for output */
 export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (result: DeployResult) {
