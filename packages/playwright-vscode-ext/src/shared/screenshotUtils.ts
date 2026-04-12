@@ -22,10 +22,18 @@ export const saveScreenshot = async (page: Page, fileName: string, fullPage = fa
     const testResultsDir = path.join(process.cwd(), 'test-results');
     fs.mkdirSync(testResultsDir, { recursive: true });
 
-    // Create the full path
-    const filePath = path.join(testResultsDir, fileName);
+    if (path.isAbsolute(fileName)) {
+      throw new Error('Invalid screenshot file name');
+    }
 
-    // Take the screenshot
+    const sanitizedFileName = path.basename(fileName);
+    const resolvedTestResultsDir = path.resolve(testResultsDir);
+    const filePath = path.resolve(testResultsDir, sanitizedFileName);
+
+    if (!filePath.startsWith(`${resolvedTestResultsDir}${path.sep}`)) {
+      throw new Error('Invalid screenshot file name');
+    }
+
     await page.screenshot({ path: filePath, fullPage });
 
     return filePath;
