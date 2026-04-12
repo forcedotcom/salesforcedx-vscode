@@ -7,17 +7,23 @@
 
 import type { OrgAuthResult, OrgDisplayResult } from './types';
 import type { AuthFields } from '@salesforce/core';
-import { exec } from 'node:child_process';
+import { exec, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 export const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 export const env = { ...process.env, NO_COLOR: '1' };
+const ORG_ALIAS_REGEX = /^[A-Za-z0-9._-]+$/;
 
 /** Try to use existing org, return auth fields if found */
 export const tryUseExistingOrg = async (orgAlias: string): Promise<OrgAuthResult | undefined> => {
+  if (!ORG_ALIAS_REGEX.test(orgAlias)) {
+    return undefined;
+  }
+
   try {
     const displayResponse = JSON.parse(
-      (await execAsync(`sf org display -o ${orgAlias} --json`, { env })).stdout
+      (await execFileAsync('sf', ['org', 'display', '-o', orgAlias, '--json'], { env })).stdout
     ) as OrgDisplayResult;
 
     return {
