@@ -57,6 +57,8 @@ test.describe('Visualforce LSP - Autocompletion', () => {
   });
 
   test('Autocompletion', async ({ page }) => {
+    // Extensions (VF depends on core) can take >60s to activate on Windows CI runners
+    test.setTimeout(180_000);
     await test.step('Open AutocompletePage.page', async () => {
       await openFileByName(page, 'AutocompletePage.page');
       const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="AutocompletePage.page"]`);
