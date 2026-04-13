@@ -12,7 +12,6 @@ import {
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
-  waitForExtensionsActivated,
   closeWelcomeTabs,
   validateNoCriticalErrors,
   openFileByName,
@@ -80,7 +79,6 @@ test.describe('Visualforce LSP - Go to Definition', () => {
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
-    await waitForExtensionsActivated(page);
   });
 
   test('Go to Definition', async ({ page }) => {
@@ -88,17 +86,21 @@ test.describe('Visualforce LSP - Go to Definition', () => {
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="GoToDefPage.page"]`);
     await expect(editor).toBeVisible({ timeout: 15_000 });
 
-    // Navigate to "GoToDefController" in controller="GoToDefController" (line 1, col 25)
-    await page.keyboard.press('Control+g');
-    await page.keyboard.type('1:25');
-    await page.keyboard.press('Enter');
-
-    // Use command palette — more reliable than F12 which can lose focus to notifications
-    await executeCommandWithCommandPalette(page, 'Go to Definition');
-
-    // Verify navigation to GoToDefController.cls
+    // Retry the full navigate + Go to Definition cycle until the VF extension is ready.
+    // On slow runners (Windows) the VF definition provider may not be registered yet
+    // when the first attempt fires — toPass retries until navigation succeeds.
     const controllerEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="GoToDefController.cls"]`);
-    await expect(controllerEditor).toBeVisible({ timeout: 15_000 });
+    await expect(async () => {
+      // Navigate to "GoToDefController" in controller="GoToDefController" (line 1, col 25)
+      await page.keyboard.press('Control+g');
+      await page.keyboard.type('1:25');
+      await page.keyboard.press('Enter');
+
+      // Use command palette — more reliable than F12 which can lose focus to notifications
+      await executeCommandWithCommandPalette(page, 'Go to Definition');
+
+      await expect(controllerEditor).toBeVisible({ timeout: 5000 });
+    }).toPass({ timeout: 60_000 });
   });
 
   test.afterEach(async ({ page }) => {

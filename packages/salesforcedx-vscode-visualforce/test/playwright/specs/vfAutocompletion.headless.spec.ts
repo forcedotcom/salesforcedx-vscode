@@ -12,7 +12,6 @@ import {
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
-  waitForExtensionsActivated,
   closeWelcomeTabs,
   validateNoCriticalErrors,
   saveScreenshot,
@@ -55,7 +54,6 @@ test.describe('Visualforce LSP - Autocompletion', () => {
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
-    await waitForExtensionsActivated(page);
   });
 
   test('Autocompletion', async ({ page }) => {
@@ -67,7 +65,7 @@ test.describe('Visualforce LSP - Autocompletion', () => {
     });
 
     await test.step('Type partial tag and verify autocomplete', async () => {
-      // Move to end of line 2 (<apex:form>) and press Enter for a new line
+      // Move to line 3 (blank line inside <apex:form>) and go to start
       await page.keyboard.press('Control+g');
       await page.keyboard.type('3');
       await page.keyboard.press('Enter');
@@ -76,16 +74,17 @@ test.describe('Visualforce LSP - Autocompletion', () => {
       // Type partial Visualforce tag
       await page.keyboard.type('\t\t<apex:pageM');
 
-      // Trigger autocomplete explicitly (language server may need a nudge)
-      await page.keyboard.press('Control+Space');
-
-      // Wait for the suggest widget to appear (30s timeout for language server cold-start)
+      // Retry triggering autocomplete until the VF LSP is ready and returns completions.
+      // On slow runners (Windows) the LSP may not be initialized yet on the first trigger,
+      // returning "No suggestions." — toPass retries Escape+Control+Space until it passes.
       const suggestWidget = page.locator('.editor-widget.suggest-widget');
-      await expect(suggestWidget).toBeVisible({ timeout: 30_000 });
+      await expect(async () => {
+        await page.keyboard.press('Escape');
+        await page.keyboard.press('Control+Space');
+        await expect(suggestWidget).toBeVisible({ timeout: 5000 });
+        await expect(suggestWidget.locator('.monaco-list-row').first()).toContainText('apex:pageMessage', { timeout: 3000 });
+      }).toPass({ timeout: 60_000 });
 
-      // Verify apex:pageMessage appears in suggestions
-      const suggestion = suggestWidget.locator('.monaco-list-row');
-      await expect(suggestion.first()).toContainText('apex:pageMessage');
       await saveScreenshot(page, 'vf-lsp-autocomplete.png');
     });
 
