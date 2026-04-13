@@ -162,9 +162,9 @@ const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, 
       ).toBe(true);
     }).toPass({ timeout });
   } finally {
-    await input.focus().catch(() => {});
-    await input.fill('').catch(() => {});
-    await input.press('Enter').catch(() => {});
+    await input.focus().catch(() => { });
+    await input.fill('').catch(() => { });
+    await input.press('Enter').catch(() => { });
   }
 };
 
@@ -260,22 +260,18 @@ export const outputChannelContains = async (
 };
 
 /**
- * Clears the output channel by clicking the clear button in the output panel toolbar.
+ * Clears the output channel via the command palette ("View: Clear Output").
+ * Using the command palette avoids the notification toasts that can cover the toolbar button.
  * Use this to make sure that your assertions are not picking up text from the previous test unless you mean to
  */
 export const clearOutputChannel = async (page: Page): Promise<void> => {
-  const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
-  try {
-    // Wait for button to be visible and stable (handles race conditions with panel updates)
-    await clearButton.waitFor({ state: 'visible', timeout: 5000 });
-    // Ensure element is attached and stable before clicking
-    // force: true - notification toasts overlay the output panel and intercept pointer events
-    await clearButton.click({ force: true, timeout: 5000 });
-  } catch (error) {
-    // If button not visible, output may already be clear or panel not ready
-    // Log but don't fail - this is a setup operation
-    console.warn('[clearOutputChannel] Clear button not accessible:', error);
-  }
+  await openCommandPalette(page);
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const input = widget.locator('input.input');
+  await input.waitFor({ state: 'attached', timeout: 5000 });
+  await input.fill('>View: Clear Output');
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
+  await page.keyboard.press('Enter');
 
   // Wait for the clear action to take effect - output should be completely empty
   const codeArea = outputPanelCodeArea(page);
