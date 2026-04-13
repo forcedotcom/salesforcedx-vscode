@@ -13,11 +13,6 @@ on:
         required: false
         default: true
         type: boolean
-      visualforceLsp:
-        description: 'Visualforce LSP'
-        required: false
-        default: true
-        type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
@@ -37,11 +32,6 @@ on:
         type: boolean
       lwcLsp:
         description: 'LWC LSP'
-        required: false
-        default: true
-        type: boolean
-      visualforceLsp:
-        description: 'Visualforce LSP'
         required: false
         default: true
         type: boolean
@@ -74,12 +64,4 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  visualforceLSP:
-    if: ${{ inputs.visualforceLsp }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'visualforceLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-      os: '["macos-latest", "ubuntu-latest"]'
+  # visualforceLSP - migrated to Playwright in visualforceE2E.yml

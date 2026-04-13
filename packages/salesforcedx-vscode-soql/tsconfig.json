@@ -31,6 +31,9 @@
       "path": "../effect-ext-utils"
     },
     {
+      "path": "../soql-common"
+    },
+    {
       "path": "../salesforcedx-vscode-i18n"
     },
     {
@@ -38,9 +41,6 @@
     },
     {
       "path": "../salesforcedx-vscode-services"
-    },
-    {
-      "path": "../soql-common"
     }
   ]
 }

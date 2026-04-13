@@ -11,6 +11,9 @@
   ],
   "references": [
     {
+      "path": "../playwright-vscode-ext"
+    },
+    {
       "path": "../salesforcedx-visualforce-language-server"
     },
     {

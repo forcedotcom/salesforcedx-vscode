@@ -4,12 +4,19 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "test/playwright/**/*.ts", "playwright.config.desktop.ts", "package.nls.json"],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "dist"
+  ],
+  "include": [
+    "src/**/*.ts",
+    "test/playwright/**/*.ts",
+    "playwright.config.desktop.ts",
+    "package.nls.json"
+  ],
   "references": [
-    {
-      "path": "../salesforcedx-vscode-apex-log"
-    },
     {
       "path": "../effect-ext-utils"
     },
@@ -26,6 +33,12 @@
       "path": "../salesforcedx-vscode-i18n"
     },
     {
+      "path": "../salesforcedx-vscode-apex-log"
+    },
+    {
+      "path": "../playwright-vscode-ext"
+    },
+    {
       "path": "../salesforcedx-vscode-apex"
     },
     {
@@ -36,9 +49,6 @@
     },
     {
       "path": "../salesforcedx-vscode-services"
-    },
-    {
-      "path": "../playwright-vscode-ext"
     }
   ]
 }

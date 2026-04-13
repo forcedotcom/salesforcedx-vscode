@@ -1,0 +1,98 @@
+name: Visualforce E2E (Playwright)
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main, develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '**/README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
+
+concurrency:
+  group: ci-${{ github.ref }}-visualforceE2E
+  cancel-in-progress: true
+
+jobs:
+  e2e-desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+      fail-fast: false
+
+    env:
+      VSCODE_DESKTOP: 1
+      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Install Playwright browsers and OS deps
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
+      - name: Run Visualforce E2E tests (parallel)
+        id: parallel-run
+        continue-on-error: true
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-visualforce -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          PLAYWRIGHT_WORKERS: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-visualforce -- --last-failed --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-visualforce/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-visualforce/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-visualforce-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-visualforce/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-visualforce-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-visualforce/test-results
+          if-no-files-found: ignore
