@@ -162,9 +162,9 @@ const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, 
       ).toBe(true);
     }).toPass({ timeout });
   } finally {
-    await input.focus().catch(() => { });
-    await input.fill('').catch(() => { });
-    await input.press('Enter').catch(() => { });
+    await input.focus().catch(() => {});
+    await input.fill('').catch(() => {});
+    await input.press('Enter').catch(() => {});
   }
 };
 
