@@ -123,7 +123,7 @@ export class QueryDataFileService {
     private format: FileFormat,
     private document: vscode.TextDocument
   ) {
-    this.documentName = getDocumentName(document);
+    this.documentName = stripTrailingExtension(getDocumentName(document), 'soql');
     this.dataProvider = this.getDataProvider();
   }
 
