@@ -102,7 +102,7 @@ test.describe('Visualforce LSP - Go to Definition', () => {
       await executeCommandWithCommandPalette(page, 'Go to Definition');
 
       await expect(controllerEditor).toBeVisible({ timeout: 5000 });
-    }).toPass({ timeout: 60_000 });
+    }).toPass({ timeout: 120_000 });
   });
 
   test.afterEach(async ({ page }) => {

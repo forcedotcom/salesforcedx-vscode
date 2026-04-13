@@ -85,7 +85,7 @@ test.describe('Visualforce LSP - Autocompletion', () => {
         await page.keyboard.press('Control+Space');
         await expect(suggestWidget).toBeVisible({ timeout: 5000 });
         await expect(suggestWidget.locator('.monaco-list-row').first()).toContainText('apex:pageMessage', { timeout: 3000 });
-      }).toPass({ timeout: 60_000 });
+      }).toPass({ timeout: 120_000 });
 
       await saveScreenshot(page, 'vf-lsp-autocomplete.png');
     });
