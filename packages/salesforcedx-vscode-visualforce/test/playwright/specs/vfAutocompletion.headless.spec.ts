@@ -12,23 +12,22 @@ import {
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
+  waitForExtensionsActivated,
   closeWelcomeTabs,
   validateNoCriticalErrors,
   saveScreenshot,
   openFileByName,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
   EDITOR_WITH_URI
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-const VF_PAGE_CONTENT = `<apex:page controller="MyController" tabStyle="Account">
+const VF_PAGE_CONTENT = `<apex:page tabStyle="Account">
 \t<apex:form>
 
-\t\t<apex:pageBlock title="Congratulations {!$User.FirstName}">
-\t\t\tYou belong to Account Name: <apex:inputField value="{!account.name}"/>
-\t\t\t<apex:commandButton action="{!save}" value="save"/>
+\t\t<apex:pageBlock title="Hello">
+\t\t\t<apex:commandButton value="Go"/>
 \t\t</apex:pageBlock>
 \t</apex:form>
 </apex:page>`;
@@ -36,57 +35,33 @@ const VF_PAGE_CONTENT = `<apex:page controller="MyController" tabStyle="Account"
 const VF_PAGE_META = `<?xml version="1.0" encoding="UTF-8"?>
 <ApexPage xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>64.0</apiVersion>
-    <label>FooPage</label>
+    <label>AutocompletePage</label>
 </ApexPage>`;
 
-const APEX_CONTROLLER_CONTENT = `public class MyController {
-\tprivate final Account account;
-\tpublic MyController() {
-\t\taccount = [SELECT Id, Name, Phone, Site FROM Account
-\t\tWHERE Id = :ApexPages.currentPage().getParameters().get('id')];
-\t}
-\tpublic Account getAccount() {
-\t\treturn account;
-\t}
-\tpublic PageReference save() {
-\t\tupdate account;
-\t\treturn null;
-\t}
-}`;
-
-const APEX_CONTROLLER_META = `<?xml version="1.0" encoding="UTF-8"?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>64.0</apiVersion>
-    <status>Active</status>
-</ApexClass>`;
-
-test.describe('Visualforce LSP', () => {
+test.describe('Visualforce LSP - Autocompletion', () => {
   test.beforeEach(async ({ page, workspaceDir }) => {
     setupConsoleMonitoring(page);
     setupNetworkMonitoring(page);
 
     const pagesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'pages');
-    const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
     await fs.mkdir(pagesDir, { recursive: true });
-    await fs.mkdir(classesDir, { recursive: true });
 
     await Promise.all([
-      fs.writeFile(path.join(pagesDir, 'FooPage.page'), VF_PAGE_CONTENT),
-      fs.writeFile(path.join(pagesDir, 'FooPage.page-meta.xml'), VF_PAGE_META),
-      fs.writeFile(path.join(classesDir, 'MyController.cls'), APEX_CONTROLLER_CONTENT),
-      fs.writeFile(path.join(classesDir, 'MyController.cls-meta.xml'), APEX_CONTROLLER_META)
+      fs.writeFile(path.join(pagesDir, 'AutocompletePage.page'), VF_PAGE_CONTENT),
+      fs.writeFile(path.join(pagesDir, 'AutocompletePage.page-meta.xml'), VF_PAGE_META)
     ]);
 
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
+    await waitForExtensionsActivated(page);
   });
 
   test('Autocompletion', async ({ page }) => {
-    await test.step('Open FooPage.page', async () => {
-      await openFileByName(page, 'FooPage.page');
-      const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="FooPage.page"]`);
+    await test.step('Open AutocompletePage.page', async () => {
+      await openFileByName(page, 'AutocompletePage.page');
+      const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="AutocompletePage.page"]`);
       await expect(editor).toBeVisible({ timeout: 15_000 });
       await saveScreenshot(page, 'vf-lsp-file-opened.png');
     });
@@ -119,30 +94,12 @@ test.describe('Visualforce LSP', () => {
       await page.keyboard.press('Enter');
 
       // Verify the suggestion was inserted
-      const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="FooPage.page"]`);
+      const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="AutocompletePage.page"]`);
       const viewLines = editor.locator('.view-line');
       // Look for a line containing the inserted tag
       await expect(viewLines.filter({ hasText: 'apex:pageMessage' })).toBeVisible({ timeout: 5000 });
       await saveScreenshot(page, 'vf-lsp-autocomplete-inserted.png');
     });
-  });
-
-  test('Go to Definition', async ({ page }) => {
-    await openFileByName(page, 'FooPage.page');
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="FooPage.page"]`);
-    await expect(editor).toBeVisible({ timeout: 15_000 });
-
-    // Navigate to "MyController" in controller="MyController" (line 1, col 25)
-    await page.keyboard.press('Control+g');
-    await page.keyboard.type('1:25');
-    await page.keyboard.press('Enter');
-
-    // Use command palette — more reliable than F12 which can lose focus to notifications
-    await executeCommandWithCommandPalette(page, 'Go to Definition');
-
-    // Verify navigation to MyController.cls
-    const controllerEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="MyController.cls"]`);
-    await expect(controllerEditor).toBeVisible({ timeout: 15_000 });
   });
 
   test.afterEach(async ({ page }) => {
