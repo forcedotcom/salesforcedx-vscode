@@ -37,6 +37,7 @@ import {
   type ColorInformation as LSPColorInformation,
   type ColorPresentation as LSPColorPresentation
 } from 'vscode-languageserver-protocol';
+import { apexControllerDefinitionProvider } from './apexControllerDefinitionProvider';
 import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
 import { activateTagClosing } from './tagClosing';
 
@@ -93,7 +94,10 @@ export const activate = async (context: ExtensionContext) => {
   client.registerFeature(new ConfigurationFeature(client));
 
   await client.start();
-  context.subscriptions.push(client);
+  context.subscriptions.push(
+    client,
+    languages.registerDefinitionProvider([{ language: 'visualforce', scheme: 'file' }], apexControllerDefinitionProvider)
+  );
   let disposable: Disposable;
   try {
     disposable = languages.registerColorProvider(

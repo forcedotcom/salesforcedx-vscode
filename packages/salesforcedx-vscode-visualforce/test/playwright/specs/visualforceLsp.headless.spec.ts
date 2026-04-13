@@ -17,6 +17,7 @@ import {
   saveScreenshot,
   openFileByName,
   ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
   EDITOR_WITH_URI
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs/promises';
@@ -126,20 +127,18 @@ test.describe('Visualforce LSP', () => {
     });
   });
 
-  // TODO: Go to Definition is not working — see original WDIO test
-  test.skip('Go to Definition', async ({ page }) => {
+  test('Go to Definition', async ({ page }) => {
     await openFileByName(page, 'FooPage.page');
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="FooPage.page"]`);
     await expect(editor).toBeVisible({ timeout: 15_000 });
 
-    // Navigate to the controller reference and trigger Go to Definition
+    // Navigate to "MyController" in controller="MyController" (line 1, col 25)
     await page.keyboard.press('Control+g');
-    await page.keyboard.type('1');
+    await page.keyboard.type('1:25');
     await page.keyboard.press('Enter');
 
-    // Position cursor on "MyController" (column 25)
-    // Then F12 for Go to Definition
-    await page.keyboard.press('F12');
+    // Use command palette — more reliable than F12 which can lose focus to notifications
+    await executeCommandWithCommandPalette(page, 'Go to Definition');
 
     // Verify navigation to MyController.cls
     const controllerEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="MyController.cls"]`);
