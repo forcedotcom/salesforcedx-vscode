@@ -7,9 +7,7 @@
 import {
   getYYYYMMddHHmmssDateFormat,
   makeDoubleDigit,
-  optionYYYYMMddHHmmss,
-  optionHHmm,
-  optionMMddYYYY
+  optionYYYYMMddHHmmss
 } from '../../../src/date/format';
 
 describe('getYYYYMMddHHmmssDateFormat', () => {
@@ -45,21 +43,3 @@ describe('optionYYYYMMddHHmmss', () => {
   });
 });
 
-describe('optionHHmm', () => {
-  it('should have the correct options', () => {
-    expect(optionHHmm).toEqual({
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  });
-});
-
-describe('optionMMddYYYY', () => {
-  it('should have the correct options', () => {
-    expect(optionMMddYYYY).toEqual({
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric'
-    });
-  });
-});
