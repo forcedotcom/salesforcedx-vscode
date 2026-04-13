@@ -82,8 +82,6 @@ test.describe('Visualforce LSP - Go to Definition', () => {
   });
 
   test('Go to Definition', async ({ page }) => {
-    // Extensions (VF depends on core) can take >60s to activate on Windows CI runners
-    test.setTimeout(180_000);
     await openFileByName(page, 'GoToDefPage.page');
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="GoToDefPage.page"]`);
     await expect(editor).toBeVisible({ timeout: 15_000 });
@@ -102,7 +100,7 @@ test.describe('Visualforce LSP - Go to Definition', () => {
       await executeCommandWithCommandPalette(page, 'Go to Definition');
 
       await expect(controllerEditor).toBeVisible({ timeout: 5000 });
-    }).toPass({ timeout: 120_000 });
+    }).toPass({ timeout: 30_000 });
   });
 
   test.afterEach(async ({ page }) => {

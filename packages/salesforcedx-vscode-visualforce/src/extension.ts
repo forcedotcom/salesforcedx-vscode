@@ -52,10 +52,11 @@ export const activate = async (context: ExtensionContext) => {
   const salesforceCoreExtension = extensions.getExtension<SalesforceVSCodeCoreApi>(
     'salesforce.salesforcedx-vscode-core'
   );
-  if (!salesforceCoreExtension?.isActive) {
-    await salesforceCoreExtension?.activate();
-  }
-  telemetryService = salesforceCoreExtension?.exports?.services?.TelemetryService.getInstance();
+  // Use telemetry only if core is already active — do not await core.activate() since
+  // core activation can hang (e.g. on Windows CI) and must not block the VF LSP from starting.
+  telemetryService = salesforceCoreExtension?.isActive
+    ? salesforceCoreExtension.exports?.services?.TelemetryService.getInstance()
+    : undefined;
   await telemetryService?.initializeService(context);
   const extensionStartTime = globalThis.performance.now();
 
