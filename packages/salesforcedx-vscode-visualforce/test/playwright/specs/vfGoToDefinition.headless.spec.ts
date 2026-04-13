@@ -82,6 +82,8 @@ test.describe('Visualforce LSP - Go to Definition', () => {
   });
 
   test('Go to Definition', async ({ page }) => {
+    // VF LSP starts via IPC (spawning a Node process) which takes >20s on Windows CI
+    test.setTimeout(180_000);
     await openFileByName(page, 'GoToDefPage.page');
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="GoToDefPage.page"]`);
     await expect(editor).toBeVisible({ timeout: 15_000 });
@@ -100,7 +102,7 @@ test.describe('Visualforce LSP - Go to Definition', () => {
       await executeCommandWithCommandPalette(page, 'Go to Definition');
 
       await expect(controllerEditor).toBeVisible({ timeout: 5000 });
-    }).toPass({ timeout: 30_000 });
+    }).toPass({ timeout: 60_000 });
   });
 
   test.afterEach(async ({ page }) => {
