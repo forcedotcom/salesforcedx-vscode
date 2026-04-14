@@ -69,6 +69,19 @@ const validateExportResultsFileNameInput = (value: string, fileExtension: string
 const normalizeExportResultsFileBaseName = (value: string, fileExtension: string): string =>
   stripTrailingExtension(value.trim(), fileExtension);
 
+const writeQueryResultsAndNotify = Effect.fn('queryDataFileService.writeQueryResultsAndNotify')(function* (params: {
+  fileUri: URI;
+  fileContentString: string;
+}) {
+  const { fileUri, fileContentString } = params;
+  const api = yield* getServicesApi;
+  yield* api.services.FsService.writeFile(fileUri, fileContentString);
+  const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  showFileInExplorer(fileUri, fsPath);
+  showSaveSuccessMessage(Utils.basename(fileUri));
+  return fileUri;
+});
+
 const saveQueryResultsViaMemfsPrompts = Effect.fn('queryDataFileService.saveQueryResultsViaMemfsPrompts')(function* (params: {
   queryText: string;
   queryData: QueryResult<JsonMap>;
@@ -106,11 +119,7 @@ const saveQueryResultsViaMemfsPrompts = Effect.fn('queryDataFileService.saveQuer
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [fileUri] });
 
   const fileContentString = dataProvider.getFileContent(queryText, queryData.records);
-  yield* api.services.FsService.writeFile(fileUri, fileContentString);
-
-  showFileInExplorer(fileUri, workspaceInfo.fsPath);
-  showSaveSuccessMessage(Utils.basename(fileUri));
-  return fileUri;
+  return yield* writeQueryResultsAndNotify({ fileUri, fileContentString });
 });
 
 export class QueryDataFileService {
@@ -123,7 +132,7 @@ export class QueryDataFileService {
     private format: FileFormat,
     private document: vscode.TextDocument
   ) {
-    this.documentName = getDocumentName(document);
+    this.documentName = stripTrailingExtension(getDocumentName(document), 'soql');
     this.dataProvider = this.getDataProvider();
   }
 
@@ -161,19 +170,9 @@ export class QueryDataFileService {
     return uriOrNull ?? undefined;
   }
 
-  private async persistExportedResults(fileUri: URI): Promise<URI | undefined> {
+  private async persistExportedResults(fileUri: URI): Promise<URI> {
     const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
-    const workspacePath = await getSoqlRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* getServicesApi;
-        yield* api.services.FsService.writeFile(fileUri, fileContentString);
-        const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-        return fsPath;
-      })
-    );
-    showFileInExplorer(fileUri, workspacePath);
-    showSaveSuccessMessage(Utils.basename(fileUri));
-    return fileUri;
+    return getSoqlRuntime().runPromise(writeQueryResultsAndNotify({ fileUri, fileContentString }));
   }
 }
 
