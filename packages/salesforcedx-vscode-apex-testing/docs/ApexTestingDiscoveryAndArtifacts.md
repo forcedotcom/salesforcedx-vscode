@@ -37,3 +37,4 @@ This note documents how Apex Testing currently handles test discovery data and t
 
 - Keep test run artifact persistence in `.sfdx/tools/testresults/apex` unchanged.
 - Introduce VFS management only for discovered Apex test class metadata using `apex-testing:`.
+- Metadata XML files (e.g. Apex `-meta.xml` companions in a source-formatted project) are **not** necessarily part of the `apex-testing:` VFS. The virtual tree focuses on discovered class **`.cls`** paths under each org; do not assume XML sidecars are mirrored or addressable on that scheme.

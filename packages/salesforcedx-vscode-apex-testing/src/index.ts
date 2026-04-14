@@ -97,13 +97,13 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
   // Export API for other extensions to consume
   return {
-    getTestClassName: async (uri: URI): Promise<string | undefined> => {
+    getTestClassName: (uri: URI): Promise<string | undefined> => {
       try {
         const controller = getTestController();
-        return controller.getTestClassName(uri);
+        return Promise.resolve(controller.getTestClassName(uri));
       } catch (error) {
         console.debug('Failed to get test class name:', error);
-        return undefined;
+        return Promise.resolve(undefined);
       }
     }
   };
@@ -119,7 +119,7 @@ export const activate = (context: vscode.ExtensionContext) => {
       Effect.catchAll(error => {
         console.error('[Apex Testing] Activation failed:', error);
         return Effect.succeed({
-          getTestClassName: async (_uri: URI) => undefined
+          getTestClassName: (_uri: URI) => Promise.resolve(undefined)
         });
       })
     )

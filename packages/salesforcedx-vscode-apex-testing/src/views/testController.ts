@@ -49,6 +49,11 @@ import {
   writeTestResultJsonFile
 } from '../utils/testUtils';
 import {
+  type MetadataRetrieveFileResponse,
+  isMetadataRetrieveFileResponse,
+  isMetadataRetrieveOutcomeLike
+} from '../utils/typeGuards';
+import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
   createClassAndMethodsFactory,
@@ -195,7 +200,7 @@ export class ApexTestController {
       const orgKey = resolveDiscoveryOrgKey(orgInfo);
       const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
       const classBodiesByFullName = await this.fetchClassBodiesByFullName(apexClasses);
-      await getApexTestDiscoveryStore().saveDiscoveredClasses(orgKey, apexClasses, classBodiesByFullName);
+      getApexTestDiscoveryStore().saveDiscoveredClasses(orgKey, apexClasses, classBodiesByFullName);
     } catch (error) {
       console.debug('Failed to persist discovered Apex classes into apex-testing VFS:', error);
     }
@@ -222,14 +227,17 @@ export class ApexTestController {
       );
       for (const record of queryResult.records) {
         const fullClassName = record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name;
-        bodyByFullName.set(fullClassName, record.Body ?? `// Source unavailable for ${fullClassName}`);
+        bodyByFullName.set(
+          fullClassName,
+          record.Body ?? nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName)
+        );
       }
     }
 
     for (const cls of classes) {
       const fullClassName = getFullClassName(cls);
       if (!bodyByFullName.has(fullClassName)) {
-        bodyByFullName.set(fullClassName, `// Source unavailable for ${fullClassName}`);
+        bodyByFullName.set(fullClassName, nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName));
       }
     }
     return bodyByFullName;
@@ -368,7 +376,7 @@ export class ApexTestController {
 
       // Create parent "Apex Test Suites" node
       const suiteParentId = 'apex-test-suites-parent';
-      this.suiteParentItem = this.controller.createTestItem(suiteParentId, 'Apex Test Suites', undefined);
+      this.suiteParentItem = this.controller.createTestItem(suiteParentId, nls.localize('apex_test_suites_parent_text'), undefined);
       if (this.suiteTag) {
         this.suiteParentItem.tags = [this.suiteTag];
       }
@@ -559,27 +567,23 @@ export class ApexTestController {
   }
 
   private getRetrievedFileUri(result: unknown): URI | undefined {
-    if (typeof result !== 'object' || result === null || !('getFileResponses' in result)) {
+    if (!isMetadataRetrieveOutcomeLike(result)) {
       return undefined;
     }
-    const getFileResponses = Reflect.get(result, 'getFileResponses');
-    if (typeof getFileResponses !== 'function') {
-      return undefined;
-    }
-    let responses: unknown;
+    let responses: readonly MetadataRetrieveFileResponse[];
     try {
-      responses = Reflect.apply(getFileResponses, result, []);
+      responses = result.getFileResponses();
     } catch {
       return undefined;
     }
     if (!Array.isArray(responses) || responses.length === 0) {
       return undefined;
     }
-    for (const response of responses) {
-      if (typeof response !== 'object' || response === null) {
+    for (const item of responses) {
+      if (!isMetadataRetrieveFileResponse(item)) {
         continue;
       }
-      const filePath = Reflect.get(response, 'filePath');
+      const { filePath } = item;
       if (typeof filePath === 'string' && filePath.length > 0) {
         return URI.file(filePath);
       }

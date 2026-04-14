@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/**
+ * URIs for the in-memory `apex-testing:` provider. This tree models discovered Apex class `.cls` paths per org;
+ * metadata XML (e.g. `-meta.xml` in a source-formatted project) is not necessarily represented here.
+ */
+
 import { URI, Utils } from 'vscode-uri';
 
 export const APEX_TESTING_SCHEME = 'apex-testing';

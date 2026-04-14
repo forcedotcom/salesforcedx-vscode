@@ -6,7 +6,9 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
+import { nls } from '../messages';
 import { getFullClassName } from '../utils/testUtils';
+import { isPlainObject } from '../utils/typeGuards';
 import { getApexTestingClassUri, getOrgClassesDirUri, getOrgDiscoveryUri, getOrgIndexUri } from './apexTestingDiscoveryFs';
 import { getApexTestingDiscoveryFsProvider } from './apexTestingDiscoveryFsProvider';
 
@@ -20,12 +22,10 @@ export type DiscoveredApexClassesIndex = {
 };
 
 const isDiscoveredApexClassesIndex = (value: unknown): value is DiscoveredApexClassesIndex => {
-  if (!value || typeof value !== 'object') {
+  if (!isPlainObject(value)) {
     return false;
   }
-  const orgKey = Reflect.get(value, 'orgKey');
-  const updatedAt = Reflect.get(value, 'updatedAt');
-  const classes = Reflect.get(value, 'classes');
+  const { orgKey, updatedAt, classes } = value;
   return typeof orgKey === 'string' && typeof updatedAt === 'string' && Array.isArray(classes);
 };
 
@@ -35,11 +35,11 @@ export const resolveDiscoveryOrgKey = (orgInfo: { orgId?: string; username?: str
 export class ApexTestDiscoveryStore {
   private readonly provider = getApexTestingDiscoveryFsProvider();
 
-  public async saveDiscoveredClasses(
+  public saveDiscoveredClasses(
     orgKey: string,
     classes: ToolingTestClass[],
     classBodiesByFullName: ReadonlyMap<string, string>
-  ): Promise<void> {
+  ): void {
     const orgUri = getOrgDiscoveryUri(orgKey);
     const classesDirUri = getOrgClassesDirUri(orgKey);
     const indexUri = getOrgIndexUri(orgKey);
@@ -49,12 +49,13 @@ export class ApexTestDiscoveryStore {
       classes
     };
 
-    await this.clearOrg(orgKey);
+    this.clearOrg(orgKey);
     this.provider.createDirectoryInternal(orgUri);
     this.provider.createDirectoryInternal(classesDirUri);
     for (const cls of classes) {
       const fullClassName = getFullClassName(cls);
-      const content = classBodiesByFullName.get(fullClassName) ?? `// Source unavailable for ${fullClassName}`;
+      const content =
+        classBodiesByFullName.get(fullClassName) ?? nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName);
       const classUri = getApexTestingClassUri(orgKey, fullClassName);
       const parentPath = `/${classUri.path.split('/').filter(Boolean).slice(0, -1).join('/')}`;
       this.provider.createDirectoryInternal(classUri.with({ path: parentPath }));
@@ -66,7 +67,7 @@ export class ApexTestDiscoveryStore {
     });
   }
 
-  public async readDiscoveredClassesIndex(orgKey: string): Promise<DiscoveredApexClassesIndex | undefined> {
+  public readDiscoveredClassesIndex(orgKey: string): DiscoveredApexClassesIndex | undefined {
     try {
       const content = this.provider.readFile(getOrgIndexUri(orgKey));
       const parsed: unknown = JSON.parse(decoder.decode(content));
@@ -76,7 +77,7 @@ export class ApexTestDiscoveryStore {
     }
   }
 
-  public async clearOrg(orgKey: string): Promise<void> {
+  public clearOrg(orgKey: string): void {
     try {
       this.provider.deleteInternal(getOrgDiscoveryUri(orgKey), { recursive: true });
     } catch {

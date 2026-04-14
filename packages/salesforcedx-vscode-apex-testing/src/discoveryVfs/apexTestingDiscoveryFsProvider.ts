@@ -7,6 +7,7 @@
 
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { nls } from '../messages';
 
 type Entry = FileEntry | DirectoryEntry;
 
@@ -44,7 +45,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   private readonly root = createDirectoryEntry();
   private readonly changeEmitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
   public readonly onDidChangeFile = this.changeEmitter.event;
-  private readonly readOnlyErrorMessage = 'apex-testing is read-only';
+  private readonly readOnlyErrorMessage = nls.localize('apex_testing_vfs_readonly_prefix_text');
 
   public watch(_uri: URI, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
     return new vscode.Disposable(() => undefined);

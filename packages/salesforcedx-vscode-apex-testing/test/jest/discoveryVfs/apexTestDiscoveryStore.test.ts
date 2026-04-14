@@ -27,15 +27,15 @@ describe('ApexTestDiscoveryStore', () => {
     jest.clearAllMocks();
   });
 
-  it('saves per-class files and reads discovery index', async () => {
+  it('saves per-class files and reads discovery index', () => {
     const store = new ApexTestDiscoveryStore();
     const classes = [{ id: '1', name: 'MyTest', namespacePrefix: '', testMethods: [{ name: 'testOne' }] }];
     const classBodies = new Map([['MyTest', '@isTest private class MyTest {}']]);
 
     readFile.mockReturnValue(new TextEncoder().encode(JSON.stringify({ orgKey: 'org123', updatedAt: 'now', classes })));
 
-    await store.saveDiscoveredClasses('org123', classes, classBodies);
-    const snapshot = await store.readDiscoveredClassesIndex('org123');
+    store.saveDiscoveredClasses('org123', classes, classBodies);
+    const snapshot = store.readDiscoveredClassesIndex('org123');
 
     expect(createDirectoryInternal).toHaveBeenCalled();
     expect(writeFileInternal).toHaveBeenCalledWith(
@@ -47,13 +47,13 @@ describe('ApexTestDiscoveryStore', () => {
     expect(snapshot?.classes).toEqual(classes);
   });
 
-  it('returns undefined when snapshot is missing', async () => {
+  it('returns undefined when snapshot is missing', () => {
     const store = new ApexTestDiscoveryStore();
     readFile.mockImplementation(() => {
       throw new Error('not found');
     });
 
-    await expect(store.readDiscoveredClassesIndex('missing')).resolves.toBeUndefined();
+    expect(store.readDiscoveredClassesIndex('missing')).toBeUndefined();
   });
 
   it('resolves org key from org id then username fallback', () => {

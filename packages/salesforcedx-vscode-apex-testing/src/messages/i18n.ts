@@ -42,6 +42,10 @@ export const messages = {
   run_tests_title: 'Run All Tests in Org',
   debug_tests_title: 'Debug Tests',
   test_view_name: 'Apex Tests',
+  apex_test_suites_parent_text: 'Apex Test Suites',
+  apex_testing_vfs_org_badge_text: 'ORG',
+  apex_testing_vfs_org_file_tooltip_text: 'Org virtual file (read-only)',
+  apex_testing_vfs_readonly_prefix_text: 'apex-testing is read-only',
   apex_test_run_concise: 'Display only failed test results.',
   apex_testing_discovery_source_description: 'Select the source for Apex test discovery.',
   apex_testing_discovery_source_ls_description: 'Use the Language Server (LS) for discovery.',
@@ -82,6 +86,7 @@ export const messages = {
   apex_test_retrieve_org_only_class_text: 'SFDX: Retrieve Org-Only Apex Test Class',
   apex_test_retrieve_org_only_class_codelens_text: 'Org-Only: Download',
   apex_test_retrieve_canceled: 'Retrieve canceled',
+  apex_discovery_vfs_class_body_placeholder: '// Source unavailable for %s',
   apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
   apex_test_debug_org_only_warning_message:
     'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',

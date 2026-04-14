@@ -7,6 +7,7 @@
 
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { nls } from '../messages';
 import { APEX_TESTING_SCHEME } from './apexTestingDiscoveryFs';
 
 export class ApexTestingDecorationProvider implements vscode.FileDecorationProvider {
@@ -19,8 +20,8 @@ export class ApexTestingDecorationProvider implements vscode.FileDecorationProvi
     }
 
     return {
-      badge: 'ORG',
-      tooltip: 'Org virtual file (read-only)',
+      badge: nls.localize('apex_testing_vfs_org_badge_text'),
+      tooltip: nls.localize('apex_testing_vfs_org_file_tooltip_text'),
       color: new vscode.ThemeColor('descriptionForeground')
     };
   }

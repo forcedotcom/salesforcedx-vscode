@@ -7,6 +7,7 @@
 
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { messages } from '../../../src/messages/i18n';
 import { ApexTestingDecorationProvider } from '../../../src/discoveryVfs/apexTestingDecorationProvider';
 
 describe('ApexTestingDecorationProvider', () => {
@@ -16,8 +17,8 @@ describe('ApexTestingDecorationProvider', () => {
       URI.parse('apex-testing:/orgs/org123/classes/MyTest.cls')
     ) as vscode.FileDecoration | undefined;
 
-    expect(decoration?.badge).toBe('ORG');
-    expect(decoration?.tooltip).toBe('Org virtual file (read-only)');
+    expect(decoration?.badge).toBe(messages.apex_testing_vfs_org_badge_text);
+    expect(decoration?.tooltip).toBe(messages.apex_testing_vfs_org_file_tooltip_text);
   });
 
   it('returns undefined for non apex-testing URIs', () => {
