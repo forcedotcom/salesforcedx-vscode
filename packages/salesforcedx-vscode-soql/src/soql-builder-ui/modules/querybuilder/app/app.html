@@ -29,6 +29,15 @@
               "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org"
               to set one.
             </div>
+            <div class="info-notification__dismiss">
+              <button
+                class="text-center"
+                onclick={handleSetDefaultOrg}
+              >
+                <!-- TODO: i18n -->
+                Set a Default Org
+              </button>
+            </div>
           </div>
         </template>
         <template if:true={showQueryBuilderForm}>
