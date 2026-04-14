@@ -13,6 +13,7 @@ import { nls } from '../../messages';
 import { formatRetrieveOutput } from '../../shared/retrieve/formatRetrieveOutput';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
 import { withConfigurableSuccessNotification } from '../../utils/withConfigurableSuccessNotification';
+import { withPreparationProgress } from '../../utils/withPreparationProgress';
 
 /**
  * Apply remote deletes and retrieve non-deletes. Skips retrieve when only deletes exist.
@@ -56,13 +57,14 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
     // that were remotely deleted.
     [...deletesCS].map(member => nonDeletesCS.add(member));
 
-    const combinedCS = yield* componentSetService.ensureNonEmptyComponentSet(nonDeletesCS).pipe(
+    // Build combined CS for conflict detection, then run the actual retrieve.
+    // combinedCS is used only for conflict detection; applyAndRetrieve sources its own component set.
+    yield* componentSetService.ensureNonEmptyComponentSet(nonDeletesCS).pipe(
       Effect.tap(cs =>
         channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
-      )
+      ),
+      withPreparationProgress('retrieve', ignoreConflicts ? undefined : cs => detectConflicts(cs, 'retrieve'))
     );
-
-    if (!ignoreConflicts) yield* detectConflicts(combinedCS, 'retrieve');
     yield* applyAndRetrieve();
   },
   Effect.catchTag('ConflictsDetectedError', err =>
