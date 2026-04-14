@@ -41,9 +41,11 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
     const repoRoot = resolveRepoRoot(options.callerDirname);
     const testRunnerDataDir = path.join(repoRoot, '.vscode-test-web');
 
+    // Do not launch Chromium via @vscode/test-web — Playwright's test runner is the only browser client.
+    // If browserType is chromium, test-web opens its own browser; when that browser's last page closes, it calls
+    // server.close() (see @vscode/test-web open() → context.once('close', …)), killing port 3001 mid-run.
     await open({
-      browserType: 'chromium',
-      headless: true,
+      browserType: 'none',
       quality: 'stable',
       port: Number(process.env.PORT) || 3001,
       printServerLog: true,
@@ -51,21 +53,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       extensionDevelopmentPath,
       extensionPaths,
       testRunnerDataDir,
-      ...(options.folderPath ? { folderPath: options.folderPath } : {}),
-      browserOptions: [
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--disable-features=IsolateOrigins,site-per-process',
-        ...(process.env.CI
-          ? [
-              '--no-sandbox',
-              '--disable-dev-shm-usage',
-              '--disable-background-timer-throttling',
-              '--disable-backgrounding-occluded-windows',
-              '--disable-renderer-backgrounding'
-            ]
-          : [])
-      ]
+      ...(options.folderPath ? { folderPath: options.folderPath } : {})
     });
   } catch (error) {
     console.error('❌ Failed to start headless server:', error);

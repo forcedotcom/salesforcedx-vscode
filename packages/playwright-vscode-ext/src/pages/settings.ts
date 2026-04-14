@@ -32,6 +32,9 @@ export const openSettingsUI = async (page: Page): Promise<void> => {
   const workspaceTab = page.getByRole('tab', { name: 'Workspace' });
   await workspaceTab.click();
   await expect(workspaceTab).toHaveAttribute('aria-selected', 'true', { timeout: 3000 });
+  // Workspace tab can trigger navigation / DOM replace; wait for search input to exist again before callers interact
+  await page.waitForLoadState('domcontentloaded');
+  await settingsLocator(page).first().waitFor({ state: 'visible', timeout: 15_000 });
 };
 
 /** used for web, where auth fields need to be set to simulate what we'll receive from Core iframe.
@@ -66,24 +69,27 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
 const performSearch =
   (page: Page) =>
   async (query: string): Promise<void> => {
-    // Reset search by selecting all and clearing
     const searchMonaco = settingsLocator(page).first();
-    await searchMonaco.waitFor({ timeout: 3000 });
-    await searchMonaco.click();
-    // seems to be necessary to avoid clearing the setting instead of the search box.
-    // TODO: figure out what to actually wait for (ex: can I tell if it's focused?)
-    await page.waitForTimeout(200);
-    // Triple-click on Monaco editor to select all text (more reliable than Control+A)
-    await searchMonaco.click({ clickCount: 3 });
-    await page.waitForTimeout(100);
-    // Clear using Backspace after selecting all
+    await searchMonaco.waitFor({ state: 'visible', timeout: 15_000 });
+    await page.waitForLoadState('domcontentloaded');
+
+    // Focus search; tab switches or reloads can detach the node — retry after navigation settles
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await settingsLocator(page).first().click({ timeout: 5000 });
+        break;
+      } catch {
+        await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+        await page.waitForTimeout(300);
+      }
+    }
+
+    await page.waitForTimeout(150);
+    // Monaco settings search may not expose textarea in the light DOM; use keyboard clear instead of textarea assertion
+    const selectAllShortcut = process.platform === 'darwin' ? 'Meta+A' : 'Control+A';
+    await page.keyboard.press(selectAllShortcut);
     await page.keyboard.press('Backspace');
-    // Wait to ensure the backspace completes and search box is cleared
-    await page.waitForTimeout(200);
-    // Verify the search box is empty by checking the textarea value
-    const textarea = searchMonaco.locator('textarea').first();
-    await expect(textarea).toHaveValue('', { timeout: 2000 });
-    // Type the new query
+    await page.waitForTimeout(100);
     await page.keyboard.type(query);
   };
 
@@ -126,13 +132,21 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     //          e.g. "a.b.c" → "searchResultModel_a_b.c"
     // ≥ 1.113: replace(/[\.\/]/g, '_') — ALL dots replaced
     //          e.g. "a.b.c" → "searchResultModel_a_b_c"
-    // Use an OR selector so this works across VS Code versions.
-    // Use .last() when duplicates exist (User + Workspace): we're on Workspace tab, so Workspace row is last
+    // Keys with hyphens (e.g. salesforce-web-console.apiVersion) also map '-' → '_' in current Settings UI:
+    //          → "searchResultModel_salesforce_web_console_apiVersion" (not ...salesforce-web-console_apiVersion)
+    // Use OR selectors across versions; .last() when User + Workspace duplicate rows exist (Workspace tab).
     const allDotsId = `searchResultModel_${id.replaceAll('.', '_')}`;
     const firstDotId = `searchResultModel_${id.replace('.', '_')}`;
-    const dataIdSelector =
-      allDotsId === firstDotId ? `[data-id="${allDotsId}"]` : `[data-id="${allDotsId}"], [data-id="${firstDotId}"]`;
-    const row = page.locator(dataIdSelector).last();
+    const dotsHyphensSlashesId = `searchResultModel_${id.replaceAll(new RegExp('[-./]', 'g'), '_')}`;
+    const dataIdSelector = [...new Set([allDotsId, firstDotId, dotsHyphensSlashesId])]
+      .map(s => `[data-id="${s}"]`)
+      .join(', ');
+    // Suffix match is robust when VS Code's sanitizeId differs (still ends with _<keyLastSegment>, e.g. _apiVersion)
+    const lastSegment = id.includes('.') ? id.slice(id.lastIndexOf('.') + 1) : id;
+    const rowByKeySuffix = page
+      .locator(`${WORKBENCH} [data-id^="searchResultModel_"][data-id$="_${lastSegment}"]`)
+      .last();
+    const row = page.locator(dataIdSelector).last().or(rowByKeySuffix);
 
     if (debugAria) {
       console.log(`[upsertSettings] using deterministic locator for ${id}: selector="${dataIdSelector}"`);
@@ -148,7 +162,14 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
 
-    await row.waitFor({ state: 'attached', timeout: 15_000 });
+    try {
+      await row.waitFor({ state: 'attached', timeout: 15_000 });
+    } catch {
+      // Full setting id sometimes yields no Settings hits; shorter query (key segment) surfaces the row
+      await performSearch(page)(lastSegment);
+      await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
+      await row.waitFor({ state: 'attached', timeout: 15_000 });
+    }
 
     await row.waitFor({ state: 'visible', timeout: 30_000 });
     if (debugAria) {

@@ -64,7 +64,7 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:ui": "npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
@@ -145,6 +145,7 @@
         }
       },
       "dependencies": [
+        "compile",
         "vscode:bundle",
         "../playwright-vscode-ext:compile",
         "../salesforcedx-vscode-metadata:vscode:bundle"

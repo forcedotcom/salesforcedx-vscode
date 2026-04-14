@@ -45,11 +45,11 @@ test('LWC LSP Go to Definition navigates from JS to LightningElement type defini
   });
 
   await test.step('position cursor on "LightningElement" in the extends clause', async () => {
-    // Default template line 3: "export default class Lwc1 extends LightningElement {"
-    // "LightningElement" starts at column 35; place cursor inside the word
+    // Default SFDX template line 3: `export default class GtdJsComp extends LightningElement {`
+    // Column 38 is still on `extends`; Go to Definition must target the `LightningElement` identifier (column 40 = `L`).
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="gtdJsComp.js"]`);
     await editor.click();
-    await goToLineCol(page, 3, 38);
+    await goToLineCol(page, 3, 40);
   });
 
   await test.step('execute Go to Definition', async () => {
