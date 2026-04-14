@@ -4,8 +4,20 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts", "src/oas/generationStrategy/*.json"],
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "include": [
+    "src/**/*.ts",
+    "src/oas/generationStrategy/*.json",
+    "playwright.config.web.ts",
+    "playwright.config.desktop.ts",
+    "package.nls.json",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "dist"
+  ],
   "references": [
     {
       "path": "../salesforcedx-utils"
@@ -17,7 +29,13 @@
       "path": "../salesforcedx-vscode-i18n"
     },
     {
+      "path": "../playwright-vscode-ext"
+    },
+    {
       "path": "../salesforcedx-vscode-core"
+    },
+    {
+      "path": "../salesforcedx-vscode-services"
     }
   ]
 }
