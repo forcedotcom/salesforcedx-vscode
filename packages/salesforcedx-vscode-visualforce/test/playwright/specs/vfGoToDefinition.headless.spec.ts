@@ -16,7 +16,6 @@ import {
   validateNoCriticalErrors,
   openFileByName,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
   EDITOR_WITH_URI
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs/promises';
@@ -98,8 +97,10 @@ test.describe('Visualforce LSP - Go to Definition', () => {
       await page.keyboard.type('1:25');
       await page.keyboard.press('Enter');
 
-      // Use command palette — more reliable than F12 which can lose focus to notifications
-      await executeCommandWithCommandPalette(page, 'Go to Definition');
+      // Use F12 directly — avoids openCommandPalette's bringToFront() which resets
+      // VS Code's editorTextFocus context on Windows, causing "Go to Definition" to be
+      // absent from the command palette (it requires editorTextFocus).
+      await page.keyboard.press('F12');
 
       await expect(controllerEditor).toBeVisible({ timeout: 5000 });
     }).toPass({ timeout: 90_000 });

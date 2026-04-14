@@ -66,7 +66,8 @@ export const activate = async (context: ExtensionContext) => {
   // If the extension is launch in debug mode the debug server options are use
   // Otherwise the run options are used
   const serverOptions: ServerOptions = {
-    run: { module, transport: TransportKind.ipc },
+    // stdio is more reliable than ipc (named pipes) on Windows CI runners
+    run: { module, transport: TransportKind.stdio },
     debug: {
       module,
       transport: TransportKind.ipc,
