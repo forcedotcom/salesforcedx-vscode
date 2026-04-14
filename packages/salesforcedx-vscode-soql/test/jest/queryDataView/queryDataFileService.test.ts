@@ -32,13 +32,14 @@ describe('Query Data File Service', () => {
     const savedFilePath = '/test/path/to/savedFile.json';
     const queryDataFileService = new QueryDataFileService(queryText, queryData, format, document);
 
-    (vscode.window.showSaveDialog as any).mockReturnValue(URI.file(savedFilePath));
-    mockRunPromise.mockResolvedValue('/test/workspace');
+    const savedUri = URI.file(savedFilePath);
+    (vscode.window.showSaveDialog as any).mockReturnValue(savedUri);
+    mockRunPromise.mockResolvedValue(savedUri);
 
     const savedFileUri = await queryDataFileService.save();
 
     expect(mockRunPromise).toHaveBeenCalled();
-    expect(savedFileUri?.fsPath).toEqual(URI.file(savedFilePath).fsPath);
+    expect(savedFileUri?.fsPath).toEqual(savedUri.fsPath);
   });
 
   it('strips .soql extension from the suggested save dialog filename', async () => {
