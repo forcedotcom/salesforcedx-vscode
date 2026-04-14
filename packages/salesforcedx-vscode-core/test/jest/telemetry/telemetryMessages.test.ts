@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { commands, Uri, window } from 'vscode';
+import { commands, window } from 'vscode';
+import { URI } from 'vscode-uri';
 import { TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { internalTelemetryMessage, telemetryWithOptOutMessage } from '../../../src/telemetry/telemetryMessages';
@@ -54,7 +55,7 @@ describe('Telemetry Messages', () => {
       // Simulate clicking opt-out button
       spyShowInfoMessage.mockResolvedValue(showButtonText);
       await telemetryWithOptOutMessage();
-      expect(spyCommand).toHaveBeenCalledWith('vscode.open', Uri.parse(TELEMETRY_OPT_OUT_LINK));
+      expect(spyCommand).toHaveBeenCalledWith('vscode.open', URI.parse(TELEMETRY_OPT_OUT_LINK));
     });
 
     it('should not open the disable telemetry link if opt-out link is not clicked', async () => {

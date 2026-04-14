@@ -12,64 +12,68 @@ import { URI } from 'vscode-uri';
 import { DIAGNOSTIC_SOURCE } from '../constants';
 
 const LEVEL_MAPPING: Map<DiagnosticLevel, DiagnosticSeverity> = new Map([
-    [DiagnosticLevel.Log, DiagnosticSeverity.Information],
-    [DiagnosticLevel.Warning, DiagnosticSeverity.Warning],
-    [DiagnosticLevel.Error, DiagnosticSeverity.Error],
-    [DiagnosticLevel.Fatal, DiagnosticSeverity.Error],
+  [DiagnosticLevel.Log, DiagnosticSeverity.Information],
+  [DiagnosticLevel.Warning, DiagnosticSeverity.Warning],
+  [DiagnosticLevel.Error, DiagnosticSeverity.Error],
+  [DiagnosticLevel.Fatal, DiagnosticSeverity.Error]
 ]);
 
 const TYPOS = ['<lighting-', '<lightening-', '<lihgtning-'];
 
 const toRange = (textDocument: TextDocument, start: number, length: number): Range =>
-    Range.create(textDocument.positionAt(start), textDocument.positionAt(start + length));
+  Range.create(textDocument.positionAt(start), textDocument.positionAt(start + length));
 
 const lintTypos = (document: TextDocument): Diagnostic[] => {
-    const source = document.getText();
-    const lines = source.split(/\r?\n/g);
+  const source = document.getText();
+  const lines = source.split(/\r?\n/g);
 
-    const errors: Diagnostic[] = [];
+  const errors: Diagnostic[] = [];
 
-    lines.forEach((line, idx) => {
-        TYPOS.forEach((typo) => {
-            const idxTypo = line.indexOf(typo);
-            if (idxTypo > -1) {
-                errors.push({
-                    range: {
-                        start: { line: idx, character: idxTypo },
-                        end: { line: idx, character: idxTypo + typo.length },
-                    },
-                    message: `${typo} is not a valid namespace, sure you didn't mean "<lightning-"?`,
-                    severity: LEVEL_MAPPING.get(DiagnosticLevel.Error),
-                    source: DIAGNOSTIC_SOURCE,
-                });
-            }
+  lines.forEach((line, idx) => {
+    TYPOS.forEach(typo => {
+      const idxTypo = line.indexOf(typo);
+      if (idxTypo > -1) {
+        errors.push({
+          range: {
+            start: { line: idx, character: idxTypo },
+            end: { line: idx, character: idxTypo + typo.length }
+          },
+          message: `${typo} is not a valid namespace, sure you didn't mean "<lightning-"?`,
+          severity: LEVEL_MAPPING.get(DiagnosticLevel.Error),
+          source: DIAGNOSTIC_SOURCE
         });
+      }
     });
+  });
 
-    return errors;
+  return errors;
 };
 
 const lintLwcMarkup = (document: TextDocument): Diagnostic[] => {
-    const source = document.getText();
-    const file = URI.file(document.uri).fsPath;
-    const filePath = path.parse(file);
-    const fileName = filePath.base;
-    const { warnings } = templateCompiler(source, fileName, {});
+  const source = document.getText();
+  const file = URI.file(document.uri).fsPath;
+  const filePath = path.parse(file);
+  const fileName = filePath.base;
+  const { warnings } = templateCompiler(source, fileName, {});
 
-    let warningsLwc: Diagnostic[] = warnings.map((warning) => {
-        const { start = 0, length = 0 } = warning.location ?? { start: 0, length: 0 };
+  let warningsLwc: Diagnostic[] = warnings.map(warning => {
+    const { start = 0, length = 0 } = warning.location ?? { start: 0, length: 0 };
+    const diagnostic: Diagnostic = {
+      range: toRange(document, start, length),
+      message: warning.url ? `${warning.message}\nMore Details: ${warning.url}` : warning.message,
+      severity: LEVEL_MAPPING.get(warning.level),
+      source: DIAGNOSTIC_SOURCE
+    };
+    if (warning.url) {
+      diagnostic.code = warning.code;
+      diagnostic.codeDescription = { href: warning.url };
+    }
+    return diagnostic;
+  });
 
-        return {
-            range: toRange(document, start, length),
-            message: warning.message,
-            severity: LEVEL_MAPPING.get(warning.level),
-            source: DIAGNOSTIC_SOURCE,
-        };
-    });
-
-    const warningsTypos: Diagnostic[] = lintTypos(document);
-    warningsLwc = warningsLwc.concat(warningsTypos);
-    return warningsLwc;
+  const warningsTypos: Diagnostic[] = lintTypos(document);
+  warningsLwc = warningsLwc.concat(warningsTypos);
+  return warningsLwc;
 };
 
 export default lintLwcMarkup;

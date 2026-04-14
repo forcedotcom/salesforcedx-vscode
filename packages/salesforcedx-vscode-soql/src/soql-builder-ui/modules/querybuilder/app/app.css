@@ -47,8 +47,8 @@ main {
 }
 
 .warning-notification__message {
-  background-color: var(--soql-red);
-  color: var(--soql-white);
+  background-color: var(--vscode-statusBarItem-errorBackground, var(--soql-red));
+  color: var(--vscode-statusBarItem-errorForeground, var(--soql-white));
   font-size: small;
   padding: 1rem;
   border-radius: 3px;
@@ -57,4 +57,17 @@ main {
 
 .warning-notification__dismiss {
   text-align: right;
+}
+
+.info-notification {
+  max-width: var(--soql-media-max-width);
+}
+
+.info-notification__message {
+  background-color: var(--vscode-activityBarBadge-background, var(--soql-info-blue));
+  color: var(--vscode-activityBarBadge-foreground, var(--soql-white));
+  font-size: small;
+  padding: 1rem;
+  border-radius: 3px;
+  margin-bottom: 1rem;
 }

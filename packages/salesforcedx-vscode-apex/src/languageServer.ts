@@ -20,6 +20,7 @@ import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { soqlMiddleware } from './embeddedSoql';
+import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
 import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import * as requirements from './requirements';
@@ -42,7 +43,6 @@ import {
 import { isApexLspTelemetryAllowed } from './telemetry/apexLspTelemetryAllowlist';
 import { getTelemetryService } from './telemetry/telemetry';
 
-/** Use 0 for dynamic JDWP port to avoid "address in use" when previous LS orphaned (e.g. Extension Host not shut down cleanly). */
 const JDWP_DEBUG_PORT = 0;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP = process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
@@ -138,7 +138,7 @@ const protocol2CodeConverter = (value: string) => URI.parse(value);
 export const createLanguageServer = async (extensionContext: vscode.ExtensionContext): Promise<ApexLanguageClient> => {
   const telemetryService = getTelemetryService();
   const server = await createServer(extensionContext);
-  const client = new ApexLanguageClient('apex', nls.localize('client_name'), server, buildClientOptions());
+  const client = new ApexLanguageClient('apex', nls.localize('client_name'), server, await buildClientOptions());
 
   client.onTelemetry((data: { properties?: Record<string, string>; measures?: Record<string, number> }) => {
     if (isApexLspTelemetryAllowed(data.properties)) {
@@ -149,11 +149,29 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
   return client;
 };
 
-const buildClientOptions = (): ApexLanguageClientOptions => {
+const buildClientOptions = async (): Promise<ApexLanguageClientOptions> => {
   const soqlExtensionInstalled = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql') !== undefined;
   const lspParityCapabilities = vscode.workspace
     .getConfiguration()
     .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
+  const scanConfig = await buildMetadataRegistryScanConfig();
+  const initializationOptions = {
+    enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
+    enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
+    enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
+    apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
+    apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
+    apexActionMethodDefModifiers: retrieveAAMethodDefModifiers().join(','),
+    apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
+    apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
+    apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
+    apexActionClassRestAnnotations: retrieveAAClassRestAnnotations().join(','),
+    apexActionMethodRestAnnotations: retrieveAAMethodRestAnnotations().join(','),
+    apexActionMethodAnnotations: retrieveAAMethodAnnotations().join(','),
+    apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
+    apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
+    apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
+  };
 
   // Create middleware that disables parity providers when setting is true
   const parityMiddleware: Record<string, () => null> = lspParityCapabilities
@@ -179,23 +197,7 @@ const buildClientOptions = (): ApexLanguageClientOptions => {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter
     },
-    initializationOptions: {
-      enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-      enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
-      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
-      apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
-      apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
-      apexActionMethodDefModifiers: retrieveAAMethodDefModifiers().join(','),
-      apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
-      apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
-      apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
-      apexActionClassRestAnnotations: retrieveAAClassRestAnnotations().join(','),
-      apexActionMethodRestAnnotations: retrieveAAMethodRestAnnotations().join(','),
-      apexActionMethodAnnotations: retrieveAAMethodAnnotations().join(','),
-      apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
-      apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
-      apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
-    },
+    initializationOptions: scanConfig ? { ...initializationOptions, ...scanConfig } : initializationOptions,
     middleware: {
       ...parityMiddleware,
       ...(soqlExtensionInstalled ? soqlMiddleware : {}),

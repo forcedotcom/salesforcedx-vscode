@@ -12,7 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { Utils } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
@@ -38,7 +38,7 @@ const appendToChannel = (message: string) =>
     Effect.flatMap(svc => svc.appendToChannel(message))
   );
 
-const getWebViewContent = async (webview: vscode.Webview, extensionUri: vscode.Uri): Promise<string> => {
+const getWebViewContent = async (webview: vscode.Webview, extensionUri: URI): Promise<string> => {
   const baseStyleUri = webview.asWebviewUri(
     Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_STYLE_FILENAME)
   );
@@ -48,14 +48,14 @@ const getWebViewContent = async (webview: vscode.Webview, extensionUri: vscode.U
   const viewControllerUri = webview.asWebviewUri(
     Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME)
   );
-  const tabulatorUri = webview.asWebviewUri(
-    Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_SCRIPT_FILENAME)
-  );
-  const saveIconUri = webview.asWebviewUri(
-    Utils.joinPath(extensionUri, ...DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME)
-  );
+  const tabulatorUri = webview.asWebviewUri(Utils.joinPath(extensionUri, ...DATA_VIEW_PATH, TABULATOR_SCRIPT_FILENAME));
+  const saveIconUri = webview.asWebviewUri(Utils.joinPath(extensionUri, ...DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME));
 
-  return getHtml({ baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri }, extensionUri, webview);
+  return getHtml(
+    { baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri },
+    extensionUri,
+    webview
+  );
 };
 
 const saveRecordsEffect = Effect.fn('QueryDataView.save_records')(function* ({
@@ -86,7 +86,7 @@ type DataViewEvent = {
 
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
-  public static extensionUri: vscode.Uri;
+  public static extensionUri: URI;
   private queryText: string;
 
   constructor(
@@ -148,7 +148,10 @@ export class QueryDataViewService {
       dark: salesforceCloudUri
     };
 
-    this.currentPanel.webview.html = await getWebViewContent(this.currentPanel.webview, QueryDataViewService.extensionUri);
+    this.currentPanel.webview.html = await getWebViewContent(
+      this.currentPanel.webview,
+      QueryDataViewService.extensionUri
+    );
 
     // Stream-based message handling: each message dispatched as a named OTel span
     const panel = this.currentPanel;
@@ -162,9 +165,7 @@ export class QueryDataViewService {
         Stream.mapEffect(
           event =>
             this.handleMessageEffect(event).pipe(
-              Effect.catchAllCause(() =>
-                appendToChannel(nls.localize('error_unknown_error', event.type))
-              )
+              Effect.catchAllCause(() => appendToChannel(nls.localize('error_unknown_error', event.type)))
             ),
           { concurrency: 'unbounded' }
         ),
@@ -183,7 +184,12 @@ export class QueryDataViewService {
         return this.updateWebviewWith(this.queryData).pipe(Effect.withSpan('QueryDataView.activate'));
 
       case 'save_records':
-        return saveRecordsEffect({ queryText: this.queryText, queryData: this.queryData, format: format!, document: this.document });
+        return saveRecordsEffect({
+          queryText: this.queryText,
+          queryData: this.queryData,
+          format: format!,
+          document: this.document
+        });
 
       default:
         return appendToChannel(nls.localize('error_unknown_error', type)).pipe(
@@ -191,5 +197,4 @@ export class QueryDataViewService {
         );
     }
   };
-
 }

@@ -31,6 +31,7 @@ import {
   createSuiteId,
   extractClassName,
   extractSuiteName,
+  filterTestItemsByRequestExclude,
   gatherTests,
   getTestName,
   isClass,
@@ -60,6 +61,9 @@ import {
 
 const TEST_CONTROLLER_ID = 'sf.apex.testController';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
+
+/** How the run profile constrains an implicit "run all" (no explicit test selection). */
+type ApexTestRunScope = 'workspace-first' | 'all-org';
 
 export class ApexTestController {
   private controller: vscode.TestController;
@@ -349,7 +353,14 @@ export class ApexTestController {
     try {
       // Ensure connection and testService are initialized
       await this.ensureInitialized();
-      const suites = await this.getTestService().retrieveAllSuites();
+
+      let suites: { id: string; TestSuiteName: string }[] = [];
+      try {
+        suites = await this.getTestService().retrieveAllSuites();
+      } catch (error) {
+        console.error('Error retrieving suites:', error);
+        return;
+      }
 
       if (suites.length === 0) {
         return;
@@ -383,29 +394,27 @@ export class ApexTestController {
   }
 
   private setupRunProfiles(): void {
-    const runHandler = (request: vscode.TestRunRequest, token: vscode.CancellationToken) =>
-      this.runTests(request, token, false);
-    // Run all tests (default profile)
+    // Default Run uses no profile tag so VS Code applies it to every test in the tree. Tagged profiles are skipped
+    // for org-only tests, which incorrectly forced the org-wide profile for "Run all". Workspace-only filtering is
+    // applied in runTests for implicit full runs (empty/undefined include), including when the explorer passes the
+    // visible/filtered set as include.
+    this.controller.createRunProfile(
+      nls.localize('run_tests_workspace_default_title'),
+      vscode.TestRunProfileKind.Run,
+      (request, token) => this.runTests(request, token, false, 'workspace-first'),
+      true
+    );
     this.controller.createRunProfile(
       nls.localize('run_tests_title'),
       vscode.TestRunProfileKind.Run,
-      runHandler,
-      true
-    );
-    // Run only in-workspace tests (profile with tag; editor restricts request.include to eligible tests)
-    this.controller.createRunProfile(
-      nls.localize('run_tests_in_workspace_title'),
-      vscode.TestRunProfileKind.Run,
-      runHandler,
-      false,
-      this.inWorkspaceTag
+      (request, token) => this.runTests(request, token, false, 'all-org'),
+      false
     );
 
-    // Debug profile
     this.controller.createRunProfile(
       nls.localize('debug_tests_title'),
       vscode.TestRunProfileKind.Debug,
-      (request, token) => this.runTests(request, token, true)
+      (request, token) => this.runTests(request, token, true, 'workspace-first')
     );
   }
 
@@ -485,10 +494,10 @@ export class ApexTestController {
     if (!isClass(test.id) || !test.uri) {
       return;
     }
-    await this.retrieveOrgOnlyClassFromUri(test.uri);
+    await this.retrieveOrgOnlyClassFromUri(URI.revive(test.uri));
   }
 
-  public async retrieveOrgOnlyClassFromUri(uri: vscode.Uri): Promise<void> {
+  public async retrieveOrgOnlyClassFromUri(uri: URI): Promise<void> {
     const className = this.getClassNameFromApexTestingUri(uri);
     if (!className) {
       return;
@@ -533,7 +542,7 @@ export class ApexTestController {
     }
   }
 
-  private getClassNameFromApexTestingUri(uri: vscode.Uri): string | undefined {
+  private getClassNameFromApexTestingUri(uri: URI): string | undefined {
     if (uri.scheme !== APEX_TESTING_SCHEME) {
       return undefined;
     }
@@ -549,7 +558,7 @@ export class ApexTestController {
     return classPath.slice(0, -4).replaceAll('/', '.');
   }
 
-  private getRetrievedFileUri(result: unknown): vscode.Uri | undefined {
+  private getRetrievedFileUri(result: unknown): URI | undefined {
     if (typeof result !== 'object' || result === null || !('getFileResponses' in result)) {
       return undefined;
     }
@@ -572,13 +581,13 @@ export class ApexTestController {
       }
       const filePath = Reflect.get(response, 'filePath');
       if (typeof filePath === 'string' && filePath.length > 0) {
-        return vscode.Uri.file(filePath);
+        return URI.file(filePath);
       }
     }
     return undefined;
   }
 
-  private async closeEditorTabByUri(uri: vscode.Uri): Promise<void> {
+  private async closeEditorTabByUri(uri: URI): Promise<void> {
     const tabGroupsApi = vscode.window.tabGroups;
     if (!tabGroupsApi) {
       return;
@@ -653,16 +662,18 @@ export class ApexTestController {
   private async runTests(
     request: vscode.TestRunRequest,
     token: vscode.CancellationToken,
-    isDebug: boolean
+    isDebug: boolean,
+    runScope: ApexTestRunScope
   ): Promise<void> {
     const startTime = Date.now();
     const run = this.controller.createTestRun(request);
     let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
 
-    // When the run profile has a tag, the editor does not set request.include—filter to only eligible tests
-    if (request.profile?.tag) {
-      const profileTag = request.profile.tag;
-      testsToRun = testsToRun.filter(test => test.tags?.includes(profileTag));
+    // Implicit full run: no explicit selection. Restrict to in-workspace tests for the default Run/Debug profiles.
+    // When the user (or explorer filter) supplies request.include, run exactly that set—e.g. filtered-visible tests.
+    const isImplicitFullRun = !request.include?.length;
+    if (runScope === 'workspace-first' && isImplicitFullRun && this.inWorkspaceTag) {
+      testsToRun = testsToRun.filter(test => test.tags?.includes(this.inWorkspaceTag!));
     }
 
     // Resolve any suite in testsToRun so we have class data (for empty-suite check and expansion)
@@ -715,6 +726,9 @@ export class ApexTestController {
       testsToRun = expandedTests;
     }
 
+    // Suite expansion pulls methods from live class items and can reintroduce tests hidden by the explorer filter.
+    testsToRun = filterTestItemsByRequestExclude(testsToRun, request.exclude);
+
     // Check for empty test suites and show clear error
     const emptySuiteItems = testsToRun.filter(
       test => isSuite(test.id) && (this.suiteToClasses.get(extractSuiteName(test.id) ?? '')?.size ?? 0) === 0
@@ -749,11 +763,9 @@ export class ApexTestController {
         const testNames = testsToRun.map(test => getTestName(test));
         const tmpFolder = await this.getTempFolder();
         const codeCoverage = settings.retrieveTestCodeCoverage();
-        // Use RunAllTestsInOrg when running the full tree (no include/exclude/profile tag) to avoid huge payload
+        // RunAllTestsInOrg only for the explicit "all org" profile on an implicit full run
         const runAllTestsInOrg =
-          (!request.include || request.include.length === 0) &&
-          (!request.exclude || request.exclude.length === 0) &&
-          !request.profile?.tag;
+          runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
         await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun, runAllTestsInOrg);
       }
 
@@ -798,9 +810,8 @@ export class ApexTestController {
       return;
     }
 
-    // Group methods by their parent class to avoid calling debug command multiple times for the same class
-    const classesToDebug = new Set<string>();
-    const methodsToDebug = new Map<string, string[]>();
+    const classIdsToDebug = new Set<string>();
+    const methodsToDebug = new Map<string, Set<string>>();
 
     for (const test of testsToDebug) {
       try {
@@ -809,12 +820,9 @@ export class ApexTestController {
           const testName = getTestName(test);
           const className = extractClassName(test.id);
           if (className) {
-            // If we're debugging multiple methods from the same class, group them
-            // and debug the class once instead of each method individually
-            const existingMethods = methodsToDebug.get(className) ?? [];
-            existingMethods.push(testName);
+            const existingMethods = methodsToDebug.get(className) ?? new Set<string>();
+            existingMethods.add(testName);
             methodsToDebug.set(className, existingMethods);
-            classesToDebug.add(className);
           } else {
             // Fallback: debug single method if we can't extract class name
             await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: testName });
@@ -822,7 +830,7 @@ export class ApexTestController {
         } else if (isClass(test.id)) {
           // Debug class (all methods in class)
           const className = getTestName(test);
-          classesToDebug.add(className);
+          classIdsToDebug.add(className);
         } else if (isSuite(test.id)) {
           // Suites cannot be debugged - only individual classes or methods can be debugged
           run.errored(test, new vscode.TestMessage(nls.localize('apex_test_suite_debug_not_supported_message')));
@@ -833,8 +841,7 @@ export class ApexTestController {
       }
     }
 
-    // Debug each class only once
-    for (const className of classesToDebug) {
+    for (const className of classIdsToDebug) {
       try {
         await vscode.commands.executeCommand('sf.test.view.debugTests', { name: className });
       } catch (error) {
@@ -844,6 +851,29 @@ export class ApexTestController {
             run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
           } else if (isMethod(test.id) && extractClassName(test.id) === className) {
             run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
+          }
+        }
+      }
+    }
+
+    for (const [className, methods] of methodsToDebug) {
+      // If class-level debug is explicitly selected, skip method-level debug for the same class.
+      if (classIdsToDebug.has(className)) {
+        continue;
+      }
+
+      for (const methodName of methods) {
+        try {
+          await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: methodName });
+        } catch (error) {
+          const friendlyMessage = toUserFriendlyApexTestError(error);
+          for (const test of testsToDebug) {
+            if (isMethod(test.id) && extractClassName(test.id) === className && getTestName(test) === methodName) {
+              run.errored(
+                test,
+                new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage))
+              );
+            }
           }
         }
       }

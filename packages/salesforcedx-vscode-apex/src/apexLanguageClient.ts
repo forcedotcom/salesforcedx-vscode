@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Uri } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
+import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import {
   ApexClassOASEligibleRequest,
@@ -67,8 +67,8 @@ export class ApexLanguageClient extends LanguageClient {
    * Stops the language client.
    * @returns A promise that resolves when the client has stopped.
    */
-  public async stop(): Promise<void> {
-    await super.stop();
+  public async stop(timeout = 2000): Promise<void> {
+    await super.stop(timeout);
   }
 
   /**
@@ -104,7 +104,7 @@ export class ApexLanguageClient extends LanguageClient {
    * @param sourceUri - The source URI(s) to gather context for.
    * @returns A promise that resolves with the gathered context response(s).
    */
-  public async gatherOpenAPIContext(sourceUri: Uri | Uri[]): Promise<ApexClassOASGatherContextResponse> {
+  public async gatherOpenAPIContext(sourceUri: URI | URI[]): Promise<ApexClassOASGatherContextResponse> {
     if (!Array.isArray(sourceUri)) {
       return this.sendRequest('apexoas/gatherContext', this.code2ProtocolConverter.asUri(sourceUri)).then(
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions

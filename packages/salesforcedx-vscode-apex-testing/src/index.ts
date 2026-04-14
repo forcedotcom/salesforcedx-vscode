@@ -5,12 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Ref from 'effect/Ref';
-import * as Stream from 'effect/Stream';
+import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { initializeOutputChannel } from './channels';
 import { CodeCoverageHandler } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
@@ -38,112 +37,9 @@ import {
 import { telemetryService } from './telemetry/telemetry';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
-
-/** File change event from FileWatcherService */
-type FileChangeEvent = {
-  readonly type: 'create' | 'change' | 'delete';
-  readonly uri: URI;
-};
-
-/** Check if an org is connected by looking at TargetOrgRef */
-const hasOrgConnected = (orgInfo: { username?: string; orgId?: string }): boolean =>
-  Boolean(orgInfo.username ?? orgInfo.orgId);
-
-/** Helper to get a unique key for an org (for deduplication) */
-const getOrgKey = (orgInfo: { username?: string; orgId?: string }): string | undefined =>
-  orgInfo.username ?? orgInfo.orgId;
-
-/** Initialize test discovery when an org is available, and re-discover on org changes */
-const initializeTestDiscovery = (testController: ReturnType<typeof getTestController>) =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const targetOrgRef = yield* api.services.TargetOrgRef();
-    const connectionService = yield* api.services.ConnectionService;
-
-    const channelService = yield* api.services.ChannelService;
-    // Track the last discovered org key to prevent duplicate discoveries
-    const lastDiscoveredOrgRef = yield* Ref.make<string | undefined>(undefined);
-
-    const discoverForOrg = (orgInfo: { username?: string; orgId?: string }) =>
-      Effect.gen(function* () {
-        const orgKey = getOrgKey(orgInfo);
-        console.log(`[Apex Testing] Discovering tests for org: ${orgKey}`);
-        yield* Effect.promise(() => testController.discoverTests());
-      });
-
-    // Subscribe to org changes and re-discover tests when org changes
-    // Use filterEffect with Ref to deduplicate at stream level
-    yield* Effect.forkDaemon(
-      targetOrgRef.changes.pipe(
-        // if we don't have an orgId, try to get the connection to cause another event to fire with it
-        Stream.tap((org: { username?: string; orgId?: string }) =>
-          !org.orgId ? connectionService.getConnection() : Effect.void
-        ),
-        Stream.filter(hasOrgConnected),
-        // Deduplicate: only emit when org key changes
-        Stream.filterEffect((org: { username?: string; orgId?: string }) => {
-          const currentKey = getOrgKey(org);
-          return Effect.gen(function* () {
-            const lastKey = yield* Ref.get(lastDiscoveredOrgRef);
-            if (currentKey === lastKey) {
-              return false; // Skip duplicate
-            }
-            yield* Ref.set(lastDiscoveredOrgRef, currentKey);
-            return true; // Emit this org
-          });
-        }),
-        // Log after deduplication so we only see unique org changes
-        Stream.tap((org: { username?: string; orgId?: string }) =>
-          channelService.appendToChannel(`Target org changed to ${JSON.stringify(org)}`)
-        ),
-        Stream.tap((org: { username?: string; orgId?: string }) =>
-          channelService.appendToChannel(`Discovering tests for org: ${org.username ?? org.orgId}`)
-        ),
-        Stream.runForEach(discoverForOrg)
-      )
-    );
-
-    // Trigger connection which populates the TargetOrgRef, then discover tests
-    // This handles the startup case where the ref is empty
-    yield* connectionService.getConnection();
-  }).pipe(
-    Effect.catchAll(error => {
-      console.debug('[Apex Testing] Test discovery setup failed:', error);
-      return Effect.void;
-    })
-  );
-
-/** Normalize path separators to forward slashes for cross-platform comparison */
-const normalizePath = (p: string): string => p.replaceAll('\\', '/');
-
-/** Check if a file event is a test result JSON file */
-const isTestResultJsonFile = (event: FileChangeEvent): boolean => {
-  const uriPath = normalizePath(event.uri.path || event.uri.fsPath);
-  return (
-    (event.type === 'create' || event.type === 'change') &&
-    uriPath.includes('.sfdx/tools/testresults/apex') &&
-    uriPath.endsWith('.json')
-  );
-};
-
-/** Set up file watcher for test result JSON files using FileWatcherService */
-const setupTestResultsFileWatcher = (testController: ReturnType<typeof getTestController>) =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const fileWatcherService = yield* api.services.FileWatcherService;
-
-    // Subscribe to file events and filter for test result JSON files
-    yield* Effect.forkDaemon(
-      Stream.fromPubSub(fileWatcherService.pubsub).pipe(
-        Stream.filter(isTestResultJsonFile),
-        Stream.runForEach(event => {
-          const apexDirUri = Utils.dirname(event.uri);
-          void testController.onResultFileCreate(apexDirUri, event.uri);
-          return Effect.void;
-        })
-      )
-    );
-  });
+import { setupApexMetadataChangeWatcher } from './watchers/apexMetadataChangeWatcher';
+import { initializeTestDiscovery } from './watchers/testDiscovery';
+import { setupTestResultsFileWatcher } from './watchers/testResultsFileWatcher';
 
 /** Effect-based activation that provides automatic timing via span */
 const activateEffect = Effect.fn('apex-testing.activation')(function* (context: vscode.ExtensionContext) {
@@ -162,11 +58,15 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
     const testController = getTestController();
     yield* Effect.log('[Apex Testing] Test controller created');
 
-    // Set up file watcher for test result JSON files using FileWatcherService
-    yield* setupTestResultsFileWatcher(testController);
-
-    // Initialize test discovery when an org is available, and re-discover on org changes (runs in background)
-    yield* Effect.forkDaemon(initializeTestDiscovery(testController));
+    const scope = yield* getExtensionScope();
+    yield* Effect.all(
+      [
+        Effect.forkIn(setupTestResultsFileWatcher(testController), scope),
+        Effect.forkIn(setupApexMetadataChangeWatcher(testController), scope),
+        Effect.forkIn(initializeTestDiscovery(testController), scope)
+      ],
+      { concurrency: 'unbounded' }
+    );
 
     // Register virtual document provider for org-only Apex classes
     const orgApexClassProvider = getOrgApexClassProvider();
@@ -211,8 +111,11 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
 export const activate = (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context));
+  const extensionScope = getApexTestingRuntime().runSync(getExtensionScope());
+
   return getApexTestingRuntime().runPromise(
     activateEffect(context).pipe(
+      Scope.extend(extensionScope),
       Effect.catchAll(error => {
         console.error('[Apex Testing] Activation failed:', error);
         return Effect.succeed({
@@ -264,16 +167,16 @@ const registerCommands = (): vscode.Disposable => {
   const apexTestRunCmd = vscode.commands.registerCommand('sf.apex.test.run', apexTestRun);
   const retrieveOrgOnlyClassCmd = vscode.commands.registerCommand(
     'sf.apex.test.orgOnlyClass.retrieve',
-    async (target?: vscode.TestItem | vscode.Uri) => {
+    async (target?: vscode.TestItem | URI) => {
       if (!target) {
         const activeUri = vscode.window.activeTextEditor?.document.uri;
         if (activeUri?.scheme === APEX_TESTING_SCHEME) {
-          await getTestController().retrieveOrgOnlyClassFromUri(activeUri);
+          await getTestController().retrieveOrgOnlyClassFromUri(URI.revive(activeUri));
         }
         return;
       }
       if ('scheme' in target) {
-        await getTestController().retrieveOrgOnlyClassFromUri(target);
+        await getTestController().retrieveOrgOnlyClassFromUri(URI.revive(target));
         return;
       }
       await getTestController().retrieveOrgOnlyClass(target);
@@ -319,6 +222,7 @@ const registerCommands = (): vscode.Disposable => {
 };
 
 export const deactivate = () => {
+  void getApexTestingRuntime().runPromise(closeExtensionScope());
   disposeTestController();
   telemetryService.sendExtensionDeactivationEvent();
 };

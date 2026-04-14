@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 type Entry = FileEntry | DirectoryEntry;
 
@@ -45,11 +46,11 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   public readonly onDidChangeFile = this.changeEmitter.event;
   private readonly readOnlyErrorMessage = 'apex-testing is read-only';
 
-  public watch(_uri: vscode.Uri, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
+  public watch(_uri: URI, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
     return new vscode.Disposable(() => undefined);
   }
 
-  public stat(uri: vscode.Uri): vscode.FileStat {
+  public stat(uri: URI): vscode.FileStat {
     const entry = this.getEntry(uri, false);
     if (!entry) {
       throw vscode.FileSystemError.FileNotFound(uri);
@@ -57,7 +58,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     return this.toStat(entry);
   }
 
-  public readDirectory(uri: vscode.Uri): [string, vscode.FileType][] {
+  public readDirectory(uri: URI): [string, vscode.FileType][] {
     const entry = this.getEntry(uri, false);
     if (entry?.type !== vscode.FileType.Directory) {
       throw vscode.FileSystemError.FileNotADirectory(uri);
@@ -65,11 +66,11 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     return [...entry.entries.entries()].map(([name, child]) => [name, child.type]);
   }
 
-  public createDirectory(uri: vscode.Uri): void {
+  public createDirectory(uri: URI): void {
     throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${uri.toString()}`);
   }
 
-  public readFile(uri: vscode.Uri): Uint8Array {
+  public readFile(uri: URI): Uint8Array {
     const entry = this.getEntry(uri, false);
     if (entry?.type !== vscode.FileType.File) {
       throw vscode.FileSystemError.FileNotFound(uri);
@@ -77,26 +78,26 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     return entry.data;
   }
 
-  public writeFile(uri: vscode.Uri, _content: Uint8Array, _options: { create: boolean; overwrite: boolean }): void {
+  public writeFile(uri: URI, _content: Uint8Array, _options: { create: boolean; overwrite: boolean }): void {
     throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${uri.toString()}`);
   }
 
-  public delete(uri: vscode.Uri, _options: { recursive: boolean }): void {
+  public delete(uri: URI, _options: { recursive: boolean }): void {
     throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${uri.toString()}`);
   }
 
-  public rename(oldUri: vscode.Uri, newUri: vscode.Uri, _options: { overwrite: boolean }): void {
+  public rename(oldUri: URI, newUri: URI, _options: { overwrite: boolean }): void {
     throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${oldUri.toString()} -> ${newUri.toString()}`);
   }
 
   // Internal API used by discovery persistence to update in-memory VFS state.
-  public createDirectoryInternal(uri: vscode.Uri): void {
+  public createDirectoryInternal(uri: URI): void {
     this.getOrCreateDirectory(uri);
     this.changeEmitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
   }
 
   // Internal API used by discovery persistence to update in-memory VFS state.
-  public writeFileInternal(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean }): void {
+  public writeFileInternal(uri: URI, content: Uint8Array, options: { create: boolean; overwrite: boolean }): void {
     const parent = this.getParentDirectory(uri, false);
     const name = this.basename(uri);
     const existing = parent.entries.get(name);
@@ -120,7 +121,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   // Internal API used by discovery persistence to update in-memory VFS state.
-  public deleteInternal(uri: vscode.Uri, options: { recursive: boolean }): void {
+  public deleteInternal(uri: URI, options: { recursive: boolean }): void {
     const parent = this.getParentDirectory(uri, false);
     const name = this.basename(uri);
     const existing = parent.entries.get(name);
@@ -145,13 +146,13 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     };
   }
 
-  private getParentDirectory(uri: vscode.Uri, create: boolean): DirectoryEntry {
+  private getParentDirectory(uri: URI, create: boolean): DirectoryEntry {
     const parts = this.pathParts(uri);
     const parentUri = uri.with({ path: `/${parts.slice(0, -1).join('/')}` });
     return create ? this.getOrCreateDirectory(parentUri) : this.getDirectory(parentUri);
   }
 
-  private getDirectory(uri: vscode.Uri): DirectoryEntry {
+  private getDirectory(uri: URI): DirectoryEntry {
     const entry = this.getEntry(uri, false);
     if (entry?.type !== vscode.FileType.Directory) {
       throw vscode.FileSystemError.FileNotADirectory(uri);
@@ -159,7 +160,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     return entry;
   }
 
-  private getOrCreateDirectory(uri: vscode.Uri): DirectoryEntry {
+  private getOrCreateDirectory(uri: URI): DirectoryEntry {
     const parts = this.pathParts(uri);
     let current = this.root;
     for (const part of parts) {
@@ -179,7 +180,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     return current;
   }
 
-  private getEntry(uri: vscode.Uri, createDirectories: boolean): Entry | undefined {
+  private getEntry(uri: URI, createDirectories: boolean): Entry | undefined {
     const parts = this.pathParts(uri);
     let current: Entry = this.root;
     for (const part of parts) {
@@ -202,11 +203,11 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     return current;
   }
 
-  private pathParts(uri: vscode.Uri): string[] {
+  private pathParts(uri: URI): string[] {
     return uri.path.split('/').filter(Boolean);
   }
 
-  private basename(uri: vscode.Uri): string {
+  private basename(uri: URI): string {
     const parts = this.pathParts(uri);
     const name = parts.at(-1);
     if (!name) {

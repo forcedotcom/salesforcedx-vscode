@@ -6,13 +6,14 @@
  */
 
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { APEX_TESTING_SCHEME } from './apexTestingDiscoveryFs';
 
 export class ApexTestingDecorationProvider implements vscode.FileDecorationProvider {
-  private readonly emitter = new vscode.EventEmitter<vscode.Uri | vscode.Uri[] | undefined>();
+  private readonly emitter = new vscode.EventEmitter<URI | URI[] | undefined>();
   public readonly onDidChangeFileDecorations = this.emitter.event;
 
-  public provideFileDecoration(uri: vscode.Uri): vscode.ProviderResult<vscode.FileDecoration> {
+  public provideFileDecoration(uri: URI): vscode.ProviderResult<vscode.FileDecoration> {
     if (uri.scheme !== APEX_TESTING_SCHEME) {
       return undefined;
     }

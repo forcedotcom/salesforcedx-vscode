@@ -8,41 +8,39 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
+import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
+import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
+import { DeployCompletedWithErrorsError } from './deployErrors';
 import { formatDeployOutput } from './formatDeployOutput';
+import { getMergedDeployFailures } from './getMergedDeployFailures';
 
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const deployComponentSet = Effect.fn('deployComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
 }) {
   const { componentSet } = options;
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, componentSetService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.ComponentSetService],
-    { concurrency: 'unbounded' }
-  );
+  clearDeployDiagnostics();
 
-  yield* channelService.appendToChannel(
-    `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
-  );
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channelService = yield* api.services.ChannelService;
+  yield* channelService.appendToChannel('Starting metadata deployment...');
 
   const result = yield* api.services.MetadataDeployService.deploy(componentSet);
 
-  // Handle cancellation
-  if (typeof result === 'string') {
-    yield* channelService.appendToChannel('Deploy cancelled by user');
-    return;
-  }
-
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
-  const { isSDRFailure } = componentSetService;
-  if (result.getFileResponses().some(isSDRFailure)) {
+  yield* maybeStoreDeployResult(result);
+
+  const failedResponses = yield* getMergedDeployFailures(result);
+  const failedWithPaths = failedResponses.filter(
+    (fr): fr is typeof fr & { filePath: string } => typeof fr.filePath === 'string' && fr.filePath.length > 0
+  );
+  if (failedResponses.length > 0) {
+    if (failedWithPaths.length > 0) {
+      yield* applyDeployDiagnostics(failedWithPaths);
+    }
     yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-    // we don't wait for the promise to complete (showErrorMessage being dismissed by the user)
-    yield* Effect.sync(() => {
-      void vscode.window.showErrorMessage(nls.localize('deploy_completed_with_errors_message'));
-    });
+    return yield* new DeployCompletedWithErrorsError({ userMessage: nls.localize('deploy_completed_with_errors_message') });
   }
 });

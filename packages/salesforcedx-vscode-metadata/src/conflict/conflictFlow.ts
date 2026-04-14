@@ -1,0 +1,91 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import type { DiffFilePair } from '../shared/diff/diffTypes';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import { nls } from '../messages';
+import { getDetectConflictsForDeployAndRetrieve } from '../settings/deployOnSaveSettings';
+import { detectConflictsFromTracking } from './conflictDetection';
+import { detectConflictsFromTimestamps } from './conflictDetectionTimestamp';
+import { ConflictsDetectedError } from './conflictErrors';
+import { getConflictStateRef } from './conflictTreeProvider';
+import { handleConflictsModal } from './conflictUi';
+import { conflictTreeProvider, ensureConflictView } from './conflictView';
+
+export type HandleConflictWithRetryOptions<A, E, R> = {
+  retryOperation: Effect.Effect<A, E, R>;
+  pairs: DiffFilePair[];
+  operationType: 'deploy' | 'retrieve' | 'delete';
+};
+
+/** Unified conflict detection: tracking orgs use tracking; non-tracking use timestamps when setting enabled. Yields ConflictsDetectedError when conflicts are found. */
+export const detectConflicts = Effect.fn('detectConflicts')(function* (
+  componentSet: NonEmptyComponentSet,
+  operationType: 'deploy' | 'retrieve' | 'delete'
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+
+  const timestampOperationType = operationType === 'delete' ? 'deploy' : operationType;
+  const pairs =
+    orgInfo.tracksSource === true
+      ? yield* detectConflictsFromTracking(componentSet)
+      : getDetectConflictsForDeployAndRetrieve()
+        ? yield* detectConflictsFromTimestamps(componentSet, timestampOperationType)
+        : [];
+
+  if (pairs.length > 0) return yield* new ConflictsDetectedError({ pairs, componentSet, operationType });
+});
+
+/**
+ * On conflict: show modal; Override runs retryEffect; View conflicts fails with UserCancellationError
+ * (same as dismiss — command registration handles it without an error toast).
+ */
+export const handleConflictWithRetry = Effect.fn('handleConflictWithRetry')(function* <A, E, R>(
+  options: HandleConflictWithRetryOptions<A, E, R>
+) {
+  yield* ensureConflictView();
+
+  const { warningMessage, viewConflictsText, overrideText } = Match.value(options.operationType).pipe(
+    Match.when('deploy', () => ({
+      warningMessage: nls.localize('conflict_detect_conflicts_during_deploy'),
+      viewConflictsText: nls.localize('conflict_detect_show_conflicts_deploy'),
+      overrideText: nls.localize('conflict_detect_override_deploy')
+    })),
+    Match.when('retrieve', () => ({
+      warningMessage: nls.localize('conflict_detect_conflicts_during_retrieve'),
+      viewConflictsText: nls.localize('conflict_detect_show_conflicts_retrieve'),
+      overrideText: nls.localize('conflict_detect_override_retrieve')
+    })),
+    Match.when('delete', () => ({
+      warningMessage: nls.localize('conflict_detect_conflicts_during_delete'),
+      viewConflictsText: nls.localize('conflict_detect_show_conflicts_delete'),
+      overrideText: nls.localize('conflict_detect_override_delete')
+    })),
+    Match.exhaustive
+  );
+
+  const result = yield* handleConflictsModal({
+    pairs: options.pairs,
+    mode: 'conflicts',
+    stateRef: getConflictStateRef(),
+    treeProviderFire: () => conflictTreeProvider.fireChange(),
+    warningMessage,
+    viewConflictsText,
+    overrideText,
+    emptyLabel: nls.localize('conflict_detect_no_conflicts')
+  });
+
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return result === 'continue'
+    ? yield* options.retryOperation
+    : yield* new api.services.UserCancellationError();
+});

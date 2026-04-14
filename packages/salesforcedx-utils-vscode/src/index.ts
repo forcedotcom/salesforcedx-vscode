@@ -23,6 +23,7 @@ export {
   TELEMETRY_GLOBAL_USER_ID,
   TELEMETRY_GLOBAL_WEB_USER_ID
 } from './constants';
+export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
@@ -45,18 +46,10 @@ export {
   stat,
   writeFile
 } from './helpers/fs';
+export { fileExtensionsMatch, getTestResultsFolder, projectPaths, TOOLS } from './helpers/paths';
 export {
-  fileExtensionsMatch,
-  getRelativeProjectPath,
-  getTestResultsFolder,
-  projectPaths,
-  TOOLS
-} from './helpers/paths';
-export {
-  difference,
   extractJson,
   fileUtils,
-  fixupError,
   getJsonCandidate,
   getMessageFromError,
   identifyJsonTypeInString,
@@ -97,7 +90,6 @@ export type { PostconditionChecker } from './commands/postconditionCheckers';
 export { getYYYYMMddHHmmssDateFormat, optionYYYYMMddHHmmss } from './date/format';
 export { Column, createTable, Row } from './output/table';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
-export { SourceTrackingType, SourceTrackingService } from './services/sourceTrackingService';
 export { UserService } from './services/userService';
 export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';
