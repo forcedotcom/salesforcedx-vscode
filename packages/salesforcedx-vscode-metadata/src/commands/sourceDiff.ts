@@ -51,7 +51,7 @@ const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: U
   );
   yield* Effect.annotateCurrentSpan({ allUris });
 
-  const diffsOpen = (yield* diffComponentSet({ componentSet, initialUris: hashableUris })).toSorted((a, b) =>
+  const diffsOpen = (yield* diffComponentSet({ componentSet, localUriFilter: hashableUris })).toSorted((a, b) =>
     a.fileName.localeCompare(b.fileName)
   );
   const firstPair = diffsOpen[0];

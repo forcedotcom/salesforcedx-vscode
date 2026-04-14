@@ -19,9 +19,9 @@ import { filesAreNotIdentical, matchUrisToComponents, retrieveToCacheDirectory }
 /** Diff ComponentSet - retrieve to cache and show diffs. Returns pairs that were diffed (non-identical). */
 export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
-  initialUris: HashSet.HashSet<HashableUri>;
+  localUriFilter: HashSet.HashSet<HashableUri>;
 }) {
-  const { componentSet, initialUris } = options;
+  const { componentSet, localUriFilter } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -37,8 +37,7 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
 
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(retrieveResult));
 
-  const retrievedComponents = retrieveResult.components.getSourceComponents().toArray();
-  if (retrievedComponents.length === 0) {
+  if (retrieveResult.components.getSourceComponents().toArray().length === 0) {
     yield* channelService.appendToChannel('No components retrieved from org');
     yield* Effect.sync(() => {
       void vscode.window.showWarningMessage(nls.localize('source_diff_no_results'));
@@ -46,8 +45,12 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
     return [];
   }
 
-  // Match URIs to components
-  const pairsSet = yield* matchUrisToComponents(initialUris, retrievedComponents);
+  // Match URIs to components using ComponentSet identity — local dir name is irrelevant
+  const pairsSet = yield* matchUrisToComponents(
+    componentSet,
+    retrieveResult.components,
+    localUriFilter
+  );
 
   if (HashSet.size(pairsSet) === 0) {
     yield* channelService.appendToChannel('No matching files found to diff');
