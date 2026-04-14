@@ -42,7 +42,7 @@ export const watchAliasFile = Effect.fn('watchAliasFile')(function* () {
     Stream.filter(event => normalize(event.uri.fsPath) === aliasFilePath),
     Stream.debounce(Duration.millis(50)),
     Stream.mapEffect(() => SubscriptionRef.get(ref)),
-    Stream.map(r => r.username ?? ''),
+    Stream.map(r => r.username),
     Stream.filter(isString),
     Stream.mapEffect(aliasService.getAliasesFromUsername),
     Stream.runForEach(freshAliases =>

@@ -12,18 +12,10 @@ import type { FileChangeEvent } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
 import { getTestController } from '../views/testController';
 
-/** Normalize path separators to forward slashes for cross-platform comparison */
-const normalizePath = (p: string): string => p.replaceAll('\\', '/');
-
 /** Check if a file event is a test result JSON file */
-const isTestResultJsonFile = (event: FileChangeEvent): boolean => {
-  const uriPath = normalizePath(event.uri.path || event.uri.fsPath);
-  return (
-    (event.type === 'create' || event.type === 'change') &&
-    uriPath.includes('.sfdx/tools/testresults/apex') &&
-    uriPath.endsWith('.json')
-  );
-};
+const isTestResultJsonFile = (event: FileChangeEvent): boolean =>
+  // uri.path is already normalized
+  event.uri.path.includes('.sfdx/tools/testresults/apex') && event.uri.path.endsWith('.json');
 
 /** Set up file watcher for test result JSON files using FileWatcherService */
 export const setupTestResultsFileWatcher = Effect.fn('apex-testing.watchTestResults')(function* (
@@ -33,6 +25,7 @@ export const setupTestResultsFileWatcher = Effect.fn('apex-testing.watchTestResu
   const fileChangePubSub = yield* api.services.FileChangePubSub;
 
   yield* Stream.fromPubSub(fileChangePubSub).pipe(
+    Stream.filter(e => e.type !== 'delete'),
     Stream.filter(isTestResultJsonFile),
     Stream.runForEach(event => {
       const apexDirUri = Utils.dirname(event.uri);
