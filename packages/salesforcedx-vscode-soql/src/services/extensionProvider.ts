@@ -63,10 +63,9 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * stateful services across sobject_metadata_request, sobjects_request, and
  * code-completion calls
  */
-const createSoqlRuntime = () => ManagedRuntime.make(AllServicesLayer);
-
-let _soqlRuntime: ReturnType<typeof createSoqlRuntime> | undefined;
-export const getSoqlRuntime = () => {
-  if (!_soqlRuntime) _soqlRuntime = createSoqlRuntime();
-  return _soqlRuntime;
-};
+type SoqlRuntime = ManagedRuntime.ManagedRuntime<
+  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+>;
+let _soqlRuntime: SoqlRuntime | undefined;
+export const getSoqlRuntime = () => (_soqlRuntime ??= ManagedRuntime.make(AllServicesLayer));
