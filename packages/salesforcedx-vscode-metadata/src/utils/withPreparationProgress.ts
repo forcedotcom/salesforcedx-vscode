@@ -89,7 +89,6 @@ export const withPreparationProgress =
         void vscode.window.withProgress(
           {
             location: vscode.ProgressLocation.Notification,
-            title: nls.localize(titleKey(operationType)),
             cancellable: true
           },
           async (progress, token) => {
@@ -99,10 +98,14 @@ export const withPreparationProgress =
               )
             );
 
+            const report = (key: Parameters<typeof nls.localize>[0]) =>
+              Effect.sync(() => progress.report({ message: nls.localize(key) }));
+
             const pipeline = Effect.gen(function* () {
+              yield* report(titleKey(operationType));
               const cs = yield* raceWithCancel(prepare);
               if (detectConflictsFn) {
-                yield* Effect.sync(() => progress.report({ message: nls.localize('checking_for_conflicts') }));
+                yield* report('checking_for_conflicts');
                 yield* raceWithCancel(detectConflictsFn(cs));
               }
               return cs;

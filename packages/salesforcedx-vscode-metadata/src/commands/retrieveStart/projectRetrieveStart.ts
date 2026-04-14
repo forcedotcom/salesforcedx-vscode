@@ -44,22 +44,21 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
       { concurrency: 'unbounded' }
     );
 
-    const [nonDeletesCS, deletesCS] = yield* Effect.all(
+    yield* Effect.all(
       [
         sourceTrackingService.getRemoteNonDeletesAsComponentSet({ applyIgnore: true }),
         sourceTrackingService.getRemoteDeletesAsComponentSet()
       ],
       { concurrency: 'unbounded' }
-    );
-
-    // Merge delete members into non-deletes ComponentSet for a combined conflict check + non-empty guard.
-    // deletesCS members are added so detectConflictsFromTracking filters include locally-modified files
-    // that were remotely deleted.
-    [...deletesCS].map(member => nonDeletesCS.add(member));
-
-    // Build combined CS for conflict detection, then run the actual retrieve.
-    // combinedCS is used only for conflict detection; applyAndRetrieve sources its own component set.
-    yield* componentSetService.ensureNonEmptyComponentSet(nonDeletesCS).pipe(
+    ).pipe(
+      // Merge delete members into non-deletes ComponentSet for a combined conflict check + non-empty guard.
+      // deletesCS members are added so detectConflictsFromTracking filters include locally-modified files
+      // that were remotely deleted.
+      Effect.map(([nonDeletesCS, deletesCS]) => {
+        [...deletesCS].map(member => nonDeletesCS.add(member));
+        return nonDeletesCS;
+      }),
+      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
       Effect.tap(cs =>
         channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
       ),
