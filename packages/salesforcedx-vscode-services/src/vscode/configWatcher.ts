@@ -18,36 +18,35 @@ import {
 import { ConnectionService } from '../core/connectionService';
 import { retrieveOnLoadEffect } from '../core/retrieveOnLoad';
 import { ChannelService } from './channelService';
-import { SettingsWatcherService } from './settingsWatcherService';
+import { SettingsChangePubSub } from './settingsChangePubSub';
 
 /** Watches settings changes and triggers appropriate effects */
-export const watchSettingsService = () =>
-  Effect.gen(function* () {
-    console.log('watchSettingsService starting');
+export const watchSettingsService = Effect.fn('watchSettingsService')(function* () {
+  console.log('watchSettingsService starting');
 
-    const [settingsWatcherService, channelService] = yield* Effect.all([SettingsWatcherService, ChannelService], {
-      concurrency: 'unbounded'
-    });
+  const [settingsChangePubSub, channelService] = yield* Effect.all([SettingsChangePubSub, ChannelService], {
+    concurrency: 'unbounded'
+  });
 
-    // watches auth settings
-    yield* Effect.fork(
-      Stream.fromPubSub(settingsWatcherService.pubsub).pipe(
-        Stream.filter(event => authSettings.some(s => event.affectsConfiguration(s))),
-        Stream.debounce(Duration.millis(100)),
-        Stream.tap(() => channelService.appendToChannel('ConfigChaged: Web Auth')),
-        Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void))) // it's possible for the connection to fail and that's ok.  Some other event will try to get a connection and display a real error
-      )
-    );
-
-    // watch retrieveOnLoad setting
-    yield* Stream.fromPubSub(settingsWatcherService.pubsub).pipe(
-      Stream.filter(event => event.affectsConfiguration(`${CODE_BUILDER_WEB_SECTION}.${RETRIEVE_ON_LOAD_KEY}`)),
+  // watches auth settings
+  yield* Effect.fork(
+    Stream.fromPubSub(settingsChangePubSub).pipe(
+      Stream.filter(event => authSettings.some(s => event.affectsConfiguration(s))),
       Stream.debounce(Duration.millis(100)),
-      Stream.tap(() => channelService.appendToChannel(`ConfigChanged: ${RETRIEVE_ON_LOAD_KEY}`)),
-      Stream.runForEach(() => retrieveOnLoadEffect())
-    );
-    console.log('watchSettingsService started');
-  }).pipe(Effect.withSpan('watchSettingsService'));
+      Stream.tap(() => channelService.appendToChannel('ConfigChaged: Web Auth')),
+      Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void))) // it's possible for the connection to fail and that's ok.  Some other event will try to get a connection and display a real error
+    )
+  );
+
+  // watch retrieveOnLoad setting
+  yield* Stream.fromPubSub(settingsChangePubSub).pipe(
+    Stream.filter(event => event.affectsConfiguration(`${CODE_BUILDER_WEB_SECTION}.${RETRIEVE_ON_LOAD_KEY}`)),
+    Stream.debounce(Duration.millis(100)),
+    Stream.tap(() => channelService.appendToChannel(`ConfigChanged: ${RETRIEVE_ON_LOAD_KEY}`)),
+    Stream.runForEach(() => retrieveOnLoadEffect())
+  );
+  console.log('watchSettingsService started');
+});
 
 const authSettings = [INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY].map(
   key => `${CODE_BUILDER_WEB_SECTION}.${key}`

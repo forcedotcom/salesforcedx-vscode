@@ -8,14 +8,9 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { URI, Utils } from 'vscode-uri';
+import type { FileChangeEvent } from 'salesforcedx-vscode-services';
+import { Utils } from 'vscode-uri';
 import { getTestController } from '../views/testController';
-
-/** File change event from FileWatcherService */
-type FileChangeEvent = {
-  readonly type: 'create' | 'change' | 'delete';
-  readonly uri: URI;
-};
 
 /** Normalize path separators to forward slashes for cross-platform comparison */
 const normalizePath = (p: string): string => p.replaceAll('\\', '/');
@@ -35,9 +30,9 @@ export const setupTestResultsFileWatcher = Effect.fn('apex-testing.watchTestResu
   testController: ReturnType<typeof getTestController>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fileWatcherService = yield* api.services.FileWatcherService;
+  const fileChangePubSub = yield* api.services.FileChangePubSub;
 
-  yield* Stream.fromPubSub(fileWatcherService.pubsub).pipe(
+  yield* Stream.fromPubSub(fileChangePubSub).pipe(
     Stream.filter(isTestResultJsonFile),
     Stream.runForEach(event => {
       const apexDirUri = Utils.dirname(event.uri);
