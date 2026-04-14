@@ -44,6 +44,9 @@ const replaceEditorContentAndSave = async (
 
 const pickNonStickyTreeItem = async (items: Locator, description: string): Promise<Locator> => {
   const count = await items.count();
+  if (count === 0) {
+    throw new Error(`No Files Explorer tree item found for ${description}`);
+  }
   for (let i = 0; i < count; i++) {
     const candidate = items.nth(i);
     const isSticky = await candidate.evaluate(el => el.classList.contains('monaco-tree-sticky-row'));
@@ -51,7 +54,9 @@ const pickNonStickyTreeItem = async (items: Locator, description: string): Promi
       return candidate;
     }
   }
-  throw new Error(`No non-sticky Files Explorer tree item for ${description}`);
+  // Explorer sticky scrolling can duplicate rows; every visible match may be sticky. Prefer the last row (same idea as
+  // the multi-root `force-app` branch below) so expand/click still targets the real tree node.
+  return items.nth(count - 1);
 };
 
 /**
@@ -69,25 +74,30 @@ const expandWebExplorerPathToLwcFile = async (page: Page, fileName: string): Pro
   for (const segment of segments) {
     const escaped = segment.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const rows = page.getByRole('treeitem', { name: new RegExp(`^${escaped}(/|,|$)`) });
-    let row: Locator;
-    const rowCount = await rows.count();
-    if (segment === 'force-app' && segments[0] === 'mount' && rowCount > 1) {
-      const last = rows.nth(rowCount - 1);
-      row = (await last.evaluate(el => el.classList.contains('monaco-tree-sticky-row')))
-        ? await pickNonStickyTreeItem(rows, `"${segment}"`)
-        : last;
-    } else {
-      row = await pickNonStickyTreeItem(rows, `"${segment}"`);
-    }
-    await row.waitFor({ state: 'visible', timeout: 15_000 });
-    await row.scrollIntoViewIfNeeded();
-    const expanded = await row.getAttribute('aria-expanded');
-    if (expanded !== 'true') {
-      const twistie = row.locator('.monaco-tl-twistie').first();
-      const twistieCount = await twistie.count();
-      await (twistieCount > 0 ? twistie.click() : row.click());
+    await rows.first().waitFor({ state: 'attached', timeout: 15_000 });
+    // Explorer re-renders rows (sticky scroll / virtualization); a locator can detach between wait and scroll.
+    // Re-resolve the row each attempt via expect().toPass().
+    await expect(async () => {
+      const rowCount = await rows.count();
+      let row: Locator;
+      if (segment === 'force-app' && segments[0] === 'mount' && rowCount > 1) {
+        const last = rows.nth(rowCount - 1);
+        row = (await last.evaluate(el => el.classList.contains('monaco-tree-sticky-row')))
+          ? await pickNonStickyTreeItem(rows, `"${segment}"`)
+          : last;
+      } else {
+        row = await pickNonStickyTreeItem(rows, `"${segment}"`);
+      }
+      await row.waitFor({ state: 'visible', timeout: 10_000 });
+      await row.scrollIntoViewIfNeeded();
+      const expanded = await row.getAttribute('aria-expanded');
+      if (expanded !== 'true') {
+        const twistie = row.locator('.monaco-tl-twistie').first();
+        const twistieCount = await twistie.count();
+        await (twistieCount > 0 ? twistie.click() : row.click());
+      }
       await expect(row).toHaveAttribute('aria-expanded', 'true', { timeout: 10_000 });
-    }
+    }).toPass({ timeout: 45_000 });
   }
 };
 
@@ -100,22 +110,26 @@ const openLwcFileViaExplorerSingleClick = async (page: Page, fileName: string): 
   await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
   await expandWebExplorerPathToLwcFile(page, fileName);
   const allTreeItems = page.getByRole('treeitem', { name: fileName, exact: true });
-  const count = await allTreeItems.count();
-  let treeItem: Locator | undefined;
-  for (let i = 0; i < count; i++) {
-    const candidate = allTreeItems.nth(i);
-    const isSticky = await candidate.evaluate(el => el.classList.contains('monaco-tree-sticky-row'));
-    if (!isSticky) {
-      treeItem = candidate;
-      break;
+  await allTreeItems.first().waitFor({ state: 'attached', timeout: 15_000 });
+  await expect(async () => {
+    const n = await allTreeItems.count();
+    if (n === 0) {
+      throw new Error(`No Files Explorer tree item found for "${fileName}"`);
     }
-  }
-  if (!treeItem) {
-    throw new Error(`No non-sticky Files Explorer tree item found for "${fileName}"`);
-  }
-  await treeItem.waitFor({ state: 'visible', timeout: 15_000 });
-  await treeItem.scrollIntoViewIfNeeded();
-  await treeItem.click({ timeout: 5000 });
+    let toClick: Locator | undefined;
+    for (let i = 0; i < n; i++) {
+      const candidate = allTreeItems.nth(i);
+      const isSticky = await candidate.evaluate(el => el.classList.contains('monaco-tree-sticky-row'));
+      if (!isSticky) {
+        toClick = candidate;
+        break;
+      }
+    }
+    const row = toClick ?? allTreeItems.nth(n - 1);
+    await row.waitFor({ state: 'visible', timeout: 10_000 });
+    await row.scrollIntoViewIfNeeded();
+    await row.click({ timeout: 5000 });
+  }).toPass({ timeout: 45_000 });
 };
 
 /**
