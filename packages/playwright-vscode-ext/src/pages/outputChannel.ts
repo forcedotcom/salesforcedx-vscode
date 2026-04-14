@@ -16,7 +16,7 @@ import {
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW
 } from '../utils/locators';
-import { openCommandPalette } from './commands';
+import { executeCommandWithCommandPalette, openCommandPalette } from './commands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
@@ -265,13 +265,7 @@ export const outputChannelContains = async (
  * Use this to make sure that your assertions are not picking up text from the previous test unless you mean to
  */
 export const clearOutputChannel = async (page: Page): Promise<void> => {
-  await openCommandPalette(page);
-  const widget = page.locator(QUICK_INPUT_WIDGET);
-  const input = widget.locator('input.input');
-  await input.waitFor({ state: 'attached', timeout: 5000 });
-  await input.fill('>View: Clear Output');
-  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
-  await page.keyboard.press('Enter');
+  await executeCommandWithCommandPalette(page, 'View: Clear Output');
 
   // Wait for the clear action to take effect - output should be completely empty
   const codeArea = outputPanelCodeArea(page);
