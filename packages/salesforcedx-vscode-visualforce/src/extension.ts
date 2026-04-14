@@ -95,7 +95,11 @@ export const activate = async (context: ExtensionContext) => {
   const client = new LanguageClient('visualforce', 'Visualforce Language Server', serverOptions, clientOptions);
   client.registerFeature(new ConfigurationFeature(client));
 
-  await client.start();
+  // Do not await client.start() — the LSP server initializes asynchronously in the background.
+  // Awaiting blocks activate() for 20+ seconds on Windows CI (spawning a Node process is slow),
+  // which keeps VS Code showing "Activating Extensions..." and prevents test steps from seeing
+  // a ready LSP. The client queues requests internally until the server is initialized.
+  void client.start();
   context.subscriptions.push(
     client,
     languages.registerDefinitionProvider([{ language: 'visualforce', scheme: 'file' }], apexControllerDefinitionProvider)
