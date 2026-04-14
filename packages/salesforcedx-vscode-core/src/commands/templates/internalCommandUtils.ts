@@ -12,7 +12,7 @@ import {
   ParametersGatherer,
   PreconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { Uri } from 'vscode';
+import { URI } from 'vscode-uri';
 import { salesforceCoreSettings } from '../../settings';
 
 export class InternalDevWorkspaceChecker implements PreconditionChecker {
@@ -23,7 +23,7 @@ export class InternalDevWorkspaceChecker implements PreconditionChecker {
 
 export class FileInternalPathGatherer implements ParametersGatherer<{ outputdir: string }> {
   private filePath: string;
-  constructor(uri: Uri) {
+  constructor(uri: URI) {
     this.filePath = uri.fsPath;
   }
 

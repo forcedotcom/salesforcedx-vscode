@@ -11,6 +11,7 @@ import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
+import { getActiveMetadataOperationRef } from './core/activeMetadataOperationRef';
 import { AliasService } from './core/alias';
 import { AliasFileWatcherService, watchDefaultOrgAliases } from './core/aliasFileWatcher';
 import { ApexLogService } from './core/apexLogService';
@@ -21,6 +22,7 @@ import { ConnectionService } from './core/connectionService';
 import { getDefaultOrgRef } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
+import { MetadataChangeNotificationService } from './core/metadataChangeNotificationService';
 import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
@@ -71,6 +73,7 @@ export type SalesforceVSCodeServicesApi = {
       | FileWatcherService
       | FsService
       | MediaService
+      | MetadataChangeNotificationService
       | MetadataDeleteService
       | MetadataDeployService
       | MetadataDescribeService
@@ -106,6 +109,7 @@ export type SalesforceVSCodeServicesApi = {
     FsService: typeof FsService;
     getErrorMessage: typeof getErrorMessage;
     MediaService: typeof MediaService;
+    MetadataChangeNotificationService: typeof MetadataChangeNotificationService;
     MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
@@ -117,6 +121,7 @@ export type SalesforceVSCodeServicesApi = {
     SettingsService: typeof SettingsService;
     SettingsWatcherService: typeof SettingsWatcherService;
     SourceTrackingService: typeof SourceTrackingService;
+    ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
     TransmogrifierService: typeof TransmogrifierService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
@@ -149,7 +154,7 @@ export type {
   SourceTrackingService
 } from './core/sourceTrackingService';
 export type { HashableUri } from './vscode/hashableUri';
-export type { FailedToResolveSfProjectError } from './core/projectService';
+export type { FailedToResolveSfProjectError, NotInPackageDirectoryError } from './core/projectService';
 export type { NoWorkspaceOpenError } from './vscode/workspaceService';
 export type { FailedToCreateConfigAggregatorError } from './core/configService';
 export type {
@@ -197,7 +202,9 @@ export type { IconId, MediaService } from './vscode/mediaService';
 export type { SettingsError } from './vscode/settingsService';
 
 /** Effect that runs when the extension is activated after FS setup */
-const activationEffect = Effect.fn('activationEffect')(function* (context: vscode.ExtensionContext) {
+const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
+  context: vscode.ExtensionContext
+) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
   // do this first to prevent Connection issues.
   yield* updateTelemetryUserIds(context);
@@ -209,7 +216,7 @@ const activationEffect = Effect.fn('activationEffect')(function* (context: vscod
     yield* Effect.all(
       [
         Effect.forkIn(subscribeLifecycleWarnings(), scope),
-        retrieveOnLoadEffect(),
+        Effect.forkIn(retrieveOnLoadEffect(), scope),
         Effect.forkIn(watchSettingsService(), scope)
       ],
       { concurrency: 'unbounded' }
@@ -263,7 +270,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
             SettingsService.Default,
             ChannelService.Default,
             IndexedDBStorageServiceShared,
-            isItReadOnlyLayer
+            isItReadOnlyLayer,
+            ServicesSdkLayer()
           )
         ),
         Scope.extend(extensionScope)
@@ -296,6 +304,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     FileWatcherService.Default,
     FsService.Default,
     MediaService.Default,
+    MetadataChangeNotificationService.Default,
     MetadataDescribeService.Default,
     MetadataDeleteService.Default,
     MetadataDeployService.Default,
@@ -327,6 +336,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   await Effect.runPromise(
     Effect.provide(
       activationEffect(context).pipe(
+        Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
         Effect.withSpan('activation:salesforcedx-vscode-services', {
           attributes: { isWeb: process.env.ESBUILD_PLATFORM === 'web' }
         })
@@ -364,6 +374,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       FsService,
       getErrorMessage,
       MediaService,
+      MetadataChangeNotificationService,
       MetadataDeleteService,
       MetadataDescribeService,
       MetadataDeployService,
@@ -374,6 +385,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       SettingsService,
       SettingsWatcherService,
       SourceTrackingService,
+      ActiveMetadataOperationRef: getActiveMetadataOperationRef,
       TargetOrgRef: getDefaultOrgRef,
       TransmogrifierService,
       TraceFlagItemStruct,
@@ -419,6 +431,12 @@ export {
 } from './core/metadataDeleteService';
 export { type ApexLogListItem, type ApexLogService, type ListLogsOptions } from './core/apexLogService';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
+export {
+  MetadataChangeNotificationService,
+  MetadataChangeEvent,
+  type MetadataChangeEvent as MetadataChangeEventType
+} from './core/metadataChangeNotificationService';
+export type { MetadataChangeType, RequestStatusValue } from './core/sdrGuards';
 export {
   MetadataDeployService,
   type MetadataDeployService as MetadataDeployServiceType

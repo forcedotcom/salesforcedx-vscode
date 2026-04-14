@@ -6,34 +6,33 @@
  */
 import { isAbsolute } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 expect.extend({
-    toExist: async (path: string) => {
-        try {
-            await vscode.workspace.fs.stat(vscode.Uri.file(path));
-            return {
-                message: () => `expected ${path} not to exist`,
-                pass: true,
-            };
-        } catch {
-            return {
-                message: () => `expected ${path} to exist`,
-                pass: false,
-            };
+  toExist: async (path: string) => {
+    try {
+      await vscode.workspace.fs.stat(URI.file(path));
+      return {
+        message: () => `expected ${path} not to exist`,
+        pass: true
+      };
+    } catch {
+      return {
+        message: () => `expected ${path} to exist`,
+        pass: false
+      };
+    }
+  },
+  toBeAbsolutePath: (path: string) => {
+    const pass = isAbsolute(path);
+    return pass
+      ? {
+          message: () => `expected ${path} not to be absolute`,
+          pass: true
         }
-    },
-    toBeAbsolutePath: (path: string) => {
-        const pass = isAbsolute(path);
-        if (pass) {
-            return {
-                message: () => `expected ${path} not to be absolute`,
-                pass: true,
-            };
-        } else {
-            return {
-                message: () => `expected ${path} to be absolute`,
-                pass: false,
-            };
-        }
-    },
+      : {
+          message: () => `expected ${path} to be absolute`,
+          pass: false
+        };
+  }
 });

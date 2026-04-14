@@ -5,11 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isLWC, LWC_SERVER_READY_NOTIFICATION, type WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  isLWC,
+  LWC_SERVER_READY_NOTIFICATION,
+  type WorkspaceType
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
-import { ExtensionContext, FileType, Uri, workspace } from 'vscode';
+import { ExtensionContext, FileType, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
 import { log } from './constants';
@@ -24,9 +28,9 @@ const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
 };
 
 /** Path-string workspace detection fails for some virtual/test-web roots; `workspace.fs` uses the folder URI. */
-const rootHasSfdxProjectJson = async (folderUri: Uri): Promise<boolean> => {
+const rootHasSfdxProjectJson = async (folderUri: URI): Promise<boolean> => {
   try {
-    const stat = await workspace.fs.stat(Uri.joinPath(folderUri, 'sfdx-project.json'));
+    const stat = await workspace.fs.stat(Utils.joinPath(folderUri, 'sfdx-project.json'));
     return stat.type === FileType.File;
   } catch {
     return false;
@@ -84,7 +88,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Path-based detection (Node fs paths) can return UNKNOWN for virtual workspaces; confirm via URI API.
   let workspaceType: WorkspaceType =
     workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
-  if (workspaceType === 'UNKNOWN' && workspace.workspaceFolders[0] && (await rootHasSfdxProjectJson(workspace.workspaceFolders[0].uri))) {
+  if (
+    workspaceType === 'UNKNOWN' &&
+    workspace.workspaceFolders[0] &&
+    (await rootHasSfdxProjectJson(workspace.workspaceFolders[0].uri))
+  ) {
     workspaceType = 'SFDX';
   }
 
@@ -97,12 +105,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
     return;
   }
 
-  // Start the LWC Language Server. Web uses a URI-based worker bundle; Node uses an absolute path.
-  const serverModule =
-    process.env.ESBUILD_PLATFORM === 'web'
-      ? Utils.joinPath(URI.from(extensionContext.extensionUri), 'dist', 'web', 'lwcServer.js').toString()
-      : extensionContext.asAbsolutePath('dist/lwcServer.js');
-
+  // Start the LWC Language Server
   try {
     const sfdxTypingsDir = Utils.joinPath(
       URI.from(extensionContext.extensionUri),
@@ -110,7 +113,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
       'sfdx',
       'typings'
     ).toString();
-    const client = await createLanguageClient(serverModule, { workspaceType, sfdxTypingsDir });
+    const client = await createLanguageClient(extensionContext.extensionUri, { workspaceType, sfdxTypingsDir });
 
     // Create language status item to show indexing progress
     const statusBarItem = new LwcLspStatusBarItem();

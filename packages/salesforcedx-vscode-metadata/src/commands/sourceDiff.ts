@@ -8,9 +8,12 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { getConflictStateRef } from '../conflict/conflictTreeProvider';
+import { CONFLICTS_VIEW_ID, conflictTreeProvider, ensureConflictView } from '../conflict/conflictView';
 import { nls } from '../messages';
 import { diffComponentSet } from '../shared/diff/diffComponentSet';
 
@@ -18,8 +21,8 @@ import { diffComponentSet } from '../shared/diff/diffComponentSet';
 /** Recursively get all file URIs from a directory */
 const getAllFileUrisFromMaybeDirectory: (
   uri: URI
-) => Effect.Effect<URI[], Error, ExtensionProviderService | FsService> = (uri: URI) =>
-  Effect.gen(function* () {
+) => Effect.Effect<URI[], Error, ExtensionProviderService | FsService> = Effect.fn('getAllFileUrisFromDirectory')(
+  function* (uri: URI) {
     yield* Effect.annotateCurrentSpan({ uri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     if (!(yield* api.services.FsService.isDirectory(uri))) {
@@ -32,10 +35,8 @@ const getAllFileUrisFromMaybeDirectory: (
       { concurrency: 'unbounded' }
     );
     return subdirFiles.flat();
-  }).pipe(
-    Effect.withSpan('getAllFileUrisFromDirectory'),
-    Effect.tap(result => Effect.annotateCurrentSpan({ result }))
-  );
+  }
+);
 
 /** Diff source paths from the default org */
 const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: URI, uris: URI[]) {
@@ -49,7 +50,34 @@ const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: U
     yield* componentSetService.getComponentSetFromUris(allUris)
   );
   yield* Effect.annotateCurrentSpan({ allUris });
-  yield* diffComponentSet({ componentSet, initialUris: hashableUris });
+
+  const diffsOpen = (yield* diffComponentSet({ componentSet, initialUris: hashableUris })).toSorted((a, b) =>
+    a.fileName.localeCompare(b.fileName)
+  );
+  const firstPair = diffsOpen[0];
+
+  if (firstPair) {
+    yield* Effect.sync(() =>
+      void vscode.commands.executeCommand(
+        'vscode.diff',
+        firstPair.remoteUri.toUri(),
+        firstPair.localUri.toUri(),
+        nls.localize('source_diff_title', 'remote', firstPair.fileName, firstPair.fileName)
+      )
+    );
+  }
+
+  if (diffsOpen.length >= 2) {
+    yield* ensureConflictView();
+    yield* SubscriptionRef.update(getConflictStateRef(), () => ({
+      title: `${diffsOpen.length} file differences`,
+      mode: 'diffs' as const,
+      entries: diffsOpen,
+      emptyLabel: nls.localize('conflict_detect_no_differences')
+    }));
+    conflictTreeProvider.fireChange();
+    yield* Effect.sync(() => void vscode.commands.executeCommand(`${CONFLICTS_VIEW_ID}.focus`));
+  }
 });
 
 export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
@@ -72,6 +100,8 @@ export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
   if (!resolvedSourceUri) {
     return;
   }
+
+  yield* api.services.ProjectService.ensureInPackageDirectories([resolvedSourceUri, ...(uris ?? [])]);
 
   yield* Effect.annotateCurrentSpan({ resolvedSourceUri });
   const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
