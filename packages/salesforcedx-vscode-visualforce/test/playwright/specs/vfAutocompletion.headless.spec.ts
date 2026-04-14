@@ -12,6 +12,7 @@ import {
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
+  waitForExtensionActivated,
   closeWelcomeTabs,
   validateNoCriticalErrors,
   saveScreenshot,
@@ -54,11 +55,11 @@ test.describe('Visualforce LSP - Autocompletion', () => {
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
+    await waitForExtensionActivated(page, 'salesforce.salesforcedx-vscode-core');
   });
 
   test('Autocompletion', async ({ page }) => {
-    // VF LSP server process can take 90-120s to initialize on Windows CI
-    test.setTimeout(300_000);
+    test.setTimeout(120_000);
     await test.step('Open AutocompletePage.page', async () => {
       await openFileByName(page, 'AutocompletePage.page');
       const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="AutocompletePage.page"]`);
@@ -76,16 +77,14 @@ test.describe('Visualforce LSP - Autocompletion', () => {
       // Type partial Visualforce tag
       await page.keyboard.type('\t\t<apex:pageM');
 
-      // Retry triggering autocomplete until the VF LSP is ready and returns completions.
-      // On slow runners (Windows) the LSP may not be initialized yet on the first trigger,
-      // returning "No suggestions." — toPass retries Escape+Control+Space until it passes.
+      // Retry until the VF LSP responds with completions
       const suggestWidget = page.locator('.editor-widget.suggest-widget');
       await expect(async () => {
         await page.keyboard.press('Escape');
         await page.keyboard.press('Control+Space');
         await expect(suggestWidget).toBeVisible({ timeout: 5000 });
         await expect(suggestWidget.locator('.monaco-list-row').first()).toContainText('apex:pageMessage', { timeout: 3000 });
-      }).toPass({ timeout: 150_000 });
+      }).toPass({ timeout: 30_000 });
 
       await saveScreenshot(page, 'vf-lsp-autocomplete.png');
     });

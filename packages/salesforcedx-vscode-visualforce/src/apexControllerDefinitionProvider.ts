@@ -19,8 +19,6 @@ import { URI, Utils } from 'vscode-uri';
 const APEX_ATTR_RE = /\b(?:controller|extensions)\s*=\s*"([\w]+)"/g;
 
 // Standard Salesforce DX class paths relative to workspace root.
-// Checked in order before falling back to workspace.findFiles, which can be
-// slow or miss newly created files on Windows (file-watcher indexing delay).
 const APEX_CLASS_SEARCH_PATHS = [
   ['force-app', 'main', 'default', 'classes'],
   ['src', 'classes']
@@ -28,7 +26,9 @@ const APEX_CLASS_SEARCH_PATHS = [
 
 const statUri = async (uri: URI): Promise<boolean> => {
   try {
-    await workspace.fs.stat(uri);
+    // vscode-uri URI is structurally compatible with vscode.Uri
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    await workspace.fs.stat(uri as unknown as import('vscode').Uri);
     return true;
   } catch {
     return false;
@@ -45,14 +45,13 @@ export const apexControllerDefinitionProvider: DefinitionProvider = {
       if (offset >= start && offset <= end) {
         const className = match[1];
         const fileName = `${className}.cls`;
-        // Try standard Salesforce project paths first — avoids workspace.findFiles
-        // indexing delays on Windows CI.
         for (const folder of workspace.workspaceFolders ?? []) {
-          const folderUri = URI.file(folder.uri.fsPath);
+          const folderUri = URI.parse(folder.uri.toString());
           for (const segments of APEX_CLASS_SEARCH_PATHS) {
             const uri = Utils.joinPath(folderUri, ...segments, fileName);
             if (await statUri(uri)) {
-              return new Location(uri, new Position(0, 0));
+              // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+              return new Location(uri as unknown as import('vscode').Uri, new Position(0, 0));
             }
           }
         }

@@ -388,6 +388,38 @@ export const waitForExtensionsActivated = async (page: Page, timeout = 120_000):
 };
 
 /**
+ * Wait for a specific extension to finish activating.
+ * Opens "Developer: Show Running Extensions," finds the row matching `extensionId`,
+ * and waits until it shows "Activation: Xms" or "Startup Activation: Xms."
+ * Fails the test if the extension row is not found (not loaded at all).
+ *
+ * @param extensionId - The extension's publisher.name id (e.g. "salesforce.salesforcedx-vscode-core")
+ * @param timeout - Maximum ms to wait for activation (default 120 000).
+ */
+export const waitForExtensionActivated = async (
+  page: Page,
+  extensionId: string,
+  timeout = 120_000
+): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Developer: Show Running Extensions');
+
+  const editor = page.locator('.runtime-extensions-editor');
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+
+  const rows = editor.locator('.monaco-list-row');
+  await expect(rows).not.toHaveCount(0, { timeout: 30_000 });
+
+  const extRow = rows.filter({ hasText: extensionId });
+  await expect(extRow).toHaveCount(1, { timeout: 15_000 });
+
+  await expect(extRow).toContainText(/(?:Startup )?Activation:\s*\d+ms/, { timeout });
+
+  await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+  const tab = page.getByRole('tab', { name: /Running Extensions/i });
+  await tab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+};
+
+/**
  * Ensure the secondary sidebar (auxiliary bar, typically used for Chat/Copilot) is hidden.
  * This is idempotent - only hides if currently visible, avoiding toggle state issues.
  * Useful to prevent keystrokes from going to chat input instead of editor.

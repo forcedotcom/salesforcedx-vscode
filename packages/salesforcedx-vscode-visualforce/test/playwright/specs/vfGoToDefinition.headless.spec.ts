@@ -12,6 +12,7 @@ import {
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
+  waitForExtensionActivated,
   closeWelcomeTabs,
   validateNoCriticalErrors,
   openFileByName,
@@ -78,17 +79,15 @@ test.describe('Visualforce LSP - Go to Definition', () => {
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
+    await waitForExtensionActivated(page, 'salesforce.salesforcedx-vscode-core');
   });
 
   test('Go to Definition', async ({ page }) => {
-    test.setTimeout(300_000);
+    test.setTimeout(120_000);
     await openFileByName(page, 'GoToDefPage.page');
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="GoToDefPage.page"]`);
     await expect(editor).toBeVisible({ timeout: 15_000 });
 
-    // Retry the full navigate + Go to Definition cycle until the VF extension is ready.
-    // On slow runners (Windows) the VF definition provider may not be registered yet
-    // when the first attempt fires — toPass retries until navigation succeeds.
     const controllerEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="GoToDefController.cls"]`);
     await expect(async () => {
       // Navigate to "GoToDefController" in controller="GoToDefController" (line 1, col 25)
@@ -96,13 +95,11 @@ test.describe('Visualforce LSP - Go to Definition', () => {
       await page.keyboard.type('1:25');
       await page.keyboard.press('Enter');
 
-      // Use F12 directly — avoids openCommandPalette's bringToFront() which resets
-      // VS Code's editorTextFocus context on Windows, causing "Go to Definition" to be
-      // absent from the command palette (it requires editorTextFocus).
+      // F12 = Go to Definition
       await page.keyboard.press('F12');
 
       await expect(controllerEditor).toBeVisible({ timeout: 5000 });
-    }).toPass({ timeout: 150_000 });
+    }).toPass({ timeout: 30_000 });
   });
 
   test.afterEach(async ({ page }) => {

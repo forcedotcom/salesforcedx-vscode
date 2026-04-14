@@ -52,22 +52,18 @@ export const activate = async (context: ExtensionContext) => {
   const salesforceCoreExtension = extensions.getExtension<SalesforceVSCodeCoreApi>(
     'salesforce.salesforcedx-vscode-core'
   );
-  // Use telemetry only if core is already active — do not await core.activate() since
-  // core activation can hang (e.g. on Windows CI) and must not block the VF LSP from starting.
-  telemetryService = salesforceCoreExtension?.isActive
-    ? salesforceCoreExtension.exports?.services?.TelemetryService.getInstance()
-    : undefined;
+  if (!salesforceCoreExtension?.isActive) {
+    await salesforceCoreExtension?.activate();
+  }
+  telemetryService = salesforceCoreExtension?.exports?.services?.TelemetryService.getInstance();
   await telemetryService?.initializeService(context);
   const extensionStartTime = globalThis.performance.now();
 
   // The server is implemented in node
   const module = context.asAbsolutePath(path.join('dist', 'visualforceServer.js'));
 
-  // If the extension is launch in debug mode the debug server options are use
-  // Otherwise the run options are used
   const serverOptions: ServerOptions = {
-    // stdio is more reliable than ipc (named pipes) on Windows CI runners
-    run: { module, transport: TransportKind.stdio },
+    run: { module, transport: TransportKind.ipc },
     debug: {
       module,
       transport: TransportKind.ipc,
@@ -75,7 +71,6 @@ export const activate = async (context: ExtensionContext) => {
     }
   };
 
-  // Options to control the language client
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
       {
@@ -84,22 +79,17 @@ export const activate = async (context: ExtensionContext) => {
       }
     ],
     synchronize: {
-      configurationSection: ['visualforce', 'css', 'javascript'] // the settings to synchronize
+      configurationSection: ['visualforce', 'css', 'javascript']
     },
     initializationOptions: {
       embeddedLanguages: { css: true, javascript: true }
     }
   };
 
-  // Create the language client and start the client.
   const client = new LanguageClient('visualforce', 'Visualforce Language Server', serverOptions, clientOptions);
   client.registerFeature(new ConfigurationFeature(client));
 
-  // Do not await client.start() — the LSP server initializes asynchronously in the background.
-  // Awaiting blocks activate() for 20+ seconds on Windows CI (spawning a Node process is slow),
-  // which keeps VS Code showing "Activating Extensions..." and prevents test steps from seeing
-  // a ready LSP. The client queues requests internally until the server is initialized.
-  void client.start();
+  await client.start();
   context.subscriptions.push(
     client,
     languages.registerDefinitionProvider([{ language: 'visualforce', scheme: 'file' }], apexControllerDefinitionProvider)

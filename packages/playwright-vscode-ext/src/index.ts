@@ -22,6 +22,7 @@ export {
   validateNoCriticalErrors,
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
+  waitForExtensionActivated,
   closeWorkspaceToEmptyWindow,
   prepareNoFolderOpenForPaletteTests
 } from './utils/helpers';
