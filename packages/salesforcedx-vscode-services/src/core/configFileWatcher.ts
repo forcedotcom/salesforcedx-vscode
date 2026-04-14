@@ -32,18 +32,13 @@ export const watchConfigFiles = Effect.fn('watchConfigFiles')(function* () {
   const projectConfigPattern = `${Global.SF_STATE_FOLDER}${sep}${configFileName}`;
 
   const fileChangePubSub = yield* FileChangePubSub;
-  const configService = yield* ConfigService;
 
   // Subscribe to file changes and clear defaultOrgRef when config files change
   yield* Stream.fromPubSub(fileChangePubSub).pipe(
     Stream.filter(event => isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)),
     Stream.debounce(Duration.millis(5)),
-    Stream.tap(() =>
-      Effect.gen(function* () {
-        yield* configService.invalidateConfigAggregator();
-        yield* ConnectionService.invalidateCachedConnections();
-      })
-    ),
+    Stream.tap(() => ConfigService.invalidateConfigAggregator()),
+    Stream.tap(() => ConnectionService.invalidateCachedConnections()),
     // get connection will cause defaultOrgRef to update, clear the ref if there's any error where we won't have an org connection.
     Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => clearDefaultOrgRef())))
   );
