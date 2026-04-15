@@ -10,7 +10,9 @@ on:
 jobs:
   prepare-environment-from-main:
     name: 'Get Release Version'
-    if: github.event_name != 'release' || !startsWith(github.event.release.tag_name, 'soql-common')
+    # Only run for extension releases (e.g. v66.7.0), not npm package releases
+    # which use a <name>-v prefix (e.g. soql-common-v1.0.4, vscode-i18n-v66.7.0).
+    if: github.event_name != 'release' || !contains(github.event.release.tag_name, '-v')
     runs-on: ubuntu-latest
     environment: publish
     outputs:
