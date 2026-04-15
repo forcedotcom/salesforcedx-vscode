@@ -15,7 +15,8 @@ export enum MessageType {
   RUN_SOQL_QUERY_DONE = 'run_query_done',
   NO_DEFAULT_ORG = 'no_default_org',
   GET_QUERY_PLAN = 'get_query_plan',
-  GET_QUERY_PLAN_DONE = 'get_query_plan_done'
+  GET_QUERY_PLAN_DONE = 'get_query_plan_done',
+  SET_DEFAULT_ORG = 'set_default_org'
 }
 
 export type SoqlEditorEvent = {

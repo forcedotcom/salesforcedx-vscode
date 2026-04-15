@@ -70,6 +70,10 @@ type SoqlEditorEvent =
   | {
       type: 'get_query_plan';
       payload: never;
+    }
+  | {
+      type: 'set_default_org';
+      payload: never;
     };
 
 // TODO: This should be shared with soql-builder-ui
@@ -87,7 +91,8 @@ type MessageType =
   | 'run_query_done'
   | 'no_default_org'
   | 'get_query_plan'
-  | 'get_query_plan_done';
+  | 'get_query_plan_done'
+  | 'set_default_org';
 
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
@@ -300,6 +305,12 @@ export class SOQLEditorInstance {
           Effect.withSpan('SOQLEditor.get_query_plan')
         );
       }
+
+      case 'set_default_org':
+        return Effect.promise(() => vscode.commands.executeCommand('sf.set.default.org')).pipe(
+          Effect.asVoid,
+          Effect.withSpan('SOQLEditor.set_default_org')
+        );
 
       default:
         return appendToChannel(nls.localize('error_unknown_error', event.type)).pipe(

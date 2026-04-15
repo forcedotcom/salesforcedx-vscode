@@ -71,3 +71,7 @@ main {
   border-radius: 3px;
   margin-bottom: 1rem;
 }
+
+.info-notification__dismiss {
+  text-align: right;
+}

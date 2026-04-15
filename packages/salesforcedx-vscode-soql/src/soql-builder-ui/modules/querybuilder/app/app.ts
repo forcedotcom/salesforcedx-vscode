@@ -262,6 +262,11 @@ export default class App extends LightningElement {
     this.dismissNotifications = true;
   }
 
+  public handleSetDefaultOrg(): void {
+    const setDefaultOrgEvent: SoqlEditorEvent = { type: MessageType.SET_DEFAULT_ORG };
+    this.messageService.sendMessage(setDefaultOrgEvent);
+  }
+
   public get isQueryValid(): boolean {
     return Boolean(this.query.sObject) && this.query.fields.length > 0;
   }
