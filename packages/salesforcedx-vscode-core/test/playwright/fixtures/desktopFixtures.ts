@@ -12,7 +12,7 @@ export const desktopTest = createDesktopTest({
   orgAlias: MINIMAL_ORG_ALIAS,
   // some of the necessary configs are over there
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
-  userSettings: { 'github.gitAuthentication': false, 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
+  userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
 });
 
 export const deployOnSaveTest = createDesktopTest({
@@ -20,7 +20,6 @@ export const deployOnSaveTest = createDesktopTest({
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   userSettings: {
-    'github.gitAuthentication': false,
     'salesforcedx-vscode-core.useMetadataExtensionCommands': false,
     'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': true,
     'salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave': true
@@ -32,7 +31,6 @@ export const deployNoStTest = createDesktopTest({
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   userSettings: {
-    'github.gitAuthentication': false,
     'salesforcedx-vscode-core.useMetadataExtensionCommands': false,
     'salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve': false
   }
@@ -42,13 +40,12 @@ export const createProjectTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   // use vscode's dialog box instead of the native OS, so playwright can interact with it
-  userSettings: { 'github.gitAuthentication': false, 'files.simpleDialog.enable': true }
+  userSettings: { 'files.simpleDialog.enable': true }
 });
 
 /** Workspace path is an empty temp folder (no `sfdx-project.json`) — folder is open, not “close workspace” */
 export const folderWithoutSfdxProjectTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
-  emptyWorkspace: true,
-  userSettings: { 'github.gitAuthentication': false }
+  emptyWorkspace: true
 });
