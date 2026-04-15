@@ -940,6 +940,7 @@ describe('ApexTestController', () => {
 
   describe('retrieveOrgOnlyClass', () => {
     it('retrieves org-only class for apex-testing class items', async () => {
+      const orgOnlyClassFileUri = URI.file('/workspace/force-app/main/default/classes/OrgOnlyClass.cls');
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
@@ -950,7 +951,7 @@ describe('ApexTestController', () => {
       notificationService.showInformationMessage = jest.fn();
       (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
       (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue({
-        uri: URI.file('/workspace/force-app/main/default/classes/OrgOnlyClass.cls')
+        uri: orgOnlyClassFileUri
       });
       (vscode.window.showTextDocument as jest.Mock).mockResolvedValue({});
       (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockReturnValueOnce(
@@ -967,7 +968,7 @@ describe('ApexTestController', () => {
         { ignoreConflicts: true }
       );
       expect(vscode.workspace.openTextDocument).toHaveBeenCalledWith(
-        expect.objectContaining({ fsPath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' })
+        expect.objectContaining({ fsPath: orgOnlyClassFileUri.fsPath })
       );
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
       expect(refreshSpy).toHaveBeenCalled();

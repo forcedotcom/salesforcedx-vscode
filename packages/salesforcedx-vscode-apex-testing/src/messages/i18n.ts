@@ -76,13 +76,6 @@ export const messages = {
   apex_test_error_resource_not_found_message:
     'The requested resource was not found. The org may be unavailable or the test run may have expired.',
   apex_test_error_api_message: 'The org returned an error: %s',
-  apex_generate_unit_test_class_text: 'SFDX: Create Apex Unit Test Class',
-  apex_test_class_output_dir_prompt: 'Select output directory',
-  apex_test_class_name_prompt: 'Enter Apex test class name',
-  apex_unit_test_template_description: 'Template with sample test method',
-  basic_unit_test_template_description: 'Minimal template',
-  apex_test_template_prompt: 'Select template type',
-  apex_generate_class_success: 'Apex class created successfully',
   apex_test_retrieve_org_only_class_text: 'SFDX: Retrieve Org-Only Apex Test Class',
   apex_test_retrieve_org_only_class_codelens_text: 'Org-Only: Download',
   apex_test_retrieve_canceled: 'Retrieve canceled',
@@ -110,7 +103,11 @@ export const messages = {
     'No code coverage information was found for test run %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
   colorizer_out_of_sync_code_coverage_data:
     'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
-  colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage'
+  colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
+  colorizer_coverage_apply_failed_message: 'Code coverage could not be applied. %s',
+  apex_test_suite_name_input_prompt: 'Enter desired Apex test suite name:',
+  apex_test_aggregate_failed_message: '%s test(s) failed',
+  apex_test_failed_no_details_message: 'Test failed'
 } as const;
 
 export type MessageKey = keyof typeof messages;
