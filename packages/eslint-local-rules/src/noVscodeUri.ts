@@ -44,19 +44,6 @@ export const noVscodeUri = RuleCreator.withoutDocs({
   },
   defaultOptions: [],
   create: context => ({
-    ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
-      if (node.source.value === 'vscode') {
-        for (const specifier of node.specifiers) {
-          if (
-            specifier.type === AST_NODE_TYPES.ImportSpecifier &&
-            specifier.imported.type === AST_NODE_TYPES.Identifier &&
-            specifier.imported.name === 'Uri'
-          ) {
-            context.report({ node: specifier, messageId: 'useVscodeUri' });
-          }
-        }
-      }
-    },
     TSTypeReference: (node: TSESTree.TSTypeReference): void => {
       if (node.typeName.type === AST_NODE_TYPES.TSQualifiedName && isVscodeUriType(node.typeName)) {
         context.report({ node, messageId: 'useVscodeUri' });

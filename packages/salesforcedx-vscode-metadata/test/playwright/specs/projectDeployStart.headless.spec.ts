@@ -81,10 +81,10 @@ test('Project Deploy Start: deploys source to org', async ({ page }) => {
 
     // Verify deploy starts and completes via output channel
     // Source tracking counts may not update reliably in web mode, so use output verification
-    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Deploying', timeout: 30_000 });
     await saveScreenshot(page, 'step1.deploy-started.png');
 
-    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'step1.deploy-complete.png');
 
     // Deploy operation completed successfully (verified via output channel)

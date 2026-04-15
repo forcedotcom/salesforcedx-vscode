@@ -82,11 +82,10 @@ class QuickLaunch {
   private async runTests(connection: Connection, testClass: string, testMethod?: string): Promise<TestRunResult> {
     const testService = new TestService(connection);
     try {
-      const singleTestName = testMethod ? `${testClass}.${testMethod}` : undefined;
       const payload = await testService.buildSyncPayload(
         TestLevel.RunSpecifiedTests,
-        singleTestName,
-        singleTestName ? undefined : testClass,
+        testMethod ? `${testClass}.${testMethod}` : undefined,
+        testClass,
         undefined,
         !retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
       );
@@ -108,16 +107,14 @@ class QuickLaunch {
           message: nls.localize('debug_test_no_results_found')
         };
       }
-
-      const testResult = testMethod ? tests.find(test => test.methodName === testMethod) ?? tests[0] : tests[0];
-      if (!testResult?.apexLogId) {
+      if (!tests[0].apexLogId) {
         return {
           success: false,
           message: nls.localize('debug_test_no_debug_log')
         };
       }
 
-      return { logFileId: testResult.apexLogId, success: true };
+      return { logFileId: tests[0].apexLogId, success: true };
     } catch (e) {
       return { message: e.message, success: false };
     }

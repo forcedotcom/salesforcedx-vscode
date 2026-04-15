@@ -26,11 +26,6 @@ const u = URI.file('/path');`,
       code: `import { URI } from 'vscode-uri';
 const u = URI.parse('file:///path');`,
       filename: 'packages/salesforcedx-vscode-metadata/src/test.ts'
-    },
-    {
-      // Importing other named members from 'vscode' is fine
-      code: `import { window, workspace } from 'vscode';`,
-      filename: 'packages/salesforcedx-vscode-services/src/core/test.ts'
     }
   ],
   invalid: [
@@ -50,24 +45,6 @@ const u = vscode.Uri.file('/path');`,
       code: `import * as vscode from 'vscode';
 const u = vscode.Uri.parse('file:///path');`,
       filename: 'packages/salesforcedx-vscode-metadata/src/test.ts',
-      errors: [{ messageId: 'useVscodeUri' }]
-    },
-    {
-      // Named value import of Uri from vscode
-      code: `import { Uri } from 'vscode';`,
-      filename: 'packages/salesforcedx-vscode-services/src/core/test.ts',
-      errors: [{ messageId: 'useVscodeUri' }]
-    },
-    {
-      // Named type-only import of Uri from vscode
-      code: `import type { Uri } from 'vscode';`,
-      filename: 'packages/salesforcedx-vscode-lwc/src/languageClient/test.ts',
-      errors: [{ messageId: 'useVscodeUri' }]
-    },
-    {
-      // Uri mixed with other vscode imports — only Uri should be flagged
-      code: `import { window, Uri, workspace } from 'vscode';`,
-      filename: 'packages/salesforcedx-vscode-services/src/core/test.ts',
       errors: [{ messageId: 'useVscodeUri' }]
     }
   ]

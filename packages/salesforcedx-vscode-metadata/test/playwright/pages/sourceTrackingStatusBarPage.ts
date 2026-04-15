@@ -66,13 +66,14 @@ export class SourceTrackingStatusBarPage {
 
   /** Check if status bar has error (red) background indicating conflicts */
   public async hasErrorBackground(): Promise<boolean> {
-    // error-kind is on the parent container, not the inner role=button label element
-    return this.statusBarItem.locator('..').evaluate(el => el.classList.contains('error-kind'));
+    const classAttr = await this.statusBarItem.getAttribute('class');
+    return classAttr?.includes('error-kind') ?? false;
   }
 
   /** Check if status bar has warning (yellow) background */
   public async hasWarningBackground(): Promise<boolean> {
-    return this.statusBarItem.locator('..').evaluate(el => el.classList.contains('warning-kind'));
+    const classAttr = await this.statusBarItem.getAttribute('class');
+    return classAttr?.includes('warning-kind') ?? false;
   }
 
   /** Wait for status bar to show expected counts (with polling) */

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # afterFileEdit hook: mark that an edit occurred in this session.
+# We use CURSOR_TRACE_ID to distinguish sessions.
 
-ROOT=$(git rev-parse --show-toplevel)
-touch "$ROOT/.claude/.edit-marker"
-echo "[afterFileEdit] marked session as dirty" >&2
+if [ -n "$CURSOR_TRACE_ID" ]; then
+  touch "/tmp/cursor_edit_${CURSOR_TRACE_ID}"
+  echo "[afterFileEdit] marked session ${CURSOR_TRACE_ID} as dirty" >&2
+fi
 exit 0

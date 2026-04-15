@@ -16,7 +16,7 @@ import {
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW
 } from '../utils/locators';
-import { executeCommandWithCommandPalette, openCommandPalette } from './commands';
+import { openCommandPalette } from './commands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
@@ -260,12 +260,22 @@ export const outputChannelContains = async (
 };
 
 /**
- * Clears the output channel via the command palette ("View: Clear Output").
- * Using the command palette avoids the notification toasts that can cover the toolbar button.
+ * Clears the output channel by clicking the clear button in the output panel toolbar.
  * Use this to make sure that your assertions are not picking up text from the previous test unless you mean to
  */
 export const clearOutputChannel = async (page: Page): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'View: Clear Output');
+  const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
+  try {
+    // Wait for button to be visible and stable (handles race conditions with panel updates)
+    await clearButton.waitFor({ state: 'visible', timeout: 5000 });
+    // Ensure element is attached and stable before clicking
+    // force: true - notification toasts overlay the output panel and intercept pointer events
+    await clearButton.click({ force: true, timeout: 5000 });
+  } catch (error) {
+    // If button not visible, output may already be clear or panel not ready
+    // Log but don't fail - this is a setup operation
+    console.warn('[clearOutputChannel] Clear button not accessible:', error);
+  }
 
   // Wait for the clear action to take effect - output should be completely empty
   const codeArea = outputPanelCodeArea(page);

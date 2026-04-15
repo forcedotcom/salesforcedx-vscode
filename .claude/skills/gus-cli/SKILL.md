@@ -16,7 +16,7 @@ Interact with Gus (Salesforce Agile Accelerator org) via sf CLI. Requires alias 
   - Only run `sf data create record` / `sf data update record` after user says yes (or equivalent)
   - Answering scope questions (e.g. "just createProject") is not confirmation—still ask
 - **Epic selection**: when less than 50% sure which epic a work item belongs in, ask the user
-- **IDs vs Names**: `Id` (e.g. `a07...`) is for CLI commands. `Name` (e.g. `W-12345`) is for human display and PR titles appended as ` - W-12345` at the end per [pr-draft Title format](../pr-draft/SKILL.md#title-format). NEVER use `Id` in PR titles or descriptions. Always query `Name` after creation.
+- **IDs vs Names**: `Id` (e.g. `a07...`) is for CLI commands. `Name` (e.g. `W-12345`) is for PR titles and human display. NEVER use `Id` in PR titles or descriptions. Always query `Name` after creation.
 
 ## Prerequisites
 
@@ -86,7 +86,7 @@ Constraints: File must be single-line (flags-dir treats each line as a separate 
 
 **After create:** Always provide the work item link. Format: `https://gus.lightning.force.com/lightning/r/ADM_Work__c/<recordId>/view` (replace `<recordId>` with the Id from the create output, e.g. `a07EE00002V3a8YYAR`). Example: [a07EE00002V3a8YYAR](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002V3a8YYAR/view).
 
-**CRITICAL:** After creation, you MUST query the `Name` (W-XXXXX) to append to the PR title as ` - W-XXXXX`. The `id` returned by `sf data create` is NOT the `W-XXXXX` name.
+**CRITICAL:** After creation, you MUST query the `Name` (W-XXXXX) to use in PR titles. The `id` returned by `sf data create` is NOT the `W-XXXXX` name.
 ```bash
 sf data query --query "SELECT Name FROM ADM_Work__c WHERE Id = '<id_from_create>'" -o gus --json
 ```

@@ -75,11 +75,6 @@ export const messages = {
     'File name must start with a letter and contain only alphanumeric characters and underscores',
   soql_output_dir_default_description: '(default)',
   soql_output_dir_prompt: 'Select the target directory',
-  soql_export_results_file_name_prompt:
-    'Enter a file name for the exported results (the .csv or .json extension is added automatically)',
-  soql_export_results_file_name_empty_error: 'File name cannot be empty',
-  soql_export_results_file_name_format_error:
-    'File name contains invalid characters. Avoid \\ / : * ? " < > | and control characters.',
   REST_API: 'REST API',
   REST_API_description: 'Use REST API to execute the query',
   tooling_API: 'Tooling API',

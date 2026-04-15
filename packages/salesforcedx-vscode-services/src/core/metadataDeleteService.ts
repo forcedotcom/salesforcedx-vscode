@@ -8,14 +8,16 @@
 import {
   ComponentSet,
   DestructiveChangesType,
+  RequestStatus,
   SourceComponent,
+  type DeployResult,
   type MetadataComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { FsService } from '../vscode/fsService';
+import { isSourceComponent } from './componentSetService';
 import { MetadataRegistryService } from './metadataRegistryService';
-import { isSourceComponent } from './sdrGuards';
 
 export class MetadataDeleteError extends Schema.TaggedError<MetadataDeleteError>()('MetadataDeleteError', {
   message: Schema.String,
@@ -31,7 +33,7 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
   effect: Effect.gen(function* () {
     const registryService = yield* MetadataRegistryService;
     const fsService = yield* FsService;
-
+    /** Mark components for deletion */
     const markComponentsForDeletion = Effect.fn('MetadataDeleteService.markComponentsForDeletion')(function* (
       componentSet: ComponentSet
     ) {
@@ -52,9 +54,16 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
       return deleteSet;
     });
 
+    /** Delete local files after successful deploy */
     const deleteLocalFiles = Effect.fn('MetadataDeleteService.deleteLocalFiles')(function* (
-      componentSet: ComponentSet
+      componentSet: ComponentSet,
+      deployResult: DeployResult
     ) {
+      // Only proceed if deploy was successful
+      if (deployResult.response?.status !== RequestStatus.Succeeded) {
+        return;
+      }
+
       const components = componentSet.getSourceComponents().toArray();
 
       // Handle custom labels specially
@@ -84,12 +93,6 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
       );
     });
 
-    return {
-      /** Mark components for deletion */
-      markComponentsForDeletion,
-
-      /** Delete local files after successful deploy */
-      deleteLocalFiles
-    };
+    return { markComponentsForDeletion, deleteLocalFiles };
   })
 }) {}

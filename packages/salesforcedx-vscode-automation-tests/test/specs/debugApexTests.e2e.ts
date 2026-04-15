@@ -19,12 +19,11 @@ import { createApexClassWithTest } from '@salesforce/salesforcedx-vscode-test-to
 import { continueDebugging, getTestsSection } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
-  dismissAllNotifications,
   executeQuickPick,
-  getTextEditor,
   getWorkbench,
-  waitForAndGetCodeLens,
-  waitForNotificationToGoAway
+  getTextEditor,
+  dismissAllNotifications,
+  waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
@@ -55,6 +54,7 @@ describe('Debug Apex Tests', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
+
     // Create Apex class 1 and test
     await retryOperation(
       () => createApexClassWithTest('ExampleApexClass1', classesFolderPath),
@@ -69,9 +69,14 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error creating Apex class ExampleApexClass2'
     );
 
+    // Dismiss all notifications so the push one can be seen
     await dismissAllNotifications();
+
+    // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
-    await waitForNotificationToGoAway(/Deploying 4 components/i, Duration.TEN_MINUTES);
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
   });
 
   beforeEach(function () {

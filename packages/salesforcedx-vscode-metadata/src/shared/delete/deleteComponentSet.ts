@@ -13,7 +13,20 @@ import { nls } from '../../messages';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';
 import { DeleteSourceFailedError } from './deleteErrors';
 
-/** Delete a ComponentSet, handling cancellation, and local file deletion */
+/** Check for conflicts if source-tracked */
+const maybeCheckConflicts = Effect.fn('deleteComponentSet:checkConflicts')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const tracking = yield* api.services.SourceTrackingService.getSourceTracking();
+
+  if (!tracking) {
+    return; // Not source-tracked, no conflict check needed
+  }
+
+  // Use service method to check conflicts (displays in channel and returns typed error)
+  yield* api.services.SourceTrackingService.checkConflicts(tracking);
+});
+
+/** Delete a ComponentSet, handling conflict checking, cancellation, and local file deletion */
 export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
 }) {
@@ -24,6 +37,10 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
     { concurrency: 'unbounded' }
   );
 
+  // Check for conflicts if source-tracked
+  // TODO: we should only care if the conflicts are on the components we're deleting, not all components in the project
+  yield* maybeCheckConflicts();
+
   // Mark components for deletion
   const deleteSet = yield* api.services.MetadataDeleteService.markComponentsForDeletion(componentSet);
 
@@ -31,21 +48,28 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   const result = yield* api.services.MetadataDeployService.deploy(deleteSet);
 
-  const { isSDRFailure } = componentSetService;
+  // Handle cancellation
+  if (typeof result === 'string') {
+    return yield* channelService.appendToChannel('Delete cancelled by user');
+  }
 
-  if (result.getFileResponses().some(isSDRFailure)) {
-    return yield* new DeleteSourceFailedError({
-      cause: new Error(
-        nls.localize('delete_source_operation_failed', result.response?.errorMessage ?? 'Unknown error')
-      ),
-      result
-    });
+  // Check if deploy failed
+  // I'd love to use the value but because status is a <expletive> enum (instead of a string union) you'd have to import all of SDR to get it
+  // or export is as part of the services API
+  if (result.response?.status.toString() !== 'Succeeded') {
+    return yield* Effect.fail(
+      new DeleteSourceFailedError({
+        cause: new Error(nls.localize('delete_source_operation_failed')),
+        result
+      })
+    );
   }
 
   // Delete local files after successful deploy
-  yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet);
+  yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet, result);
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
+  const { isSDRFailure } = componentSetService;
   if (result.getFileResponses().some(isSDRFailure)) {
     yield* Effect.sync(() => {
       void vscode.window.showErrorMessage(nls.localize('delete_completed_with_errors_message'));

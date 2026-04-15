@@ -24,8 +24,6 @@ playwright*.ts
 playwright-report/**
 test-results/**
 **/*.ts
-# Keep static LWC typings shipped under resources/ (BaseWorkspaceContext.writeTypings); **/*.ts would drop them from VSIX
-!resources/**/*.d.ts
 coverage
 junit*
 *.vsix

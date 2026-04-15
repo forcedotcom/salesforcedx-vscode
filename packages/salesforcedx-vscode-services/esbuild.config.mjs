@@ -64,9 +64,9 @@ const repoRoot = join(packageDir, '../..');
 // Derive section and keys from package.json contributes.configuration.properties
 
 const buildWebConfig = async () => {
-  if (process.env.ESBUILD_WEB_ORG_ALIAS) {
-    const configMap = {};
+  const configMap = {};
 
+  if (process.env.ESBUILD_WEB_ORG_ALIAS) {
     try {
       const { stdout } = await execAsync(`sf org display -o ${process.env.ESBUILD_WEB_ORG_ALIAS} --json`, {
         env: { ...process.env, NO_COLOR: '1' }
@@ -88,25 +88,26 @@ const buildWebConfig = async () => {
       console.error(`[esbuild] Failed to get web config from org ${process.env.ESBUILD_WEB_ORG_ALIAS}:`, error.message);
       throw error;
     }
+  }
 
-    // Enable file traces — span files in ~/.sf/vscode-spans/
-    configMap['salesforcedx-vscode-salesforcedx.enableFileTraces'] = true;
+  // Enable file traces — span files in ~/.sf/vscode-spans/
+  configMap['salesforcedx-vscode-salesforcedx.enableFileTraces'] = true;
 
-    // Read extra settings if ESBUILD_WEB_LOCAL is set
-    if (process.env.ESBUILD_WEB_LOCAL) {
-      const extraSettingsPath = join(repoRoot, '.esbuild-web-extra-settings.json');
-      if (existsSync(extraSettingsPath)) {
-        try {
-          const extraSettingsContent = await readFile(extraSettingsPath, 'utf-8');
-          const extraSettings = JSON.parse(extraSettingsContent);
-          Object.assign(configMap, extraSettings);
-        } catch (error) {
-          console.warn(`Failed to read extra settings: ${error.message}`);
-        }
+  // Read extra settings if ESBUILD_WEB_LOCAL is set
+  if (process.env.ESBUILD_WEB_LOCAL) {
+    const extraSettingsPath = join(repoRoot, '.esbuild-web-extra-settings.json');
+    if (existsSync(extraSettingsPath)) {
+      try {
+        const extraSettingsContent = await readFile(extraSettingsPath, 'utf-8');
+        const extraSettings = JSON.parse(extraSettingsContent);
+        Object.assign(configMap, extraSettings);
+      } catch (error) {
+        console.warn(`Failed to read extra settings: ${error.message}`);
       }
     }
-    return JSON.stringify(configMap);
   }
+
+  return Object.keys(configMap).length > 0 ? JSON.stringify(configMap) : undefined;
 };
 
 // Desktop build (Node.js environment)

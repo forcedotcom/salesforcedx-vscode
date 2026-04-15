@@ -11,7 +11,12 @@ import type { SfProject } from '@salesforce/core/project';
 import {
   ComponentSet,
   type ComponentSet as ComponentSetType,
+  type FileResponse,
+  type FileResponseFailure,
   type FileResponseSuccess,
+  ComponentStatus,
+  SourceComponent,
+  type MetadataComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
@@ -23,7 +28,6 @@ import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { FailedToResolveSfProjectError, ProjectService } from './projectService';
-import { isSDRFailure, isSDRSuccess, makeFileResponseFailure, toComponentStatusChangeType, toRequestStatus } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
 
 /** A ComponentSet that is guaranteed to be non-empty */
@@ -48,7 +52,17 @@ export class FailedToBuildComponentSetError extends Schema.TaggedError<FailedToB
   }
 ) {}
 
-const getComponentState = (component: FileResponseSuccess) => toComponentStatusChangeType(component.state);
+/** Type guard to check if a MetadataComponent is a SourceComponent */
+export const isSourceComponent = (component: MetadataComponent): component is SourceComponent =>
+  component instanceof SourceComponent;
+
+/** Type guard to check if a FileResponse is successful */
+const isSDRSuccess = (fileResponse: FileResponse): fileResponse is FileResponseSuccess =>
+  fileResponse.state !== ComponentStatus.Failed;
+
+/** Type guard to check if a FileResponse is a failure */
+const isSDRFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
+  fileResponse.state === ComponentStatus.Failed;
 
 export class ComponentSetService extends Effect.Service<ComponentSetService>()('ComponentSetService', {
   accessors: true,
@@ -187,11 +201,8 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
     });
 
     return {
-      getComponentState,
       isSDRSuccess,
       isSDRFailure,
-      makeFileResponseFailure,
-      toRequestStatus,
       ensureNonEmptyComponentSet,
       getComponentSetFromUris,
       getComponentSetFromManifest,

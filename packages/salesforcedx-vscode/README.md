@@ -67,7 +67,7 @@ The Salesforce Extension Pack installs these extensions.
 - [Salesforce Services](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-services)
   This extension (`salesforcedx-vscode-services`) provides core services used by other Salesforce extensions.
 - [SOQL](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql)
-  This extension (`salesforcedx-vscode-soql`) enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save query results to a .csv or .json file. If the query is not a file on disk, export prompts for a name and folder like **SFDX: Create Query in SOQL Builder**.
+  This extension (`salesforcedx-vscode-soql`) enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
 - [Salesforce Org Browser](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-org-browser)
   This extension (`salesforcedx-vscode-org-browser`) lets you view and retrieve metadata from your Salesforce org.
 - [Salesforce Lightning Design System (SLDS) Validator](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds)

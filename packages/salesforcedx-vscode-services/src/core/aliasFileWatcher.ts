@@ -20,22 +20,26 @@ export type AliasChangeEvent = { readonly type: 'changed' };
 
 /** General-purpose broadcaster that signals when ~/.sfdx/alias.json changes on disk.
  * Has no knowledge of target-org or org context — consumers decide how to react. */
-export class AliasFileWatcherService extends Effect.Service<AliasFileWatcherService>()('AliasFileWatcherService', {
-  scoped: Effect.gen(function* () {
-    const aliasFilePath = normalize(join(Global.SFDX_DIR, 'alias.json'));
-    const pubsub = yield* PubSub.sliding<AliasChangeEvent>(100);
-    const fileWatcherService = yield* FileWatcherService;
+export class AliasFileWatcherService extends Effect.Service<AliasFileWatcherService>()(
+  'AliasFileWatcherService',
+  {
+    scoped: Effect.gen(function* () {
+      const aliasFilePath = normalize(join(Global.SFDX_DIR, 'alias.json'));
+      const pubsub = yield* PubSub.sliding<AliasChangeEvent>(100);
+      const fileWatcherService = yield* FileWatcherService;
+      const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
 
-    yield* Stream.fromPubSub(fileWatcherService.pubsub).pipe(
-      Stream.filter(event => normalize(event.uri.fsPath) === aliasFilePath),
-      Stream.debounce(Duration.millis(50)),
-      Stream.runForEach(() => PubSub.publish(pubsub, { type: 'changed' as const })),
-      Effect.forkScoped
-    );
+      yield* Stream.fromQueue(dequeue).pipe(
+        Stream.filter(event => normalize(event.uri.fsPath) === aliasFilePath),
+        Stream.debounce(Duration.millis(50)),
+        Stream.runForEach(() => PubSub.publish(pubsub, { type: 'changed' as const })),
+        Effect.forkScoped
+      );
 
-    return { pubsub };
-  })
-}) {}
+      return { pubsub };
+    }),
+  }
+) {}
 
 /**
  * Merges a fresh alias list from disk with the current aliases, preserving the primary alias
@@ -57,8 +61,9 @@ export const watchDefaultOrgAliases = () =>
     Effect.gen(function* () {
       const aliasWatcher = yield* AliasFileWatcherService;
       const aliasService = yield* AliasService;
+      const dequeue = yield* PubSub.subscribe(aliasWatcher.pubsub);
 
-      yield* Stream.fromPubSub(aliasWatcher.pubsub).pipe(
+      yield* Stream.fromQueue(dequeue).pipe(
         Stream.runForEach(() =>
           Effect.gen(function* () {
             const ref = yield* getDefaultOrgRef();

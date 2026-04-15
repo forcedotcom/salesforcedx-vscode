@@ -172,38 +172,6 @@ export const extractClassName = (id: string): string | undefined => {
 };
 
 /**
- * Collects test item ids for an exclusion set: each excluded root and every descendant in the tree.
- * VS Code passes parent nodes (classes, namespaces, suite parents); gathered runs use expanded methods,
- * so matching must be by id subtree, not reference equality on the parent item.
- */
-const collectExcludedDescendantIds = (excludeRoots: readonly vscode.TestItem[]): Set<string> => {
-  const ids = new Set<string>();
-  const visit = (item: vscode.TestItem): void => {
-    ids.add(item.id);
-    item.children.forEach(visit);
-  };
-  for (const root of excludeRoots) {
-    visit(root);
-  }
-  return ids;
-};
-
-/**
- * Drops test items whose id falls under any excluded subtree (same rules as {@link gatherTests}).
- * Use after other steps re-add items (e.g. expanding suites into class methods) so explorer `exclude` stays honored.
- */
-export const filterTestItemsByRequestExclude = (
-  tests: vscode.TestItem[],
-  exclude: readonly vscode.TestItem[] | undefined
-): vscode.TestItem[] => {
-  if (!exclude?.length) {
-    return tests;
-  }
-  const excludedIds = collectExcludedDescendantIds(exclude);
-  return tests.filter(test => !excludedIds.has(test.id));
-};
-
-/**
  * Gathers test items to run based on the test run request
  */
 export const gatherTests = (
@@ -255,5 +223,10 @@ export const gatherTests = (
     controllerItems.forEach(test => include(test));
   }
 
-  return filterTestItemsByRequestExclude(tests, request.exclude);
+  if (request.exclude) {
+    const excludeSet = new Set(request.exclude);
+    return tests.filter(test => !excludeSet.has(test));
+  }
+
+  return tests;
 };

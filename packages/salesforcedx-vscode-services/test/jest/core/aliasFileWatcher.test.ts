@@ -65,9 +65,6 @@ describe('AliasFileWatcherService', () => {
     Effect.provide(
       Effect.gen(function* () {
         const aliasWatcher = yield* AliasFileWatcherService;
-        // Stream.fromPubSub subscribes lazily when the stream starts pulling.
-        // Yield once so the forkScoped fiber inside the service can subscribe before we publish.
-        yield* Effect.sleep(0);
         yield* test(aliasWatcher);
       }).pipe(Effect.scoped),
       defaultLayer(fileWatcherPubSub)

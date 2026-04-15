@@ -80,11 +80,10 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
           return {
             output: libraryResult.rawOutput
           };
-        } catch (error: unknown) {
-          const err = error instanceof Error ? error : new Error(String(error));
-          telemetryService.sendException('template_create_library', err.message);
+        } catch (error) {
+          telemetryService.sendException('template_create_library', error.message);
           return {
-            error: err
+            error
           };
         }
       }
@@ -97,8 +96,7 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
       });
     }
     if (result.error) {
-      const msg = result.error instanceof Error ? result.error.message : String(result.error);
-      channelService.appendLine(msg);
+      channelService.appendLine(result.error.message);
       notificationService.showFailedExecution(commandName, channelService);
     }
   }

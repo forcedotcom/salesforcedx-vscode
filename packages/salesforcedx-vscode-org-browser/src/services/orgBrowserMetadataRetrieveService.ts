@@ -31,7 +31,7 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
   yield* channel.appendToChannel(`Retrieve completed. ${fileResponses.length} files retrieved successfully.`);
   if (fileResponses.length > 0) {
     yield* channel.appendToChannel(
-      `${['Retrieved files: '].concat(fileResponses!.map(f => `  - ${f.filePath} : ${f.type}`)).join('\n')}`
+      `Retrieved files: ${fileResponses!.map(f => `  - ${f.filePath} : ${f.fullName}`).join('\n')}`
     );
   } else {
     return yield* Effect.fail(new NoFilesRetrievedError({ message: 'No files retrieved' }));

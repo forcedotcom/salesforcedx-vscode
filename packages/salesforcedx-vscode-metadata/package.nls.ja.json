@@ -1,6 +1,1 @@
-{
-  "deploy_in_manifest_text": "SFDX: マニフェストファイルのソースを組織へデプロイ",
-  "ignore_conflicts_on_push_description": "保存時の project:deploy:start コマンド実行時に、常に --ignore-conflicts オプションを使用するかどうかを指定します。",
-  "push_or_deploy_on_save_enabled_description": "Specifies whether or not to automatically deploy when a local source file is saved.",
-  "retrieve_in_manifest_text": "SFDX: マニフェストファイルのソースを組織から取得"
-}
+{}

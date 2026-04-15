@@ -8,14 +8,14 @@
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { Utils } from 'vscode-uri';
 import { DATA_VIEW_PATH, HTML_FILE } from '../constants';
 import { replaceCspMetaTag } from '../editor/htmlUtils';
 import { getSoqlRuntime } from '../services/extensionProvider';
 
 export const getHtml = async (
-  assets: { [index: string]: URI },
-  extensionUri: URI,
+  assets: { [index: string]: vscode.Uri },
+  extensionUri: vscode.Uri,
   webview: vscode.Webview
 ): Promise<string> => {
   const { baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri } = assets;

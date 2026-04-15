@@ -14,16 +14,17 @@ import {
   type RegistryAccess
 } from '@salesforce/source-deploy-retrieve';
 
+import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { nls } from '../messages';
+import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { uriToPath } from '../vscode/paths';
-import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
@@ -157,12 +158,15 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
         onFailure: cause =>
           Cause.isInterruptedOnly(cause)
-            ? Effect.fail<UserCancellationError | MetadataRetrieveError>(new UserCancellationError())
+            ? Effect.succeed(Brand.nominal<SuccessfulCancelResult>()('User canceled'))
             : Effect.failCause(cause),
         onSuccess: outcome => Effect.succeed(outcome)
       });
 
       yield* Effect.annotateCurrentSpan({ retrieveOutcome });
+      if (typeof retrieveOutcome === 'string') {
+        return retrieveOutcome;
+      }
 
       yield* Effect.annotateCurrentSpan({
         fileResponses: retrieveOutcome.getFileResponses().map(r => r.filePath)
@@ -170,8 +174,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       // only do tracking in the case where we retrieve to project
       if (input.merge) {
         yield* sourceTrackingService
-          .maybeUpdateTrackingFromRetrieve(retrieveOutcome)
-          .pipe(Effect.withSpan('MetadataRetrieveService.maybeUpdateTrackingFromRetrieve'));
+          .updateTrackingFromRetrieve(retrieveOutcome)
+          .pipe(Effect.withSpan('MetadataRetrieveService.updateTrackingFromRetrieve'));
       }
 
       return retrieveOutcome;
@@ -182,25 +186,32 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       members: MetadataMember[],
       options?: SourceTrackingOptions
     ) {
-      const [connection, project, registryAccess, componentSet, hasTracking] = yield* Effect.all(
-        [
-          connectionService.getConnection(),
-          projectService.getSfProject(),
-          metadataRegistryService.getRegistryAccess(),
-          buildComponentSet(members),
-          sourceTrackingService.hasTracking(),
-          workspaceService.getWorkspaceInfoOrThrow()
-        ],
+      const [connection, project] = yield* Effect.all(
+        [connectionService.getConnection(), projectService.getSfProject(), workspaceService.getWorkspaceInfoOrThrow()],
         { concurrency: 'unbounded' }
       );
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
+      const componentSet = yield* buildComponentSet(members);
 
-      if (hasTracking && !options?.ignoreConflicts) {
-        yield* sourceTrackingService.checkConflicts();
+      const tracking = yield* sourceTrackingService.getSourceTracking(options);
+
+      if (tracking && !options?.ignoreConflicts) {
+        yield* Effect.promise(() =>
+          vscode.window.withProgress(
+            {
+              location: vscode.ProgressLocation.Notification,
+              title: nls.localize('checking_for_conflicts'),
+              cancellable: false
+            },
+            () => tracking.reReadLocalTrackingCache()
+          )
+        ).pipe(Effect.withSpan('STL.ReReadLocalTrackingCache'));
+        yield* sourceTrackingService.checkConflicts(tracking);
       }
 
       const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
       return yield* performRetrieveOperation({ componentSet, connection, registryAccess, title, merge: true, project });
-    }, withActiveMetadataOperationPipeline);
+    });
 
     /** Retrieve metadata using a ComponentSet directly.
      * Sets project directory and API versions on the ComponentSet before retrieving.
@@ -211,20 +222,27 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     ) {
       yield* Effect.annotateCurrentSpan({ components: components.size });
       const registryAccess = yield* metadataRegistryService.getRegistryAccess();
-      const [connection, project, configAggregator, , hasTracking] = yield* Effect.all(
+      const [connection, project, configAggregator] = yield* Effect.all(
         [
           connectionService.getConnection(),
           projectService.getSfProject(),
           configService.getConfigAggregator(),
-          workspaceService.getWorkspaceInfoOrThrow(),
-          sourceTrackingService.hasTracking()
+          workspaceService.getWorkspaceInfoOrThrow()
         ],
         { concurrency: 'unbounded' }
       );
 
       yield* setComponentSetProperties({ componentSet: components, project, configAggregator });
-      if (hasTracking && !options?.ignoreConflicts) {
-        yield* sourceTrackingService.checkConflicts();
+
+      const tracking = yield* sourceTrackingService.getSourceTracking(options);
+      if (tracking) {
+        yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
+          Effect.withSpan('STL.ReReadLocalTrackingCache')
+        );
+
+        if (!options?.ignoreConflicts) {
+          yield* sourceTrackingService.checkConflicts(tracking);
+        }
       }
 
       const title = `Retrieving ${components.size} component${components.size === 1 ? '' : 's'}`;
@@ -236,7 +254,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         merge: true,
         project
       });
-    }, withActiveMetadataOperationPipeline);
+    });
 
     /** Retrieve metadata using a ComponentSet directly to a custom output directory.
      * Sets project directory and API versions on the ComponentSet before retrieving.

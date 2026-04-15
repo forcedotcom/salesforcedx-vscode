@@ -9,7 +9,6 @@ import { collectBundleMetadata, BundleConfig, ScriptFile } from '@lwc/metadata';
 import { ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DIAGNOSTIC_SOURCE, MAX_32BIT_INTEGER } from '../../constants';
 import { Metadata } from '../../decorators/lwcDecorators';
@@ -210,7 +209,7 @@ it('linter returns empty diagnostics on correct file', () => {
 });
 
 it('mapLwcMetadataToInternal returns expected javascript metadata', async () => {
-  const filepath = URI.file(path.join(__dirname, 'fixtures', 'metadata.js'));
+  const filepath = vscode.Uri.file(path.join(__dirname, 'fixtures', 'metadata.js'));
   const fileBuffer = await vscode.workspace.fs.readFile(filepath);
   const content = Buffer.from(fileBuffer).toString('utf8');
 

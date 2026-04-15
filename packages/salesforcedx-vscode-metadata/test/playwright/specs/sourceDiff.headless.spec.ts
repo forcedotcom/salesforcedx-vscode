@@ -64,6 +64,11 @@ const verifyDiffCompleted = async (page: Page, className: string, screenshotPref
   // Wait for diff completion
   await waitForOutputChannelText(page, { expectedText: 'Diff completed for 1 file', timeout: 60_000 });
 
+  // Verify diff editor opens
+  await expect(
+    page.locator('#workbench\\.parts\\.editor .editor-group-container'),
+    'Should have 2 editor groups for diff view'
+  ).toHaveCount(2, { timeout: 10_000 });
   await saveScreenshot(page, `${screenshotPrefix}.diff-editor-opened.png`);
 
   // Verify diff tab exists
@@ -113,7 +118,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     // Wait for deploy completion via output channel
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
-    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: DEPLOY_TIMEOUT });
   });
 
   await test.step('create local change and diff via command palette', async () => {

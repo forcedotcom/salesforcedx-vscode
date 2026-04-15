@@ -14,6 +14,6 @@ module.exports = Object.freeze({
   RELEASE_REGEX: new RegExp(/^origin\/release\/v\d{2}\.\d{1,2}\.\d/),
   PR_REGEX: new RegExp(/(\(#\d+\))/),
   COMMIT_REGEX: new RegExp(/^([\da-zA-Z]+)/),
-  TYPE_REGEX: new RegExp(/([a-zA-Z]+)(?:\([^)]*\))?:/),
+  TYPE_REGEX: new RegExp(/([a-zA-Z]+)(?:\([\w-]+\))?:/),
   GUS_WI_REGEX: new RegExp(/\[W-\d+\]\s*/g)
 });

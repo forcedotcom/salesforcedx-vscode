@@ -80,6 +80,7 @@ export default class Server {
   private auraIndexer!: AuraIndexer;
   private isDelayedInitializationComplete = false;
   private isIndexerInitialized = false;
+  private hasDetectedAuraFiles = false;
   private workspaceType: WorkspaceType;
   private fileSystemAccessor: LspFileSystemAccessor;
 
@@ -115,6 +116,9 @@ export default class Server {
         Logger.warn(nls.localize('no_workspace_found_message'));
         return { capabilities: {} };
       }
+
+      // Set up document event handlers
+      this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
 
       // Defer performDelayedInitialization to next tick (like LWC) so the client has time to attach
       // workspace/readFile and workspace/stat handlers before we send any requests.
@@ -422,6 +426,30 @@ export default class Server {
     void this.connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
   }
 
+  private onDidOpen(changeEvent: { document: TextDocument }): void {
+    const { document } = changeEvent;
+    const uri = document.uri;
+
+    // Check if this is an Aura component file and initialize indexer if needed
+    // Parse URI to get filename in a cross-platform way (URIs use forward slashes, but path.basename handles both)
+    const fileName = path.basename(URI.parse(uri).fsPath);
+    if (fileName && this.isAuraComponentFile(fileName)) {
+      this.hasDetectedAuraFiles = true;
+
+      if (!this.isIndexerInitialized && this.isDelayedInitializationComplete) {
+        void this.initializeIndexer();
+      }
+    }
+  }
+
+  /**
+   * Checks if a filename represents an Aura component file
+   */
+  private isAuraComponentFile(fileName: string): boolean {
+    const auraExtensions = ['.cmp', '.app', '.intf', '.evt', '.lib', '.auradoc', '.design', '.tokens'];
+    return auraExtensions.some(ext => fileName.endsWith(ext));
+  }
+
   /** Get document if it exists and context is ready for processing */
   private getDocumentIfReady(uri: string): TextDocument | undefined {
     const document = this.documents.get(uri);
@@ -462,7 +490,7 @@ export default class Server {
     }
 
     try {
-      // Initialize workspace context now that file system access is available
+      // Initialize workspace context now that essential files are loaded via onDidOpen
       if (!this.context) {
         this.context = new AuraWorkspaceContext(this.workspaceRoots, this.fileSystemAccessor, this.connection);
         this.context.initialize(this.workspaceType);
@@ -490,11 +518,11 @@ export default class Server {
       // Configure project with updated context
       await this.context.configureProject();
 
-      if (!this.isIndexerInitialized) {
+      this.isDelayedInitializationComplete = true;
+
+      if (this.hasDetectedAuraFiles && !this.isIndexerInitialized) {
         this.initializeIndexer();
       }
-
-      this.isDelayedInitializationComplete = true;
     } catch (error: unknown) {
       throw new Error(
         nls.localize('delayed_initialization_error_message', error instanceof Error ? error.message : String(error))

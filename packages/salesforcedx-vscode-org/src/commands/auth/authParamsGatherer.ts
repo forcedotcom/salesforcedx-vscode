@@ -89,11 +89,7 @@ const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.Qu
   );
 
 export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
-  constructor(
-    public instanceUrl: string | undefined,
-    /** When web login is invoked programmatically (e.g. access-token re-auth), reuse this alias or username so the new auth replaces the same target-org label. */
-    public readonly reauthAliasOrUsername?: string
-  ) {}
+  constructor(public instanceUrl: string | undefined) {}
 
   public async gather(): Promise<CancelResponse | ContinueResponse<AuthParams>> {
     const skipAlias = this.instanceUrl !== undefined;
@@ -125,11 +121,8 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
       }
     }
 
-    const reauthLabel = this.reauthAliasOrUsername?.trim();
     const alias = skipAlias
-      ? reauthLabel && reauthLabel.length > 0
-        ? reauthLabel
-        : `reauth-${DEFAULT_ALIAS}`
+      ? `reauth-${DEFAULT_ALIAS}`
       : await vscode.window.showInputBox({
           prompt: nls.localize('parameter_gatherer_enter_alias_name'),
           placeHolder: DEFAULT_ALIAS

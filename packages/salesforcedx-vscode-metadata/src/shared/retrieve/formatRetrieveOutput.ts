@@ -5,29 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { FileResponse, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import { URI } from 'vscode-uri';
 
-/** Format retrieve results for output. `result` is optional for deletes-only cases. */
-export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* (
-  result: RetrieveResult | undefined,
-  fileResponsesFromDelete: FileResponse[] = []
-) {
+/** Format retrieve results for output */
+export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* (result: RetrieveResult) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const { isSDRSuccess, isSDRFailure } = yield* api.services.ComponentSetService;
-  const fileResponses = result?.getFileResponses() ?? [];
-  const succeeded = [...fileResponses.filter(isSDRSuccess), ...fileResponsesFromDelete];
+  const fileResponses = result.getFileResponses();
+  const succeeded = fileResponses.filter(isSDRSuccess);
   const failed = fileResponses.filter(isSDRFailure);
 
   const successSection =
     succeeded.length > 0
-      ? `\n=== Retrieved Source (${succeeded.length}) ===\n${succeeded.map(r => `${r.state} ${r.type} ${r.filePath ? URI.file(r.filePath).toString() : r.fullName}`).join('\n')}\n`
+      ? `\n=== Retrieved Source ===\n${succeeded.map(r => `${r.state} ${r.type} ${r.fullName}`).join('\n')}\n`
       : '';
 
   const failureSection =
     failed.length > 0
-      ? `\n=== Retrieve Errors (${failed.length}) ===\n${failed
+      ? `\n=== Retrieve Errors ===\n${failed
           .map(r => {
             const error = 'error' in r ? r.error : 'Unknown error';
             return `ERROR: ${r.filePath ?? r.fullName}: ${error}`;
@@ -35,5 +31,7 @@ export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* 
           .join('\n')}\n`
       : '';
 
-  return successSection + failureSection;
+  const summary = `\n${succeeded.length} component${succeeded.length === 1 ? '' : 's'} retrieved${failed.length > 0 ? `, ${failed.length} failed` : ''}\n`;
+
+  return successSection + failureSection + summary;
 });

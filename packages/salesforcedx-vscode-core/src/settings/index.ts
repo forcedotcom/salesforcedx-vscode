@@ -8,3 +8,4 @@
 import { SalesforceCoreSettings } from './salesforceCoreSettings';
 
 export const salesforceCoreSettings = SalesforceCoreSettings.getInstance();
+export { DeployQueue, registerPushOrDeployOnSave } from './pushOrDeployOnSave';

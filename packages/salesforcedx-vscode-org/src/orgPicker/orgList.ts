@@ -275,12 +275,7 @@ const getStatusBarContent = Effect.fn('updateTargetOrgDisplay')(function* (orgIn
       tooltip: nls.localize('status_bar_org_picker_tooltip')
     };
   }
-  const isExpired = isScratch
-    ? yield* Effect.tryPromise({ try: () => isOrgExpired(username), catch: e => e }).pipe(
-        Effect.tapError(e => Effect.logWarning('isOrgExpired failed, treating as not expired', e)),
-        Effect.orElseSucceed(() => false)
-      )
-    : false;
+  const isExpired = isScratch ? yield* Effect.promise(() => isOrgExpired(username)) : false;
   const orgType = getOrgTypeFromInfo(orgInfo);
   const typeIcon = getIconForOrgType(orgType);
   const displayName = aliases?.[0] ?? username;

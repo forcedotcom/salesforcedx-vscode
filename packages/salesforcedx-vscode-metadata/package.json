@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.6.0",
+  "version": "66.4.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -33,8 +33,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "@salesforce/source-tracking": "^7.8.11",
+    "@salesforce/source-deploy-retrieve": "^12.32.1",
+    "@salesforce/source-tracking": "^7.8.8",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -45,12 +45,10 @@
     "vscode:bundle": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:conflicts": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
-    "test:desktop:conflicts": "wireit",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -166,7 +164,7 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts --project=parallel",
+      "command": "playwright test --config=playwright.config.web.ts",
       "env": {
         "PLAYWRIGHT_WORKERS": {
           "external": true
@@ -187,50 +185,7 @@
       "output": []
     },
     "test:desktop": {
-      "command": "playwright test --config=playwright.config.desktop.ts --project=parallel",
-      "env": {
-        "VSCODE_DESKTOP": "1",
-        "PLAYWRIGHT_WORKERS": {
-          "external": true
-        }
-      },
-      "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-services:spans:server",
-        "../salesforcedx-vscode-apex-log:vscode:bundle",
-        "../playwright-vscode-ext:compile"
-      ],
-      "files": [
-        "playwright.config.desktop.ts",
-        "test/playwright/**/*.ts",
-        "package*.json"
-      ],
-      "output": []
-    },
-    "test:web:conflicts": {
-      "command": "playwright test --config=playwright.config.web.ts --project=conflicts",
-      "env": {
-        "PLAYWRIGHT_WORKERS": {
-          "external": true
-        }
-      },
-      "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-services:spans:server",
-        "../salesforcedx-vscode-apex-log:vscode:bundle",
-        "../playwright-vscode-ext:compile"
-      ],
-      "files": [
-        "playwright.config.web.ts",
-        "test/playwright/**/*.ts",
-        "package*.json"
-      ],
-      "output": []
-    },
-    "test:desktop:conflicts": {
-      "command": "playwright test --config=playwright.config.desktop.ts --project=conflicts",
+      "command": "playwright test --config=playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
         "PLAYWRIGHT_WORKERS": {
@@ -277,30 +232,6 @@
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
   "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "salesforce-conflicts",
-          "title": "%conflicts_view_title_text%",
-          "icon": "resources/issues.svg"
-        }
-      ]
-    },
-    "views": {
-      "salesforce-conflicts": [
-        {
-          "id": "conflicts",
-          "name": "%conflicts_view_title_text%",
-          "when": "sf:project_opened && sf:has_target_org"
-        }
-      ]
-    },
-    "viewsWelcome": [
-      {
-        "view": "conflicts",
-        "contents": "%conflicts_view_welcome_message%"
-      }
-    ],
     "languages": [
       {
         "id": "forcesourcemanifest",
@@ -326,78 +257,46 @@
           "type": "boolean",
           "default": false,
           "description": "%ignore_conflicts_on_push_description%"
-        },
-        "salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve": {
-          "type": "boolean",
-          "default": false,
-          "description": "%conflict_detection_enabled_description%"
-        },
-        "salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds": {
-          "type": "number",
-          "default": 60,
-          "minimum": 0,
-          "description": "%source_tracking_polling_interval_description%"
-        },
-        "salesforcedx-vscode-metadata.showSuccessNotification": {
-          "type": "boolean",
-          "default": false,
-          "description": "%show_success_notification_description%"
         }
       }
     },
     "menus": {
       "commandPalette": [
         {
-          "command": "sf.conflict.diff",
-          "when": "never"
-        },
-        {
-          "command": "sf.conflict.open",
-          "when": "never"
-        },
-        {
           "command": "sf.internal.refreshsobjects",
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.metadata.source.diff",
-          "when": "isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.project.deploy.start",
-          "when": "sf:target_org_has_change_tracking"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.metadata.project.deploy.start.ignore.conflicts",
-          "when": "sf:target_org_has_change_tracking"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.metadata.project.retrieve.start",
-          "when": "sf:target_org_has_change_tracking"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.metadata.view.all.changes",
-          "when": "sf:target_org_has_change_tracking"
-        },
-        {
-          "command": "sf.metadata.view.conflicts",
-          "when": "sf:target_org_has_change_tracking"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.metadata.view.local.changes",
-          "when": "sf:target_org_has_change_tracking"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.metadata.view.remote.changes",
-          "when": "sf:target_org_has_change_tracking"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.metadata.source.tracking.reset.remote",
-          "when": "sf:target_org_has_change_tracking"
-        },
-        {
-          "command": "sf.metadata.lightning.generate.lwc",
-          "when": "sf:project_opened"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.metadata.delete.source",
@@ -405,7 +304,7 @@
         },
         {
           "command": "sf.metadata.delete.source.current.file",
-          "when": "!editorReadonly && isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "!editorReadonly && isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.source.path",
@@ -413,15 +312,15 @@
         },
         {
           "command": "sf.metadata.deploy.active.editor",
-          "when": "!editorReadonly && isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "!editorReadonly && isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
-          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.project.retrieve.start.ignore.conflicts",
-          "when": "sf:target_org_has_change_tracking"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.metadata.retrieve.source.path",
@@ -429,91 +328,83 @@
         },
         {
           "command": "sf.metadata.retrieve.current.source.file",
-          "when": "isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.retrieve.in.manifest",
-          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.project.generate.manifest",
-          "when": "isFileSystemResource && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "sf:project_opened"
         }
       ],
       "editor/context": [
         {
           "command": "sf.metadata.delete.source",
-          "when": "!editorReadonly && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "!editorReadonly && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.source.path",
-          "when": "!editorReadonly && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "!editorReadonly && salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
-          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.retrieve.source.path",
-          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.retrieve.in.manifest",
-          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.project.generate.manifest",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.source.diff",
-          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         }
       ],
       "explorer/context": [
         {
           "command": "sf.metadata.delete.source",
-          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest' && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.source.path",
-          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest' && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
-          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.retrieve.source.path",
-          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.retrieve.in.manifest",
-          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.project.generate.manifest",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.source.diff",
-          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "sf.conflict.diff",
-          "when": "view == conflicts && viewItem == conflict-actions",
-          "group": "inline"
-        },
-        {
-          "command": "sf.conflict.open",
-          "when": "view == conflicts && viewItem == conflict-actions",
-          "group": "inline"
         }
       ]
     },
@@ -531,24 +422,8 @@
         "title": "%project_retrieve_start_default_org_text%"
       },
       {
-        "command": "sf.conflict.diff",
-        "title": "%conflict_detect_diff_command_title%"
-      },
-      {
-        "command": "sf.conflict.open",
-        "title": "%conflict_detect_open_file%",
-        "icon": {
-          "light": "resources/light/go-to-file.svg",
-          "dark": "resources/dark/go-to-file.svg"
-        }
-      },
-      {
         "command": "sf.metadata.view.all.changes",
         "title": "%view_all_changes_text%"
-      },
-      {
-        "command": "sf.metadata.view.conflicts",
-        "title": "%conflicts_view_title_text%"
       },
       {
         "command": "sf.metadata.view.local.changes",

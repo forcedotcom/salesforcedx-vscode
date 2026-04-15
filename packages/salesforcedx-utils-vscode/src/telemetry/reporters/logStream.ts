@@ -7,8 +7,7 @@
 
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
-import { Disposable, workspace } from 'vscode';
-import { URI } from 'vscode-uri';
+import { Disposable, Uri, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 
 /**
@@ -16,7 +15,7 @@ import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
  */
 export class LogStream extends Disposable implements TelemetryReporter {
   private toDispose: Disposable[] = [];
-  private logUri: URI;
+  private logUri: Uri;
   private buffer: string = '';
 
   constructor(
@@ -24,7 +23,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
     logFilePath: string
   ) {
     super(() => this.toDispose.forEach(d => d?.dispose()));
-    this.logUri = URI.file(path.join(logFilePath, `${this.extensionId}.txt`));
+    this.logUri = Uri.file(path.join(logFilePath, `${this.extensionId}.txt`));
 
     console.log(
       `VS Code telemetry event logging enabled for: ${this.extensionId}. Telemetry events will be written via write stream to a file at: ${this.logUri.fsPath}.`

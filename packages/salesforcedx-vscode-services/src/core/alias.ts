@@ -64,7 +64,8 @@ export class AliasService extends Effect.Service<AliasService>()('AliasService',
       const sa = yield* Effect.promise(() => StateAggregator.getInstance());
       yield* Effect.forEach(
         aliases,
-        alias => Effect.promise(() => sa.aliases.unsetAndSave(alias)).pipe(Effect.catchAll(() => Effect.void)),
+        alias =>
+          Effect.promise(() => sa.aliases.unsetAndSave(alias)).pipe(Effect.catchAll(() => Effect.void)),
         { discard: true }
       );
     });

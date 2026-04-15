@@ -84,7 +84,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
       await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
 
-      await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 30_000 });
+      await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: 30_000 });
     });
 
     await test.step('retrieve via manifest', async () => {
@@ -94,7 +94,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       await executeEditorContextMenuCommand(page, packageNls.retrieve_in_manifest_text, 'manifest/package.xml');
 
       await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
-      await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: RETRIEVE_TIMEOUT });
+      await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
     });
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);

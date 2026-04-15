@@ -22,7 +22,6 @@ import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import * as extensionProvider from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias } from '../../../src/util/orgUtil';
 
@@ -341,9 +340,6 @@ describe('testing setTargetOrgOrAlias', () => {
   let stateAggregatorClearInstanceMock: jest.SpyInstance;
 
   beforeEach(() => {
-    jest.spyOn(extensionProvider, 'getOrgRuntime').mockReturnValue({
-      runPromise: jest.fn().mockResolvedValue(undefined)
-    } as unknown as ReturnType<typeof extensionProvider.getOrgRuntime>);
     workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
     jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
     setMock = jest.fn();

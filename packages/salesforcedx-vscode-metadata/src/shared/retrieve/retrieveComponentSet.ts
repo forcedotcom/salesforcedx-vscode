@@ -6,20 +6,19 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ComponentSet, FileResponse } from '@salesforce/source-deploy-retrieve';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import { maybeStoreRetrieveResult } from '../../conflict/resultStorage';
+import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
-import { retrieveHasErrors, RetrieveCompletedWithErrorsError } from './retrieveOutcome';
 
 /** Retrieve a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* (options: {
   componentSet: ComponentSet;
   ignoreConflicts?: boolean;
-  fileResponsesFromDelete?: FileResponse[];
 }) {
-  const { componentSet, ignoreConflicts, fileResponsesFromDelete } = options;
+  const { componentSet, ignoreConflicts } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -28,13 +27,20 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, { ignoreConflicts });
 
-  yield* channelService.appendToChannel(yield* formatRetrieveOutput(result, fileResponsesFromDelete));
+  // Handle cancellation
+  if (typeof result === 'string') {
+    yield* channelService.appendToChannel('Retrieve cancelled by user');
+    return;
+  }
 
-  yield* maybeStoreRetrieveResult(result);
+  yield* channelService.appendToChannel(yield* formatRetrieveOutput(result));
 
-  if (yield* retrieveHasErrors(result)) {
+  const { isSDRFailure } = yield* api.services.ComponentSetService;
+  if (result.getFileResponses().some(isSDRFailure)) {
     const channel = yield* channelService.getChannel;
     yield* Effect.sync(() => channel.show());
-    return yield* new RetrieveCompletedWithErrorsError({ userMessage: nls.localize('retrieve_completed_with_errors_message') });
+    yield* Effect.sync(() => {
+      void vscode.window.showErrorMessage(nls.localize('retrieve_completed_with_errors_message'));
+    });
   }
 });

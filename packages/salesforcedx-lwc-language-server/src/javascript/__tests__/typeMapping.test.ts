@@ -10,13 +10,12 @@ import { transform } from '@lwc/old-compiler';
 import { CompilerOptions as OldCompilerOptions } from '@lwc/old-compiler/dist/types/compiler/options';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { mapLwcMetadataToInternal } from '../typeMapping';
 
 const isScriptFile = (file: any): file is ScriptFile => 'classes' in file;
 
 it('can map new metadata to old metadata', async () => {
-  const filepath = URI.file(path.join(__dirname, 'fixtures', 'metadata.js'));
+  const filepath = vscode.Uri.file(path.join(__dirname, 'fixtures', 'metadata.js'));
   const fileBuffer = await vscode.workspace.fs.readFile(filepath);
   const content = Buffer.from(fileBuffer).toString('utf8');
 
@@ -52,7 +51,7 @@ it('can map new metadata to old metadata', async () => {
 });
 
 it('Should handle mapping when there is a property with only a setter', async () => {
-  const filepath = URI.file(path.join(__dirname, 'fixtures', 'nogetter.js'));
+  const filepath = vscode.Uri.file(path.join(__dirname, 'fixtures', 'nogetter.js'));
   const fileBuffer = await vscode.workspace.fs.readFile(filepath);
   const content = Buffer.from(fileBuffer).toString('utf8');
 

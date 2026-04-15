@@ -21,98 +21,6 @@ export enum FileFormat {
   CSV = 'csv'
 }
 
-/**
- * Matches a single character that must not appear in an export file name (user input before `.csv` / `.json`).
- * Character class maps to:
- * - `/` `\` — path separators (would embed directories or escape the intended folder)
- * - `<` `>` `:` `"` `|` `?` `*` — reserved in Windows file names (and problematic on other OSes)
- * - `\x00`–`\x1f` — ASCII C0 control codes (NUL through Unit Separator), not allowed in portable file names
- */
-const invalidFileNameCharRegExp = /[/\\<>:"|?*\x00-\x1f]/;
-
-const stripTrailingExtension = (base: string, ext: string): string => {
-  const suffix = `.${ext}`;
-  if (base.toLowerCase().endsWith(suffix.toLowerCase())) {
-    return base.slice(0, -suffix.length);
-  }
-  return base;
-};
-
-const getExportFileStemFromDocument = (document: vscode.TextDocument, fileExtension: string): string => {
-  let stem = stripTrailingExtension(getDocumentName(document).trim(), fileExtension);
-  stem = stripTrailingExtension(stem, 'soql');
-  if (stem.length > 0) {
-    return stem;
-  }
-  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
-  return `soql-query-results-${timestamp}`;
-};
-
-const validateExportResultsFileNameInput = (value: string, fileExtension: string): string | undefined => {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return nls.localize('soql_export_results_file_name_empty_error');
-  }
-  const base = stripTrailingExtension(trimmed, fileExtension);
-  if (!base) {
-    return nls.localize('soql_export_results_file_name_format_error');
-  }
-  if (base === '.' || base === '..') {
-    return nls.localize('soql_export_results_file_name_format_error');
-  }
-  if (invalidFileNameCharRegExp.test(base)) {
-    return nls.localize('soql_export_results_file_name_format_error');
-  }
-  return undefined;
-};
-
-const normalizeExportResultsFileBaseName = (value: string, fileExtension: string): string =>
-  stripTrailingExtension(value.trim(), fileExtension);
-
-const saveQueryResultsViaMemfsPrompts = Effect.fn('queryDataFileService.saveQueryResultsViaMemfsPrompts')(function* (params: {
-  queryText: string;
-  queryData: QueryResult<JsonMap>;
-  dataProvider: DataProvider;
-  document: vscode.TextDocument;
-}) {
-  const { queryText, queryData, dataProvider, document } = params;
-  const api = yield* getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
-  const defaultStem = getExportFileStemFromDocument(document, dataProvider.fileExtension);
-
-  const rawName = yield* Effect.promise(() =>
-    vscode.window.showInputBox({
-      prompt: nls.localize('soql_export_results_file_name_prompt'),
-      value: defaultStem,
-      validateInput: (v: string) => validateExportResultsFileNameInput(v, dataProvider.fileExtension)
-    })
-  ).pipe(
-    Effect.map(n => n?.trim()),
-    Effect.flatMap(raw => promptService.considerUndefinedAsCancellation(raw))
-  );
-
-  const fileNameBase = normalizeExportResultsFileBaseName(rawName, dataProvider.fileExtension);
-
-  const outputDir = yield* promptService.promptForOutputDir({
-    defaultUri: Utils.joinPath(workspaceInfo.uri, 'scripts', 'soql'),
-    description: nls.localize('soql_output_dir_default_description'),
-    pickerPlaceHolder: nls.localize('soql_output_dir_prompt')
-  });
-
-  const fileUri = Utils.joinPath(outputDir, `${fileNameBase}.${dataProvider.fileExtension}`);
-
-  yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [fileUri] });
-
-  const fileContentString = dataProvider.getFileContent(queryText, queryData.records);
-  yield* api.services.FsService.writeFile(fileUri, fileContentString);
-
-  showFileInExplorer(fileUri, workspaceInfo.fsPath);
-  showSaveSuccessMessage(Utils.basename(fileUri));
-  return fileUri;
-});
-
 export class QueryDataFileService {
   private dataProvider: DataProvider;
   private documentName: string;
@@ -141,39 +49,27 @@ export class QueryDataFileService {
   public async save(): Promise<URI | undefined> {
     const defaultFileName = this.dataProvider.getFileName();
     const docUri = this.document.uri;
-    if (docUri.scheme === 'file') {
-      const defaultUri = Utils.joinPath(Utils.dirname(docUri), defaultFileName);
-      const fileInfo: URI | undefined = await vscode.window.showSaveDialog({ defaultUri });
-      if (!fileInfo) {
-        return undefined;
-      }
-      return this.persistExportedResults(fileInfo);
+    const defaultUri =
+      docUri.scheme === 'file' ? Utils.joinPath(Utils.dirname(docUri), defaultFileName) : undefined;
+
+    const fileInfo: URI | undefined = await vscode.window.showSaveDialog({ defaultUri });
+
+    if (fileInfo) {
+      const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
+
+      const workspacePath = await getSoqlRuntime().runPromise(
+        Effect.gen(function* () {
+          const api = yield* getServicesApi;
+          yield* api.services.FsService.writeFile(fileInfo, fileContentString);
+          const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+          return fsPath;
+        })
+      );
+      showFileInExplorer(fileInfo, workspacePath);
+      showSaveSuccessMessage(Utils.basename(fileInfo));
+      return fileInfo;
     }
-
-    const uriOrNull = await getSoqlRuntime().runPromise(
-      saveQueryResultsViaMemfsPrompts({
-        queryText: this.queryText,
-        queryData: this.queryData,
-        dataProvider: this.dataProvider,
-        document: this.document
-      }).pipe(Effect.catchTag('UserCancellationError', () => Effect.succeed(null)))
-    );
-    return uriOrNull ?? undefined;
-  }
-
-  private async persistExportedResults(fileUri: URI): Promise<URI | undefined> {
-    const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
-    const workspacePath = await getSoqlRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* getServicesApi;
-        yield* api.services.FsService.writeFile(fileUri, fileContentString);
-        const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-        return fsPath;
-      })
-    );
-    showFileInExplorer(fileUri, workspacePath);
-    showSaveSuccessMessage(Utils.basename(fileUri));
-    return fileUri;
+    return undefined;
   }
 }
 

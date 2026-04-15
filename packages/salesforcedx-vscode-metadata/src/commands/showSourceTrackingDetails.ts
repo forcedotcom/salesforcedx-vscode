@@ -11,10 +11,7 @@ import * as Effect from 'effect/Effect';
 import { nls } from '../messages';
 import { separateChanges } from '../statusBar/helpers';
 
-type ViewChangesOptions =
-  | { local: true; remote?: never }
-  | { remote: true; local?: never }
-  | { local: true; remote: true };
+type ViewChangesOptions = { local: boolean; remote: boolean };
 
 const getTitle = (changes: StatusOutputRow[], sectionTitle: string): string[] => [
   '',
@@ -32,8 +29,17 @@ export const viewChangesCommand = Effect.fn('viewChanges')(function* (options: V
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const channel = yield* channelService.getChannel;
+  const tracking = yield* api.services.SourceTrackingService.getSourceTrackingOrThrow();
 
-  const status = yield* api.services.SourceTrackingService.getStatus(options);
+  // Re-read both remote and local tracking to ensure fresh data
+  yield* Effect.all(
+    [
+      ...(options.remote ? [Effect.promise(() => tracking.reReadRemoteTracking())] : []),
+      ...(options.local ? [Effect.promise(() => tracking.reReadLocalTrackingCache())] : [])
+    ],
+    { concurrency: 'unbounded' }
+  );
+  const status = yield* Effect.promise(() => tracking.getStatus(options));
   const { localChanges: allLocalChanges, remoteChanges: allRemoteChanges, conflicts } = separateChanges(status);
 
   const remoteChanges = options.remote ? allRemoteChanges : undefined;

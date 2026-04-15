@@ -7,12 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import {
-  CORE_CONFIG_SECTION,
-  DEPLOY_ON_SAVE_ENABLED,
-  DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
-  DETECT_CONFLICTS_FOR_DEPLOY_AND_RETRIEVE
-} from '../constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, DEPLOY_ON_SAVE_IGNORE_CONFLICTS } from '../constants';
 
 /** Check if deploy on save is enabled */
 export const getDeployOnSaveEnabled = Effect.fn('getDeployOnSaveEnabled')(function* () {
@@ -24,10 +19,4 @@ export const getDeployOnSaveEnabled = Effect.fn('getDeployOnSaveEnabled')(functi
 export const getIgnoreConflicts = (): boolean => {
   const config = vscode.workspace.getConfiguration(CORE_CONFIG_SECTION);
   return config.get<boolean>(DEPLOY_ON_SAVE_IGNORE_CONFLICTS, false);
-};
-
-/** Check if conflict detection is enabled for deploy/retrieve on non-tracking orgs (reads from core for backward compat). Tracking orgs always check. */
-export const getDetectConflictsForDeployAndRetrieve = (): boolean => {
-  const config = vscode.workspace.getConfiguration(CORE_CONFIG_SECTION);
-  return config.get<boolean>(DETECT_CONFLICTS_FOR_DEPLOY_AND_RETRIEVE, false);
 };

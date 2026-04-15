@@ -7,8 +7,10 @@
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
+import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
+import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
@@ -28,20 +30,23 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
 
   const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
 
-  yield* confirmOverwrite(projectComponentSet, members);
+  if (!(yield* confirmOverwrite(projectComponentSet, members))) {
+    return Brand.nominal<SuccessfulCancelResult>()('User canceled');
+  }
 
   // Run the retrieve operation
   const result = yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1);
 
-  // Handle post-retrieve UI updates
-  yield* Effect.promise(async () => {
-    if (node.kind === 'component' || node.kind === 'customObject') {
-      node.iconPath = getIconPath(true);
-      treeProvider.fireChangeEvent(node);
-    } else {
-      await treeProvider.refreshType(node);
-    }
-  });
+  if (typeof result !== 'string')
+    // Handle post-retrieve UI updates
+    yield* Effect.promise(async () => {
+      if (node.kind === 'component' || node.kind === 'customObject') {
+        node.iconPath = getIconPath(true);
+        treeProvider.fireChangeEvent(node);
+      } else {
+        await treeProvider.refreshType(node);
+      }
+    });
 
   return result;
 });
@@ -81,21 +86,16 @@ const isMemberPresentInProject = (projectComponentSet: ComponentSet, m: Metadata
 const getOverwriteCount = (projectComponentSet: ComponentSet, members: MetadataMember[]): number =>
   members.reduce((n, m) => n + (isMemberPresentInProject(projectComponentSet, m) ? 1 : 0), 0);
 
-const confirmOverwrite = Effect.fn('confirmRetrieveOverwrite')(function* (
-  projectComponentSet: ComponentSet,
-  members: MetadataMember[]
-) {
-  const overwriteCount = getOverwriteCount(projectComponentSet, members);
-  if (overwriteCount === 0) return;
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const yesButton = nls.localize('yes_button');
-  const typeName = members[0]?.type ?? 'Unknown';
-  const answer = yield* Effect.promise(() =>
-    vscode.window.showWarningMessage(
+const confirmOverwrite = (projectComponentSet: ComponentSet, members: MetadataMember[]) =>
+  Effect.promise(async () => {
+    const overwriteCount = getOverwriteCount(projectComponentSet, members);
+    if (overwriteCount === 0) return true;
+    const typeName = members[0]?.type ?? 'Unknown';
+    const yesButton = nls.localize('yes_button');
+    const answer = await vscode.window.showWarningMessage(
       nls.localize('confirm_overwrite', String(overwriteCount), typeName),
       yesButton,
       nls.localize('no_button')
-    )
-  );
-  if (answer !== yesButton) return yield* new api.services.UserCancellationError();
-});
+    );
+    return answer === yesButton;
+  });

@@ -1,17 +1,10 @@
 #!/usr/bin/env bash
 # Stop hook: run compile, lint, effect LS (uncommitted .ts only), test, vscode:bundle.
-# On first failure, block with reason for agent to fix. Wireit cache hits = success.
+# On first failure, output followup_message for agent to fix. Wireit cache hits = success.
 # stderr → Hooks output channel
 set -e
 
-# Read stdin to check stop_hook_active
-INPUT=$(cat)
-if [ "$(echo "$INPUT" | jq -r '.stop_hook_active // false')" = "true" ]; then
-  echo "[verify-stop] stop_hook_active=true, allowing stop" >&2
-  exit 0
-fi
-
-ROOT="${CURSOR_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-.}}"
+ROOT="${CLAUDE_PROJECT_DIR:-.}"
 cd "$ROOT"
 echo "[verify-stop] starting" >&2
 
@@ -22,7 +15,7 @@ fail() {
   local err
   err=$(printf '%s' "$out" | head -c 500 | tr -d '\000-\037\177' | tr '\n' ' ' | sed 's/\\/\\\\/g; s/"/\\"/g')
   echo "[verify-stop] failed: $step" >&2
-  echo "{\"decision\": \"block\", \"reason\": \"Verification failed: $step — $err. Fix the errors and try again.\"}"
+  echo "{\"followup_message\": \"Verification failed: $step — $err. Fix and re-run verification.\"}"
   exit 0
 }
 
@@ -34,8 +27,8 @@ run_step() {
 }
 
 # Check if this agent session made any changes.
-# mark-edit.sh (.claude/hooks) touches this file via PostToolUse on every Edit/Write.
-SESSION_MARKER="$ROOT/.claude/.edit-marker"
+# We use CLAUDE_CONVERSATION_ID to track the session and a temporary file to mark if an edit occurred.
+SESSION_MARKER="/tmp/claude_edit_${CLAUDE_CONVERSATION_ID:-default}"
 
 if [ ! -f "$SESSION_MARKER" ]; then
   echo "[verify-stop] no edits in this session, skipping verification" >&2

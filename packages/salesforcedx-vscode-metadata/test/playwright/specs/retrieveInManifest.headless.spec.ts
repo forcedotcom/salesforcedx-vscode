@@ -135,7 +135,7 @@ test.setTimeout(RETRIEVE_TIMEOUT);
 
       // Verify retrieve starts and completes via output channel
       await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
-      await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: RETRIEVE_TIMEOUT });
+      await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
     });
 
     await test.step('2. Explorer context menu (file)', async () => {
@@ -151,7 +151,7 @@ test.setTimeout(RETRIEVE_TIMEOUT);
 
       // Verify retrieve starts and completes via output channel
       await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
-      await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: RETRIEVE_TIMEOUT });
+      await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
     });
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);

@@ -42,7 +42,7 @@
   "apex_testing_walkthrough_step3_title": "Apex テストスイートの表示と実行",
   "apex_testing_walkthrough_step3_description": "**Apex テスト** の先頭の **Apex テストスイート** を開きます。スイートを一度展開してクラスを読み込み、スイートで **テストの実行** を使います。コマンドパレットの **SFDX: Apex テストスイートを実行** も利用できます。",
   "apex_testing_walkthrough_step4_title": "タグ、テキスト、または除外 (!) でフィルター",
-  "apex_testing_walkthrough_step4_description": "テストビューのフィルター欄: 名前に一致させるにはテキスト、`@in-workspace` / `@org-only` / `@test-suite` でタグ、先頭に `!` で除外します。メインの **実行** はワークスペース内のテスト（フィルター適用時は表示されているテスト）を実行します。Org 全体を実行するには実行プロファイルの **Org 内のすべてのテストを実行** を選びます。",
+  "apex_testing_walkthrough_step4_description": "テストビューのフィルター欄: 名前に一致させるにはテキスト、`@in-workspace` / `@org-only` / `@test-suite` でタグ、先頭に `!` で除外します。実行プロファイルで **ワークスペース内のテストを実行** を選ぶと、ワークスペース内のテストだけを実行します。",
   "apex_testing_walkthrough_step5_title": "テスト結果タブで結果を確認",
   "apex_testing_walkthrough_step5_description": "実行後、ツリーに合格/不合格が表示されます。詳細は失敗を展開します。**テスト結果** パネルで全文を確認できます。失敗を強調表示するには **salesforcedx-vscode-apex-testing.test-run-concise** を有効にします。",
   "apex_testing_walkthrough_step1_alt": "Apex テストスイート、名前空間、展開されたテストクラスとメソッドを示すテストエクスプローラー。",

@@ -3,11 +3,11 @@
   "hooks": {
     "beforeShellExecution": [
       {
-        "command": ".claude/hooks/block-no-verify.sh",
+        "command": ".cursor/hooks/block-no-verify.sh",
         "matcher": "git.*--no-verify"
       }
     ],
-    "afterFileEdit": [{ "command": ".claude/hooks/mark-edit.sh" }],
-    "stop": [{ "command": ".claude/hooks/verify-stop.sh" }]
+    "stop": [{ "command": ".cursor/hooks/verify-stop.sh" }],
+    "afterFileEdit": [{ "command": ".cursor/hooks/mark-edit.sh" }]
   }
 }

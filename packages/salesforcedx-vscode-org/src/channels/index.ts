@@ -8,9 +8,5 @@ import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-const channelName = nls.localize('channel_name');
-
-export const channelService = ChannelService.getInstance(channelName);
-
-/** Same channel as {@link channelService}; safe to pass to `extensionContext.subscriptions.push`. */
-export const OUTPUT_CHANNEL: vscode.OutputChannel = ChannelService.getChannel(channelName);
+export const OUTPUT_CHANNEL = vscode.window.createOutputChannel(nls.localize('channel_name'));
+export const channelService = new ChannelService(OUTPUT_CHANNEL);

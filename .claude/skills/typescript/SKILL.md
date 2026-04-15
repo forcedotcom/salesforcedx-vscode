@@ -3,7 +3,6 @@ name: typescript
 description: TypeScript coding standards and conventions including file naming rules
 ---
 
-- new file copyright header: use year **2026** (e.g. `Copyright (c) 2026, salesforce.com, inc.`)
 - no barrel files
 - avoid type assertions (`as Foo` or `as unknown as` or `Foo!`). do guards or Effect.schema stuff (ex `is`) instead
 - no `void` for async - use async/effect (exception [vscode-window-messages](../vscode-window-messages/SKILL.md))

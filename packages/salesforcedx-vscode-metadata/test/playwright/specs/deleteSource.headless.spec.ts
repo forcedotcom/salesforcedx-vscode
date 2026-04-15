@@ -133,7 +133,8 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await waitForOutputChannelText(page, { expectedText: 'Deleting', timeout: 30_000 });
     await saveScreenshot(page, 'step2.delete-started.png');
 
-    await waitForOutputChannelText(page, { expectedText: 'Deleted Source', timeout: DEPLOY_TIMEOUT });
+    // Delete uses deploy output format, so look for "deployed"
+    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'step2.delete-complete.png');
 
     // Verify file is no longer visible in explorer

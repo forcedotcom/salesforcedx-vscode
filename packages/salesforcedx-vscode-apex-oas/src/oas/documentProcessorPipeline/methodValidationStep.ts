@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { difference } from '@salesforce/salesforcedx-utils-vscode';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
@@ -46,7 +47,7 @@ export class MethodValidationStep implements ProcessorStep {
     // Use JSONPath to find all operationIds in the OAS document
     const operationIds = new Set<string>(JSONPath({ path: '$..operationId', json: oasYaml }));
 
-    methodNames.difference(operationIds).forEach(methodName => {
+    difference(methodNames, operationIds).forEach(methodName => {
       this.diagnostics.push(
         new vscode.Diagnostic(
           new vscode.Range(0, 0, 0, 0),
@@ -56,7 +57,7 @@ export class MethodValidationStep implements ProcessorStep {
       );
     });
 
-    operationIds.difference(methodNames).forEach(methodName => {
+    difference(operationIds, methodNames).forEach(methodName => {
       this.diagnostics.push(
         new vscode.Diagnostic(
           new vscode.Range(0, 0, 0, 0),

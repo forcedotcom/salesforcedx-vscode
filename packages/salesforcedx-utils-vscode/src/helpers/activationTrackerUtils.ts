@@ -8,8 +8,7 @@
 import type { ExtensionInfo, ExtensionsInfo } from '@salesforce/vscode-service-provider';
 import { EOL } from 'node:os';
 import { join, sep } from 'node:path';
-import { extensions, ExtensionContext } from 'vscode';
-import { URI } from 'vscode-uri';
+import { extensions, ExtensionContext, Uri } from 'vscode';
 import { z } from 'zod';
 import { readFile } from './fs';
 
@@ -50,7 +49,7 @@ const isProcessAlive = (pid: string): boolean => {
  * @param logUri - URI to the extension host log
  * @returns string[]
  */
-export const readExtensionHostLog = async (logUri: URI): Promise<string[]> => {
+export const readExtensionHostLog = async (logUri: Uri): Promise<string[]> => {
   const logFilePath = join(logUri.fsPath, 'exthost.log');
   try {
     const logContents = await readFile(logFilePath);
@@ -68,7 +67,7 @@ export const readExtensionHostLog = async (logUri: URI): Promise<string[]> => {
  * @example
  * const logUri = getExtensionHostLogLocation(extensionContext);
  */
-export const getExtensionHostLogLocation = (extensionContext: ExtensionContext): URI | undefined => {
+export const getExtensionHostLogLocation = (extensionContext: ExtensionContext): Uri | undefined => {
   const logUri = extensionContext.logUri;
   const targetDir = 'exthost';
   const parts = logUri.fsPath.split(sep);
@@ -77,7 +76,7 @@ export const getExtensionHostLogLocation = (extensionContext: ExtensionContext):
   if (targetIndex < 0) {
     return undefined;
   }
-  return URI.file(parts.slice(0, targetIndex + 1).join(sep));
+  return Uri.file(parts.slice(0, targetIndex + 1).join(sep));
 };
 
 /**

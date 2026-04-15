@@ -80,7 +80,7 @@ describe('SOQLEditorProvider', () => {
 
     beforeEach(() => {
       mockDocument = {
-        uri: URI.file('path/to/file')
+        uri: vscode.Uri.file('path/to/file')
       } as vscode.TextDocument;
 
       mockWebviewPanel = {

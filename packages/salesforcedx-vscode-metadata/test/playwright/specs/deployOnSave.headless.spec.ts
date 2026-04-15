@@ -88,7 +88,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     // Also verify in output channel
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
-    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 10_000 });
+    await waitForOutputChannelText(page, { expectedText: 'components deployed', timeout: 10_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

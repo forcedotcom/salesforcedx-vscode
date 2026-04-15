@@ -22,7 +22,8 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
     prompt: nls.localize('apex_trigger_name_prompt')
   });
 
-  const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'triggers');
+  const defaultPkg = project.getPackageDirectories().find(p => p.default) ?? project.getPackageDirectories()[0];
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'triggers');
 
   const outputDirUri =
     outputDirParam ??

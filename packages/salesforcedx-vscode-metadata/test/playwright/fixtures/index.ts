@@ -6,8 +6,7 @@
  */
 
 import { test as webTest } from '@playwright/test';
-import { desktopTest, dreamhouseDesktopTest, nonTrackingDesktopTest, trackingConflictTest as trackingConflictDesktopTest } from './desktopFixtures';
-import { webTrackingConflictTest } from './webConflictFixtures';
+import { desktopTest, dreamhouseDesktopTest, nonTrackingDesktopTest } from './desktopFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
 
@@ -25,5 +24,4 @@ webTest.afterEach(async ({ page }, testInfo) => {
 export const test = isDesktop ? desktopTest : webTest;
 export const dreamhouseTest = isDesktop ? dreamhouseDesktopTest : webTest;
 export const nonTrackingTest = isDesktop ? nonTrackingDesktopTest : webTest;
-export const trackingConflictTest = isDesktop ? trackingConflictDesktopTest : webTrackingConflictTest;
 export { emptyWorkspaceDesktopTest } from './desktopFixtures';

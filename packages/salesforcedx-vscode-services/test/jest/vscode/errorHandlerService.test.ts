@@ -56,7 +56,7 @@ describe('ErrorHandlerService', () => {
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Simple error');
         expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Simple error');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
         expect(mockChannel.show).not.toHaveBeenCalled();
       });
 
@@ -67,7 +67,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Error message');
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Error message');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
     });
 
@@ -81,7 +81,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error');
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Inner error');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
 
       it('should handle deeply nested cause chain', async () => {
@@ -95,7 +95,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Deepest error');
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Deepest error');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
     });
 
@@ -106,7 +106,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('String error');
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('String error');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
     });
 
@@ -158,7 +158,7 @@ describe('ErrorHandlerService', () => {
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Base error');
         expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Base error');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
         expect(mockChannel.show).not.toHaveBeenCalled();
       });
     });
@@ -206,7 +206,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error from TaggedError');
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Inner error from TaggedError');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
 
       it('should handle TaggedError with cause and actions', async () => {
@@ -223,48 +223,6 @@ describe('ErrorHandlerService', () => {
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error', 'View Suggestions');
         expect(mockChannel.appendLine).toHaveBeenCalledWith('Error: Inner error\n\nAction from cause');
-      });
-    });
-
-    describe('metadata completed-with-errors (deploy/retrieve partial failure)', () => {
-      it('should show notification but not duplicate deploy summary in output channel', async () => {
-        class DeployCompletedWithErrorsError extends Data.TaggedError('DeployCompletedWithErrorsError')<{
-          readonly userMessage: string;
-        }> {
-          public override get message(): string {
-            return this.userMessage;
-          }
-        }
-
-        const err = new DeployCompletedWithErrorsError({
-          userMessage: 'Deploy completed with errors. Check output for details.'
-        });
-        const cause = Cause.fail(err);
-
-        await Effect.runPromise(errorHandler.handleCause(cause));
-
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Deploy completed with errors. Check output for details.');
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
-      });
-
-      it('should show notification but not duplicate retrieve summary in output channel', async () => {
-        class RetrieveCompletedWithErrorsError extends Data.TaggedError('RetrieveCompletedWithErrorsError')<{
-          readonly userMessage: string;
-        }> {
-          public override get message(): string {
-            return this.userMessage;
-          }
-        }
-
-        const err = new RetrieveCompletedWithErrorsError({
-          userMessage: 'Retrieve completed with errors. Check output for details.'
-        });
-        const cause = Cause.fail(err);
-
-        await Effect.runPromise(errorHandler.handleCause(cause));
-
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Retrieve completed with errors. Check output for details.');
-        expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
     });
 
@@ -310,7 +268,7 @@ describe('ErrorHandlerService', () => {
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Base error');
         expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Base error');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
 
       it('should handle non-Error object with actions property', async () => {
@@ -323,9 +281,9 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         // getActions returns [] for non-Error objects
-        // getBaseMessage reads message from plain objects when present
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Not an Error');
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Not an Error');
+        // String() on non-Error objects returns "[object Object]"
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('[object Object]');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
 
       it('should handle Cause.die', async () => {
@@ -335,7 +293,7 @@ describe('ErrorHandlerService', () => {
         await Effect.runPromise(errorHandler.handleCause(cause));
 
         expect(showErrorMessageSpy).toHaveBeenCalledWith('Defect error');
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Defect error');
+        expect(mockChannel.appendLine).not.toHaveBeenCalled();
       });
     });
   });

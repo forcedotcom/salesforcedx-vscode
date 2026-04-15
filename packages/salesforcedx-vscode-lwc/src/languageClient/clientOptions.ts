@@ -7,14 +7,13 @@
 
 import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
-import { workspace } from 'vscode';
+import { Uri, workspace } from 'vscode';
 import type { DocumentSelector } from 'vscode-languageclient';
-import { URI } from 'vscode-uri';
 
 /** Languages supported by the LWC language server. */
 const LWC_DOCUMENT_SELECTOR_LANGUAGES = ['html', 'javascript', 'typescript', 'json', 'xml'] as const;
 
-const protocol2CodeConverter = (value: string) => URI.parse(value);
+const protocol2CodeConverter = (value: string) => Uri.parse(value);
 
 /** Build document selector for the given schemes (e.g. ['file'] for node, or ['file', 'memfs'] for web). */
 export const buildDocumentSelector = (schemes: string[]): DocumentSelector =>

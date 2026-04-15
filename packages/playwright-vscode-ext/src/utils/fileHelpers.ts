@@ -85,7 +85,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
 
   // Second prompt: "Enter Apex class name"
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 30_000 });
+  await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
   await page.keyboard.type(className);
   await page.keyboard.press('Enter');
 
@@ -131,7 +131,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
 /**
  * Deploys the currently active editor (or selected source) to the org via "SFDX: Deploy This Source to Org".
  * Waits for the deploy progress notification to appear. Completion: if waitViaOutputChannel is true (e.g. Apex
- * testing), waits for "Deployed Source" in the Salesforce Metadata output channel; otherwise waits for the notification
+ * testing), waits for "deployed" in the Salesforce Metadata output channel; otherwise waits for the notification
  * to disappear.
  */
 export const deployCurrentSourceToOrg = async (
@@ -153,7 +153,7 @@ export const deployCurrentSourceToOrg = async (
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', deployCompleteTimeoutMs);
     await waitForOutputChannelText(page, {
-      expectedText: 'Deployed Source',
+      expectedText: 'deployed',
       timeout: deployCompleteTimeoutMs
     });
   } else {

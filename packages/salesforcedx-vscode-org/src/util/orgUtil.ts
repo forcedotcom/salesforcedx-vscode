@@ -15,7 +15,11 @@ import {
   Config
 } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { notificationService, workspaceUtils, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  notificationService,
+  workspaceUtils,
+  ConfigAggregatorProvider
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
@@ -43,23 +47,15 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
   const defaultOrgRef = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
-  const results = yield* Stream.fromIterableEffect(
-    Effect.tryPromise({ try: () => AuthInfo.listAllAuthorizations(), catch: e => e }).pipe(
-      Effect.tapError(e => Effect.logWarning('listAllAuthorizations failed', e)),
-      Effect.orElseSucceed(() => [])
-    )
-  ).pipe(
+  const results = yield* Stream.fromIterable(yield* Effect.promise(() => AuthInfo.listAllAuthorizations())).pipe(
     // only scratch org can expire
     Stream.filter(o => Boolean(o.isScratchOrg)),
     // Preserve alias from OrgAuthorization since AuthFields.alias may not be populated
     Stream.mapEffect(o =>
-      Effect.tryPromise({ try: () => getAuthFieldsFor(o.username), catch: e => e }).pipe(
-        Effect.tapError(e => Effect.logWarning(`skipping org ${o.username}: getAuthFieldsFor failed`, e)),
-        Effect.map(fields => ({ ...fields, alias: fields.alias ?? o.aliases?.[0] })),
-        Effect.option
+      Effect.promise(() => getAuthFieldsFor(o.username)).pipe(
+        Effect.map(fields => ({ ...fields, alias: fields.alias ?? o.aliases?.[0] }))
       )
     ),
-    Stream.filterMap(o => o),
     Stream.tap(o =>
       // special warning about when default orgs expire
       defaultOrgRef.username && o.username === defaultOrgRef.username && orgIsExpired(o)
@@ -115,13 +111,6 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // authorization info. Called without args to clear ALL cached instances,
   // including the default one used by AuthInfo.listAllAuthorizations().
   await StateAggregator.clearInstanceAsync();
-
-  await getOrgRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      yield* api.services.ConnectionService.invalidateCachedConnections();
-    })
-  );
 
   // Trigger Apex Test Controller to discover tests after org auth/set-default. Delay so config
   // and TargetOrgRef can propagate before refresh runs.
@@ -398,7 +387,7 @@ const processOrgForDisplay = async (
     const status = authFields.expirationDate
       ? 'Active' // For scratch orgs, we assume they're active if not expired
       : // For non-scratch orgs, test the actual connection
-        ((await determineConnectedStatusForNonScratchOrg(orgAuth.username)) ?? 'Connected');
+      ((await determineConnectedStatusForNonScratchOrg(orgAuth.username)) ?? 'Connected');
     // Determine expiration date display
     return {
       '': determineOrgMarkers(orgAuth, defaultConfig),

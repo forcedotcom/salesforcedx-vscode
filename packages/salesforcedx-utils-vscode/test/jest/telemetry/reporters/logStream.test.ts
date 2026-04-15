@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
 import { WorkspaceContextUtil } from '../../../../src';
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 
@@ -23,8 +23,6 @@ describe('LogStream', () => {
   let logStream: LogStream;
   let writeFileSpy: jest.SpyInstance;
 
-  const expectedUri = Utils.joinPath(URI.file(fakeLogFilePath), `${fakeExtensionId}.txt`);
-
   beforeEach(() => {
     workspaceContextUtilGetInstanceSpy = jest
       .spyOn(WorkspaceContextUtil, 'getInstance')
@@ -32,6 +30,18 @@ describe('LogStream', () => {
 
     writeFileSpy = jest.spyOn(vscodeMocked.workspace.fs, 'writeFile');
     writeFileSpy.mockResolvedValue(undefined);
+
+    vscodeMocked.Uri.file.mockImplementation(filePath => ({
+      fsPath: filePath,
+      scheme: 'file',
+      authority: '',
+      path: filePath,
+      query: '',
+      fragment: '',
+      with: jest.fn(),
+      toString: jest.fn().mockReturnValue(`file://${filePath}`),
+      toJSON: jest.fn().mockReturnValue({ scheme: 'file', path: filePath })
+    }));
   });
 
   it('should write the telemetry event to the file', async () => {
@@ -43,11 +53,13 @@ describe('LogStream', () => {
     logStream.sendTelemetryEvent(eventName, properties, measurements);
     await logStream.dispose(); // This will flush the buffer
 
+    const expectedPath = path.join(fakeLogFilePath, `${fakeExtensionId}.txt`);
     expect(writeFileSpy).toHaveBeenCalledTimes(2);
 
     // Verify the URI for both calls
-    expect(writeFileSpy.mock.calls[0][0].toString()).toBe(expectedUri.toString());
-    expect(writeFileSpy.mock.calls[1][0].toString()).toBe(expectedUri.toString());
+    const expectedUri = vscode.Uri.file(expectedPath);
+    expect(writeFileSpy.mock.calls[0][0].fsPath).toBe(expectedUri.fsPath);
+    expect(writeFileSpy.mock.calls[1][0].fsPath).toBe(expectedUri.fsPath);
 
     // Verify the Buffer content
     const firstCallData = writeFileSpy.mock.calls[0][1].toString();
@@ -65,11 +77,13 @@ describe('LogStream', () => {
     logStream.sendExceptionEvent(exceptionName, exceptionMessage, measurements);
     await logStream.dispose(); // This will flush the buffer
 
+    const expectedPath = path.join(fakeLogFilePath, `${fakeExtensionId}.txt`);
     expect(writeFileSpy).toHaveBeenCalledTimes(2);
 
     // Verify the URI for both calls
-    expect(writeFileSpy.mock.calls[0][0].toString()).toBe(expectedUri.toString());
-    expect(writeFileSpy.mock.calls[1][0].toString()).toBe(expectedUri.toString());
+    const expectedUri = vscode.Uri.file(expectedPath);
+    expect(writeFileSpy.mock.calls[0][0].fsPath).toBe(expectedUri.fsPath);
+    expect(writeFileSpy.mock.calls[1][0].fsPath).toBe(expectedUri.fsPath);
 
     // Verify the Buffer content
     const firstCallData = writeFileSpy.mock.calls[0][1].toString();

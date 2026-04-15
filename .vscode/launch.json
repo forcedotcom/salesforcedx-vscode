@@ -70,39 +70,6 @@
       "preLaunchTask": "Compile and Bundle"
     },
     {
-      "name": "Launch Core, Services, Apex, Apex Log",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-log"
-      ],
-      "sourceMaps": true,
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/src/**/*.js",
-        "${workspaceFolder}/packages/salesforcedx-vscode-core/dist/**/*.js",
-        "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
-        "${workspaceFolder}/packages/salesforcedx-vscode-apex/dist/**/*.js",
-        "${workspaceFolder}/packages/salesforcedx-vscode-apex-log/dist/**/*.js"
-      ],
-      "env": {
-        "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
-        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
-        "YOURKIT_PROFILER_AGENT": "${env:YOURKIT_PROFILER_AGENT}"
-      },
-      "sourceMapPathOverrides": {
-        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
-        "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
-        "webpack:///salesforcedx-vscode-soql/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
-        "webpack:///*": "*"
-      },
-      "preLaunchTask": "Compile and Bundle"
-    },
-    {
       "name": "Launch Extensions without compile",
       "type": "extensionHost",
       "request": "launch",

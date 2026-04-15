@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.6.0",
+  "version": "66.4.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,6 +34,7 @@
     "soql builder"
   ],
   "dependencies": {
+    "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/core": "^8.28.0",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.20.0",
@@ -53,7 +54,7 @@
     "@lwc/eslint-plugin-lwc": "^3.3.0",
     "@lwc/jest-preset": "^19.0.0",
     "@lwc/rollup-plugin": "^9.0.0",
-    "@lwc/synthetic-shadow": "^9.1.1",
+    "@lwc/synthetic-shadow": "^9.0.0",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-babel": "^6.0.0",
     "@rollup/plugin-commonjs": "^29.0.0",

@@ -9,7 +9,6 @@ import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import {
   WORKSPACE_READ_FILE_REQUEST,
   WORKSPACE_STAT_REQUEST,
@@ -111,11 +110,11 @@ export const registerWorkspaceReadFileHandler = (
 
   const handleFindFiles = Effect.fn('WorkspaceHandler.findFiles')(function* (params: WorkspaceFindFilesParams) {
     const { baseFolderUri, pattern } = params;
-    const baseUri = URI.parse(baseFolderUri);
+    const baseUri = vscode.Uri.parse(baseFolderUri);
     yield* logTo(log, `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern} scheme=${baseUri.scheme}`);
     const fs = yield* getFs;
     const uris = yield* fs.findFiles(new vscode.RelativePattern(baseUri, pattern));
-    const urisStr = uris.map((u: URI) => u.toString());
+    const urisStr = uris.map((u: vscode.Uri) => u.toString());
     yield* logTo(log, `[findFiles] success pattern=${pattern} uris=${urisStr.length}`);
     return { uris: urisStr };
   });

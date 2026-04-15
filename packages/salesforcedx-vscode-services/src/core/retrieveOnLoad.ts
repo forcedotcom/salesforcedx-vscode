@@ -6,12 +6,10 @@
  */
 
 import { FileResponse, type MetadataMember } from '@salesforce/source-deploy-retrieve';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined, isString } from 'effect/Predicate';
-import * as Stream from 'effect/Stream';
+import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
-import { Utils } from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { ChannelService } from '../vscode/channelService';
 import { FsService } from '../vscode/fsService';
@@ -21,48 +19,17 @@ import { MetadataRegistryService } from './metadataRegistryService';
 import { MetadataRetrieveService } from './metadataRetrieveService';
 import { fileResponseHasPath } from './sdrGuards';
 
-// exclude apex meta-xml files
-const isNotMatchingContentXmlFile = Effect.fn('isNotMatchingContentXmlFile')(function* (r: FileResponse) {
-  const registry = yield* MetadataRegistryService.getRegistryAccess();
-  return yield* Effect.succeed(
-    isNotUndefined(r.filePath) &&
-      !(
-        registry.getTypeByName(r.type).strategies?.adapter === 'matchingContentFile' && r.filePath.endsWith('-meta.xml')
-      )
-  );
-});
-
-// just open the top-level object file
-const isNotCustomObjectDecomposedChild = (r: FileResponse) =>
-  r.type !== 'CustomObject' || Boolean(r.filePath?.endsWith('object-meta.xml'));
-
-export const filterFileResponses = Effect.fn('filterFileResponses')(function* (fileResponses: FileResponse[]) {
+export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
+  fileResponses: FileResponse[],
+  members: MetadataMember[]
+) {
   const { isSDRSuccess } = yield* ComponentSetService;
-
-  const fsService = yield* FsService;
-
-  const normalized = Stream.fromIterable(fileResponses).pipe(
-    Stream.filter(isSDRSuccess),
-    Stream.filter(fileResponseHasPath)
-  );
-
-  const filesToOpen = normalized.pipe(
-    Stream.filter(r => r.type !== 'LightningComponentBundle'),
-    Stream.filterEffect(isNotMatchingContentXmlFile),
-    Stream.filter(isNotCustomObjectDecomposedChild),
-    Stream.map(r => r.filePath),
-    Stream.mapEffect(p => fsService.toUri(p))
-  );
-
-  const lwcFiles = normalized.pipe(
-    Stream.filter(r => r.type === 'LightningComponentBundle'),
-    Stream.map(r => r.filePath),
-    Stream.mapEffect(fsService.toUri),
-    // get ths js file which is always present and matches the component name
-    Stream.filter(uri => `${Utils.basename(Utils.dirname(uri))}.js` === Utils.basename(uri))
-  );
-
-  return yield* Stream.merge(filesToOpen, lwcFiles).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray));
+  const allowedSuffixes = yield* getAllowedSuffixes(members);
+  return fileResponses
+    .filter(isSDRSuccess)
+    .filter(fileResponseHasPath)
+    .map(fileResponse => fileResponse.filePath?.replaceAll('\\', '/'))
+    .filter(filePath => allowedSuffixes.some(suffix => filePath.endsWith(suffix)));
 });
 
 /** Parse retrieve on load setting into MetadataMember array */
@@ -77,11 +44,28 @@ export const parseRetrieveOnLoad = (value: string): MetadataMember[] =>
       const fullName = parts[1]?.trim() ?? '';
       return parts.length === 2 && type.length > 0 && fullName.length > 0 ? { type, fullName } : undefined;
     })
-    .filter(isNotUndefined);
+    .filter((item): item is MetadataMember => item !== undefined);
+
+/** Get unique file suffixes for metadata types */
+const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: MetadataMember[]) {
+  const registry = yield* MetadataRegistryService.getRegistryAccess();
+
+  const suffixes = Array.from(new Set(members.map(member => member.type)))
+    .map(mdType => registry.getTypeByName(mdType))
+    .map(metadataType =>
+      metadataType.strategies?.adapter === 'matchingContentFile'
+        ? metadataType.suffix // we want to open, for example, Foo.cls but not Foo-meta.xml
+        : `${metadataType.suffix}-meta.xml`
+    )
+    .filter(isString);
+
+  yield* Effect.annotateCurrentSpan({ suffixes });
+  return suffixes;
+});
 
 /** Effect to retrieve metadata on load based on setting */
-export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
-  function* () {
+export const retrieveOnLoadEffect = () =>
+  Effect.gen(function* () {
     const retrieveOnLoadValue = yield* SettingsService.getRetrieveOnLoad();
 
     if (retrieveOnLoadValue.length === 0) {
@@ -90,7 +74,7 @@ export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
 
     const members = parseRetrieveOnLoad(retrieveOnLoadValue);
     const channelService = yield* ChannelService;
-    const componentSetService = yield* ComponentSetService;
+
     if (members.length === 0) {
       return yield* channelService.appendToChannel('No valid metadata members found in retrieveOnLoad setting');
     }
@@ -99,24 +83,39 @@ export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
       `Retrieving metadata on load: ${members.map(m => `${m.type}:${m.fullName}`).join(', ')}`
     );
 
-    const result = yield* MetadataRetrieveService.retrieve(members, { ignoreConflicts: true });
+    const result = yield* MetadataRetrieveService.retrieve(members);
 
-    const filesToOpen = yield* filterFileResponses(result.getFileResponses().filter(componentSetService.isSDRSuccess));
+    if (typeof result === 'string') {
+      return yield* channelService.appendToChannel(`Retrieve canceled: ${result}`);
+    }
+
+    const fileResponses = yield* filterFileResponses(result.getFileResponses(), members);
 
     yield* channelService.appendToChannel(
-      `Retrieve on load completed. ${filesToOpen.length} files retrieved successfully.`
+      `Retrieve on load completed. ${fileResponses.length} files retrieved successfully.`
     );
 
     const fsService = yield* FsService;
-    yield* Effect.forEach(filesToOpen, uri => fsService.showTextDocument(uri, { preview: false }));
-  },
-  Effect.catchAll(error =>
-    Effect.gen(function* () {
-      const errorMessage = nls.localize('retrieve_on_load_failed', String(error));
-      yield* (yield* ChannelService).appendToChannel(errorMessage);
-      yield* Effect.sync(() => {
-        void vscode.window.showErrorMessage(errorMessage);
-      });
-    })
-  )
-);
+    yield* Effect.forEach(
+      fileResponses,
+      filePath =>
+        fsService
+          .showTextDocument(
+            URI.from({ scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file', path: filePath }),
+            { preview: false }
+          )
+          .pipe(Effect.catchAll(error => channelService.appendToChannel(`Could not open file: ${String(error)}`))),
+      { concurrency: 'unbounded' }
+    );
+  }).pipe(
+    Effect.withSpan('retrieveOnLoadEffect'),
+    Effect.catchAll(error =>
+      Effect.gen(function* () {
+        const errorMessage = nls.localize('retrieve_on_load_failed', String(error));
+        yield* (yield* ChannelService).appendToChannel(errorMessage);
+        yield* Effect.sync(() => {
+          void vscode.window.showErrorMessage(errorMessage);
+        });
+      })
+    )
+  );

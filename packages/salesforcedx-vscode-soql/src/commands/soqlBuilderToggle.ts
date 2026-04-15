@@ -11,10 +11,6 @@ import { URI } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 
 export const soqlBuilderToggle = Effect.fn('soql_builder_toggle')(function* (doc: URI) {
-  const activeTab = vscode.window.tabGroups.activeTabGroup.activeTab;
-  const isInBuilderView =
-    activeTab?.input instanceof vscode.TabInputCustom &&
-    activeTab.input.viewType === BUILDER_VIEW_TYPE;
-  const viewType = isInBuilderView ? EDITOR_VIEW_TYPE : BUILDER_VIEW_TYPE;
+  const viewType = vscode.window.activeTextEditor ? BUILDER_VIEW_TYPE : EDITOR_VIEW_TYPE;
   yield* Effect.promise(() => vscode.commands.executeCommand(OPEN_WITH_COMMAND, doc, viewType));
 });

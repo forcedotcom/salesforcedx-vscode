@@ -1,6 +1,6 @@
 # SOQL Builder for Visual Studio Code
 
-SOQL Builder enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save query results as a .csv or .json file. When the query is a normal file on disk, export uses the system save dialog with a default next to that file. When the document is not on disk (for example untitled editors, VS Code for the Web, or a virtual workspace), export prompts for a file name and a project output directory—the same pattern as **SFDX: Create Query in SOQL Builder**.
+SOQL Builder enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
 
 ![GIF showing SOQL query builder, viewing query results, and saving results to csv](images/SOQL_Builder_50.16.0.gif)
 

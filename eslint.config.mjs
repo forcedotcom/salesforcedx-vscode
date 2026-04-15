@@ -116,7 +116,6 @@ export default [
       effect: effectPlugin
     },
     rules: {
-      'local/no-vscode-uri': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -181,7 +180,7 @@ export default [
       'unicorn/prefer-single-call': 'error',
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
-      'unicorn/prefer-ternary': ['error'],
+      'unicorn/prefer-ternary': ['error', 'only-single-line'],
       'unicorn/filename-case': [
         'error',
         {
@@ -195,7 +194,7 @@ export default [
           '',
           {
             pattern: ' \\* Copyright \\(c\\) \\d{4}, salesforce\\.com, inc\\.',
-            template: ' * Copyright (c) 2026, salesforce.com, inc.'
+            template: ' * Copyright (c) 2025, salesforce.com, inc.'
           },
           ' * All rights reserved.',
           ' * Licensed under the BSD 3-Clause license.',
@@ -587,6 +586,7 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-vscode-uri': 'error',
 
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',
