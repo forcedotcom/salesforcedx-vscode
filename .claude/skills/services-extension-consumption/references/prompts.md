@@ -16,6 +16,20 @@ const choice =
   );
 ```
 
+### `withProgress`
+
+Pipeable operator. Shows a VS Code progress notification (Notification location, non-cancellable) for the lifetime of an Effect; dismisses on completion (success or failure).
+
+Signature: `(title: string) => <A, E, R>(self: Effect.Effect<A, E, R>) => Effect.Effect<A, E, R>`
+
+Title must use `nls.localize()` — enforced by the `no-vscode-progress-title-literals` ESLint rule.
+
+```typescript
+yield * fetchMetadata().pipe(
+  promptService.withProgress(nls.localize('fetching_metadata'))
+);
+```
+
 ### `ensureMetadataOverwriteOrThrow`
 
 Checks file existence; prompts for overwrite. Fails with `UserCancellationError` on cancel.
