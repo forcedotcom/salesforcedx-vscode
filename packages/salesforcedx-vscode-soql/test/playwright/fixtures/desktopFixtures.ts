@@ -10,6 +10,5 @@ import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vsc
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata'],
-  userSettings: { 'github.gitAuthentication': false }
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata']
 });

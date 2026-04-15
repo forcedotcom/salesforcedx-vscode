@@ -24,7 +24,6 @@ export const desktopTest = createDesktopTest({
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
   userSettings: {
-    'github.gitAuthentication': false,
     'salesforcedx-vscode-core.useMetadataExtensionCommands': true
   }
 });
@@ -33,7 +32,6 @@ export const dreamhouseDesktopTest = createDesktopTest({
   orgAlias: DREAMHOUSE_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
   userSettings: {
-    'github.gitAuthentication': false,
     'salesforcedx-vscode-core.useMetadataExtensionCommands': true
   }
 });
@@ -42,7 +40,6 @@ export const nonTrackingDesktopTest = createDesktopTest({
   orgAlias: NON_TRACKING_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
   userSettings: {
-    'github.gitAuthentication': false,
     'salesforcedx-vscode-core.useMetadataExtensionCommands': true
   }
 });
@@ -50,7 +47,6 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   emptyWorkspace: true,
   userSettings: {
-    'github.gitAuthentication': false,
     'salesforcedx-vscode-core.useMetadataExtensionCommands': true
   }
 });
@@ -74,7 +70,6 @@ export const trackingConflictTest = createDesktopTest({
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
   userSettings: {
-    'github.gitAuthentication': false,
     'salesforcedx-vscode-core.useMetadataExtensionCommands': true,
     'salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve': true,
     'salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds': 3,
@@ -116,7 +111,6 @@ export const nonTrackingConflictTest = createDesktopTest({
   orgAlias: NON_TRACKING_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
   userSettings: {
-    'github.gitAuthentication': false,
     'salesforcedx-vscode-core.useMetadataExtensionCommands': true,
     'salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve': true,
     'salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds': 3,
