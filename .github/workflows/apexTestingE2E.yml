@@ -2,14 +2,6 @@ name: Apex Testing E2E (Playwright)
 
 on:
   workflow_dispatch:
-    inputs:
-      playwright_desktop_vscode_version:
-        description: >
-          Optional. Pin VS Code for desktop E2E (e.g. 1.115.0). Empty uses repository
-          variable PLAYWRIGHT_DESKTOP_VSCODE_VERSION (same as push-triggered runs).
-        required: false
-        type: string
-        default: ''
   push:
     branches-ignore: [main, develop]
     paths-ignore:
@@ -164,8 +156,7 @@ jobs:
       MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
-      # Manual workflow_dispatch: optional input overrides org variable; push uses vars only.
-      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.playwright_desktop_vscode_version != '' && github.event.inputs.playwright_desktop_vscode_version || vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
+      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
