@@ -43,11 +43,15 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
 
     // Do not launch Chromium via @vscode/test-web — Playwright's test runner is the only browser client.
     // If browserType is chromium, test-web opens its own browser; when that browser's last page closes, it calls
-    // server.close() (see @vscode/test-web open() → context.once('close', …)), killing port 3001 mid-run.
+    // server.close() (see @vscode/test-web open() → context.once('close', …)), killing the listener mid-run.
+    const port =
+      Number(process.env.PLAYWRIGHT_WEB_SERVER_PORT) ||
+      Number(process.env.PORT) ||
+      3001;
     await open({
       browserType: 'none',
       quality: 'stable',
-      port: Number(process.env.PORT) || 3001,
+      port,
       printServerLog: true,
       verbose: true,
       extensionDevelopmentPath,
