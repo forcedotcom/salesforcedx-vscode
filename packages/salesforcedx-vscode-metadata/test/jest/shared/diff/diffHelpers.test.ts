@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { toUri } from 'salesforcedx-vscode-services/src/vscode/uriUtils';
 import { URI } from 'vscode-uri';
 import type { DiffFilePair } from '../../../../src/shared/diff/diffTypes';
 import {
@@ -50,8 +51,7 @@ const createMockRetrievedSet = (remoteComponents: SourceComponent[]): ComponentS
 /** api.services.FsService is an Effect that yields the service */
 const createMockFsService = (overrides?: { readFile?: (path: string | URI) => Effect.Effect<string> }) => {
   const base = {
-    toUri: (path: string | URI) =>
-      Effect.succeed(typeof path === 'string' ? URI.file(path) : path),
+    toUri: (path: string | URI) => Effect.succeed(toUri(path)),
     HashableUri
   };
   return overrides ? { ...base, ...overrides } : base;
@@ -161,6 +161,26 @@ describe('matchUrisToComponents', () => {
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(0);
+  });
+
+  it('matches when localUriFilter has lowercase drive letter but component path has uppercase (Windows)', async () => {
+    // On Windows, VSCode provides URIs with lowercase drive letters (/c:/...)
+    // while SDR returns file-system paths that URI.file() converts to uppercase (/C:/...).
+    // toUri() normalizes /C:/ → /c:/ so HashSet.has() finds the match.
+    // We use /C:/ and /c:/ paths directly to test this behavior cross-platform.
+    const vscodePath = '/c:/Users/runner/project/classes/ConflictsTest.cls';
+    const sdrPath = '/C:/Users/runner/project/classes/ConflictsTest.cls';
+    const remoteCls = '/C:/Users/runner/.sf/orgs/org123/remoteMetadata/classes/ConflictsTest.cls';
+
+    const localUriFilter = HashSet.fromIterable([HashableUri.fromUri(toUri(vscodePath))]);
+    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', sdrPath)]);
+    const retrievedSet = createMockRetrievedSet([createMockComponent('ConflictsTest', 'ApexClass', remoteCls)]);
+
+    const result = (await runWithMocks(
+      matchUrisToComponents(projectSet, retrievedSet, localUriFilter)
+    )) as HashSet.HashSet<DiffFilePair>;
+
+    expect(HashSet.size(result)).toBe(1);
   });
 
   it('matches Apex class in non-default directory (controllers, not classes)', async () => {
