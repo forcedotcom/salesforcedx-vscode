@@ -72,8 +72,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Illegal assignment from String to Integer', // Execute anonymous compile error (intentionally triggered in E2E)
   'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
   'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
-  'copilotCli', // GitHub Copilot CLI extension that we wish we could disable
-  'remoteAgentHostService' // VS Code remote agent host service
+  'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
+  'remoteAgentHostService' // VS Code remote agent host service noise (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
