@@ -30,6 +30,9 @@
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
+        "playwright.config.web.ts",
+        "playwright.config.desktop.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
