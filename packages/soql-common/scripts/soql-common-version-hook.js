@@ -13,7 +13,7 @@ exports.preVersionGeneration = (proposedVersion) => {
   if (!releaseType || !['major', 'minor', 'patch'].includes(releaseType)) {
     return proposedVersion
   }
-  const { version } = require('../packages/soql-common/package.json')
+  const { version } = require('../package.json')
   const [major, minor, patch] = version.split('.').map(Number)
   if (releaseType === 'major') return `${major + 1}.0.0`
   if (releaseType === 'minor') return `${major}.${minor + 1}.0`

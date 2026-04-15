@@ -1,6 +1,7 @@
 {
   "name": "@salesforce/vscode-i18n",
   "version": "66.6.0",
+  "versionedIndependently": true,
   "description": "Internationalization (i18n) library for Salesforce VS Code extensions",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -15,14 +16,23 @@
   "main": "out/src/index.js",
   "types": "out/src/index.d.ts",
   "exports": {
-    ".": "./out/src/index.js",
-    "./tsPlugin": "./out/src/hover/tsPlugin.js"
+    ".": {
+      "types": "./out/src/index.d.ts",
+      "default": "./out/src/index.js"
+    },
+    "./tsPlugin": {
+      "types": "./out/src/hover/tsPlugin.d.ts",
+      "default": "./out/src/hover/tsPlugin.js"
+    }
   },
   "files": [
     "tsPlugin.js",
-    "out/**/*.js",
-    "out/**/*.d.ts",
-    "out/**/*.d.ts.map"
+    "out/src/**/*.js",
+    "out/src/**/*.js.map",
+    "out/src/**/*.d.ts",
+    "out/src/**/*.d.ts.map",
+    "LICENSE.txt",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"
