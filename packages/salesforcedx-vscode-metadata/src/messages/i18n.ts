@@ -115,6 +115,12 @@ export const messages = {
   conflict_detection_enabled_description:
     "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
 
+  // Preparation phase progress
+  preparing_deployment: 'Preparing deployment...',
+  preparing_retrieval: 'Preparing retrieval...',
+  preparing_deletion: 'Preparing deletion...',
+  checking_for_conflicts: 'Checking for conflicts...',
+
   // SObject refresh
   sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',

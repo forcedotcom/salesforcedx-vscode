@@ -27,6 +27,11 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   source_diff_title: '%s//%s ↔ ローカル //%s',
 
+  preparing_deployment: 'デプロイの準備中...',
+  preparing_retrieval: '取得の準備中...',
+  preparing_deletion: '削除の準備中...',
+  checking_for_conflicts: '競合を確認中...',
+
   deploy_on_save_error_no_target_org:
     '保存時のデプロイ実行中にエラー: デフォルトの組織が設定されていません。"SFDX: 組織を認証" を実行して、保存した変更をデプロイしてください。'
 };

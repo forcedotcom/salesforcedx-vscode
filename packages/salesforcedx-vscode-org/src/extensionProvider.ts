@@ -76,13 +76,12 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * Single persistent runtime for org extension Effect executions.
  * Built once on first use to avoid rebuilding services across commands.
  */
-const createOrgRuntime = () => ManagedRuntime.make(AllServicesLayer);
-
-let _orgRuntime: ReturnType<typeof createOrgRuntime> | undefined;
-export const getOrgRuntime = () => {
-  _orgRuntime ??= createOrgRuntime();
-  return _orgRuntime;
-};
+type OrgRuntime = ManagedRuntime.ManagedRuntime<
+  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+>;
+let _orgRuntime: OrgRuntime | undefined;
+export const getOrgRuntime = () => (_orgRuntime ??= ManagedRuntime.make(AllServicesLayer));
 
 /** Reset cached runtime. Used by tests when AllServicesLayer changes between tests. */
 export const resetOrgRuntimeForTesting = (): void => {

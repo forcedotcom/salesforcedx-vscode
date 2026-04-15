@@ -68,10 +68,10 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * Built once on first use to avoid rebuilding ComponentSetService and other
  * stateful services on each tree-node expansion
  */
-const createOrgBrowserRuntime = () => ManagedRuntime.make(AllServicesLayer);
+type OrgBrowserRuntime = ManagedRuntime.ManagedRuntime<
+  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+>;
 // eslint-disable-next-line functional/no-let
-let _orgBrowserRuntime: ReturnType<typeof createOrgBrowserRuntime> | undefined;
-export const getOrgBrowserRuntime = () => {
-  _orgBrowserRuntime ??= createOrgBrowserRuntime();
-  return _orgBrowserRuntime;
-};
+let _orgBrowserRuntime: OrgBrowserRuntime | undefined;
+export const getOrgBrowserRuntime = () => (_orgBrowserRuntime ??= ManagedRuntime.make(AllServicesLayer));

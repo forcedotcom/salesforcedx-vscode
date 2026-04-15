@@ -13,6 +13,7 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { withPreparationProgress } from '../utils/withPreparationProgress';
 
 /** Retrieve source paths from the default org */
 // When a single file is selected and "Retrieve Source from Org" is executed,
@@ -38,7 +39,7 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
     const componentSet = yield* Effect.succeed(Array.from(resolvedUris)).pipe(
       Effect.flatMap(componentSetService.getComponentSetFromUris),
       Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-      Effect.tap(cs => detectConflicts(cs, 'retrieve'))
+      withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'))
     );
 
     // we can ignore conflicts because we already did the detectConflicts check

@@ -15,6 +15,7 @@ import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { withPreparationProgress } from '../utils/withPreparationProgress';
 
 /** throws the standard UserCancellationError if the user cancels the deletion */
 const showDeleteConfirmation = Effect.fn('showDeleteConfirmation')(function* () {
@@ -28,16 +29,15 @@ const showDeleteConfirmation = Effect.fn('showDeleteConfirmation')(function* () 
   return response === PROCEED ? (true as const) : yield* new api.services.UserCancellationError();
 });
 
-const deletePaths = (uris: URI[]) =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const componentSetService = yield* api.services.ComponentSetService;
-    return yield* componentSetService.getComponentSetFromUris(uris).pipe(
-      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-      Effect.tap(cs => detectConflicts(cs, 'delete')),
-      Effect.flatMap(cs => deleteComponentSet({ componentSet: cs }))
-    );
-  });
+const deletePaths = Effect.fn('deletePaths')(function* (uris: URI[]) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const componentSetService = yield* api.services.ComponentSetService;
+  return yield* componentSetService.getComponentSetFromUris(uris).pipe(
+    Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+    withPreparationProgress('delete', cs => detectConflicts(cs, 'delete')),
+    Effect.flatMap(cs => deleteComponentSet({ componentSet: cs }))
+  );
+});
 
 /** Delete source paths from the default org */
 export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(

@@ -70,10 +70,10 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * Single persistent runtime for metadata extension Effect executions.
  * Built once on first use to avoid rebuilding services across command invocations.
  */
-const createMetadataRuntime = () => ManagedRuntime.make(AllServicesLayer);
+type MetadataRuntime = ManagedRuntime.ManagedRuntime<
+  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+>;
 // eslint-disable-next-line functional/no-let
-let _metadataRuntime: ReturnType<typeof createMetadataRuntime> | undefined;
-export const getMetadataRuntime = () => {
-  _metadataRuntime ??= createMetadataRuntime();
-  return _metadataRuntime;
-};
+let _metadataRuntime: MetadataRuntime | undefined;
+export const getMetadataRuntime = () => (_metadataRuntime ??= ManagedRuntime.make(AllServicesLayer));
