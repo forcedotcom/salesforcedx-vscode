@@ -31,10 +31,12 @@ type MetadataInfo = {
   typeStats: readonly (readonly [string, MetadataTypeStat])[];
   sourceApiVersion: string;
   packageDirCount: number;
+  namespace: string;
 };
 
 type EnvInfo = {
   cliVersion: string;
+  javaVersion: string;
   vscodeVersion: string;
   nodeVersion: string;
   os: string;
@@ -79,7 +81,8 @@ const gatherMetadataInfo = Effect.fn('gatherMetadataInfo')(function* () {
   return {
     typeStats,
     sourceApiVersion: componentSet.sourceApiVersion ?? 'unknown',
-    packageDirCount: project.getPackageDirectories().length
+    packageDirCount: project.getPackageDirectories().length,
+    namespace: project.getSfProjectJson().getContents().namespace ?? 'none'
   };
 });
 
@@ -92,13 +95,9 @@ const gatherOrgInfo = Effect.fn('gatherOrgInfo')(
 
     const conn = yield* api.services.ConnectionService.getConnection();
     const sourceMemberCount = orgInfo.tracksSource
-      ? yield* Effect.tryPromise({
-          try: async () => {
-            const result = await conn.tooling.query('SELECT COUNT() FROM SourceMember');
-            return result.totalSize;
-          },
-          catch: () => new Error('SourceMember query failed')
-        }).pipe(Effect.orElseSucceed(() => 'query failed'))
+      ? yield* Effect.tryPromise(
+          async () => (await conn.tooling.query('SELECT COUNT() FROM SourceMember')).totalSize
+        ).pipe(Effect.orElseSucceed(() => 'query failed'))
       : 'N/A';
 
     return {
@@ -135,19 +134,30 @@ const gatherSettings = (): readonly (readonly [string, unknown])[] => [
   getSettingEntry('salesforcedx-vscode-core.telemetry-tag'),
   getSettingEntry('salesforcedx-vscode-salesforcedx.enableLocalTraces'),
   getSettingEntry('salesforcedx-vscode-salesforcedx.enableConsoleTraces'),
-  getSettingEntry('salesforcedx-vscode-salesforcedx.enableFileTraces')
+  getSettingEntry('salesforcedx-vscode-salesforcedx.enableFileTraces'),
+  getSettingEntry('salesforcedx-vscode-apex.java.home')
 ];
 
 const gatherEnvironment = Effect.fn('gatherEnvironment')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const terminalService = yield* api.services.TerminalService;
-  const cliVersion = yield* terminalService.simpleExec('sf --version').pipe(Effect.orElseSucceed(() => 'unknown'));
+  const [cliVersion, javaVersion] = yield* Effect.all(
+    [
+      terminalService.simpleExec('sf --version').pipe(Effect.orElseSucceed(() => 'unknown')),
+      terminalService.simpleExec('java --version').pipe(
+        Effect.map(out => out.split('\n')[0] ?? out),
+        Effect.orElseSucceed(() => 'unknown')
+      )
+    ],
+    { concurrency: 'unbounded' }
+  );
   const extensions = vscode.extensions.all
     .filter(e => e.packageJSON?.publisher === 'salesforce')
     .map(e => ({ id: e.id, version: String(e.packageJSON.version) }))
     .toSorted((a, b) => a.id.localeCompare(b.id));
   return {
     cliVersion,
+    javaVersion,
     vscodeVersion: vscode.version,
     nodeVersion: process.version,
     os: `${os.type()} ${os.release()}`,
@@ -180,6 +190,7 @@ const renderMarkdown = ({
     '',
     `sourceApiVersion: ${metadataInfo.sourceApiVersion}`,
     `packageDirectories: ${metadataInfo.packageDirCount}`,
+    `namespace: ${metadataInfo.namespace}`,
     '',
     '### Types',
     '',
@@ -223,6 +234,7 @@ const renderMarkdown = ({
       ['Key', 'Value'],
       [
         ['Salesforce CLI', envInfo.cliVersion],
+        ['Java', envInfo.javaVersion],
         ['VS Code', envInfo.vscodeVersion],
         ['Node', envInfo.nodeVersion],
         ['OS', envInfo.os]
