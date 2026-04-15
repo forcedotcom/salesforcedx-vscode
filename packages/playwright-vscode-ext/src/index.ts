@@ -26,6 +26,8 @@ export {
   prepareNoFolderOpenForPaletteTests
 } from './utils/helpers';
 
+export { activeQuickInputWidget, activeQuickInputTextField } from './utils/quickInput';
+
 export {
   createFileWithContents,
   createApexClass,

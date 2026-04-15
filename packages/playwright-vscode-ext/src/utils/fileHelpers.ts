@@ -26,14 +26,8 @@ import {
   waitForVSCodeWorkbench,
   waitForQuickInputFirstOption
 } from './helpers';
-import {
-  DIRTY_EDITOR,
-  EDITOR_WITH_URI,
-  NOTIFICATION_LIST_ITEM,
-  QUICK_INPUT_LIST_ROW,
-  QUICK_INPUT_WIDGET,
-  WORKBENCH
-} from './locators';
+import { DIRTY_EDITOR, EDITOR_WITH_URI, NOTIFICATION_LIST_ITEM, QUICK_INPUT_LIST_ROW, WORKBENCH } from './locators';
+import { activeQuickInputWidget } from './quickInput';
 
 /** Default timeout for deploy to complete (10 minutes, matches metadata deploy tests). */
 const DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS = 600_000;
@@ -51,7 +45,7 @@ export const createFileWithContents = async (page: Page, _filePath: string, cont
   await executeCommandWithCommandPalette(page, 'File: New Untitled Text File');
 
   // Wait for command palette to close first
-  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const widget = activeQuickInputWidget(page);
   await widget.waitFor({ state: 'hidden', timeout: 5000 });
 
   // Wait for the editor to open - wait for attachment first, then visibility
@@ -84,7 +78,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await page.keyboard.press('Enter');
 
   // Second prompt: "Enter Apex class name"
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  const quickInput = activeQuickInputWidget(page);
   await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 30_000 });
   await page.keyboard.type(className);
   await page.keyboard.press('Enter');
@@ -169,7 +163,7 @@ export const deployCurrentSourceToOrg = async (
  * that's a limitation of web fs on vscode because search/find files doesn't work yet.
  */
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
-  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const widget = activeQuickInputWidget(page);
 
   if (isDesktop()) {
     // On macOS desktop, Control+P doesn't work reliably, use command palette instead
@@ -178,8 +172,8 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     // Wait for Quick Open widget to be visible and ready
     await expect(widget).toBeVisible({ timeout: 10_000 });
     const input = widget.locator('input.input');
-    await expect(input).toBeVisible({ timeout: 5000 });
-    await input.click({ timeout: 5000 });
+    await input.waitFor({ state: 'attached', timeout: 5000 });
+    await input.click({ force: true, timeout: 5000 });
 
     // Clear any existing text and ensure input is focused
     await page.keyboard.press('Control+a');
@@ -189,9 +183,9 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     await page.locator(WORKBENCH).click();
     await page.keyboard.press('Control+p');
     await widget.waitFor({ state: 'visible', timeout: 10_000 });
-    // Ensure input is focused and ready (matching original behavior)
     const input = widget.locator('input.input');
-    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.waitFor({ state: 'attached', timeout: 5000 });
+    await input.click({ force: true, timeout: 5000 });
   }
 
   // Type the filename
@@ -200,7 +194,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   // Wait for search results to populate and stabilize
   await waitForQuickInputFirstOption(page);
   // Wait for results to be stable (no new results appearing)
-  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 1000 });
+  await activeQuickInputWidget(page).waitFor({ state: 'visible', timeout: 1000 });
 
   // Find the result that matches the filename
   const results = page.locator(QUICK_INPUT_LIST_ROW);

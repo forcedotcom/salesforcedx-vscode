@@ -9,13 +9,14 @@ import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { upsertSettings } from '../pages/settings';
 import {
-  QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW,
+  QUICK_INPUT_WIDGET,
   SETTINGS_SEARCH_INPUT,
   TAB,
   TAB_CLOSE_BUTTON,
   WORKBENCH
 } from './locators';
+import { activeQuickInputWidget } from './quickInput';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -156,15 +157,12 @@ export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
 
 /** Dismiss any open quick input widgets by pressing Escape until none visible */
 export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => {
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  // Press Escape up to 3 times to dismiss any stacked widgets
-  for (let i = 0; i < 3; i++) {
-    if (await quickInput.isVisible({ timeout: 200 }).catch(() => false)) {
-      await page.keyboard.press('Escape');
-      await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
-    } else {
-      break;
-    }
+  // Rely on attached command-palette inputs, not widget visibility (1.116+ often reports hidden while open)
+  for (let i = 0; i < 4; i++) {
+    const openInputs = await page.locator(`${QUICK_INPUT_WIDGET} input.input`).count();
+    if (openInputs === 0) break;
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(100);
   }
 };
 
@@ -173,18 +171,18 @@ export const waitForQuickInputFirstOption = async (
   page: Page,
   options?: WaitForQuickInputFirstOptionOptions
 ): Promise<void> => {
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  const quickInput = activeQuickInputWidget(page);
   const firstAriaOption = quickInput.getByRole('option').first();
   const quickInputVisibleTimeout = options?.quickInputVisibleTimeout ?? 10_000;
   const optionVisibleTimeout = options?.optionVisibleTimeout ?? 5000;
 
   await expect(async () => {
-    await quickInput.waitFor({ state: 'visible', timeout: quickInputVisibleTimeout });
+    await quickInput.waitFor({ state: 'attached', timeout: quickInputVisibleTimeout });
     if ((await firstAriaOption.count()) > 0) {
-      await expect(firstAriaOption).toBeVisible({ timeout: optionVisibleTimeout });
+      await firstAriaOption.waitFor({ state: 'attached', timeout: optionVisibleTimeout });
       return;
     }
-    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: optionVisibleTimeout });
+    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'attached', timeout: optionVisibleTimeout });
   }).toPass({ timeout: options?.retryTimeout ?? 10_000 });
 };
 
@@ -219,10 +217,7 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
     // Try close button first
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
     if (await closeButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      // Ensure no quick input widget is intercepting before clicking
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      const widgetVisible = await quickInput.isVisible({ timeout: 200 }).catch(() => false);
-      if (widgetVisible) {
+      if ((await page.locator(`${QUICK_INPUT_WIDGET} input.input`).count()) > 0) {
         await dismissAllQuickInputWidgets(page);
       }
       await closeButton.click({ timeout: 5000, force: true });
@@ -398,13 +393,20 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
   // VS Code's secondary sidebar is in the .part.auxiliarybar element
   const auxiliaryBar = page.locator('.part.auxiliarybar');
 
+  // Welcome / onboarding overlay (1.116+) can sit above the workbench and block palette clicks
+  const welcomeOverlay = page.locator('.onboarding-a-overlay.visible, [aria-label="Welcome to Visual Studio Code"]');
+  if (await welcomeOverlay.first().isVisible({ timeout: 400 }).catch(() => false)) {
+    await page.keyboard.press('Escape');
+    await welcomeOverlay.first().waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+  }
+
   // Check if sidebar exists and is visible
   // Use a short timeout to avoid hanging if it's not there
   const isVisible = await auxiliaryBar.isVisible({ timeout: 1000 }).catch(() => false);
 
   if (isVisible) {
     // Focus workbench before opening palette (avoids F1/keystrokes going to auxiliary bar chat input)
-    await page.locator(WORKBENCH).click({ timeout: 5000 });
+    await page.locator(WORKBENCH).click({ timeout: 5000, force: true });
     // Use the explicit Hide command (not Toggle) to ensure we're hiding
     await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
 

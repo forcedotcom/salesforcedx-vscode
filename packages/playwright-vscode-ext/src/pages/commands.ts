@@ -7,11 +7,10 @@
 
 import { expect, Page } from '@playwright/test';
 import { dismissAllQuickInputWidgets, waitForQuickInputFirstOption } from '../utils/helpers';
-import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
+import { QUICK_INPUT_LIST_ROW } from '../utils/locators';
+import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
-  const widget = page.locator(QUICK_INPUT_WIDGET);
-
   // Dismiss any existing quick input widgets
   await dismissAllQuickInputWidgets(page);
 
@@ -27,30 +26,24 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     // Press F1 to open command palette
     await page.keyboard.press('F1');
 
-    // Wait for widget to be visible (not just attached)
-    // Using a more lenient check for visibility since it can be "hidden" while still being in the DOM
-    await expect(widget).toBeVisible({ timeout: 5000 });
-
-    // Verify input is ready
-    const input = widget.locator('input.input');
-    await expect(input).toBeVisible({ timeout: 5000 });
+    // VS Code 1.116+: `.quick-input-widget` and `input.input` often fail `toBeVisible()` while still usable
+    const input = activeQuickInputTextField(page);
+    await input.waitFor({ state: 'attached', timeout: 10_000 });
+    await input.click({ force: true, timeout: 5000 });
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
   }).toPass({ timeout: 15_000 });
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
-  const widget = page.locator(QUICK_INPUT_WIDGET);
-  const input = widget.locator('input.input');
+  const widget = activeQuickInputWidget(page);
+  const input = activeQuickInputTextField(page);
 
-  // Ensure widget and input are visible - if not, openCommandPalette should have handled it
-  await expect(widget).toBeVisible({ timeout: 5000 });
-  await expect(input).toBeVisible({ timeout: 5000 });
-  // Click input directly to ensure focus (Windows needs explicit click, focus() alone may not work)
-  await input.click({ timeout: 5000 });
+  await input.waitFor({ state: 'attached', timeout: 5000 });
+  await input.click({ force: true, timeout: 5000 });
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 
   // fill() is faster than pressSequentially on CI (avoids timeout on macOS)
-  await input.fill(`>${command}`);
+  await input.fill(`>${command}`, { force: true });
 
   // Wait for command list to appear
   await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
@@ -65,9 +58,8 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
     allLabels.push(ariaLabel);
     // Check exact match or exact match before ", " (for keyboard shortcuts)
     if (ariaLabel === command || (ariaLabel.includes(', ') && ariaLabel.split(', ')[0] === command)) {
-      // Ensure option is visible before clicking
-      await option.scrollIntoViewIfNeeded();
-      await option.click({ timeout: 5000 });
+      await option.scrollIntoViewIfNeeded().catch(() => {});
+      await option.click({ force: true, timeout: 5000 });
       found = true;
       break;
     }
@@ -116,15 +108,15 @@ const retryCommandPaletteSearch = async (
   check: (rowTexts: string[]) => void,
   timeout: number
 ): Promise<void> => {
-  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const widget = activeQuickInputWidget(page);
 
   await expect(async () => {
     await dismissAllQuickInputWidgets(page);
     await openCommandPalette(page);
 
-    const input = widget.locator('input.input');
-    await input.click({ timeout: 5000 });
-    await input.fill(`>${commandText}`);
+    const input = activeQuickInputTextField(page);
+    await input.click({ force: true, timeout: 5000 });
+    await input.fill(`>${commandText}`, { force: true });
 
     await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
 

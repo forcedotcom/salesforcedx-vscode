@@ -7,11 +7,11 @@
 
 import { expect } from '@playwright/test';
 import {
+  activeQuickInputWidget,
   clearOutputChannel,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -53,7 +53,7 @@ test('SOQL: build query in builder, toggle to text editor, run queries and get q
     await executeCommandWithCommandPalette(page, packageNls.soql_open_new_builder);
     await saveScreenshot(page, 'step1.after-command.png');
 
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    const quickInput = activeQuickInputWidget(page);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await page.keyboard.type(SOQL_FILE);
     await page.keyboard.press('Enter');
