@@ -32,12 +32,33 @@ describe('Query Data File Service', () => {
     const savedFilePath = '/test/path/to/savedFile.json';
     const queryDataFileService = new QueryDataFileService(queryText, queryData, format, document);
 
-    (vscode.window.showSaveDialog as any).mockReturnValue(URI.file(savedFilePath));
-    mockRunPromise.mockResolvedValue('/test/workspace');
+    const savedUri = URI.file(savedFilePath);
+    (vscode.window.showSaveDialog as any).mockReturnValue(savedUri);
+    mockRunPromise.mockResolvedValue(savedUri);
 
     const savedFileUri = await queryDataFileService.save();
 
     expect(mockRunPromise).toHaveBeenCalled();
-    expect(savedFileUri?.fsPath).toEqual(URI.file(savedFilePath).fsPath);
+    expect(savedFileUri?.fsPath).toEqual(savedUri.fsPath);
+  });
+
+  it('strips .soql extension from the suggested save dialog filename', async () => {
+    const soqlDocument = {
+      uri: URI.file('/path/to/AAA.soql')
+    } as unknown as vscode.TextDocument;
+
+    for (const [format, expectedName] of [
+      [FileFormat.CSV, 'AAA.csv'],
+      [FileFormat.JSON, 'AAA.json']
+    ] as const) {
+      (vscode.window.showSaveDialog as any).mockClear();
+      (vscode.window.showSaveDialog as any).mockReturnValue(undefined);
+
+      const service = new QueryDataFileService(queryText, queryData, format, soqlDocument);
+      await service.save();
+
+      const calledWith = (vscode.window.showSaveDialog as jest.Mock).mock.calls[0][0];
+      expect(calledWith.defaultUri.path.endsWith(expectedName)).toBe(true);
+    }
   });
 });
