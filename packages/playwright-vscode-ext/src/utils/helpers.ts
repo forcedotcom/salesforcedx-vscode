@@ -137,10 +137,9 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
     return;
   }
 
-  // Web: navigate if requested, then wait. Use `load` so VS Code web has a chance to run scripts after HTML parse;
-  // `domcontentloaded` alone can leave a long white screen before `.monaco-workbench` exists.
+  // Web: navigate if requested, then wait
   if (navigate) {
-    await page.goto('/', { waitUntil: 'load', timeout: 120_000 });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
   }
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
 };

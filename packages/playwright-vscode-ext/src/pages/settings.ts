@@ -99,8 +99,6 @@ const performSearch =
 export const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
   await openSettingsUI(page);
   const debugAria = process.env.E2E_ARIA_DEBUG === '1';
-  /** Pause after each setting is applied (instance URL, access token, API version, …). Example: `E2E_SETTINGS_DEBUG_PAUSE_MS=5000`. */
-  const settingsDebugPauseMs = Number(process.env.E2E_SETTINGS_DEBUG_PAUSE_MS ?? '0');
 
   for (const [id, value] of Object.entries(settings)) {
     // Debug visibility: take screenshot and aria snapshot before each search
@@ -248,10 +246,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         const ariaAfter = await page.locator('body').ariaSnapshot();
         console.log(`[ARIA after ${id}]\n${ariaAfter}`);
       } catch {}
-    }
-
-    if (settingsDebugPauseMs > 0) {
-      await page.waitForTimeout(settingsDebugPauseMs);
     }
   }
 

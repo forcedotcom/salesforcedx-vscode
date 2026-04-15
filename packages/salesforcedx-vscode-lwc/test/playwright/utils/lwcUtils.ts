@@ -24,6 +24,9 @@ import { LWC_GTD_HTML_COMP_SEED_HTML, LWC_GTD_HTML_COMP_SEED_JS } from './create
 /** Text shown in the LWC language status item when the LSP has finished indexing. */
 export const LWC_LSP_READY_TEXT = 'Indexing complete';
 
+const toPascalCase = (camel: string): string =>
+  camel.length === 0 ? camel : `${camel[0].toUpperCase()}${camel.slice(1)}`;
+
 const replaceEditorContentAndSave = async (
   page: Page,
   editor: ReturnType<Page['locator']>,
@@ -158,22 +161,10 @@ const createLwcViaSfdxCommandWeb = async (page: Page, componentName: string): Pr
 
   const widget = page.locator(QUICK_INPUT_WIDGET);
   await widget.waitFor({ state: 'visible', timeout: 15_000 });
-
-  // `createLwcCommand` only skips this when `defaultLwcLanguage` is read from sfdx-project.json; web E2E often still shows it first.
-  // Do not rely on getByText("Select component type") — VS Code often exposes that string only as the input placeholder, so it is not matched as visible text.
-  const javaScriptTypeOption = widget.getByRole('option', { name: /^JavaScript$/i }).first();
-  if (await javaScriptTypeOption.isVisible({ timeout: 8000 }).catch(() => false)) {
-    await javaScriptTypeOption.click();
-  }
-
-  // Metadata flow: "Enter Lightning Web Component name". Core internal (rare): "Enter desired filename".
-  await widget
-    .getByText(/Enter desired filename|Enter Lightning Web Component name/i)
-    .waitFor({ state: 'visible', timeout: 15_000 });
+  await widget.getByText(/Enter Lightning Web Component name/i).waitFor({ state: 'visible', timeout: 15_000 });
   const nameInput = widget.locator('input.input');
   await nameInput.click({ timeout: 5000 });
-  // Metadata `createLwcCommand` validates `^[a-z][A-Za-z0-9_]*$` (camelCase); PascalCase is rejected.
-  await page.keyboard.type(camelName);
+  await page.keyboard.type(toPascalCase(componentName));
   await page.keyboard.press('Enter');
 
   await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
