@@ -29,7 +29,8 @@
     "compile": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache",
-    "test": "wireit"
+    "test": "wireit",
+    "test:compile": "wireit"
   },
   "wireit": {
     "compile": {
@@ -41,7 +42,6 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
@@ -51,13 +51,23 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "test": {
-      "command": "jest --coverage --forceExit",
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
       "dependencies": [
         "compile"
       ],
       "files": [
-        "src/**/*.ts",
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "jest --coverage --forceExit",
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"

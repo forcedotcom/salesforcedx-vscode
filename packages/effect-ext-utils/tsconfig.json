@@ -10,10 +10,7 @@
     "out",
     "dist"
   ],
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts"
-  ],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-vscode-i18n"

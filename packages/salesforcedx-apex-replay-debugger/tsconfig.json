@@ -4,6 +4,7 @@
     "rootDir": ".",
     "outDir": "out"
   },
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", ".vscode-test", "out"],
   "references": [
     {
