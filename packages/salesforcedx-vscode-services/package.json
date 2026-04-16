@@ -74,7 +74,8 @@
     "test:web:debug": "npm run test:web -- --debug",
     "test:e2e": "wireit",
     "o11y:debug": "wireit",
-    "spans:server": "wireit"
+    "spans:server": "wireit",
+    "test:compile": "wireit"
   },
   "wireit": {
     "build:icons": {
@@ -99,7 +100,6 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
@@ -161,10 +161,9 @@
     "test": {
       "command": "jest --coverage",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
@@ -222,7 +221,7 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
       "env": {
         "PLAYWRIGHT_WORKERS": {
           "external": true
@@ -234,7 +233,6 @@
         "spans:server"
       ],
       "files": [
-        "playwright.config.web.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
@@ -268,6 +266,17 @@
       "files": [
         "scripts/spanFileServer.ts"
       ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
     }
   },
   "activationEvents": [

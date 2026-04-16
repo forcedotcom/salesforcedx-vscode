@@ -57,7 +57,8 @@
     "check:circular-deps": "wireit",
     "lint:fix": "npm run lint -- --fix",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
-    "test": "wireit"
+    "test": "wireit",
+    "test:compile": "wireit"
   },
   "wireit": {
     "compile": {
@@ -72,7 +73,6 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
@@ -118,10 +118,9 @@
     "test": {
       "command": "jest --coverage",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
@@ -189,14 +188,13 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
       "env": {
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "compile",
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
@@ -205,14 +203,13 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.web.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
       "output": []
     },
     "test:desktop": {
-      "command": "playwright test --config=playwright.config.desktop.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
         "PLAYWRIGHT_WORKERS": {
@@ -227,7 +224,6 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
@@ -238,6 +234,17 @@
         "test:web",
         "test:desktop"
       ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
     }
   },
   "activationEvents": [

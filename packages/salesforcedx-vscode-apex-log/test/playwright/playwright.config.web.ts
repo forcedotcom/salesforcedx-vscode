@@ -5,31 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { defineConfig } from '@playwright/test';
-import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
+import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 
 const serializedSpecs = [
   '**/traceFlagsCrud.headless.spec.ts',
   '**/traceFlagsForOtherUser.headless.spec.ts',
-  '**/logRetrieval.headless.spec.ts',
-  '**/autoCollection.headless.spec.ts'
+  '**/logRetrieval.headless.spec.ts'
 ];
 
-const baseConfig = createDesktopConfig();
-const desktopProject = baseConfig.projects?.[0];
+const baseConfig = createWebConfig({ testDir: './specs' });
+const chromiumProject = baseConfig.projects?.[0];
 
 export default defineConfig({
   ...baseConfig,
-  projects: desktopProject
+  projects: chromiumProject
     ? [
         {
-          ...desktopProject,
-          name: 'desktop-electron',
+          ...chromiumProject,
+          name: 'chromium',
           testIgnore: serializedSpecs
         },
-        // these depend on exclusive access to org trace flags so they can't run in parallel
         {
-          ...desktopProject,
-          name: 'desktop-electron-serialized-trace',
+          ...chromiumProject,
+          name: 'chromium-serialized-trace',
           testMatch: serializedSpecs,
           workers: 1,
           fullyParallel: false

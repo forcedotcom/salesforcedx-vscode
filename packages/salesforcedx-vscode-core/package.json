@@ -83,7 +83,8 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug"
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:compile": "wireit"
   },
   "wireit": {
     "compile": {
@@ -99,7 +100,6 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
@@ -137,10 +137,9 @@
     "test": {
       "command": "jest --coverage",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
@@ -170,7 +169,7 @@
       ]
     },
     "test:desktop": {
-      "command": "playwright test --config=playwright.config.desktop.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
         "PLAYWRIGHT_WORKERS": {
@@ -185,9 +184,19 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts",
         "test/playwright/**/*.ts",
         "package*.json"
+      ],
+      "output": []
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
       ],
       "output": []
     }

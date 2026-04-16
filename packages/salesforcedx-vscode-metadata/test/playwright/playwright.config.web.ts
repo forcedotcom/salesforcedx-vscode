@@ -12,10 +12,10 @@ const base = createWebConfig();
 export default defineConfig({
   ...base,
   projects: [
-    { name: 'parallel', testDir: './test/playwright/specs', use: { ...devices['Desktop Chrome'] } },
+    { name: 'parallel', testDir: './specs', use: { ...devices['Desktop Chrome'] } },
     {
       name: 'conflicts',
-      testDir: './test/playwright/specs-conflicts/tracking',
+      testDir: './specs-conflicts/tracking',
       use: { ...devices['Desktop Chrome'] },
       workers: 1,
       fullyParallel: false

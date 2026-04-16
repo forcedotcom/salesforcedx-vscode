@@ -8,9 +8,6 @@
   "include": [
     "src/**/*.ts",
     "scripts/**/*.ts",
-    "playwright.config.web.ts",
-    "playwright.config.desktop.ts",
-    "test/**/*.ts",
     "package.nls.json"
   ],
   "references": [

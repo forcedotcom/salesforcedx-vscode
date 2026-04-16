@@ -6,8 +6,6 @@
   },
   "include": [
     "src/**/*.ts",
-    "test/playwright/**/*.ts",
-    "playwright.config.desktop.ts",
     "package.nls.json"
   ],
   "exclude": [

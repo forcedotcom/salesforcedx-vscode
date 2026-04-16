@@ -14,11 +14,11 @@ export default defineConfig({
   projects: [
     {
       name: 'parallel',
-      testDir: './test/playwright/specs'
+      testDir: './specs'
     },
     {
       name: 'conflicts',
-      testDir: './test/playwright/specs-conflicts',
+      testDir: './specs-conflicts',
       workers: 1,
       fullyParallel: false,
       timeout: 120_000
