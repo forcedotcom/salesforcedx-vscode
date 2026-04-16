@@ -159,7 +159,7 @@ jobs:
 
       - name: Log desktop VS Code version
         shell: bash
-        run: echo "::notice::VS Code version (desktop E2E)=${PLAYWRIGHT_DESKTOP_VSCODE_VERSION}"
+        run: echo "::notice::VS Code version=${PLAYWRIGHT_DESKTOP_VSCODE_VERSION}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
