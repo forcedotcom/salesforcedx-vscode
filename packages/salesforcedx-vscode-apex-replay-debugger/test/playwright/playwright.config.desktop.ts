@@ -7,4 +7,4 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createDesktopConfig();
+export default createDesktopConfig({ testDir: './specs' });
