@@ -11,7 +11,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import {
-  collectQuerybuilderI18nKeyRefsFromHtml,
+  collectQueryBuilderI18nKeyRefsFromHtml,
   extractKey,
   extractMessagesObject
 } from './i18nUtils';
@@ -118,7 +118,7 @@ const isNlsLocalizeCall = (node: TSESTree.CallExpression): boolean =>
   node.callee.property.name === 'localize';
 
 const isCoerceMessageKeyCall = (node: TSESTree.CallExpression): boolean =>
-    node.callee.type === AST_NODE_TYPES.Identifier &&
+  node.callee.type === AST_NODE_TYPES.Identifier &&
   node.callee.name === 'coerceMessageKey';
 
 const isKeyExcludedByPattern = (key: string, patterns: string[]): boolean =>
@@ -207,17 +207,17 @@ export const noUnusedI18nMessages = RuleCreator.withoutDocs({
       {
         type: 'object',
         description:
-        'Options for configuring unused i18n message detection.',
+          'Options for configuring unused i18n message detection.',
         properties: {
           allowList: {
             description:
-            'Keys that should never be reported as unused.',
+              'Keys that should never be reported as unused.',
             type: 'array',
             items: { type: 'string' }
           },
           dynamicKeyPatterns: {
             description:
-            'Regex patterns for keys used dynamically at runtime.',
+              'Regex patterns for keys used dynamically at runtime.',
             type: 'array',
             items: { type: 'string' }
           }
@@ -288,7 +288,7 @@ export const noUnusedI18nMessages = RuleCreator.withoutDocs({
       for (const file of findSoqlBuilderUiHtmlFiles(packageRoot)) {
         try {
           const source = fs.readFileSync(file, 'utf8');
-          const fileCounts = collectQuerybuilderI18nKeyRefsFromHtml(
+          const fileCounts = collectQueryBuilderI18nKeyRefsFromHtml(
             source,
             knownKeys
           );

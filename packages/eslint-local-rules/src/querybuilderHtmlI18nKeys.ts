@@ -26,7 +26,7 @@ const findPackageRoot = (file: string): string | undefined => {
   return undefined;
 };
 
-const getQuerybuilderCatalogKeys = (packageRoot: string): Set<string> | undefined => {
+const getQueryBuilderCatalogKeys = (packageRoot: string): Set<string> | undefined => {
   const catalogPath = path.join(
     packageRoot,
     'src',
@@ -51,7 +51,7 @@ const getQuerybuilderCatalogKeys = (packageRoot: string): Set<string> | undefine
   }
 };
 
-/** Same pattern as collectQuerybuilderI18nKeyRefsFromHtml (unknown keys are flagged here). */
+/** Same pattern as collectQueryBuilderI18nKeyRefsFromHtml (unknown keys are flagged here). */
 const I18N_MEMBER_RE = /i18n\.([a-zA-Z0-9_]+)/g;
 
 export const querybuilderHtmlI18nKeys = RuleCreator.withoutDocs({
@@ -67,7 +67,7 @@ export const querybuilderHtmlI18nKeys = RuleCreator.withoutDocs({
   create: context => {
     const filename = context.getFilename();
     const packageRoot = findPackageRoot(filename);
-    const allowed = packageRoot ? getQuerybuilderCatalogKeys(packageRoot) : undefined;
+    const allowed = packageRoot ? getQueryBuilderCatalogKeys(packageRoot) : undefined;
     if (!allowed) {
       return {};
     }
