@@ -20,7 +20,7 @@ import { getConflictStateRef } from './conflictTreeProvider';
 import { handleConflictsModal } from './conflictUi';
 import { conflictTreeProvider, ensureConflictView } from './conflictView';
 
-export type HandleConflictWithRetryOptions<A, E, R> = {
+type HandleConflictWithRetryOptions<A, E, R> = {
   retryOperation: Effect.Effect<A, E, R>;
   pairs: DiffFilePair[];
   operationType: 'deploy' | 'retrieve' | 'delete';

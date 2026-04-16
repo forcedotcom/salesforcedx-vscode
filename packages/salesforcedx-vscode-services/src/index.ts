@@ -30,12 +30,14 @@ import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
+import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService, TemplateType } from './core/templateService';
-import { TraceFlagItemStruct, TraceFlagService } from './core/traceFlagService';
+import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
+import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
@@ -86,6 +88,7 @@ export type SalesforceVSCodeServicesApi = {
       | SettingsWatcherService
       | SourceTrackingService
       | TemplateService
+      | TerminalService
       | TransmogrifierService
       | WorkspaceService
     >;
@@ -123,6 +126,7 @@ export type SalesforceVSCodeServicesApi = {
     SourceTrackingService: typeof SourceTrackingService;
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
+    TerminalService: typeof TerminalService;
     TransmogrifierService: typeof TransmogrifierService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
     TraceFlagService: typeof TraceFlagService;
@@ -316,6 +320,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     SettingsService.Default,
     SettingsWatcherService.Default,
     SourceTrackingService.Default,
+    TerminalService.Default,
     TransmogrifierService.Default,
     TraceFlagService.Default,
     WorkspaceService.Default
@@ -387,6 +392,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       SourceTrackingService,
       ActiveMetadataOperationRef: getActiveMetadataOperationRef,
       TargetOrgRef: getDefaultOrgRef,
+      TerminalService,
       TransmogrifierService,
       TraceFlagItemStruct,
       TraceFlagService,
@@ -447,6 +453,8 @@ export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsWatcherService } from './vscode/settingsWatcherService';
-export { type DebugLevelItem, type TraceFlagItem, type TraceFlagService } from './core/traceFlagService';
+export { DebugLevelItemSchema, TraceFlagItemStruct, TraceFlagLogType, type DebugLevelItem, type TraceFlagItem } from './core/schemas/traceFlagSchemas';
+export { type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
 export type { UserCancellationError } from './vscode/prompts/promptService';
+export type { TerminalService, TerminalServiceError } from './terminal/terminalService';
