@@ -84,57 +84,49 @@ class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       return false;
     }
 
-    await this.handleDiagnostics(result);
+    await handleDiagnostics(result);
     return result.summary.outcome === 'Passed';
   }
-
-  private async handleDiagnostics(result: TestResult): Promise<void> {
-    ApexLibraryTestRunExecutor.diagnostics.clear();
-
-    const testsWithDiagnostics = result.tests.filter(isTestWithDiagnostic);
-    if (testsWithDiagnostics.length === 0) {
-      return;
-    }
-
-    // Get project from services extension
-    const sfProject = await getApexTestingRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        return yield* api.services.ProjectService.getSfProject();
-      })
-    );
-
-    if (!sfProject) {
-      return;
-    }
-    const packageDirectories = sfProject.getUniquePackageDirectories();
-    const correlatedArtifacts = await this.mapApexArtifactToFilesystem(testsWithDiagnostics, packageDirectories);
-
-    testsWithDiagnostics.forEach(test => {
-      const diagnostic = test.diagnostic;
-      const componentPath = correlatedArtifacts.get(test.apexClass.fullName ?? test.apexClass.name);
-
-      if (componentPath) {
-        const vscDiagnostic: vscode.Diagnostic = {
-          message: `${diagnostic.exceptionMessage}\n${diagnostic.exceptionStackTrace}`,
-          severity: vscode.DiagnosticSeverity.Error,
-          source: componentPath,
-          range: getZeroBasedRange(diagnostic.lineNumber ?? 1, diagnostic.columnNumber ?? 1)
-        };
-
-        ApexLibraryTestRunExecutor.diagnostics.set(URI.file(componentPath), [vscDiagnostic]);
-      }
-    });
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private async mapApexArtifactToFilesystem(
-    tests: ApexTestResultData[],
-    packageDirectories: NamedPackageDir[]
-  ): Promise<Map<string, string>> {
-    return mapApexArtifactToFilesystem(tests, packageDirectories);
-  }
 }
+
+const handleDiagnostics = async (result: TestResult): Promise<void> => {
+  ApexLibraryTestRunExecutor.diagnostics.clear();
+
+  const testsWithDiagnostics = result.tests.filter(isTestWithDiagnostic);
+  if (testsWithDiagnostics.length === 0) {
+    return;
+  }
+
+  // Get project from services extension
+  const sfProject = await getApexTestingRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      return yield* api.services.ProjectService.getSfProject();
+    })
+  );
+
+  if (!sfProject) {
+    return;
+  }
+  const packageDirectories = sfProject.getUniquePackageDirectories();
+  const correlatedArtifacts = await mapApexArtifactToFilesystem(testsWithDiagnostics, packageDirectories);
+
+  testsWithDiagnostics.forEach(test => {
+    const diagnostic = test.diagnostic;
+    const componentPath = correlatedArtifacts.get(test.apexClass.fullName ?? test.apexClass.name);
+
+    if (componentPath) {
+      const vscDiagnostic: vscode.Diagnostic = {
+        message: `${diagnostic.exceptionMessage}\n${diagnostic.exceptionStackTrace}`,
+        severity: vscode.DiagnosticSeverity.Error,
+        source: componentPath,
+        range: getZeroBasedRange(diagnostic.lineNumber ?? 1, diagnostic.columnNumber ?? 1)
+      };
+
+      ApexLibraryTestRunExecutor.diagnostics.set(URI.file(componentPath), [vscDiagnostic]);
+    }
+  });
+};
 
 const mapApexArtifactToFilesystem = async (
   tests: ApexTestResultData[],

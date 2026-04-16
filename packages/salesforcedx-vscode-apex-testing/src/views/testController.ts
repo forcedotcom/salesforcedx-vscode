@@ -445,14 +445,9 @@ export class ApexTestController {
         await this.resolveSuiteChildren(test);
       }
       if (isClass(test.id)) {
-        await this.augmentMethodPositionsFromSymbols(test);
+        await augmentMethodPositionsFromSymbols(test);
       }
     };
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private async augmentMethodPositionsFromSymbols(classItem: vscode.TestItem): Promise<void> {
-    return augmentMethodPositionsFromSymbols(classItem);
   }
 
   /**
@@ -471,7 +466,7 @@ export class ApexTestController {
   }
 
   public async retrieveOrgOnlyClassFromUri(uri: URI): Promise<void> {
-    const className = this.getClassNameFromApexTestingUri(uri);
+    const className = getClassNameFromApexTestingUri(uri);
     if (!className) {
       return;
     }
@@ -492,7 +487,7 @@ export class ApexTestController {
         return;
       }
 
-      const retrievedFileUri = this.getRetrievedFileUri(result);
+      const retrievedFileUri = getRetrievedFileUri(result);
       if (retrievedFileUri) {
         const document = await vscode.workspace.openTextDocument(retrievedFileUri);
         await vscode.window.showTextDocument(document, {
@@ -500,7 +495,7 @@ export class ApexTestController {
           viewColumn: vscode.ViewColumn.Active,
           preserveFocus: false
         });
-        await this.closeEditorTabByUri(uri);
+        await closeEditorTabByUri(uri);
       }
 
       try {
@@ -513,21 +508,6 @@ export class ApexTestController {
     } catch {
       notificationService.showFailedExecution(executionName);
     }
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private getClassNameFromApexTestingUri(uri: URI): string | undefined {
-    return getClassNameFromApexTestingUri(uri);
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private getRetrievedFileUri(result: unknown): URI | undefined {
-    return getRetrievedFileUri(result);
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private async closeEditorTabByUri(uri: URI): Promise<void> {
-    return closeEditorTabByUri(uri);
   }
 
   private async resolveSuiteChildren(suiteItem: vscode.TestItem): Promise<void> {
@@ -686,7 +666,7 @@ export class ApexTestController {
       } else {
         // For run, execute tests using existing Apex test execution
         const testNames = testsToRun.map(test => getTestName(test));
-        const tmpFolder = await this.getTempFolder();
+        const tmpFolder = await getTempFolder();
         const codeCoverage = settings.retrieveTestCodeCoverage();
         // RunAllTestsInOrg only for the explicit "all org" profile on an implicit full run
         const runAllTestsInOrg =
@@ -938,11 +918,6 @@ export class ApexTestController {
       const friendlyMessage = toUserFriendlyApexTestError(error);
       throw new Error(nls.localize('apex_test_update_results_failed_message', friendlyMessage));
     }
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private async getTempFolder(): Promise<URI> {
-    return getTempFolder();
   }
 
   public dispose(): void {
