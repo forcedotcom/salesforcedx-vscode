@@ -631,8 +631,12 @@ export default [
     }
   },
   {
-    // class-methods-use-this for apex-testing package (not yet using Effect)
-    files: ['packages/salesforcedx-vscode-apex-testing/**/*.ts'],
+    // class-methods-use-this for packages not yet using Effect
+    files: [
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-common/**/*.ts'
+    ],
     rules: {
       'class-methods-use-this': 'error'
     }
