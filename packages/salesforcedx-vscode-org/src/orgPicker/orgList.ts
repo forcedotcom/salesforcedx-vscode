@@ -66,7 +66,7 @@ const getIconForOrgType = (type: OrgType): string => {
   }
 };
 /** QuickPickItem for org selection with metadata for handling */
-export interface OrgQuickPickItem extends vscode.QuickPickItem {
+interface OrgQuickPickItem extends vscode.QuickPickItem {
   orgUsername?: string;
   orgAlias?: string;
   commandId?: string;

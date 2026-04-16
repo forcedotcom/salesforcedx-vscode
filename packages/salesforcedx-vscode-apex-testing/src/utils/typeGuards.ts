@@ -15,7 +15,7 @@ export type MetadataRetrieveFileResponse = {
 };
 
 /** Minimal retrieve poll result shape with `getFileResponses()` from @salesforce/source-deploy-retrieve. */
-export type MetadataRetrieveOutcomeLike = {
+type MetadataRetrieveOutcomeLike = {
   getFileResponses(): readonly MetadataRetrieveFileResponse[];
 };
 

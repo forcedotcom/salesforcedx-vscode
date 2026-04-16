@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { LogCollectorState } from '../logs/logAutoCollect';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
 import * as Duration from 'effect/Duration';
@@ -17,7 +16,7 @@ import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
-import { LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
+import { type LogCollectorState, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
 
 const STATUS_BAR_ID = 'apex-trace-flag-status';
 const STATUS_BAR_PRIORITY = 46;
