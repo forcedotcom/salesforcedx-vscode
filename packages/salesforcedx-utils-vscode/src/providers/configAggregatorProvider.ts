@@ -19,7 +19,6 @@ import { workspaceUtils } from '../workspaces/workspaceUtils';
 export class ConfigAggregatorProvider {
   protected configAggregators: Map<string, ConfigAggregator>;
   protected globalConfigAggregator: ConfigAggregator | undefined;
-  public static readonly defaultBaseProcessDirectoryInVSCE = '/';
 
   private static instance?: ConfigAggregatorProvider;
 

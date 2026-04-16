@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { basename } from 'node:path';
-import { telemetryService } from '../services/telemetry';
 
 export const getJsonCandidate = (str: string): string | null => {
   const firstCurly = str.indexOf('{');
@@ -92,59 +90,6 @@ export const extractJson = <T = any>(str: string): T => {
   return JSON.parse(jsonCandidate) as T; // Cast to generic type
 };
 
-export const isNullOrUndefined = (object: any): object is null | undefined => object === null || object === undefined;
-
-// There's a bug in VS Code where, after a file has been renamed,
-// the URI that VS Code passes to the command is stale and is the
-// original URI.  See https://github.com/microsoft/vscode/issues/152993.
-//
-// To get around this, fs.realpathSync.native() is called to get the
-// URI with the actual file name.
-
-const flushFilePath = (filePath: string): string => {
-  if (filePath === '') {
-    return filePath;
-  }
-
-  // let nativePath = realpathSync.native(filePath);
-  // Above is the original assigned nativePath value.
-  // We found that filePath is the correct path and the stale name issue
-  // no longer exists.
-  let nativePath = filePath;
-  if (process.platform.startsWith('win32')) {
-    // The file path on Windows is in the form of "c:\Users\User Name\foo.cls".
-    // When called, fs.realpathSync.native() is returning the file path back as
-    // "C:\Users\User Name\foo.cls", and the capitalization of the drive letter
-    // causes problems further down stream.  To fix this, we'll use the path
-    // returned from fs.realpathSync.native() and then change the first character
-    // to lower case.
-    nativePath = nativePath.charAt(0).toLowerCase() + nativePath.slice(1);
-  }
-
-  // check if the native path is the same case insensitive and then case sensitive
-  // so that condition can be reported via telemetry
-  if (filePath !== nativePath && filePath.toLowerCase() === nativePath.toLowerCase()) {
-    telemetryService.sendEventData('FilePathCaseMismatch', {
-      originalPath: basename(filePath),
-      nativePath: basename(nativePath)
-    });
-  }
-  return nativePath;
-};
-
-const flushFilePaths = (filePaths: string[]): string[] => {
-  for (let i = 0; i < filePaths.length; i++) {
-    filePaths[i] = flushFilePath(filePaths[i]);
-  }
-
-  return filePaths;
-};
-
-export const fileUtils = {
-  flushFilePaths,
-  flushFilePath,
-  extractJson
-};
 
 export const stripAnsiInJson = (str: string, hasJson: boolean): string => (str && hasJson ? stripAnsi(str) : str);
 
