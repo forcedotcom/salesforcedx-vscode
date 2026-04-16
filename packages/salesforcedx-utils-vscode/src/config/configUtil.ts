@@ -35,12 +35,6 @@ export class ConfigUtil {
    * override the API version that is otherwise gotten from the authenticated
    * Org in some cases, such as when deploying metadata.
    */
-  public static async getUserConfiguredApiVersion(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const apiVersion = configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION);
-    return apiVersion ? String(apiVersion) : undefined;
-  }
-
   public static async getTargetOrgOrAlias(): Promise<string | undefined> {
     try {
       const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
@@ -89,15 +83,6 @@ export class ConfigUtil {
     return globalTargetDevHub ? String(globalTargetDevHub) : undefined;
   }
 
-  public static async getAllAliasesFor(username: string): Promise<string[]> {
-    const stateAggregator = await StateAggregator.getInstance();
-    // Without a call to clearInstance(), stateAggregator will not report
-    // aliases that were created in the current running process.
-    StateAggregator.clearInstance();
-    const aliases = stateAggregator.aliases.getAll(username);
-    return aliases;
-  }
-
   /**
    * Get the username of the currently auth'd user for the project.
    *
@@ -110,22 +95,6 @@ export class ConfigUtil {
     }
 
     const username = await this.getUsernameFor(targetOrgOrAlias);
-    return username ? String(username) : undefined;
-  }
-
-  /**
-   * Get the username of the target dev hub for the project.
-   *
-   * @returns The username for the configured target dev hub
-   * Org if it exists.
-   */
-  public static async getDevHubUsername(): Promise<string | undefined> {
-    const targetDevHubOrAlias = await ConfigUtil.getTargetDevHubOrAlias();
-    if (!targetDevHubOrAlias) {
-      return;
-    }
-
-    const username = await this.getUsernameFor(targetDevHubOrAlias);
     return username ? String(username) : undefined;
   }
 

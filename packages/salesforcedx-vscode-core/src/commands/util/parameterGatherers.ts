@@ -16,16 +16,12 @@ import * as vscode from 'vscode';
 import { coerceMessageKey, nls } from '../../messages';
 import { SalesforcePackageDirectories, SalesforceProjectConfig } from '../../salesforceProject';
 
-export type FileNameParameter = {
+type FileNameParameter = {
   fileName: string;
 };
 
-export type OutputDirParameter = {
+type OutputDirParameter = {
   outputdir: string;
-};
-
-export type MetadataTypeParameter = {
-  type: string;
 };
 
 export class SelectFileName implements ParametersGatherer<FileNameParameter> {
@@ -113,7 +109,7 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
   }
 }
 
-export class SimpleGatherer<T> implements ParametersGatherer<T> {
+class SimpleGatherer<T> implements ParametersGatherer<T> {
   private input: T;
 
   constructor(input: T) {
@@ -131,16 +127,6 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
 export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
   constructor(metadataType: string) {
     super({ type: metadataType });
-  }
-}
-
-export type ApexTestTemplateParameter = {
-  template: string;
-};
-
-export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplateParameter> {
-  constructor(template: string) {
-    super({ template });
   }
 }
 

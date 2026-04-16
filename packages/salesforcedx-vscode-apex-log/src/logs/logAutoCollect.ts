@@ -18,8 +18,6 @@ import { nls } from '../messages';
 import { type LogCollectorState, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
 import { getExecAnonLogIds, saveLog } from './logStorage';
 
-export type { LogCollectorState } from '../services/apexLogState';
-
 const toDate = (d: Date | string): Date => (d instanceof Date ? d : new Date(d));
 
 const isAfterTraceFlagStart =

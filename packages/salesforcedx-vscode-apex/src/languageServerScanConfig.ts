@@ -33,7 +33,7 @@ type SalesforceVSCodeServicesApiLike = {
   };
 };
 
-export type ApexLspScanConfig = {
+type ApexLspScanConfig = {
   scan: {
     excludeFolders: string[];
   };

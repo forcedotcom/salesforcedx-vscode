@@ -33,7 +33,7 @@ const getSynchronizeFileEvents = () => [
   workspace.createFileSystemWatcher('**/', false, true, false)
 ];
 
-export const sharedUriConverters = {
+const sharedUriConverters = {
   code2Protocol: code2ProtocolConverter,
   protocol2Code: protocol2CodeConverter
 };

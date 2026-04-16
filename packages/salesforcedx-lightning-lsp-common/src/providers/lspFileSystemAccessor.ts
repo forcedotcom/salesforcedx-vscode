@@ -37,13 +37,13 @@ import { NormalizedPath, normalizePath } from '../utils';
 // --- Standalone helpers (no instance state) ---
 
 /** Empty directory listing; no workspace/readDirectory and no local cache. */
-export const getEmptyDirectoryListing = (_uri: NormalizedPath): DirectoryEntry[] => [];
+const getEmptyDirectoryListing = (_uri: NormalizedPath): DirectoryEntry[] => [];
 
 /**
  * Convert a URI to a normalized file path.
  * Web uses memfs (single scheme); desktop uses file://. Pass the workspace folder URI when in web to align path extraction.
  */
-export const uriToNormalizedPath = (uri: DocumentUri, workspaceFolderUri?: string): NormalizedPath => {
+const uriToNormalizedPath = (uri: DocumentUri, workspaceFolderUri?: string): NormalizedPath => {
   try {
     const parsedUri = URI.parse(uri);
     if (parsedUri.scheme === 'file') {
@@ -79,7 +79,7 @@ export const uriToNormalizedPath = (uri: DocumentUri, workspaceFolderUri?: strin
 /**
  * Convert a normalized file path to a URI. Web uses memfs; desktop uses file://. Pass the workspace folder URI when in web.
  */
-export const getFileUriForPath = (filePath: NormalizedPath, workspaceFolderUri?: string): string => {
+const getFileUriForPath = (filePath: NormalizedPath, workspaceFolderUri?: string): string => {
   if (workspaceFolderUri) {
     try {
       const workspaceUri = URI.parse(workspaceFolderUri);

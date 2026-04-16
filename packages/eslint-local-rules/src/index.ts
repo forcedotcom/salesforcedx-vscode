@@ -12,6 +12,7 @@ import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
+import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
@@ -39,6 +40,7 @@ const plugin = {
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,
     'no-effect-fn-wrapper': noEffectFnWrapper,
+    'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,

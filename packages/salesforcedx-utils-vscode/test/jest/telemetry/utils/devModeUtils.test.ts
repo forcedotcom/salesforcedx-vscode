@@ -5,22 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Settings from '../../../../src/settings/settingsService';
+import * as vscode from 'vscode';
 import { isLocalLogging } from '../../../../src/telemetry/utils/devModeUtils';
 
+jest.mock('vscode');
+const vscodeMocked = jest.mocked(vscode);
+
 describe('isLocalLogging', () => {
-  let spySettingsService: jest.SpyInstance;
+  let mockGet: jest.Mock;
 
   beforeEach(() => {
-    spySettingsService = jest.spyOn(Settings.SettingsService, 'isAdvancedSettingEnabledFor').mockReturnValue(false);
+    mockGet = jest.fn().mockReturnValue('false');
+    vscodeMocked.workspace.getConfiguration = jest.fn().mockReturnValue({ get: mockGet });
   });
 
   afterEach(() => {
-    spySettingsService.mockRestore();
+    jest.resetAllMocks();
   });
 
   it('returns true when local logging is enabled', () => {
-    spySettingsService.mockReturnValue(true);
+    mockGet.mockReturnValue('true');
     expect(isLocalLogging('extName')).toBe(true);
   });
 

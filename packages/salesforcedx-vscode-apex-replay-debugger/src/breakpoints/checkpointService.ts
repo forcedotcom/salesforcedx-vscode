@@ -218,7 +218,7 @@ abstract class BaseNode extends TreeItem {
   public abstract getChildren(): BaseNode[];
 }
 
-export class CheckpointNode extends BaseNode {
+class CheckpointNode extends BaseNode {
   private readonly children: (
     | CheckpointInfoActionScriptNode
     | CheckpointInfoActionScriptTypeNode

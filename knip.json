@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": [
+    "packages/salesforcedx-aura-language-server/src/tern/**",
+    "packages/salesforcedx-aura-language-server/src/tern-server/**",
+    "packages/salesforcedx-visualforce-markup-language-server/src/beautify/**",
+    "packages/*/**/__tests__/fixtures/**",
+    ".github/actions/*/lib/**",
+    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/model.ts",
+    "packages/salesforcedx-vscode-soql/src/soql-model/model/model.ts"
+  ],
+  "tags": ["-ExportTaggedError"],
+  "workspaces": {
+    "packages/salesforcedx-aura-language-server": {
+      "entry": ["src/index.ts", "src/server.ts"]
+    }
+  }
+}

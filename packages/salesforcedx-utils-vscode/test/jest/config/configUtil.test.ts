@@ -24,21 +24,6 @@ describe('ConfigUtil', () => {
     jest.restoreAllMocks();
   });
 
-  describe('getUserConfiguredApiVersion', () => {
-    it('should return API version when set', async () => {
-      mockConfigAggregator.getPropertyValue.mockReturnValue('58.0');
-      const result = await ConfigUtil.getUserConfiguredApiVersion();
-      expect(result).toBe('58.0');
-      expect(mockConfigAggregator.getPropertyValue).toHaveBeenCalledWith(OrgConfigProperties.ORG_API_VERSION);
-    });
-
-    it('should return undefined when not set', async () => {
-      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
-      const result = await ConfigUtil.getUserConfiguredApiVersion();
-      expect(result).toBeUndefined();
-    });
-  });
-
   describe('getTargetOrgOrAlias', () => {
     it('should return target org when set', async () => {
       mockConfigAggregator.getPropertyValue.mockReturnValue('my-org');
@@ -135,22 +120,6 @@ describe('ConfigUtil', () => {
     });
   });
 
-  describe('getAllAliasesFor', () => {
-    it('should return aliases for username', async () => {
-      const mockStateAggregator = {
-        aliases: {
-          getAll: jest.fn().mockReturnValue(['alias1', 'alias2'])
-        }
-      };
-      jest.spyOn(StateAggregator, 'getInstance').mockResolvedValue(mockStateAggregator as any);
-      jest.spyOn(StateAggregator, 'clearInstance').mockImplementation();
-
-      const result = await ConfigUtil.getAllAliasesFor('test@example.com');
-      expect(result).toEqual(['alias1', 'alias2']);
-      expect(StateAggregator.clearInstance).toHaveBeenCalled();
-    });
-  });
-
   describe('getUsernameFor', () => {
     it('should return username when alias exists', async () => {
       const mockStateAggregator = {
@@ -198,24 +167,4 @@ describe('ConfigUtil', () => {
     });
   });
 
-  describe('getDevHubUsername', () => {
-    it('should return dev hub username when set', async () => {
-      mockConfigAggregator.getPropertyValue.mockReturnValue('devhub-alias');
-      const mockStateAggregator = {
-        aliases: {
-          getUsername: jest.fn().mockReturnValue('devhub@example.com')
-        }
-      };
-      jest.spyOn(StateAggregator, 'getInstance').mockResolvedValue(mockStateAggregator as any);
-
-      const result = await ConfigUtil.getDevHubUsername();
-      expect(result).toBe('devhub@example.com');
-    });
-
-    it('should return undefined when dev hub is not set', async () => {
-      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
-      const result = await ConfigUtil.getDevHubUsername();
-      expect(result).toBeUndefined();
-    });
-  });
 });

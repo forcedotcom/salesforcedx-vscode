@@ -15,7 +15,7 @@ import { getApexTestingDiscoveryFsProvider } from './apexTestingDiscoveryFsProvi
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
-export type DiscoveredApexClassesIndex = {
+type DiscoveredApexClassesIndex = {
   orgKey: string;
   updatedAt: string;
   classes: ToolingTestClass[];

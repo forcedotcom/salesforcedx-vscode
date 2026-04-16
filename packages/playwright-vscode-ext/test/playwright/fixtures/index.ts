@@ -8,7 +8,7 @@
 import { test as webTest } from '@playwright/test';
 import { test as desktopTest } from './desktopFixtures';
 
-export const isDesktop = process.env.VSCODE_DESKTOP === '1';
+const isDesktop = process.env.VSCODE_DESKTOP === '1';
 
 // Export the appropriate test based on environment (fixtures differ)
 // expect is the same for both, so just re-export it directly

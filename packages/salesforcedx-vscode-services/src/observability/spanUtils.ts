@@ -8,13 +8,13 @@ import { type Attributes, SpanStatusCode } from '@opentelemetry/api';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 
 /** Check if a span is a top-level span (has no parent) */
-export const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
+const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
 
 /** Check if a span has a command attribute */
-export const isCommandSpan = (span: ReadableSpan): boolean => span.attributes['command'] !== undefined;
+const isCommandSpan = (span: ReadableSpan): boolean => span.attributes['command'] !== undefined;
 
 /** Check if a span should be excluded from production telemetry */
-export const isTelemetryIgnored = (span: ReadableSpan): boolean => span.attributes['telemetryIgnore'] === true;
+const isTelemetryIgnored = (span: ReadableSpan): boolean => span.attributes['telemetryIgnore'] === true;
 
 /** Span is not ignored and is either a top-level span or a command span */
 export const isSpanValidForProductionTelemetry = (span: ReadableSpan): boolean =>

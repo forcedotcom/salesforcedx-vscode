@@ -10,8 +10,3 @@ import * as Data from 'effect/Data';
 export class MissingDefaultOrgError extends Data.TaggedError('MissingDefaultOrgError')<{
   readonly message: string;
 }> {}
-
-export class VscodeDiffError extends Data.TaggedError('VscodeDiffError')<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}

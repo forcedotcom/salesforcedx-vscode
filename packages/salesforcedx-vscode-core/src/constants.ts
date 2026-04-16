@@ -11,7 +11,6 @@ export const PKG_ID_PREFIX = '04t';
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 export const TELEMETRY_OPT_OUT_LINK = 'https://developer.salesforce.com/tools/vscode/en/faq/telemetry';
 export const TELEMETRY_INTERNAL_VALUE = 'sfdxTelemetryMessageInternal';
-export const TELEMETRY_METADATA_COUNT = 'metadataCount';
 export const BASE_EXTENSION = 'salesforce.salesforcedx-vscode';
 export const EXPANDED_EXTENSION = 'salesforce.salesforcedx-vscode-expanded';
 export const EXT_PACK_STATUS_EVENT_NAME = 'extensionPackStatus';
@@ -19,7 +18,6 @@ export const EXT_PACK_STATUS_EVENT_NAME = 'extensionPackStatus';
 // sfdxCore setting config values
 export const ALL_EXCEPTION_CATCHER_ENABLED = 'allExceptionCatcherEnabled';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
-export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-startup';
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';

@@ -67,5 +67,3 @@ export const messages = {
   unmodeled_incolonexpressioncondition: 'Colon expression as IN value',
   unmodeled_insemijoincondition: 'Subquery as IN value',
 } as const;
-
-export type MessageKey = keyof typeof messages;

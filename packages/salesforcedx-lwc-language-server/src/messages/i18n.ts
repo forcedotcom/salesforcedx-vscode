@@ -18,5 +18,3 @@
 export const messages = {
   server_initializing_message: 'Loading... 🔍'
 } as const;
-
-export type MessageKey = keyof typeof messages;

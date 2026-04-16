@@ -18,7 +18,6 @@
  */
 
 import * as vscode from 'vscode';
-import * as Settings from '../../../../src/settings/settingsService';
 import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
 import { determineReporters } from '../../../../src/telemetry/reporters/determineReporters';
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
@@ -34,7 +33,7 @@ describe('determineReporters', () => {
 
   beforeEach(() => {
     // local logging
-    Settings.SettingsService.isAdvancedSettingEnabledFor = jest.fn().mockReturnValue(false);
+    vscodeMocked.workspace.getConfiguration = jest.fn().mockReturnValue({ get: jest.fn().mockReturnValue('false') });
     LogStreamConfig.isEnabledFor = jest.fn().mockReturnValue(false);
     config = {
       extName: 'salesforcedx-vscode',
@@ -82,7 +81,7 @@ describe('determineReporters', () => {
     });
 
     it('should return TelemetryFile reporter when local logging is enabled', () => {
-      Settings.SettingsService.isAdvancedSettingEnabledFor = jest.fn().mockReturnValue(true);
+      vscodeMocked.workspace.getConfiguration = jest.fn().mockReturnValue({ get: jest.fn().mockReturnValue('true') });
       const reporters = determineReporters(config);
       expect(reporters).toHaveLength(1);
       expect(reporters[0]).toBeInstanceOf(TelemetryFile);

@@ -33,7 +33,7 @@ export const getProblemsCount = async (page: Page): Promise<number> => {
 };
 
 /** Clears Problems view filter so diagnostics count is not masked by stale text. */
-export const clearProblemsFilter = async (page: Page): Promise<void> => {
+const clearProblemsFilter = async (page: Page): Promise<void> => {
   await ensureProblemsViewOpen(page);
   const input = page.locator(PROBLEMS_FILTER_INPUT).first();
   if (!(await input.isVisible().catch(() => false))) {

@@ -11,5 +11,3 @@ import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
 export const nls = createNls({ instanceName: EXTENSION_NAME, messages: enMessages, jaMessages });
-
-export type { MessageKey } from './i18n';
