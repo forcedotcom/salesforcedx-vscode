@@ -69,7 +69,7 @@ export const extractMessagesObject = (ast: TSESTree.Program): MessagesObject => 
 /**
  * LWC SOQL Builder templates use `i18n.key` in text and attributes, e.g.
  * `{i18n.label_foo}` or `placeholder={i18n.placeholder_bar}`.
- * Keep in sync with querybuilderHtmlI18nKeys.
+ * Keep in sync with queryBuilderHtmlI18nKeys.
  */
 export const collectQueryBuilderI18nKeyRefsFromHtml = (
   source: string,

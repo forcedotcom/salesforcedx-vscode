@@ -756,7 +756,7 @@ export default [
       local: localPlugin
     },
     rules: {
-      'local/querybuilder-html-i18n-keys': 'error'
+      'local/query-builder-html-i18n-keys': 'error'
     }
   },
   eslintConfigPrettier

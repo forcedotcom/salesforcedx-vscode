@@ -20,11 +20,11 @@ const htmlRecommended = htmlEslintPlugin.configs['flat/recommended'] as {
   rules?: Record<string, unknown>;
 };
 
-const ruleId = 'local/querybuilder-html-i18n-keys';
+const ruleId = 'local/query-builder-html-i18n-keys';
 
-const fixturesDir = path.join(__dirname, 'fixtures', 'querybuilder-html-i18n');
+const fixturesDir = path.join(__dirname, 'fixtures', 'query-builder-html-i18n');
 const validHtmlRel =
-  'packages/eslint-local-rules/test/fixtures/querybuilder-html-i18n/src/soql-builder-ui/modules/querybuilder/app/sample.html';
+  'packages/eslint-local-rules/test/fixtures/query-builder-html-i18n/src/soql-builder-ui/modules/querybuilder/app/sample.html';
 
 function findMonorepoRoot(): string {
   let dir = __dirname;
@@ -51,8 +51,8 @@ function createEslintForFixture(): ESLint {
       {
         ...htmlRecommended,
         files: [
-          '**/eslint-local-rules/test/fixtures/querybuilder-html-i18n/**/*.html',
-          'packages/eslint-local-rules/test/fixtures/querybuilder-html-i18n/**/*.html'
+          '**/eslint-local-rules/test/fixtures/query-builder-html-i18n/**/*.html',
+          'packages/eslint-local-rules/test/fixtures/query-builder-html-i18n/**/*.html'
         ],
         plugins: {
           ...htmlRecommended.plugins,
@@ -66,7 +66,7 @@ function createEslintForFixture(): ESLint {
   });
 }
 
-describe('querybuilder-html-i18n-keys', () => {
+describe('query-builder-html-i18n-keys', () => {
   it('passes when i18n keys exist in catalog', async () => {
     const eslint = createEslintForFixture();
     const results = await eslint.lintFiles([path.join(repoRoot, validHtmlRel)]);

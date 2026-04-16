@@ -54,7 +54,7 @@ const getQueryBuilderCatalogKeys = (packageRoot: string): Set<string> | undefine
 /** Same pattern as collectQueryBuilderI18nKeyRefsFromHtml (unknown keys are flagged here). */
 const I18N_MEMBER_RE = /i18n\.([a-zA-Z0-9_]+)/g;
 
-export const querybuilderHtmlI18nKeys = RuleCreator.withoutDocs({
+export const queryBuilderHtmlI18nKeys = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
     schema: [],
