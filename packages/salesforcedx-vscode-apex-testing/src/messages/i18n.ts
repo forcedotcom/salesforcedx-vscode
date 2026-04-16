@@ -42,6 +42,10 @@ export const messages = {
   run_tests_title: 'Run All Tests in Org',
   debug_tests_title: 'Debug Tests',
   test_view_name: 'Apex Tests',
+  apex_test_suites_parent_text: 'Apex Test Suites',
+  apex_testing_vfs_org_badge_text: 'ORG',
+  apex_testing_vfs_org_file_tooltip_text: 'Org virtual file (read-only)',
+  apex_testing_vfs_readonly_prefix_text: 'apex-testing is read-only',
   apex_test_run_concise: 'Display only failed test results.',
   apex_testing_discovery_source_description: 'Select the source for Apex test discovery.',
   apex_testing_discovery_source_ls_description: 'Use the Language Server (LS) for discovery.',
@@ -72,6 +76,10 @@ export const messages = {
   apex_test_error_resource_not_found_message:
     'The requested resource was not found. The org may be unavailable or the test run may have expired.',
   apex_test_error_api_message: 'The org returned an error: %s',
+  apex_test_retrieve_org_only_class_text: 'SFDX: Retrieve Org-Only Apex Test Class',
+  apex_test_retrieve_org_only_class_codelens_text: 'Org-Only: Download',
+  apex_test_retrieve_canceled: 'Retrieve canceled',
+  apex_discovery_vfs_class_body_placeholder: '// Source unavailable for %s',
   apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
   apex_test_debug_org_only_warning_message:
     'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',
@@ -95,7 +103,11 @@ export const messages = {
     'No code coverage information was found for test run %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
   colorizer_out_of_sync_code_coverage_data:
     'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
-  colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage'
+  colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
+  colorizer_coverage_apply_failed_message: 'Code coverage could not be applied. %s',
+  apex_test_suite_name_input_prompt: 'Enter desired Apex test suite name:',
+  apex_test_aggregate_failed_message: '%s test(s) failed',
+  apex_test_failed_no_details_message: 'Test failed'
 } as const;
 
 export type MessageKey = keyof typeof messages;
