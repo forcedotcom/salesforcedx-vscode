@@ -10,7 +10,7 @@
 
 import { LightningElement, api } from 'lwc';
 import { SELECT_COUNT } from '../services/model';
-import { labels } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/i18n';
 
 export const SELECT_ALL_OPTION = 'ALL FIELDS';
 export const CLEAR_OPTION = '- Clear Selection -';
@@ -30,10 +30,10 @@ export default class Fields extends LightningElement {
   @api public selectedFields: string[] = [];
   @api public hasError = false;
   @api public isLoading = false;
-  public selectPlaceHolderText = labels.placeholder_search_fields;
+  public selectPlaceHolderText = messages.placeholder_search_fields;
 
   public get i18n() {
-    return labels;
+    return messages;
   }
   public _displayFields: string[];
 

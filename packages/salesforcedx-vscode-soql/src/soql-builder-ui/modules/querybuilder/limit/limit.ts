@@ -7,14 +7,14 @@
  */
 
 import { LightningElement, api } from 'lwc';
-import { labels } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/i18n';
 
 export default class Limit extends LightningElement {
   @api public hasError = false;
   @api public limit;
 
   public get i18n() {
-    return labels;
+    return messages;
   }
 
   /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access */

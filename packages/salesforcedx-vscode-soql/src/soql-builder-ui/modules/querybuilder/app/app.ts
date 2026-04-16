@@ -8,7 +8,7 @@
 
 import { LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
-import { labels } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/i18n';
 import { ToolingSDK } from '../services/toolingSDK';
 import { VscodeMessageService } from '../services/message/vscodeMessageService';
 
@@ -269,7 +269,7 @@ export default class App extends LightningElement {
   }
 
   public get i18n() {
-    return labels;
+    return messages;
   }
 
   public get isQueryValid(): boolean {

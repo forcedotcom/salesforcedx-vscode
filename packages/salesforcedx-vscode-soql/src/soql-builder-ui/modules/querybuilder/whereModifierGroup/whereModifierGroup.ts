@@ -13,7 +13,7 @@
  */
 import { api, LightningElement, track } from 'lwc';
 import debounce from 'debounce';
-import { labels } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/i18n';
 import { ConditionOperator, LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
 import { getFieldInputValidator, getFieldMultipleInputValidator, getOperatorValidator } from '@salesforce/soql-model/validators/validatorFactory';
 import { splitMultiInputValues } from '@salesforce/soql-model/validators/inputUtils';
@@ -45,7 +45,7 @@ export default class WhereModifierGroup extends LightningElement {
   public criteriaErrorMessage = '';
   public hasOperatorError = false;
   public hasCriteriaError = false;
-  public selectPlaceHolderText = labels.placeholder_search_fields;
+  public selectPlaceHolderText = messages.placeholder_search_fields;
   public _allModifiersHaveValue = false;
   public _sobjectMetadata: any;
   public _condition: JsonMap;
@@ -136,7 +136,7 @@ export default class WhereModifierGroup extends LightningElement {
   }
 
   public get defaultFieldOptionText(): string {
-    return this.isLoading ? labels.label_loading : labels.placeholder_select_field;
+    return this.isLoading ? messages.label_loading : messages.placeholder_select_field;
   }
 
   public getFieldName(): string | undefined {

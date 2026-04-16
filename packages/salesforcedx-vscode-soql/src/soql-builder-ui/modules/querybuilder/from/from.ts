@@ -7,16 +7,16 @@
  */
 
 import { LightningElement, api } from 'lwc';
-import { labels } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/i18n';
 
 export default class From extends LightningElement {
   @api public sobjects: string[];
   @api public hasError = false;
   @api public isLoading = false;
-  public selectPlaceHolderText = labels.placeholder_search_object;
+  public selectPlaceHolderText = messages.placeholder_search_object;
 
   public get i18n() {
-    return labels;
+    return messages;
   }
   public _selectedObject: string[] = [];
 

@@ -11,7 +11,7 @@
  * action_*  : text on interactive elements (buttons, links)
  * placeholder_* : input/select placeholder text
  */
-export const labels = {
+export const messages = {
   // app – no-default-org notification
   label_no_default_org:
     'SOQL Builder requires a default org. Use the "Set a Default Org" button or run "SFDX: Set a Default Org" from the command palette to set one.',
@@ -80,4 +80,4 @@ export const labels = {
   placeholder_select_field: 'Select Field...'
 } as const;
 
-export type LabelKey = keyof typeof labels;
+export type MessageKey = keyof typeof messages;

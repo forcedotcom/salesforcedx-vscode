@@ -1,5 +1,5 @@
 import { api, track, LightningElement } from 'lwc';
-import { labels } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/i18n';
 
 /**
  * CUSTOM SELECT API
@@ -56,12 +56,12 @@ export default class CustomSelect extends LightningElement {
   }
 
   public get i18n() {
-    return labels;
+    return messages;
   }
 
   @api
   public get placeholderText(): string {
-    return this.isLoading ? labels.label_loading : this._placeholderText;
+    return this.isLoading ? messages.label_loading : this._placeholderText;
   }
 
   public set placeholderText(text: string) {
