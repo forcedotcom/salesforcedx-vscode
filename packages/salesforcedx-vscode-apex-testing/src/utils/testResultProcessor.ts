@@ -7,6 +7,7 @@
 import { HumanReporter, TestResult } from '@salesforce/apex-node';
 import * as vscode from 'vscode';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
+import { nls } from '../messages';
 import { getTestName, isClass, isMethod, isSuite } from './testItemUtils';
 
 /**
@@ -136,7 +137,9 @@ export const updateTestRunResults = (params: {
         const errorMessage = testResult.message ?? '';
         const stackTrace = testResult.stackTrace ?? '';
         const fullMessage =
-          errorMessage && stackTrace ? `${errorMessage}\n\n${stackTrace}` : errorMessage || stackTrace || 'Test failed';
+          errorMessage && stackTrace
+            ? `${errorMessage}\n\n${stackTrace}`
+            : errorMessage || stackTrace || nls.localize('apex_test_failed_no_details_message');
 
         const message = new vscode.TestMessage(fullMessage);
 
@@ -175,7 +178,11 @@ export const updateTestRunResults = (params: {
       if (classResult) {
         // Update the class item with aggregate results
         if (classResult.failed > 0) {
-          run.failed(classItem, new vscode.TestMessage(`${classResult.failed} test(s) failed`), classResult.duration);
+          run.failed(
+            classItem,
+            new vscode.TestMessage(nls.localize('apex_test_aggregate_failed_message', String(classResult.failed))),
+            classResult.duration
+          );
         } else if (classResult.passed > 0) {
           run.passed(classItem, classResult.duration);
         } else if (classResult.skipped > 0) {
@@ -233,7 +240,11 @@ export const updateTestRunResults = (params: {
 
       // Mark the suite based on its own aggregate results
       if (suiteFailed > 0) {
-        run.failed(test, new vscode.TestMessage(`${suiteFailed} test(s) failed`), suiteDuration);
+        run.failed(
+          test,
+          new vscode.TestMessage(nls.localize('apex_test_aggregate_failed_message', String(suiteFailed))),
+          suiteDuration
+        );
       } else if (suitePassed > 0) {
         run.passed(test, suiteDuration);
       } else if (suiteSkipped > 0) {
@@ -248,7 +259,11 @@ export const updateTestRunResults = (params: {
 
       if (classResult) {
         if (classResult.failed > 0) {
-          run.failed(test, new vscode.TestMessage(`${classResult.failed} test(s) failed`), classResult.duration);
+          run.failed(
+            test,
+            new vscode.TestMessage(nls.localize('apex_test_aggregate_failed_message', String(classResult.failed))),
+            classResult.duration
+          );
         } else if (classResult.passed > 0) {
           run.passed(test, classResult.duration);
         } else if (classResult.skipped > 0) {
@@ -257,7 +272,11 @@ export const updateTestRunResults = (params: {
       } else {
         // Fallback to total results if class-specific results aren't available
         if (totalFailed > 0) {
-          run.failed(test, new vscode.TestMessage(`${totalFailed} test(s) failed`), totalDuration);
+          run.failed(
+            test,
+            new vscode.TestMessage(nls.localize('apex_test_aggregate_failed_message', String(totalFailed))),
+            totalDuration
+          );
         } else if (totalPassed > 0) {
           run.passed(test, totalDuration);
         } else if (totalSkipped > 0) {

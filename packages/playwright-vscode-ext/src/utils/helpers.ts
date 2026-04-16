@@ -71,7 +71,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'workspaceStorage', // Workspace storage access errors during initialization (non-critical)
   'Illegal assignment from String to Integer', // Execute anonymous compile error (intentionally triggered in E2E)
   'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
-  'PerfSampleError' // Electron perf sampling noise (non-critical, unrelated to extension behavior)
+  'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
+  'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
+  'remoteAgentHostService' // VS Code remote agent host service noise (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -305,9 +307,6 @@ export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' &&
 /** Returns true if running on Windows desktop (Electron) */
 export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
 
-/** Returns true if running in VS Code web (not desktop Electron) */
-export const isVSCodeWeb = (): boolean => process.env.VSCODE_DESKTOP !== '1';
-
 /** Validate no critical console or network errors occurred during test execution */
 export const validateNoCriticalErrors = async (
   test: { step: (name: string, fn: () => Promise<void>) => Promise<void> },
@@ -334,21 +333,6 @@ export const disableMonacoAutoClosing = async (page: Page): Promise<void> => {
     'editor.autoClosingBrackets': 'never',
     'editor.autoClosingQuotes': 'never',
     'editor.autoClosingOvertype': 'never'
-  });
-
-  // Close Settings tab so it doesn't interfere with subsequent operations
-  await closeSettingsTab(page);
-};
-
-/**
- * Re-enable Monaco editor auto-closing features with default language-defined behavior.
- * Uses VS Code settings API for cleaner, more maintainable approach.
- */
-export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
-  await upsertSettings(page, {
-    'editor.autoClosingBrackets': 'languageDefined',
-    'editor.autoClosingQuotes': 'languageDefined',
-    'editor.autoClosingOvertype': 'auto'
   });
 
   // Close Settings tab so it doesn't interfere with subsequent operations

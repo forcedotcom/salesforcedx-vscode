@@ -19,7 +19,7 @@ export const messages = {
   progress_running_query: 'Running query',
   soql_query_results: 'SOQL Query Results',
   info_no_default_org:
-    'INFO: No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
+    'INFO: SOQL Builder requires a default org. Use the "Set a Default Org" button or run "SFDX: Set a Default Org" from the command palette to set one.',
   info_syntax_unsupported: 'INFO: This syntax is not yet supported in SOQL Builder. Instead, use a text editor.',
   info_file_save_success: 'We saved the results as: %s',
   error_sobject_metadata_request:
