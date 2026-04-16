@@ -7,7 +7,6 @@
     "noImplicitAny": false,
     "strictNullChecks": true
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "include": ["src/**/*.ts"],
   "references": [
     {

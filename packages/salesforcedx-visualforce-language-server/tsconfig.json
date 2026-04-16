@@ -6,7 +6,7 @@
     "strict": false,
     "noImplicitAny": false
   },
-  "exclude": ["node_modules", ".vscode-test", "out"],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-visualforce-markup-language-server"

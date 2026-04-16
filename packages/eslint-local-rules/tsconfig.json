@@ -5,6 +5,5 @@
     "outDir": "out",
     "isolatedModules": true
   },
-  "exclude": ["node_modules", "out", "test"],
   "include": ["src/**/*.ts"]
 }
