@@ -193,12 +193,7 @@
       "devDependencies": {}
     }
   },
-  "activationEvents": [
-    "workspaceContains:**/lwc/**",
-    "workspaceContains:../workspace-user.xml",
-    "workspaceContains:**/workspace-user.xml",
-    "onFileSystem:memfs"
-  ],
+  "activationEvents": ["onView:sf.lightning.lwc.test.view"],
   "main": "./out/src",
   "browser": "./dist/web/index.js",
   "serverPath": [
