@@ -7,7 +7,7 @@
  */
 
 import { api, LightningElement } from 'lwc';
-import { messages } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/messages';
 
 export default class QueryPreview extends LightningElement {
   @api

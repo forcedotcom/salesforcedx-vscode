@@ -7,7 +7,7 @@
  */
 
 import { LightningElement, api } from 'lwc';
-import { messages } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/messages';
 
 export default class Header extends LightningElement {
   @api public hasNoDefaultOrg = false;

@@ -10,7 +10,11 @@ import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { extractKey, extractMessagesObject } from './i18nUtils';
+import {
+  collectQuerybuilderI18nKeyRefsFromHtml,
+  extractKey,
+  extractMessagesObject
+} from './i18nUtils';
 
 const DEFAULT_DYNAMIC_KEY_PATTERNS = ['^[A-Z][a-zA-Z0-9]*$'];
 
@@ -71,6 +75,26 @@ const findTsFiles = (packageRoot: string): string[] => {
 
   searchDirs.forEach(walk);
   return result;
+};
+
+const findSoqlBuilderUiHtmlFiles = (packageRoot: string): string[] => {
+  const root = path.join(packageRoot, 'src', 'soql-builder-ui');
+  if (!fs.existsSync(root)) {
+    return [];
+  }
+  const out: string[] = [];
+  const walk = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory() && entry.name !== 'node_modules' && !entry.name.startsWith('.')) {
+        walk(full);
+      } else if (entry.isFile() && entry.name.endsWith('.html')) {
+        out.push(full);
+      }
+    }
+  };
+  walk(root);
+  return out;
 };
 
 const loadPackageNlsKeys = (packageRoot: string): Set<string> => {
@@ -256,6 +280,24 @@ export const noUnusedI18nMessages = RuleCreator.withoutDocs({
         }
       } catch {
         // skip
+      }
+    }
+
+    const normalizedPath = filename.replaceAll('\\', '/');
+    if (normalizedPath.endsWith('/modules/querybuilder/messages/i18n.ts')) {
+      for (const file of findSoqlBuilderUiHtmlFiles(packageRoot)) {
+        try {
+          const source = fs.readFileSync(file, 'utf8');
+          const fileCounts = collectQuerybuilderI18nKeyRefsFromHtml(
+            source,
+            knownKeys
+          );
+          for (const [k, c] of fileCounts) {
+            refCounts.set(k, (refCounts.get(k) ?? 0) + c);
+          }
+        } catch {
+          // skip
+        }
       }
     }
 

@@ -10,7 +10,7 @@
 
 import { LightningElement, api } from 'lwc';
 import { SELECT_COUNT } from '../services/model';
-import { messages } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/messages';
 
 export const SELECT_ALL_OPTION = 'ALL FIELDS';
 export const CLEAR_OPTION = '- Clear Selection -';

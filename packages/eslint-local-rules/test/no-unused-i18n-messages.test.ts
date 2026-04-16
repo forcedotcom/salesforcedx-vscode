@@ -14,6 +14,17 @@ const ruleTester = new RuleTester();
 const fixturesDir = path.join(__dirname, 'fixtures', 'no-unused-i18n');
 const i18nPath = path.join(fixturesDir, 'src', 'messages', 'i18n.ts');
 
+const soqlFixturesDir = path.join(__dirname, 'fixtures', 'no-unused-i18n-soql');
+const soqlQuerybuilderI18nPath = path.join(
+  soqlFixturesDir,
+  'src',
+  'soql-builder-ui',
+  'modules',
+  'querybuilder',
+  'messages',
+  'i18n.ts'
+);
+
 ruleTester.run('no-unused-i18n-messages', noUnusedI18nMessages, {
   valid: [
     {
@@ -42,6 +53,14 @@ ruleTester.run('no-unused-i18n-messages', noUnusedI18nMessages, {
       } as const;`,
       filename: i18nPath,
       options: [{ allowList: ['unused_key'] }]
+    },
+    {
+      name: 'SOQL querybuilder: key referenced only in LWC html is not unused',
+      code: `export const messages = {
+        only_in_html: 'Shown only in LWC template',
+        used_via_literal: 'Referenced from TS literal'
+      } as const;`,
+      filename: soqlQuerybuilderI18nPath
     }
   ],
   invalid: [

@@ -24,6 +24,7 @@ import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
 import { packageJsonSalesforceDepVersions } from './packageJsonSalesforceDepVersions';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
+import { querybuilderHtmlI18nKeys } from './querybuilderHtmlI18nKeys';
 import { requireEffectFnSpanName } from './requireEffectFnSpanName';
 import { vscodeignoreContributesConflict } from './vscodeignoreContributesConflict';
 import { vscodeignoreRequiredPatterns } from './vscodeignoreRequiredPatterns';
@@ -43,6 +44,7 @@ const plugin = {
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-unused-i18n-messages': noUnusedI18nMessages,
+    'querybuilder-html-i18n-keys': querybuilderHtmlI18nKeys,
     'no-vscode-message-literals': noVscodeMessageLiterals,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
     'no-vscode-quickpick-description-literals': noVscodeQuickpickDescriptionLiterals,

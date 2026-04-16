@@ -1,5 +1,5 @@
 import { api, track, LightningElement } from 'lwc';
-import { messages } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/messages';
 
 /**
  * CUSTOM SELECT API

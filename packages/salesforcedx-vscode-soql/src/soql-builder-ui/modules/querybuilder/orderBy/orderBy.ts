@@ -8,7 +8,7 @@
 
 import { LightningElement, api } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
-import { messages } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/messages';
 
 export default class OrderBy extends LightningElement {
   @api public orderByFields: string[];
