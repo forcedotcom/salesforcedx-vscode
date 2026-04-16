@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       vscode_version:
-        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave empty to use repo variable PLAYWRIGHT_DESKTOP_VSCODE_VERSION.'
+        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
         required: false
         type: string
         default: ''
