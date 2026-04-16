@@ -31,9 +31,9 @@ export const toUri = (filePath: string | URI): URI => {
   const uri = URI.file(filePath);
   // VS Code normalizes Windows drive letters to lowercase; URI.file() preserves input casing.
   // Normalize here so URIs from file-system paths compare equal to VSCode-provided URIs.
-  return /^\/[A-Z]:\//.test(uri.path)
-    ? uri.with({ path: uri.path.replace(/^\/[A-Z]:\//, m => m.toLowerCase()) })
-    : uri;
+  return /^\/[A-Z]:[/\\]/.test(uri.path)
+  ? uri.with({ path: uri.path.replace(/^\/[A-Z]:/, m => m.toLowerCase()) })
+  : uri;
 };
 
 /** Join baseUri with a path string (e.g. glob result). Normalizes backslashes for cross-platform. */
