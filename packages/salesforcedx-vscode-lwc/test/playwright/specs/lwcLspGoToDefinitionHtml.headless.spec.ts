@@ -33,7 +33,7 @@ test('LWC LSP Go to Definition navigates from HTML property binding to JS class 
 
   const consoleErrors = setupConsoleMonitoring(page);
 
-  await test.step('open gtdHtmlComp (greeting field + {greeting} binding are pre-seeded on disk)', async () => {
+  await test.step('open gtdHtmlComp (desktop: pre-seeded on disk; web: created via SFDX then HTML seeded)', async () => {
     await createLwc(page, 'gtdHtmlComp');
     await openLwcFile(page, 'gtdHtmlComp.html');
   });

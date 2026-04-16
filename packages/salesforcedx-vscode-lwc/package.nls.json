@@ -1,4 +1,5 @@
 {
+  "lightning_generate_lwc_text": "SFDX: Create Lightning Web Component",
   "lightning_lwc_debugger": "Debug: LWC Jest Tests",
   "lightning_lwc_debugger_desc": "Debug configuration for running LWC jest tests in VSCode.",
   "lightning_lwc_preferences": "Salesforce Lightning Web Components",

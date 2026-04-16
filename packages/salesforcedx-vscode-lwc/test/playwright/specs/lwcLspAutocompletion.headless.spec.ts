@@ -76,7 +76,9 @@ test('LWC LSP provides autocompletion for lightning-* base components in HTML te
     // Close the tag and save
     await page.keyboard.type('>');
     await executeCommandWithCommandPalette(page, 'File: Save');
-    await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
+    await expect(page.locator(DIRTY_EDITOR).first(), 'HTML editor should be saved after inserting suggestion').not.toBeVisible({
+      timeout: 5000
+    });
 
     // The inserted line should contain the accepted component name
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="autoComp.html"]`);

@@ -19,6 +19,7 @@ import {
   verifyCommandExists,
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
+import lwcPackageNls from '../../../package.nls.json';
 import { LWC_GTD_HTML_COMP_SEED_HTML, LWC_GTD_HTML_COMP_SEED_JS } from './createLwcTestWorkspace';
 
 /** Text shown in the LWC language status item when the LSP has finished indexing. */
@@ -39,7 +40,9 @@ const replaceEditorContentAndSave = async (
   await page.evaluate((t: string) => navigator.clipboard.writeText(t), content);
   await executeCommandWithCommandPalette(page, 'Paste');
   await executeCommandWithCommandPalette(page, 'File: Save');
-  await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(DIRTY_EDITOR).first(), 'editor should be saved (no dirty indicator)').not.toBeVisible({
+    timeout: 10_000
+  });
 };
 
 const pickNonStickyTreeItem = async (items: Locator, description: string): Promise<Locator> => {
@@ -156,8 +159,9 @@ const createLwcViaSfdxCommandWeb = async (page: Page, componentName: string): Pr
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
 
-  await verifyCommandExists(page, 'SFDX: Create Lightning Web Component', 90_000);
-  await executeCommandWithCommandPalette(page, 'SFDX: Create Lightning Web Component');
+  const createLwcCommand = lwcPackageNls.lightning_generate_lwc_text;
+  await verifyCommandExists(page, createLwcCommand, 90_000);
+  await executeCommandWithCommandPalette(page, createLwcCommand);
 
   const widget = page.locator(QUICK_INPUT_WIDGET);
   await widget.waitFor({ state: 'visible', timeout: 15_000 });
@@ -170,10 +174,12 @@ const createLwcViaSfdxCommandWeb = async (page: Page, componentName: string): Pr
   await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
   await page.keyboard.press('Enter');
 
-  await page.waitForTimeout(400);
   const jsOption = page.getByRole('option', { name: /^JavaScript$/i }).first();
-  if (await jsOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+  try {
+    await jsOption.waitFor({ state: 'visible', timeout: 3000 });
     await jsOption.click();
+  } catch {
+    /* optional language quick pick — default may already be JavaScript */
   }
 
   const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${jsFileName}"]`);
