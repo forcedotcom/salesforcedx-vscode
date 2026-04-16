@@ -8,10 +8,6 @@
 import type { DeployResult } from '@salesforce/source-deploy-retrieve';
 import * as Data from 'effect/Data';
 
-export class DeleteSourceConflictError extends Data.TaggedError('DeleteSourceConflictError')<{
-  readonly conflicts: string[]; // conflict details
-}> {}
-
 export class DeleteSourceFailedError extends Data.TaggedError('DeleteSourceFailedError')<{
   readonly cause?: Error;
   readonly result: DeployResult;

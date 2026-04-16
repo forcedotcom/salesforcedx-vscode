@@ -12,6 +12,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
+/** @ExportTaggedError See docs on TS4023 errors for more information about why this is needed*/
 export class NoFilesRetrievedError extends Schema.TaggedError<NoFilesRetrievedError>()('NoFilesRetrievedError', {
   message: Schema.String
 }) {}

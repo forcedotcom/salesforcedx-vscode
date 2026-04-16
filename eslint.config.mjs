@@ -10,7 +10,7 @@ import stylistic from '@stylistic/eslint-plugin-ts';
 import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
 import header from '@tony.ganchev/eslint-plugin-header';
-import eslintPluginImport, { __esModule } from 'eslint-plugin-import';
+import eslintPluginImport from 'eslint-plugin-import';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
@@ -626,6 +626,14 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // @ExportTaggedError is only for suppressing knip false-positives in packages that don't export errors externally.
+    // salesforcedx-vscode-services exports errors for consumption by other packages — knip already sees them as used.
+    files: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      'local/no-export-tagged-error-in-services': 'error'
     }
   },
   {
