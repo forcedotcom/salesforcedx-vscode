@@ -56,8 +56,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   SfCommandlet: jest.fn(),
   ConfigUtil: {
     getConfigValue: jest.fn(),
-    getUsernameFor: jest.fn(),
-    getAllAliasesFor: jest.fn().mockReturnValue(['alias1', 'alias2'])
+    getUsernameFor: jest.fn()
   }
 }));
 jest.mock('../../../src/channels', () => ({

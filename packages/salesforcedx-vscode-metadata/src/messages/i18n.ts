@@ -115,6 +115,12 @@ export const messages = {
   conflict_detection_enabled_description:
     "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
 
+  // Preparation phase progress
+  preparing_deployment: 'Preparing deployment...',
+  preparing_retrieval: 'Preparing retrieval...',
+  preparing_deletion: 'Preparing deletion...',
+  checking_for_conflicts: 'Checking for conflicts...',
+
   // SObject refresh
   sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
@@ -122,7 +128,13 @@ export const messages = {
   sobject_refresh_standard: 'Standard SObjects',
   sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
-  processed_sobjects_length_text: 'Processed %d %s sObjects\n'
+  processed_sobjects_length_text: 'Processed %d %s sObjects\n',
+
+  // Project info
+  project_info_text: 'SFDX: Generate Project Info',
+  project_info_written_message: 'Project info written to .sf/project-info.md',
+  project_info_gathering_progress: 'Gathering project info...',
+  open_button: 'Open'
 } as const;
 
 export type MessageKey = keyof typeof messages;

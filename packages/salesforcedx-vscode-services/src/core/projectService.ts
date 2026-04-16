@@ -182,8 +182,6 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
   })
 }) {}
 
-export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}
-
 export class NotInPackageDirectoryError extends Data.TaggedError('NotInPackageDirectoryError')<{
   readonly message: string;
   readonly uris: readonly URI[];

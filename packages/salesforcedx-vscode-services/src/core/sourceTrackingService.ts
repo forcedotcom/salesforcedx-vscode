@@ -242,13 +242,13 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     const getStatus = Effect.fn('SourceTrackingService.getStatus')(function* (
       options: { local: true; remote?: never } | { remote: true; local?: never } | { local: true; remote: true }
     ) {
-      const tracking = yield* getOrCreateTracking();
-
       // Take only the permits we need, concurrently
       yield* Effect.all(
         [options.local ? localSemaphore.take(1) : Effect.void, options.remote ? remoteSemaphore.take(1) : Effect.void],
         { concurrency: 'unbounded' }
       );
+
+      const tracking = yield* getOrCreateTracking();
 
       return yield* Effect.gen(function* () {
         yield* Effect.all(
@@ -256,10 +256,12 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
           { concurrency: 'unbounded' }
         );
 
-        return yield* Effect.tryPromise({
+        const rows = yield* Effect.tryPromise({
           try: () => tracking.getStatus({ local: options.local === true, remote: options.remote === true }),
           catch: toSourceTrackingError
         }).pipe(Effect.withSpan('STL.GetStatus'));
+        yield* Effect.annotateCurrentSpan({ statusRows: rows.length });
+        return rows;
       }).pipe(
         Effect.ensuring(
           Effect.all(
@@ -364,9 +366,14 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
         conflicts: true
       });
       const channelService = yield* ChannelService;
-      const conflictDetails = conflicts.map(c => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`);
+      const truncated = conflicts.length > 30;
+      const conflictDetails = conflicts.slice(0, 30).map(c => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`);
       yield* channelService.appendToChannel(
-        ['Conflicts detected', ...conflictDetails.map(detail => `  ${detail}`)].join('\n')
+        [
+          'Conflicts detected',
+          ...conflictDetails.map(detail => `  ${detail}`),
+          ...(truncated ? [`  ... and ${conflicts.length - 30} more (only first 30 shown)`] : [])
+        ].join('\n')
       );
       const channel = yield* channelService.getChannel;
       channel.show();

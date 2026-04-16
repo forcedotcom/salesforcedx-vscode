@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.5.0",
+  "version": "66.6.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,7 +27,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.18",
+    "@salesforce/apex-node": "^8.4.21",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/types": "^1.7.1",
     "@salesforce/vscode-i18n": "*",
@@ -242,7 +242,8 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onFileSystem:memfs"
+    "onFileSystem:memfs",
+    "onFileSystem:apex-testing"
   ],
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
@@ -296,6 +297,10 @@
           "when": "false"
         },
         {
+          "command": "sf.apex.test.orgOnlyClass.retrieve",
+          "when": "resourceScheme == apex-testing && editorLangId == apex"
+        },
+        {
           "command": "sf.apex.test.refresh",
           "when": "false"
         },
@@ -339,6 +344,10 @@
         "title": "%apex_test_last_method_run_text%"
       },
       {
+        "command": "sf.apex.test.orgOnlyClass.retrieve",
+        "title": "%apex_test_retrieve_org_only_class_text%"
+      },
+      {
         "command": "sf.apex.test.openOrgOnlyTest",
         "title": "%apex_test_open_org_class_command_title%"
       },
@@ -350,6 +359,12 @@
         "command": "sf.apex.testing.walkthrough.open",
         "title": "%apex_testing_walkthrough_open_command%",
         "category": "%apex_testing_walkthrough_category%"
+      }
+    ],
+    "viewsWelcome": [
+      {
+        "view": "workbench.view.testing",
+        "contents": "%apex_testing_view_welcome_web%"
       }
     ],
     "walkthroughs": [

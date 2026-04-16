@@ -12,12 +12,13 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { withPreparationProgress } from '../utils/withPreparationProgress';
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* api.services.MetadataDeployService.getComponentSetForDeploy().pipe(
     Effect.flatMap((yield* api.services.ComponentSetService).ensureNonEmptyComponentSet),
-    Effect.tap(cs => (ignoreConflicts ? Effect.void : detectConflicts(cs, 'deploy'))),
+    withPreparationProgress('deploy', ignoreConflicts ? undefined : cs => detectConflicts(cs, 'deploy')),
     Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
   );
 });
@@ -25,6 +26,13 @@ const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreCo
 /** Deploy local changes to the default org */
 export const projectDeployStartCommand = (ignoreConflicts = false) =>
   deployEffect(ignoreConflicts).pipe(
+    Effect.catchTag('ConflictsDetectedError', err =>
+      handleConflictWithRetry({
+        pairs: err.pairs,
+        operationType: err.operationType,
+        retryOperation: deployEffect(true)
+      })
+    ),
     withConfigurableSuccessNotification(
       nls.localize(
         'command_succeeded_text',
@@ -36,13 +44,6 @@ export const projectDeployStartCommand = (ignoreConflicts = false) =>
     Effect.catchTag('EmptyComponentSetError', () =>
       Effect.sync(() => {
         void vscode.window.showInformationMessage(nls.localize('no_local_changes_to_deploy'));
-      })
-    ),
-    Effect.catchTag('ConflictsDetectedError', err =>
-      handleConflictWithRetry({
-        pairs: err.pairs,
-        operationType: err.operationType,
-        retryOperation: deployEffect(true)
       })
     )
   );

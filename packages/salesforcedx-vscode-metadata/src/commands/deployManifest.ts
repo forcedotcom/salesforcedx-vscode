@@ -12,6 +12,7 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { withPreparationProgress } from '../utils/withPreparationProgress';
 import { ManifestSelectionRequiredError } from './manifestErrors';
 
 export const deployManifestCommand = Effect.fn('deployManifestCommand')(
@@ -23,11 +24,10 @@ export const deployManifestCommand = Effect.fn('deployManifestCommand')(
     return yield* Effect.succeed(resolved).pipe(
       Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
       Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
-      Effect.tap(cs => detectConflicts(cs, 'deploy')),
+      withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy')),
       Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
     );
   },
-  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_in_manifest_text'))),
   Effect.catchTag(
     'NoActiveEditorError',
     () => new ManifestSelectionRequiredError({ message: nls.localize('deploy_select_manifest') })
@@ -38,5 +38,6 @@ export const deployManifestCommand = Effect.fn('deployManifestCommand')(
       operationType: err.operationType,
       retryOperation: deployComponentSet({ componentSet: err.componentSet })
     })
-  )
+  ),
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_in_manifest_text')))
 );

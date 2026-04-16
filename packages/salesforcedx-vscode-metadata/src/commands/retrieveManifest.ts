@@ -12,6 +12,7 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { withPreparationProgress } from '../utils/withPreparationProgress';
 import { ManifestSelectionRequiredError } from './manifestErrors';
 
 /** Retrieve from the default org using a manifest file */
@@ -24,14 +25,11 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
     const componentSet = yield* Effect.succeed(resolved).pipe(
       Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
       Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
-      Effect.tap(cs => detectConflicts(cs, 'retrieve'))
+      withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'))
     );
 
     yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
   },
-  withConfigurableSuccessNotification(
-    nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text'))
-  ),
   Effect.catchTag(
     'NoActiveEditorError',
     () => new ManifestSelectionRequiredError({ message: nls.localize('retrieve_select_manifest') })
@@ -42,5 +40,8 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
       operationType: err.operationType,
       retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
     })
+  ),
+  withConfigurableSuccessNotification(
+    nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text'))
   )
 );

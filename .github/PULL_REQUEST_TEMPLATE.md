@@ -1,5 +1,4 @@
-<!--- PR title should follow the pattern: <type>(optional scope): <description>.
-please refer to the types and format here: https://www.conventionalcommits.org/en/v1.0.0/#summary
+<!--- PR title: <type>(optional scope): <description> - W-XXXXXXXX — append GUS work item at the end (space, hyphen, space, W-). Conventional commits: https://www.conventionalcommits.org/en/v1.0.0/#summary
 If this is a feat/fix, add the technical writer as a reviewer to the PR. --->
 
 ### What does this PR do?

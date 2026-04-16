@@ -60,8 +60,8 @@ const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: U
     yield* Effect.sync(() =>
       void vscode.commands.executeCommand(
         'vscode.diff',
-        firstPair.remoteUri,
-        firstPair.localUri,
+        firstPair.remoteUri.toUri(),
+        firstPair.localUri.toUri(),
         nls.localize('source_diff_title', 'remote', firstPair.fileName, firstPair.fileName)
       )
     );

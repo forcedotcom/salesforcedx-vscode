@@ -35,9 +35,6 @@ import {
 } from './schemas/traceFlagSchemas';
 import { unknownToErrorCause } from './shared';
 
-export { DebugLevelItemSchema, TraceFlagItemStruct, TraceFlagLogType } from './schemas/traceFlagSchemas';
-export type { DebugLevelItem, TraceFlagItem } from './schemas/traceFlagSchemas';
-
 const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 
