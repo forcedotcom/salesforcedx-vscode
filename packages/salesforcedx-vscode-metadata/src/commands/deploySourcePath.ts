@@ -13,6 +13,7 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { withPreparationProgress } from '../utils/withPreparationProgress';
 
 // shared logic for both the editor command and the uri command
 const deployUris = Effect.fn('deploySourcePath.deployUris')(
@@ -23,7 +24,7 @@ const deployUris = Effect.fn('deploySourcePath.deployUris')(
     return yield* Effect.succeed(Array.from(uris)).pipe(
       Effect.flatMap(componentSetService.getComponentSetFromUris),
       Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-      Effect.tap(cs => detectConflicts(cs, 'deploy')),
+      withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy')),
       Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
     );
   },

@@ -1,0 +1,24 @@
+name: Cache VS Code Web
+description: Restore VS Code Web cache, detect cached commit, save after job regardless of test outcome
+inputs:
+  vscode-version:
+    description: VS Code version for cache key (e.g. 1.97.0)
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache/restore@v4
+      id: restore
+      with:
+        path: .vscode-test-web
+        key: vscode-web-${{ inputs.vscode-version }}
+        restore-keys: vscode-web-
+    - shell: bash
+      run: |
+        dir=$(ls .vscode-test-web 2>/dev/null | grep -E '^vscode-web-stable-' | head -1)
+        [ -n "$dir" ] && echo "PLAYWRIGHT_WEB_VSCODE_COMMIT=${dir#vscode-web-stable-}" >> "$GITHUB_ENV"
+    - uses: actions/cache/save@v4
+      if: always() && steps.restore.outputs.cache-hit != 'true'
+      with:
+        path: .vscode-test-web
+        key: vscode-web-${{ inputs.vscode-version }}
