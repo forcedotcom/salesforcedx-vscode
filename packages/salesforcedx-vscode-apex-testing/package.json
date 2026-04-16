@@ -249,7 +249,8 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onFileSystem:memfs"
+    "onFileSystem:memfs",
+    "onFileSystem:apex-testing"
   ],
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
@@ -303,6 +304,10 @@
           "when": "false"
         },
         {
+          "command": "sf.apex.test.orgOnlyClass.retrieve",
+          "when": "resourceScheme == apex-testing && editorLangId == apex"
+        },
+        {
           "command": "sf.apex.test.refresh",
           "when": "false"
         },
@@ -344,6 +349,10 @@
       {
         "command": "sf.apex.test.last.method.run",
         "title": "%apex_test_last_method_run_text%"
+      },
+      {
+        "command": "sf.apex.test.orgOnlyClass.retrieve",
+        "title": "%apex_test_retrieve_org_only_class_text%"
       },
       {
         "command": "sf.apex.test.openOrgOnlyTest",
