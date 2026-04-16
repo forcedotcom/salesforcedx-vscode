@@ -126,12 +126,15 @@ test('SOQL: build query in builder, toggle to text editor, run queries and get q
     await builderTab.first().click();
     await saveScreenshot(page, 'step4.builder-tab-refocused.png');
 
+    // Open output panel before clicking so the command palette is not open when
+    // the async query plan operation completes (completion event can dismiss the palette)
+    await ensureOutputPanelOpen(page);
+
     // Builder always uses REST API — no API-picker quick input is shown
     await soqlFrame.getByRole('button', { name: 'Get Query Plan' }).click();
     await saveScreenshot(page, 'step4.get-query-plan-clicked.png');
 
     // Query plan output appears in the SOQL output channel
-    await ensureOutputPanelOpen(page);
     await waitForOutputChannelText(page, {
       expectedText: PLAN_COMPLETE_TEXT,
       timeout: 30_000
