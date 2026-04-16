@@ -16,7 +16,7 @@ import {
   TAB_CLOSE_BUTTON,
   WORKBENCH
 } from './locators';
-import { activeQuickInputWidget } from './quickInput';
+import { activeQuickInputTextField, activeQuickInputWidget } from './quickInput';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -74,7 +74,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Illegal assignment from String to Integer', // Execute anonymous compile error (intentionally triggered in E2E)
   'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
   'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
-  'workbench.contrib.agentHostTerminal' // VS Code agent host terminal error (non-critical)
+  'workbench.contrib.agentHostTerminal', // VS Code agent host terminal error (non-critical)
+  'Unable to resolve your shell environment' // VS Code terminal profile / integrated shell init (noisy on desktop E2E)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -155,6 +156,15 @@ export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
   });
 };
 
+/** VS Code 1.116+ Welcome onboarding can cover the workbench and block non-forced clicks. */
+export const dismissWelcomeOnboardingOverlayIfPresent = async (page: Page): Promise<void> => {
+  const welcomeOverlay = page.locator('.onboarding-a-overlay.visible, [aria-label="Welcome to Visual Studio Code"]');
+  if (await welcomeOverlay.first().isVisible({ timeout: 400 }).catch(() => false)) {
+    await page.keyboard.press('Escape');
+    await welcomeOverlay.first().waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+  }
+};
+
 /** Dismiss any open quick input widgets by pressing Escape until none visible */
 export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => {
   // Rely on attached command-palette inputs, not widget visibility (1.116+ often reports hidden while open)
@@ -172,12 +182,14 @@ export const waitForQuickInputFirstOption = async (
   options?: WaitForQuickInputFirstOptionOptions
 ): Promise<void> => {
   const quickInput = activeQuickInputWidget(page);
+  const input = activeQuickInputTextField(page);
   const firstAriaOption = quickInput.getByRole('option').first();
   const quickInputVisibleTimeout = options?.quickInputVisibleTimeout ?? 10_000;
   const optionVisibleTimeout = options?.optionVisibleTimeout ?? 5000;
 
   await expect(async () => {
-    await quickInput.waitFor({ state: 'attached', timeout: quickInputVisibleTimeout });
+    // Prefer the text field: empty/stale `.quick-input-widget` shells can attach without `input.input`
+    await input.waitFor({ state: 'attached', timeout: quickInputVisibleTimeout });
     if ((await firstAriaOption.count()) > 0) {
       await firstAriaOption.waitFor({ state: 'attached', timeout: optionVisibleTimeout });
       return;
@@ -192,11 +204,12 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
 
   // Use Playwright's retry mechanism to close all welcome tabs
   await expect(async () => {
+    await dismissWelcomeOnboardingOverlayIfPresent(page);
     // Dismiss any quick input widgets that might intercept clicks
     await dismissAllQuickInputWidgets(page);
 
-    // Ensure workbench is focused before interacting with tabs
-    await workbench.click({ timeout: 5000 });
+    // Ensure workbench is focused before interacting with tabs (overlay can block non-forced clicks)
+    await workbench.click({ timeout: 5000, force: true });
 
     const welcomeTabs = page.getByRole('tab', { name: /Welcome|Walkthrough/i });
     const count = await welcomeTabs.count();
@@ -393,12 +406,7 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
   // VS Code's secondary sidebar is in the .part.auxiliarybar element
   const auxiliaryBar = page.locator('.part.auxiliarybar');
 
-  // Welcome / onboarding overlay (1.116+) can sit above the workbench and block palette clicks
-  const welcomeOverlay = page.locator('.onboarding-a-overlay.visible, [aria-label="Welcome to Visual Studio Code"]');
-  if (await welcomeOverlay.first().isVisible({ timeout: 400 }).catch(() => false)) {
-    await page.keyboard.press('Escape');
-    await welcomeOverlay.first().waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
-  }
+  await dismissWelcomeOnboardingOverlayIfPresent(page);
 
   // Check if sidebar exists and is visible
   // Use a short timeout to avoid hanging if it's not there

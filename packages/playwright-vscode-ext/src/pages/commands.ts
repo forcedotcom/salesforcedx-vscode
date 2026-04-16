@@ -6,8 +6,12 @@
  */
 
 import { expect, Page } from '@playwright/test';
-import { dismissAllQuickInputWidgets, waitForQuickInputFirstOption } from '../utils/helpers';
-import { QUICK_INPUT_LIST_ROW } from '../utils/locators';
+import {
+  dismissAllQuickInputWidgets,
+  dismissWelcomeOnboardingOverlayIfPresent,
+  waitForQuickInputFirstOption
+} from '../utils/helpers';
+import { WORKBENCH } from '../utils/locators';
 import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
@@ -23,12 +27,15 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     // On Windows, F1 can trigger Windows Search if VS Code doesn't have focus
     await page.waitForTimeout(100);
 
+    await dismissWelcomeOnboardingOverlayIfPresent(page);
+    await page.locator(WORKBENCH).click({ force: true }).catch(() => {});
+
     // Press F1 to open command palette
     await page.keyboard.press('F1');
 
     // VS Code 1.116+: `.quick-input-widget` and `input.input` often fail `toBeVisible()` while still usable
     const input = activeQuickInputTextField(page);
-    await input.waitFor({ state: 'attached', timeout: 10_000 });
+    await input.waitFor({ state: 'attached', timeout: 15_000 });
     await input.click({ force: true, timeout: 5000 });
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
   }).toPass({ timeout: 15_000 });
@@ -85,7 +92,7 @@ export const executeCommandWithCommandPalette = async (
     await dismissAllQuickInputWidgets(page);
     await openCommandPalette(page);
     await executeCommand(page, command, hasNotText);
-  }).toPass({ timeout: 15_000 });
+  }).toPass({ timeout: 30_000 });
 };
 
 /** Shared helper: closes command palette */
@@ -98,14 +105,37 @@ const closeCommandPalette = async (page: Page, widget: ReturnType<Page['locator'
 
 const DEFAULT_VERIFY_TIMEOUT = 10_000;
 
+/** Command title as shown in palette (strip keyboard shortcut suffix from aria-label). */
+const commandTitleFromAriaLabel = (ariaLabel: string): string =>
+  ariaLabel.includes(', ') ? ariaLabel.split(', ')[0]! : ariaLabel;
+
+/**
+ * True if some quick-pick option's command title exactly matches (same rules as executeCommand).
+ * Prefer this over matching row textContent — rows can concatenate unrelated labels and false-positive
+ * verifyCommandDoesNotExist (e.g. "Current" matching a longer unrelated string).
+ */
+const paletteHasExactCommandTitle = async (page: Page, commandText: string): Promise<boolean> => {
+  const lower = commandText.toLowerCase();
+  const options = await page.getByRole('option').all();
+  for (const option of options) {
+    const ariaLabel = await option.getAttribute('aria-label');
+    if (!ariaLabel) continue;
+    const title = commandTitleFromAriaLabel(ariaLabel);
+    if (title.toLowerCase() === lower) {
+      return true;
+    }
+  }
+  return false;
+};
+
 /**
  * Shared retry loop: dismiss stale widgets, open command palette, type commandText,
- * read first 20 rows, pass them to `check`. Caller throws to retry or returns to succeed.
+ * run check (same title resolution as executeCommand).
  */
 const retryCommandPaletteSearch = async (
   page: Page,
   commandText: string,
-  check: (rowTexts: string[]) => void,
+  check: (page: Page, commandText: string) => void | Promise<void>,
   timeout: number
 ): Promise<void> => {
   const widget = activeQuickInputWidget(page);
@@ -120,11 +150,7 @@ const retryCommandPaletteSearch = async (
 
     await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
 
-    const rows = await widget.locator(QUICK_INPUT_LIST_ROW).all();
-    const rowTexts = await Promise.all(
-      rows.slice(0, 20).map(async row => (await row.textContent())?.trim().toLowerCase() ?? '')
-    );
-    check(rowTexts);
+    await check(page, commandText);
   }).toPass({ timeout });
 
   await closeCommandPalette(page, widget);
@@ -132,12 +158,11 @@ const retryCommandPaletteSearch = async (
 
 /** Verify a command exists in the command palette (retries until found or timeout) */
 export const verifyCommandExists = async (page: Page, commandText: string, timeout?: number): Promise<void> => {
-  const lowerCommand = commandText.toLowerCase();
   await retryCommandPaletteSearch(
     page,
     commandText,
-    rowTexts => {
-      if (!rowTexts.some(t => t.includes(lowerCommand))) {
+    async (p, cmd) => {
+      if (!(await paletteHasExactCommandTitle(p, cmd))) {
         throw new Error(`Command "${commandText}" not found yet`);
       }
     },
@@ -147,12 +172,11 @@ export const verifyCommandExists = async (page: Page, commandText: string, timeo
 
 /** Verify a command does not exist in the command palette (retries until gone or timeout) */
 export const verifyCommandDoesNotExist = async (page: Page, commandText: string, timeout?: number): Promise<void> => {
-  const lowerCommand = commandText.toLowerCase();
   await retryCommandPaletteSearch(
     page,
     commandText,
-    rowTexts => {
-      if (rowTexts.some(t => t.includes(lowerCommand))) {
+    async (p, cmd) => {
+      if (await paletteHasExactCommandTitle(p, cmd)) {
         throw new Error(`Command "${commandText}" still visible (context may not have updated)`);
       }
     },

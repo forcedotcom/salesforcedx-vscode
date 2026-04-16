@@ -25,12 +25,11 @@ import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { waitForTraceFlagStatusBar } from '../helpers';
 
-test.describe.configure({ mode: 'serial' });
+test.describe.configure({ mode: 'serial', timeout: 180_000 });
 
 const LOG_POLL_INTERVAL_SETTING = 'salesforcedx-vscode-apex-log.logPollIntervalSeconds';
 
 test('Auto-collection: poll interval setting, trace flag triggers collector, disable via 0', async ({ page }) => {
-  test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -39,10 +38,8 @@ test('Auto-collection: poll interval setting, trace flag triggers collector, dis
     await closeSettingsTab(page);
     await ensureSecondarySideBarHidden(page);
 
-    // makes sure apex-log is loaded
-    await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ })).toBeVisible({
-      timeout: 60_000
-    });
+    // makes sure apex-log is loaded (status bar can take a while after auth; hidden until orgId is set)
+    await waitForTraceFlagStatusBar(page, /No Tracing/, 90_000);
   });
 
   await test.step('set logPollIntervalSeconds to 10', async () => {

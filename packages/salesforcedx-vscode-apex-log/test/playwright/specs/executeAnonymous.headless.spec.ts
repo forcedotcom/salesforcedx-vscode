@@ -30,8 +30,10 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
+// Applies to fixtures (e.g. launching VS Code); inner test.setTimeout runs too late for page setup.
+test.describe.configure({ timeout: 180_000 });
+
 test('Execute Anonymous Apex: document, selection, script creation, compile error', async ({ page }) => {
-  test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -89,7 +91,13 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
   await test.step('select first line and execute selection', async () => {
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
-    await executeCommandWithCommandPalette(page, 'Select All');
+    await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+    // editorHasSelection must be true for the selection command. Built-in "Expand Line Selection"
+    // sets selection reliably
+    await editor.locator('.view-line').first().click();
+    await page.waitForTimeout(100);
+    await executeCommandWithCommandPalette(page, 'Expand Line Selection');
+    await page.waitForTimeout(200);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeSelection']);
 
     const successNotification = page

@@ -211,6 +211,11 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     }
   });
   test.afterEach(async ({ page }, testInfo) => {
+    // When hooks time out or the page fixture tears down early, `page` can be null — guard all access
+    if (!page) {
+      return;
+    }
+
     if (process.env.DEBUG_MODE && testInfo.status !== 'passed') {
       console.log('\n🔍 DEBUG_MODE: Test failed - pausing to keep VS Code window open.');
       console.log('Press Resume in Playwright Inspector or close VS Code window to continue.');
