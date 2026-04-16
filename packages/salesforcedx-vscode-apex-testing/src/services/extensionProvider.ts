@@ -72,9 +72,9 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * Built once on first use to avoid rebuilding ComponentSetService and other
  * stateful services across test discovery, runs, and code-completion calls
  */
-const createApexTestingRuntime = () => ManagedRuntime.make(AllServicesLayer);
-let _apexTestingRuntime: ReturnType<typeof createApexTestingRuntime> | undefined;
-export const getApexTestingRuntime = () => {
-  _apexTestingRuntime ??= createApexTestingRuntime();
-  return _apexTestingRuntime;
-};
+type ApexTestingRuntime = ManagedRuntime.ManagedRuntime<
+  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+>;
+let _apexTestingRuntime: ApexTestingRuntime | undefined;
+export const getApexTestingRuntime = () => (_apexTestingRuntime ??= ManagedRuntime.make(AllServicesLayer));

@@ -75,7 +75,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
   'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
   'workbench.contrib.agentHostTerminal', // VS Code agent host terminal error (non-critical)
-  'Unable to resolve your shell environment' // VS Code terminal profile / integrated shell init (noisy on desktop E2E)
+  'Unable to resolve your shell environment', // VS Code terminal profile / integrated shell init (noisy on desktop E2E)
+  'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
+  'remoteAgentHostService' // VS Code remote agent host service noise (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -159,9 +161,17 @@ export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
 /** VS Code 1.116+ Welcome onboarding can cover the workbench and block non-forced clicks. */
 export const dismissWelcomeOnboardingOverlayIfPresent = async (page: Page): Promise<void> => {
   const welcomeOverlay = page.locator('.onboarding-a-overlay.visible, [aria-label="Welcome to Visual Studio Code"]');
-  if (await welcomeOverlay.first().isVisible({ timeout: 400 }).catch(() => false)) {
+  if (
+    await welcomeOverlay
+      .first()
+      .isVisible({ timeout: 400 })
+      .catch(() => false)
+  ) {
     await page.keyboard.press('Escape');
-    await welcomeOverlay.first().waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+    await welcomeOverlay
+      .first()
+      .waitFor({ state: 'hidden', timeout: 3000 })
+      .catch(() => {});
   }
 };
 
@@ -194,7 +204,10 @@ export const waitForQuickInputFirstOption = async (
       await firstAriaOption.waitFor({ state: 'attached', timeout: optionVisibleTimeout });
       return;
     }
-    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'attached', timeout: optionVisibleTimeout });
+    await quickInput
+      .locator(QUICK_INPUT_LIST_ROW)
+      .first()
+      .waitFor({ state: 'attached', timeout: optionVisibleTimeout });
   }).toPass({ timeout: options?.retryTimeout ?? 10_000 });
 };
 
