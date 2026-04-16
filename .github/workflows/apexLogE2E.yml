@@ -137,7 +137,7 @@ jobs:
       MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
-      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
+      PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

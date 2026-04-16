@@ -1,0 +1,31 @@
+name: Cache VS Code Desktop
+description: Restore VS Code Desktop cache; rewrites PLAYWRIGHT_VSCODE_VERSION to on-disk version when only a fallback exists; save after job regardless of test outcome
+inputs:
+  vscode-version:
+    description: VS Code version for cache key (e.g. 1.97.0)
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache/restore@v4
+      id: restore
+      with:
+        path: .vscode-test
+        key: vscode-desktop-${{ runner.os }}-${{ inputs.vscode-version }}
+        restore-keys: vscode-desktop-${{ runner.os }}-
+    - shell: bash
+      run: |
+        exact=$(ls .vscode-test 2>/dev/null | grep -E "^vscode-.*-${{ inputs.vscode-version }}$" | head -1)
+        if [ -z "$exact" ]; then
+          fallback=$(ls .vscode-test 2>/dev/null | grep -E '^vscode-.*-[0-9.]+$' | sort -V | tail -1)
+          if [ -n "$fallback" ]; then
+            onDisk=$(echo "$fallback" | sed -E 's/.*-([0-9.]+)$/\1/')
+            echo "PLAYWRIGHT_VSCODE_VERSION=$onDisk" >> "$GITHUB_ENV"
+            echo "Fallback: using on-disk version $onDisk instead of pinned ${{ inputs.vscode-version }}"
+          fi
+        fi
+    - uses: actions/cache/save@v4
+      if: always() && steps.restore.outputs.cache-hit != 'true'
+      with:
+        path: .vscode-test
+        key: vscode-desktop-${{ runner.os }}-${{ inputs.vscode-version }}
