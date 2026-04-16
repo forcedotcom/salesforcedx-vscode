@@ -127,44 +127,52 @@ class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private async mapApexArtifactToFilesystem(
     tests: ApexTestResultData[],
     packageDirectories: NamedPackageDir[]
   ): Promise<Map<string, string>> {
-    const correlatedArtifacts: Map<string, string> = new Map(
-      tests.map(test => [test.apexClass.fullName ?? test.apexClass.name, 'unknown'])
-    );
-
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) {
-      return correlatedArtifacts;
-    }
-
-    Array.from(
-      new Set(
-        (
-          await Promise.all(
-            packageDirectories
-              .map(pkgDir => `${path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath)}/**/*.cls`)
-              .flatMap(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'))
-          )
-        )
-          .flat()
-          // parsing to string for set to dedupe, then back to URI
-          .map(uri => uri.toString())
-      )
-    )
-      .map(filePath => URI.parse(filePath))
-      .map(file => {
-        const fileName = path.basename(file.fsPath, '.cls');
-        if (correlatedArtifacts.has(fileName)) {
-          correlatedArtifacts.set(fileName, file.fsPath);
-        }
-      });
-
-    return correlatedArtifacts;
+    return mapApexArtifactToFilesystem(tests, packageDirectories);
   }
 }
+
+const mapApexArtifactToFilesystem = async (
+  tests: ApexTestResultData[],
+  packageDirectories: NamedPackageDir[]
+): Promise<Map<string, string>> => {
+  const correlatedArtifacts: Map<string, string> = new Map(
+    tests.map(test => [test.apexClass.fullName ?? test.apexClass.name, 'unknown'])
+  );
+
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    return correlatedArtifacts;
+  }
+
+  Array.from(
+    new Set(
+      (
+        await Promise.all(
+          packageDirectories
+            .map(pkgDir => `${path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath)}/**/*.cls`)
+            .flatMap(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'))
+        )
+      )
+        .flat()
+        // parsing to string for set to dedupe, then back to URI
+        .map(uri => uri.toString())
+    )
+  )
+    .map(filePath => URI.parse(filePath))
+    .map(file => {
+      const fileName = path.basename(file.fsPath, '.cls');
+      if (correlatedArtifacts.has(fileName)) {
+        correlatedArtifacts.set(fileName, file.fsPath);
+      }
+    });
+
+  return correlatedArtifacts;
+};
 
 const apexTestRunCodeAction = async (tests: string[]) => {
   const outputDir = await getTempFolder();

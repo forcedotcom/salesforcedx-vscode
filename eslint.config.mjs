@@ -631,6 +631,13 @@ export default [
     }
   },
   {
+    // class-methods-use-this for apex-testing package (not yet using Effect)
+    files: ['packages/salesforcedx-vscode-apex-testing/**/*.ts'],
+    rules: {
+      'class-methods-use-this': 'error'
+    }
+  },
+  {
     // Allow top-level src/index.ts files as barrel files (public API exports)
     files: ['packages/**/src/index.ts'],
     rules: {
