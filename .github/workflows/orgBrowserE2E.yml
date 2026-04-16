@@ -59,6 +59,11 @@ jobs:
           npm run test:web -w salesforcedx-vscode-org-browser -- --reporter=html
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - uses: ./.github/actions/cache-vscode-web
+        if: steps.try-run.outcome == 'failure'
+        with:
+          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
         uses: salesforcecli/github-workflows/.github/actions/retry@main
@@ -144,7 +149,7 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
-      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
+      PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -178,6 +183,11 @@ jobs:
           npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - uses: ./.github/actions/cache-vscode-desktop
+        if: steps.try-run.outcome == 'failure'
+        with:
+          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
         uses: salesforcecli/github-workflows/.github/actions/retry@main
