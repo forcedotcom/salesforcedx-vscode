@@ -37,5 +37,7 @@
   "sobject_refresh_custom": "Custom SObjects",
   "sobject_refresh_standard": "Standard SObjects",
   "sobject_refresh_output_custom": "Custom sObjects",
-  "sobject_refresh_output_standard": "Standard sObjects"
+  "sobject_refresh_output_standard": "Standard sObjects",
+  "project_info_text": "SFDX: Generate Project Info",
+  "open_button": "Open"
 }

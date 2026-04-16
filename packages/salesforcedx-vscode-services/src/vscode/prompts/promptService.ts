@@ -100,6 +100,19 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       return selected.uri!;
     });
 
+    /** Pipeable operator: ties a vscode progress notification lifetime to an Effect. */
+    const withProgress =
+      (title: string) =>
+      <A, E, R>(self: Effect.Effect<A, E, R>) =>
+        Effect.suspend(() => {
+          const { promise, resolve } = Promise.withResolvers<void>();
+          void vscode.window.withProgress(
+            { location: vscode.ProgressLocation.Notification, title, cancellable: false },
+            () => promise
+          );
+          return self.pipe(Effect.ensuring(Effect.sync(resolve)));
+        });
+
     return {
       /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
        * This is shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
@@ -108,7 +121,9 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
        * Otherwise, return `value` with `undefined` removed from its type. */
       considerUndefinedAsCancellation,
       /** Prompt user to select output directory from available package directories, or choose a custom one. */
-      promptForOutputDir
+      promptForOutputDir,
+      /** Pipeable operator: ties a vscode progress notification lifetime to an Effect. */
+      withProgress
     };
   })
 }) {}

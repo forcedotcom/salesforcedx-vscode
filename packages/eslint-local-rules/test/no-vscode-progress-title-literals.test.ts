@@ -36,6 +36,14 @@ ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiteral
         fn
       );`,
       options: []
+    },
+    {
+      code: `fetchMetadata().pipe(promptService.withProgress(nls.localize('fetching_metadata')));`,
+      options: []
+    },
+    {
+      code: `const title = nls.localize('fetching_metadata'); fetchMetadata().pipe(promptService.withProgress(title));`,
+      options: []
     }
   ],
   invalid: [
@@ -52,6 +60,14 @@ ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiteral
     },
     {
       code: `const t = 'Some progress'; vscode.window.withProgress({ title: t, location: vscode.ProgressLocation.Notification }, fn);`,
+      errors: [{ messageId: 'noLiteral' }]
+    },
+    {
+      code: `fetchMetadata().pipe(promptService.withProgress('Fetching metadata…'));`,
+      errors: [{ messageId: 'noLiteral' }]
+    },
+    {
+      code: `const t = 'Fetching metadata…'; fetchMetadata().pipe(promptService.withProgress(t));`,
       errors: [{ messageId: 'noLiteral' }]
     }
   ]
