@@ -45,6 +45,7 @@ export default [
       'packages/salesforcedx-aura-language-server/src/tern/**',
       'packages/salesforcedx-vscode-lightning/tern/**',
       'packages/salesforcedx-vscode-lightning/extension/tern/**',
+      'packages/salesforcedx-vscode-lightning/src/resources/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
