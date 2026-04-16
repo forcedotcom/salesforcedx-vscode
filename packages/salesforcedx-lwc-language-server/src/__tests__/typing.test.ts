@@ -104,6 +104,29 @@ describe('declarationsFromCustomLabels', () => {
     expect(typings).toEqual(expectedDeclarations);
   });
 
+  it('Generates declarations when the xml has a single labels element (xml2js object, not array)', async () => {
+    const xmlDocument = `
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>only_one</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>only</shortDescription>
+        <value>Hi</value>
+    </labels>
+</CustomLabels>
+`;
+
+    const expected = `declare module "@salesforce/label/c.only_one" {
+    var only_one: string;
+    export default only_one;
+}`;
+
+    const typings: string = await declarationsFromCustomLabels(xmlDocument);
+    expect(typings).toEqual(expected);
+  });
+
   it('should not generate declarations when parsing an empty labels xml document', async () => {
     const xmlDocument = `
 <?xml version="1.0" encoding="UTF-8"?>

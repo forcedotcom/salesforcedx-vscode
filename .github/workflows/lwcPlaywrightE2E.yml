@@ -58,6 +58,13 @@ jobs:
         run: |
           npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html
 
+      # Restore cached @vscode/test-web (same pattern as org-browser / playwright-vscode-ext E2E). Sets
+      # PLAYWRIGHT_WEB_VSCODE_COMMIT when a stable folder exists so headlessServer skips redundant downloads.
+      - uses: ./.github/actions/cache-vscode-web
+        if: steps.try-run.outcome == 'failure'
+        with:
+          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -151,7 +158,7 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
-      PLAYWRIGHT_DESKTOP_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_DESKTOP_VSCODE_VERSION }}
+      PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -183,6 +190,12 @@ jobs:
           E2E_NO_RETRIES: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
+
+      # Restore cached @vscode/test-electron (same pattern as other desktop Playwright E2E workflows).
+      - uses: ./.github/actions/cache-vscode-desktop
+        if: steps.try-run.outcome == 'failure'
+        with:
+          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI

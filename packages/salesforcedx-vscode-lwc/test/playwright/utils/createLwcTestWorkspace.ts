@@ -35,6 +35,16 @@ const lwcJs = `import { LightningElement } from 'lwc';
 export default class Lwc1 extends LightningElement {}
 `;
 
+/** Minimal `CustomLabels.labels-meta.xml` seeded into scratch workspaces (optional metadata for LSP). */
+export const LWC_E2E_SEED_CUSTOM_LABELS_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>LwcE2eSeedLabel</fullName>
+        <value>Seed value</value>
+    </labels>
+</CustomLabels>
+`;
+
 /** Minimal LWC HTML template. */
 const lwcHtml = `<template>
 </template>
@@ -83,20 +93,27 @@ export const createLwcTestWorkspace = async (): Promise<string> => {
     ]);
   }
 
+  const labelsDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'labels');
+  await fs.mkdir(labelsDir, { recursive: true });
+  await fs.writeFile(path.join(labelsDir, 'CustomLabels.labels-meta.xml'), LWC_E2E_SEED_CUSTOM_LABELS_XML);
+
   console.log(`📁 LWC test workspace: ${workspaceDir}`);
   console.log(`📦 Pre-created components: ${LWC_E2E_COMPONENT_NAMES.join(', ')}`);
   return workspaceDir;
 };
 
 /**
- * Empty SFDX tree for VS Code Web: only `sfdx-project.json` and `force-app/main/default/lwc` directories.
- * LWCs are created in-web via **SFDX: Create Lightning Web Component** so they land in the same FS the Explorer shows
- * (@vscode/test-web “Test Files” often does not list Node-pre-seeded nested files).
+ * Minimal SFDX tree for VS Code Web: `sfdx-project.json`, `force-app/main/default/lwc`, and a seeded
+ * `labels/CustomLabels.labels-meta.xml` (so the LWC language server can emit `customlabels.d.ts` on startup).
+ * LWCs are created in-web via **SFDX: Create Lightning Web Component** so they land in the same FS the Explorer shows.
  */
 export const createLwcWebPlaygroundWorkspace = async (): Promise<string> => {
   const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-lwc-e2e-'));
   const lwcDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'lwc');
   await fs.mkdir(lwcDir, { recursive: true });
+  const labelsDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'labels');
+  await fs.mkdir(labelsDir, { recursive: true });
+  await fs.writeFile(path.join(labelsDir, 'CustomLabels.labels-meta.xml'), LWC_E2E_SEED_CUSTOM_LABELS_XML);
   const vscodeDir = path.join(workspaceDir, '.vscode');
   await fs.mkdir(vscodeDir, { recursive: true });
   await fs.writeFile(

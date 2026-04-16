@@ -28,7 +28,7 @@ export const LWC_LSP_READY_TEXT = 'Indexing complete';
 const toPascalCase = (camel: string): string =>
   camel.length === 0 ? camel : `${camel[0].toUpperCase()}${camel.slice(1)}`;
 
-const replaceEditorContentAndSave = async (
+export const replaceEditorContentAndSave = async (
   page: Page,
   editor: ReturnType<Page['locator']>,
   content: string
@@ -63,13 +63,11 @@ const pickNonStickyTreeItem = async (items: Locator, description: string): Promi
 };
 
 /**
- * Web / multi-root: LWC files sit under `force-app/main/default/lwc/<bundle>/`. Collapsed parents keep leaf rows out of
- * the tree, so expand the path before single-clicking a file (matches needing to “open” `force-app` in the UI).
+ * Web / multi-root: expand a folder path in Files Explorer (`mount/` prefix when test-web presents that root).
+ * Reused for LWC bundles under `force-app/.../lwc` and for `.sfdx/typings/lwc` generated typings.
  */
-const expandWebExplorerPathToLwcFile = async (page: Page, fileName: string): Promise<void> => {
-  const dot = fileName.lastIndexOf('.');
-  const bundleDir = dot === -1 ? fileName : fileName.slice(0, dot);
-  const segments = ['force-app', 'main', 'default', 'lwc', bundleDir];
+const expandWebExplorerSegments = async (page: Page, pathSegments: string[]): Promise<void> => {
+  const segments = [...pathSegments];
   const mountRows = page.getByRole('treeitem', { name: /^mount(\/|,|$)/ });
   if ((await mountRows.count()) > 0) {
     segments.unshift('mount');
@@ -105,14 +103,22 @@ const expandWebExplorerPathToLwcFile = async (page: Page, fileName: string): Pro
 };
 
 /**
- * On VS Code for Web, Quick Open often omits files that exist in Explorer until that file has been opened once
- * from the tree (the file search index lags the Explorer view after SFDX create). Match manual workflow: single-click
- * the file in Files Explorer so the editor opens reliably in E2E.
+ * Web / multi-root: LWC files sit under `force-app/main/default/lwc/<bundle>/`. Collapsed parents keep leaf rows out of
+ * the tree, so expand the path before single-clicking a file (matches needing to “open” `force-app` in the UI).
  */
-const openLwcFileViaExplorerSingleClick = async (page: Page, fileName: string): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
-  await expandWebExplorerPathToLwcFile(page, fileName);
-  const allTreeItems = page.getByRole('treeitem', { name: fileName, exact: true });
+const expandWebExplorerPathToLwcFile = async (page: Page, fileName: string): Promise<void> => {
+  const dot = fileName.lastIndexOf('.');
+  const bundleDir = dot === -1 ? fileName : fileName.slice(0, dot);
+  await expandWebExplorerSegments(page, ['force-app', 'main', 'default', 'lwc', bundleDir]);
+};
+
+/**
+ * Single-click a leaf `treeitem` in web Files Explorer.
+ * Accessible names are often `filename` or `filename, …` (description suffix); match `^name(,|$)` like folder rows.
+ */
+const clickWebExplorerTreeitemExact = async (page: Page, fileName: string): Promise<void> => {
+  const escaped = fileName.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const allTreeItems = page.getByRole('treeitem', { name: new RegExp(`^${escaped}(,|$)`, 'i') });
   await allTreeItems.first().waitFor({ state: 'attached', timeout: 15_000 });
   await expect(async () => {
     const n = await allTreeItems.count();
@@ -133,6 +139,17 @@ const openLwcFileViaExplorerSingleClick = async (page: Page, fileName: string): 
     await row.scrollIntoViewIfNeeded();
     await row.click({ timeout: 5000 });
   }).toPass({ timeout: 45_000 });
+};
+
+/**
+ * On VS Code for Web, Quick Open often omits files that exist in Explorer until that file has been opened once
+ * from the tree (the file search index lags the Explorer view after SFDX create). Match manual workflow: single-click
+ * the file in Files Explorer so the editor opens reliably in E2E.
+ */
+const openLwcFileViaExplorerSingleClick = async (page: Page, fileName: string): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  await expandWebExplorerPathToLwcFile(page, fileName);
+  await clickWebExplorerTreeitemExact(page, fileName);
 };
 
 /**
@@ -228,6 +245,78 @@ export const waitForLwcLspReady = async (page: Page, timeout = 90_000): Promise<
     editorLanguageStatus.or(legacyStatusBarLabel).first(),
     `LWC LSP should show "${LWC_LSP_READY_TEXT}" when indexing is done`
   ).toBeVisible({ timeout });
+};
+
+/**
+ * Filenames and first-line markers copied into `.sfdx/typings/lwc/` by the LWC language server on SFDX workspace init.
+ * Keep in sync with `writeTypings` in `@salesforce/salesforcedx-lightning-lsp-common` `baseContext.ts` and bundled
+ * sources under `packages/salesforcedx-vscode-lwc/resources/sfdx/typings/`.
+ */
+export const LWC_SFDX_GENERATED_TYPINGS_EXPECTATIONS = [
+  { file: 'lds.d.ts', header: "declare module 'lightning/uiListApi'" },
+  { file: 'messageservice.d.ts', header: "declare module 'lightning/messageService'" },
+  { file: 'apex.d.ts', header: "declare module '@salesforce/apex'" },
+  { file: 'engine.d.ts', header: "declare module 'lwc'" },
+  { file: 'schema.d.ts', header: "declare module '@salesforce/schema'" }
+] as const;
+
+/**
+ * After indexing, assert each generated `.d.ts` exists and still declares the expected module (guards empty/corrupt copies).
+ */
+/** Open a file under `.sfdx/typings/lwc/` (generated by the LWC language server). */
+export const openSfdxLwcTypingFile = async (page: Page, fileName: string): Promise<void> => {
+  if (isDesktop()) {
+    await openFileByName(page, `.sfdx/typings/lwc/${fileName}`);
+  } else {
+    await expect(async () => {
+      await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+      await expandWebExplorerSegments(page, ['.sfdx', 'typings', 'lwc']);
+      await clickWebExplorerTreeitemExact(page, fileName);
+    }).toPass({ timeout: 90_000 });
+  }
+  await page.locator(`${EDITOR_WITH_URI}[data-uri*="${fileName}"]`).waitFor({ state: 'visible', timeout: 15_000 });
+};
+
+/** Open `.sfdx/indexes/lwc/custom-components.json` (LWC component index written by the language server). */
+export const openSfdxCustomComponentsJson = async (page: Page): Promise<void> => {
+  const fileName = 'custom-components.json';
+  if (isDesktop()) {
+    await openFileByName(page, `.sfdx/indexes/lwc/${fileName}`);
+  } else {
+    await expect(async () => {
+      await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+      await expandWebExplorerSegments(page, ['.sfdx', 'indexes', 'lwc']);
+      await clickWebExplorerTreeitemExact(page, fileName);
+    }).toPass({ timeout: 90_000 });
+  }
+  await page.locator(`${EDITOR_WITH_URI}[data-uri*="${fileName}"]`).waitFor({ state: 'visible', timeout: 15_000 });
+};
+
+export const assertLwcSfdxTypingsGenerated = async (page: Page): Promise<void> => {
+  if (isDesktop()) {
+    for (const { file, header } of LWC_SFDX_GENERATED_TYPINGS_EXPECTATIONS) {
+      await openFileByName(page, `.sfdx/typings/lwc/${file}`);
+      const editor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${file}"]`);
+      await editor.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(
+        editor.locator('.view-lines'),
+        `generated typing ${file} should include ${header}`
+      ).toContainText(header, { timeout: 15_000 });
+    }
+    return;
+  }
+
+  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  await expandWebExplorerSegments(page, ['.sfdx', 'typings', 'lwc']);
+  for (const { file, header } of LWC_SFDX_GENERATED_TYPINGS_EXPECTATIONS) {
+    await clickWebExplorerTreeitemExact(page, file);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${file}"]`);
+    await editor.waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(
+      editor.locator('.view-lines'),
+      `generated typing ${file} should include ${header}`
+    ).toContainText(header, { timeout: 15_000 });
+  }
 };
 
 /**
