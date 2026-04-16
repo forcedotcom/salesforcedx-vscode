@@ -73,7 +73,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // VS Code web (stable): terminal/Copilot/agent contributions without remote agent host (headless CI)
   'initialHint.copilotCli',
   'agentHostTerminal',
-  'remoteAgentHostService'
+  'remoteAgentHostService',
+  // VS Code web: dispose-time resolver hits optional memfs paths (e.g. .claude) on test workspace; often "Canceled"
+  'MyProject/.claude'
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
