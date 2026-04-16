@@ -51,6 +51,10 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Log desktop VS Code version
+        shell: bash
+        run: echo "::notice::VS Code version (desktop E2E)=${PLAYWRIGHT_DESKTOP_VSCODE_VERSION}"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
