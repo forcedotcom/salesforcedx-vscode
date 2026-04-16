@@ -9,20 +9,9 @@
       "@salesforce/soql-model/*": ["./src/soql-model/*"]
     }
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "./test/ui-test/resources/extensions",
-    "dist",
-    "src/soql-builder-ui",
-    "test/jest/soql-builder-ui"
-  ],
+  "exclude": ["src/soql-builder-ui"],
   "include": [
     "src/**/*.ts",
-    "test/playwright/**/*.ts",
-    "playwright.config.web.ts",
-    "playwright.config.desktop.ts",
     "package.json",
     "package.nls.json"
   ],

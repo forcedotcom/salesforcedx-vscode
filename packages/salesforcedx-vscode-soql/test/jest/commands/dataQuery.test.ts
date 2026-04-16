@@ -244,11 +244,13 @@ describe('DataQuery Pure Functions', () => {
 
       it('should handle malformed records with undefined first record', () => {
         const records = [undefined, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - testing malformed input
         expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
       it('should handle malformed records with null first record', () => {
         const records = [null, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - testing malformed input
         expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
@@ -266,6 +268,7 @@ describe('DataQuery Pure Functions', () => {
       it('should handle records with malformed individual records', () => {
         const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
         const expected = 'Id,Name\n001,Test1\n002,Test2';
+        // @ts-expect-error - testing malformed input
         expect(convertToCSV(records)).toBe(expected);
       });
     });
@@ -604,6 +607,7 @@ describe('DataQuery Pure Functions', () => {
     describe('bad data handling', () => {
       it('should handle malformed records with undefined first record', () => {
         const records = [undefined, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - testing malformed input
         const output = generateTableOutput(records, 'Test Table');
         expect(output).toContain('Id');
         expect(output).toContain('001');
@@ -612,6 +616,7 @@ describe('DataQuery Pure Functions', () => {
 
       it('should handle malformed records with null first record', () => {
         const records = [null, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - testing malformed input
         const output = generateTableOutput(records, 'Test Table');
         expect(output).toContain('Id');
         expect(output).toContain('001');
@@ -636,6 +641,7 @@ describe('DataQuery Pure Functions', () => {
 
       it('should handle records with malformed individual records', () => {
         const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
+        // @ts-expect-error - testing malformed input
         const output = generateTableOutput(records, 'Test Table');
         expect(output).toContain('Test Table');
         expect(output).toContain('Id');
@@ -658,6 +664,7 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('should handle null records', () => {
+      // @ts-expect-error - testing malformed input
       const result = convertQueryResultToCSV({ records: null, totalSize: 0, done: true });
       expect(result).toBe(messages.data_query_no_records);
     });
@@ -709,7 +716,7 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('should display no records message for empty results', async () => {
-      await Effect.runPromise(displayTableResults({ records: [], totalSize: 0, done: true }));
+      await Effect.runPromise(displayTableResults({ records: [], totalSize: 0, done: true }) as unknown as Effect.Effect<void, never, never>);
     });
 
     it('should display table for results with records', async () => {
@@ -717,11 +724,12 @@ describe('DataQuery Pure Functions', () => {
         records: [{ Id: '001', Name: 'Test' }],
         totalSize: 1,
         done: true
-      }));
+      }) as unknown as Effect.Effect<void, never, never>);
     });
 
     it('should handle null records', async () => {
-      await Effect.runPromise(displayTableResults({ records: null, totalSize: 0, done: true }));
+      // @ts-expect-error - testing malformed input
+      await Effect.runPromise(displayTableResults({ records: null, totalSize: 0, done: true }) as unknown as Effect.Effect<void, never, never>);
     });
 
     it('should add newline before table output', async () => {
@@ -729,7 +737,7 @@ describe('DataQuery Pure Functions', () => {
         records: [{ Id: '001', Name: 'Test' }],
         totalSize: 1,
         done: true
-      }));
+      }) as unknown as Effect.Effect<void, never, never>);
     });
   });
 

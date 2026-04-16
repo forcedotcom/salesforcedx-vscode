@@ -106,6 +106,7 @@ describe('SoqlModelUtils should', () => {
   });
   it('return false if SOQL query model does not contain unmodeled syntax', () => {
     const actual = SoqlModelUtils.containsUnmodeledSyntax(
+      // @ts-expect-error - FieldRefImpl implements FieldRef, not SelectExpression, but is structurally compatible at runtime
       new QueryImpl(new SelectExprsImpl([new FieldRefImpl('field1')]), new FromImpl('object1'))
     );
     expect(actual).toBeFalsy();
