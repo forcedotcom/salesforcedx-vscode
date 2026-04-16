@@ -228,4 +228,46 @@ describe('LWCWorkspaceContext', () => {
     await sfdxFileSystemAccessor.deleteFile(tsconfigPathRegisteredEmpty);
     await sfdxFileSystemAccessor.deleteFile(forceignorePath);
   });
+
+  it('configureProjectForTs() should not overwrite existing tsconfig.json', async () => {
+    const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemAccessor);
+    context.initialize('SFDX');
+    context.connection = {
+      sendRequest: jest.fn().mockResolvedValue({ applied: true })
+    } as unknown as Connection;
+    const tsconfigPathForceApp = resolve(join(FORCE_APP_ROOT, 'lwc', 'tsconfig.json'));
+
+    // Create a custom tsconfig.json before running configureProjectForTs
+    const customTsConfig = {
+      extends: '../../../../.sfdx/tsconfig.sfdx.json',
+      files: ['../../../../node_modules/@salesforce/lightning-types/dist/index.d.ts'],
+      include: ['**/*.ts', '../../../../.sfdx/typings/lwc/**/*.d.ts', '../../../../types/**/*.d.ts'],
+      exclude: ['**/__tests__/**'],
+      compilerOptions: {
+        module: 'ES2022',
+        target: 'ES2022',
+        experimentalDecorators: false,
+        useDefineForClassFields: true
+      }
+    };
+    await sfdxFileSystemAccessor.updateFileContent(tsconfigPathForceApp, JSON.stringify(customTsConfig, null, 2));
+
+    // Run configureProjectForTs
+    await context.configureProjectForTs();
+
+    // Verify the custom tsconfig.json was NOT overwritten
+    const tsconfigBuffer = await sfdxFileSystemAccessor.getFileContent(tsconfigPathForceApp);
+    if (!tsconfigBuffer) {
+      throw new Error('Tsconfig file not found');
+    }
+    const tsconfigContent = JSON.parse(Buffer.from(tsconfigBuffer).toString('utf8')) as Record<string, unknown>;
+    expect(tsconfigContent).toEqual(customTsConfig);
+
+    // Clean up artifacts
+    await sfdxFileSystemAccessor.deleteFile(resolve(join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json')));
+    await sfdxFileSystemAccessor.deleteFile(tsconfigPathForceApp);
+    await sfdxFileSystemAccessor.deleteFile(resolve(join(UTILS_ROOT, 'lwc', 'tsconfig.json')));
+    await sfdxFileSystemAccessor.deleteFile(resolve(join(REGISTERED_EMPTY_FOLDER_ROOT, 'lwc', 'tsconfig.json')));
+    await sfdxFileSystemAccessor.deleteFile(resolve(join(SFDX_WORKSPACE_ROOT, '.forceignore')));
+  });
 });
