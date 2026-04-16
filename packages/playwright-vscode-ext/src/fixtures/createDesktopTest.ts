@@ -92,6 +92,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
         'settingsSync.enabled': false, // Prevent Settings Sync from overwriting test settings
         'salesforcedx-vscode-salesforcedx.enableFileTraces': true,
+        // Stable 1.116+ ships GitHub Copilot built-in; fresh userData dirs behave like new users and chat/auxiliary UI can steal focus from F1/palette tests.
+        'chat.disableAIFeatures': true,
         ...userSettings
       };
       if (Object.keys(effectiveUserSettings).length > 0) {
