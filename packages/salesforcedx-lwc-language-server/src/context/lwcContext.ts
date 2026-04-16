@@ -211,9 +211,13 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
     for (const modulesDir of modulesDirs) {
       const tsConfigPath = path.join(modulesDir, 'tsconfig.json');
-      const relativeWorkspaceRoot = relativePath(path.dirname(tsConfigPath), this.workspaceRoots[0]);
-      const tsConfigContent = ejs.render(tsConfigTemplate, { project_root: relativeWorkspaceRoot });
-      await this.fileSystemAccessor.updateFileContent(tsConfigPath, tsConfigContent);
+
+      // Check if tsconfig.json already exists to avoid overwriting user customizations
+      if (!(await this.fileSystemAccessor.fileExists(tsConfigPath))) {
+        const relativeWorkspaceRoot = relativePath(path.dirname(tsConfigPath), this.workspaceRoots[0]);
+        const tsConfigContent = ejs.render(tsConfigTemplate, { project_root: relativeWorkspaceRoot });
+        await this.fileSystemAccessor.updateFileContent(tsConfigPath, tsConfigContent);
+      }
       await updateForceIgnoreFile(forceignore, true, this.fileSystemAccessor);
     }
   }
