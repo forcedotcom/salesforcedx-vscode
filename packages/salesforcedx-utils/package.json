@@ -36,10 +36,7 @@
       ],
       "files": [
         "test/**/*.ts",
-        "src/**/*.ts",
-        "test/tsconfig.json",
-        "tsconfig.json",
-        "../../tsconfig.common.json"
+        "test/tsconfig.json"
       ],
       "output": []
     },

@@ -11,6 +11,7 @@
   "scripts": {
     "compile": "wireit",
     "test": "wireit",
+    "test:compile": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf out dist .wireit .eslintcache .circular-deps.json"
   },
@@ -20,7 +21,6 @@
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
@@ -30,13 +30,23 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "test": {
-      "command": "jest",
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
       "dependencies": [
         "compile"
       ],
       "files": [
-        "src/**/*.ts",
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "jest",
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
