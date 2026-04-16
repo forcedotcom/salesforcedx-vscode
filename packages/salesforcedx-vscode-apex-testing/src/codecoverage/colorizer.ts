@@ -130,7 +130,9 @@ const handleCoverageException = Effect.fn('handleCoverageException')(function* (
     const svc = yield* api.services.ChannelService;
     yield* svc.appendToChannel(e.message);
   } else {
-    yield* Effect.tryPromise(() => window.showWarningMessage(e.message));
+    yield* Effect.tryPromise(() =>
+      window.showWarningMessage(nls.localize('colorizer_coverage_apply_failed_message', e.message))
+    );
   }
 });
 

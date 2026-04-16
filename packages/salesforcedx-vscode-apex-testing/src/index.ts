@@ -25,7 +25,15 @@ import {
   apexTestSuiteCreate,
   apexTestSuiteRun
 } from './commands';
-import { buildAllServicesLayer, getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
+import { ApexTestingDecorationProvider } from './discoveryVfs/apexTestingDecorationProvider';
+import { APEX_TESTING_SCHEME } from './discoveryVfs/apexTestingDiscoveryFs';
+import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDiscoveryFsProvider';
+import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
+import {
+  buildAllServicesLayer,
+  getApexTestingRuntime,
+  setAllServicesLayer
+} from './services/extensionProvider';
 import { telemetryService } from './telemetry/telemetry';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
@@ -67,6 +75,18 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
       orgApexClassProvider
     );
     context.subscriptions.push(providerRegistration);
+
+    const discoveryFsRegistration = vscode.workspace.registerFileSystemProvider(
+      APEX_TESTING_SCHEME,
+      getApexTestingDiscoveryFsProvider(),
+      { isCaseSensitive: true, isReadonly: true }
+    );
+    context.subscriptions.push(discoveryFsRegistration);
+
+    const decorationRegistration = vscode.window.registerFileDecorationProvider(new ApexTestingDecorationProvider());
+    context.subscriptions.push(decorationRegistration);
+
+    registerOrgOnlyRetrieveCodeLensProvider(context);
   }
 
   // Always register commands (they'll be no-ops if not in a project)
@@ -77,13 +97,13 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
   // Export API for other extensions to consume
   return {
-    getTestClassName: async (uri: URI): Promise<string | undefined> => {
+    getTestClassName: (uri: URI): Promise<string | undefined> => {
       try {
         const controller = getTestController();
-        return controller.getTestClassName(uri);
+        return Promise.resolve(controller.getTestClassName(uri));
       } catch (error) {
         console.debug('Failed to get test class name:', error);
-        return undefined;
+        return Promise.resolve(undefined);
       }
     }
   };
@@ -99,7 +119,7 @@ export const activate = (context: vscode.ExtensionContext) => {
       Effect.catchAll(error => {
         console.error('[Apex Testing] Activation failed:', error);
         return Effect.succeed({
-          getTestClassName: async (_uri: URI) => undefined
+          getTestClassName: (_uri: URI) => Promise.resolve(undefined)
         });
       })
     )
@@ -145,6 +165,23 @@ const registerCommands = (): vscode.Disposable => {
   const apexTestSuiteRunCmd = vscode.commands.registerCommand('sf.apex.test.suite.run', apexTestSuiteRun);
   const apexTestSuiteAddCmd = vscode.commands.registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd);
   const apexTestRunCmd = vscode.commands.registerCommand('sf.apex.test.run', apexTestRun);
+  const retrieveOrgOnlyClassCmd = vscode.commands.registerCommand(
+    'sf.apex.test.orgOnlyClass.retrieve',
+    async (target?: vscode.TestItem | URI) => {
+      if (!target) {
+        const activeUri = vscode.window.activeTextEditor?.document.uri;
+        if (activeUri?.scheme === APEX_TESTING_SCHEME) {
+          await getTestController().retrieveOrgOnlyClassFromUri(URI.revive(activeUri));
+        }
+        return;
+      }
+      if ('scheme' in target) {
+        await getTestController().retrieveOrgOnlyClassFromUri(URI.revive(target));
+        return;
+      }
+      await getTestController().retrieveOrgOnlyClass(target);
+    }
+  );
   const openOrgOnlyTestCmd = vscode.commands.registerCommand(
     'sf.apex.test.openOrgOnlyTest',
     async (test: vscode.TestItem) => {
@@ -173,6 +210,7 @@ const registerCommands = (): vscode.Disposable => {
     apexTestMethodRunCmd,
     apexTestMethodRunDelegateCmd,
     apexDebugMethodRunDelegateCmd,
+    retrieveOrgOnlyClassCmd,
     apexTestRunCmd,
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
