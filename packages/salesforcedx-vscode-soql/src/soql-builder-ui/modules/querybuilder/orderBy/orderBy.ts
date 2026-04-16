@@ -8,16 +8,21 @@
 
 import { LightningElement, api } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
+import { labels } from 'querybuilder/i18n';
+
 export default class OrderBy extends LightningElement {
   @api public orderByFields: string[];
   @api public selectedOrderByFields: JsonMap[] = [];
   @api public hasError = false; // currently not used, no specific order by errors
   @api public isLoading = false;
-  public selectPlaceHolderText = 'Search fields...'; // i18n
+  public selectPlaceHolderText = labels.placeholder_search_fields;
+
+  public get i18n() {
+    return labels;
+  }
 
   public get defaultOptionText(): string {
-    // TODO: i18n
-    return this.isLoading ? 'Loading...' : 'Select fields...';
+    return this.isLoading ? labels.label_loading : labels.placeholder_search_fields;
   }
 
   /* eslint-disable @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment */

@@ -8,6 +8,7 @@
 
 import { api, LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
+import { labels } from 'querybuilder/i18n';
 import { AndOr } from '@salesforce/soql-model/model/model';
 
 type ConditionTemplate = {
@@ -52,6 +53,10 @@ export default class Where extends LightningElement {
 
   public get templateIndex(): number {
     return this._conditionsStore.length;
+  }
+
+  public get i18n() {
+    return labels;
   }
 
   public headerSelectedClass = ' header__btn--selected';

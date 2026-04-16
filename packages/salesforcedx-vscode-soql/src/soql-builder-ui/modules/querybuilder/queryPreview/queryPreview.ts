@@ -7,8 +7,13 @@
  */
 
 import { api, LightningElement } from 'lwc';
+import { labels } from 'querybuilder/i18n';
 
 export default class QueryPreview extends LightningElement {
   @api
   public soqlStatement;
+
+  public get i18n() {
+    return labels;
+  }
 }
