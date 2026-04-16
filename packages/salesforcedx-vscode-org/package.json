@@ -134,7 +134,6 @@
         "../../eslint.config.mjs",
         "package.json",
         "package.nls.json",
-        "playwright.config.desktop.ts",
         "test/playwright/**/*.ts"
       ],
       "output": []

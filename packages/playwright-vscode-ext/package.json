@@ -31,8 +31,6 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "playwright.config.web.ts",
-        "playwright.config.desktop.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
@@ -54,7 +52,7 @@
       "output": []
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
       "env": {
         "PLAYWRIGHT_WORKERS": {
           "external": true
@@ -68,7 +66,6 @@
       "files": [
         "src/**/*.ts",
         "test/playwright/**/*.ts",
-        "playwright.config.web.ts",
         "package*.json"
       ],
       "output": []
@@ -80,14 +77,13 @@
           "external": true
         }
       },
-      "command": "playwright test --config=playwright.config.desktop.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "dependencies": [
         "compile",
         "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "test/playwright/**/*.ts",
-        "playwright.config.desktop.ts",
         "package*.json"
       ],
       "output": []
