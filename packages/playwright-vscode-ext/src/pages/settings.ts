@@ -20,6 +20,28 @@ import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
 
 const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
 
+/** User tab can become selected after search/navigation; workspace values require Workspace tab. */
+const ensureWorkspaceSettingsTab = async (page: Page): Promise<void> => {
+  const workspaceTab = page.getByRole('tab', { name: 'Workspace' });
+  await workspaceTab.click();
+  await expect(workspaceTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+  await settingsLocator(page).first().waitFor({ state: 'visible', timeout: 15_000 });
+};
+
+/** VS Code settings text inputs use Monaco; fill() is sometimes ignored in web/headless — fall back to sequential keys. */
+const setSettingsTextboxValue = async (page: Page, inputElement: Locator, value: string): Promise<void> => {
+  const selectAllShortcut = isMacDesktop() ? 'Meta+A' : 'Control+A';
+  await inputElement.click({ timeout: 5000, force: true });
+  await inputElement.fill(value);
+  if ((await inputElement.inputValue().catch(() => '')) === value) {
+    return;
+  }
+  await inputElement.click({ force: true });
+  await page.keyboard.press(selectAllShortcut);
+  await page.keyboard.press('Backspace');
+  await inputElement.pressSequentially(value);
+};
+
 export const openSettingsUI = async (page: Page): Promise<void> => {
   await closeWelcomeTabs(page);
   await page.locator(WORKBENCH).click({ timeout: 60_000 });
@@ -101,6 +123,8 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
   const debugAria = process.env.E2E_ARIA_DEBUG === '1';
 
   for (const [id, value] of Object.entries(settings)) {
+    await ensureWorkspaceSettingsTab(page);
+
     // Debug visibility: take screenshot and aria snapshot before each search
     if (debugAria) {
       try {
@@ -118,6 +142,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
     // First try an exact search by full id (section.key)
     await performSearch(page)(id);
+    await page.waitForLoadState('domcontentloaded');
 
     // Screenshot search box state after clear+type (debug: did clear work, is query correct?)
     if (Object.keys(settings).length > 1) {
@@ -166,6 +191,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       await row.waitFor({ state: 'attached', timeout: 15_000 });
     } catch {
       // Full setting id sometimes yields no Settings hits; shorter query (key segment) surfaces the row
+      await ensureWorkspaceSettingsTab(page);
       await performSearch(page)(lastSegment);
       await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
       await row.waitFor({ state: 'attached', timeout: 15_000 });
@@ -231,9 +257,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
         const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
         await inputElement.waitFor({ timeout: 30_000 });
-        await inputElement.click({ timeout: 5000 });
-        // fill() clears and types (reliable for both textbox and spinbutton; select-all + type can miss on desktop)
-        await inputElement.fill(value);
+        await setSettingsTextboxValue(page, inputElement, value);
         await inputElement.blur();
         await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
       }
