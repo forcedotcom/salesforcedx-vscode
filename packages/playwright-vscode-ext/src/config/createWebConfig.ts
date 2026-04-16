@@ -59,7 +59,7 @@ export const createWebConfig = (options: WebConfigOptions = {}) =>
       }
     ],
     webServer: {
-      command: 'node out/test/playwright/web/headlessServer.js',
+      command: 'tsx web/headlessServer.ts',
       url: 'http://localhost:3001',
       timeout: 120 * 1000,
       // Always start fresh. Reusing run:web (port 3001) causes EPIPE/premature close when test process

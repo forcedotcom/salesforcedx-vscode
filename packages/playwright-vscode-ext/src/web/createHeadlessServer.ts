@@ -21,8 +21,8 @@ type HeadlessServerOptions = {
 /** Creates and starts a headless VS Code web server for testing an extension with services */
 export const createHeadlessServer = async (options: HeadlessServerOptions): Promise<void> => {
   try {
-    // callerDirname is '<pkg>/out/test/playwright/web' -> go up four levels to '<pkg>'
-    const extensionDevelopmentPath = path.resolve(options.callerDirname, '..', '..', '..', '..');
+    // callerDirname is '<pkg>/test/playwright/web' (tsx) -> go up three levels to '<pkg>'
+    const extensionDevelopmentPath = path.resolve(options.callerDirname, '..', '..', '..');
 
     // Collect all extension paths: services + any additional
     const extensionPaths = (options.additionalExtensionDirs ?? [])
