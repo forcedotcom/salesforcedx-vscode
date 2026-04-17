@@ -26,7 +26,9 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        package: [salesforcedx-vscode-apex, salesforcedx-vscode-lwc]
+        # Apex extension has no browser bundle so apex-anon language is not registered in VS Code Web;
+        # its snippet test is desktop-only. Only packages with web support belong here.
+        package: [salesforcedx-vscode-lwc]
       fail-fast: false
     steps:
       - name: Checkout repository
