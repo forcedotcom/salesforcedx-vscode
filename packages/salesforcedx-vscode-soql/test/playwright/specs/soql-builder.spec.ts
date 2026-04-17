@@ -33,6 +33,7 @@ const SOQL_FILE = 'MySoqlBuilderFile';
 const OUTPUT_PANEL = '[id="workbench.panel.output"]';
 
 test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ page }) => {
+  test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 

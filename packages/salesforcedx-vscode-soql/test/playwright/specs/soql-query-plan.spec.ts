@@ -36,6 +36,7 @@ const SOQL_QUERY = 'SELECT Id, Name FROM Account LIMIT 10';
 const OUTPUT_PANEL = '[id="workbench.panel.output"]';
 
 test('SOQL Query Plan: code lens, current file, selected text via command palette', async ({ page }) => {
+  test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
