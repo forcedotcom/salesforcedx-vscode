@@ -36,7 +36,7 @@ const dismissEditorOverlays = async (page: Page): Promise<void> => {
     .waitFor({ state: 'hidden', timeout: 3000 })
     .catch(() => {});
 };
-// Skipping this test because the snippet completion was not working either on redhat, but leaving this code here as a placeholder for future reference.
+
 test('Apex snippets: isb completion applies String.isBlank', async ({ page }) => {
   test.setTimeout(120_000);
   const consoleErrors = setupConsoleMonitoring(page);
