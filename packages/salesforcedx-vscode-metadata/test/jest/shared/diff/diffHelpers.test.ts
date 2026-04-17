@@ -163,17 +163,19 @@ describe('matchUrisToComponents', () => {
     expect(HashSet.size(result)).toBe(0);
   });
 
-  it('matches when localUriFilter has lowercase drive letter but component path has uppercase (Windows)', async () => {
-    // On Windows, VSCode provides URIs with lowercase drive letters (/c:/...)
-    // while SDR returns file-system paths that URI.file() converts to uppercase (/C:/...).
-    // toUri() normalizes /C:/ → /c:/ so HashSet.has() finds the match.
-    // We use /C:/ and /c:/ paths directly to test this behavior cross-platform.
-    const vscodePath = '/c:/Users/runner/project/classes/ConflictsTest.cls';
-    const sdrPath = '/C:/Users/runner/project/classes/ConflictsTest.cls';
+  it('matches when VS Code provides uppercase drive letter URI but component path is lowercase (Windows)', async () => {
+    // On Windows, VS Code provides URIs with UPPERCASE drive letters in uri.path (/C:/...)
+    // when commands are invoked via context menu or active editor. The component content path
+    // (from SourceComponent.content via fsPath) uses lowercase (/c:/...) — the output of
+    // URI.file(fsPath) where fsPath has a lowercase drive letter.
+    // HashableUri.fromUri normalizes /C:/ → /c:/ so HashSet.has() finds the match.
+    // Tests run on macOS so we use POSIX-style paths to simulate Windows drive letter casing.
+    const vsCodeUri = URI.from({ scheme: 'file', path: '/C:/Users/runner/project/classes/ConflictsTest.cls' });
+    const componentPath = '/c:/Users/runner/project/classes/ConflictsTest.cls';
     const remoteCls = '/C:/Users/runner/.sf/orgs/org123/remoteMetadata/classes/ConflictsTest.cls';
 
-    const localUriFilter = HashSet.fromIterable([HashableUri.fromUri(toUri(vscodePath))]);
-    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', sdrPath)]);
+    const localUriFilter = HashSet.fromIterable([HashableUri.fromUri(vsCodeUri)]);
+    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', componentPath)]);
     const retrievedSet = createMockRetrievedSet([createMockComponent('ConflictsTest', 'ApexClass', remoteCls)]);
 
     const result = (await runWithMocks(
