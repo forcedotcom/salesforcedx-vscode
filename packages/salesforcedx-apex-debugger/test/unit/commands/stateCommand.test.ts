@@ -5,16 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
-import * as sinon from 'sinon';
 import { StateCommand } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 import { RequestService } from '../../../src/requestService/requestService';
 import { getDefaultHeaders } from './baseDebuggerCommand.test';
 
 describe('State command', () => {
-  let sendRequestSpy: sinon.SinonStub;
+  let sendRequestSpy: jest.SpyInstance;
   let stateCommand: StateCommand;
   const requestService = new RequestService();
 
@@ -24,14 +22,10 @@ describe('State command', () => {
     stateCommand = new StateCommand('07cFAKE');
   });
 
-  afterEach(() => {
-    sendRequestSpy.restore();
-  });
-
   it('Should build request', async () => {
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(Promise.resolve({ status: 200, responseText: '' } as XHRResponse));
+    sendRequestSpy = jest
+      .spyOn(RequestService.prototype, 'sendRequest')
+      .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/state/07cFAKE',
@@ -42,22 +36,18 @@ describe('State command', () => {
 
     await requestService.execute(stateCommand);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
   });
 
   it('Should handle run command error', async () => {
-    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
-      Promise.reject({
-        status: 500,
-        responseText: '{"message":"There was an error", "action":"Try again"}'
-      } as XHRResponse)
-    );
+    jest.spyOn(RequestService.prototype, 'sendRequest').mockRejectedValue({
+      status: 500,
+      responseText: '{"message":"There was an error", "action":"Try again"}'
+    } as XHRResponse);
 
-    try {
-      await requestService.execute(stateCommand);
-    } catch (error) {
-      expect(error).to.equal('{"message":"There was an error", "action":"Try again"}');
-    }
+    await expect(requestService.execute(stateCommand)).rejects.toBe(
+      '{"message":"There was an error", "action":"Try again"}'
+    );
   });
 });
