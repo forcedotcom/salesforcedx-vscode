@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { TestRunner, TestRunType } from '../testRunner';
-import { TestDirectoryInfo, TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
+import { TestRunner } from '../testRunner';
+import { TestDirectoryInfo, TestExecutionInfo, TestFileInfo } from '../types';
 import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { workspace } from '../workspace';
@@ -16,7 +16,7 @@ import { workspace } from '../workspace';
  * @param testExecutionInfo test execution info
  */
 const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
-  const testRunner = new TestRunner(testExecutionInfo, TestRunType.RUN, LWC_TEST_RUN_LOG_NAME);
+  const testRunner = new TestRunner(testExecutionInfo, 'run', LWC_TEST_RUN_LOG_NAME);
   try {
     return await testRunner.executeAsSfTask();
   } catch (error) {
@@ -49,8 +49,7 @@ export const lwcTestRunAllTests = () => {
   const workspaceFolder = workspace.getTestWorkspaceFolder();
   if (workspaceFolder) {
     const testExecutionInfo: TestDirectoryInfo = {
-      kind: TestInfoKind.TEST_DIRECTORY,
-      testType: TestType.LWC,
+      kind: 'testDirectory',
       testUri: workspaceFolder.uri
     };
     return lwcTestRun(testExecutionInfo);
@@ -64,8 +63,7 @@ export const lwcTestRunActiveTextEditorTest = () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
-      kind: TestInfoKind.TEST_FILE,
-      testType: TestType.LWC,
+      kind: 'testFile',
       testUri: activeTextEditor.document.uri
     };
     return lwcTestFileRun({
