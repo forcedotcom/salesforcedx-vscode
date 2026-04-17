@@ -45,9 +45,7 @@ import {
   packageInstall,
   projectGenerateWithManifest,
   renameLightningComponent,
-  sfProjectGenerate,
-  visualforceGenerateComponent,
-  visualforceGeneratePage
+  sfProjectGenerate
 } from './commands';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
@@ -78,8 +76,6 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
-    vscode.commands.registerCommand('sf.visualforce.generate.component', visualforceGenerateComponent),
-    vscode.commands.registerCommand('sf.visualforce.generate.page', visualforceGeneratePage),
     vscode.commands.registerCommand('sf.lightning.generate.app', lightningGenerateApp),
     vscode.commands.registerCommand('sf.lightning.generate.aura.component', lightningGenerateAuraComponent),
     vscode.commands.registerCommand('sf.lightning.generate.event', lightningGenerateEvent),

@@ -27,17 +27,22 @@
     "Programming Languages"
   ],
   "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-i18n": "*",
+    "effect": "^3.20.0",
     "vscode-css-languageservice": "^6.3.7",
     "vscode-languageclient": "^9.0.1",
-    "vscode-languageserver-protocol": "^3.17.5"
+    "vscode-languageserver-protocol": "^3.17.5",
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/salesforcedx-visualforce-language-server": "*",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -45,6 +50,9 @@
     "compile": "wireit",
     "lint": "wireit",
     "test": "wireit",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"
@@ -56,7 +64,7 @@
       "dependencies": [
         "../salesforcedx-visualforce-language-server:compile",
         "../salesforcedx-visualforce-markup-language-server:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -74,7 +82,8 @@
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
-        "compile"
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -114,6 +123,32 @@
       ],
       "output": []
     },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:desktop"
+      ]
+    },
     "vscode:package": {
       "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
@@ -135,6 +170,38 @@
   },
   "main": "./dist/index.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "sf.visualforce.generate.component",
+        "title": "%visualforce_generate_component_text%"
+      },
+      {
+        "command": "sf.visualforce.generate.page",
+        "title": "%visualforce_generate_page_text%"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sf.visualforce.generate.component",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.visualforce.generate.page",
+          "when": "sf:project_opened"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.visualforce.generate.component",
+          "when": "explorerResourceIsFolder && resourceFilename == components && sf:project_opened"
+        },
+        {
+          "command": "sf.visualforce.generate.page",
+          "when": "explorerResourceIsFolder && resourceFilename == pages && sf:project_opened"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "visualforce",
