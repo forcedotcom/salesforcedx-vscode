@@ -73,7 +73,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
   'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
   'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
-  'remoteAgentHostService' // VS Code remote agent host service noise (non-critical)
+  'remoteAgentHostService', // VS Code remote agent host service noise (non-critical)
+  'workbench.contrib.agentHostTerminal' // VS Code agent host terminal error (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
