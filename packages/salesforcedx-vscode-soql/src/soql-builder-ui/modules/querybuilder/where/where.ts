@@ -8,7 +8,7 @@
 
 import { api, LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
-import { messages } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/messages';
 import { AndOr } from '@salesforce/soql-model/model/model';
 
 type ConditionTemplate = {

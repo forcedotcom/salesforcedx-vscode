@@ -8,7 +8,7 @@
 
 import { LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
-import { messages } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/messages';
 import { ToolingSDK } from '../services/toolingSDK';
 import { VscodeMessageService } from '../services/message/vscodeMessageService';
 

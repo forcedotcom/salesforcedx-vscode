@@ -13,7 +13,7 @@
  */
 import { api, LightningElement, track } from 'lwc';
 import debounce from 'debounce';
-import { messages } from 'querybuilder/i18n';
+import { messages } from 'querybuilder/messages';
 import { ConditionOperator, LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
 import { getFieldInputValidator, getFieldMultipleInputValidator, getOperatorValidator } from '@salesforce/soql-model/validators/validatorFactory';
 import { splitMultiInputValues } from '@salesforce/soql-model/validators/inputUtils';
