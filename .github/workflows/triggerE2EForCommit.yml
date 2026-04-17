@@ -29,7 +29,7 @@ jobs:
   # core-sobjects-definitions: removed (sObjectsDefinitions.e2e.ts deleted)
   # core-org-browser: removed (orgBrowser.e2e.ts deleted; new org browser has Playwright tests)
 
-  # core-snippets: migrated to Playwright — packages/salesforcedx-vscode-apex and salesforcedx-vscode-lwc (test:web / test:desktop)
+  # core-snippets: migrated to Playwright — packages/salesforcedx-vscode-lwc (test:web / test:desktop)
 
   # 📦 Deploy & Retrieve — now covered by core Playwright tests (manifestBuilder, deployAndRetrieve, metadataDeployRetrieve, pushAndPull)
 
