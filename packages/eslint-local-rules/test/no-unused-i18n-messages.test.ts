@@ -15,7 +15,7 @@ const fixturesDir = path.join(__dirname, 'fixtures', 'no-unused-i18n');
 const i18nPath = path.join(fixturesDir, 'src', 'messages', 'i18n.ts');
 
 const soqlFixturesDir = path.join(__dirname, 'fixtures', 'no-unused-i18n-soql');
-const soqlQuerybuilderI18nPath = path.join(
+const soqlQueryBuilderI18nPath = path.join(
   soqlFixturesDir,
   'src',
   'soql-builder-ui',
@@ -60,7 +60,7 @@ ruleTester.run('no-unused-i18n-messages', noUnusedI18nMessages, {
         only_in_html: 'Shown only in LWC template',
         used_via_literal: 'Referenced from TS literal'
       } as const;`,
-      filename: soqlQuerybuilderI18nPath
+      filename: soqlQueryBuilderI18nPath
     }
   ],
   invalid: [
