@@ -12,18 +12,14 @@ import { createDesktopTest, createTestWorkspace } from '@salesforce/playwright-v
 
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
-  disableOtherExtensions: false,
-  userSettings: {
-    'github.gitAuthentication': false,
-    'git.terminalAuthentication': false,
-    'git.autofetch': false
-  }
+  disableOtherExtensions: false
 }).extend({
   workspaceDir: async ({}, use) => {
     const dir = await createTestWorkspace(undefined);
-    await fs.mkdir(path.join(dir, 'force-app', 'main', 'default', 'lwc'), { recursive: true });
-    await fs.writeFile(path.join(dir, 'lwc.html'), '', 'utf8');
-    await fs.writeFile(path.join(dir, 'lwc.js'), '', 'utf8');
+    const bundleDir = path.join(dir, 'force-app', 'main', 'default', 'lwc', 'snippetE2e');
+    await fs.mkdir(bundleDir, { recursive: true });
+    await fs.writeFile(path.join(bundleDir, 'snippetE2e.html'), '', 'utf8');
+    await fs.writeFile(path.join(bundleDir, 'snippetE2e.js'), '', 'utf8');
     await use(dir);
   }
 });

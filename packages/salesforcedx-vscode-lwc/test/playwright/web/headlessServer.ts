@@ -12,9 +12,10 @@ import { createHeadlessServer, createTestWorkspace, setupSignalHandlers } from '
 
 const main = async (): Promise<void> => {
   const dir = await createTestWorkspace(undefined);
-  await fs.mkdir(path.join(dir, 'force-app', 'main', 'default', 'lwc'), { recursive: true });
-  await fs.writeFile(path.join(dir, 'lwc.html'), '', 'utf8');
-  await fs.writeFile(path.join(dir, 'lwc.js'), '', 'utf8');
+  const bundleDir = path.join(dir, 'force-app', 'main', 'default', 'lwc', 'snippetE2e');
+  await fs.mkdir(bundleDir, { recursive: true });
+  await fs.writeFile(path.join(bundleDir, 'snippetE2e.html'), '', 'utf8');
+  await fs.writeFile(path.join(bundleDir, 'snippetE2e.js'), '', 'utf8');
 
   await createHeadlessServer({
     extensionName: 'Lightning Web Components',

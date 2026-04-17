@@ -12,12 +12,15 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  openFileByName,
+  openFileFromExplorerTree,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   typingSpeed,
   validateNoCriticalErrors,
+  waitForExtensionsActivated,
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
@@ -25,6 +28,24 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
+
+const isDesktop = process.env.VSCODE_DESKTOP === '1';
+
+/**
+ * Desktop: Quick Open works against the real filesystem.
+ * Web: `@vscode/test-web`'s file system provider does not implement `provideFileSearch`, so
+ * Quick Open returns "No matching results" for files that haven't already been opened. Navigate
+ * the Files Explorer tree instead. `salesforcedx-vscode-services` also injects a `memfs:/MyProject`
+ * workspace folder on web, but the tree navigation matches by path segment so it locates our
+ * `force-app/.../snippetE2e/*` files regardless of which workspace folder they live under.
+ */
+const openSnippetE2eFile = async (page: Page, fileName: 'snippetE2e.html' | 'snippetE2e.js'): Promise<void> => {
+  if (isDesktop) {
+    await openFileByName(page, fileName);
+    return;
+  }
+  await openFileFromExplorerTree(page, fileName, ['force-app', 'main', 'default', 'lwc', 'snippetE2e']);
+};
 
 /** Monaco may use NBSP; snippets can be one line or multiline — collapse for assertions. */
 const collapseEditorWhitespace = (text: string): string =>
@@ -57,17 +78,24 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page })
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
+    // salesforcedx-vscode-services creates a memfs:/MyProject workspace folder during activation.
+    // Wait until no extension shows "Activating" so file search providers (vscode-test-web-fs for
+    // our mount, memfs for the injected sample) are ready before Quick Open runs.
+    await waitForExtensionsActivated(page);
     await saveScreenshot(page, 'lwc-snippets-html.workspace-ready.png');
   });
 
-  await test.step('open lwc.html', async () => {
-    await page.getByRole('treeitem', { name: /lwc\.html/ }).click();
+  await test.step('open snippetE2e.html', async () => {
+    await openSnippetE2eFile(page, 'snippetE2e.html');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await saveScreenshot(page, 'lwc-snippets-html.editor-open.png');
   });
 
   await test.step('insert lwc-button snippet', async () => {
+    // Snippets are scoped to the active editor language; ensure HTML editor has focus (web CI can leave focus elsewhere after palette use).
+    const editor = page.locator(EDITOR_WITH_URI).first();
+    await editor.click();
     await executeCommandWithCommandPalette(page, 'Snippets: Insert Snippet');
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
@@ -104,11 +132,12 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }) => {
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
+    await waitForExtensionsActivated(page);
     await saveScreenshot(page, 'lwc-snippets-js.workspace-ready.png');
   });
 
-  await test.step('open lwc.js and reload window for LWC language service', async () => {
-    await page.getByRole('treeitem', { name: /lwc\.js/ }).click();
+  await test.step('open snippetE2e.js and reload window for LWC language service', async () => {
+    await openSnippetE2eFile(page, 'snippetE2e.js');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await executeCommandWithCommandPalette(page, 'Developer: Reload Window');
@@ -116,7 +145,8 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }) => {
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
-    await page.getByRole('treeitem', { name: /lwc\.js/ }).click();
+    await waitForExtensionsActivated(page);
+    await openSnippetE2eFile(page, 'snippetE2e.js');
     await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 20_000 });
     await saveScreenshot(page, 'lwc-snippets-js.after-reload.png');
   });

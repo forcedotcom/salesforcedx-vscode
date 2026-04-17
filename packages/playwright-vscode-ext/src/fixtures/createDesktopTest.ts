@@ -92,6 +92,20 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
         'settingsSync.enabled': false, // Prevent Settings Sync from overwriting test settings
         'salesforcedx-vscode-salesforcedx.enableFileTraces': true,
+        // Avoid GitHub/Git prompts opening the system browser during local E2E (oauth, autofetch, etc.)
+        'github.gitAuthentication': false,
+        'git.terminalAuthentication': false,
+        'git.autofetch': false,
+        'git.openRepositoryInParentFolders': 'never',
+        // Suppress Copilot/Chat setup dialogs that trigger GitHub OAuth on startup
+        'chat.commandCenter.enabled': false,
+        'chat.setupFromDialog': false,
+        'workbench.startupEditor': 'none',
+        'workbench.enableExperiments': false,
+        'extensions.autoCheckUpdates': false,
+        'extensions.autoUpdate': false,
+        'telemetry.telemetryLevel': 'off',
+        'update.mode': 'none',
         ...userSettings
       };
       if (Object.keys(effectiveUserSettings).length > 0) {
@@ -117,11 +131,23 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           .map(dir => path.resolve(packageRoot, '..', dir))
       ].map(p => `--extensionDevelopmentPath=${p}`);
 
+      // Explicitly disable built-in GitHub/Copilot/Chat extensions that can trigger
+      // the GitHub OAuth browser tab on startup. `--disable-extensions` only disables
+      // user-installed extensions; built-ins must be disabled individually.
+      const disabledBuiltins = [
+        'vscode.github',
+        'vscode.github-authentication',
+        'GitHub.vscode-pull-request-github',
+        'GitHub.copilot',
+        'GitHub.copilot-chat'
+      ].map(id => `--disable-extension=${id}`);
+
       const launchArgs = [
         `--user-data-dir=${userDataDir}`,
         `--extensions-dir=${extensionsDir}`,
         ...extensionArgs,
         ...(disableOtherExtensions ? ['--disable-extensions'] : []),
+        ...disabledBuiltins,
         '--disable-workspace-trust',
         '--no-sandbox',
         workspaceDir
