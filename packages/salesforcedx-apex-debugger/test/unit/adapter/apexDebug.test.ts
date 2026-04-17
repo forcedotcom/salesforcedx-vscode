@@ -301,7 +301,6 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getEvents()[0].event).toBe('sendMetric'); // launch Apex debugger
       expect(adapter.getEvents()[1].event).toBe('sendMetric'); // ISV debugger failed to launch because nonexistent config variables were set
 
-      // The idle timer is not reset during the failure case because the afterEach() block, which contains `resetIdleTimersSpy.restore();`, is not reached.
       expect(resetIdleTimersSpy).not.toHaveBeenCalled();
     });
 
