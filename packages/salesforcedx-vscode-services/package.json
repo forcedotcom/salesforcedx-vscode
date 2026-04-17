@@ -95,8 +95,7 @@
       "dependencies": [
         "build:icons",
         "generate-types",
-        "../salesforcedx-vscode-i18n:compile",
-        "../playwright-vscode-ext:compile"
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -270,7 +269,8 @@
     "test:compile": {
       "command": "tsc -p test/tsconfig.json",
       "dependencies": [
-        "compile"
+        "compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "test/**/*.ts",

@@ -65,8 +65,7 @@
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
-        "../salesforcedx-vscode-services-types:compile",
-        "../playwright-vscode-ext:compile"
+        "../salesforcedx-vscode-services-types:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -178,7 +177,8 @@
     "test:compile": {
       "command": "tsc -p test/tsconfig.json",
       "dependencies": [
-        "compile"
+        "compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "test/**/*.ts",

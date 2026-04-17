@@ -63,7 +63,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../playwright-vscode-ext:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
@@ -251,7 +250,8 @@
     "test:compile": {
       "command": "tsc -p test/tsconfig.json",
       "dependencies": [
-        "compile"
+        "compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "test/**/*.ts",
