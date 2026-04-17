@@ -8,34 +8,13 @@
 import { Global } from '@salesforce/core/global';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as PubSub from 'effect/PubSub';
+import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { join, normalize } from 'node:path';
-import { FileWatcherService } from '../vscode/fileWatcherService';
+import { FileChangePubSub } from '../vscode/fileChangePubSub';
 import { AliasService } from './alias';
 import { getDefaultOrgRef } from './defaultOrgRef';
-
-export type AliasChangeEvent = { readonly type: 'changed' };
-
-/** General-purpose broadcaster that signals when ~/.sfdx/alias.json changes on disk.
- * Has no knowledge of target-org or org context — consumers decide how to react. */
-export class AliasFileWatcherService extends Effect.Service<AliasFileWatcherService>()('AliasFileWatcherService', {
-  scoped: Effect.gen(function* () {
-    const aliasFilePath = normalize(join(Global.SFDX_DIR, 'alias.json'));
-    const pubsub = yield* PubSub.sliding<AliasChangeEvent>(100);
-    const fileWatcherService = yield* FileWatcherService;
-
-    yield* Stream.fromPubSub(fileWatcherService.pubsub).pipe(
-      Stream.filter(event => normalize(event.uri.fsPath) === aliasFilePath),
-      Stream.debounce(Duration.millis(50)),
-      Stream.runForEach(() => PubSub.publish(pubsub, { type: 'changed' as const })),
-      Effect.forkScoped
-    );
-
-    return { pubsub };
-  })
-}) {}
 
 /**
  * Merges a fresh alias list from disk with the current aliases, preserving the primary alias
@@ -50,29 +29,27 @@ const mergeAliases = (currentAliases: readonly string[] | undefined, freshAliase
   return freshAliases;
 };
 
-/** Subscribes to AliasFileWatcherService and refreshes defaultOrgRef.aliases when alias.json changes.
+/** Subscribes to FileChangePubSub, filters to alias.json, debounces, and refreshes defaultOrgRef.aliases.
  * Preserves aliases[0] (the primary display alias) at position 0 for status bar stability. */
-export const watchDefaultOrgAliases = () =>
-  Effect.scoped(
-    Effect.gen(function* () {
-      const aliasWatcher = yield* AliasFileWatcherService;
-      const aliasService = yield* AliasService;
-
-      yield* Stream.fromPubSub(aliasWatcher.pubsub).pipe(
-        Stream.runForEach(() =>
-          Effect.gen(function* () {
-            const ref = yield* getDefaultOrgRef();
-            const current = yield* SubscriptionRef.get(ref);
-            if (!current.username) return;
-
-            // Array.from ensures a mutable string[] regardless of Effect inference on the empty-array fallback
-            const freshAliases = Array.from(yield* aliasService.getAliasesFromUsername(current.username));
-            yield* SubscriptionRef.update(ref, existing => ({
-              ...existing,
-              aliases: mergeAliases(existing.aliases, freshAliases)
-            }));
-          })
-        )
-      );
-    })
+export const watchAliasFile = Effect.fn('watchAliasFile')(function* () {
+  const aliasFilePath = normalize(join(Global.SFDX_DIR, 'alias.json'));
+  const [fileChangePubSub, aliasService, ref] = yield* Effect.all(
+    [FileChangePubSub, AliasService, getDefaultOrgRef()],
+    { concurrency: 'unbounded' }
   );
+
+  yield* Stream.fromPubSub(fileChangePubSub).pipe(
+    Stream.filter(event => normalize(event.uri.fsPath) === aliasFilePath),
+    Stream.debounce(Duration.millis(50)),
+    Stream.mapEffect(() => SubscriptionRef.get(ref)),
+    Stream.map(r => r.username),
+    Stream.filter(isString),
+    Stream.mapEffect(aliasService.getAliasesFromUsername),
+    Stream.runForEach(freshAliases =>
+      SubscriptionRef.update(ref, existing => ({
+        ...existing,
+        aliases: mergeAliases(existing.aliases, freshAliases)
+      }))
+    )
+  );
+});

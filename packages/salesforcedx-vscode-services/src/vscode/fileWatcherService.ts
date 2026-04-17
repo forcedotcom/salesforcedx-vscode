@@ -6,43 +6,31 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as PubSub from 'effect/PubSub';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import type { URI } from 'vscode-uri';
 import { ChannelService } from './channelService';
+import { FileChangePubSub, type FileChangeEvent } from './fileChangePubSub';
 
-export type FileChangeEvent = {
-  readonly type: 'create' | 'change' | 'delete';
-  readonly uri: URI;
-};
+export const FileWatcherLayer = Layer.scopedDiscard(
+  Effect.gen(function* () {
+    const pubsub = yield* FileChangePubSub;
+    const channel = yield* ChannelService;
 
-/** Centralized workspace file watcher service that broadcasts all file changes via PubSub */
-export class FileWatcherService extends Effect.Service<FileWatcherService>()('FileWatcherService', {
-  scoped: Effect.gen(function* () {
-    const pubsub = yield* PubSub.sliding<FileChangeEvent>(10_000);
-    const watcher = vscode.workspace.createFileSystemWatcher('**/*');
+    yield* Effect.acquireUseRelease(
+      Effect.sync(() => vscode.workspace.createFileSystemWatcher('**/*')),
+      watcher =>
+        Stream.async<FileChangeEvent>(emit => {
+          watcher.onDidCreate(uri => emit.single({ type: 'create', uri }));
+          watcher.onDidChange(uri => emit.single({ type: 'change', uri }));
+          watcher.onDidDelete(uri => emit.single({ type: 'delete', uri }));
+        }).pipe(
+          Stream.runForEach(event => PubSub.publish(pubsub, event).pipe(Effect.catchAll(() => Effect.void)))
+        ),
+      watcher => Effect.sync(() => watcher.dispose()).pipe(Effect.withSpan('disposing file watcher'))
+    ).pipe(Effect.forkScoped);
 
-    watcher.onDidCreate(uri =>
-      Effect.runSync(PubSub.publish(pubsub, { type: 'create' as const, uri }).pipe(Effect.catchAll(() => Effect.void)))
-    );
-
-    watcher.onDidChange(uri =>
-      Effect.runSync(PubSub.publish(pubsub, { type: 'change' as const, uri }).pipe(Effect.catchAll(() => Effect.void)))
-    );
-
-    watcher.onDidDelete(uri =>
-      Effect.runSync(PubSub.publish(pubsub, { type: 'delete' as const, uri }).pipe(Effect.catchAll(() => Effect.void)))
-    );
-
-    yield* Effect.addFinalizer(() =>
-      Effect.sync(() => {
-        watcher.dispose();
-      }).pipe(Effect.withSpan('disposing file watcher'))
-    );
-
-    yield* (yield* ChannelService).appendToChannel('FileWatcherService started successfully');
-
-    return { pubsub };
-  }),
-  dependencies: [ChannelService.Default]
-}) {}
+    yield* channel.appendToChannel('FileWatcherService started successfully');
+  })
+);

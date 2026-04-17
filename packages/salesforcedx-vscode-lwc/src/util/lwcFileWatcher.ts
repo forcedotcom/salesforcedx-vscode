@@ -34,21 +34,18 @@ export const startLwcFileWatcherViaServices = (): void => {
     throw new Error('Failed to get services API');
   }
   const api = apiResult.right;
-  const layer = Layer.mergeAll(api.services.ChannelServiceLayer('LWC'), api.services.FileWatcherService.Default);
+  const layer = Layer.mergeAll(api.services.ChannelServiceLayer('LWC'), api.services.FileChangePubSub.Default);
   const subscriptionEffect = Effect.gen(function* () {
-    const fileWatcherService = yield* api.services.FileWatcherService;
+    const fileChangePubSub = yield* api.services.FileChangePubSub;
     yield* Effect.forkDaemon(
-      Stream.fromPubSub(fileWatcherService.pubsub).pipe(
+      Stream.fromPubSub(fileChangePubSub).pipe(
         Stream.filter(e => e.type === 'create' && isLwcFile(e.uri)),
         Stream.runForEach(e =>
-          Effect.tryPromise({
-            try: () => workspace.openTextDocument(e.uri),
-            catch: () => new Error('open failed')
-          }).pipe(Effect.catchAll(() => Effect.void))
+          Effect.tryPromise(() => workspace.openTextDocument(e.uri)).pipe(Effect.orElseSucceed(() => undefined))
         )
       )
     );
-    yield* Effect.never;
+    return yield* Effect.never;
   });
   try {
     Effect.runSync(Effect.forkDaemon(Effect.scoped(Effect.provide(subscriptionEffect, layer))));
