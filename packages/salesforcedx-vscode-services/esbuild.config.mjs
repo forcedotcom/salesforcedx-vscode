@@ -52,7 +52,7 @@ const generateTemplatesManifest = async () => {
   const prefix = distTemplates.replace(/\\/g, '/') + '/';
   const paths = (await readdir(distTemplates, { recursive: true, withFileTypes: true }))
     .filter(e => e.isFile() && e.name !== 'manifest.json')
-    .map(e => `${e.path.replace(/\\/g, '/')}/${e.name}`.replace(prefix, ''));
+    .map(e => `${(e.parentPath ?? e.path).replace(/\\/g, '/')}/${e.name}`.replace(prefix, ''));
 
   await writeFile(join(distTemplates, 'manifest.json'), JSON.stringify(paths));
   console.log(`[esbuild] Generated templates manifest: ${paths.length} files`);
