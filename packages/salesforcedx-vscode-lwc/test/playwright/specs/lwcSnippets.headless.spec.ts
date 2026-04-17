@@ -37,14 +37,14 @@ const isDesktop = process.env.VSCODE_DESKTOP === '1';
  * Quick Open returns "No matching results" for files that haven't already been opened. Navigate
  * the Files Explorer tree instead. `salesforcedx-vscode-services` also injects a `memfs:/MyProject`
  * workspace folder on web, but the tree navigation matches by path segment so it locates our
- * `force-app/.../snippetE2e/*` files regardless of which workspace folder they live under.
+ * `force-app/.../snippetsE2E/*` files regardless of which workspace folder they live under.
  */
-const openSnippetE2eFile = async (page: Page, fileName: 'snippetE2e.html' | 'snippetE2e.js'): Promise<void> => {
+const openSnippetsE2EFile = async (page: Page, fileName: 'snippetsE2E.html' | 'snippetsE2E.js'): Promise<void> => {
   if (isDesktop) {
     await openFileByName(page, fileName);
     return;
   }
-  await openFileFromExplorerTree(page, fileName, ['force-app', 'main', 'default', 'lwc', 'snippetE2e']);
+  await openFileFromExplorerTree(page, fileName, ['force-app', 'main', 'default', 'lwc', 'snippetsE2E']);
 };
 
 /** Monaco may use NBSP; snippets can be one line or multiline — collapse for assertions. */
@@ -85,8 +85,8 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page })
     await saveScreenshot(page, 'lwc-snippets-html.workspace-ready.png');
   });
 
-  await test.step('open snippetE2e.html', async () => {
-    await openSnippetE2eFile(page, 'snippetE2e.html');
+  await test.step('open snippetsE2E.html', async () => {
+    await openSnippetsE2EFile(page, 'snippetsE2E.html');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await saveScreenshot(page, 'lwc-snippets-html.editor-open.png');
@@ -136,8 +136,8 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }) => {
     await saveScreenshot(page, 'lwc-snippets-js.workspace-ready.png');
   });
 
-  await test.step('open snippetE2e.js and reload window for LWC language service', async () => {
-    await openSnippetE2eFile(page, 'snippetE2e.js');
+  await test.step('open snippetsE2E.js and reload window for LWC language service', async () => {
+    await openSnippetsE2EFile(page, 'snippetsE2E.js');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await executeCommandWithCommandPalette(page, 'Developer: Reload Window');
@@ -146,7 +146,7 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }) => {
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
     await waitForExtensionsActivated(page);
-    await openSnippetE2eFile(page, 'snippetE2e.js');
+    await openSnippetsE2EFile(page, 'snippetsE2E.js');
     await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 20_000 });
     await saveScreenshot(page, 'lwc-snippets-js.after-reload.png');
   });

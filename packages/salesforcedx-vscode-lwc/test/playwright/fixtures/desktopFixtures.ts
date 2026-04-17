@@ -16,10 +16,10 @@ export const desktopTest = createDesktopTest({
 }).extend({
   workspaceDir: async ({}, use) => {
     const dir = await createTestWorkspace(undefined);
-    const bundleDir = path.join(dir, 'force-app', 'main', 'default', 'lwc', 'snippetE2e');
+    const bundleDir = path.join(dir, 'force-app', 'main', 'default', 'lwc', 'snippetsE2E');
     await fs.mkdir(bundleDir, { recursive: true });
-    await fs.writeFile(path.join(bundleDir, 'snippetE2e.html'), '', 'utf8');
-    await fs.writeFile(path.join(bundleDir, 'snippetE2e.js'), '', 'utf8');
+    await fs.writeFile(path.join(bundleDir, 'snippetsE2E.html'), '', 'utf8');
+    await fs.writeFile(path.join(bundleDir, 'snippetsE2E.js'), '', 'utf8');
     await use(dir);
   }
 });
