@@ -360,6 +360,10 @@
       {
         "language": "apex",
         "path": "./snippets/apex.json"
+      },
+      {
+        "language": "apex-anon",
+        "path": "./snippets/apex.json"
       }
     ]
   }
