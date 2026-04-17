@@ -5,16 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
-import * as sinon from 'sinon';
 import { StepIntoCommand, StepOutCommand, StepOverCommand } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 import { RequestService } from '../../../src/requestService/requestService';
 import { getDefaultHeaders } from './baseDebuggerCommand.test';
 
 describe('Step commands', () => {
-  let sendRequestSpy: sinon.SinonStub;
+  let sendRequestSpy: jest.SpyInstance;
   const requestService = new RequestService();
 
   beforeEach(() => {
@@ -22,15 +20,11 @@ describe('Step commands', () => {
     requestService.accessToken = '123';
   });
 
-  afterEach(() => {
-    sendRequestSpy.restore();
-  });
-
   it('Step Into command should have proper request url', async () => {
     const command = new StepIntoCommand('07cFAKE');
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(Promise.resolve({ status: 200, responseText: '' } as XHRResponse));
+    sendRequestSpy = jest
+      .spyOn(RequestService.prototype, 'sendRequest')
+      .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=into',
@@ -41,15 +35,15 @@ describe('Step commands', () => {
 
     await requestService.execute(command);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
   });
 
   it('Step Out command should have proper request url', async () => {
     const command = new StepOutCommand('07cFAKE');
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(Promise.resolve({ status: 200, responseText: '' } as XHRResponse));
+    sendRequestSpy = jest
+      .spyOn(RequestService.prototype, 'sendRequest')
+      .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=out',
@@ -60,15 +54,15 @@ describe('Step commands', () => {
 
     await requestService.execute(command);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
   });
 
   it('Step Over command should have proper request url', async () => {
     const command = new StepOverCommand('07cFAKE');
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(Promise.resolve({ status: 200, responseText: '' } as XHRResponse));
+    sendRequestSpy = jest
+      .spyOn(RequestService.prototype, 'sendRequest')
+      .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=over',
@@ -79,7 +73,7 @@ describe('Step commands', () => {
 
     await requestService.execute(command);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
   });
 });
