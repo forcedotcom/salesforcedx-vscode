@@ -17,6 +17,7 @@ import { deployManifestCommand } from './commands/deployManifest';
 import { deployActiveEditorCommand, deploySourcePathsCommand } from './commands/deploySourcePath';
 import { generateManifestCommand } from './commands/generateManifest';
 import { projectDeployStartCommand } from './commands/projectDeployStart';
+import { projectInfoCommand } from './commands/projectInfo';
 import { refreshSObjectsCommand } from './commands/refreshSObjects';
 import { resetRemoteTrackingCommand } from './commands/resetRemoteTracking';
 import { retrieveManifestCommand } from './commands/retrieveManifest';
@@ -93,7 +94,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       registerCommand('sf.internal.refreshsobjects', (source?: SObjectRefreshSource) => refreshSObjectsCommand(source)),
       registerCommand('sf.conflict.diff', conflictDiffCommandEffect),
       registerCommand('sf.conflict.open', conflictOpenCommandEffect),
-      registerCommand('sf.metadata.view.conflicts', () => openConflictViewCommand())
+      registerCommand('sf.metadata.view.conflicts', () => openConflictViewCommand()),
+      registerCommand('sf.metadata.project.info', projectInfoCommand)
     ],
     { concurrency: 'unbounded' }
   );

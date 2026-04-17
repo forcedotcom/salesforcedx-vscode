@@ -12,9 +12,9 @@ import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 
-export type ConflictModalResult = 'continue' | 'cancel';
+type ConflictModalResult = 'continue' | 'cancel';
 
-export type HandleConflictsModalOptions = {
+type HandleConflictsModalOptions = {
   pairs: DiffFilePair[];
   mode: 'conflicts' | 'diffs';
   stateRef: SubscriptionRef.SubscriptionRef<ConflictTreeState>;

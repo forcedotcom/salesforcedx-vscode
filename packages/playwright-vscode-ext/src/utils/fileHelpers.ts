@@ -141,6 +141,7 @@ export const deployCurrentSourceToOrg = async (
   const deployCompleteTimeoutMs = options?.deployCompleteTimeoutMs ?? DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS;
   const waitViaOutputChannel = options?.waitViaOutputChannel ?? false;
 
+  await verifyCommandExists(page, 'SFDX: Deploy This Source to Org', 30_000);
   await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
 
   const deployingNotification = page

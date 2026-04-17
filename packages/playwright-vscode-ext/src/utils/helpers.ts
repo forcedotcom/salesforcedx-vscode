@@ -75,9 +75,10 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Canceled: Canceled', // VS Code workbench / extension-host dispose during Reload Window or test teardown (non-critical)
   // VS Code 1.116+ desktop: workbench contributions that expect remote agent (not present in @vscode/test-electron)
   'agenthostterminal',
-  'remoteagenthostservice',
+  'remoteagenthostservice', // VS Code remote agent host service noise (non-critical)
   // VS Code terminal/Copilot settings interplay — benign when running packaged VS Code in tests
-  'initialhint.copilotcli'
+  'initialhint.copilotcli',
+  'copilotCli' // GitHub Copilot CLI extension noise (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -337,9 +338,6 @@ export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' &&
 /** Returns true if running on Windows desktop (Electron) */
 export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
 
-/** Returns true if running in VS Code web (not desktop Electron) */
-export const isVSCodeWeb = (): boolean => process.env.VSCODE_DESKTOP !== '1';
-
 /** Validate no critical console or network errors occurred during test execution */
 export const validateNoCriticalErrors = async (
   test: { step: (name: string, fn: () => Promise<void>) => Promise<void> },
@@ -366,21 +364,6 @@ export const disableMonacoAutoClosing = async (page: Page): Promise<void> => {
     'editor.autoClosingBrackets': 'never',
     'editor.autoClosingQuotes': 'never',
     'editor.autoClosingOvertype': 'never'
-  });
-
-  // Close Settings tab so it doesn't interfere with subsequent operations
-  await closeSettingsTab(page);
-};
-
-/**
- * Re-enable Monaco editor auto-closing features with default language-defined behavior.
- * Uses VS Code settings API for cleaner, more maintainable approach.
- */
-export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
-  await upsertSettings(page, {
-    'editor.autoClosingBrackets': 'languageDefined',
-    'editor.autoClosingQuotes': 'languageDefined',
-    'editor.autoClosingOvertype': 'auto'
   });
 
   // Close Settings tab so it doesn't interfere with subsequent operations

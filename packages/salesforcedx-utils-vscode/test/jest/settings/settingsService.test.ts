@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { SETTING_CLEAR_OUTPUT_TAB, SFDX_CORE_CONFIGURATION_NAME } from '../../../src/constants';
-import { AdvancedSettings, SettingsService } from '../../../src/settings/settingsService';
+import { SettingsService } from '../../../src/settings/settingsService';
 
 const mockedVSCode = jest.mocked(vscode);
 
@@ -34,32 +34,4 @@ describe('SettingsService', () => {
     });
   });
 
-  describe('isAdvancedSettingEnabledFor', () => {
-    const fakeExtensionName = 'myExtension';
-    it('should return true if the advanced setting is enabled for the given extension', () => {
-      mockConfiguration.get.mockReturnValue('true');
-
-      const result = SettingsService.isAdvancedSettingEnabledFor(
-        fakeExtensionName,
-        AdvancedSettings.LOCAL_TELEMETRY_LOGGING
-      );
-
-      expect(getConfigurationMock).toHaveBeenCalled();
-      expect(mockConfiguration.get).toHaveBeenCalledWith('myExtension.advanced.localTelemetryLogging');
-      expect(result).toBe(true);
-    });
-
-    it('should return false if the advanced setting is disabled for the given extension', () => {
-      mockConfiguration.get.mockReturnValue('false');
-
-      const result = SettingsService.isAdvancedSettingEnabledFor(
-        fakeExtensionName,
-        AdvancedSettings.LOCAL_TELEMETRY_LOGGING
-      );
-
-      expect(getConfigurationMock).toHaveBeenCalledWith();
-      expect(mockConfiguration.get).toHaveBeenCalledWith('myExtension.advanced.localTelemetryLogging');
-      expect(result).toBe(false);
-    });
-  });
 });

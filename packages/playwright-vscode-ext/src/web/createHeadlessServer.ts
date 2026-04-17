@@ -47,6 +47,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       browserType: 'chromium',
       headless: true,
       quality: 'stable',
+      commit: process.env.PLAYWRIGHT_WEB_VSCODE_COMMIT,
       port: Number(process.env.PORT) || 3001,
       printServerLog: true,
       verbose: true,
