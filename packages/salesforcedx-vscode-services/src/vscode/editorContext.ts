@@ -21,9 +21,7 @@ const setApexTestContext = (value: boolean) =>
 const IS_TEST_REG_EXP = /@isTest/i;
 
 const isApexTestFile = (editor: vscode.TextEditor | undefined): boolean =>
-  editor?.document.uri.fsPath.endsWith('.cls')
-    ? IS_TEST_REG_EXP.test(editor.document.getText())
-    : false;
+  editor?.document.uri.fsPath.endsWith('.cls') ? IS_TEST_REG_EXP.test(editor.document.getText()) : false;
 
 /** Update VS Code context variable when the active editor changes */
 export const watchPackageDirectoriesContext = () =>
@@ -56,9 +54,5 @@ export const watchApexTestContext = () =>
     yield* Stream.merge(
       Stream.fromEffect(Effect.sync(() => isApexTestFile(vscode.window.activeTextEditor))),
       Stream.fromPubSub(editorService.pubsub).pipe(Stream.map(isApexTestFile))
-    ).pipe(
-      Stream.debounce(Duration.millis(50)),
-      Stream.changes,
-      Stream.runForEach(setApexTestContext)
-    );
+    ).pipe(Stream.debounce(Duration.millis(50)), Stream.changes, Stream.runForEach(setApexTestContext));
   });

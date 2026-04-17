@@ -55,5 +55,5 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
 
-export { AllServicesLayer, setAllServicesLayer } from './allServicesLayerRef';
+export { setAllServicesLayer } from './allServicesLayerRef';
 export { getRuntime } from './runtime';

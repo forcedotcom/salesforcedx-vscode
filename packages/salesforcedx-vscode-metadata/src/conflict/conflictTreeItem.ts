@@ -9,7 +9,7 @@ import type { DiffFilePair } from '../shared/diff/diffTypes';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-export type ConflictTreeItemKind = 'group' | 'conflict' | 'empty';
+type ConflictTreeItemKind = 'group' | 'conflict' | 'empty';
 
 type ConflictTreeItemInputs =
   | { kind: 'group'; label: string; count: number }

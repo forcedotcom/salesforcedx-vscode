@@ -11,11 +11,12 @@ import type { ComponentSet, FileProperties } from '@salesforce/source-deploy-ret
 import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import * as Stream from 'effect/Stream';
+import { URI } from 'vscode-uri';
 import {
   filesAreNotIdentical,
   matchUrisToComponents,
-  pathsToHashableUris,
   retrieveToCacheDirectory,
   sourceComponentToPaths
 } from '../shared/diff/diffHelpers';
@@ -41,10 +42,6 @@ const computePotentialConflictKeys = Effect.fn('conflictDetection.computePotenti
   }, new Set());
 });
 
-/** Get local file paths from componentSet source components */
-const getLocalPathsFromComponentSet = (componentSet: ComponentSet): string[] =>
-  Array.from(new Set<string>(componentSet.getSourceComponents().toArray().flatMap(sourceComponentToPaths)));
-
 /**
  * Detect conflicts for non-tracking orgs using timestamps.
  * Deploy: "has the server copy changed since I last deployed/retrieved?"
@@ -63,14 +60,13 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
     return [] satisfies DiffFilePair[];
   }
 
-  const retrievedComponents = retrieveResult.components.getSourceComponents().toArray();
-  const localPaths = getLocalPathsFromComponentSet(componentSet);
-  if (localPaths.length === 0) {
+  const projectComponents = componentSet.getSourceComponents().toArray();
+
+  if (projectComponents.length === 0) {
     return [] satisfies DiffFilePair[];
   }
 
-  const hashableUris = yield* pathsToHashableUris(localPaths);
-  const pairsSet = yield* matchUrisToComponents(hashableUris, retrievedComponents);
+  const pairsSet = yield* matchUrisToComponents(componentSet, retrieveResult.components);
 
   if (operationType === 'retrieve') {
     return yield* pairsSet.pipe(
@@ -85,20 +81,16 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
 
   if (potentialConflictKeys.size === 0) return [] satisfies DiffFilePair[];
 
-  const conflictLocalPaths = [
-    ...new Set(
-      componentSet
-        .getSourceComponents()
-        .toArray()
-        .filter(c => potentialConflictKeys.has(componentKey(c.type.name, c.fullName)))
-        .flatMap(sourceComponentToPaths)
-    )
-  ];
+  const conflictingPaths = new Set(
+    projectComponents
+      .filter(c => potentialConflictKeys.has(componentKey(c.type.name, c.fullName)))
+      .flatMap(sourceComponentToPaths)
+      .map(p => URI.file(p).path)
+  );
 
-  if (conflictLocalPaths.length === 0) return [] satisfies DiffFilePair[];
+  if (conflictingPaths.size === 0) return [] satisfies DiffFilePair[];
 
-  const conflictUris = yield* pathsToHashableUris(conflictLocalPaths);
-  const conflictPairs = yield* matchUrisToComponents(conflictUris, retrievedComponents);
+  const conflictPairs = HashSet.filter(pairsSet, pair => conflictingPaths.has(pair.localUri.path));
   const deployDiffering = yield* conflictPairs.pipe(
     Stream.fromIterable,
     Stream.filterEffect(filesAreNotIdentical),
