@@ -58,9 +58,6 @@
     "copy:grammars": "wireit",
     "copy:jar": "wireit",
     "test": "wireit",
-    "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
-    "test:web:debug": "npm run test:web -- --debug",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit"
@@ -81,7 +78,6 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "playwright.config.web.ts",
         "playwright.config.desktop.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
@@ -93,27 +89,6 @@
         "out/test/**",
         "tsconfig.tsbuildinfo"
       ]
-    },
-    "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts",
-      "env": {
-        "PLAYWRIGHT_WORKERS": {
-          "external": true
-        }
-      },
-      "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-services:spans:server",
-        "../salesforcedx-vscode-core:vscode:bundle",
-        "../playwright-vscode-ext:compile"
-      ],
-      "files": [
-        "playwright.config.web.ts",
-        "test/playwright/**/*.ts",
-        "package*.json"
-      ],
-      "output": []
     },
     "test:desktop": {
       "command": "playwright test --config=playwright.config.desktop.ts",
@@ -138,7 +113,6 @@
     },
     "test:e2e": {
       "dependencies": [
-        "test:web",
         "test:desktop"
       ]
     },
