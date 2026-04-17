@@ -214,13 +214,14 @@
       ]
     },
     "lint": {
-      "command": "../../node_modules/.bin/eslint --color --cache --cache-location .eslintcache .",
+      "command": "../../node_modules/.bin/eslint --color .",
       "dependencies": [
         "../eslint-local-rules:compile",
         "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
+        "src/**/*.html",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         ".vscodeignore",

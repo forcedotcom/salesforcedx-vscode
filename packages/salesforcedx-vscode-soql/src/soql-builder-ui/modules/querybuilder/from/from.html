@@ -9,9 +9,8 @@
 <template>
   <div class="section-container">
     <div class="section_label-container">
-      <!-- TODO: i18n (maybe) -->
       <label
-        >From<template if:true={hasError}
+        >{i18n.label_from}<template if:true={hasError}
           ><span class="text-color-required" data-el-has-error
             >*</span
           ></template
