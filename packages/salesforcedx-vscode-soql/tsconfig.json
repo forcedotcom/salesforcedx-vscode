@@ -3,7 +3,6 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
-    "isolatedModules": true,
     "noImplicitAny": true,
     "paths": {
       "@salesforce/soql-model/*": ["./src/soql-model/*"]
