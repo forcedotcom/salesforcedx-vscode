@@ -7,7 +7,6 @@
   "include": [
     "src/**/*.ts",
     "src/oas/generationStrategy/*.json",
-    "playwright.config.web.ts",
     "playwright.config.desktop.ts",
     "package.nls.json",
     "test/**/*.ts"
