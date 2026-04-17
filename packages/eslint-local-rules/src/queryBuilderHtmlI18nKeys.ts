@@ -60,7 +60,7 @@ export const queryBuilderHtmlI18nKeys = RuleCreator.withoutDocs({
     schema: [],
     messages: {
       unknownKey:
-        'i18n key "{{key}}" is not defined in querybuilder messages/i18n.ts'
+        'i18n key "{{key}}" is not defined in querybuilder/messages/i18n.ts'
     }
   },
   defaultOptions: [],

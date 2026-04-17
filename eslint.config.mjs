@@ -51,7 +51,7 @@ export default [
       // HTML: only SOQL query builder templates use @html-eslint + local i18n rule; silence other *.html
       '**/*.html',
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.html',
-      // Lint *.html and querybuilder messages/i18n.ts; keep other SOQL webview TS excluded (LWC)
+      // Lint *.html and querybuilder/messages/i18n.ts; keep other SOQL webview TS excluded (LWC)
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/*.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.ts',
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/messages/i18n.ts',
