@@ -1,0 +1,12 @@
+// Place your settings in this file to overwrite default and user settings.
+// When this folder is opened as the workspace root, ESLint flat config still lives at the monorepo root — prefer opening the repo root for full lint.
+{
+  "files.exclude": {
+    "out": false
+  },
+  "search.exclude": {
+    "out": true
+  },
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "eslint.validate": ["javascript", "typescript", "json", "html"]
+}

@@ -11,16 +11,16 @@
     <div class="container">
       <template if:false={hasNoDefaultOrg}>
         <template if:false={isRunning}>
-          <button class="run-button" onclick={handleRunQuery} disabled={isQueryInvalid}>Run Query</button>
+          <button class="run-button" onclick={handleRunQuery} disabled={isQueryInvalid}>{i18n.action_run_query}</button>
         </template>
         <template if:true={isRunning}>
-          <button class="btn--disabled run-button">Running...</button>
+          <button class="btn--disabled run-button">{i18n.label_running}</button>
         </template>
         <template if:false={isQueryPlanRunning}>
-          <button class="query-plan-button" onclick={handleGetQueryPlan} disabled={isQueryInvalid}>Get Query Plan</button>
+          <button class="query-plan-button" onclick={handleGetQueryPlan} disabled={isQueryInvalid}>{i18n.action_get_query_plan}</button>
         </template>
         <template if:true={isQueryPlanRunning}>
-          <button class="btn--disabled query-plan-button">Getting Plan...</button>
+          <button class="btn--disabled query-plan-button">{i18n.label_getting_plan}</button>
         </template>
       </template>
     </div>

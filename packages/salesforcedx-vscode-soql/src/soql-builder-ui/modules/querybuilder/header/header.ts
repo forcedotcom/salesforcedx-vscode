@@ -7,11 +7,17 @@
  */
 
 import { LightningElement, api } from 'lwc';
+import { messages } from 'querybuilder/messages';
+
 export default class Header extends LightningElement {
   @api public hasNoDefaultOrg = false;
   @api public isRunning = false;
   @api public isQueryPlanRunning = false;
   @api public isQueryValid = false;
+
+  public get i18n() {
+    return messages;
+  }
 
   public get isQueryInvalid(): boolean {
     return !this.isQueryValid;

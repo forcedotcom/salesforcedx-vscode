@@ -65,3 +65,24 @@ export const extractMessagesObject = (ast: TSESTree.Program): MessagesObject => 
 
   return Object.fromEntries(entries);
 };
+
+/**
+ * LWC SOQL Builder templates use `i18n.key` in text and attributes, e.g.
+ * `{i18n.label_foo}` or `placeholder={i18n.placeholder_bar}`.
+ * Keep in sync with queryBuilderHtmlI18nKeys.
+ */
+export const collectQueryBuilderI18nKeyRefsFromHtml = (
+  source: string,
+  knownKeys: Set<string>
+): Map<string, number> => {
+  const counts = new Map<string, number>();
+  const re = /i18n\.([a-zA-Z0-9_]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(source)) !== null) {
+    const k = m[1];
+    if (knownKeys.has(k)) {
+      counts.set(k, (counts.get(k) ?? 0) + 1);
+    }
+  }
+  return counts;
+};

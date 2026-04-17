@@ -8,8 +8,7 @@
 <template>
   <div class="section-container">
     <div class="section_label-container">
-      <!-- i18n -->
-      <label>Filter</label>
+      <label>{i18n.label_filter}</label>
     </div>
     <div class="section_selection-container">
       <header class="header">
@@ -34,10 +33,9 @@
           </button>
         </div>
         <div class="header__labels">
-          <!-- i18n -->
-          <p class="header__label__field">Field</p>
-          <p class="header__label__operator">Operator</p>
-          <p class="header__label__value">Value</p>
+          <p class="header__label__field">{i18n.label_field}</p>
+          <p class="header__label__operator">{i18n.label_operator}</p>
+          <p class="header__label__value">{i18n.label_value}</p>
         </div>
       </header>
       <section class="modifier__group-container">
@@ -59,7 +57,7 @@
           onclick={handleAddModGroup}
           data-el-where-add-btn
         >
-          Add
+          {i18n.action_add}
         </button>
       </footer>
     </div>
