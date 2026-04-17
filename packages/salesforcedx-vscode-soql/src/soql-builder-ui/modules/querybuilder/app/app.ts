@@ -8,6 +8,7 @@
 
 import { LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
+import { messages } from 'querybuilder/messages';
 import { ToolingSDK } from '../services/toolingSDK';
 import { VscodeMessageService } from '../services/message/vscodeMessageService';
 
@@ -265,6 +266,10 @@ export default class App extends LightningElement {
   public handleSetDefaultOrg(): void {
     const setDefaultOrgEvent: SoqlEditorEvent = { type: MessageType.SET_DEFAULT_ORG };
     this.messageService.sendMessage(setDefaultOrgEvent);
+  }
+
+  public get i18n() {
+    return messages;
   }
 
   public get isQueryValid(): boolean {

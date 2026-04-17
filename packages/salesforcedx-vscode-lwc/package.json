@@ -37,7 +37,6 @@
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
     "strip-ansi": "^5.2.0",
-    "uuid": "^3.3.3",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
     "vscode-html-languageservice": "^5.5.1",
@@ -251,7 +250,9 @@
       "devDependencies": {}
     }
   },
-  "activationEvents": ["onView:sf.lightning.lwc.test.view"],
+  "activationEvents": [
+    "onView:sf.lightning.lwc.test.view"
+  ],
   "main": "./out/src",
   "browser": "./dist/web/index.js",
   "serverPath": [

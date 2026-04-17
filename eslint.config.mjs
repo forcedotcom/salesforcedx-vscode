@@ -24,6 +24,7 @@ import effectPlugin from '@effect/eslint-plugin';
 import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin';
 import jsonPlugin from '@eslint/json';
 
+import htmlEslintPlugin from '@html-eslint/eslint-plugin';
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
 const localRules = localRulesPlugin.rules;
@@ -47,7 +48,13 @@ export default [
       'packages/salesforcedx-vscode-lightning/extension/tern/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
-      'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
+      // HTML: only SOQL query builder templates use @html-eslint + local i18n rule; silence other *.html
+      '**/*.html',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.html',
+      // Lint *.html and querybuilder/messages/i18n.ts; keep other SOQL webview TS excluded (LWC)
+      'packages/salesforcedx-vscode-soql/src/soql-builder-ui/*.ts',
+      'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.ts',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/messages/i18n.ts',
       'packages/salesforcedx-vscode-soql/src/soql-data-view/**',
       'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
@@ -748,6 +755,18 @@ export default [
     rules: {
       'local/vscodeignore-required-patterns': 'error',
       'local/vscodeignore-contributes-conflict': 'error'
+    }
+  },
+  // SOQL Builder LWC templates: unknown i18n.* keys vs querybuilder/messages/i18n.ts (SOQL package only)
+  {
+    ...htmlEslintPlugin.configs['flat/recommended'],
+    files: ['packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.html'],
+    plugins: {
+      ...htmlEslintPlugin.configs['flat/recommended'].plugins,
+      local: localPlugin
+    },
+    rules: {
+      'local/query-builder-html-i18n-keys': 'error'
     }
   },
   eslintConfigPrettier
