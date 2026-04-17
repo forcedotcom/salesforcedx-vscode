@@ -9,9 +9,8 @@
 <template>
   <div class="section-container">
     <div class="section_label-container">
-      <!-- TODO: i18n (maybe) -->
       <label
-        >Order By
+        >{i18n.label_order_by}
         <template if:true={hasError}
           ><span class="text-color-required" data-el-has-error
             >*</span
@@ -28,21 +27,19 @@
       <div class="group-orderby-modifiers">
         <span class="group-orderby-order">
           <select id="orderby-order" name="orderby-order" data-el-orderby-order>
-            <option value="" class="placeholder" selected>Direction...</option>
-            <!-- TODO: i18n (maybe) -->
-            <option value="ASC">Ascending</option>
-            <option value="DESC">Descending</option>
+            <option value="" class="placeholder" selected>{i18n.placeholder_direction}</option>
+            <option value="ASC">{i18n.label_ascending}</option>
+            <option value="DESC">{i18n.label_descending}</option>
           </select></span
         >
         <span class="group-orderby-nulls">
           <select id="orderby-nulls" name="orderby-nulls" data-el-orderby-nulls>
-            <option value="" class="placeholder" selected>Nulls...</option>
-            <!-- TODO: i18n (maybe) -->
-            <option value="NULLS FIRST">Nulls First</option>
-            <option value="NULLS LAST">Nulls Last</option>
+            <option value="" class="placeholder" selected>{i18n.placeholder_nulls}</option>
+            <option value="NULLS FIRST">{i18n.label_nulls_first}</option>
+            <option value="NULLS LAST">{i18n.label_nulls_last}</option>
           </select>
         </span>
-        <button onclick={handleOrderBySelected} data-el-add-button>Add</button>
+        <button onclick={handleOrderBySelected} data-el-add-button>{i18n.action_add}</button>
       </div>
 
       <div class="selected-fields-container">

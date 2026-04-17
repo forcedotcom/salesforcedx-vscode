@@ -25,9 +25,8 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "eslint.enable": true,
-  "eslint.run": "onSave",
   "eslint.experimental.useFlatConfig": true,
-  "eslint.validate": ["javascript", "typescript", "json"],
+  "eslint.validate": ["javascript", "typescript", "json", "html"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },

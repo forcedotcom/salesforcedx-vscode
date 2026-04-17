@@ -24,16 +24,14 @@
         <template if:true={showNoDefaultOrgNotification}>
           <div class="info-notification">
             <div class="info-notification__message">
-              <!-- TODO: i18n -->
-              SOQL Builder requires a default org. Use the "Set a Default Org" button or run "SFDX: Set a Default Org" from the command palette to set one.
+              {i18n.label_no_default_org}
             </div>
             <div class="info-notification__dismiss">
               <button
                 class="text-center"
                 onclick={handleSetDefaultOrg}
               >
-                <!-- TODO: i18n -->
-                Set a Default Org
+                {i18n.action_set_default_org}
               </button>
             </div>
           </div>
@@ -88,30 +86,13 @@
           <div class="warning-notification">
             <div class="warning-notification__message">
               <template if:true={showUnsupportedNotification}>
-                <!-- TODO: i18n -->
-                <strong
-                  >Your query contains statements that SOQL Builder doesn't
-                  currently support.</strong
-                >
-                <p>
-                  You can use the 'Run Query' button to run your query as is.
-                </p>
-                <p>
-                  Consider using a text editor to edit the query. If you click
-                  Edit Query Anyway, SOQL Builder removes the unsupported
-                  syntax.
-                </p>
+                <strong>{i18n.label_unsupported_query_title}</strong>
+                <p>{i18n.label_unsupported_query_run_info}</p>
+                <p>{i18n.label_unsupported_query_edit_info}</p>
               </template>
               <template if:true={showSyntaxErrorNotification}>
-                <!-- TODO: i18n -->
-                <strong
-                  >Your query contains syntax errors that SOQL Builder can't
-                  parse.</strong
-                >
-                <p>
-                  Consider using a text editor to edit the query. If you click
-                  Edit Query Anyway, SOQL Builder will rewrite your query.
-                </p>
+                <strong>{i18n.label_syntax_error_title}</strong>
+                <p>{i18n.label_syntax_error_edit_info}</p>
               </template>
               <ol type="number">
                 <template for:each={notifications} for:item="notification"
@@ -126,8 +107,7 @@
                 class="btn--error text-center"
                 onclick={handleDismissNotifications}
               >
-                <!-- TODO: i18n -->
-                Edit Query Anyway
+                {i18n.action_edit_query_anyway}
               </button>
             </div>
           </div>

@@ -5,16 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
-import * as sinon from 'sinon';
 import { ReferencesCommand } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 import { RequestService } from '../../../src/requestService/requestService';
 import { getDefaultHeaders } from './baseDebuggerCommand.test';
 
 describe('References command', () => {
-  let sendRequestSpy: sinon.SinonStub;
+  let sendRequestSpy: jest.SpyInstance;
   let referencesCommand: ReferencesCommand;
   const requestService = new RequestService();
 
@@ -24,14 +22,10 @@ describe('References command', () => {
     referencesCommand = new ReferencesCommand('07cFAKE');
   });
 
-  afterEach(() => {
-    sendRequestSpy.restore();
-  });
-
   it('Should build request', async () => {
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(Promise.resolve({ status: 200, responseText: '' } as XHRResponse));
+    sendRequestSpy = jest
+      .spyOn(RequestService.prototype, 'sendRequest')
+      .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const requestBody = JSON.stringify({
       getReferencesRequest: {
         reference: []
@@ -47,7 +41,7 @@ describe('References command', () => {
 
     await requestService.execute(referencesCommand);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
   });
 });

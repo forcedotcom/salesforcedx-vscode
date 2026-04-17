@@ -9,18 +9,12 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as PubSub from 'effect/PubSub';
-import * as Queue from 'effect/Queue';
-import * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { URI } from 'vscode-uri';
-import {
-  AliasFileWatcherService,
-  watchDefaultOrgAliases,
-  type AliasChangeEvent
-} from '../../../src/core/aliasFileWatcher';
+import { watchAliasFile } from '../../../src/core/aliasFileWatcher';
 import { AliasService } from '../../../src/core/alias';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
-import { FileWatcherService, type FileChangeEvent } from '../../../src/vscode/fileWatcherService';
+import { FileChangePubSub, type FileChangeEvent } from '../../../src/vscode/fileChangePubSub';
 
 jest.mock('@salesforce/core/global', () => ({
   Global: { SFDX_DIR: '/Users/testuser/.sfdx' }
@@ -33,8 +27,8 @@ const OTHER_FILE_PATH = '/Users/testuser/.sfdx/config.json';
 // Layer factories
 // ---------------------------------------------------------------------------
 
-const makeFileWatcherLayer = (pubsub: PubSub.PubSub<FileChangeEvent>) =>
-  Layer.succeed(FileWatcherService, new FileWatcherService({ pubsub }));
+const makeFileChangePubSubLayer = (pubsub: PubSub.PubSub<FileChangeEvent>) =>
+  Layer.succeed(FileChangePubSub, pubsub as unknown as FileChangePubSub);
 
 const makeAliasServiceLayer = (getAliasesFromUsername: jest.Mock) =>
   Layer.succeed(
@@ -47,103 +41,40 @@ const makeAliasServiceLayer = (getAliasesFromUsername: jest.Mock) =>
     })
   );
 
-const makeAliasWatcherLayer = (pubsub: PubSub.PubSub<AliasChangeEvent>) =>
-  Layer.succeed(AliasFileWatcherService, new AliasFileWatcherService({ pubsub }));
-
 // ---------------------------------------------------------------------------
-// AliasFileWatcherService – path-filtering integration tests
+// watchAliasFile – integration tests
 // ---------------------------------------------------------------------------
 
-describe('AliasFileWatcherService', () => {
-  const defaultLayer = (fileWatcherPubSub: PubSub.PubSub<FileChangeEvent>) =>
-    Layer.provide(AliasFileWatcherService.Default, makeFileWatcherLayer(fileWatcherPubSub));
-
-  const runWithDefault = (
-    fileWatcherPubSub: PubSub.PubSub<FileChangeEvent>,
-    test: (aliasWatcher: AliasFileWatcherService) => Effect.Effect<void, never, Scope.Scope>
-  ) =>
-    Effect.provide(
-      Effect.gen(function* () {
-        const aliasWatcher = yield* AliasFileWatcherService;
-        // Stream.fromPubSub subscribes lazily when the stream starts pulling.
-        // Yield once so the forkScoped fiber inside the service can subscribe before we publish.
-        yield* Effect.sleep(0);
-        yield* test(aliasWatcher);
-      }).pipe(Effect.scoped),
-      defaultLayer(fileWatcherPubSub)
-    );
-
-  it('publishes an alias-changed event when alias.json changes', async () => {
-    const fileWatcherPubSub = await Effect.runPromise(PubSub.sliding<FileChangeEvent>(10));
-
-    await Effect.runPromise(
-      runWithDefault(fileWatcherPubSub, aliasWatcher =>
-        Effect.gen(function* () {
-          const subscriber = yield* PubSub.subscribe(aliasWatcher.pubsub);
-
-          yield* PubSub.publish(fileWatcherPubSub, { type: 'change' as const, uri: URI.file(ALIAS_FILE_PATH) });
-
-          // Block until the event arrives rather than a fixed sleep. A fixed sleep is
-          // unreliable on CI because the Effect fiber scheduler may not flush before the
-          // wall-clock timer fires under parallel test load.
-          const event = yield* Queue.take(subscriber);
-          expect(event).toEqual({ type: 'changed' });
-        })
-      )
-    );
-  });
-
-  it('does not publish when a non-alias file changes', async () => {
-    const fileWatcherPubSub = await Effect.runPromise(PubSub.sliding<FileChangeEvent>(10));
-
-    await Effect.runPromise(
-      runWithDefault(fileWatcherPubSub, aliasWatcher =>
-        Effect.gen(function* () {
-          const subscriber = yield* PubSub.subscribe(aliasWatcher.pubsub);
-
-          yield* PubSub.publish(fileWatcherPubSub, { type: 'change' as const, uri: URI.file(OTHER_FILE_PATH) });
-          yield* Effect.sleep(200);
-
-          const events: AliasChangeEvent[] = [];
-          yield* Queue.takeAll(subscriber).pipe(Effect.map(chunk => events.push(...chunk)));
-
-          expect(events).toHaveLength(0);
-        })
-      )
-    );
-  });
-});
-
-// ---------------------------------------------------------------------------
-// watchDefaultOrgAliases – reactor integration tests
-// ---------------------------------------------------------------------------
-
-describe('watchDefaultOrgAliases', () => {
+describe('watchAliasFile', () => {
   beforeEach(async () => {
     await Effect.runPromise(
       getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {})))
     );
   });
 
-  const runReactorTest = async (
+  const runWatcherTest = async (
     getAliasesFromUsernameMock: jest.Mock,
-    initialOrgInfo: { username?: string; aliases?: string[] }
+    initialOrgInfo: { username?: string; aliases?: string[] },
+    publishUri: string
   ) => {
-    const aliasPubSub = await Effect.runPromise(PubSub.sliding<AliasChangeEvent>(10));
-    const layer = Layer.mergeAll(makeAliasWatcherLayer(aliasPubSub), makeAliasServiceLayer(getAliasesFromUsernameMock));
+    const fileChangePubSub = await Effect.runPromise(PubSub.sliding<FileChangeEvent>(10));
+    const layer = Layer.mergeAll(
+      makeFileChangePubSubLayer(fileChangePubSub),
+      makeAliasServiceLayer(getAliasesFromUsernameMock)
+    );
 
     return Effect.runPromise(
       Effect.gen(function* () {
         const ref = yield* getDefaultOrgRef();
         yield* SubscriptionRef.set(ref, initialOrgInfo as { username?: string; aliases?: string[] });
 
-        const fiber = yield* Effect.provide(Effect.scoped(watchDefaultOrgAliases()), layer).pipe(Effect.fork);
+        const fiber = yield* Effect.provide(Effect.scoped(watchAliasFile()), layer).pipe(Effect.fork);
 
-        // Yield to allow the forked reactor fiber to subscribe before we publish
+        // Yield to allow the forked fiber to subscribe before we publish
         yield* Effect.sleep(0);
 
-        yield* PubSub.publish(aliasPubSub, { type: 'changed' as const });
-        yield* Effect.sleep(50);
+        yield* PubSub.publish(fileChangePubSub, { type: 'change' as const, uri: URI.file(publishUri) });
+        yield* Effect.sleep(200);
 
         const result = yield* SubscriptionRef.get(ref);
 
@@ -154,27 +85,46 @@ describe('watchDefaultOrgAliases', () => {
     );
   };
 
-  it('updates aliases when a change event arrives', async () => {
+  it('updates aliases when alias.json changes', async () => {
     const mock = jest.fn().mockReturnValue(Effect.succeed(['myAlias', 'otherAlias']));
-    const result = await runReactorTest(mock, { username: 'user@example.com', aliases: ['myAlias'] });
+    const result = await runWatcherTest(mock, { username: 'user@example.com', aliases: ['myAlias'] }, ALIAS_FILE_PATH);
     expect(result.aliases).toEqual(['myAlias', 'otherAlias']);
   });
 
   it('preserves the primary alias at position 0 when disk order differs', async () => {
     const mock = jest.fn().mockReturnValue(Effect.succeed(['newAlias', 'originalAlias']));
-    const result = await runReactorTest(mock, { username: 'user@example.com', aliases: ['originalAlias'] });
+    const result = await runWatcherTest(
+      mock,
+      { username: 'user@example.com', aliases: ['originalAlias'] },
+      ALIAS_FILE_PATH
+    );
     expect(result.aliases).toEqual(['originalAlias', 'newAlias']);
   });
 
   it('falls back to disk order when primary alias was deleted externally', async () => {
     const mock = jest.fn().mockReturnValue(Effect.succeed(['remainingAlias']));
-    const result = await runReactorTest(mock, { username: 'user@example.com', aliases: ['deletedAlias'] });
+    const result = await runWatcherTest(
+      mock,
+      { username: 'user@example.com', aliases: ['deletedAlias'] },
+      ALIAS_FILE_PATH
+    );
     expect(result.aliases).toEqual(['remainingAlias']);
   });
 
   it('is a no-op when there is no active username in defaultOrgRef', async () => {
     const mock = jest.fn();
-    await runReactorTest(mock, {});
+    await runWatcherTest(mock, {}, ALIAS_FILE_PATH);
     expect(mock).not.toHaveBeenCalled();
+  });
+
+  it('does not update aliases when a non-alias file changes', async () => {
+    const mock = jest.fn().mockReturnValue(Effect.succeed(['myAlias']));
+    const result = await runWatcherTest(
+      mock,
+      { username: 'user@example.com', aliases: ['myAlias'] },
+      OTHER_FILE_PATH
+    );
+    expect(mock).not.toHaveBeenCalled();
+    expect(result.aliases).toEqual(['myAlias']);
   });
 });
