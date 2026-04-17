@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../telemetry';
 import { TestRunner, TestRunType } from '../testRunner';
@@ -28,7 +27,7 @@ const getDebugConfiguration = async (
   args: string[],
   cwd: string
 ): Promise<vscode.DebugConfiguration> => {
-  const sfDebugSessionId = uuid.v4();
+  const sfDebugSessionId = globalThis.crypto.randomUUID();
   const debugConfiguration: vscode.DebugConfiguration = {
     sfDebugSessionId,
     type: 'node',

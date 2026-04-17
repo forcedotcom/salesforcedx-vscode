@@ -7,7 +7,6 @@
 import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { escapeStrForRegex } from 'jest-regex-util';
 import * as path from 'node:path';
-import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
@@ -61,7 +60,7 @@ export class TestRunner {
    * @param logName Telemetry log name. If specified we will send command telemetry event when task finishes
    */
   constructor(testExecutionInfo: TestExecutionInfo, testRunType: TestRunType, logName?: string) {
-    this.testRunId = uuid.v4();
+    this.testRunId = globalThis.crypto.randomUUID();
     this.testExecutionInfo = testExecutionInfo;
     this.testRunType = testRunType;
     this.logName = logName;
