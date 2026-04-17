@@ -53,7 +53,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty && shx mkdir -p out/src && shx cp -R src/soql-parser.lib out/src/soql-parser.lib",
+      "command": "tsc --pretty && shx mkdir -p out/src && shx cp -R src/soql-parser.lib out/src/soql-parser.lib",
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",

@@ -59,10 +59,11 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-vscode-apex:compile",
+        "../salesforcedx-vscode-core:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-apex-debugger:compile",
         "../salesforcedx-utils:compile",

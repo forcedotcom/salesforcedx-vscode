@@ -32,7 +32,9 @@
       "command": "tsc -p . && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-lightning-lsp-common:compile"
+        "../salesforcedx-lightning-lsp-common:compile",
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",

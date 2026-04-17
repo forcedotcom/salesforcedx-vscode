@@ -137,7 +137,7 @@
   "wireit": {
     "compile": {
       "clean": "if-file-deleted",
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "dependencies": [
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",

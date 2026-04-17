@@ -54,7 +54,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty && node scripts/build.js",
+      "command": "tsc --pretty && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",

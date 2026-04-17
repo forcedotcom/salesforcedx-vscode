@@ -59,10 +59,11 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty && npx ts-node scripts/generateTraceFlagsSchema.ts",
+      "command": "tsc --pretty && npx ts-node scripts/generateTraceFlagsSchema.ts",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../playwright-vscode-ext:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],

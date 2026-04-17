@@ -98,9 +98,11 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../effect-ext-utils:compile",
+        "../playwright-vscode-ext:compile",
         "../soql-common:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
@@ -111,6 +113,8 @@
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json",
+        "../effect-ext-utils/out/**",
+        "../playwright-vscode-ext/out/**",
         "../soql-common/out/**",
         "../salesforcedx-vscode-i18n/out/**",
         "../salesforcedx-vscode-services/out/**"

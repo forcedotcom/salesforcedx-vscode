@@ -24,7 +24,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty && shx cp src/beautify/beautify-* out/src/beautify/",
+      "command": "tsc --pretty && shx cp src/beautify/beautify-* out/src/beautify/",
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
