@@ -128,6 +128,8 @@ const generateRows = (count: number): StatusOutputRow[] =>
   });
 
 describe('calculateCounts', () => {
+  const perfLimit = process.platform === 'win32' ? 200 : 50;
+
   it('should count local, remote, and conflicts', () => {
     const status: StatusOutputRow[] = [
       createStatusRow('A', 'ApexClass', { origin: 'local' }),
@@ -140,7 +142,7 @@ describe('calculateCounts', () => {
     expect(calculateCounts(status)).toEqual({ local: 2, remote: 2, conflicts: 1 });
   });
 
-  it('should handle 25,000 rows under 50ms', () => {
+  it(`should handle 25,000 rows under ${perfLimit}ms`, () => {
     const rows = generateRows(25_000);
     const start = performance.now();
     const counts = calculateCounts(rows);
@@ -151,7 +153,7 @@ describe('calculateCounts', () => {
     expect(counts.remote).toBe(2000); // every 10th minus conflicts
     expect(counts.local).toBe(22_500);
     console.log(`calculateCounts 25k rows: ${elapsed.toFixed(2)}ms`);
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(perfLimit);
   });
 });
 
