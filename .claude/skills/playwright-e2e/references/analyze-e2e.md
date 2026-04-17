@@ -27,17 +27,36 @@ Organized by branch and run ID.
 - `gh run download <run-id> -D <directory>` - Download artifacts
 - `gh run view <run-id> --web` - Open in browser
 
+## Artifact location (mandatory)
+
+**Always use `.e2e-artifacts/` as the root** — gitignored. Never use a variant name (e.g. `.e2e-artifacts-win/`).
+
+Structure (matches playwright-e2e-monitor agent):
+```
+.e2e-artifacts/<branch-name>/<run-id>-<workflow-name>/
+  playwright-report/
+  playwright-test-results-soql-desktop-windows-latest/   ← platform encoded in artifact name
+  playwright-test-results-soql-desktop-macos-latest/
+  playwright-test-results-soql-web/
+```
+
+Download command:
+```bash
+gh run download <run-id> -D .e2e-artifacts/<branch-name>/<run-id>-<workflow-name>
+```
+
+Platform artifacts are distinguished by name suffix (`windows-latest`, `macos-latest`, `web`) — no extra platform subdirectory needed.
+
 ## Span files from CI artifacts
 
-- Download: `gh run download <run-id> -D .e2e-artifacts`
-- Location: `.e2e-artifacts/playwright-test-results-*/spans/*.jsonl`
+- Location: `.e2e-artifacts/<branch>/<run>/playwright-test-results-*/spans/*.jsonl`
 - Format: JSONL (one span per line, parse with `JSON.parse`)
 - Fields: `name`, `traceId`, `spanId`, `parentSpanId`, `durationMs`, `status`, `startTime`, `attributes`
 
 Quick inspect:
 
 ```bash
-ls -lt .e2e-artifacts/playwright-test-results-*/spans/*.jsonl
+ls -lt .e2e-artifacts/*/*/playwright-test-results-*/spans/*.jsonl
 ```
 
 Read spans compact JSON:
@@ -45,7 +64,7 @@ Read spans compact JSON:
 ```bash
 python3 - <<'PY'
 import glob, json
-for path in glob.glob('.e2e-artifacts/playwright-test-results-*/spans/*.jsonl'):
+for path in glob.glob('.e2e-artifacts/*/*/playwright-test-results-*/spans/*.jsonl'):
     print(f'### {path}')
     with open(path, encoding='utf-8') as f:
         for line in f:
@@ -76,7 +95,7 @@ Extract frames from failing test `.webm` to step through a moment:
 - **Cmd** (e.g. 1:29–1:36 → -ss 89 -to 96):
 
 ```bash
-mkdir -p .e2e-artifacts/frames && ffmpeg -i <path>/<video>.webm -ss 89 -to 96 -vf "fps=6" -q:v 2 .e2e-artifacts/frames/frame_%04d.png
+mkdir -p .e2e-artifacts/frames && ffmpeg -i .e2e-artifacts/<branch>/<run>/playwright-test-results-*/<video>.webm -ss 89 -to 96 -vf "fps=6" -q:v 2 .e2e-artifacts/frames/frame_%04d.png
 ```
 
 - `fps=6` ≈ 6 frames/sec; output `frame_0001.png`+
