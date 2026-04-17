@@ -25,6 +25,7 @@ jobs:
       - run: npm run compile
       - run: npm run test
         env:
+          # jest does parallel test execution; too much parallelism actually makes it slower/failure-prone
           WIREIT_PARALLEL: 1
       - run: npm run capture:results
       # Archive test results and coverage reports
