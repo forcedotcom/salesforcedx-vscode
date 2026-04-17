@@ -37,6 +37,7 @@ import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
+import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
@@ -46,6 +47,7 @@ import { watchDefaultOrgContext } from './vscode/context';
 import { watchApexTestContext, watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
+import { watchLwcAuraExtensionActivation } from './vscode/extensionActivator';
 import { setExtensionContext } from './vscode/extensionContext';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
@@ -87,6 +89,7 @@ export type SalesforceVSCodeServicesApi = {
       | SettingsWatcherService
       | SourceTrackingService
       | TemplateService
+      | TerminalService
       | TransmogrifierService
       | WorkspaceService
     >;
@@ -124,6 +127,7 @@ export type SalesforceVSCodeServicesApi = {
     SourceTrackingService: typeof SourceTrackingService;
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
+    TerminalService: typeof TerminalService;
     TransmogrifierService: typeof TransmogrifierService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
     TraceFlagService: typeof TraceFlagService;
@@ -234,6 +238,8 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       Effect.forkIn(watchPackageDirectoriesContext(), scope),
       // watch active editor changes to update apex test context
       Effect.forkIn(watchApexTestContext(), scope),
+      // watch active editor to activate LWC/Aura extensions on demand
+      Effect.forkIn(watchLwcAuraExtensionActivation(), scope),
       // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
       Effect.forkIn(watchDefaultOrgAliases(), scope)
     ],
@@ -317,6 +323,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     SettingsService.Default,
     SettingsWatcherService.Default,
     SourceTrackingService.Default,
+    TerminalService.Default,
     TransmogrifierService.Default,
     TraceFlagService.Default,
     WorkspaceService.Default
@@ -388,6 +395,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       SourceTrackingService,
       ActiveMetadataOperationRef: getActiveMetadataOperationRef,
       TargetOrgRef: getDefaultOrgRef,
+      TerminalService,
       TransmogrifierService,
       TraceFlagItemStruct,
       TraceFlagService,
@@ -452,3 +460,4 @@ export { DebugLevelItemSchema, TraceFlagItemStruct, TraceFlagLogType, type Debug
 export { type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
 export type { UserCancellationError } from './vscode/prompts/promptService';
+export type { TerminalService, TerminalServiceError } from './terminal/terminalService';

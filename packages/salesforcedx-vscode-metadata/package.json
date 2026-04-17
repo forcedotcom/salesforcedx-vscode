@@ -444,6 +444,10 @@
         {
           "command": "sf.metadata.project.generate.manifest",
           "when": "isFileSystemResource && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.project.info",
+          "when": "sf:project_opened"
         }
       ],
       "editor/context": [
@@ -619,6 +623,10 @@
       {
         "command": "sf.internal.refreshsobjects",
         "title": "%sobjects_refresh%"
+      },
+      {
+        "command": "sf.metadata.project.info",
+        "title": "%project_info_text%"
       }
     ]
   }
