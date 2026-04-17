@@ -64,6 +64,7 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'vscode-webview://', // Webview internal URLs (paired with blocked script errors)
   'Connection failed, falling back to static endpoint', // o11y unauthnticated connection
   // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
+  'No default org is set', // Apex code-lens provider fires on file open even in headless/no-org tests (non-critical for snippet/headless tests)
   'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
   'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
   'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)
