@@ -60,4 +60,5 @@ fi
 
 run_step "test" "npm run test" && echo "[verify-stop] test ok" >&2
 run_step "vscode:bundle" "npm run vscode:bundle" && echo "[verify-stop] vscode:bundle ok" >&2
+run_step "knip" "npm run check:knip" && echo "[verify-stop] knip ok" >&2
 echo "[verify-stop] all passed" >&2
