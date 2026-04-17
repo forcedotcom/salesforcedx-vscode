@@ -82,7 +82,7 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     45
   );
   statusBarItem.name = 'Salesforce: Source Tracking';
-  const fileWatcherService = yield* api.services.FileWatcherService;
+  const fileChangePubSub = yield* api.services.FileChangePubSub;
 
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const activeOpRef = yield* api.services.ActiveMetadataOperationRef();
@@ -93,12 +93,12 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   );
 
   // Setup dynamic polling interval that responds to config changes
-  const settingsWatcher = yield* api.services.SettingsWatcherService;
+  const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
   const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(getPollingIntervalSeconds()));
 
   // Watch setting changes to update poll frequency dynamically
   yield* Effect.fork(
-    Stream.fromPubSub(settingsWatcher.pubsub).pipe(
+    Stream.fromPubSub(settingsChangePubSub).pipe(
       Stream.filter(event =>
         event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds')
       ),
@@ -137,7 +137,7 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
 
   const fileChangeStream = Stream.merge(
     // Subscribe to file changes TODO: maybe filter out some changes by type or uri
-    Stream.fromPubSub(fileWatcherService.pubsub).pipe(Stream.debounce(Duration.millis(500))),
+    Stream.fromPubSub(fileChangePubSub).pipe(Stream.debounce(Duration.millis(500))),
     // Poll for remote changes with configurable interval
     dynamicPollStream
   ).pipe(

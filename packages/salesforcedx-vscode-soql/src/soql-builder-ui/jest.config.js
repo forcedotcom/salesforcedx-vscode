@@ -14,6 +14,8 @@ module.exports = {
   verbose: true,
   setupFiles: ['<rootDir>/jestSetup/setupTests.ts'],
   moduleNameMapper: {
+    // Message catalog (non-component): must precede the generic querybuilder/(w+) mapper
+    '^querybuilder/messages$': '<rootDir>/modules/querybuilder/messages/i18n',
     // Resolve LWC module paths (e.g. 'querybuilder/app' → modules/querybuilder/app/app)
     '^querybuilder/(\\w+)$': '<rootDir>/modules/querybuilder/$1/$1',
     // Map @salesforce/soql-model to the local sibling package (same as Rollup alias)

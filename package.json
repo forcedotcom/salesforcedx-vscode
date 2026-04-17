@@ -32,6 +32,8 @@
     "@effect/eslint-plugin": "0.3.2",
     "@effect/language-service": "^0.80.0",
     "@eslint/json": "^0.3.0",
+    "@html-eslint/eslint-plugin": "0.59.0",
+    "@html-eslint/parser": "0.59.0",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.11.0",
     "@octokit/core": "^5",
     "@octokit/webhooks-types": "7.6.1",
@@ -130,7 +132,6 @@
     "compile:github-actions": "wireit",
     "compile:watch": "npm run compile && tsc --build --watch",
     "lint": "wireit",
-    "check:circular-deps": "wireit",
     "test": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "coverage:report": "shx mkdir -p ./test-results && npm run coverage:merge && nyc report --reporter=html --report-dir=./test-results/coverage-report --temp-dir=coverage",
@@ -139,6 +140,7 @@
     "capture:results": "shx mkdir -p ./test-results && npm run junit:report && npm run coverage:report",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
+    "check:knip": "wireit",
     "check:branch": "wireit",
     "precommit": "wireit",
     "prepush": "wireit",
@@ -376,6 +378,18 @@
       ],
       "output": []
     },
+    "check:knip": {
+      "command": "npx knip --include exports,types,nsExports,nsTypes --no-config-hints",
+      "files": [
+        "knip.json",
+        "package.json",
+        "packages/*/package.json",
+        "tsconfig*.json",
+        "packages/*/tsconfig*.json",
+        "packages/*/src/**/*.ts"
+      ],
+      "output": []
+    },
     "check:branch": {
       "command": "node scripts/check-branch.js"
     },
@@ -387,7 +401,8 @@
         "check:peer-deps",
         "check:typescript-project-references",
         "check:package-lock",
-        "check:lock-sync"
+        "check:lock-sync",
+        "check:knip"
       ]
     },
     "prepush": {

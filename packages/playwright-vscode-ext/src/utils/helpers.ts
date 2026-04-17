@@ -73,7 +73,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
   'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
   'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
-  'remoteAgentHostService' // VS Code remote agent host service noise (non-critical)
+  'remoteAgentHostService', // VS Code remote agent host service noise (non-critical)
+  'workbench.contrib.agentHostTerminal' // VS Code agent host terminal error (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -90,7 +91,10 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   // Salesforce OAuth userinfo endpoint (can 403/500 if session is invalid/expired in web,
   // non-critical for these tests.  sfdx-core will query user/organization sobjects as fallback )
   // https://github.com/forcedotcom/sfdx-core/blob/8d378c3a6f88a1d370ddc3f43954a90d7159377d/src/org/authInfo.ts#L1236
-  'services/oauth2/userinfo'
+  'services/oauth2/userinfo',
+  // Salesforce sObject describe endpoint — LSP/autocomplete may describe objects (including internal
+  // types like "Object") as-you-type; describe 404s are non-critical to test assertions
+  '/describe'
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
@@ -307,9 +311,6 @@ export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' &&
 /** Returns true if running on Windows desktop (Electron) */
 export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
 
-/** Returns true if running in VS Code web (not desktop Electron) */
-export const isVSCodeWeb = (): boolean => process.env.VSCODE_DESKTOP !== '1';
-
 /** Validate no critical console or network errors occurred during test execution */
 export const validateNoCriticalErrors = async (
   test: { step: (name: string, fn: () => Promise<void>) => Promise<void> },
@@ -336,21 +337,6 @@ export const disableMonacoAutoClosing = async (page: Page): Promise<void> => {
     'editor.autoClosingBrackets': 'never',
     'editor.autoClosingQuotes': 'never',
     'editor.autoClosingOvertype': 'never'
-  });
-
-  // Close Settings tab so it doesn't interfere with subsequent operations
-  await closeSettingsTab(page);
-};
-
-/**
- * Re-enable Monaco editor auto-closing features with default language-defined behavior.
- * Uses VS Code settings API for cleaner, more maintainable approach.
- */
-export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
-  await upsertSettings(page, {
-    'editor.autoClosingBrackets': 'languageDefined',
-    'editor.autoClosingQuotes': 'languageDefined',
-    'editor.autoClosingOvertype': 'auto'
   });
 
   // Close Settings tab so it doesn't interfere with subsequent operations

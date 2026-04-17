@@ -99,6 +99,11 @@ export default {
         {
           find: '@salesforce/soql-model',
           replacement: path.resolve(__dirname, '../soql-model')
+        },
+        // Non-component module: messages catalog (path ends with messages/i18n.ts for eslint-local-rules)
+        {
+          find: 'querybuilder/messages',
+          replacement: path.resolve(__dirname, 'modules/querybuilder/messages/i18n.ts')
         }
       ]
     }),
