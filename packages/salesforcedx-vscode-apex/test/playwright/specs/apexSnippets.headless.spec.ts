@@ -12,6 +12,7 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  isDesktop,
   openFileByName,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -37,7 +38,10 @@ const dismissEditorOverlays = async (page: Page): Promise<void> => {
     .catch(() => {});
 };
 
+// Apex extension has no browser entry point so language/snippet contributions are not registered in VS Code Web.
+// This test is desktop-only until a web bundle is added to salesforcedx-vscode-apex.
 test('Apex snippets: isb completion applies String.isBlank', async ({ page }) => {
+  test.skip(!isDesktop(), 'Apex extension has no browser bundle; apex-anon language is not registered in VS Code Web');
   test.setTimeout(120_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
