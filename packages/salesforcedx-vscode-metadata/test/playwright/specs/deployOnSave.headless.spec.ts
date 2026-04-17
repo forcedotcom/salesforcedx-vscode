@@ -43,14 +43,6 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
-    // Wait for extension to fully activate (needed for desktop settings to be available)
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await waitForOutputChannelText(page, {
-      expectedText: 'Salesforce Metadata activation complete',
-      timeout: 30_000
-    });
-
     const statusBar = new SourceTrackingStatusBarPage(page);
     await statusBar.waitForVisible(120_000);
 
