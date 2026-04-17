@@ -106,6 +106,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         'extensions.autoUpdate': false,
         'telemetry.telemetryLevel': 'off',
         'update.mode': 'none',
+        'chat.disableAIFeatures': true, // Disable Copilot/AI features to prevent secondary sidebar opening
         ...userSettings
       };
       if (Object.keys(effectiveUserSettings).length > 0) {

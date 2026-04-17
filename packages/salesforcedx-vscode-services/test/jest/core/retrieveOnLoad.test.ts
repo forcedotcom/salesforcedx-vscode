@@ -190,7 +190,7 @@ describe('filterFileResponses', () => {
       filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
     );
 
-    expect(filesToOpen).toEqual([URI.file('C:\\path\\to\\Foo.cls')]);
+    expect(filesToOpen).toEqual([URI.file('c:\\path\\to\\Foo.cls')]);
   });
 
   it('should handle multiple metadata types', async () => {

@@ -44,16 +44,19 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
   );
   if (uris.length === 0) return [] satisfies DiffFilePair[];
 
-  const retrieveResult = yield* componentSetService
+  const localComponentSet = yield* componentSetService
     .getComponentSetFromUris(uris)
-    .pipe(Effect.flatMap(componentSetService.ensureNonEmptyComponentSet), Effect.flatMap(retrieveToCacheDirectory));
+    .pipe(Effect.flatMap(componentSetService.ensureNonEmptyComponentSet));
+
+  const retrieveResult = yield* retrieveToCacheDirectory(localComponentSet);
 
   if (!retrieveResult) return [] satisfies DiffFilePair[];
 
-  const retrievedComponents = retrieveResult.components.getSourceComponents().toArray();
+  const localUriFilter = HashSet.fromIterable(uris.map(uri => HashableUri.fromUri(uri)));
 
   return yield* (yield* matchUrisToComponents(
-    HashSet.fromIterable(uris.map(uri => HashableUri.fromUri(uri))),
-    retrievedComponents
+    localComponentSet,
+    retrieveResult.components,
+    localUriFilter
   )).pipe(Stream.fromIterable, Stream.filterEffect(filesAreNotIdentical), Stream.runCollect, Effect.map(Chunk.toArray));
 });

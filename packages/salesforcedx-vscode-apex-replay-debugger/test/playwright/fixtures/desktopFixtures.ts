@@ -19,7 +19,6 @@ export const desktopTest = createDesktopTest({
   ],
   disableOtherExtensions: false,
   userSettings: {
-    'github.gitAuthentication': false,
     'git.terminalAuthentication': false,
     'git.autofetch': false,
     'salesforcedx-vscode-core.useMetadataExtensionCommands': true

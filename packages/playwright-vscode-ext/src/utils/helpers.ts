@@ -74,11 +74,11 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
   'Canceled: Canceled', // VS Code workbench / extension-host dispose during Reload Window or test teardown (non-critical)
   // VS Code 1.116+ desktop: workbench contributions that expect remote agent (not present in @vscode/test-electron)
-  'agenthostterminal',
-  'remoteagenthostservice', // VS Code remote agent host service noise (non-critical)
-  // VS Code terminal/Copilot settings interplay — benign when running packaged VS Code in tests
+  'agenthostterminal', // VS Code terminal/Copilot settings interplay — benign when running packaged VS Code in tests
   'initialhint.copilotcli',
-  'copilotCli' // GitHub Copilot CLI extension noise (non-critical)
+  'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
+  'remoteAgentHostService', // VS Code remote agent host service noise (non-critical)
+  'workbench.contrib.agentHostTerminal' // VS Code agent host terminal error (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
