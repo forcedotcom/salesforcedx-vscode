@@ -169,6 +169,7 @@ export default [
       'unicorn/no-static-only-class': 'error',
       'unicorn/no-useless-collection-argument': 'error',
       'unicorn/no-useless-error-capture-stack-trace': 'error',
+      'unicorn/no-useless-iterator-to-array': 'error',
       'unicorn/no-useless-fallback-in-spread': 'error',
       'unicorn/no-useless-length-check': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
