@@ -28,7 +28,12 @@ export const toUri = (filePath: string | URI): URI => {
     return URI.parse(`memfs:${filePath}`);
   }
 
-  return URI.file(filePath);
+  const uri = URI.file(filePath);
+  // URI.file() preserves input casing; normalize uppercase Windows drive letters to lowercase
+  // so string-path-derived URIs compare equal to HashableUri (which also normalizes).
+  return /^\/[A-Z]:[/\\]/.test(uri.path)
+    ? uri.with({ path: uri.path.replace(/^\/[A-Z]:/, m => m.toLowerCase()) })
+    : uri;
 };
 
 /** Join baseUri with a path string (e.g. glob result). Normalizes backslashes for cross-platform. */

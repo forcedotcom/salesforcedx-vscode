@@ -92,6 +92,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
         'settingsSync.enabled': false, // Prevent Settings Sync from overwriting test settings
         'salesforcedx-vscode-salesforcedx.enableFileTraces': true,
+        'github.gitAuthentication': false, // Prevent GitHub auth prompts/popups during tests
+        'chat.disableAIFeatures': true, // Disable Copilot/AI features to prevent secondary sidebar opening
         ...userSettings
       };
       if (Object.keys(effectiveUserSettings).length > 0) {

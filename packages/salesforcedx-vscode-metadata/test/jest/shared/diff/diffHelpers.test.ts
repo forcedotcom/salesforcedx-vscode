@@ -5,33 +5,53 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { toUri } from 'salesforcedx-vscode-services/src/vscode/uriUtils';
 import { URI } from 'vscode-uri';
 import type { DiffFilePair } from '../../../../src/shared/diff/diffTypes';
-import { filesAreNotIdentical, matchUrisToComponents } from '../../../../src/shared/diff/diffHelpers';
+import {
+  filesAreNotIdentical,
+  matchUrisToComponents,
+  sourceComponentToPaths
+} from '../../../../src/shared/diff/diffHelpers';
 
-/** Mock SourceComponent-like object - diffHelpers uses content, xml, walkContent() */
 const createMockComponent = (
+  fullName = 'ConflictsTest',
+  typeName = 'ApexClass',
   content?: string,
   xml?: string,
   walkContentPaths: string[] = []
 ): SourceComponent =>
   ({
+    fullName,
+    type: { name: typeName },
     content,
     xml,
     walkContent: () => walkContentPaths
   }) as unknown as SourceComponent;
 
+const createMockProjectSet = (components: SourceComponent[]): ComponentSet =>
+  ({
+    getSourceComponents: () => ({ toArray: () => components })
+  }) as unknown as ComponentSet;
+
+const createMockRetrievedSet = (remoteComponents: SourceComponent[]): ComponentSet =>
+  ({
+    getComponentFilenamesByNameAndType: ({ fullName, type }: { fullName: string; type: string }) =>
+      remoteComponents
+        .filter(c => c.fullName === fullName && c.type.name === type)
+        .flatMap(c => sourceComponentToPaths(c))
+  }) as unknown as ComponentSet;
+
 /** api.services.FsService is an Effect that yields the service */
 const createMockFsService = (overrides?: { readFile?: (path: string | URI) => Effect.Effect<string> }) => {
   const base = {
-    toUri: (path: string | URI) =>
-      Effect.succeed(typeof path === 'string' ? URI.file(path) : path),
+    toUri: (path: string | URI) => Effect.succeed(toUri(path)),
     HashableUri
   };
   return overrides ? { ...base, ...overrides } : base;
@@ -57,20 +77,20 @@ const runWithMocks = <A, E, R>(
 
 describe('matchUrisToComponents', () => {
   it('returns pairs when local .cls matches remote .cls path', async () => {
-    const localPath =
-      '/workspace/force-app/main/default/classes/ConflictsTest.cls';
+    const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
     const remoteCls =
       '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
     const remoteMeta =
       '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls-meta.xml';
 
-    const initialUris = HashSet.fromIterable([HashableUri.file(localPath)]);
-    const components = [
-      createMockComponent(remoteCls, remoteMeta, [remoteCls, remoteMeta])
-    ];
+    const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
+    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
+    const retrievedSet = createMockRetrievedSet([
+      createMockComponent('ConflictsTest', 'ApexClass', remoteCls, remoteMeta)
+    ]);
 
     const result = (await runWithMocks(
-      matchUrisToComponents(initialUris, components)
+      matchUrisToComponents(projectSet, retrievedSet, localUriFilter)
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
@@ -80,37 +100,38 @@ describe('matchUrisToComponents', () => {
     expect(pair.remoteUri.path).toContain('ConflictsTest.cls');
   });
 
-  it('returns empty when remote path does not end with fileName', async () => {
-    const localPath =
-      '/workspace/force-app/main/default/classes/ConflictsTest.cls';
+  it('returns empty when no remote component matches fullName', async () => {
+    const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
     const remoteCls =
       '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/OtherClass.cls';
 
-    const initialUris = HashSet.fromIterable([HashableUri.file(localPath)]);
-    const components = [createMockComponent(remoteCls, undefined, [remoteCls])];
+    const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
+    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
+    const retrievedSet = createMockRetrievedSet([createMockComponent('OtherClass', 'ApexClass', remoteCls)]);
 
     const result = (await runWithMocks(
-      matchUrisToComponents(initialUris, components)
+      matchUrisToComponents(projectSet, retrievedSet, localUriFilter)
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(0);
   });
 
-  it('matches .cls not .cls-meta.xml when fileName is ConflictsTest.cls', async () => {
-    const localPath =
-      '/workspace/force-app/main/default/classes/ConflictsTest.cls';
+  it('matches .cls not .cls-meta.xml when local file is ConflictsTest.cls', async () => {
+    const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
     const remoteCls =
       '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
     const remoteMeta =
       '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls-meta.xml';
 
-    const initialUris = HashSet.fromIterable([HashableUri.file(localPath)]);
-    const components = [
-      createMockComponent(remoteCls, remoteMeta, [remoteCls, remoteMeta])
-    ];
+    const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
+    // project component has only the .cls (no -meta.xml) so only .cls is iterated locally
+    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
+    const retrievedSet = createMockRetrievedSet([
+      createMockComponent('ConflictsTest', 'ApexClass', remoteCls, remoteMeta)
+    ]);
 
     const result = (await runWithMocks(
-      matchUrisToComponents(initialUris, components)
+      matchUrisToComponents(projectSet, retrievedSet, localUriFilter)
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
@@ -119,32 +140,67 @@ describe('matchUrisToComponents', () => {
     expect(pair.remoteUri.path.endsWith('.cls-meta.xml')).toBe(false);
   });
 
-  it('returns empty for empty initialUris', async () => {
-    const components = [
-      createMockComponent(
-        '/remote/ConflictsTest.cls',
-        undefined,
-        ['/remote/ConflictsTest.cls']
-      )
-    ];
+  it('returns empty when localUriFilter filters out all local files', async () => {
+    const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
+    const remoteCls =
+      '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
+
+    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
+    const retrievedSet = createMockRetrievedSet([createMockComponent('ConflictsTest', 'ApexClass', remoteCls)]);
 
     const result = (await runWithMocks(
-      matchUrisToComponents(HashSet.empty(), components)
+      matchUrisToComponents(projectSet, retrievedSet, HashSet.empty())
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(0);
   });
 
-  it('returns empty for empty retrievedComponents', async () => {
-    const initialUris = HashSet.fromIterable([
-      HashableUri.file('/workspace/classes/ConflictsTest.cls')
-    ]);
-
+  it('returns empty for empty projectComponents', async () => {
     const result = (await runWithMocks(
-      matchUrisToComponents(initialUris, [])
+      matchUrisToComponents(createMockProjectSet([]), createMockRetrievedSet([]))
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(0);
+  });
+
+  it('matches when VS Code provides uppercase drive letter URI but component path is lowercase (Windows)', async () => {
+    // On Windows, VS Code provides URIs with UPPERCASE drive letters in uri.path (/C:/...)
+    // when commands are invoked via context menu or active editor. The component content path
+    // (from SourceComponent.content via fsPath) uses lowercase (/c:/...) — the output of
+    // URI.file(fsPath) where fsPath has a lowercase drive letter.
+    // HashableUri.fromUri normalizes /C:/ → /c:/ so HashSet.has() finds the match.
+    // Tests run on macOS so we use POSIX-style paths to simulate Windows drive letter casing.
+    const vsCodeUri = URI.from({ scheme: 'file', path: '/C:/Users/runner/project/classes/ConflictsTest.cls' });
+    const componentPath = '/c:/Users/runner/project/classes/ConflictsTest.cls';
+    const remoteCls = '/C:/Users/runner/.sf/orgs/org123/remoteMetadata/classes/ConflictsTest.cls';
+
+    const localUriFilter = HashSet.fromIterable([HashableUri.fromUri(vsCodeUri)]);
+    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', componentPath)]);
+    const retrievedSet = createMockRetrievedSet([createMockComponent('ConflictsTest', 'ApexClass', remoteCls)]);
+
+    const result = (await runWithMocks(
+      matchUrisToComponents(projectSet, retrievedSet, localUriFilter)
+    )) as HashSet.HashSet<DiffFilePair>;
+
+    expect(HashSet.size(result)).toBe(1);
+  });
+
+  it('matches Apex class in non-default directory (controllers, not classes)', async () => {
+    const localPath = '/workspace/force-app/main/default/controllers/MyClass.cls';
+    const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/classes/MyClass.cls';
+
+    const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
+    const projectSet = createMockProjectSet([createMockComponent('MyClass', 'ApexClass', localPath)]);
+    const retrievedSet = createMockRetrievedSet([createMockComponent('MyClass', 'ApexClass', remoteCls)]);
+
+    const result = (await runWithMocks(
+      matchUrisToComponents(projectSet, retrievedSet, localUriFilter)
+    )) as HashSet.HashSet<DiffFilePair>;
+
+    expect(HashSet.size(result)).toBe(1);
+    const [pair] = [...HashSet.toValues(result)];
+    expect(pair.localUri.path).toContain('controllers/MyClass.cls');
+    expect(pair.remoteUri.path).toContain('classes/MyClass.cls');
   });
 });
 

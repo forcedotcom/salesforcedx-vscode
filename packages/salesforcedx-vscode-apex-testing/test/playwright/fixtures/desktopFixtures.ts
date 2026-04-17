@@ -13,7 +13,6 @@ export const desktopTest = createDesktopTest({
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   disableOtherExtensions: false,
   userSettings: {
-    'github.gitAuthentication': false,
     'git.terminalAuthentication': false,
     'git.autofetch': false
   }
@@ -24,7 +23,6 @@ export const noOrgDesktopTest = createDesktopTest({
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   disableOtherExtensions: false,
   userSettings: {
-    'github.gitAuthentication': false,
     'git.terminalAuthentication': false,
     'git.autofetch': false
   }
@@ -36,7 +34,6 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   disableOtherExtensions: false,
   userSettings: {
-    'github.gitAuthentication': false,
     'git.terminalAuthentication': false,
     'git.autofetch': false
   }

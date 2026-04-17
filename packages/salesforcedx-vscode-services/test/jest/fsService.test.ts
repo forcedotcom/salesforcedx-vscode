@@ -122,6 +122,16 @@ describe('toUri', () => {
       expect(result.path).toContain('Users');
     });
 
+    it('normalizes uppercase drive letter to lowercase (cross-platform via /C:/ path)', () => {
+      // On Windows, URI.file('C:\\...') produces path /C:/... (uppercase).
+      // We test with /C:/ prefix directly so the test is platform-independent.
+      const withUppercase = toUri('/C:/Users/runner/project/file.txt');
+      const withLowercase = toUri('/c:/Users/runner/project/file.txt');
+
+      expect(withUppercase.path).toBe('/c:/Users/runner/project/file.txt');
+      expect(withUppercase.path).toBe(withLowercase.path);
+    });
+
     it('should convert Windows path with forward slashes', () => {
       const result = toUri('C:/Users/Me/project/file.txt');
 
