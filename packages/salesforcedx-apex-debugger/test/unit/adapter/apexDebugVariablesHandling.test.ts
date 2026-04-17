@@ -6,8 +6,6 @@
  */
 
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 import {
   ApexDebug,
   ApexDebugStackFrameInfo,
@@ -41,17 +39,17 @@ describe('Debugger adapter variable handling - unit', () => {
     });
 
     it('Should use proper values from Value', () => {
-      expect(variable.name).to.equal(value.name);
-      expect(variable.type).to.equal(value.nameForMessages);
-      expect(variable.declaredTypeRef).to.equal(value.declaredTypeRef);
-      expect(variable.value).to.equal(ApexVariable.valueAsString(value));
-      expect(variable.evaluateName).to.equal(ApexVariable.valueAsString(value));
-      expect(variable.variablesReference).to.equal(20);
-      expect(variable['kind']).to.equal(ApexVariableKind.Local);
+      expect(variable.name).toBe(value.name);
+      expect(variable.type).toBe(value.nameForMessages);
+      expect(variable.declaredTypeRef).toBe(value.declaredTypeRef);
+      expect(variable.value).toBe(ApexVariable.valueAsString(value));
+      expect(variable.evaluateName).toBe(ApexVariable.valueAsString(value));
+      expect(variable.variablesReference).toBe(20);
+      expect(variable['kind']).toBe(ApexVariableKind.Local);
     });
 
     it('Should set slot to MAX integer for non local value', () => {
-      expect(variable['slot']).to.equal(Number.MAX_SAFE_INTEGER);
+      expect(variable['slot']).toBe(Number.MAX_SAFE_INTEGER);
     });
 
     it('Should set slot to specific value for LocalValue', () => {
@@ -63,31 +61,31 @@ describe('Debugger adapter variable handling - unit', () => {
         slot: 15
       };
       variable = new ApexVariable(localvalue, ApexVariableKind.Local, 20);
-      expect(variable['slot']).to.equal(localvalue.slot);
+      expect(variable['slot']).toBe(localvalue.slot);
     });
 
     it('Should correctly print null string as "null"', () => {
       value.value = undefined;
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
-      expect(variable.value).to.equal('null');
-      expect(variable.evaluateName).to.equal('null');
+      expect(variable.value).toBe('null');
+      expect(variable.evaluateName).toBe('null');
     });
 
     it('Should correctly print empty string', () => {
       value.value = '';
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
-      expect(variable.value).to.equal("''");
-      expect(variable.evaluateName).to.equal("''");
+      expect(variable.value).toBe("''");
+      expect(variable.evaluateName).toBe("''");
     });
 
     it('Should correctly print string', () => {
       value.value = '123';
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
-      expect(variable.value).to.equal("'123'");
-      expect(variable.evaluateName).to.equal("'123'");
+      expect(variable.value).toBe("'123'");
+      expect(variable.evaluateName).toBe("'123'");
     });
 
     it('Should correctly print value', () => {
@@ -95,8 +93,8 @@ describe('Debugger adapter variable handling - unit', () => {
       value.nameForMessages = 'a-type';
       value.declaredTypeRef = 'a/specific/type';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
-      expect(variable.value).to.equal('123');
-      expect(variable.evaluateName).to.equal('123');
+      expect(variable.value).toBe('123');
+      expect(variable.evaluateName).toBe('123');
     });
 
     it('Should correctly print null', () => {
@@ -104,8 +102,8 @@ describe('Debugger adapter variable handling - unit', () => {
       value.nameForMessages = 'a-type';
       value.declaredTypeRef = 'a/specific/type';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
-      expect(variable.value).to.equal('null');
-      expect(variable.evaluateName).to.equal('null');
+      expect(variable.value).toBe('null');
+      expect(variable.evaluateName).toBe('null');
     });
 
     it('Should compare Value of different kinds', () => {
@@ -117,8 +115,8 @@ describe('Debugger adapter variable handling - unit', () => {
       const result = ApexVariable.compareVariables(v1, v2);
 
       // expect
-      expect(result).to.not.equal(0);
-      expect(result).to.equal(ApexVariableKind.Local - ApexVariableKind.Static);
+      expect(result).not.toBe(0);
+      expect(result).toBe(ApexVariableKind.Local - ApexVariableKind.Static);
     });
 
     it('Should compare Value of same kinds', () => {
@@ -130,7 +128,7 @@ describe('Debugger adapter variable handling - unit', () => {
       const result = ApexVariable.compareVariables(v1, v2);
 
       // expect
-      expect(result).to.equal(0);
+      expect(result).toBe(0);
     });
 
     it('Should compare based on slot for Local', () => {
@@ -143,8 +141,8 @@ describe('Debugger adapter variable handling - unit', () => {
       const result2 = ApexVariable.compareVariables(v2, v1);
 
       // expect
-      expect(result1).to.be.greaterThan(0); // slot 10 is greater than 9
-      expect(result2).to.be.lessThan(0); // slot 9 is less than 10
+      expect(result1).toBeGreaterThan(0); // slot 10 is greater than 9
+      expect(result2).toBeLessThan(0); // slot 9 is less than 10
     });
 
     it('Should compare based on slot for Field', () => {
@@ -157,8 +155,8 @@ describe('Debugger adapter variable handling - unit', () => {
       const result2 = ApexVariable.compareVariables(v2, v1);
 
       // expect
-      expect(result1).to.be.greaterThan(0); // slot 10 is greater than 9
-      expect(result2).to.be.lessThan(0); // slot 9 is less than 10
+      expect(result1).toBeGreaterThan(0); // slot 10 is greater than 9
+      expect(result2).toBeLessThan(0); // slot 9 is less than 10
     });
 
     it('Should compare based on name for others', () => {
@@ -171,8 +169,8 @@ describe('Debugger adapter variable handling - unit', () => {
       const result2 = ApexVariable.compareVariables(v2, v1);
 
       // expect
-      expect(result1).to.be.lessThan(0); // 'a...' before 'z...'
-      expect(result2).to.be.greaterThan(0); // 'z...' after 'a...'
+      expect(result1).toBeLessThan(0); // 'a...' before 'z...'
+      expect(result2).toBeGreaterThan(0); // 'z...' after 'a...'
     });
 
     it('Should compare based on numbered name (eg. array index)', () => {
@@ -185,8 +183,8 @@ describe('Debugger adapter variable handling - unit', () => {
       const result2 = ApexVariable.compareVariables(v2, v1);
 
       // expect
-      expect(result1).to.be.greaterThan(0); // '[124]' after '123' (if [124] properly treated as number, see following test)
-      expect(result2).to.be.lessThan(0); // '123' before '124'
+      expect(result1).toBeGreaterThan(0); // '[124]' after '123' (if [124] properly treated as number, see following test)
+      expect(result2).toBeLessThan(0); // '123' before '124'
     });
 
     it('Should compare numbered name with string', () => {
@@ -199,8 +197,8 @@ describe('Debugger adapter variable handling - unit', () => {
       const result2 = ApexVariable.compareVariables(v2, v1);
 
       // expect
-      expect(result1).to.be.greaterThan(0, 'numbers after names');
-      (expect(result2).to.be.lessThan(0), 'names before numbers');
+      expect(result1).toBeGreaterThan(0); // numbers after names
+      expect(result2).toBeLessThan(0); // names before numbers
     });
   });
 
@@ -232,12 +230,12 @@ describe('Debugger adapter variable handling - unit', () => {
 
       const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', 0);
 
-      expect(variableRef).to.be.at.least(0);
+      expect(variableRef).toBeGreaterThanOrEqual(0);
       const container = adapter.getVariableContainer(variableRef as number);
 
-      expect(container).to.be.ok;
-      expect(container).to.be.instanceOf(ObjectReferenceContainer);
-      expect(adapter.getVariableContainerReferenceByApexId().size).to.equal(1);
+      expect(container).toBeTruthy();
+      expect(container).toBeInstanceOf(ObjectReferenceContainer);
+      expect(adapter.getVariableContainerReferenceByApexId().size).toBe(1);
     });
 
     it('Should expand list correctly', async () => {
@@ -287,16 +285,16 @@ describe('Debugger adapter variable handling - unit', () => {
 
       const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', 0);
 
-      expect(variableRef).to.be.at.least(0);
+      expect(variableRef).toBeGreaterThanOrEqual(0);
       const container = adapter.getVariableContainer(variableRef as number);
 
-      expect(container).to.be.ok;
-      expect(container).to.be.instanceOf(CollectionReferenceContainer);
-      expect(container!.getNumberOfChildren()).to.equal(1);
-      expect(adapter.getNumberOfChildren(variableRef)).to.equal(1);
+      expect(container).toBeTruthy();
+      expect(container).toBeInstanceOf(CollectionReferenceContainer);
+      expect(container!.getNumberOfChildren()).toBe(1);
+      expect(adapter.getNumberOfChildren(variableRef)).toBe(1);
       const expandedVariables = await container!.expand(adapter, 'all');
-      expect(expandedVariables.length).to.equal(1);
-      expect(expandedVariables[0].indexedVariables).to.equal(2);
+      expect(expandedVariables.length).toBe(1);
+      expect(expandedVariables[0].indexedVariables).toBe(2);
     });
 
     it('Should expand set correctly', async () => {
@@ -325,13 +323,13 @@ describe('Debugger adapter variable handling - unit', () => {
 
       const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', 0);
 
-      expect(variableRef).to.be.at.least(0);
+      expect(variableRef).toBeGreaterThanOrEqual(0);
       const container = adapter.getVariableContainer(variableRef as number);
 
-      expect(container).to.be.ok;
-      expect(container).to.be.instanceOf(CollectionReferenceContainer);
-      expect(container!.getNumberOfChildren()).to.equal(1);
-      expect(adapter.getNumberOfChildren(variableRef)).to.equal(1);
+      expect(container).toBeTruthy();
+      expect(container).toBeInstanceOf(CollectionReferenceContainer);
+      expect(container!.getNumberOfChildren()).toBe(1);
+      expect(adapter.getNumberOfChildren(variableRef)).toBe(1);
     });
 
     it('Should expand map correctly', async () => {
@@ -374,16 +372,16 @@ describe('Debugger adapter variable handling - unit', () => {
 
       const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', 0);
 
-      expect(variableRef).to.be.at.least(0);
+      expect(variableRef).toBeGreaterThanOrEqual(0);
       const container = adapter.getVariableContainer(variableRef as number);
 
-      expect(container).to.be.ok;
-      expect(container).to.be.instanceOf(MapReferenceContainer);
+      expect(container).toBeTruthy();
+      expect(container).toBeInstanceOf(MapReferenceContainer);
       const mapContainer = container as MapReferenceContainer;
-      expect(mapContainer.getNumberOfChildren()).to.equal(1);
-      expect(mapContainer.tupleContainers.size).to.equal(1);
-      expect(mapContainer.tupleContainers.get(1000)).to.deep.equal(expectedTupleContainer);
-      expect(mapContainer.tupleContainers.get(1000)!.getNumberOfChildren()).to.be.undefined;
+      expect(mapContainer.getNumberOfChildren()).toBe(1);
+      expect(mapContainer.tupleContainers.size).toBe(1);
+      expect(mapContainer.tupleContainers.get(1000)).toEqual(expectedTupleContainer);
+      expect(mapContainer.tupleContainers.get(1000)!.getNumberOfChildren()).toBeUndefined();
     });
 
     it('Should not expand unknown reference type', () => {
@@ -409,22 +407,16 @@ describe('Debugger adapter variable handling - unit', () => {
 
       adapter.populateReferences(references, 'FakeRequestId');
 
-      expect(adapter.getVariableContainerReferenceByApexId().size).to.equal(0);
+      expect(adapter.getVariableContainerReferenceByApexId().size).toBe(0);
     });
   });
 
   describe('resolveApexIdToVariableReference', () => {
     let adapter: ApexDebugForTest;
-    let referencesSpy: sinon.SinonStub;
+    let referencesSpy: jest.SpyInstance;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
-    });
-
-    afterEach(() => {
-      if (referencesSpy) {
-        referencesSpy.restore();
-      }
     });
 
     it('Should handle undefined input', async () => {
@@ -435,7 +427,7 @@ describe('Debugger adapter variable handling - unit', () => {
       const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', apexId);
 
       // then
-      expect(variableRef).to.be.undefined;
+      expect(variableRef).toBeUndefined();
     });
 
     it('Should call fetchReferences for unknown input', async () => {
@@ -458,45 +450,35 @@ describe('Debugger adapter variable handling - unit', () => {
           ]
         }
       ];
-      referencesSpy = sinon.stub(RequestService.prototype, 'execute').returns(
-        Promise.resolve(
-          JSON.stringify({
-            referencesResponse: {
-              references: {
-                references
-              }
+      referencesSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue(
+        JSON.stringify({
+          referencesResponse: {
+            references: {
+              references
             }
-          })
-        )
+          }
+        })
       );
 
       // when
       const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', apexId);
 
       // then
-      expect(referencesSpy.callCount).to.equal(1);
-      expect(variableRef).to.be.ok;
+      expect(referencesSpy).toHaveBeenCalledTimes(1);
+      expect(variableRef).toBeTruthy();
       const container = adapter.getVariableContainer(variableRef as number);
-      expect(container).to.be.ok;
+      expect(container).toBeTruthy();
     });
   });
 
   describe('ApexDebugStackFrameInfo', () => {
-    let stateSpy: sinon.SinonStub;
-    let sourcePathSpy: sinon.SinonStub;
+    let stateSpy: jest.SpyInstance;
     let adapter: ApexDebugForTest;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
       adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
-    });
-
-    afterEach(() => {
-      stateSpy.restore();
-      if (sourcePathSpy) {
-        sourcePathSpy.restore();
-      }
     });
 
     it('Should create as part of stackTraceRequest with variables info', async () => {
@@ -532,10 +514,10 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = sinon
-        .stub(RequestService.prototype, 'execute')
-        .returns(Promise.resolve(JSON.stringify(stateResponse)));
-      sourcePathSpy = sinon.stub(BreakpointService.prototype, 'getSourcePathFromTyperef').returns('file:///foo.cls');
+      stateSpy = jest
+        .spyOn(RequestService.prototype, 'execute')
+        .mockResolvedValue(JSON.stringify(stateResponse));
+      jest.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue('file:///foo.cls');
 
       // when
       await adapter.stackTraceRequest(
@@ -544,20 +526,20 @@ describe('Debugger adapter variable handling - unit', () => {
       );
 
       // then
-      expect(stateSpy.called).to.equal(true);
+      expect(stateSpy).toHaveBeenCalled();
       const response = adapter.getResponse(0) as DebugProtocol.StackTraceResponse;
-      expect(response.success).to.equal(true);
+      expect(response.success).toBe(true);
       const stackFrames = response.body.stackFrames;
-      expect(stackFrames.length).to.equal(2);
-      expect(stackFrames[0].id).to.be.ok; // should have frame id
+      expect(stackFrames.length).toBe(2);
+      expect(stackFrames[0].id).toBeTruthy(); // should have frame id
       const frameInfo = adapter.getStackFrameInfo(stackFrames[0].id);
-      expect(frameInfo).to.be.ok; // should have frame info for frame id
-      expect(frameInfo.locals).to.be.ok;
-      expect(frameInfo.locals).to.deep.equal(stateResponse.stateResponse.state.locals.local);
-      expect(frameInfo.statics).to.be.ok;
-      expect(frameInfo.statics).to.deep.equal(stateResponse.stateResponse.state.statics.static);
-      expect(frameInfo.globals).to.be.ok;
-      expect(frameInfo.globals).to.deep.equal(stateResponse.stateResponse.state.globals.global);
+      expect(frameInfo).toBeTruthy(); // should have frame info for frame id
+      expect(frameInfo.locals).toBeTruthy();
+      expect(frameInfo.locals).toEqual(stateResponse.stateResponse.state.locals.local);
+      expect(frameInfo.statics).toBeTruthy();
+      expect(frameInfo.statics).toEqual(stateResponse.stateResponse.state.statics.static);
+      expect(frameInfo.globals).toBeTruthy();
+      expect(frameInfo.globals).toEqual(stateResponse.stateResponse.state.globals.global);
     });
 
     it('Should create as part of stackTraceRequest without variables info', async () => {
@@ -584,10 +566,10 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = sinon
-        .stub(RequestService.prototype, 'execute')
-        .returns(Promise.resolve(JSON.stringify(stateResponse)));
-      sourcePathSpy = sinon.stub(BreakpointService.prototype, 'getSourcePathFromTyperef').returns('file:///foo.cls');
+      stateSpy = jest
+        .spyOn(RequestService.prototype, 'execute')
+        .mockResolvedValue(JSON.stringify(stateResponse));
+      jest.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue('file:///foo.cls');
 
       // when
       await adapter.stackTraceRequest(
@@ -596,17 +578,17 @@ describe('Debugger adapter variable handling - unit', () => {
       );
 
       // then
-      expect(stateSpy.called).to.equal(true);
+      expect(stateSpy).toHaveBeenCalled();
       const response = adapter.getResponse(0) as DebugProtocol.StackTraceResponse;
-      expect(response.success).to.equal(true);
+      expect(response.success).toBe(true);
       const stackFrames = response.body.stackFrames;
-      expect(stackFrames.length).to.equal(2);
-      expect(stackFrames[0].id).to.be.ok; // should have frame id
+      expect(stackFrames.length).toBe(2);
+      expect(stackFrames[0].id).toBeTruthy(); // should have frame id
       const frameInfo = adapter.getStackFrameInfo(stackFrames[0].id);
-      expect(frameInfo).to.be.ok; // should have frame info for frame id
-      expect(frameInfo.locals).to.be.ok;
-      expect(frameInfo.statics).to.be.ok;
-      expect(frameInfo.globals).to.be.ok;
+      expect(frameInfo).toBeTruthy(); // should have frame info for frame id
+      expect(frameInfo.locals).toBeTruthy();
+      expect(frameInfo.statics).toBeTruthy();
+      expect(frameInfo.globals).toBeTruthy();
     });
 
     it('Should populate as part of fetchFrameVariables', async () => {
@@ -627,37 +609,32 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = sinon.stub(RequestService.prototype, 'execute').returns(Promise.resolve(JSON.stringify(frameRespObj)));
+      stateSpy = jest
+        .spyOn(RequestService.prototype, 'execute')
+        .mockResolvedValue(JSON.stringify(frameRespObj));
 
       // when
       await adapter.fetchFrameVariables(frameInfo);
 
       // then
-      expect(stateSpy.called).to.equal(true);
-      expect(frameInfo).to.be.ok; // should have frame info for frame id
-      expect(frameInfo.locals).to.be.ok;
-      expect(frameInfo.locals).to.deep.equal(frameRespObj.frameResponse.frame.locals.local);
-      expect(frameInfo.statics).to.be.ok;
-      expect(frameInfo.statics).to.deep.equal(frameRespObj.frameResponse.frame.statics.static);
-      expect(frameInfo.globals).to.be.ok;
-      expect(frameInfo.globals).to.deep.equal(frameRespObj.frameResponse.frame.globals.global);
+      expect(stateSpy).toHaveBeenCalled();
+      expect(frameInfo).toBeTruthy(); // should have frame info for frame id
+      expect(frameInfo.locals).toBeTruthy();
+      expect(frameInfo.locals).toEqual(frameRespObj.frameResponse.frame.locals.local);
+      expect(frameInfo.statics).toBeTruthy();
+      expect(frameInfo.statics).toEqual(frameRespObj.frameResponse.frame.statics.static);
+      expect(frameInfo.globals).toBeTruthy();
+      expect(frameInfo.globals).toEqual(frameRespObj.frameResponse.frame.globals.global);
     });
   });
 
   describe('scopesRequest', () => {
     let adapter: ApexDebugForTest;
-    let resolveApexIdToVariableReferenceSpy: sinon.SinonStub;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
       adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
-    });
-
-    afterEach(() => {
-      if (resolveApexIdToVariableReferenceSpy) {
-        resolveApexIdToVariableReferenceSpy.restore();
-      }
     });
 
     it('Should return no scopes for unknown frameId', async () => {
@@ -671,10 +648,10 @@ describe('Debugger adapter variable handling - unit', () => {
 
       // then
       const response = adapter.getResponse(0) as DebugProtocol.ScopesResponse;
-      expect(response.success).to.equal(true);
-      expect(response.body).to.be.ok;
-      expect(response.body.scopes).to.be.ok;
-      expect(response.body.scopes.length).to.equal(0);
+      expect(response.success).toBe(true);
+      expect(response.body).toBeTruthy();
+      expect(response.body.scopes).toBeTruthy();
+      expect(response.body.scopes.length).toBe(0);
     });
 
     it('Should return three scopes for known frameId', async () => {
@@ -695,21 +672,21 @@ describe('Debugger adapter variable handling - unit', () => {
 
       // then
       const response = adapter.getResponse(0) as DebugProtocol.ScopesResponse;
-      expect(response.success).to.equal(true);
-      expect(response.body).to.be.ok;
-      expect(response.body.scopes).to.be.ok;
-      expect(response.body.scopes.length).to.equal(3);
-      expect(response.body.scopes[0]).to.deep.equal({
+      expect(response.success).toBe(true);
+      expect(response.body).toBeTruthy();
+      expect(response.body.scopes).toBeTruthy();
+      expect(response.body.scopes.length).toBe(3);
+      expect(response.body.scopes[0]).toEqual({
         name: 'Local',
         variablesReference: 1000,
         expensive: false
       });
-      expect(response.body.scopes[1]).to.deep.equal({
+      expect(response.body.scopes[1]).toEqual({
         name: 'Static',
         variablesReference: 1001,
         expensive: false
       });
-      expect(response.body.scopes[2]).to.deep.equal({
+      expect(response.body.scopes[2]).toEqual({
         name: 'Global',
         variablesReference: 1002,
         expensive: false
@@ -728,15 +705,13 @@ describe('Debugger adapter variable handling - unit', () => {
       frameInfo.statics = [];
       frameInfo.globals = [];
       frameInfo.locals[0] = variableValue;
-      resolveApexIdToVariableReferenceSpy = sinon
-        .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
-        .returns(1001);
+      jest.spyOn(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference').mockResolvedValue(1001);
       const expectedVariableObj = new ApexVariable(variableValue, ApexVariableKind.Local, 1001);
 
       const localScope = new ScopeContainer('local', frameInfo);
       const vars = await localScope.expand(adapter, 'all', 0, 0);
-      expect(vars.length).to.equal(1);
-      expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).to.equal(0);
+      expect(vars.length).toBe(1);
+      expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).toBe(0);
     });
 
     it('Should expand static scope', async () => {
@@ -750,15 +725,13 @@ describe('Debugger adapter variable handling - unit', () => {
       frameInfo.statics = [];
       frameInfo.globals = [];
       frameInfo.statics[0] = variableValue;
-      resolveApexIdToVariableReferenceSpy = sinon
-        .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
-        .returns(1001);
+      jest.spyOn(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference').mockResolvedValue(1001);
       const expectedVariableObj = new ApexVariable(variableValue, ApexVariableKind.Static, 1001);
 
       const localScope = new ScopeContainer('static', frameInfo);
       const vars = await localScope.expand(adapter, 'all', 0, 0);
-      expect(vars.length).to.equal(1);
-      expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).to.equal(0);
+      expect(vars.length).toBe(1);
+      expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).toBe(0);
     });
 
     it('Should expand global scope', async () => {
@@ -772,31 +745,25 @@ describe('Debugger adapter variable handling - unit', () => {
       frameInfo.statics = [];
       frameInfo.globals = [];
       frameInfo.globals[0] = variableValue;
-      resolveApexIdToVariableReferenceSpy = sinon
-        .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
-        .returns(1001);
+      jest.spyOn(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference').mockResolvedValue(1001);
       const expectedVariableObj = new ApexVariable(variableValue, ApexVariableKind.Global, 1001);
 
       const localScope = new ScopeContainer('global', frameInfo);
       const vars = await localScope.expand(adapter, 'all', 0, 0);
-      expect(vars.length).to.equal(1);
-      expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).to.equal(0);
+      expect(vars.length).toBe(1);
+      expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).toBe(0);
     });
   });
 
   describe('variablesRequest', () => {
     let adapter: ApexDebugForTest;
-    let resetIdleTimersSpy: sinon.SinonSpy;
+    let resetIdleTimersSpy: jest.SpyInstance;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
       adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
-      resetIdleTimersSpy = sinon.spy(ApexDebugForTest.prototype, 'resetIdleTimer');
-    });
-
-    afterEach(() => {
-      resetIdleTimersSpy.restore();
+      resetIdleTimersSpy = jest.spyOn(ApexDebugForTest.prototype, 'resetIdleTimer');
     });
 
     it('Should return no variables for unknown variablesReference', async () => {
@@ -810,11 +777,11 @@ describe('Debugger adapter variable handling - unit', () => {
 
       // then
       const response = adapter.getResponse(0) as DebugProtocol.VariablesResponse;
-      expect(response.success).to.equal(true);
-      expect(response.body).to.be.ok;
-      expect(response.body.variables).to.be.ok;
-      expect(response.body.variables.length).to.equal(0);
-      expect(resetIdleTimersSpy.called).to.equal(false);
+      expect(response.success).toBe(true);
+      expect(response.body).toBeTruthy();
+      expect(response.body.variables).toBeTruthy();
+      expect(response.body.variables.length).toBe(0);
+      expect(resetIdleTimersSpy).not.toHaveBeenCalled();
     });
 
     it('Should return variables for known variablesReference', async () => {
@@ -835,12 +802,12 @@ describe('Debugger adapter variable handling - unit', () => {
 
       // then
       const response = adapter.getResponse(0) as DebugProtocol.VariablesResponse;
-      expect(response.success).to.equal(true);
-      expect(response.body).to.be.ok;
-      expect(response.body.variables).to.be.ok;
-      expect(response.body.variables.length).to.equal(2);
-      expect(response.body.variables).to.deep.equal(variables);
-      expect(resetIdleTimersSpy.calledOnce).to.equal(true);
+      expect(response.success).toBe(true);
+      expect(response.body).toBeTruthy();
+      expect(response.body.variables).toBeTruthy();
+      expect(response.body.variables.length).toBe(2);
+      expect(response.body.variables).toEqual(variables);
+      expect(resetIdleTimersSpy).toHaveBeenCalledTimes(1);
     });
 
     it('Should return no variables when expand errors out', async () => {
@@ -858,9 +825,9 @@ describe('Debugger adapter variable handling - unit', () => {
       );
 
       const response = adapter.getResponse(0) as DebugProtocol.VariablesResponse;
-      expect(response.success).to.equal(true);
-      expect(response.body.variables.length).to.equal(0);
-      expect(resetIdleTimersSpy.called).to.equal(false);
+      expect(response.success).toBe(true);
+      expect(response.body.variables.length).toBe(0);
+      expect(resetIdleTimersSpy).not.toHaveBeenCalled();
     });
   });
 });
