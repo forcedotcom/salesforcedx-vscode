@@ -90,7 +90,10 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   // Salesforce OAuth userinfo endpoint (can 403/500 if session is invalid/expired in web,
   // non-critical for these tests.  sfdx-core will query user/organization sobjects as fallback )
   // https://github.com/forcedotcom/sfdx-core/blob/8d378c3a6f88a1d370ddc3f43954a90d7159377d/src/org/authInfo.ts#L1236
-  'services/oauth2/userinfo'
+  'services/oauth2/userinfo',
+  // Salesforce sObject describe endpoint — LSP/autocomplete may describe objects (including internal
+  // types like "Object") as-you-type; describe 404s are non-critical to test assertions
+  '/describe'
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
