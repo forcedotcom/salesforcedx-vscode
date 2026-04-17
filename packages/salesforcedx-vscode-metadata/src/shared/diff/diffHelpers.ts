@@ -6,29 +6,21 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { SourceComponent } from '@salesforce/source-deploy-retrieve';
+import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
+import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
-import { Utils } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { MissingDefaultOrgError } from './diffErrors';
-import { createDiffFilePair, isDiffFilePair, type DiffFilePair } from './diffTypes';
+import { createDiffFilePair, type DiffFilePair } from './diffTypes';
 
-/** Convert file paths to HashableUri set. Uses FsService.toUri for correct scheme (memfs in web). */
-export const pathsToHashableUris = Effect.fn('pathsToHashableUris')(function* (paths: string[]) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
-  return yield* Stream.fromIterable(paths).pipe(
-    Stream.mapEffect(p => fsService.toUri(p)),
-    Stream.map(uri => fsService.HashableUri.fromUri(uri)),
-    Stream.runCollect,
-    Effect.map(HashSet.fromIterable)
-  );
-});
+export const sourceComponentToPaths = (component: SourceComponent) =>
+  [component.content, component.xml, ...component.walkContent()].filter(isString);
 
 /** Get cache directory URI for retrieved metadata */
 const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
@@ -63,43 +55,55 @@ export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(fu
   return result;
 });
 
-const getParentDir = (uri: HashableUri) => Utils.basename(Utils.dirname(uri));
-
-const createMatchedPair = Effect.fn('createMatchedPair')(function* (props: {
-  remoteUris: HashSet.HashSet<HashableUri>;
-  projectUri: HashableUri;
-}) {
-  const { projectUri, remoteUris } = props;
-  const projectFileName = Utils.basename(projectUri);
-  const projectParentDir = getParentDir(projectUri);
-  const matchedRemoteUri = HashSet.toValues(remoteUris).find(
-    p => Utils.basename(p) === projectFileName && getParentDir(p) === projectParentDir
-  );
-  return matchedRemoteUri
-    ? createDiffFilePair({ localUri: projectUri, remoteUri: matchedRemoteUri, fileName: projectFileName })
-    : yield* Effect.void;
-});
-
-/** Match initial URIs to retrieved component file paths */
+/**
+ * Match project SourceComponents to retrieved remote paths using ComponentSet identity.
+ * Uses getComponentFilenamesByNameAndType so local directory name is irrelevant —
+ * remote paths are looked up by type+fullName, not by path heuristics.
+ *
+ * @param localUriFilter - allowlist of local URIs to include in the result. Use when the caller already knows
+ * which files the user acted on (e.g. right-click → diff on specific files) and wants to suppress pairs
+ * for other files in the same component. Omit to include all files.
+ */
 export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function* (
-  projectUris: HashSet.HashSet<HashableUri>,
-  retrievedComponents: SourceComponent[]
+  projectComponentSet: ComponentSet,
+  retrievedComponentSet: ComponentSet,
+  localUriFilter?: HashSet.HashSet<HashableUri>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = yield* api.services.FsService;
-  const remoteUris = yield* Stream.fromIterable(retrievedComponents).pipe(
-    Stream.mapConcat(sourceComponentToPaths),
-    Stream.mapEffect(p => fsService.toUri(p)),
-    Stream.map(uri => fsService.HashableUri.fromUri(uri)),
-    Stream.runCollect,
-    Effect.map(HashSet.fromIterable)
-  );
 
-  yield* Effect.annotateCurrentSpan({ remoteUris, initialUris: [...projectUris].map(u => u.toString()) });
+  const projectComponents = projectComponentSet.getSourceComponents().toArray();
 
-  return yield* Stream.fromIterable(projectUris).pipe(
-    Stream.mapEffect(i => createMatchedPair({ remoteUris, projectUri: i })),
-    Stream.filter(isDiffFilePair),
+  yield* Effect.annotateCurrentSpan({
+    projectComponents: projectComponents.map(c => `${c.type.name}:${c.fullName}`)
+  });
+
+  return yield* Stream.fromIterable(projectComponents).pipe(
+    Stream.flatMap(projectComp => {
+      // basename → remote path, built once per component pair so we never cross-match
+      // between components that share filenames (e.g. two LWCs both having helper.js).
+      const remotePaths = retrievedComponentSet.getComponentFilenamesByNameAndType({
+        fullName: projectComp.fullName,
+        type: projectComp.type.name
+      });
+      if (remotePaths.length === 0) return Stream.empty;
+      const byBasename = new Map(remotePaths.map(p => [Utils.basename(URI.file(p)), p]));
+      return Stream.fromIterable(sourceComponentToPaths(projectComp)).pipe(
+        Stream.mapEffect(p => fsService.toUri(p).pipe(Effect.map(uri => fsService.HashableUri.fromUri(uri)))),
+        Stream.filter(u => !localUriFilter || HashSet.has(localUriFilter, u)),
+        Stream.filterMap(localUri =>
+          Option.fromNullable(byBasename.get(Utils.basename(localUri))).pipe(
+            Option.map(remotePath => ({ localUri, remotePath }))
+          )
+        ),
+        Stream.mapEffect(({ localUri, remotePath }) =>
+          fsService.toUri(remotePath).pipe(
+            Effect.map(uri => fsService.HashableUri.fromUri(uri)),
+            Effect.map(remoteUri => createDiffFilePair({ localUri, remoteUri, fileName: Utils.basename(localUri) }))
+          )
+        )
+      );
+    }),
     Stream.runCollect,
     Effect.map(HashSet.fromIterable)
   );
@@ -118,6 +122,3 @@ export const filesAreNotIdentical = Effect.fn('filesAreNotIdentical')(function* 
   )).map((s: string) => s.replaceAll(/\s+/g, ''));
   return buffer1 !== buffer2;
 });
-
-export const sourceComponentToPaths = (component: SourceComponent) =>
-  [component.content ?? [], component.xml ?? [], ...component.walkContent()].filter(isString);
