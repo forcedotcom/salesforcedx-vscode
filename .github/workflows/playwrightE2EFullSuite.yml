@@ -73,3 +73,9 @@ jobs:
     secrets: inherit
     with:
       vscode_version: ${{ inputs.vscode_version }}
+
+  visualforce:
+    uses: ./.github/workflows/visualforceE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}

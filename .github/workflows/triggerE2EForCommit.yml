@@ -107,14 +107,7 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
-  # 📄 Visualforce Features
-  visualforce-lsp:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'visualforceLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # 📄 Visualforce Features — migrated to Playwright in visualforceE2E.yml
 
   # 🔍 SOQL Features - migrated to Playwright in soqlE2E.yml
 
