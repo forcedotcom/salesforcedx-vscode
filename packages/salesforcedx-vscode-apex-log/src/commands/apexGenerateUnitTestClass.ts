@@ -34,6 +34,7 @@ const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: S
   const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
   return yield* promptService.promptForOutputDir({
     defaultUri,
+    folderName: 'classes',
     pickerPlaceHolder: nls.localize('output_dir_prompt')
   });
 });

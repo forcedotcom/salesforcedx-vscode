@@ -22,6 +22,7 @@ import {
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
+import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
@@ -49,7 +50,7 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
 
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 5000 });
-    await quickInput.getByText(/Enter Apex trigger name/i).waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
 
     await page.keyboard.type(triggerName);
