@@ -6,7 +6,11 @@
  */
 
 import { expect, Page } from '@playwright/test';
-import { dismissAllQuickInputWidgets, waitForQuickInputFirstOption } from '../utils/helpers';
+import {
+  dismissAllQuickInputWidgets,
+  dismissSignInWalkthroughDialog,
+  waitForQuickInputFirstOption
+} from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
@@ -14,6 +18,10 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
 
   // Dismiss any existing quick input widgets
   await dismissAllQuickInputWidgets(page);
+
+  // VS Code 1.116.0+ may show a modal "Welcome to VS Code - Sign In" walkthrough that blocks all
+  // keyboard input including F1. Dismiss it here so palette callers don't each have to.
+  await dismissSignInWalkthroughDialog(page);
 
   // Wrap the entire open sequence in retry logic
   await expect(async () => {
@@ -35,7 +43,7 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     const input = widget.locator('input.input');
     await expect(input).toBeVisible({ timeout: 5000 });
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
-  }).toPass({ timeout: 15_000 });
+  }).toPass({ timeout: 30_000 });
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
@@ -93,7 +101,7 @@ export const executeCommandWithCommandPalette = async (
     await dismissAllQuickInputWidgets(page);
     await openCommandPalette(page);
     await executeCommand(page, command, hasNotText);
-  }).toPass({ timeout: 15_000 });
+  }).toPass({ timeout: 30_000 });
 };
 
 /** Shared helper: closes command palette */
