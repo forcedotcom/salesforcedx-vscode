@@ -17,7 +17,6 @@ import {
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import {
-  assertWelcomeTabExists,
   closeSettingsTab,
   closeWelcomeTabs,
   disableMonacoAutoClosing,
@@ -335,12 +334,20 @@ export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<
  * Setup minimal org + auth with workbench loading in parallel.
  * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
  * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
- * @param checkWelcomeTabs When true (default), assert Welcome/Walkthrough tab exists and close welcome tabs. Set to false to skip.
+ * @param checkWelcomeTabs When true (default), close welcome tabs. Set to false to skip.
  */
 export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
   const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
   if (checkWelcomeTabs) {
-    await assertWelcomeTabExists(page);
+    // On web the Welcome tab always appears at startup — wait for it before closing so we don't
+    // return early (count=0) and let it pop up mid-test. On desktop, workbench.startupEditor:none
+    // suppresses the tab, so skip the wait.
+    if (!isDesktop()) {
+      await page
+        .getByRole('tab', { name: /Welcome|Walkthrough/i })
+        .first()
+        .waitFor({ state: 'visible', timeout: 10_000 });
+    }
     await closeWelcomeTabs(page);
   }
   await saveScreenshot(page, 'setup.after-workbench.png');
