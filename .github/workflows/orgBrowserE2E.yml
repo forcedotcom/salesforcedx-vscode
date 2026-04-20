@@ -4,19 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       vscode_version:
-        description: 'VS Code version for desktop E2E (e.g. 1.116.0). Empty uses repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        description: 'VS Code version for desktop E2E (e.g. 1.116.0). Empty uses repo
+          variable PLAYWRIGHT_VSCODE_VERSION.'
         required: false
         type: string
         default: ''
   workflow_call:
     inputs:
       vscode_version:
-        description: 'VS Code version for desktop E2E (e.g. 1.116.0). Empty uses repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        description: 'VS Code version for desktop E2E (e.g. 1.116.0). Empty uses repo
+          variable PLAYWRIGHT_VSCODE_VERSION.'
         required: false
         type: string
         default: ''
   push:
-    branches-ignore: [main, develop]
+    branches-ignore: [ main, develop ]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
@@ -40,6 +42,9 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
+        inputs.vscode_version != '' && inputs.vscode_version ||
+        vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -75,7 +80,7 @@ jobs:
       - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
         with:
-          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -90,7 +95,8 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc
+            dreamhouse-lwc
           retry_wait_seconds: 60
 
       - name: Auth to dev hub (global)
@@ -98,7 +104,8 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
+            --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
       - name: create scratch org and set up dreamhouse
@@ -122,7 +129,8 @@ jobs:
           npm run test:web -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
+          'failure'
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
@@ -156,13 +164,15 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [ macos-latest, windows-latest ]
       fail-fast: false
 
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
-      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' && inputs.vscode_version != '' && inputs.vscode_version || vars.PLAYWRIGHT_VSCODE_VERSION }}
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
+        inputs.vscode_version != '' && inputs.vscode_version ||
+        vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -203,7 +213,7 @@ jobs:
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
         with:
-          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -226,7 +236,8 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc
+            dreamhouse-lwc
           retry_wait_seconds: 60
 
       - name: Auth to dev hub (global)
@@ -234,7 +245,8 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
+            --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
       - name: create scratch org and set up dreamhouse
@@ -259,7 +271,8 @@ jobs:
           npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
+          'failure'
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
