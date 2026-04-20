@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       vscode_version:
-        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave
+          empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
         required: false
         type: string
         default: ''
@@ -76,6 +77,12 @@ jobs:
 
   visualforce:
     uses: ./.github/workflows/visualforceE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  snippets:
+    uses: ./.github/workflows/snippetsE2E.yml
     secrets: inherit
     with:
       vscode_version: ${{ inputs.vscode_version }}
