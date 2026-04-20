@@ -27,9 +27,6 @@
     },
     {
       "path": "../salesforcedx-vscode-core"
-    },
-    {
-      "path": "../salesforcedx-vscode-services"
     }
   ]
 }
