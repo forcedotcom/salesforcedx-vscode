@@ -66,6 +66,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Connection failed, falling back to static endpoint', // o11y unauthnticated connection,
   'Ignoring terminal.integrated.initialHint', // VS Code terminal hint configuration conflicts (non-critical)
   // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
+  // Apex code-lens provider (provideCodeLenses) fires on file open even in headless/no-org tests; VS Code surfaces two console errors for the same underlying cause:
+  'No default org is set', // specific message from WorkspaceContextUtil.getConnection
+  'An unknown error occurred. Please consult the log for more details.', // VS Code workbench generic wrapper around the same no-org error
   'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
   'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
   'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)
@@ -76,8 +79,13 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
   'workbench.contrib.agentHostTerminal', // VS Code agent host terminal error (non-critical)
   'Unable to resolve your shell environment', // VS Code terminal profile / integrated shell init (noisy on desktop E2E)
+  'Canceled: Canceled', // VS Code workbench / extension-host dispose during Reload Window or test teardown (non-critical)
+  // VS Code 1.116+ desktop: workbench contributions that expect remote agent (not present in @vscode/test-electron)
+  'agenthostterminal', // VS Code terminal/Copilot settings interplay — benign when running packaged VS Code in tests
+  'initialhint.copilotcli',
   'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
-  'remoteAgentHostService' // VS Code remote agent host service noise (non-critical)
+  'remoteAgentHostService', // VS Code remote agent host service noise (non-critical)
+  'workbench.contrib.agentHostTerminal' // VS Code agent host terminal error (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -94,7 +102,10 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   // Salesforce OAuth userinfo endpoint (can 403/500 if session is invalid/expired in web,
   // non-critical for these tests.  sfdx-core will query user/organization sobjects as fallback )
   // https://github.com/forcedotcom/sfdx-core/blob/8d378c3a6f88a1d370ddc3f43954a90d7159377d/src/org/authInfo.ts#L1236
-  'services/oauth2/userinfo'
+  'services/oauth2/userinfo',
+  // Salesforce sObject describe endpoint — LSP/autocomplete may describe objects (including internal
+  // types like "Object") as-you-type; describe 404s are non-critical to test assertions
+  '/describe'
 ] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
@@ -143,7 +154,6 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
     return;
   }
 
-  // Web: navigate if requested, then wait
   if (navigate) {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
   }
@@ -211,8 +221,35 @@ export const waitForQuickInputFirstOption = async (
   }).toPass({ timeout: options?.retryTimeout ?? 10_000 });
 };
 
+/**
+ * Dismiss the VS Code 1.116+ "Welcome to VS Code" modal sign-in walkthrough that can appear on
+ * first launch. This dialog is modal and blocks all other keyboard input (command palette, etc.)
+ * until dismissed, so it must be closed before anything else. Clicks "Continue without Signing In"
+ * if present, else "Skip", else Escape. Safe no-op if the dialog is not shown.
+ */
+export const dismissSignInWalkthroughDialog = async (page: Page): Promise<void> => {
+  const dialog = page.getByRole('dialog', { name: /Welcome to (Visual Studio Code|VS Code)/i });
+  const isVisible = await dialog.isVisible({ timeout: 500 }).catch(() => false);
+  if (!isVisible) return;
+
+  const continueWithoutSignIn = dialog.getByRole('button', { name: /Continue without Signing In/i });
+  if (await continueWithoutSignIn.isVisible({ timeout: 500 }).catch(() => false)) {
+    await continueWithoutSignIn.click({ force: true }).catch(() => {});
+  } else {
+    const skip = dialog.getByRole('button', { name: /^Skip$/i });
+    await ((await skip.isVisible({ timeout: 500 }).catch(() => false))
+      ? skip.click({ force: true }).catch(() => {})
+      : page.keyboard.press('Escape'));
+  }
+  await dialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+};
+
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
+  // Dismiss the 1.116+ modal sign-in walkthrough first — it blocks all other input, including
+  // the clicks/keystrokes this helper uses, so it must be gone before we try to close tabs.
+  await dismissSignInWalkthroughDialog(page);
+
   const workbench = page.locator(WORKBENCH);
 
   // Use Playwright's retry mechanism to close all welcome tabs
@@ -328,9 +365,6 @@ export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' &&
 /** Returns true if running on Windows desktop (Electron) */
 export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
 
-/** Returns true if running in VS Code web (not desktop Electron) */
-export const isVSCodeWeb = (): boolean => process.env.VSCODE_DESKTOP !== '1';
-
 /** Validate no critical console or network errors occurred during test execution */
 export const validateNoCriticalErrors = async (
   test: { step: (name: string, fn: () => Promise<void>) => Promise<void> },
@@ -357,21 +391,6 @@ export const disableMonacoAutoClosing = async (page: Page): Promise<void> => {
     'editor.autoClosingBrackets': 'never',
     'editor.autoClosingQuotes': 'never',
     'editor.autoClosingOvertype': 'never'
-  });
-
-  // Close Settings tab so it doesn't interfere with subsequent operations
-  await closeSettingsTab(page);
-};
-
-/**
- * Re-enable Monaco editor auto-closing features with default language-defined behavior.
- * Uses VS Code settings API for cleaner, more maintainable approach.
- */
-export const enableMonacoAutoClosing = async (page: Page): Promise<void> => {
-  await upsertSettings(page, {
-    'editor.autoClosingBrackets': 'languageDefined',
-    'editor.autoClosingQuotes': 'languageDefined',
-    'editor.autoClosingOvertype': 'auto'
   });
 
   // Close Settings tab so it doesn't interfere with subsequent operations

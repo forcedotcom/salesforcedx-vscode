@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.6.0",
+  "version": "66.7.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -215,13 +215,14 @@
       ]
     },
     "lint": {
-      "command": "../../node_modules/.bin/eslint --color --cache --cache-location .eslintcache .",
+      "command": "../../node_modules/.bin/eslint --color .",
       "dependencies": [
         "../eslint-local-rules:compile",
         "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
+        "src/**/*.html",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         ".vscodeignore",
@@ -445,7 +446,7 @@
             "title": "%soql_walkthrough_step1_title%",
             "description": "%soql_walkthrough_step1_description%",
             "media": {
-              "image": "images/SOQL_Builder_50.16.0.gif",
+              "image": "images/soql-builder-walkthrough.gif",
               "altText": "%soql_walkthrough_step1_alt%"
             }
           },
@@ -454,7 +455,7 @@
             "title": "%soql_walkthrough_step2_title%",
             "description": "%soql_walkthrough_step2_description%",
             "media": {
-              "image": "images/SOQL_Builder_50.16.0.gif",
+              "image": "images/soql-builder-walkthrough.gif",
               "altText": "%soql_walkthrough_step2_alt%"
             },
             "completionEvents": [
@@ -466,7 +467,7 @@
             "title": "%soql_walkthrough_step3_title%",
             "description": "%soql_walkthrough_step3_description%",
             "media": {
-              "image": "images/SOQL_Builder_50.16.0.gif",
+              "image": "images/soql-builder-walkthrough.gif",
               "altText": "%soql_walkthrough_step3_alt%"
             }
           },
@@ -475,7 +476,7 @@
             "title": "%soql_walkthrough_step4_title%",
             "description": "%soql_walkthrough_step4_description%",
             "media": {
-              "image": "images/SOQL_Builder_50.16.0.gif",
+              "image": "images/soql-builder-walkthrough.gif",
               "altText": "%soql_walkthrough_step4_alt%"
             }
           },
@@ -484,8 +485,17 @@
             "title": "%soql_walkthrough_step5_title%",
             "description": "%soql_walkthrough_step5_description%",
             "media": {
-              "image": "images/SOQL_Builder_50.16.0.gif",
+              "image": "images/soql-builder-walkthrough.gif",
               "altText": "%soql_walkthrough_step5_alt%"
+            }
+          },
+          {
+            "id": "step6",
+            "title": "%soql_walkthrough_step6_title%",
+            "description": "%soql_walkthrough_step6_description%",
+            "media": {
+              "image": "images/soql-builder-walkthrough.gif",
+              "altText": "%soql_walkthrough_step6_alt%"
             }
           }
         ]

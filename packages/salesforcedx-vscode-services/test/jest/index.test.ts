@@ -130,28 +130,19 @@ jest.mock('../../src/virtualFsProvider/memfsWatcher', () => ({
   }
 }));
 
-// Mock FileWatcherService to avoid vscode.workspace.createFileSystemWatcher
+// Mock FileWatcherLayer to avoid vscode.workspace.createFileSystemWatcher
 jest.mock('../../src/vscode/fileWatcherService', () => {
-  const EffectModule = require('effect/Effect');
-  const Layer = require('effect/Layer');
-  const Context = require('effect/Context');
-
-  const FileWatcherServiceTag = Context.GenericTag('FileWatcherService');
-
-  const mockPubSub = {
-    publish: jest.fn().mockReturnValue(EffectModule.succeed(undefined)),
-    subscribe: jest.fn()
-  };
-  const mockServiceImpl = {
-    pubsub: mockPubSub
-  };
-
-  const FileWatcherService = {
-    Default: Layer.succeed(FileWatcherServiceTag, mockServiceImpl)
-  };
-
+  const E = require('effect');
   return {
-    FileWatcherService
+    FileWatcherLayer: E.Layer.empty
+  };
+});
+
+// Mock SettingsWatcherLayer to avoid vscode.workspace.onDidChangeConfiguration
+jest.mock('../../src/vscode/settingsWatcherService', () => {
+  const E = require('effect');
+  return {
+    SettingsWatcherLayer: E.Layer.empty
   };
 });
 

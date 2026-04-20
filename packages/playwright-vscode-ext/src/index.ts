@@ -13,6 +13,7 @@ export {
   assertWelcomeTabExists,
   waitForQuickInputFirstOption,
   closeWelcomeTabs,
+  dismissSignInWalkthroughDialog,
   closeSettingsTab,
   waitForWorkspaceReady,
   typingSpeed,
@@ -33,6 +34,7 @@ export {
   createApexClass,
   deployCurrentSourceToOrg,
   openFileByName,
+  openFileFromExplorerTree,
   editAndSaveOpenFile as editOpenFile,
   setupMinimalOrgAndAuth,
   createAndDeployApexTestClass

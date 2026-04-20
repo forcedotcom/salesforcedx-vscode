@@ -18,8 +18,6 @@ import { nls } from '../messages';
 import { type LogCollectorState, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
 import { getExecAnonLogIds, saveLog } from './logStorage';
 
-export type { LogCollectorState } from '../services/apexLogState';
-
 const toDate = (d: Date | string): Date => (d instanceof Date ? d : new Date(d));
 
 const isAfterTraceFlagStart =
@@ -112,12 +110,12 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   const knownIdsRef = yield* Ref.make(new Set<string>());
   const targetOrgRef = yield* api.services.TargetOrgRef();
 
-  const settingsWatcher = yield* api.services.SettingsWatcherService;
+  const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
   const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(getPollIntervalSeconds()));
 
   // watch the setting to update poll freq
   yield* Effect.fork(
-    Stream.fromPubSub(settingsWatcher.pubsub).pipe(
+    Stream.fromPubSub(settingsChangePubSub).pipe(
       Stream.filter(event => event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')),
       Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollIntervalSeconds())))
     )

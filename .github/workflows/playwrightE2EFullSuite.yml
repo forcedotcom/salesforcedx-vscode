@@ -1,0 +1,81 @@
+# Runs all Playwright extension E2E reusable workflows in one dispatch. Jobs run in parallel on
+# separate runners
+name: Playwright E2E Full Suite
+
+on:
+  workflow_dispatch:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
+
+concurrency:
+  group: playwright-e2e-full-suite-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright-vscode-ext:
+    uses: ./.github/workflows/playwrightVscodeExtE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  services:
+    uses: ./.github/workflows/servicesE2E.yml
+    secrets: inherit
+
+  metadata:
+    uses: ./.github/workflows/metadataE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  apex-log:
+    uses: ./.github/workflows/apexLogE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  apex-testing:
+    uses: ./.github/workflows/apexTestingE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  org-e2e:
+    uses: ./.github/workflows/orgE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  org-browser:
+    uses: ./.github/workflows/orgBrowserE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  soql:
+    uses: ./.github/workflows/soqlE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  core:
+    uses: ./.github/workflows/coreE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  apex-replay-debugger:
+    uses: ./.github/workflows/apexReplayDebuggerE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  snippets:
+    uses: ./.github/workflows/snippetsE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}

@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.6.0",
+  "version": "66.7.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -438,6 +438,10 @@
         {
           "command": "sf.metadata.project.generate.manifest",
           "when": "isFileSystemResource && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.project.info",
+          "when": "sf:project_opened"
         }
       ],
       "editor/context": [
@@ -613,6 +617,10 @@
       {
         "command": "sf.internal.refreshsobjects",
         "title": "%sobjects_refresh%"
+      },
+      {
+        "command": "sf.metadata.project.info",
+        "title": "%project_info_text%"
       }
     ]
   }

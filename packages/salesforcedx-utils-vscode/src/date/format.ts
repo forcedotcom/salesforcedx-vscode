@@ -28,13 +28,3 @@ export const optionYYYYMMddHHmmss: Intl.DateTimeFormatOptions = {
   second: '2-digit'
 };
 
-export const optionHHmm: Intl.DateTimeFormatOptions = {
-  hour: '2-digit',
-  minute: '2-digit'
-};
-
-export const optionMMddYYYY: Intl.DateTimeFormatOptions = {
-  month: '2-digit',
-  day: '2-digit',
-  year: 'numeric'
-};

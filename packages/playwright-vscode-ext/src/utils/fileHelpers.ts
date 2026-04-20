@@ -135,6 +135,7 @@ export const deployCurrentSourceToOrg = async (
   const deployCompleteTimeoutMs = options?.deployCompleteTimeoutMs ?? DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS;
   const waitViaOutputChannel = options?.waitViaOutputChannel ?? false;
 
+  await verifyCommandExists(page, 'SFDX: Deploy This Source to Org', 30_000);
   await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
 
   const deployingNotification = page
@@ -156,6 +157,59 @@ export const deployCurrentSourceToOrg = async (
     });
   }
 };
+
+/**
+ * Open a file by clicking its entry in the Files Explorer tree. Works on both web and desktop.
+ *
+ * Use this when {@link openFileByName} (Quick Open) won't work — notably on VS Code Web where
+ * the `vscode-test-web` file system provider doesn't implement `provideFileSearch`, so Quick
+ * Open returns "No matching results" for files that haven't been opened yet.
+ *
+ * Intermediate folders are auto-expanded when needed. Compact folders (VS Code's default) are
+ * handled transparently because the file's treeitem is reachable as soon as any ancestor row
+ * is expanded. If the user has disabled compact folders, pass `parentFolders` so we can expand
+ * each segment individually.
+ *
+ * @param page Playwright page
+ * @param fileName File name to open (must be unique within the Explorer — pass `parentFolders` to disambiguate when needed).
+ * @param parentFolders Optional parent-folder names in order to expand before locating the file. Safe to pass even when compact folders are enabled; expansion is a no-op if already open or if the folder row isn't present (compact-folder merge).
+ */
+export const openFileFromExplorerTree = async (
+  page: Page,
+  fileName: string,
+  parentFolders: readonly string[] = []
+): Promise<void> => {
+  // Focus the Files Explorer view; palette avoids keybinding conflicts
+  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  const tree = page.getByRole('tree', { name: /Files Explorer/i }).first();
+  await tree.waitFor({ state: 'visible', timeout: 10_000 });
+
+  // Expand each parent folder if it's actually present as its own row. Compact folders merge
+  // multiple levels into one row, so some segments may not exist as separate treeitems — that's
+  // fine: the leaf file will still be reachable once any ancestor compact row is expanded.
+  for (const folderName of parentFolders) {
+    const folderItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(folderName)}\\b`) }).first();
+    if (!(await folderItem.isVisible({ timeout: 500 }).catch(() => false))) continue;
+    const expanded = (await folderItem.getAttribute('aria-expanded').catch(() => null)) === 'true';
+    if (expanded) continue;
+    await folderItem.scrollIntoViewIfNeeded().catch(() => {});
+    // Double-click reliably expands in VS Code's Explorer; single click only selects.
+    await folderItem.dblclick({ timeout: 5000 }).catch(() => {});
+    await expect(folderItem).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 }).catch(() => {});
+  }
+
+  const fileItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(fileName)}$`) }).first();
+  await fileItem.waitFor({ state: 'visible', timeout: 15_000 });
+  await fileItem.scrollIntoViewIfNeeded().catch(() => {});
+  // Double-click to ensure the file opens as a non-preview tab and gains focus; single click
+  // sometimes opens in preview mode that subsequent Explorer clicks replace.
+  await fileItem.dblclick({ timeout: 5000 });
+
+  const editor = page.locator(EDITOR_WITH_URI).first();
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+};
+
+const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * Open a file using Quick Open.
