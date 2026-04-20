@@ -159,8 +159,7 @@
         "LICENSE.txt",
         "images/**",
         "syntaxes/**",
-        "grammars/**",
-        "snippets/**"
+        "grammars/**"
       ],
       "output": [
         "*.vsix"
@@ -294,12 +293,6 @@
         "language": "apex-anon",
         "scopeName": "source.apex",
         "path": "./grammars/apex.tmLanguage"
-      }
-    ],
-    "snippets": [
-      {
-        "language": "apex",
-        "path": "./snippets/apex.json"
       }
     ]
   }
