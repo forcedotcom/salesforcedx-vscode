@@ -7,7 +7,6 @@
 
 import { expect } from '@playwright/test';
 import {
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -29,14 +28,16 @@ import { multiPackageNoOrgTest } from '../fixtures';
 multiPackageNoOrgTest(
   'Apex Generate Class: both package directory classes folders appear in output directory picker',
   async ({ page }) => {
-    multiPackageNoOrgTest.skip(process.env.VSCODE_DESKTOP !== '1', 'requires desktop filesystem to set up multi-package workspace');
+    multiPackageNoOrgTest.skip(
+      process.env.VSCODE_DESKTOP !== '1',
+      'requires desktop filesystem to set up multi-package workspace'
+    );
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
     const className = `MultiPkgDirTest${Date.now()}`;
 
     await multiPackageNoOrgTest.step('setup with no org', async () => {
       await waitForVSCodeWorkbench(page);
-      await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
       await ensureSecondarySideBarHidden(page);
       await waitForWorkspaceReady(page);
