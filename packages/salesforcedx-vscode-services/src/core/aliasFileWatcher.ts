@@ -11,16 +11,19 @@ import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { join, normalize } from 'node:path';
-import { FileChangePubSub } from '../vscode/fileChangePubSub';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { AliasService } from './alias';
 import { getDefaultOrgRef } from './defaultOrgRef';
 
-/**
- * Merges a fresh alias list from disk with the current aliases, preserving the primary alias
- * (aliases[0]) at position 0 so the VS Code status bar label stays stable.
- * If the primary alias was deleted externally, fall back to disk order.
- */
+// --- INSTRUMENTATION: remove before shipping ---
+// eslint-disable-next-line functional/no-let
+let received = 0;
+setInterval(() => {
+  console.log(`[After Measurement] aliasFileWatcher: received ${received}`);
+}, 10_000);
+// --- END INSTRUMENTATION ---
+
 const mergeAliases = (currentAliases: readonly string[] | undefined, freshAliases: string[]): string[] => {
   const primaryAlias = currentAliases?.[0];
   if (primaryAlias && freshAliases.includes(primaryAlias)) {
@@ -29,27 +32,38 @@ const mergeAliases = (currentAliases: readonly string[] | undefined, freshAliase
   return freshAliases;
 };
 
-/** Subscribes to FileChangePubSub, filters to alias.json, debounces, and refreshes defaultOrgRef.aliases.
- * Preserves aliases[0] (the primary display alias) at position 0 for status bar stability. */
 export const watchAliasFile = Effect.fn('watchAliasFile')(function* () {
-  const aliasFilePath = normalize(join(Global.SFDX_DIR, 'alias.json'));
-  const [fileChangePubSub, aliasService, ref] = yield* Effect.all(
-    [FileChangePubSub, AliasService, getDefaultOrgRef()],
+  const [aliasService, ref] = yield* Effect.all(
+    [AliasService, getDefaultOrgRef()],
     { concurrency: 'unbounded' }
   );
 
-  yield* Stream.fromPubSub(fileChangePubSub).pipe(
-    Stream.filter(event => normalize(event.uri.fsPath) === aliasFilePath),
-    Stream.debounce(Duration.millis(50)),
-    Stream.mapEffect(() => SubscriptionRef.get(ref)),
-    Stream.map(r => r.username),
-    Stream.filter(isString),
-    Stream.mapEffect(aliasService.getAliasesFromUsername),
-    Stream.runForEach(freshAliases =>
-      SubscriptionRef.update(ref, existing => ({
-        ...existing,
-        aliases: mergeAliases(existing.aliases, freshAliases)
-      }))
-    )
+  yield* Effect.acquireUseRelease(
+    Effect.sync(() =>
+      vscode.workspace.createFileSystemWatcher(
+        new vscode.RelativePattern(URI.file(Global.SFDX_DIR), 'alias.json')
+      )
+    ),
+    watcher =>
+      Stream.async<void>(emit => {
+        const fire = () => { received++; void emit.single(undefined); };
+        watcher.onDidCreate(fire);
+        watcher.onDidChange(fire);
+        watcher.onDidDelete(fire);
+        return Effect.sync(() => watcher.dispose());
+      }).pipe(
+        Stream.debounce(Duration.millis(50)),
+        Stream.mapEffect(() => SubscriptionRef.get(ref)),
+        Stream.map(r => r.username),
+        Stream.filter(isString),
+        Stream.mapEffect(aliasService.getAliasesFromUsername),
+        Stream.runForEach(freshAliases =>
+          SubscriptionRef.update(ref, existing => ({
+            ...existing,
+            aliases: mergeAliases(existing.aliases, freshAliases)
+          }))
+        )
+      ),
+    watcher => Effect.sync(() => watcher.dispose())
   );
 });

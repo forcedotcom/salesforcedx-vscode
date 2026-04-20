@@ -130,21 +130,6 @@ jest.mock('../../src/virtualFsProvider/memfsWatcher', () => ({
   }
 }));
 
-// Mock FileWatcherLayer to avoid vscode.workspace.createFileSystemWatcher
-jest.mock('../../src/vscode/fileWatcherService', () => {
-  const E = require('effect');
-  return {
-    FileWatcherLayer: E.Layer.empty
-  };
-});
-
-// Mock SettingsWatcherLayer to avoid vscode.workspace.onDidChangeConfiguration
-jest.mock('../../src/vscode/settingsWatcherService', () => {
-  const E = require('effect');
-  return {
-    SettingsWatcherLayer: E.Layer.empty
-  };
-});
 
 // Mock node:os module
 jest.mock('node:os', () => ({

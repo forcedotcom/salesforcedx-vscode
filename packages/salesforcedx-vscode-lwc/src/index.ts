@@ -13,6 +13,7 @@ import {
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import * as Effect from 'effect/Effect';
 import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
@@ -20,7 +21,7 @@ import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import LwcLspStatusBarItem from './lwcLspStatusBarItem';
 import { metaSupport } from './metasupport';
-import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
+import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   const telemetryModule = await import('./telemetry/index.js');
@@ -137,7 +138,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Watch for newly created LWC files and auto-open them to trigger delayed initialization
   // This handles the case where files are downloaded from org browser after server starts
   // Opening files syncs them to the server via onDidOpen, which triggers delayed initialization
-  startLwcFileWatcherViaServices();
+  Effect.runFork(startLwcFileWatcher());
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
   if (process.env.ESBUILD_PLATFORM !== 'web') {

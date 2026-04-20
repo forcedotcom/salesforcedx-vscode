@@ -51,16 +51,12 @@ import { watchLwcAuraExtensionActivation } from './vscode/extensionActivator';
 import { setExtensionContext } from './vscode/extensionContext';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
-import { FileChangePubSub } from './vscode/fileChangePubSub';
-import { FileWatcherLayer } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
 import { PromptService, UserCancellationError } from './vscode/prompts/promptService';
 import { registerCommandWithLayer, registerCommandWithRuntime } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
-import { SettingsChangePubSub } from './vscode/settingsChangePubSub';
 import { SettingsService } from './vscode/settingsService';
-import { SettingsWatcherLayer } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
@@ -75,7 +71,6 @@ export type SalesforceVSCodeServicesApi = {
       | ConnectionService
       | EditorService
       | ErrorHandlerService
-      | FileChangePubSub
       | FsService
       | MediaService
       | MetadataChangeNotificationService
@@ -87,7 +82,6 @@ export type SalesforceVSCodeServicesApi = {
       | MetadataRetrieveService
       | ProjectService
       | Resource.Resource
-      | SettingsChangePubSub
       | SettingsService
       | SourceTrackingService
       | TemplateService
@@ -111,7 +105,6 @@ export type SalesforceVSCodeServicesApi = {
     ErrorHandlerService: typeof ErrorHandlerService;
     ExtensionContextService: typeof ExtensionContextService;
     ExtensionContextServiceLayer: typeof ExtensionContextServiceLayer;
-    FileChangePubSub: typeof FileChangePubSub;
     FsService: typeof FsService;
     getErrorMessage: typeof getErrorMessage;
     MediaService: typeof MediaService;
@@ -124,7 +117,6 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRetrieveService: typeof MetadataRetrieveService;
     ProjectService: typeof ProjectService;
     SdkLayerFor: typeof SdkLayerFor;
-    SettingsChangePubSub: typeof SettingsChangePubSub;
     SettingsService: typeof SettingsService;
     SourceTrackingService: typeof SourceTrackingService;
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
@@ -296,9 +288,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     context.subscriptions.push(getWebAppInsightsReporter());
   }
   const internalLayers = Layer.mergeAll(
-    FileWatcherLayer,
     ServicesSdkLayer(),
-    SettingsWatcherLayer,
     ErrorHandlerService.Default
   ).pipe(Layer.provideMerge(ChannelService.Default));
 
@@ -308,7 +298,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     TemplateService.Default,
     ExtensionContextService.Default,
     ExecuteAnonymousService.Default,
-    FileChangePubSub.Default,
     ApexLogService.Default,
     ComponentSetService.Default,
     ConfigService.Default,
@@ -325,7 +314,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     MetadataRetrieveService.Default,
     ProjectService.Default,
     SettingsService.Default,
-    SettingsChangePubSub.Default,
     SourceTrackingService.Default,
     TerminalService.Default,
     TransmogrifierService.Default,
@@ -366,7 +354,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ErrorHandlerService,
       ExtensionContextService,
       ExtensionContextServiceLayer,
-      FileChangePubSub,
       FsService,
       getErrorMessage,
       MediaService,
@@ -378,7 +365,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataRetrieveService,
       ProjectService,
       SdkLayerFor,
-      SettingsChangePubSub,
       SettingsService,
       SourceTrackingService,
       ActiveMetadataOperationRef: getActiveMetadataOperationRef,
@@ -420,7 +406,6 @@ export {
   type ExtensionContextServiceLayer,
   ExtensionContextNotAvailableError
 } from './vscode/extensionContextService';
-export { type FileChangePubSub, type FileChangeEvent } from './vscode/fileChangePubSub';
 export { type FsService } from './vscode/fsService';
 export {
   MetadataDeleteService,
@@ -443,7 +428,6 @@ export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
-export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';
 export { DebugLevelItemSchema, TraceFlagItemStruct, TraceFlagLogType, type DebugLevelItem, type TraceFlagItem } from './core/schemas/traceFlagSchemas';
 export { type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';

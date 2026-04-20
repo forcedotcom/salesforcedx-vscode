@@ -8,6 +8,7 @@
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
+import * as vscode from 'vscode';
 import {
   ACCESS_TOKEN_KEY,
   CODE_BUILDER_WEB_SECTION,
@@ -18,29 +19,36 @@ import {
 import { ConnectionService } from '../core/connectionService';
 import { retrieveOnLoadEffect } from '../core/retrieveOnLoad';
 import { ChannelService } from './channelService';
-import { SettingsChangePubSub } from './settingsChangePubSub';
 
 /** Watches settings changes and triggers appropriate effects */
 export const watchSettingsService = Effect.fn('watchSettingsService')(function* () {
   console.log('watchSettingsService starting');
 
-  const [settingsChangePubSub, channelService] = yield* Effect.all([SettingsChangePubSub, ChannelService], {
-    concurrency: 'unbounded'
-  });
+  const channelService = yield* ChannelService;
 
-  // watches auth settings
   yield* Effect.fork(
-    Stream.fromPubSub(settingsChangePubSub).pipe(
-      Stream.filter(event => authSettings.some(s => event.affectsConfiguration(s))),
+    Stream.async<vscode.ConfigurationChangeEvent>(emit => {
+      const disposable = vscode.workspace.onDidChangeConfiguration(event => {
+        if (authSettings.some(s => event.affectsConfiguration(s))) {
+          void emit.single(event);
+        }
+      });
+      return Effect.sync(() => disposable.dispose());
+    }).pipe(
       Stream.debounce(Duration.millis(100)),
       Stream.tap(() => channelService.appendToChannel('ConfigChanged: Web Auth')),
-      Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void))) // it's possible for the connection to fail and that's ok.  Some other event will try to get a connection and display a real error
+      Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void)))
     )
   );
 
-  // watch retrieveOnLoad setting
-  yield* Stream.fromPubSub(settingsChangePubSub).pipe(
-    Stream.filter(event => event.affectsConfiguration(`${CODE_BUILDER_WEB_SECTION}.${RETRIEVE_ON_LOAD_KEY}`)),
+  yield* Stream.async<vscode.ConfigurationChangeEvent>(emit => {
+    const disposable = vscode.workspace.onDidChangeConfiguration(event => {
+      if (event.affectsConfiguration(`${CODE_BUILDER_WEB_SECTION}.${RETRIEVE_ON_LOAD_KEY}`)) {
+        void emit.single(event);
+      }
+    });
+    return Effect.sync(() => disposable.dispose());
+  }).pipe(
     Stream.debounce(Duration.millis(100)),
     Stream.tap(() => channelService.appendToChannel(`ConfigChanged: ${RETRIEVE_ON_LOAD_KEY}`)),
     Stream.runForEach(() => retrieveOnLoadEffect())
