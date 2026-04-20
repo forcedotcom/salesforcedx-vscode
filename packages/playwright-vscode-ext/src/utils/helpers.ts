@@ -156,14 +156,6 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
 };
 
-/** Assert that Welcome/Walkthrough tab exists and is visible - useful for debugging startup issues */
-export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
-  const welcomeTab = page.getByRole('tab', { name: /Welcome|Walkthrough/i }).first();
-  await expect(welcomeTab, 'Welcome/Walkthrough tab should exist after VS Code startup').toBeVisible({
-    timeout: 10_000
-  });
-};
-
 /** Dismiss any open quick input widgets by pressing Escape until none visible */
 export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => {
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
@@ -226,6 +218,16 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   // Dismiss the 1.116+ modal sign-in walkthrough first — it blocks all other input, including
   // the clicks/keystrokes this helper uses, so it must be gone before we try to close tabs.
   await dismissSignInWalkthroughDialog(page);
+
+  // On web the Welcome tab always appears on startup — wait for it before trying to close so we
+  // don't return early (count=0) and let it appear later mid-test. On desktop,
+  // workbench.startupEditor:none suppresses the tab entirely, so skip the wait.
+  if (!isDesktop()) {
+    await page
+      .getByRole('tab', { name: /Welcome|Walkthrough/i })
+      .first()
+      .waitFor({ state: 'visible', timeout: 10_000 });
+  }
 
   const workbench = page.locator(WORKBENCH);
 
