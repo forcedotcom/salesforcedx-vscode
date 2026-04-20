@@ -11,7 +11,6 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -35,7 +34,6 @@ import { messages } from '../../../src/messages/i18n';
     await test.step('setup minimal org', async () => {
       const createResult = await createMinimalOrg();
       await waitForVSCodeWorkbench(page);
-      await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
       await ensureSecondarySideBarHidden(page);
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);

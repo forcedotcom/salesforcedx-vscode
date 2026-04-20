@@ -10,7 +10,6 @@ export {
   filterErrors,
   filterNetworkErrors,
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   waitForQuickInputFirstOption,
   closeWelcomeTabs,
   dismissSignInWalkthroughDialog,

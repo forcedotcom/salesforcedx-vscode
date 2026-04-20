@@ -689,7 +689,9 @@ export default [
       'packages/salesforcedx-vscode-org/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-org/playwright*.ts',
       'packages/salesforcedx-vscode-soql/test/playwright/**/*.ts',
-      'packages/salesforcedx-vscode-soql/playwright*.ts'
+      'packages/salesforcedx-vscode-soql/playwright*.ts',
+      'packages/salesforcedx-vscode-visualforce/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-visualforce/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
