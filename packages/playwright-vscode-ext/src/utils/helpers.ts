@@ -219,16 +219,6 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   // the clicks/keystrokes this helper uses, so it must be gone before we try to close tabs.
   await dismissSignInWalkthroughDialog(page);
 
-  // On web the Welcome tab always appears on startup — wait for it before trying to close so we
-  // don't return early (count=0) and let it appear later mid-test. On desktop,
-  // workbench.startupEditor:none suppresses the tab entirely, so skip the wait.
-  if (!isDesktop()) {
-    await page
-      .getByRole('tab', { name: /Welcome|Walkthrough/i })
-      .first()
-      .waitFor({ state: 'visible', timeout: 10_000 });
-  }
-
   const workbench = page.locator(WORKBENCH);
 
   // Use Playwright's retry mechanism to close all welcome tabs

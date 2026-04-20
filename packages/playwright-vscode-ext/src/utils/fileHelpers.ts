@@ -339,6 +339,15 @@ export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<
 export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
   const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
   if (checkWelcomeTabs) {
+    // On web the Welcome tab always appears at startup — wait for it before closing so we don't
+    // return early (count=0) and let it pop up mid-test. On desktop, workbench.startupEditor:none
+    // suppresses the tab, so skip the wait.
+    if (!isDesktop()) {
+      await page
+        .getByRole('tab', { name: /Welcome|Walkthrough/i })
+        .first()
+        .waitFor({ state: 'visible', timeout: 10_000 });
+    }
     await closeWelcomeTabs(page);
   }
   await saveScreenshot(page, 'setup.after-workbench.png');
