@@ -54,15 +54,23 @@ export const fileSystemSetup = Effect.fn('fileSystemSetup')(function* (context: 
     })
   );
 
-  // Replace the existing workspace with ours
-  vscode.workspace.updateWorkspaceFolders(0, 0, {
-    name: nls.localize('workspace_folder_name'),
-    uri: URI.parse(`${fsPrefix}:/${sampleProjectName}`)
-  });
+  // Only inject the memfs sample project when the user hasn't already opened a workspace folder.
+  // If a folder is already open (e.g. a real project loaded via `?folder=` in web, or a `--folder`
+  // arg, or a Playwright-E2E vscode-test-web mount), prepending a synthetic sample would hide that
+  // folder's Explorer contents behind the memfs tree and break file lookups/search.
+  const hasExistingWorkspace = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
+  if (!hasExistingWorkspace) {
+    vscode.workspace.updateWorkspaceFolders(0, 0, {
+      name: nls.localize('workspace_folder_name'),
+      uri: URI.parse(`${fsPrefix}:/${sampleProjectName}`)
+    });
+  }
 
   yield* startWatch();
   yield* projectFiles(fsProvider);
-  yield* waitForWorkspaceFolders();
+  if (!hasExistingWorkspace) {
+    yield* waitForWorkspaceFolders();
+  }
 
   const settingsService = yield* SettingsService;
 

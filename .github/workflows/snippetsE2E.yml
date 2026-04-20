@@ -1,0 +1,216 @@
+name: Snippets E2E (Playwright)
+
+on:
+  workflow_dispatch:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for desktop E2E (e.g. 1.116.0). Empty uses repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for desktop E2E (e.g. 1.116.0). Empty uses repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
+  push:
+    branches-ignore: [main, develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '**/README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
+
+concurrency:
+  group: ci-${{ github.ref }}-snippetsE2E
+  cancel-in-progress: true
+
+jobs:
+  e2e-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        package: [salesforcedx-vscode-lwc]
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
+      # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:web -w ${{ matrix.package }} -- --reporter=html
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
+      - name: Run E2E tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          CI: 1
+        run: |
+          npm run test:web -w ${{ matrix.package }} -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          PLAYWRIGHT_WORKERS: 1
+        run: |
+          npm run test:web -w ${{ matrix.package }} -- --last-failed --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/${{ matrix.package }}/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/${{ matrix.package }}/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.package }}-web
+          path: packages/${{ matrix.package }}/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-${{ matrix.package }}-web
+          path: packages/${{ matrix.package }}/test-results
+          if-no-files-found: ignore
+
+  e2e-desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      VSCODE_DESKTOP: 1
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' && inputs.vscode_version != '' && inputs.vscode_version || vars.PLAYWRIGHT_VSCODE_VERSION }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+        package: [salesforcedx-vscode-lwc]
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Log desktop VS Code version
+        shell: bash
+        run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
+      # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:desktop -w ${{ matrix.package }} -- --reporter=html
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
+      - name: Run E2E tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+        run: |
+          npm run test:desktop -w ${{ matrix.package }} -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          PLAYWRIGHT_WORKERS: 1
+        run: |
+          npm run test:desktop -w ${{ matrix.package }} -- --last-failed --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/${{ matrix.package }}/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/${{ matrix.package }}/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.package }}-desktop-${{ matrix.os }}
+          path: packages/${{ matrix.package }}/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-${{ matrix.package }}-desktop-${{ matrix.os }}
+          path: packages/${{ matrix.package }}/test-results
+          if-no-files-found: ignore

@@ -29,13 +29,7 @@ jobs:
   # core-sobjects-definitions: removed (sObjectsDefinitions.e2e.ts deleted)
   # core-org-browser: removed (orgBrowser.e2e.ts deleted; new org browser has Playwright tests)
 
-  core-snippets:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'snippets.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # core-snippets: migrated to Playwright — packages/salesforcedx-vscode-lwc (test:web / test:desktop)
 
   # 📦 Deploy & Retrieve — now covered by core Playwright tests (manifestBuilder, deployAndRetrieve, metadataDeployRetrieve, pushAndPull)
 
