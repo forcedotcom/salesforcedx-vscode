@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       vscode_version:
-        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave
+          empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
         required: false
         type: string
         default: ''
@@ -70,6 +71,12 @@ jobs:
 
   apex-replay-debugger:
     uses: ./.github/workflows/apexReplayDebuggerE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
+  visualforce:
+    uses: ./.github/workflows/visualforceE2E.yml
     secrets: inherit
     with:
       vscode_version: ${{ inputs.vscode_version }}

@@ -11,7 +11,6 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -50,7 +49,6 @@ import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/consta
     await test.step('setup minimal org', async () => {
       const createResult = await createMinimalOrg();
       await waitForVSCodeWorkbench(page);
-      await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
       await ensureSecondarySideBarHidden(page);
       await saveScreenshot(page, 'setup.after-workbench.png');

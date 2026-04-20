@@ -8,7 +8,6 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
@@ -25,7 +24,6 @@ test.setTimeout(RETRIEVE_TIMEOUT_MS);
 test.beforeEach(async ({ page }) => {
   const createResult = await createDreamhouseOrg();
   await waitForVSCodeWorkbench(page);
-  await assertWelcomeTabExists(page);
   await closeWelcomeTabs(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());

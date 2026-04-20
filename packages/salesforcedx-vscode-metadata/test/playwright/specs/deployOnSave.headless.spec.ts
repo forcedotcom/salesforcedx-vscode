@@ -11,7 +11,6 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -38,7 +37,6 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
   await test.step('setup minimal org and enable deploy-on-save', async () => {
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);

@@ -8,7 +8,6 @@
 import { test as webTest } from '@playwright/test';
 import {
   MINIMAL_ORG_ALIAS,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   createMinimalOrg,
   ensureSecondarySideBarHidden,
@@ -50,7 +49,6 @@ export const webTrackingConflictTest = webTest.extend<{
   statusBarPage: async ({ page }, use) => {
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);

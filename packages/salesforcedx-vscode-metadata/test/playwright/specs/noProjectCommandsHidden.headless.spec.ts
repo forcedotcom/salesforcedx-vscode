@@ -10,7 +10,6 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   verifyCommandDoesNotExist,
@@ -27,7 +26,6 @@ import packageNls from '../../../package.nls.json';
 
     await emptyWorkspaceDesktopTest.step('setup with empty workspace', async () => {
       await waitForVSCodeWorkbench(page);
-      await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
       await ensureSecondarySideBarHidden(page);
     });

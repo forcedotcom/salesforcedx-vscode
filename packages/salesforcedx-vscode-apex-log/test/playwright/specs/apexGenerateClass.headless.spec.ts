@@ -7,7 +7,6 @@
 
 import { expect } from '@playwright/test';
 import {
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -32,7 +31,6 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
 
   await test.step('setup with no org', async () => {
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);

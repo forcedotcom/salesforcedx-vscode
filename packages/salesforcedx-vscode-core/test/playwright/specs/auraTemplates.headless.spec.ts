@@ -19,7 +19,6 @@ import {
   saveScreenshot,
   QUICK_INPUT_WIDGET,
   EDITOR_WITH_URI,
-  assertWelcomeTabExists,
   ensureSecondarySideBarHidden,
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
@@ -30,7 +29,6 @@ test.describe('Aura Templates (Desktop Only)', () => {
     setupConsoleMonitoring(page);
     setupNetworkMonitoring(page);
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);

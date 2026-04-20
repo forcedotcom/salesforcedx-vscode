@@ -16,17 +16,18 @@ import {
   WORKSPACE_READ_DIRECTORY_REQUEST,
   WORKSPACE_FIND_FILES_REQUEST,
   WORKSPACE_DELETE_FILE_REQUEST,
-  type WorkspaceReadFileParams,
   type WorkspaceReadFileResult,
-  type WorkspaceStatParams,
   type WorkspaceStatResult,
-  type WorkspaceReadDirectoryParams,
   type WorkspaceReadDirectoryResult,
   type WorkspaceFindFilesParams,
   type WorkspaceFindFilesResult,
-  type WorkspaceDeleteFileParams,
   type WorkspaceDeleteFileResult
 } from './lspCustomRequests';
+
+type WorkspaceReadFileParams = { uri: URI };
+type WorkspaceStatParams = { uri: URI };
+type WorkspaceReadDirectoryParams = { uri: URI };
+type WorkspaceDeleteFileParams = { uri: string };
 
 const errorMessage = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 

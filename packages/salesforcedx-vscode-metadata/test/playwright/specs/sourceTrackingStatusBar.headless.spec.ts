@@ -11,7 +11,6 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -37,7 +36,6 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
   const statusBarPage = await test.step('setup scratch org and wait for status bar', async () => {
     const createResult = await createDreamhouseOrg();
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);

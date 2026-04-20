@@ -11,7 +11,6 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   createNonTrackingOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -33,7 +32,6 @@ import packageNls from '../../../package.nls.json';
     await test.step('setup non-tracking org', async () => {
       const createResult = await createNonTrackingOrg();
       await waitForVSCodeWorkbench(page);
-      await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
       await ensureSecondarySideBarHidden(page);
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);

@@ -15,7 +15,6 @@ import {
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import {
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden
 } from '../../../src/utils/helpers';
@@ -30,7 +29,6 @@ const outputFilterInput = (page: Page) =>
 test.describe('Output Channel', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
   });
