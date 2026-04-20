@@ -15,9 +15,27 @@ import {
 import { WORKBENCH } from '../utils/locators';
 import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
 
-export const openCommandPalette = async (page: Page): Promise<void> => {
-  // Dismiss any existing quick input widgets
-  await dismissAllQuickInputWidgets(page);
+export type OpenCommandPaletteOptions = {
+  /**
+   * When true, skip the focus-click that normally precedes F1 and skip any Escape-based dismiss
+   * of existing quick input widgets. The workbench click usually lands in the editor area and
+   * clears any active text selection, and Escape keystrokes trigger VS Code's `cancelSelection`
+   * binding when the editor is focused with a selection. Both effects flip the
+   * `editorHasSelection` context to false and hide selection-guarded commands from the palette.
+   * Set this to `true` when you need the active selection to survive opening the palette. The
+   * caller is responsible for ensuring the editor has keyboard focus (typically as a side effect
+   * of the click + keyboard selection that produced the selection). Defaults to `false`.
+   */
+  preserveSelection?: boolean;
+};
+
+export const openCommandPalette = async (page: Page, options?: OpenCommandPaletteOptions): Promise<void> => {
+  // Dismiss any existing quick input widgets. Skip when `preserveSelection` is set — that helper
+  // issues Escape keystrokes, and VS Code's default `cancelSelection` binding is triggered by
+  // Escape when the editor is focused with a selection, wiping out what the caller just set up.
+  if (!options?.preserveSelection) {
+    await dismissAllQuickInputWidgets(page);
+  }
 
   // VS Code 1.116.0+ may show a modal "Welcome to VS Code - Sign In" walkthrough that blocks all
   // keyboard input including F1. Dismiss it here so palette callers don't each have to.
@@ -33,10 +51,17 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     await page.waitForTimeout(100);
 
     await dismissWelcomeOnboardingOverlayIfPresent(page);
-    await page
-      .locator(WORKBENCH)
-      .click({ force: true })
-      .catch(() => {});
+    // Click the workbench to ensure VS Code has keyboard focus before F1 — unless the caller is
+    // preserving an existing editor selection. On web, any click outside the editor (including
+    // the status bar) blurs the monaco editor and clears its selection, flipping
+    // `editorHasSelection` to false and hiding selection-guarded commands. When preserving
+    // selection we assume the caller already gave the editor focus (selection implies focus).
+    if (!options?.preserveSelection) {
+      await page
+        .locator(WORKBENCH)
+        .click({ force: true })
+        .catch(() => {});
+    }
 
     // Press F1 to open command palette
     await page.keyboard.press('F1');
@@ -44,17 +69,32 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     // VS Code 1.116+: `.quick-input-widget` and `input.input` often fail `toBeVisible()` while still usable
     const input = activeQuickInputTextField(page);
     await input.waitFor({ state: 'attached', timeout: 15_000 });
-    await input.click({ force: true, timeout: 5000 });
+    // Clicking the palette input is fine for focus; it does not alter the underlying editor
+    // selection (the palette is a separate widget). Skip it when preserving selection out of
+    // caution — on web, any mouse event can trigger blur-driven selection resets.
+    if (!options?.preserveSelection) {
+      await input.click({ force: true, timeout: 5000 });
+    }
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
   }).toPass({ timeout: 30_000 });
 };
 
-const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
+const executeCommand = async (
+  page: Page,
+  command: string,
+  hasNotText?: string,
+  paletteOptions?: OpenCommandPaletteOptions
+): Promise<void> => {
   const widget = activeQuickInputWidget(page);
   const input = activeQuickInputTextField(page);
 
   await input.waitFor({ state: 'attached', timeout: 5000 });
-  await input.click({ force: true, timeout: 5000 });
+  // Skip the extra palette-input click when preserving selection. On web, any mouse event can
+  // trigger a blur on the monaco editor that collapses/clears its selection, which re-evaluates
+  // `editorHasSelection` to false and drops the selection-guarded command from the palette list.
+  if (!paletteOptions?.preserveSelection) {
+    await input.click({ force: true, timeout: 5000 });
+  }
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 
   // fill() is faster than pressSequentially on CI (avoids timeout on macOS)
@@ -94,12 +134,17 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
 export const executeCommandWithCommandPalette = async (
   page: Page,
   command: string,
-  hasNotText?: string
+  hasNotText?: string,
+  options?: OpenCommandPaletteOptions
 ): Promise<void> => {
   await expect(async () => {
-    await dismissAllQuickInputWidgets(page);
-    await openCommandPalette(page);
-    await executeCommand(page, command, hasNotText);
+    // Escape-based dismiss clears editor selection (VS Code binds `escape` to
+    // `cancelSelection` when the editor has one). Skip it when preserving selection.
+    if (!options?.preserveSelection) {
+      await dismissAllQuickInputWidgets(page);
+    }
+    await openCommandPalette(page, options);
+    await executeCommand(page, command, hasNotText, options);
   }).toPass({ timeout: 30_000 });
 };
 

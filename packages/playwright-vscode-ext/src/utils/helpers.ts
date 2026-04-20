@@ -295,24 +295,35 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 30_000 });
 };
 
-/** Closes any visible Settings tab or overlay on desktop. */
+/** Closes any visible Settings tab or overlay on desktop. Single-shot; does not loop. */
 export const closeSettingsTab = async (page: Page): Promise<void> => {
   if (isDesktop()) {
-    // Desktop can show Settings as an overlay; Escape closes it when present.
-    await page.keyboard.press('Escape');
-
+    // Desktop can render Settings as a regular editor tab OR as a centered/overlay editor that
+    // isn't in `.tabs-container`. Prefer clicking the tab's close button (safest: targets only
+    // Settings). Fall back to focus + Ctrl/Cmd+W for the overlay case.
+    const desktopSettingsEditor = page.locator('.settings-editor').first();
     const desktopSettingsTab = page
       .locator(TAB)
       .filter({ hasText: /Settings/i })
       .first();
-    const isDesktopSettingsVisible = await desktopSettingsTab.isVisible({ timeout: 1000 }).catch(() => false);
-    if (isDesktopSettingsVisible) {
+
+    const isDesktopTabVisible = await desktopSettingsTab.isVisible({ timeout: 500 }).catch(() => false);
+    if (isDesktopTabVisible) {
       const closeButton = desktopSettingsTab.locator(TAB_CLOSE_BUTTON);
-      const canClickClose = await closeButton.isVisible({ timeout: 1000 }).catch(() => false);
-      if (canClickClose) {
+      if (await closeButton.isVisible({ timeout: 500 }).catch(() => false)) {
         await closeButton.click({ force: true }).catch(() => {});
+        await desktopSettingsTab.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
       }
-      await desktopSettingsTab.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
+      return;
+    }
+
+    const isOverlayVisible = await desktopSettingsEditor.isVisible({ timeout: 500 }).catch(() => false);
+    if (isOverlayVisible) {
+      // Focus the Settings editor before the keyboard close, otherwise Ctrl+W is routed
+      // elsewhere (and in the worst case can close the wrong editor). Single-shot.
+      await desktopSettingsEditor.click({ position: { x: 5, y: 5 }, force: true }).catch(() => {});
+      await page.keyboard.press('ControlOrMeta+w').catch(() => {});
+      await desktopSettingsEditor.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
     }
     return;
   }
