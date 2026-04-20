@@ -92,13 +92,24 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
-    // editorHasSelection must be true for the selection command. Built-in "Expand Line Selection"
-    // sets selection reliably
-    await editor.locator('.view-line').first().click();
-    await page.waitForTimeout(100);
-    await executeCommandWithCommandPalette(page, 'Expand Line Selection');
-    await page.waitForTimeout(200);
-    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeSelection']);
+    // editorHasSelection must be true for the selection command. Triple-click is a native
+    // Monaco gesture that both focuses the editor and selects the whole line — more reliable
+    // than `click + Ctrl/Cmd+A` (which on web can produce a browser-level DOM selection
+    // instead of a Monaco selection) and avoids opening the palette to invoke "Expand Line
+    // Selection" (which itself clears the active selection).
+    await editor.locator('.view-line').first().click({ clickCount: 3 });
+    // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has
+    // a real, non-empty Monaco selection. Failing fast here is much cheaper than waiting 30s
+    // for the palette command lookup to time out.
+    await expect(page.locator('.statusbar-item').filter({ hasText: /\(\d+ selected\)/ }).first()).toBeVisible({
+      timeout: 5000
+    });
+    // Pass `preserveSelection` so the shared helper skips the focus-click, palette-input
+    // clicks, and Escape-based dismiss — all of which would otherwise collapse the selection
+    // and make `editorHasSelection` false, hiding this command from the palette.
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeSelection'], undefined, {
+      preserveSelection: true
+    });
 
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
