@@ -62,7 +62,7 @@
         pagination: 'local',
         paginationSize: 50,
         layout: 'fitColumns',
-        height: '60vh',
+        height: '100%',
         virtualDom: false,
         columns: getFlattenedGridColumns(fg.fields)
       });
@@ -74,7 +74,7 @@
       pagination: 'local',
       paginationSize: 50,
       layout: 'fitColumns',
-      height: '60vh',
+      height: '100%',
       virtualDom: false,
       columns: getColumns(tableData, tableData.columnData),
       rowFormatter: row => {
