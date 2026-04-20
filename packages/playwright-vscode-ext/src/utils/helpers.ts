@@ -160,14 +160,6 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
 };
 
-/** Assert that Welcome/Walkthrough tab exists and is visible - useful for debugging startup issues */
-export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
-  const welcomeTab = page.getByRole('tab', { name: /Welcome|Walkthrough/i }).first();
-  await expect(welcomeTab, 'Welcome/Walkthrough tab should exist after VS Code startup').toBeVisible({
-    timeout: 10_000
-  });
-};
-
 /** VS Code 1.116+ Welcome onboarding can cover the workbench and block non-forced clicks. */
 export const dismissWelcomeOnboardingOverlayIfPresent = async (page: Page): Promise<void> => {
   const welcomeOverlay = page.locator('.onboarding-a-overlay.visible, [aria-label="Welcome to Visual Studio Code"]');

@@ -40,6 +40,7 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' && inputs.vscode_version != '' && inputs.vscode_version || vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -75,7 +76,7 @@ jobs:
       - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
         with:
-          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -203,7 +204,7 @@ jobs:
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
         with:
-          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'

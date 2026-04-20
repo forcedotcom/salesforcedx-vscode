@@ -37,6 +37,8 @@ jobs:
   e2e-web:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' && inputs.vscode_version != '' && inputs.vscode_version || vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -70,7 +72,7 @@ jobs:
       - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
         with:
-          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
 
       - name: Run Playwright web tests (parallel)
         if: steps.try-run.outcome == 'failure'
@@ -161,7 +163,7 @@ jobs:
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
         with:
-          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'

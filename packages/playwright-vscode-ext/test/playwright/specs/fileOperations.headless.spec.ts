@@ -9,7 +9,6 @@ import { expect } from '@playwright/test';
 import { createFileWithContents } from '../../../src/utils/fileHelpers';
 import {
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   waitForWorkspaceReady,
   ensureSecondarySideBarHidden
@@ -21,7 +20,6 @@ test.describe('File Operations', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await waitForWorkspaceReady(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
   });

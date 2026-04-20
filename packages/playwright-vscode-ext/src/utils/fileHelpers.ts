@@ -17,7 +17,6 @@ import {
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import {
-  assertWelcomeTabExists,
   closeSettingsTab,
   closeWelcomeTabs,
   disableMonacoAutoClosing,
@@ -329,12 +328,11 @@ export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<
  * Setup minimal org + auth with workbench loading in parallel.
  * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
  * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
- * @param checkWelcomeTabs When true (default), assert Welcome/Walkthrough tab exists and close welcome tabs. Set to false to skip.
+ * @param checkWelcomeTabs When true (default), close any Welcome/Walkthrough tabs that may be open. Set to false to skip.
  */
 export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
   const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
   if (checkWelcomeTabs) {
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   }
   await saveScreenshot(page, 'setup.after-workbench.png');
