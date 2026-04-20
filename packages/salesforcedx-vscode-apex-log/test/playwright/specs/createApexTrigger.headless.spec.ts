@@ -7,7 +7,6 @@
 
 import { expect } from '@playwright/test';
 import {
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -33,7 +32,6 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
 
   await test.step('setup with no org', async () => {
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);

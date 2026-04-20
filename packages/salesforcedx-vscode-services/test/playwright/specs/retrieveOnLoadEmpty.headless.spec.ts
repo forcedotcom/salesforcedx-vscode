@@ -10,7 +10,6 @@ import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -25,7 +24,6 @@ import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
 
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
-  await assertWelcomeTabExists(page);
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
 });

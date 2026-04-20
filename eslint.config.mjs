@@ -668,12 +668,15 @@ export default [
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
       'packages/salesforcedx-vscode-metadata/playwright*.ts',
       'packages/salesforcedx-vscode-apex-log/playwright*.ts',
+      'packages/salesforcedx-vscode-lwc/playwright*.ts',
       'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-core/playwright*.ts',
       'packages/salesforcedx-vscode-org/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-org/playwright*.ts',
       'packages/salesforcedx-vscode-soql/test/playwright/**/*.ts',
-      'packages/salesforcedx-vscode-soql/playwright*.ts'
+      'packages/salesforcedx-vscode-soql/playwright*.ts',
+      'packages/salesforcedx-vscode-visualforce/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-visualforce/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
