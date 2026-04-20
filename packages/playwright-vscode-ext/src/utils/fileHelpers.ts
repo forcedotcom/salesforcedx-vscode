@@ -194,7 +194,9 @@ export const openFileFromExplorerTree = async (
     await folderItem.scrollIntoViewIfNeeded().catch(() => {});
     // Double-click reliably expands in VS Code's Explorer; single click only selects.
     await folderItem.dblclick({ timeout: 5000 }).catch(() => {});
-    await expect(folderItem).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 }).catch(() => {});
+    await expect(folderItem)
+      .toHaveAttribute('aria-expanded', 'true', { timeout: 5000 })
+      .catch(() => {});
   }
 
   const fileItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(fileName)}$`) }).first();
@@ -328,11 +330,20 @@ export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<
  * Setup minimal org + auth with workbench loading in parallel.
  * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
  * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
- * @param checkWelcomeTabs When true (default), close any Welcome/Walkthrough tabs that may be open. Set to false to skip.
+ * @param checkWelcomeTabs When true (default), close welcome tabs. Set to false to skip.
  */
 export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
   const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
   if (checkWelcomeTabs) {
+    // On web the Welcome tab always appears at startup — wait for it before closing so we don't
+    // return early (count=0) and let it pop up mid-test. On desktop, workbench.startupEditor:none
+    // suppresses the tab, so skip the wait.
+    if (!isDesktop()) {
+      await page
+        .getByRole('tab', { name: /Welcome|Walkthrough/i })
+        .first()
+        .waitFor({ state: 'visible', timeout: 10_000 });
+    }
     await closeWelcomeTabs(page);
   }
   await saveScreenshot(page, 'setup.after-workbench.png');
