@@ -683,6 +683,7 @@ export default [
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
       'packages/salesforcedx-vscode-metadata/playwright*.ts',
       'packages/salesforcedx-vscode-apex-log/playwright*.ts',
+      'packages/salesforcedx-vscode-lwc/playwright*.ts',
       'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-core/playwright*.ts',
       'packages/salesforcedx-vscode-org/test/playwright/**/*.ts',
