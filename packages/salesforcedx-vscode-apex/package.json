@@ -37,9 +37,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
     "@salesforce/core": "^8.28.0",
-    "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-core": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -57,10 +55,7 @@
     "clean": "shx rm -rf node_modules dist coverage .nyc_output .wireit .eslintcache *.vsix && cd out && node ../../../scripts/clean-all-but-jar.js",
     "copy:grammars": "wireit",
     "copy:jar": "wireit",
-    "test": "wireit",
-    "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
-    "test:e2e": "wireit"
+    "test": "wireit"
   },
   "wireit": {
     "compile": {
@@ -72,13 +67,11 @@
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-core:compile",
-        "../playwright-vscode-ext:compile"
+        "../salesforcedx-vscode-core:compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "playwright.config.desktop.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
@@ -88,32 +81,6 @@
         "out/src/**",
         "out/test/**",
         "tsconfig.tsbuildinfo"
-      ]
-    },
-    "test:desktop": {
-      "command": "playwright test --config=playwright.config.desktop.ts",
-      "env": {
-        "VSCODE_DESKTOP": "1",
-        "PLAYWRIGHT_WORKERS": {
-          "external": true
-        }
-      },
-      "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-core:vscode:bundle",
-        "../playwright-vscode-ext:compile"
-      ],
-      "files": [
-        "playwright.config.desktop.ts",
-        "test/playwright/**/*.ts",
-        "package*.json"
-      ],
-      "output": []
-    },
-    "test:e2e": {
-      "dependencies": [
-        "test:desktop"
       ]
     },
     "copy:jar": {
@@ -193,8 +160,7 @@
         "LICENSE.txt",
         "images/**",
         "syntaxes/**",
-        "grammars/**",
-        "snippets/**"
+        "grammars/**"
       ],
       "output": [
         "*.vsix"
@@ -328,16 +294,6 @@
         "language": "apex-anon",
         "scopeName": "source.apex",
         "path": "./grammars/apex.tmLanguage"
-      }
-    ],
-    "snippets": [
-      {
-        "language": "apex",
-        "path": "./snippets/apex.json"
-      },
-      {
-        "language": "apex-anon",
-        "path": "./snippets/apex.json"
       }
     ]
   }
