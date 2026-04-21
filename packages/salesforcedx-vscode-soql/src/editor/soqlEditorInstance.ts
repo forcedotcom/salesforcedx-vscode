@@ -336,6 +336,7 @@ export class SOQLEditorInstance {
     await webview.createOrShowWebView();
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected updateTextDocument(document: vscode.TextDocument, soqlQuery: string): Thenable<boolean> {
     const edit = new vscode.WorkspaceEdit();
     edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), soqlQuery);
