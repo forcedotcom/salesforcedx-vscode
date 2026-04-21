@@ -13,9 +13,9 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
+  selectFirstQuickInputOption,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
@@ -92,16 +92,10 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.logGet']);
     const widget = page.locator(QUICK_INPUT_WIDGET);
     await expect(widget).toBeVisible({ timeout: 30_000 });
-    await waitForQuickInputFirstOption(page, {
+    await selectFirstQuickInputOption(page, {
       quickInputVisibleTimeout: 30_000,
       optionVisibleTimeout: 30_000,
       retryTimeout: 30_000
-    });
-    const firstAriaOption = widget.getByRole('option').first();
-    const firstRow = (await firstAriaOption.count()) > 0 ? firstAriaOption : widget.locator(QUICK_INPUT_LIST_ROW).first();
-    await firstRow.evaluate(el => {
-      el.scrollIntoView({ block: 'center', behavior: 'instant' });
-      (el as HTMLElement).click();
     });
     await saveScreenshot(page, 'log-retrieval.quick-pick.png');
   });

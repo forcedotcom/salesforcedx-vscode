@@ -18,7 +18,7 @@ on:
         type: string
         default: ''
   push:
-    branches-ignore: [ main, develop ]
+    branches-ignore: [main, develop]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
@@ -40,9 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
-        inputs.vscode_version != '' && inputs.vscode_version ||
-        vars.PLAYWRIGHT_VSCODE_VERSION }}
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' && inputs.vscode_version != '' && inputs.vscode_version || vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -128,7 +126,7 @@ jobs:
         vars.PLAYWRIGHT_VSCODE_VERSION }}
     strategy:
       matrix:
-        os: [ macos-latest, windows-latest ]
+        os: [macos-latest, windows-latest]
       fail-fast: false
 
     steps:

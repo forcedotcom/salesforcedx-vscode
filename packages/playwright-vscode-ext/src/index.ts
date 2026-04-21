@@ -11,6 +11,8 @@ export {
   filterNetworkErrors,
   waitForVSCodeWorkbench,
   waitForQuickInputFirstOption,
+  selectFirstQuickInputOption,
+  selectQuickInputOption,
   closeWelcomeTabs,
   dismissSignInWalkthroughDialog,
   closeSettingsTab,
@@ -25,6 +27,8 @@ export {
   closeWorkspaceToEmptyWindow,
   prepareNoFolderOpenForPaletteTests
 } from './utils/helpers';
+
+export { activeQuickInputWidget, activeQuickInputTextField } from './utils/quickInput';
 
 export {
   createFileWithContents,
@@ -62,7 +66,13 @@ export { createNonTrackingOrg, NON_TRACKING_ORG_ALIAS, HUB_ORG_ALIAS } from './o
 // Pages
 export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
 
-export { executeCommandWithCommandPalette, openCommandPalette, verifyCommandDoesNotExist, verifyCommandExists } from './pages/commands';
+export {
+  executeCommandWithCommandPalette,
+  openCommandPalette,
+  verifyCommandDoesNotExist,
+  verifyCommandExists
+} from './pages/commands';
+export type { OpenCommandPaletteOptions } from './pages/commands';
 
 export { executeEditorContextMenuCommand, executeExplorerContextMenuCommand } from './pages/contextMenu';
 

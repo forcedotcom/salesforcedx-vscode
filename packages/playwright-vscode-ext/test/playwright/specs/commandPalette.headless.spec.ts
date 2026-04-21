@@ -14,7 +14,8 @@ import {
   ensureSecondarySideBarHidden,
   isDesktop
 } from '../../../src/utils/helpers';
-import { QUICK_INPUT_WIDGET, WORKBENCH } from '../../../src/utils/locators';
+import { WORKBENCH } from '../../../src/utils/locators';
+import { activeQuickInputTextField, activeQuickInputWidget } from '../../../src/utils/quickInput';
 import { test } from '../fixtures/index';
 
 test.describe('Command Palette', () => {
@@ -28,8 +29,7 @@ test.describe('Command Palette', () => {
     await test.step('Press F1 to open command palette', async () => {
       // Use helper function that has retry logic to handle welcome tabs
       await openCommandPalette(page);
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await expect(quickInput).toBeVisible();
+      await expect(activeQuickInputTextField(page)).toBeAttached();
     });
   });
 
@@ -53,14 +53,14 @@ test.describe('Command Palette', () => {
       await workbench.click({ timeout: 5000 });
 
       await page.keyboard.press('Control+Shift+P');
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await expect(quickInput).toBeVisible({ timeout: 5000 });
+      await expect(activeQuickInputTextField(page)).toBeAttached({ timeout: 5000 });
     });
 
     await test.step('Close command palette with Escape', async () => {
       await page.keyboard.press('Escape');
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await expect(quickInput).not.toBeVisible();
+      // On Windows, VS Code retains `.quick-input-widget` in the DOM (hidden) after closing,
+      // so assert the widget is hidden rather than that it (or its input) is detached.
+      await expect(activeQuickInputWidget(page)).toBeHidden({ timeout: 5000 });
     });
   });
 

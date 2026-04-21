@@ -22,17 +22,12 @@ import {
   disableMonacoAutoClosing,
   ensureSecondarySideBarHidden,
   isDesktop,
+  selectFirstQuickInputOption,
   waitForVSCodeWorkbench,
   waitForQuickInputFirstOption
 } from './helpers';
-import {
-  DIRTY_EDITOR,
-  EDITOR_WITH_URI,
-  NOTIFICATION_LIST_ITEM,
-  QUICK_INPUT_LIST_ROW,
-  QUICK_INPUT_WIDGET,
-  WORKBENCH
-} from './locators';
+import { DIRTY_EDITOR, EDITOR_WITH_URI, NOTIFICATION_LIST_ITEM, QUICK_INPUT_LIST_ROW, WORKBENCH } from './locators';
+import { activeQuickInputWidget } from './quickInput';
 
 /** Default timeout for deploy to complete (10 minutes, matches metadata deploy tests). */
 const DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS = 600_000;
@@ -50,7 +45,7 @@ export const createFileWithContents = async (page: Page, _filePath: string, cont
   await executeCommandWithCommandPalette(page, 'File: New Untitled Text File');
 
   // Wait for command palette to close first
-  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const widget = activeQuickInputWidget(page);
   await widget.waitFor({ state: 'hidden', timeout: 5000 });
 
   // Wait for the editor to open - wait for attachment first, then visibility
@@ -78,25 +73,37 @@ export const createApexClass = async (page: Page, className: string, content?: s
 
   await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
 
-  // First prompt: Quick Pick to select template - press Enter to accept default (DefaultApexClass)
-  await waitForQuickInputFirstOption(page);
-  await page.keyboard.press('Enter');
-
-  // Second prompt: "Enter Apex class name"
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 30_000 });
+  // First prompt: Quick Pick to select template (DefaultApexClass).
+  // selectFirstQuickInputOption handles the cross-platform commit flakiness (see helper docs).
+  // confirmCommitted waits for the next prompt; helper falls back to Enter if not committed.
+  const quickInput = activeQuickInputWidget(page);
+  const classNamePrompt = quickInput.getByText(/Enter Apex class name/i);
+  await selectFirstQuickInputOption(page, {
+    confirmCommitted: () =>
+      classNamePrompt
+        .isVisible()
+        .then(v => v)
+        .catch(() => false)
+  });
+  await classNamePrompt.waitFor({ state: 'visible', timeout: 30_000 });
   await page.keyboard.type(className);
   await page.keyboard.press('Enter');
 
-  // Third prompt: Quick Pick to select output directory - just press Enter to accept default
-  await waitForQuickInputFirstOption(page);
-  await page.keyboard.press('Enter');
-
-  // Wait for the editor to open with the new class (extension writes a template and opens it)
+  // Third prompt: Quick Pick to select output directory (default dir is first).
+  // Use the editor opening as the commit signal (extension writes a template and opens it).
   // Target by filename: .first() can select the wrong tab when multiple editors are open (e.g. create
-  // ExampleApexClass then ExampleApexClassTest — leftmost tab stays first, so we'd paste into wrong file)
+  // ExampleApexClass then ExampleApexClassTest — leftmost tab stays first, so we'd paste into wrong file).
   const fileName = `${className}.cls`;
   const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${fileName}"]`);
+  await selectFirstQuickInputOption(page, {
+    confirmCommitted: () =>
+      editor
+        .first()
+        .isVisible()
+        .then(v => v)
+        .catch(() => false),
+    commitTimeout: 5000
+  });
   await editor.waitFor({ state: 'visible', timeout: 15_000 });
 
   // If content is provided, replace the template with it and save (so the file is on disk and deployable)
@@ -200,7 +207,9 @@ export const openFileFromExplorerTree = async (
     await folderItem.scrollIntoViewIfNeeded().catch(() => {});
     // Double-click reliably expands in VS Code's Explorer; single click only selects.
     await folderItem.dblclick({ timeout: 5000 }).catch(() => {});
-    await expect(folderItem).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 }).catch(() => {});
+    await expect(folderItem)
+      .toHaveAttribute('aria-expanded', 'true', { timeout: 5000 })
+      .catch(() => {});
   }
 
   const fileItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(fileName)}$`) }).first();
@@ -222,7 +231,7 @@ const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]\\]/g, 
  * that's a limitation of web fs on vscode because search/find files doesn't work yet.
  */
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
-  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const widget = activeQuickInputWidget(page);
 
   if (isDesktop()) {
     // On macOS desktop, Control+P doesn't work reliably, use command palette instead
@@ -231,8 +240,8 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     // Wait for Quick Open widget to be visible and ready
     await expect(widget).toBeVisible({ timeout: 10_000 });
     const input = widget.locator('input.input');
-    await expect(input).toBeVisible({ timeout: 5000 });
-    await input.click({ timeout: 5000 });
+    await input.waitFor({ state: 'attached', timeout: 5000 });
+    await input.click({ force: true, timeout: 5000 });
 
     // Clear any existing text and ensure input is focused
     await page.keyboard.press('Control+a');
@@ -242,9 +251,9 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     await page.locator(WORKBENCH).click();
     await page.keyboard.press('Control+p');
     await widget.waitFor({ state: 'visible', timeout: 10_000 });
-    // Ensure input is focused and ready (matching original behavior)
     const input = widget.locator('input.input');
-    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.waitFor({ state: 'attached', timeout: 5000 });
+    await input.click({ force: true, timeout: 5000 });
   }
 
   // Type the filename
@@ -253,7 +262,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   // Wait for search results to populate and stabilize
   await waitForQuickInputFirstOption(page);
   // Wait for results to be stable (no new results appearing)
-  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 1000 });
+  await activeQuickInputWidget(page).waitFor({ state: 'visible', timeout: 1000 });
 
   // Find the result that matches the filename
   const results = page.locator(QUICK_INPUT_LIST_ROW);
@@ -303,6 +312,23 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 
   // Wait for editor to open with the file
   await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  // If a diff editor (or other custom editor) for this file is currently active, Quick Open + Enter
+  // may leave focus on the previously-active tab instead of switching to the plain-source tab.
+  // Subsequent command-palette invocations would then evaluate `when` clauses against the wrong
+  // resource (e.g. the remote-side of a diff editor is NOT `isFileSystemResource`, so
+  // "SFDX: Deploy This Source to Org" / "SFDX: Retrieve This Source from Org" get filtered out).
+  // Explicitly activate the source tab so the active editor matches the requested file.
+  const sourceTab = page.getByRole('tab', { name: fileName, exact: true }).first();
+  if (await sourceTab.isVisible({ timeout: 2000 }).catch(() => false)) {
+    const selected = await sourceTab.getAttribute('aria-selected').catch(() => null);
+    if (selected !== 'true') {
+      await sourceTab.click({ timeout: 5000 }).catch(() => {});
+      await expect(sourceTab)
+        .toHaveAttribute('aria-selected', 'true', { timeout: 5000 })
+        .catch(() => {});
+    }
+  }
 };
 
 /** Edit the currently open file by adding a comment at the top */

@@ -14,6 +14,7 @@ import {
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOption,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
@@ -79,9 +80,13 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
 
     await runQueryLens.click();
 
-    // Code lens path always shows an API-type quick pick (REST API vs Tooling API)
-    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
-    await page.keyboard.press('Enter'); // selects "REST API" (first option)
+    // Code lens path always shows an API-type quick pick (REST API vs Tooling API).
+    // Clicking the option (rather than pressing Enter) is more reliable on desktop-electron
+    // where Enter sometimes doesn't register on the active quick pick.
+    await selectQuickInputOption(page, /^REST API/, {
+      quickInputVisibleTimeout: 10_000,
+      optionVisibleTimeout: 10_000
+    });
     await saveScreenshot(page, 'step2.api-selected.png');
 
     // dataQuery calls vscChannel.show() when done — wait for the panel to open naturally
@@ -101,8 +106,10 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await executeCommandWithCommandPalette(page, packageNls.data_query_document_text);
     await saveScreenshot(page, 'step3.command-executed.png');
 
-    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
-    await page.keyboard.press('Enter'); // selects "REST API"
+    await selectQuickInputOption(page, /^REST API/, {
+      quickInputVisibleTimeout: 10_000,
+      optionVisibleTimeout: 10_000
+    });
 
     await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
     await saveScreenshot(page, 'step3.current-file-query-output-verified.png');
@@ -115,16 +122,33 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await selectOutputChannel(page, SOQL_CHANNEL);
     await clearOutputChannel(page);
 
-    // Select all text in the editor so the command has a selection to operate on
-    await soqlTab.click();
-    await executeCommandWithCommandPalette(page, 'Select All');
+    // Select the whole line in the editor via triple-click. This single gesture both focuses
+    // Monaco and creates a real editor selection (setting `editorHasSelection` true). On web,
+    // `click + Ctrl/Cmd+A` is unreliable because the synthetic click on `.view-line` doesn't
+    // always forward focus to Monaco's hidden input textarea, so the shortcut lands on the
+    // browser (DOM-level selection) instead.
+    const soqlEditor = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`);
+    await soqlEditor.locator('.view-line').first().click({ clickCount: 3 });
+    // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has a
+    // real, non-empty selection. If this never appears, the triple-click didn't reach Monaco and
+    // the palette command would be hidden by `editorHasSelection`.
+    await expect(page.locator('.statusbar-item').filter({ hasText: /\(\d+ selected\)/ }).first()).toBeVisible({
+      timeout: 5000
+    });
     await saveScreenshot(page, 'step4.text-selected.png');
 
-    await executeCommandWithCommandPalette(page, packageNls.data_query_selection_text);
+    // Pass preserveSelection so the shared helper skips the `.monaco-workbench` click before F1;
+    // that click lands in the editor and clears the selection, which would make
+    // `editorHasSelection` false and hide this command from the palette.
+    await executeCommandWithCommandPalette(page, packageNls.data_query_selection_text, undefined, {
+      preserveSelection: true
+    });
     await saveScreenshot(page, 'step4.command-executed.png');
 
-    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
-    await page.keyboard.press('Enter'); // selects "REST API"
+    await selectQuickInputOption(page, /^REST API/, {
+      quickInputVisibleTimeout: 10_000,
+      optionVisibleTimeout: 10_000
+    });
 
     await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
     await saveScreenshot(page, 'step4.selected-text-query-output-verified.png');

@@ -14,7 +14,8 @@ import {
   isMacDesktop,
   ensureSecondarySideBarHidden
 } from '../../../src/utils/helpers';
-import { EDITOR_WITH_URI, QUICK_INPUT_WIDGET } from '../../../src/utils/locators';
+import { EDITOR_WITH_URI } from '../../../src/utils/locators';
+import { activeQuickInputTextField, activeQuickInputWidget } from '../../../src/utils/quickInput';
 import { test } from '../fixtures/index';
 
 test.describe('Context Menu', () => {
@@ -38,17 +39,13 @@ test.describe('Context Menu', () => {
       // Execute "Command Palette..." via context menu
       await executeEditorContextMenuCommand(page, /Command Palette/);
 
-      // Wait for Command Palette to appear
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await expect(quickInput).toBeVisible({ timeout: 5000 });
+      await expect(activeQuickInputTextField(page)).toBeAttached({ timeout: 5000 });
 
-      // Verify command palette is showing (has input box)
-      const inputBox = quickInput.locator('input[type="text"]');
-      await expect(inputBox).toBeVisible();
-
-      // Close the command palette by pressing Escape
+      // Close the command palette by pressing Escape. On Windows, VS Code retains
+      // `.quick-input-widget` in the DOM (hidden) after closing, so assert the widget is hidden
+      // rather than that it (or its input) is detached.
       await page.keyboard.press('Escape');
-      await expect(quickInput).not.toBeVisible();
+      await expect(activeQuickInputWidget(page)).toBeHidden({ timeout: 5000 });
     });
   });
 

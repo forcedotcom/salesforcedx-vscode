@@ -15,6 +15,7 @@ import {
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOption,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
@@ -105,11 +106,10 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
   await test.step('run all Apex tests via command palette', async () => {
     await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
     await saveScreenshot(page, 'step.run-all.after-command.png');
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    const allTestsOption = page.getByRole('option', { name: 'All Tests, Runs all tests in the current org' });
-    await allTestsOption.waitFor({ state: 'visible', timeout: 5000 });
-    await allTestsOption.click();
+    await selectQuickInputOption(page, 'All Tests, Runs all tests in the current org', {
+      quickInputVisibleTimeout: 10_000,
+      optionVisibleTimeout: 5000
+    });
     await saveScreenshot(page, 'step.run-all.selected.png');
   });
 
