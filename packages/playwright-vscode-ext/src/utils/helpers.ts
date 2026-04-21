@@ -218,6 +218,108 @@ export const waitForQuickInputFirstOption = async (
 };
 
 /**
+ * Accept the default (first) option in the active quick input widget.
+ *
+ * Unifies the three "click the first option" variants scattered across specs:
+ * - Playwright `.click()` was flaky on desktop (highlighted but not committed)
+ * - Keyboard Enter alone was flaky on web (keystroke dropped before commit)
+ * - DOM `evaluate` click was needed when Playwright `.click()` was silently dropped
+ *
+ * Strategy: wait for the first option, then commit via DOM `evaluate` click (most reliable
+ * across platforms — scrolls into view and fires a real DOM click synchronously).
+ *
+ * @param options.confirmCommitted Optional predicate the caller supplies to verify the commit
+ * landed (e.g. next prompt visible, widget hidden, editor opened). If it doesn't return true
+ * within `commitTimeout`, Enter is pressed as a fallback. Omit this for callers that will
+ * assert their own next-state afterwards and don't need a built-in fallback.
+ * @param options.commitTimeout How long to wait for `confirmCommitted` before pressing Enter.
+ * Defaults to 3000ms. Ignored if `confirmCommitted` isn't provided.
+ */
+export const selectFirstQuickInputOption = async (
+  page: Page,
+  options?: {
+    confirmCommitted?: () => Promise<boolean>;
+    commitTimeout?: number;
+    quickInputVisibleTimeout?: number;
+    optionVisibleTimeout?: number;
+    retryTimeout?: number;
+  }
+): Promise<void> => {
+  await waitForQuickInputFirstOption(page, {
+    quickInputVisibleTimeout: options?.quickInputVisibleTimeout,
+    optionVisibleTimeout: options?.optionVisibleTimeout,
+    retryTimeout: options?.retryTimeout
+  });
+
+  const quickInput = activeQuickInputWidget(page);
+  const firstAriaOption = quickInput.getByRole('option').first();
+  const firstRow =
+    (await firstAriaOption.count()) > 0 ? firstAriaOption : quickInput.locator(QUICK_INPUT_LIST_ROW).first();
+
+  await firstRow.evaluate(el => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    (el as HTMLElement).click();
+  });
+
+  if (options?.confirmCommitted) {
+    const commitTimeout = options.commitTimeout ?? 3000;
+    const committed = await options.confirmCommitted().catch(() => false);
+    if (!committed) {
+      // Poll until timeout before falling back to Enter — the predicate may take a moment
+      // to become true (e.g. next prompt animating in).
+      const deadline = Date.now() + commitTimeout;
+      let done = false;
+      while (Date.now() < deadline) {
+        if (await options.confirmCommitted().catch(() => false)) {
+          done = true;
+          break;
+        }
+        await page.waitForTimeout(100);
+      }
+      if (!done) {
+        await page.keyboard.press('Enter');
+      }
+    }
+  }
+};
+
+/**
+ * Select a quick-pick option by its accessible name in the active quick input widget.
+ *
+ * Clicking the option (rather than pressing Enter) is more reliable across platforms: on
+ * desktop-electron the Enter keystroke sometimes does not register on the active quick pick,
+ * leaving the picker open and the command never executed.
+ *
+ * @param name Accessible name (string or RegExp) of the option to click, e.g. `/^REST API/`.
+ * @param options.waitForVisible If true (default), waits for the quick input's first option before clicking.
+ * Set false if the caller already awaited the option list.
+ * @param options.timeout Click timeout in ms (default 10_000).
+ */
+export const selectQuickInputOption = async (
+  page: Page,
+  name: string | RegExp,
+  options?: {
+    waitForVisible?: boolean;
+    timeout?: number;
+    quickInputVisibleTimeout?: number;
+    optionVisibleTimeout?: number;
+    retryTimeout?: number;
+  }
+): Promise<void> => {
+  const waitForVisible = options?.waitForVisible ?? true;
+  if (waitForVisible) {
+    await waitForQuickInputFirstOption(page, {
+      quickInputVisibleTimeout: options?.quickInputVisibleTimeout,
+      optionVisibleTimeout: options?.optionVisibleTimeout,
+      retryTimeout: options?.retryTimeout
+    });
+  }
+
+  const option = activeQuickInputWidget(page).getByRole('option', { name });
+  await option.first().click({ force: true, timeout: options?.timeout ?? 10_000 });
+};
+
+/**
  * Dismiss the VS Code 1.116+ "Welcome to VS Code" modal sign-in walkthrough that can appear on
  * first launch. This dialog is modal and blocks all other keyboard input (command palette, etc.)
  * until dismissed, so it must be closed before anything else. Clicks "Continue without Signing In"

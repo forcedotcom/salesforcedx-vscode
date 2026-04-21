@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import {
   clearOutputChannel,
   EDITOR,
@@ -14,6 +14,7 @@ import {
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOption,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
@@ -34,17 +35,6 @@ const SOQL_QUERY = 'SELECT Id, Name FROM Account LIMIT 10';
 // dataQuery calls vscChannel.show() when done — the Output panel opens automatically.
 // Waiting for it directly avoids racing with ensureOutputPanelOpen.
 const OUTPUT_PANEL = '[id="workbench.panel.output"]';
-
-// Select "REST API" in the API-type quick pick. Clicking the option is more reliable than
-// `page.keyboard.press('Enter')` — on desktop-electron the Enter keystroke sometimes does
-// not register on the active quick pick, leaving the picker open and the command never executed.
-const selectRestApiOption = async (page: Page): Promise<void> => {
-  const restApiOption = page
-    .locator(QUICK_INPUT_WIDGET)
-    .last()
-    .getByRole('option', { name: /^REST API/ });
-  await restApiOption.first().click({ force: true, timeout: 10_000 });
-};
 
 test('SOQL Run Query: code lens, current file, selected text via command palette', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -90,9 +80,13 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
 
     await runQueryLens.click();
 
-    // Code lens path always shows an API-type quick pick (REST API vs Tooling API)
-    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
-    await selectRestApiOption(page);
+    // Code lens path always shows an API-type quick pick (REST API vs Tooling API).
+    // Clicking the option (rather than pressing Enter) is more reliable on desktop-electron
+    // where Enter sometimes doesn't register on the active quick pick.
+    await selectQuickInputOption(page, /^REST API/, {
+      quickInputVisibleTimeout: 10_000,
+      optionVisibleTimeout: 10_000
+    });
     await saveScreenshot(page, 'step2.api-selected.png');
 
     // dataQuery calls vscChannel.show() when done — wait for the panel to open naturally
@@ -112,8 +106,10 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await executeCommandWithCommandPalette(page, packageNls.data_query_document_text);
     await saveScreenshot(page, 'step3.command-executed.png');
 
-    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
-    await selectRestApiOption(page);
+    await selectQuickInputOption(page, /^REST API/, {
+      quickInputVisibleTimeout: 10_000,
+      optionVisibleTimeout: 10_000
+    });
 
     await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
     await saveScreenshot(page, 'step3.current-file-query-output-verified.png');
@@ -149,8 +145,10 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     });
     await saveScreenshot(page, 'step4.command-executed.png');
 
-    await waitForQuickInputFirstOption(page, { quickInputVisibleTimeout: 10_000, optionVisibleTimeout: 10_000 });
-    await selectRestApiOption(page);
+    await selectQuickInputOption(page, /^REST API/, {
+      quickInputVisibleTimeout: 10_000,
+      optionVisibleTimeout: 10_000
+    });
 
     await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
     await saveScreenshot(page, 'step4.selected-text-query-output-verified.png');
