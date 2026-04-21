@@ -41,6 +41,6 @@
 
 #### salesforcedx-vscode-soql
 
-- We fixed a bug where **SOQL Builder** **Run Query** results disappeared and the save buttons stopped working after switching to another tab and back, and we also reduced a ~1 second lag when the results table re-rendered on tab switches. ([PR #7226](https://github.com/forcedotcom/salesforcedx-vscode/pull/7226))
+- We fixed a bug where **SOQL Builder** **Run Query** results disappeared and the save buttons stopped working after switching to another tab and back. ([PR #7226](https://github.com/forcedotcom/salesforcedx-vscode/pull/7226))
 - We fixed a bug where the `.soql` extension was included in the suggested file name when saving **SOQL Builder** query results as CSV or JSON; `AAA.soql` now suggests `AAA.csv` and `AAA.json`. ([PR #7181](https://github.com/forcedotcom/salesforcedx-vscode/pull/7181))
 - We fixed a bug where the **SOQL Builder** toggle button failed to switch between builder view and text editor view when the **Output** panel was open. ([PR #7178](https://github.com/forcedotcom/salesforcedx-vscode/pull/7178))
