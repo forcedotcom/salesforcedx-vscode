@@ -47,13 +47,20 @@
     var footerH = (tEl.querySelector('.tabulator-footer') || {}).offsetHeight || 0;
     var tableHolder = tEl.querySelector('.tabulator-tableHolder');
     var hScrollbarH = tableHolder ? Math.max(0, tableHolder.offsetHeight - tableHolder.clientHeight) : 0;
-    var contentH = colHeaderH + rowsH + hScrollbarH + footerH;
+    var contentH = colHeaderH + rowsH + hScrollbarH + footerH + 2;
     var maxH = window.innerHeight - pageHeaderH - 20;
-    var finalH = Math.min(contentH, maxH) + 2;
     var container = document.querySelector('body > div');
-    if (container) {
-      container.style.setProperty('--soql-table-height', pageHeaderH + finalH + 'px');
-      mainTable.setHeight(finalH + 'px');
+    if (!container) {
+      return;
+    }
+    if (contentH < maxH) {
+      // Small table: shrink container to exact content height, no gray space
+      container.style.setProperty('--soql-table-height', pageHeaderH + contentH + 'px');
+      mainTable.setHeight(contentH + 'px');
+    } else {
+      // Large table: let CSS fill the full available height reliably
+      container.style.setProperty('--soql-table-height', 'calc(100% - 20px)');
+      mainTable.setHeight('100%');
     }
   }
 
