@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex-log
 
-- When creating an Apex class, trigger, or unit test class, the output directory picker now only lists package directories that contain a `classes` or `triggers` folder. ([PR #7225](https://github.com/forcedotcom/salesforcedx-vscode/pull/7225))
+- When creating an Apex class, trigger, or unit test class, the output directory picker now lists package directories that contain a `classes` or `triggers` folder. ([PR #7225](https://github.com/forcedotcom/salesforcedx-vscode/pull/7225))
 
 #### salesforcedx-vscode-apex-testing
 
-- We made some changes under the hood to improve Apex test discovery for org-only tests. ([PR #7112](https://github.com/forcedotcom/salesforcedx-vscode/pull/7112))
+- We added support for browsing and opening the source of Apex test classes that exist only in your org (no local file needed). ([PR #7112](https://github.com/forcedotcom/salesforcedx-vscode/pull/7112))
 
 #### salesforcedx-vscode-metadata
 
