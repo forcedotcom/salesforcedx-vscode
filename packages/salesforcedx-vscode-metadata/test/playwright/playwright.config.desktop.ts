@@ -7,7 +7,7 @@
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 import { defineConfig } from '@playwright/test';
 
-const baseConfig = createDesktopConfig();
+const baseConfig = createDesktopConfig({ testDir: './specs' });
 
 export default defineConfig({
   ...baseConfig,

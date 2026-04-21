@@ -7,4 +7,4 @@
 
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createDesktopConfig({ timeout: 180_000 });
+export default createDesktopConfig({ testDir: './specs', timeout: 180_000 });

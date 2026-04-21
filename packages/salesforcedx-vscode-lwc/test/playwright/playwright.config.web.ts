@@ -7,4 +7,4 @@
 
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createWebConfig();
+export default createWebConfig({ testDir: './specs' });

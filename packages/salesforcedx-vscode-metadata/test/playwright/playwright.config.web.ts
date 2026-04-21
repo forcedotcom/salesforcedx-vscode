@@ -7,7 +7,7 @@
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 import { defineConfig, devices } from '@playwright/test';
 
-const base = createWebConfig();
+const base = createWebConfig({ testDir: './specs' });
 
 export default defineConfig({
   ...base,
