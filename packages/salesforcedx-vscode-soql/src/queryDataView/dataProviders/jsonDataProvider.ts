@@ -14,6 +14,7 @@ export class JsonDataProvider implements DataProvider {
 
   constructor(public readonly documentName: string) {}
 
+  // eslint-disable-next-line class-methods-use-this
   public getFileContent(query: string, data: JsonMap[]): string {
     const queryRecordsJson = JSON.stringify(data, null, 2);
     return queryRecordsJson;
