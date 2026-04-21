@@ -320,11 +320,21 @@ async function run() {
             return JSON.parse(result).versions[0].version;
         }
         function getMinimumVSCodeVersion() {
+            const NUM_LAST_RELEASES = 5;
+            const lastNReleasesUrl = `https://api.github.com/repos/microsoft/vscode/releases?per_page=${NUM_LAST_RELEASES}&page=1`;
             try {
-                // Get the latest VSCode version from GitHub API using curl
-                const result = (0, node_child_process_1.execSync)('curl -s -H "User-Agent: salesforcedx-vscode-actions" https://api.github.com/repos/microsoft/vscode/releases/latest').toString();
-                const release = JSON.parse(result);
-                const latestVersion = release.tag_name ?? '1.103.0'; // e.g., "1.103.0"
+                // Get last `NUM_LAST_RELEASES` VSCode releases as JSON array
+                const result = (0, node_child_process_1.execSync)(`curl -s -H "User-Agent: salesforcedx-vscode-actions" ${lastNReleasesUrl}`).toString();
+                const lastReleases = JSON.parse(result);
+                /**
+                 * Some VSCode releases are not VSCode but e.g. Copilot, which uses other versioning and tags, e.g. "v0.44.1" (see https://github.com/microsoft/vscode/releases/tag/v0.44.1).
+                 * As a workaround, we request last N releases, and take first release created off the "main" branch.
+                 */
+                const lastMainBranchReleases = lastReleases.filter((release) => release?.target_commitish == 'main').slice(0, 1);
+                // fallback to latest generic release if "main" branch releases not found
+                const release = (lastMainBranchReleases.length && lastMainBranchReleases[0]) ?? lastReleases[0];
+                // Apply semver.coerce() to ensure the "major.minor.patch" format (e.g. Copilot tag_name "v0.44.1" -> "0.44.1")
+                const latestVersion = semver.coerce(release.tag_name)?.version ?? '1.103.0'; // e.g., "1.103.0"
                 // Parse version numbers
                 const versionParts = latestVersion.split('.').map(Number);
                 const major = versionParts[0] ?? 1;
