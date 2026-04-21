@@ -74,6 +74,8 @@ git fetch origin && git checkout <currentRelease> && git pull
 
 Read and follow [.claude/skills/changelog/SKILL.md](../changelog/SKILL.md) to polish `packages/salesforcedx-vscode/CHANGELOG.md`.
 
+**Verify the release date.** The auto-generated header uses `today + 2 days` (see `scripts/change-log-generator-utils.js` `getReleaseDate`). This assumes a Monday branch-cut → Wednesday release. Releases always ship on Wednesday, even for re-runs or patches. If the header date is not the upcoming Wednesday, fix it and confirm the target date with the user before committing.
+
 Show `git diff packages/salesforcedx-vscode/CHANGELOG.md` to user.
 
 **Wait for explicit "approved" before proceeding.**
