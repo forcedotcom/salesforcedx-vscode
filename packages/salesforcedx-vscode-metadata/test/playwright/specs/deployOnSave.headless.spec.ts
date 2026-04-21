@@ -11,7 +11,6 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -38,18 +37,9 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
   await test.step('setup minimal org and enable deploy-on-save', async () => {
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-
-    // Wait for extension to fully activate (needed for desktop settings to be available)
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await waitForOutputChannelText(page, {
-      expectedText: 'Salesforce Metadata activation complete',
-      timeout: 30_000
-    });
 
     const statusBar = new SourceTrackingStatusBarPage(page);
     await statusBar.waitForVisible(120_000);

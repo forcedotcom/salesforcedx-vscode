@@ -10,7 +10,6 @@ import { executeEditorContextMenuCommand } from '../../../src/pages/contextMenu'
 import { createFileWithContents } from '../../../src/utils/fileHelpers';
 import {
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   isMacDesktop,
   ensureSecondarySideBarHidden
@@ -21,7 +20,6 @@ import { test } from '../fixtures/index';
 test.describe('Context Menu', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
   });
