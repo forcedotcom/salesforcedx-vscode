@@ -260,6 +260,11 @@
       format: FileType.JSON
     });
   });
+
+  window.addEventListener('resize', () => {
+    adjustContainerHeight();
+  });
+
   // incoming messages from VS Code
   window.addEventListener('message', event => {
     const { type, data, documentName } = event.data;
