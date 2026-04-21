@@ -135,5 +135,6 @@ class SelectVisitor extends AbstractParseTreeVisitor<void> implements SoqlParser
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected defaultResult(): void {}
 }

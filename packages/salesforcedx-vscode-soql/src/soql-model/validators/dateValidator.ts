@@ -8,6 +8,7 @@ import { messages } from '../messages/i18n';
 import { ValidateResult, Validator } from './validator';
 
 export class DateValidator extends Validator {
+  // eslint-disable-next-line class-methods-use-this
   public validate(input: string): ValidateResult {
     const isValid = isDateLiteral(input.trim());
     const message = isValid ? undefined : messages.error_fieldInput_date;

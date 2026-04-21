@@ -8,6 +8,7 @@ import { messages } from '../messages/i18n';
 import { ValidateResult, Validator } from './validator';
 
 export class FloatValidator extends Validator {
+  // eslint-disable-next-line class-methods-use-this
   public validate(input: string): ValidateResult {
     const isValid = /^[+-]?[0-9]*[.]?[0-9]+$/.test(input.trim());
     const message = isValid ? undefined : messages.error_fieldInput_float;

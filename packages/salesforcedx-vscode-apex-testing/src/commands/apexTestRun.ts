@@ -27,6 +27,7 @@ import { getFullClassName, isFlowTest } from '../utils/testUtils';
 import { runApexTests } from './apexTestRunUtils';
 
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
+  // eslint-disable-next-line class-methods-use-this
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     let fileItems: ApexTestQuickPickItem[];
     try {
@@ -107,6 +108,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     super(nls.localize('apex_test_run_text'), 'apex_test_run_library', OUTPUT_CHANNEL);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public async run(
     response: ContinueResponse<ApexTestQuickPickItem>,
     progress?: Progress<{ message?: string }>,

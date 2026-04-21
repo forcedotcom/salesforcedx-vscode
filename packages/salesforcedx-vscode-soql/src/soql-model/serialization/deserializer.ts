@@ -355,6 +355,7 @@ class ErrorIdentifier {
     return undefined;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected hasNonErrorChildren(context: ParserRuleContext): boolean {
     if (context.childCount > 0) {
       for (let i = 0; i < context.childCount; i++) {
@@ -601,6 +602,7 @@ class QueryListener implements SoqlParserListener {
     return this.query;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public toUnmodeledSyntax(start: Token, stop: Token, reason: UnmodeledSyntaxReason): UnmodeledSyntax {
     if (!stop && start) {
       // some error states can cause this situation
@@ -636,6 +638,7 @@ class QueryListener implements SoqlParserListener {
     return result;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected toCompareOperator(ctx: Parser.SoqlComparisonOperatorContext): ConditionOperator {
     let operator = ConditionOperator.Equals;
     switch (ctx.text) {
@@ -688,6 +691,7 @@ class QueryListener implements SoqlParserListener {
     return this.toLiteral(ctx);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected toLiteral(ctx: ParserRuleContext): Literal {
     if (ctx instanceof Parser.SoqlLiteralLiteralValueContext) {
       ctx = ctx.soqlLiteral();

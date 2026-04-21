@@ -445,57 +445,17 @@ export class ApexTestController {
         await this.resolveSuiteChildren(test);
       }
       if (isClass(test.id)) {
-        await this.augmentMethodPositionsFromSymbols(test);
+        await augmentMethodPositionsFromSymbols(test);
       }
     };
-  }
-
-  private async augmentMethodPositionsFromSymbols(classItem: vscode.TestItem): Promise<void> {
-    if (!classItem.uri) {
-      return;
-    }
-    const unresolved = new Map<string, vscode.TestItem>();
-    classItem.children.forEach(child => {
-      if (!isMethod(child.id)) {
-        return;
-      }
-      const start = child.range?.start;
-      const unresolvedRange = !start || (start.line === 0 && start.character === 0);
-      if (unresolvedRange) {
-        unresolved.set(child.label, child);
-      }
-    });
-    if (unresolved.size === 0) {
-      return;
-    }
-    const locationMap = await getMethodLocationsFromSymbols(classItem.uri, [...unresolved.keys()]);
-    if (!locationMap) {
-      return;
-    }
-    for (const [methodName, location] of locationMap) {
-      const item = unresolved.get(methodName);
-      if (item) {
-        item.range = location.range;
-      }
-    }
   }
 
   /**
    * Opens an org-only test class in a virtual editor
    */
+  // eslint-disable-next-line class-methods-use-this
   public async openOrgOnlyTest(test: vscode.TestItem): Promise<void> {
-    if (!test.uri) {
-      return;
-    }
-    const document = await vscode.workspace.openTextDocument(test.uri);
-    const editor = await vscode.window.showTextDocument(document, {
-      preview: false,
-      viewColumn: vscode.ViewColumn.Active
-    });
-    if (isMethod(test.id) && test.range) {
-      editor.selection = new vscode.Selection(test.range.start, test.range.start);
-      editor.revealRange(test.range, vscode.TextEditorRevealType.InCenter);
-    }
+    return openOrgOnlyTest(test);
   }
 
   public async retrieveOrgOnlyClass(test: vscode.TestItem): Promise<void> {
@@ -506,7 +466,7 @@ export class ApexTestController {
   }
 
   public async retrieveOrgOnlyClassFromUri(uri: URI): Promise<void> {
-    const className = this.getClassNameFromApexTestingUri(uri);
+    const className = getClassNameFromApexTestingUri(uri);
     if (!className) {
       return;
     }
@@ -527,7 +487,7 @@ export class ApexTestController {
         return;
       }
 
-      const retrievedFileUri = this.getRetrievedFileUri(result);
+      const retrievedFileUri = getRetrievedFileUri(result);
       if (retrievedFileUri) {
         const document = await vscode.workspace.openTextDocument(retrievedFileUri);
         await vscode.window.showTextDocument(document, {
@@ -535,7 +495,7 @@ export class ApexTestController {
           viewColumn: vscode.ViewColumn.Active,
           preserveFocus: false
         });
-        await this.closeEditorTabByUri(uri);
+        await closeEditorTabByUri(uri);
       }
 
       try {
@@ -547,65 +507,6 @@ export class ApexTestController {
       notificationService.showSuccessfulExecution(executionName);
     } catch {
       notificationService.showFailedExecution(executionName);
-    }
-  }
-
-  private getClassNameFromApexTestingUri(uri: URI): string | undefined {
-    if (uri.scheme !== APEX_TESTING_SCHEME) {
-      return undefined;
-    }
-    const classesMarker = '/classes/';
-    const markerIndex = uri.path.indexOf(classesMarker);
-    if (markerIndex < 0) {
-      return undefined;
-    }
-    const classPath = uri.path.slice(markerIndex + classesMarker.length);
-    if (!classPath.endsWith('.cls')) {
-      return undefined;
-    }
-    return classPath.slice(0, -4).replaceAll('/', '.');
-  }
-
-  private getRetrievedFileUri(result: unknown): URI | undefined {
-    if (!isMetadataRetrieveOutcomeLike(result)) {
-      return undefined;
-    }
-    let responses: readonly MetadataRetrieveFileResponse[];
-    try {
-      responses = result.getFileResponses();
-    } catch {
-      return undefined;
-    }
-    if (!Array.isArray(responses) || responses.length === 0) {
-      return undefined;
-    }
-    for (const item of responses) {
-      if (!isMetadataRetrieveFileResponse(item)) {
-        continue;
-      }
-      const { filePath } = item;
-      if (typeof filePath === 'string' && filePath.length > 0) {
-        return URI.file(filePath);
-      }
-    }
-    return undefined;
-  }
-
-  private async closeEditorTabByUri(uri: URI): Promise<void> {
-    const tabGroupsApi = vscode.window.tabGroups;
-    if (!tabGroupsApi) {
-      return;
-    }
-    const tabsToClose: vscode.Tab[] = [];
-    for (const group of tabGroupsApi.all) {
-      for (const tab of group.tabs) {
-        if (tab.input instanceof vscode.TabInputText && tab.input.uri.toString() === uri.toString()) {
-          tabsToClose.push(tab);
-        }
-      }
-    }
-    if (tabsToClose.length > 0) {
-      await tabGroupsApi.close(tabsToClose, true);
     }
   }
 
@@ -765,7 +666,7 @@ export class ApexTestController {
       } else {
         // For run, execute tests using existing Apex test execution
         const testNames = testsToRun.map(test => getTestName(test));
-        const tmpFolder = await this.getTempFolder();
+        const tmpFolder = await getTempFolder();
         const codeCoverage = settings.retrieveTestCodeCoverage();
         // RunAllTestsInOrg only for the explicit "all org" profile on an implicit full run
         const runAllTestsInOrg =
@@ -1019,18 +920,124 @@ export class ApexTestController {
     }
   }
 
-  private async getTempFolder(): Promise<URI> {
-    try {
-      return await getTestResultsFolder();
-    } catch {
-      throw new Error(nls.localize('cannot_determine_workspace'));
-    }
-  }
-
   public dispose(): void {
     this.controller.dispose();
   }
 }
+
+// Module-level utility functions extracted from ApexTestController
+
+const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Promise<void> => {
+  if (!classItem.uri) {
+    return;
+  }
+  const unresolved = new Map<string, vscode.TestItem>();
+  classItem.children.forEach(child => {
+    if (!isMethod(child.id)) {
+      return;
+    }
+    const start = child.range?.start;
+    const unresolvedRange = !start || (start.line === 0 && start.character === 0);
+    if (unresolvedRange) {
+      unresolved.set(child.label, child);
+    }
+  });
+  if (unresolved.size === 0) {
+    return;
+  }
+  const locationMap = await getMethodLocationsFromSymbols(classItem.uri, [...unresolved.keys()]);
+  if (!locationMap) {
+    return;
+  }
+  for (const [methodName, location] of locationMap) {
+    const item = unresolved.get(methodName);
+    if (item) {
+      item.range = location.range;
+    }
+  }
+};
+
+const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
+  if (!test.uri) {
+    return;
+  }
+  const document = await vscode.workspace.openTextDocument(test.uri);
+  const editor = await vscode.window.showTextDocument(document, {
+    preview: false,
+    viewColumn: vscode.ViewColumn.Active
+  });
+  if (isMethod(test.id) && test.range) {
+    editor.selection = new vscode.Selection(test.range.start, test.range.start);
+    editor.revealRange(test.range, vscode.TextEditorRevealType.InCenter);
+  }
+};
+
+const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
+  if (uri.scheme !== APEX_TESTING_SCHEME) {
+    return undefined;
+  }
+  const classesMarker = '/classes/';
+  const markerIndex = uri.path.indexOf(classesMarker);
+  if (markerIndex < 0) {
+    return undefined;
+  }
+  const classPath = uri.path.slice(markerIndex + classesMarker.length);
+  if (!classPath.endsWith('.cls')) {
+    return undefined;
+  }
+  return classPath.slice(0, -4).replaceAll('/', '.');
+};
+
+const getRetrievedFileUri = (result: unknown): URI | undefined => {
+  if (!isMetadataRetrieveOutcomeLike(result)) {
+    return undefined;
+  }
+  let responses: readonly MetadataRetrieveFileResponse[];
+  try {
+    responses = result.getFileResponses();
+  } catch {
+    return undefined;
+  }
+  if (!Array.isArray(responses) || responses.length === 0) {
+    return undefined;
+  }
+  for (const item of responses) {
+    if (!isMetadataRetrieveFileResponse(item)) {
+      continue;
+    }
+    const { filePath } = item;
+    if (typeof filePath === 'string' && filePath.length > 0) {
+      return URI.file(filePath);
+    }
+  }
+  return undefined;
+};
+
+const closeEditorTabByUri = async (uri: URI): Promise<void> => {
+  const tabGroupsApi = vscode.window.tabGroups;
+  if (!tabGroupsApi) {
+    return;
+  }
+  const tabsToClose: vscode.Tab[] = [];
+  for (const group of tabGroupsApi.all) {
+    for (const tab of group.tabs) {
+      if (tab.input instanceof vscode.TabInputText && tab.input.uri.toString() === uri.toString()) {
+        tabsToClose.push(tab);
+      }
+    }
+  }
+  if (tabsToClose.length > 0) {
+    await tabGroupsApi.close(tabsToClose, true);
+  }
+};
+
+const getTempFolder = async (): Promise<URI> => {
+  try {
+    return await getTestResultsFolder();
+  } catch {
+    throw new Error(nls.localize('cannot_determine_workspace'));
+  }
+};
 
 let testControllerInst: ApexTestController | undefined;
 

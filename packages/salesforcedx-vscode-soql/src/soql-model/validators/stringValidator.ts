@@ -8,6 +8,7 @@ import { messages } from '../messages/i18n';
 import { ValidateResult, Validator } from './validator';
 
 export class StringValidator extends Validator {
+  // eslint-disable-next-line class-methods-use-this
   public validate(input: string): ValidateResult {
     const isValid =
       (input.length >= 2 &&
@@ -19,6 +20,7 @@ export class StringValidator extends Validator {
     return { isValid, message };
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected isEscaped(input: string): boolean {
     // test to see whether trailing single quote is escaped
     let isEscaped = false;

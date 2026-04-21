@@ -46,6 +46,7 @@ export default [
       'packages/salesforcedx-aura-language-server/src/tern/**',
       'packages/salesforcedx-vscode-lightning/tern/**',
       'packages/salesforcedx-vscode-lightning/extension/tern/**',
+      'packages/salesforcedx-vscode-lightning/src/resources/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       // HTML: only SOQL query builder templates use @html-eslint + local i18n rule; silence other *.html
@@ -166,8 +167,10 @@ export default [
       'unicorn/no-instanceof-builtins': 'error',
       'unicorn/no-typeof-undefined': 'error',
       'unicorn/no-static-only-class': 'error',
+      'unicorn/no-unused-properties': 'error',
       'unicorn/no-useless-collection-argument': 'error',
       'unicorn/no-useless-error-capture-stack-trace': 'error',
+      'unicorn/no-useless-iterator-to-array': 'error',
       'unicorn/no-useless-fallback-in-spread': 'error',
       'unicorn/no-useless-length-check': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
@@ -189,6 +192,7 @@ export default [
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
       'unicorn/prefer-ternary': ['error'],
+      'unicorn/prefer-simple-condition-first': 'error',
       'unicorn/filename-case': [
         'error',
         {
@@ -633,6 +637,17 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // class-methods-use-this for packages not yet using Effect
+    files: [
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-common/**/*.ts'
+    ],
+    rules: {
+      'class-methods-use-this': 'error'
     }
   },
   {

@@ -59,6 +59,15 @@ const createClassBodyCache = () =>
 
 let classBodyCache: Cache.Cache<string, string> | undefined;
 
+const ensureCacheInitialized = (): Cache.Cache<string, string> => {
+  classBodyCache ??= getApexTestingRuntime().runSync(createClassBodyCache());
+  return classBodyCache;
+};
+
+const resetCache = (): void => {
+  classBodyCache = undefined;
+};
+
 /**
  * Virtual document provider for Apex classes that exist in the org but not locally.
  * This allows viewing org-only test classes in VS Code.
@@ -68,6 +77,7 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
 
   public readonly onDidChange = this._onDidChange.event;
 
+  // eslint-disable-next-line class-methods-use-this
   public async provideTextDocumentContent(uri: URI): Promise<string> {
     // Extract class name from path, removing .cls extension if present
     let className = uri.path;
@@ -80,13 +90,8 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
     }
 
     // Ensure cache is initialized and get cached or fetch class body
-    const cache = this.ensureCacheInitialized();
+    const cache = ensureCacheInitialized();
     return getApexTestingRuntime().runPromise(cache.get(className));
-  }
-
-  private ensureCacheInitialized(): Cache.Cache<string, string> {
-    classBodyCache ??= getApexTestingRuntime().runSync(createClassBodyCache());
-    return classBodyCache;
   }
 
   public invalidateCache(className: string): void {
@@ -101,14 +106,16 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
   }
 
   /** Clear all cached class bodies (call when org changes) */
+  // eslint-disable-next-line class-methods-use-this
   public clearAllCache(): void {
-    const cache = this.ensureCacheInitialized();
+    const cache = ensureCacheInitialized();
     Effect.runSync(cache.invalidateAll);
   }
 
   /** Reset the cache completely (useful for testing) */
+  // eslint-disable-next-line class-methods-use-this
   public resetCache(): void {
-    classBodyCache = undefined;
+    resetCache();
   }
 }
 
