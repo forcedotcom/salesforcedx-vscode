@@ -35,33 +35,25 @@
   }
 
   function adjustContainerHeight() {
-    console.log('[SOQL] adjustContainerHeight called');
     var tEl = document.querySelector('#data-table');
     if (!tEl || !mainTable) {
-      console.log('[SOQL] adjustContainerHeight: no tabulator element or mainTable', { tEl, mainTable });
       return;
     }
     var pageHeader = document.querySelector('header');
     var pageHeaderH = pageHeader ? pageHeader.offsetHeight : 0;
-    var colHeader = tEl.querySelector('.tabulator-header');
-    var rowsEl = tEl.querySelector('.tabulator-tableHolder .tabulator-table');
-    var footer = tEl.querySelector('.tabulator-footer');
-    var contentH =
-      (colHeader ? colHeader.offsetHeight : 0) +
-      (rowsEl ? rowsEl.offsetHeight : 0) +
-      (footer ? footer.offsetHeight : 0);
+    var colHeaderEl = tEl.querySelector('.tabulator-header');
+    var colHeaderH = colHeaderEl ? Math.max(colHeaderEl.offsetHeight, colHeaderEl.scrollHeight) : 0;
+    var rowsH = (tEl.querySelector('.tabulator-tableHolder .tabulator-table') || {}).offsetHeight || 0;
+    var footerH = (tEl.querySelector('.tabulator-footer') || {}).offsetHeight || 0;
+    var tableHolder = tEl.querySelector('.tabulator-tableHolder');
+    var hScrollbarH = tableHolder ? Math.max(0, tableHolder.offsetHeight - tableHolder.clientHeight) : 0;
+    var contentH = colHeaderH + rowsH + hScrollbarH + footerH;
+    var maxH = window.innerHeight - pageHeaderH - 20;
+    var finalH = Math.min(contentH, maxH) + 2;
     var container = document.querySelector('body > div');
     if (container) {
-      var tableHeight = pageHeaderH + contentH;
-      console.log('[SOQL] adjustContainerHeight:', {
-        pageHeaderH,
-        contentH,
-        tableHeight,
-        windowInnerHeight: window.innerHeight,
-        maxH: window.innerHeight - 20
-      });
-      container.style.setProperty('--soql-table-height', tableHeight + 2 + 'px');
-      mainTable.setHeight('100%');
+      container.style.setProperty('--soql-table-height', pageHeaderH + finalH + 'px');
+      mainTable.setHeight(finalH + 'px');
     }
   }
 
