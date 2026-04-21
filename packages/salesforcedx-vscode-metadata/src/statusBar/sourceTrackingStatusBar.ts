@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ForceIgnore } from '@salesforce/source-deploy-retrieve';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -13,6 +14,7 @@ import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
@@ -66,6 +68,7 @@ const updateDisplay =
     statusBarItem.show();
   };
 
+
 /** Helper to read polling interval config */
 const getPollingIntervalSeconds = (): number =>
   vscode.workspace
@@ -82,7 +85,6 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     45
   );
   statusBarItem.name = 'Salesforce: Source Tracking';
-  const fileChangePubSub = yield* api.services.FileChangePubSub;
 
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const activeOpRef = yield* api.services.ActiveMetadataOperationRef();
@@ -93,15 +95,18 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   );
 
   // Setup dynamic polling interval that responds to config changes
-  const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
   const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(getPollingIntervalSeconds()));
 
   // Watch setting changes to update poll frequency dynamically
   yield* Effect.fork(
-    Stream.fromPubSub(settingsChangePubSub).pipe(
-      Stream.filter(event =>
-        event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds')
-      ),
+    Stream.async<void>(emit => {
+      const disposable = vscode.workspace.onDidChangeConfiguration(event => {
+        if (event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds')) {
+          void emit.single(undefined);
+        }
+      });
+      return Effect.sync(() => disposable.dispose());
+    }).pipe(
       Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollingIntervalSeconds())))
     )
   );
@@ -135,18 +140,80 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     )
   );
 
-  const fileChangeStream = Stream.merge(
-    // Subscribe to file changes TODO: maybe filter out some changes by type or uri
-    Stream.fromPubSub(fileChangePubSub).pipe(Stream.debounce(Duration.millis(500))),
-    // Poll for remote changes with configurable interval
-    dynamicPollStream
+  // File watcher scoped to package directories, filtered by .forceignore.
+  // Rebuilds watchers when org changes, sfdx-project.json changes, or .forceignore changes.
+  const fileChangeStream = Stream.concat(
+    Stream.fromEffect(SubscriptionRef.get(targetOrgRef)),
+    targetOrgRef.changes
   ).pipe(
+    Stream.flatMap(orgInfo => {
+      if (!orgInfo.tracksSource || !orgInfo.orgId) {
+        return Stream.empty;
+      }
+
+      // Signal to rebuild watchers when project config or .forceignore changes
+      const rebuildSignal = Stream.concat(
+        Stream.void,
+        Stream.async<void>(emit => {
+          const projectWatcher = vscode.workspace.createFileSystemWatcher('**/sfdx-project.json');
+          const ignoreWatcher = vscode.workspace.createFileSystemWatcher('**/.forceignore');
+          const fire = () => { void emit.single(undefined); };
+          projectWatcher.onDidChange(fire);
+          projectWatcher.onDidCreate(fire);
+          ignoreWatcher.onDidChange(fire);
+          ignoreWatcher.onDidCreate(fire);
+          ignoreWatcher.onDidDelete(fire);
+          return Effect.sync(() => { projectWatcher.dispose(); ignoreWatcher.dispose(); });
+        })
+      );
+
+      const scopedWatcherStream = rebuildSignal.pipe(
+        Stream.flatMap(() =>
+          Stream.fromEffect(
+            Effect.gen(function* () {
+              const project = yield* api.services.ProjectService.getSfProject();
+              return project.getPackageDirectories();
+            }).pipe(Effect.catchAll(() => Effect.succeed([])))
+          ).pipe(
+            Stream.flatMap(packageDirs => {
+              if (packageDirs.length === 0) return Stream.empty;
+
+              return Stream.async<void>(emit => {
+                const forceIgnore = ForceIgnore.findAndCreate(packageDirs[0].fullPath);
+                const watchers = packageDirs.map(dir =>
+                  vscode.workspace.createFileSystemWatcher(
+                    new vscode.RelativePattern(URI.file(dir.fullPath), '**/*')
+                  )
+                );
+
+                // eslint-disable-next-line functional/no-let
+                let timer: ReturnType<typeof setTimeout> | undefined;
+                const fire = (uri: URI) => {
+                  if (forceIgnore.denies(uri.fsPath)) return;
+                  if (timer !== undefined) clearTimeout(timer);
+                  timer = setTimeout(() => { timer = undefined; void emit.single(undefined); }, 500);
+                };
+
+                watchers.forEach(watcher => {
+                  watcher.onDidCreate(fire);
+                  watcher.onDidChange(fire);
+                  watcher.onDidDelete(fire);
+                });
+
+                return Effect.sync(() => {
+                  clearTimeout(timer);
+                  watchers.forEach(watcher => watcher.dispose());
+                });
+              });
+            })
+          ),
+          { switch: true }
+        )
+      );
+
+      return Stream.merge(scopedWatcherStream, dynamicPollStream);
+    }, { switch: true }),
     Stream.debounce(Duration.millis(500)),
-    // we don't care about file events if source tracking is not enabled
-    Stream.filterEffect(() =>
-      SubscriptionRef.get(targetOrgRef).pipe(Effect.andThen(orgInfo => Boolean(orgInfo.tracksSource)))
-    ),
-    // suppress events while a metadata operation is running
     suppressDuringOperation
   );
 
@@ -159,7 +226,8 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   yield* Effect.fork(
     Stream.mergeAll({ concurrency: 'unbounded' })([orgChangeStream, fileChangeStream, operationCompleteStream]).pipe(
       Stream.debounce(Duration.millis(500)),
-      Stream.runForEach(() => refresh(statusBarItem))
+      Stream.flatMap(() => Stream.fromEffect(refresh(statusBarItem)), { switch: true }),
+      Stream.runDrain
     )
   );
 

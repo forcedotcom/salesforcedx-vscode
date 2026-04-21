@@ -9,37 +9,48 @@ import { Global } from '@salesforce/core/global';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { join, normalize, sep } from 'node:path';
-import { FileChangePubSub } from '../vscode/fileChangePubSub';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { clearDefaultOrgRef } from './defaultOrgRef';
 
-/** Check if a file path is a config file (global or project-specific) */
-const isConfigFile = (path: string, globalConfigPath: string, projectConfigPattern: string): boolean => {
-  const normalizedPath = normalize(path);
-  return normalizedPath === globalConfigPath || normalizedPath.includes(projectConfigPattern);
-};
+// --- INSTRUMENTATION: remove before shipping ---
+// eslint-disable-next-line functional/no-let
+let received = 0;
+setInterval(() => {
+  console.log(`[After Measurement] configFileWatcher: received ${received}`);
+}, 10_000);
+// --- END INSTRUMENTATION ---
 
-/**
- * watch the global and local sf/config.json files;
- * reload the connection when they change
- * if the connection fails, clear the defaultOrgRef
- * */
 export const watchConfigFiles = Effect.fn('watchConfigFiles')(function* () {
   const configFileName = Config.getFileName();
-  const globalConfigPath = normalize(join(Global.DIR, configFileName));
-  const projectConfigPattern = `${Global.SF_STATE_FOLDER}${sep}${configFileName}`;
 
-  const fileChangePubSub = yield* FileChangePubSub;
+  const globalWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(URI.file(Global.DIR), configFileName)
+  );
+  const projectWatcher = vscode.workspace.createFileSystemWatcher(
+    `**/${Global.SF_STATE_FOLDER}/${configFileName}`
+  );
 
-  // Subscribe to file changes and clear defaultOrgRef when config files change
-  yield* Stream.fromPubSub(fileChangePubSub).pipe(
-    Stream.filter(event => isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)),
+  const configChangeStream = Stream.async<void>(emit => {
+    const fire = () => { received++; void emit.single(undefined); };
+    globalWatcher.onDidCreate(fire);
+    globalWatcher.onDidChange(fire);
+    globalWatcher.onDidDelete(fire);
+    projectWatcher.onDidCreate(fire);
+    projectWatcher.onDidChange(fire);
+    projectWatcher.onDidDelete(fire);
+    return Effect.sync(() => {
+      globalWatcher.dispose();
+      projectWatcher.dispose();
+    });
+  });
+
+  yield* configChangeStream.pipe(
     Stream.debounce(Duration.millis(5)),
     Stream.tap(() => ConfigService.invalidateConfigAggregator()),
     Stream.tap(() => ConnectionService.invalidateCachedConnections()),
-    // get connection will cause defaultOrgRef to update, clear the ref if there's any error where we won't have an org connection.
     Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => clearDefaultOrgRef())))
   );
 });

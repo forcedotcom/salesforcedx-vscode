@@ -8,27 +8,34 @@
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
-import * as PubSub from 'effect/PubSub';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { URI } from 'vscode-uri';
+import * as vscode from 'vscode';
 import { watchAliasFile } from '../../../src/core/aliasFileWatcher';
 import { AliasService } from '../../../src/core/alias';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
-import { FileChangePubSub, type FileChangeEvent } from '../../../src/vscode/fileChangePubSub';
 
 jest.mock('@salesforce/core/global', () => ({
   Global: { SFDX_DIR: '/Users/testuser/.sfdx' }
 }));
 
-const ALIAS_FILE_PATH = '/Users/testuser/.sfdx/alias.json';
-const OTHER_FILE_PATH = '/Users/testuser/.sfdx/config.json';
+type WatcherCallback = (...args: unknown[]) => void;
 
-// ---------------------------------------------------------------------------
-// Layer factories
-// ---------------------------------------------------------------------------
+const watcherCallbacks: { create?: WatcherCallback; change?: WatcherCallback; delete?: WatcherCallback } = {};
+const disposeMock = jest.fn();
 
-const makeFileChangePubSubLayer = (pubsub: PubSub.PubSub<FileChangeEvent>) =>
-  Layer.succeed(FileChangePubSub, pubsub as unknown as FileChangePubSub);
+beforeEach(() => {
+  watcherCallbacks.create = undefined;
+  watcherCallbacks.change = undefined;
+  watcherCallbacks.delete = undefined;
+  disposeMock.mockClear();
+
+  (vscode.workspace.createFileSystemWatcher as jest.Mock).mockReturnValue({
+    onDidCreate: jest.fn((cb: WatcherCallback) => { watcherCallbacks.create = cb; }),
+    onDidChange: jest.fn((cb: WatcherCallback) => { watcherCallbacks.change = cb; }),
+    onDidDelete: jest.fn((cb: WatcherCallback) => { watcherCallbacks.delete = cb; }),
+    dispose: disposeMock
+  });
+});
 
 const makeAliasServiceLayer = (getAliasesFromUsername: jest.Mock) =>
   Layer.succeed(
@@ -41,10 +48,6 @@ const makeAliasServiceLayer = (getAliasesFromUsername: jest.Mock) =>
     })
   );
 
-// ---------------------------------------------------------------------------
-// watchAliasFile – integration tests
-// ---------------------------------------------------------------------------
-
 describe('watchAliasFile', () => {
   beforeEach(async () => {
     await Effect.runPromise(
@@ -54,14 +57,9 @@ describe('watchAliasFile', () => {
 
   const runWatcherTest = async (
     getAliasesFromUsernameMock: jest.Mock,
-    initialOrgInfo: { username?: string; aliases?: string[] },
-    publishUri: string
+    initialOrgInfo: { username?: string; aliases?: string[] }
   ) => {
-    const fileChangePubSub = await Effect.runPromise(PubSub.sliding<FileChangeEvent>(10));
-    const layer = Layer.mergeAll(
-      makeFileChangePubSubLayer(fileChangePubSub),
-      makeAliasServiceLayer(getAliasesFromUsernameMock)
-    );
+    const layer = makeAliasServiceLayer(getAliasesFromUsernameMock);
 
     return Effect.runPromise(
       Effect.gen(function* () {
@@ -69,17 +67,13 @@ describe('watchAliasFile', () => {
         yield* SubscriptionRef.set(ref, initialOrgInfo as { username?: string; aliases?: string[] });
 
         const fiber = yield* Effect.provide(Effect.scoped(watchAliasFile()), layer).pipe(Effect.fork);
-
-        // Yield to allow the forked fiber to subscribe before we publish
         yield* Effect.sleep(0);
 
-        yield* PubSub.publish(fileChangePubSub, { type: 'change' as const, uri: URI.file(publishUri) });
+        watcherCallbacks.change!();
         yield* Effect.sleep(200);
 
         const result = yield* SubscriptionRef.get(ref);
-
         yield* Fiber.interrupt(fiber);
-
         return result;
       })
     );
@@ -87,44 +81,43 @@ describe('watchAliasFile', () => {
 
   it('updates aliases when alias.json changes', async () => {
     const mock = jest.fn().mockReturnValue(Effect.succeed(['myAlias', 'otherAlias']));
-    const result = await runWatcherTest(mock, { username: 'user@example.com', aliases: ['myAlias'] }, ALIAS_FILE_PATH);
+    const result = await runWatcherTest(mock, { username: 'user@example.com', aliases: ['myAlias'] });
     expect(result.aliases).toEqual(['myAlias', 'otherAlias']);
   });
 
   it('preserves the primary alias at position 0 when disk order differs', async () => {
     const mock = jest.fn().mockReturnValue(Effect.succeed(['newAlias', 'originalAlias']));
-    const result = await runWatcherTest(
-      mock,
-      { username: 'user@example.com', aliases: ['originalAlias'] },
-      ALIAS_FILE_PATH
-    );
+    const result = await runWatcherTest(mock, { username: 'user@example.com', aliases: ['originalAlias'] });
     expect(result.aliases).toEqual(['originalAlias', 'newAlias']);
   });
 
   it('falls back to disk order when primary alias was deleted externally', async () => {
     const mock = jest.fn().mockReturnValue(Effect.succeed(['remainingAlias']));
-    const result = await runWatcherTest(
-      mock,
-      { username: 'user@example.com', aliases: ['deletedAlias'] },
-      ALIAS_FILE_PATH
-    );
+    const result = await runWatcherTest(mock, { username: 'user@example.com', aliases: ['deletedAlias'] });
     expect(result.aliases).toEqual(['remainingAlias']);
   });
 
   it('is a no-op when there is no active username in defaultOrgRef', async () => {
     const mock = jest.fn();
-    await runWatcherTest(mock, {}, ALIAS_FILE_PATH);
+    await runWatcherTest(mock, {});
     expect(mock).not.toHaveBeenCalled();
   });
 
-  it('does not update aliases when a non-alias file changes', async () => {
-    const mock = jest.fn().mockReturnValue(Effect.succeed(['myAlias']));
-    const result = await runWatcherTest(
-      mock,
-      { username: 'user@example.com', aliases: ['myAlias'] },
-      OTHER_FILE_PATH
+  it('disposes the watcher when the fiber is interrupted', async () => {
+    const mock = jest.fn().mockReturnValue(Effect.succeed(['alias']));
+    const layer = makeAliasServiceLayer(mock);
+
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const ref = yield* getDefaultOrgRef();
+        yield* SubscriptionRef.set(ref, { username: 'user@example.com' });
+
+        const fiber = yield* Effect.provide(Effect.scoped(watchAliasFile()), layer).pipe(Effect.fork);
+        yield* Effect.sleep(0);
+        yield* Fiber.interrupt(fiber);
+      })
     );
-    expect(mock).not.toHaveBeenCalled();
-    expect(result.aliases).toEqual(['myAlias']);
+
+    expect(disposeMock).toHaveBeenCalled();
   });
 });

@@ -110,13 +110,18 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   const knownIdsRef = yield* Ref.make(new Set<string>());
   const targetOrgRef = yield* api.services.TargetOrgRef();
 
-  const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
   const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(getPollIntervalSeconds()));
 
   // watch the setting to update poll freq
   yield* Effect.fork(
-    Stream.fromPubSub(settingsChangePubSub).pipe(
-      Stream.filter(event => event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')),
+    Stream.async<void>(emit => {
+      const disposable = vscode.workspace.onDidChangeConfiguration(event => {
+        if (event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')) {
+          void emit.single(undefined);
+        }
+      });
+      return Effect.sync(() => disposable.dispose());
+    }).pipe(
       Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollIntervalSeconds())))
     )
   );
