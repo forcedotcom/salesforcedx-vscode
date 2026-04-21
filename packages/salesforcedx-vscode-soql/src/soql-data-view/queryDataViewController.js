@@ -60,7 +60,7 @@
         windowInnerHeight: window.innerHeight,
         maxH: window.innerHeight - 20
       });
-      container.style.setProperty('--soql-table-height', tableHeight + 'px');
+      container.style.setProperty('--soql-table-height', tableHeight + 2 + 'px');
       mainTable.setHeight('100%');
     }
   }
