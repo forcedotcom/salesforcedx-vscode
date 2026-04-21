@@ -18,7 +18,7 @@
 
 #### salesforcedx-vscode-services
 
-- The LWC and Aura extensions activate programmatically the first time a file inside an `/lwc/` or `/aura/` package directory is opened, or when LWC testing UI is opened. Previously, they activated on any sfdx-project. ([PR #7154](https://github.com/forcedotcom/salesforcedx-vscode/pull/7154))
+- The LWC and Aura extensions activate programmatically the first time a file inside an `/lwc/` or `/aura/` package directory is opened, or when LWC testing UI is opened. Previously, they activated in any Salesforce project. ([PR #7154](https://github.com/forcedotcom/salesforcedx-vscode/pull/7154))
 
 #### salesforcedx-vscode-soql
 
