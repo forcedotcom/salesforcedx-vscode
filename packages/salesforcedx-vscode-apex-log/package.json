@@ -76,7 +76,6 @@
       ],
       "output": [
         "out/**",
-        "tsconfig.tsbuildinfo",
         "resources/traceFlags.schema.json"
       ]
     },

@@ -5,6 +5,5 @@
     "outDir": "out"
   },
   "exclude": ["src/soql-parser.lib"],
-  "include": ["src/**/*.ts"],
-  "references": []
+  "include": ["src/**/*.ts"]
 }

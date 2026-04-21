@@ -6,10 +6,5 @@
     "strict": false,
     "noImplicitAny": false
   },
-  "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../salesforcedx-visualforce-markup-language-server"
-    }
-  ]
+  "include": ["src/**/*.ts"]
 }

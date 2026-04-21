@@ -4,19 +4,5 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../playwright-vscode-ext"
-    },
-    {
-      "path": "../salesforcedx-vscode-services"
-    }
-  ]
+  "include": ["src/**/*.ts"]
 }

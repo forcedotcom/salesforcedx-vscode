@@ -15,7 +15,7 @@ This repo has been around for a long time and doesn't always follow these guidel
 
 ### eslint
 
-There are a lot of eslint rules in the repo, and we're expanding their use and trying to tighten up a lot of the older code. You can take the eslint configuration from this repo as a starting point.
+There are a lot of eslint rules in the repo, and we're expanding their use and trying to tighten up a lot of the older code. You can take the eslint configuration from this repo as a starting point. The custom rules for VS Code extension packages are published to npm as [`@salesforce/eslint-plugin-vscode-extensions`](https://www.npmjs.com/package/@salesforce/eslint-plugin-vscode-extensions) (source: `packages/eslint-local-rules`).
 
 ### current EcmaScript
 

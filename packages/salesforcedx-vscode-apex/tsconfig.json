@@ -4,19 +4,5 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../salesforcedx-vscode-core"
-    }
-  ]
+  "include": ["src/**/*.ts"]
 }

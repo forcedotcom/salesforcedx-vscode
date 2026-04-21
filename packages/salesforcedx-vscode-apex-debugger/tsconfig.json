@@ -4,28 +4,5 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-apex-debugger"
-    },
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../salesforcedx-vscode-apex"
-    },
-    {
-      "path": "../salesforcedx-vscode-core"
-    }
-  ]
+  "include": ["src/**/*.ts"]
 }

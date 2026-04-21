@@ -4,6 +4,5 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts"],
-  "references": []
+  "include": ["src/**/*.ts"]
 }

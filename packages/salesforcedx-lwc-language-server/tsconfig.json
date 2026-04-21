@@ -6,13 +6,5 @@
     "strictNullChecks": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.json", "src/resources/**/*.json", "typings/*.d.ts", "jest/*.ts"],
-  "references": [
-    {
-      "path": "../salesforcedx-lightning-lsp-common"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    }
-  ]
+  "include": ["src/**/*.ts", "src/**/*.json", "src/resources/**/*.json", "typings/*.d.ts", "jest/*.ts"]
 }

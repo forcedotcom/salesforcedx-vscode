@@ -9,19 +9,5 @@
       "vscode"
     ]
   },
-  "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../salesforcedx-aura-language-server"
-    },
-    {
-      "path": "../salesforcedx-lightning-lsp-common"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    }
-  ]
+  "include": ["src/**/*.ts"]
 }

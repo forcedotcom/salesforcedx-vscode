@@ -68,8 +68,7 @@
         "../../tsconfig.common.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
     "test": {

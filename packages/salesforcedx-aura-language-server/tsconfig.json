@@ -13,15 +13,4 @@
     "src/tern/emacs/**/*",
     "src/tern/bin/**/*"
   ],
-  "references": [
-    {
-      "path": "../salesforcedx-lightning-lsp-common"
-    },
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    }
-  ]
 }

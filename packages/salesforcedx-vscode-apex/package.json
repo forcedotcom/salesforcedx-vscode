@@ -77,8 +77,7 @@
         "package.nls*.json"
       ],
       "output": [
-        "out/src/**",
-        "tsconfig.tsbuildinfo"
+        "out/src/**"
       ]
     },
     "test:compile": {

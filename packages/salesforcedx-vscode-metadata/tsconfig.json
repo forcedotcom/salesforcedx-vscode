@@ -10,19 +10,5 @@
     "src/sobjects/resources/*.json",
     "package.json",
     "package.nls.json"
-  ],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../playwright-vscode-ext"
-    },
-    {
-      "path": "../salesforcedx-vscode-services"
-    }
   ]
 }

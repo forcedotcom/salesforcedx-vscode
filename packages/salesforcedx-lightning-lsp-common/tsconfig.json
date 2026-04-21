@@ -11,16 +11,5 @@
     "typings/*.d.ts",
     "jest/*.js",
     "jest/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    }
   ]
 }

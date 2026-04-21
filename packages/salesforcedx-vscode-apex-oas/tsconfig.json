@@ -7,19 +7,5 @@
     "noImplicitAny": false,
     "strictNullChecks": true
   },
-  "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../salesforcedx-vscode-apex"
-    },
-    {
-      "path": "../salesforcedx-vscode-core"
-    }
-  ]
+  "include": ["src/**/*.ts"]
 }
