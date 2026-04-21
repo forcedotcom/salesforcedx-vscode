@@ -62,6 +62,11 @@
       container.style.setProperty('--soql-table-height', 'calc(100% - 20px)');
       mainTable.setHeight('100%');
     }
+    // After height is set, the vertical scrollbar may have appeared, reducing
+    // the available width. Redraw forces fitColumns to recalculate column
+    // widths accounting for the scrollbar, preventing a spurious horizontal
+    // scrollbar.
+    mainTable.redraw(true);
   }
 
   // ---- RENDER THE WEBVIEW CONTENT ---- //
