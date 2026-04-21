@@ -14,6 +14,7 @@ export class CsvDataProvider implements DataProvider {
   public readonly fileExtension = DATA_CSV_EXT;
   constructor(public readonly documentName: string) {}
 
+  // eslint-disable-next-line class-methods-use-this
   public getFileContent(_query: string, data: JsonMap[]): string {
     return convertToCSV(data);
   }

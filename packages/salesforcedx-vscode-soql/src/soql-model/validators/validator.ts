@@ -25,7 +25,7 @@ export abstract class Validator {
 }
 
 export class DefaultValidator extends Validator {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   public validate(input: string): ValidateResult {
     return { isValid: true };
   }
