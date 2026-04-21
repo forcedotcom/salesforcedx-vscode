@@ -21,6 +21,7 @@ import {
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
+import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
@@ -51,7 +52,7 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
     await saveScreenshot(page, 'step1.template-prompt-visible.png');
     await page.keyboard.press('Enter');
 
-    await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.getByText(messages.apex_class_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
     await page.keyboard.type(className);
     await saveScreenshot(page, 'step1.after-type-name.png');

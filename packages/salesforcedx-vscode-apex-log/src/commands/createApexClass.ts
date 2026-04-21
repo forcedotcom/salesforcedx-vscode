@@ -71,6 +71,7 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
     outputDirFromContext ??
     (yield* promptService.promptForOutputDir({
       defaultUri,
+      folderName: 'classes',
       pickerPlaceHolder: nls.localize('output_dir_prompt')
     }));
 

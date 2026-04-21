@@ -14,6 +14,7 @@ export class ApexTestingDecorationProvider implements vscode.FileDecorationProvi
   private readonly emitter = new vscode.EventEmitter<URI | URI[] | undefined>();
   public readonly onDidChangeFileDecorations = this.emitter.event;
 
+  // eslint-disable-next-line class-methods-use-this
   public provideFileDecoration(uri: URI): vscode.ProviderResult<vscode.FileDecoration> {
     if (uri.scheme !== APEX_TESTING_SCHEME) {
       return undefined;
