@@ -72,10 +72,10 @@ export const createApexClass = async (page: Page, className: string, content?: s
 
   await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
 
-  // First prompt: Quick Pick to select template - click the first option (DefaultApexClass).
-  // Clicking is more reliable than pressing Enter: on web/headed mode the quick-pick sometimes
-  // hasn't committed a selection by the time Enter is fired, and the keystroke is silently
-  // dropped — leaving the test hung on this same widget.
+  // First prompt: Quick Pick to select template (DefaultApexClass).
+  // Click + Enter fallback: click alone was flaky on desktop (selection highlighted but not committed,
+  // leaving the widget open); Enter alone was flaky on web (keystroke dropped before selection committed).
+  // Click highlights, then if the next prompt doesn't appear we press Enter to commit.
   await waitForQuickInputFirstOption(page);
   const quickInput = activeQuickInputWidget(page);
   const firstTemplateOption = quickInput.getByRole('option').first();
@@ -83,23 +83,39 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await firstTemplateOption.click({ timeout: 5000 });
 
   // Second prompt: "Enter Apex class name"
-  await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 30_000 });
+  const classNamePrompt = quickInput.getByText(/Enter Apex class name/i);
+  const classNamePromptVisible = await classNamePrompt
+    .waitFor({ state: 'visible', timeout: 3000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!classNamePromptVisible) {
+    await page.keyboard.press('Enter');
+    await classNamePrompt.waitFor({ state: 'visible', timeout: 30_000 });
+  }
   await page.keyboard.type(className);
   await page.keyboard.press('Enter');
 
-  // Third prompt: Quick Pick to select output directory - click the first option (default dir).
-  // Same rationale as the template prompt: clicks are deterministic, Enter can miss on web.
+  // Third prompt: Quick Pick to select output directory - click first option (default dir).
+  // Same click + Enter fallback pattern as the template prompt.
   await waitForQuickInputFirstOption(page);
   const firstDirOption = activeQuickInputWidget(page).getByRole('option').first();
   await firstDirOption.waitFor({ state: 'visible', timeout: 5000 });
   await firstDirOption.click({ timeout: 5000 });
 
-  // Wait for the editor to open with the new class (extension writes a template and opens it)
+  // Wait for the editor to open with the new class (extension writes a template and opens it).
   // Target by filename: .first() can select the wrong tab when multiple editors are open (e.g. create
-  // ExampleApexClass then ExampleApexClassTest — leftmost tab stays first, so we'd paste into wrong file)
+  // ExampleApexClass then ExampleApexClassTest — leftmost tab stays first, so we'd paste into wrong file).
+  // If the dir click didn't commit (widget still open), press Enter to commit and wait again.
   const fileName = `${className}.cls`;
   const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${fileName}"]`);
-  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+  const editorOpened = await editor
+    .waitFor({ state: 'visible', timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!editorOpened) {
+    await page.keyboard.press('Enter');
+    await editor.waitFor({ state: 'visible', timeout: 15_000 });
+  }
 
   // If content is provided, replace the template with it and save (so the file is on disk and deployable)
   if (content !== undefined && content.length > 0) {
