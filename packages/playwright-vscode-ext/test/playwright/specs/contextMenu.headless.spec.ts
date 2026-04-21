@@ -15,7 +15,7 @@ import {
   ensureSecondarySideBarHidden
 } from '../../../src/utils/helpers';
 import { EDITOR_WITH_URI } from '../../../src/utils/locators';
-import { activeQuickInputTextField } from '../../../src/utils/quickInput';
+import { activeQuickInputTextField, activeQuickInputWidget } from '../../../src/utils/quickInput';
 import { test } from '../fixtures/index';
 
 test.describe('Context Menu', () => {
@@ -41,9 +41,11 @@ test.describe('Context Menu', () => {
 
       await expect(activeQuickInputTextField(page)).toBeAttached({ timeout: 5000 });
 
-      // Close the command palette by pressing Escape
+      // Close the command palette by pressing Escape. On Windows, VS Code retains
+      // `.quick-input-widget` in the DOM (hidden) after closing, so assert the widget is hidden
+      // rather than that it (or its input) is detached.
       await page.keyboard.press('Escape');
-      await expect(activeQuickInputTextField(page)).toHaveCount(0);
+      await expect(activeQuickInputWidget(page)).toBeHidden({ timeout: 5000 });
     });
   });
 

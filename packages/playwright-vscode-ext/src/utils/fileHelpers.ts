@@ -72,19 +72,27 @@ export const createApexClass = async (page: Page, className: string, content?: s
 
   await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
 
-  // First prompt: Quick Pick to select template - press Enter to accept default (DefaultApexClass)
+  // First prompt: Quick Pick to select template - click the first option (DefaultApexClass).
+  // Clicking is more reliable than pressing Enter: on web/headed mode the quick-pick sometimes
+  // hasn't committed a selection by the time Enter is fired, and the keystroke is silently
+  // dropped — leaving the test hung on this same widget.
   await waitForQuickInputFirstOption(page);
-  await page.keyboard.press('Enter');
+  const quickInput = activeQuickInputWidget(page);
+  const firstTemplateOption = quickInput.getByRole('option').first();
+  await firstTemplateOption.waitFor({ state: 'visible', timeout: 5000 });
+  await firstTemplateOption.click({ timeout: 5000 });
 
   // Second prompt: "Enter Apex class name"
-  const quickInput = activeQuickInputWidget(page);
   await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 30_000 });
   await page.keyboard.type(className);
   await page.keyboard.press('Enter');
 
-  // Third prompt: Quick Pick to select output directory - just press Enter to accept default
+  // Third prompt: Quick Pick to select output directory - click the first option (default dir).
+  // Same rationale as the template prompt: clicks are deterministic, Enter can miss on web.
   await waitForQuickInputFirstOption(page);
-  await page.keyboard.press('Enter');
+  const firstDirOption = activeQuickInputWidget(page).getByRole('option').first();
+  await firstDirOption.waitFor({ state: 'visible', timeout: 5000 });
+  await firstDirOption.click({ timeout: 5000 });
 
   // Wait for the editor to open with the new class (extension writes a template and opens it)
   // Target by filename: .first() can select the wrong tab when multiple editors are open (e.g. create
@@ -299,6 +307,23 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 
   // Wait for editor to open with the file
   await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  // If a diff editor (or other custom editor) for this file is currently active, Quick Open + Enter
+  // may leave focus on the previously-active tab instead of switching to the plain-source tab.
+  // Subsequent command-palette invocations would then evaluate `when` clauses against the wrong
+  // resource (e.g. the remote-side of a diff editor is NOT `isFileSystemResource`, so
+  // "SFDX: Deploy This Source to Org" / "SFDX: Retrieve This Source from Org" get filtered out).
+  // Explicitly activate the source tab so the active editor matches the requested file.
+  const sourceTab = page.getByRole('tab', { name: fileName, exact: true }).first();
+  if (await sourceTab.isVisible({ timeout: 2000 }).catch(() => false)) {
+    const selected = await sourceTab.getAttribute('aria-selected').catch(() => null);
+    if (selected !== 'true') {
+      await sourceTab.click({ timeout: 5000 }).catch(() => {});
+      await expect(sourceTab)
+        .toHaveAttribute('aria-selected', 'true', { timeout: 5000 })
+        .catch(() => {});
+    }
+  }
 };
 
 /** Edit the currently open file by adding a comment at the top */

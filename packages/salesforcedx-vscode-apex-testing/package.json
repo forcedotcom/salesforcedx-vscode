@@ -357,8 +357,7 @@
       },
       {
         "command": "sf.apex.testing.walkthrough.open",
-        "title": "%apex_testing_walkthrough_open_command%",
-        "category": "%apex_testing_walkthrough_category%"
+        "title": "%apex_testing_walkthrough_open_command%"
       }
     ],
     "viewsWelcome": [

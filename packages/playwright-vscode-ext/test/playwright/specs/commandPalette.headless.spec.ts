@@ -15,7 +15,7 @@ import {
   isDesktop
 } from '../../../src/utils/helpers';
 import { WORKBENCH } from '../../../src/utils/locators';
-import { activeQuickInputTextField } from '../../../src/utils/quickInput';
+import { activeQuickInputTextField, activeQuickInputWidget } from '../../../src/utils/quickInput';
 import { test } from '../fixtures/index';
 
 test.describe('Command Palette', () => {
@@ -58,7 +58,9 @@ test.describe('Command Palette', () => {
 
     await test.step('Close command palette with Escape', async () => {
       await page.keyboard.press('Escape');
-      await expect(activeQuickInputTextField(page)).toHaveCount(0);
+      // On Windows, VS Code retains `.quick-input-widget` in the DOM (hidden) after closing,
+      // so assert the widget is hidden rather than that it (or its input) is detached.
+      await expect(activeQuickInputWidget(page)).toBeHidden({ timeout: 5000 });
     });
   });
 
