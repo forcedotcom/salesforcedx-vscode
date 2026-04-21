@@ -361,11 +361,23 @@ async function run() {
     }
 
     function getMinimumVSCodeVersion(): string {
+      const NUM_LAST_RELEASES = 5;
+      const lastNReleasesUrl = `https://api.github.com/repos/microsoft/vscode/releases?per_page=${NUM_LAST_RELEASES}&page=1`;
       try {
-        // Get the latest VSCode version from GitHub API using curl
-        const result = execSync('curl -s -H "User-Agent: salesforcedx-vscode-actions" https://api.github.com/repos/microsoft/vscode/releases/latest').toString();
-        const release: { tag_name?: string } = JSON.parse(result);
-        const latestVersion: string = release.tag_name ?? '1.103.0'; // e.g., "1.103.0"
+        // Get last `NUM_LAST_RELEASES` VSCode releases as JSON array
+        const result = execSync(`curl -s -H "User-Agent: salesforcedx-vscode-actions" ${lastNReleasesUrl}`).toString();
+        const lastReleases = JSON.parse(result);
+
+        /**
+         * Some VSCode releases are not VSCode but e.g. Copilot, which uses other versioning and tags, e.g. "v0.44.1" (see https://github.com/microsoft/vscode/releases/tag/v0.44.1).
+         * As a workaround, we request last N releases, and take first release created off the "main" branch.
+         */
+        const lastMainBranchReleases = lastReleases.filter((release: {target_commitish?: string}) => release?.target_commitish == 'main').slice(0, 1);
+         // fallback to latest generic release if "main" branch releases not found
+        const release: { tag_name?: string } = (lastMainBranchReleases.length && lastMainBranchReleases[0]) ?? lastReleases[0];
+
+        // Apply semver.coerce() to ensure the "major.minor.patch" format (e.g. Copilot tag_name "v0.44.1" -> "0.44.1")
+        const latestVersion: string = semver.coerce(release.tag_name)?.version ?? '1.103.0'; // e.g., "1.103.0"
 
         // Parse version numbers
         const versionParts: number[] = latestVersion.split('.').map(Number);
