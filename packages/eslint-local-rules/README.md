@@ -2,6 +2,29 @@
 
 Custom ESLint rules for Salesforce VSCode extensions.
 
+## Installation
+
+```bash
+npm install --save-dev @salesforce/eslint-plugin-vscode-extensions
+```
+
+## Setup (ESLint flat config)
+
+```js
+// eslint.config.mjs
+import vsCodeExtensions from '@salesforce/eslint-plugin-vscode-extensions';
+
+export default [
+  {
+    plugins: { 'vscode-extensions': vsCodeExtensions },
+    rules: {
+      'vscode-extensions/no-vscode-message-literals': 'error',
+      // add additional rules as needed
+    }
+  }
+];
+```
+
 ## Rules
 
 ### no-duplicate-i18n-values
