@@ -13,6 +13,16 @@
   "workspaces": {
     "packages/salesforcedx-aura-language-server": {
       "entry": ["src/index.ts", "src/server.ts"]
+    },
+    "packages/salesforcedx-lightning-lsp-common": {
+      "entry": [
+        "src/index.ts",
+        "src/workspaceLoader.ts",
+        "src/workspaceReadFileHandler.ts",
+        "src/applyEditHandler.ts",
+        "src/providers/lspFileSystemAccessor.ts",
+        "src/__tests__/testUtils.ts"
+      ]
     }
   }
 }

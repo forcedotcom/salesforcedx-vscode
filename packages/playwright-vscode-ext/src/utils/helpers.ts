@@ -9,13 +9,14 @@ import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { upsertSettings } from '../pages/settings';
 import {
-  QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW,
+  QUICK_INPUT_WIDGET,
   SETTINGS_SEARCH_INPUT,
   TAB,
   TAB_CLOSE_BUTTON,
   WORKBENCH
 } from './locators';
+import { activeQuickInputTextField, activeQuickInputWidget } from './quickInput';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -62,7 +63,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   "'allow-scripts' permissions is not set", //
   'Blocked script execution', // Webview sandboxing initialization errors (non-critical)
   'vscode-webview://', // Webview internal URLs (paired with blocked script errors)
-  'Connection failed, falling back to static endpoint', // o11y unauthnticated connection
+  'Connection failed, falling back to static endpoint', // o11y unauthnticated connection,
+  'Ignoring terminal.integrated.initialHint', // VS Code terminal hint configuration conflicts (non-critical)
   // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
   // Apex code-lens provider (provideCodeLenses) fires on file open even in headless/no-org tests; VS Code surfaces two console errors for the same underlying cause:
   'No default org is set', // specific message from WorkspaceContextUtil.getConnection
@@ -75,13 +77,19 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Illegal assignment from String to Integer', // Execute anonymous compile error (intentionally triggered in E2E)
   'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
   'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
+  'workbench.contrib.agentHostTerminal', // VS Code agent host terminal error (non-critical)
+  'Unable to resolve your shell environment', // VS Code terminal profile / integrated shell init (noisy on desktop E2E)
   'Canceled: Canceled', // VS Code workbench / extension-host dispose during Reload Window or test teardown (non-critical)
   // VS Code 1.116+ desktop: workbench contributions that expect remote agent (not present in @vscode/test-electron)
   'agenthostterminal', // VS Code terminal/Copilot settings interplay — benign when running packaged VS Code in tests
   'initialhint.copilotcli',
   'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
   'remoteAgentHostService', // VS Code remote agent host service noise (non-critical)
-  'workbench.contrib.agentHostTerminal' // VS Code agent host terminal error (non-critical)
+  'workbench.contrib.agentHostTerminal', // VS Code agent host terminal error (non-critical)
+  // VS Code 1.116+ core Accounts area silently fetches a session/entitlement on boot;
+  // with `vscode.github-authentication` disabled there's no provider, so it surfaces this
+  // toast. Benign in E2E — tests don't use VS Code accounts.
+  'Sign-in failed'
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -156,17 +164,31 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
 };
 
+/** VS Code 1.116+ Welcome onboarding can cover the workbench and block non-forced clicks. */
+export const dismissWelcomeOnboardingOverlayIfPresent = async (page: Page): Promise<void> => {
+  const welcomeOverlay = page.locator('.onboarding-a-overlay.visible, [aria-label="Welcome to Visual Studio Code"]');
+  if (
+    await welcomeOverlay
+      .first()
+      .isVisible({ timeout: 400 })
+      .catch(() => false)
+  ) {
+    await page.keyboard.press('Escape');
+    await welcomeOverlay
+      .first()
+      .waitFor({ state: 'hidden', timeout: 3000 })
+      .catch(() => {});
+  }
+};
+
 /** Dismiss any open quick input widgets by pressing Escape until none visible */
 export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => {
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  // Press Escape up to 3 times to dismiss any stacked widgets
-  for (let i = 0; i < 3; i++) {
-    if (await quickInput.isVisible({ timeout: 200 }).catch(() => false)) {
-      await page.keyboard.press('Escape');
-      await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
-    } else {
-      break;
-    }
+  // Rely on attached command-palette inputs, not widget visibility (1.116+ often reports hidden while open)
+  for (let i = 0; i < 4; i++) {
+    const openInputs = await page.locator(`${QUICK_INPUT_WIDGET} input.input`).count();
+    if (openInputs === 0) break;
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(100);
   }
 };
 
@@ -175,19 +197,126 @@ export const waitForQuickInputFirstOption = async (
   page: Page,
   options?: WaitForQuickInputFirstOptionOptions
 ): Promise<void> => {
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  const quickInput = activeQuickInputWidget(page);
+  const input = activeQuickInputTextField(page);
   const firstAriaOption = quickInput.getByRole('option').first();
   const quickInputVisibleTimeout = options?.quickInputVisibleTimeout ?? 10_000;
   const optionVisibleTimeout = options?.optionVisibleTimeout ?? 5000;
 
   await expect(async () => {
-    await quickInput.waitFor({ state: 'visible', timeout: quickInputVisibleTimeout });
+    // Prefer the text field: empty/stale `.quick-input-widget` shells can attach without `input.input`
+    await input.waitFor({ state: 'attached', timeout: quickInputVisibleTimeout });
     if ((await firstAriaOption.count()) > 0) {
-      await expect(firstAriaOption).toBeVisible({ timeout: optionVisibleTimeout });
+      await firstAriaOption.waitFor({ state: 'attached', timeout: optionVisibleTimeout });
       return;
     }
-    await quickInput.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: optionVisibleTimeout });
+    await quickInput
+      .locator(QUICK_INPUT_LIST_ROW)
+      .first()
+      .waitFor({ state: 'attached', timeout: optionVisibleTimeout });
   }).toPass({ timeout: options?.retryTimeout ?? 10_000 });
+};
+
+/**
+ * Accept the default (first) option in the active quick input widget.
+ *
+ * Unifies the three "click the first option" variants scattered across specs:
+ * - Playwright `.click()` was flaky on desktop (highlighted but not committed)
+ * - Keyboard Enter alone was flaky on web (keystroke dropped before commit)
+ * - DOM `evaluate` click was needed when Playwright `.click()` was silently dropped
+ *
+ * Strategy: wait for the first option, then commit via DOM `evaluate` click (most reliable
+ * across platforms — scrolls into view and fires a real DOM click synchronously).
+ *
+ * @param options.confirmCommitted Optional predicate the caller supplies to verify the commit
+ * landed (e.g. next prompt visible, widget hidden, editor opened). If it doesn't return true
+ * within `commitTimeout`, Enter is pressed as a fallback. Omit this for callers that will
+ * assert their own next-state afterwards and don't need a built-in fallback.
+ * @param options.commitTimeout How long to wait for `confirmCommitted` before pressing Enter.
+ * Defaults to 3000ms. Ignored if `confirmCommitted` isn't provided.
+ */
+export const selectFirstQuickInputOption = async (
+  page: Page,
+  options?: {
+    confirmCommitted?: () => Promise<boolean>;
+    commitTimeout?: number;
+    quickInputVisibleTimeout?: number;
+    optionVisibleTimeout?: number;
+    retryTimeout?: number;
+  }
+): Promise<void> => {
+  await waitForQuickInputFirstOption(page, {
+    quickInputVisibleTimeout: options?.quickInputVisibleTimeout,
+    optionVisibleTimeout: options?.optionVisibleTimeout,
+    retryTimeout: options?.retryTimeout
+  });
+
+  const quickInput = activeQuickInputWidget(page);
+  const firstAriaOption = quickInput.getByRole('option').first();
+  const firstRow =
+    (await firstAriaOption.count()) > 0 ? firstAriaOption : quickInput.locator(QUICK_INPUT_LIST_ROW).first();
+
+  await firstRow.evaluate(el => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    (el as HTMLElement).click();
+  });
+
+  if (options?.confirmCommitted) {
+    const commitTimeout = options.commitTimeout ?? 3000;
+    const committed = await options.confirmCommitted().catch(() => false);
+    if (!committed) {
+      // Poll until timeout before falling back to Enter — the predicate may take a moment
+      // to become true (e.g. next prompt animating in).
+      const deadline = Date.now() + commitTimeout;
+      let done = false;
+      while (Date.now() < deadline) {
+        if (await options.confirmCommitted().catch(() => false)) {
+          done = true;
+          break;
+        }
+        await page.waitForTimeout(100);
+      }
+      if (!done) {
+        await page.keyboard.press('Enter');
+      }
+    }
+  }
+};
+
+/**
+ * Select a quick-pick option by its accessible name in the active quick input widget.
+ *
+ * Clicking the option (rather than pressing Enter) is more reliable across platforms: on
+ * desktop-electron the Enter keystroke sometimes does not register on the active quick pick,
+ * leaving the picker open and the command never executed.
+ *
+ * @param name Accessible name (string or RegExp) of the option to click, e.g. `/^REST API/`.
+ * @param options.waitForVisible If true (default), waits for the quick input's first option before clicking.
+ * Set false if the caller already awaited the option list.
+ * @param options.timeout Click timeout in ms (default 10_000).
+ */
+export const selectQuickInputOption = async (
+  page: Page,
+  name: string | RegExp,
+  options?: {
+    waitForVisible?: boolean;
+    timeout?: number;
+    quickInputVisibleTimeout?: number;
+    optionVisibleTimeout?: number;
+    retryTimeout?: number;
+  }
+): Promise<void> => {
+  const waitForVisible = options?.waitForVisible ?? true;
+  if (waitForVisible) {
+    await waitForQuickInputFirstOption(page, {
+      quickInputVisibleTimeout: options?.quickInputVisibleTimeout,
+      optionVisibleTimeout: options?.optionVisibleTimeout,
+      retryTimeout: options?.retryTimeout
+    });
+  }
+
+  const option = activeQuickInputWidget(page).getByRole('option', { name });
+  await option.first().click({ force: true, timeout: options?.timeout ?? 10_000 });
 };
 
 /**
@@ -223,11 +352,12 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
 
   // Use Playwright's retry mechanism to close all welcome tabs
   await expect(async () => {
+    await dismissWelcomeOnboardingOverlayIfPresent(page);
     // Dismiss any quick input widgets that might intercept clicks
     await dismissAllQuickInputWidgets(page);
 
-    // Ensure workbench is focused before interacting with tabs
-    await workbench.click({ timeout: 5000 });
+    // Ensure workbench is focused before interacting with tabs (overlay can block non-forced clicks)
+    await workbench.click({ timeout: 5000, force: true });
 
     const welcomeTabs = page.getByRole('tab', { name: /Welcome|Walkthrough/i });
     const count = await welcomeTabs.count();
@@ -248,10 +378,7 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
     // Try close button first
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
     if (await closeButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      // Ensure no quick input widget is intercepting before clicking
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      const widgetVisible = await quickInput.isVisible({ timeout: 200 }).catch(() => false);
-      if (widgetVisible) {
+      if ((await page.locator(`${QUICK_INPUT_WIDGET} input.input`).count()) > 0) {
         await dismissAllQuickInputWidgets(page);
       }
       await closeButton.click({ timeout: 5000, force: true });
@@ -270,24 +397,35 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 30_000 });
 };
 
-/** Closes any visible Settings tab or overlay on desktop. */
+/** Closes any visible Settings tab or overlay on desktop. Single-shot; does not loop. */
 export const closeSettingsTab = async (page: Page): Promise<void> => {
   if (isDesktop()) {
-    // Desktop can show Settings as an overlay; Escape closes it when present.
-    await page.keyboard.press('Escape');
-
+    // Desktop can render Settings as a regular editor tab OR as a centered/overlay editor that
+    // isn't in `.tabs-container`. Prefer clicking the tab's close button (safest: targets only
+    // Settings). Fall back to focus + Ctrl/Cmd+W for the overlay case.
+    const desktopSettingsEditor = page.locator('.settings-editor').first();
     const desktopSettingsTab = page
       .locator(TAB)
       .filter({ hasText: /Settings/i })
       .first();
-    const isDesktopSettingsVisible = await desktopSettingsTab.isVisible({ timeout: 1000 }).catch(() => false);
-    if (isDesktopSettingsVisible) {
+
+    const isDesktopTabVisible = await desktopSettingsTab.isVisible({ timeout: 500 }).catch(() => false);
+    if (isDesktopTabVisible) {
       const closeButton = desktopSettingsTab.locator(TAB_CLOSE_BUTTON);
-      const canClickClose = await closeButton.isVisible({ timeout: 1000 }).catch(() => false);
-      if (canClickClose) {
+      if (await closeButton.isVisible({ timeout: 500 }).catch(() => false)) {
         await closeButton.click({ force: true }).catch(() => {});
+        await desktopSettingsTab.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
       }
-      await desktopSettingsTab.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
+      return;
+    }
+
+    const isOverlayVisible = await desktopSettingsEditor.isVisible({ timeout: 500 }).catch(() => false);
+    if (isOverlayVisible) {
+      // Focus the Settings editor before the keyboard close, otherwise Ctrl+W is routed
+      // elsewhere (and in the worst case can close the wrong editor). Single-shot.
+      await desktopSettingsEditor.click({ position: { x: 5, y: 5 }, force: true }).catch(() => {});
+      await page.keyboard.press('ControlOrMeta+w').catch(() => {});
+      await desktopSettingsEditor.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
     }
     return;
   }
@@ -409,13 +547,15 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
   // VS Code's secondary sidebar is in the .part.auxiliarybar element
   const auxiliaryBar = page.locator('.part.auxiliarybar');
 
+  await dismissWelcomeOnboardingOverlayIfPresent(page);
+
   // Check if sidebar exists and is visible
   // Use a short timeout to avoid hanging if it's not there
   const isVisible = await auxiliaryBar.isVisible({ timeout: 1000 }).catch(() => false);
 
   if (isVisible) {
     // Focus workbench before opening palette (avoids F1/keystrokes going to auxiliary bar chat input)
-    await page.locator(WORKBENCH).click({ timeout: 5000 });
+    await page.locator(WORKBENCH).click({ timeout: 5000, force: true });
     // Use the explicit Hide command (not Toggle) to ensure we're hiding
     await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
 
