@@ -34,6 +34,37 @@
     }
   }
 
+  function adjustContainerHeight() {
+    console.log('[SOQL] adjustContainerHeight called');
+    var tEl = document.querySelector('#data-table');
+    if (!tEl || !mainTable) {
+      console.log('[SOQL] adjustContainerHeight: no tabulator element or mainTable', { tEl, mainTable });
+      return;
+    }
+    var pageHeader = document.querySelector('header');
+    var pageHeaderH = pageHeader ? pageHeader.offsetHeight : 0;
+    var colHeader = tEl.querySelector('.tabulator-header');
+    var rowsEl = tEl.querySelector('.tabulator-tableHolder .tabulator-table');
+    var footer = tEl.querySelector('.tabulator-footer');
+    var contentH =
+      (colHeader ? colHeader.offsetHeight : 0) +
+      (rowsEl ? rowsEl.offsetHeight : 0) +
+      (footer ? footer.offsetHeight : 0);
+    var container = document.querySelector('body > div');
+    if (container) {
+      var tableHeight = pageHeaderH + contentH;
+      console.log('[SOQL] adjustContainerHeight:', {
+        pageHeaderH,
+        contentH,
+        tableHeight,
+        windowInnerHeight: window.innerHeight,
+        maxH: window.innerHeight - 20
+      });
+      container.style.setProperty('--soql-table-height', tableHeight + 'px');
+      mainTable.setHeight('100%');
+    }
+  }
+
   // ---- RENDER THE WEBVIEW CONTENT ---- //
 
   function updateUIWith(queryData, documentName) {
@@ -64,6 +95,7 @@
         virtualDom: false,
         columns: getFlattenedGridColumns(fg.fields)
       });
+      adjustContainerHeight();
       return;
     }
 
@@ -109,6 +141,7 @@
         });
       }
     });
+    adjustContainerHeight();
   }
 
   function getFlattenedGridColumns(fields) {

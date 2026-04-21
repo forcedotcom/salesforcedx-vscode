@@ -23,7 +23,7 @@ body {
 body > div {
   display: flex;
   flex-direction: column;
-  height: calc(100% - 20px);
+  height: min(calc(100% - 20px), var(--soql-table-height, calc(100% - 20px)));
 }
 
 #data-table {
