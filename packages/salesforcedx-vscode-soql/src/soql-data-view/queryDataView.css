@@ -32,10 +32,6 @@ body > div {
   overflow: auto;
 }
 
-#data-table .tabulator-footer {
-  border-bottom: 1px solid #999;
-}
-
 :root {
   --soql-main-min-width: 480px;
   --soql-main-max-width: 960px;
