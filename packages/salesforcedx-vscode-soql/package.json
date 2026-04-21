@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.7.0",
+  "version": "66.8.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -100,6 +100,7 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../effect-ext-utils:compile",
         "../soql-common:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
@@ -111,6 +112,7 @@
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json",
+        "../effect-ext-utils/out/**",
         "../soql-common/out/**",
         "../salesforcedx-vscode-i18n/out/**",
         "../salesforcedx-vscode-services/out/**"
