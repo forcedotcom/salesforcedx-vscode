@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.7.0",
+  "version": "66.8.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -111,12 +111,7 @@
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
-        "package.nls*.json",
-        "../effect-ext-utils/out/**",
-        "../playwright-vscode-ext/out/**",
-        "../soql-common/out/**",
-        "../salesforcedx-vscode-i18n/out/**",
-        "../salesforcedx-vscode-services/out/**"
+        "package.nls*.json"
       ],
       "output": [
         "out/**",
