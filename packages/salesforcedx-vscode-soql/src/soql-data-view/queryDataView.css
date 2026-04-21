@@ -34,7 +34,6 @@ body > div {
 
 #data-table .tabulator-header {
   border: 1px solid #999;
-  border-bottom: none;
 }
 
 #data-table .tabulator-tableHolder {
@@ -45,7 +44,6 @@ body > div {
 
 #data-table .tabulator-footer {
   border: 1px solid #999;
-  border-top: none;
 }
 
 :root {
