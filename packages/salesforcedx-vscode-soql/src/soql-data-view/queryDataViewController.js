@@ -14,9 +14,17 @@
     } */
   const FileType = {
     JSON: 'json',
-    CSV: 'csv',
+    CSV: 'csv'
   };
   const vscode = acquireVsCodeApi();
+
+  /** @type {any} */
+  // Must be declared before `loadState()` runs: function declarations are hoisted,
+  // but `let` bindings stay in the TDZ until this line executes. `renderTableWith`
+  // reads `mainTable`, so calling it before this declaration throws ReferenceError,
+  // which aborts the rest of the IIFE (message listeners, save-button handlers,
+  // and the `activate` postMessage all fail to register).
+  let mainTable;
 
   // load previous state if webview was moved from background.
   function loadState() {
@@ -25,11 +33,6 @@
       updateUIWith(state.data, state.documentName);
     }
   }
-
-  loadState();
-
-  /** @type {any} */
-  let mainTable;
 
   // ---- RENDER THE WEBVIEW CONTENT ---- //
 
@@ -51,12 +54,7 @@
     }
 
     var fg = tableData.flattenedGrid;
-    if (
-      fg &&
-      Array.isArray(fg.fields) &&
-      fg.fields.length > 0 &&
-      Array.isArray(fg.rowData)
-    ) {
+    if (fg && Array.isArray(fg.fields) && fg.fields.length > 0 && Array.isArray(fg.rowData)) {
       mainTable = new Tabulator('#data-table', {
         data: fg.rowData,
         pagination: 'local',
@@ -82,16 +80,16 @@
           const key = Object.keys(row.getData()).find(k => k.toLowerCase() === subTable.objectName.toLowerCase());
           if (key && row.getData()[key]) {
             var data = row.getData()[key];
-            var holderEl = document.createElement("div");
-            var tableEl = document.createElement("div");
+            var holderEl = document.createElement('div');
+            var tableEl = document.createElement('div');
 
-            holderEl.style.boxSizing = "border-box";
-            holderEl.style.padding = "10px 30px 10px 10px";
-            holderEl.style.borderTop = "1px solid #333";
-            holderEl.style.borderBotom = "1px solid #333";
-            holderEl.style.background = "#ddd";
+            holderEl.style.boxSizing = 'border-box';
+            holderEl.style.padding = '10px 30px 10px 10px';
+            holderEl.style.borderTop = '1px solid #333';
+            holderEl.style.borderBotom = '1px solid #333';
+            holderEl.style.background = '#ddd';
 
-            tableEl.style.border = "1px solid #333";
+            tableEl.style.border = '1px solid #333';
 
             holderEl.appendChild(tableEl);
 
@@ -99,13 +97,13 @@
 
             try {
               new Tabulator(tableEl, {
-                layout: "fitColumns",
+                layout: 'fitColumns',
                 virtualDom: false,
                 data: data.records,
                 columns: getColumns(data, subTable)
               });
             } catch (e) {
-              console.error("SOQL nested Tabulator failed", e);
+              console.error('SOQL nested Tabulator failed', e);
             }
           }
         });
@@ -187,9 +185,7 @@
 
   function getColumns(obj, columnData) {
     var columns = [];
-    var record = obj.records && obj.records.length
-      ? obj.records[0]
-      : undefined;
+    var record = obj.records && obj.records.length ? obj.records[0] : undefined;
     if (record) {
       columnData.columns.forEach(col => {
         let field = '';
@@ -197,16 +193,14 @@
         col.fieldHelper.forEach(segment => {
           var key = Object.keys(currentObject).find(k => k.toLowerCase() === segment.toLowerCase());
           if (key) {
-            field = field.length === 0
-              ? key
-              : field + '.' + key;
+            field = field.length === 0 ? key : field + '.' + key;
             currentObject = currentObject[key];
           }
         });
         columns.push({
           title: col.title,
           field
-        })
+        });
       });
     }
     return columns;
@@ -218,7 +212,7 @@
   saveCsvButtonEl.addEventListener('click', () => {
     vscode.postMessage({
       type: 'save_records',
-      format: FileType.CSV,
+      format: FileType.CSV
     });
   });
 
@@ -226,26 +220,35 @@
   saveJsonButtonEl.addEventListener('click', () => {
     vscode.postMessage({
       type: 'save_records',
-      format: FileType.JSON,
+      format: FileType.JSON
     });
   });
   // incoming messages from VS Code
-  window.addEventListener('message', (event) => {
+  window.addEventListener('message', event => {
     const { type, data, documentName } = event.data;
     switch (type) {
       case 'update':
         updateUIWith(data, documentName);
         vscode.setState({
           data,
-          documentName,
+          documentName
         });
         return;
       default:
         console.log('oops! No message type');
     }
   });
+
+  // Restore any cached data from a prior run so the table re-renders immediately
+  // when the webview is re-shown (e.g. after the user switches tabs away and back
+  // and VS Code tears down the webview's JS context). Called after all event
+  // listeners are registered so that any unexpected failure inside `loadState()`
+  // cannot prevent the `activate` postMessage below — the extension's response
+  // to `activate` is the fallback path that re-pushes fresh data.
+  loadState();
+
   // Ensure the UI is loaded before receiving 'update' from extension
   vscode.postMessage({
-    type: 'activate',
+    type: 'activate'
   });
 })();
