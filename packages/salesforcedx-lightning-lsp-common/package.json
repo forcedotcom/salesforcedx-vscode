@@ -27,9 +27,9 @@
       "types": "./out/src/workspaceReadFileHandler.d.ts"
     },
     "./testUtils": {
-      "types": "./out/src/__tests__/testUtils.d.ts",
-      "import": "./out/src/__tests__/testUtils.js",
-      "require": "./out/src/__tests__/testUtils.js"
+      "types": "./out/src/testSupport/testUtils.d.ts",
+      "import": "./out/src/testSupport/testUtils.js",
+      "require": "./out/src/testSupport/testUtils.js"
     },
     "./providers/lspFileSystemAccessor": {
       "import": "./out/src/providers/lspFileSystemAccessor.js",
@@ -79,6 +79,7 @@
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "jest/**/*.ts",
         "jest.config.js",
         "jest.setup.js",
@@ -95,6 +96,7 @@
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "jest/**/*.ts",
         "../../eslint.config.mjs"
       ],

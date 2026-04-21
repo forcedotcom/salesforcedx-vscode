@@ -61,7 +61,7 @@ export default [
       'packages/soql-common/src/soql-parser.lib/**',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts',
-      'packages/salesforcedx-lwc-language-server/src/javascript/__tests__/fixtures/**',
+      'packages/salesforcedx-lwc-language-server/test/javascript/fixtures/**',
       'packages/salesforcedx-lightning-lsp-common/src/resources/**',
       'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
       '**/.vscode-test-web/**',
@@ -508,6 +508,10 @@ export default [
       'packages/salesforcedx**/src/**/*.test.ts',
       'packages/salesforcedx**/test/web/**/*',
       'packages/salesforcedx**/test/playwright/**/*',
+      'packages/salesforcedx-aura-language-server/test/**/*',
+      'packages/salesforcedx-lwc-language-server/test/**/*',
+      'packages/salesforcedx-lightning-lsp-common/test/**/*',
+      'packages/salesforcedx-lightning-lsp-common/src/testSupport/**/*',
       'packages/salesforcedx-vscode-automation-tests/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
@@ -668,12 +672,15 @@ export default [
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
       'packages/salesforcedx-vscode-metadata/playwright*.ts',
       'packages/salesforcedx-vscode-apex-log/playwright*.ts',
+      'packages/salesforcedx-vscode-lwc/playwright*.ts',
       'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-core/playwright*.ts',
       'packages/salesforcedx-vscode-org/test/playwright/**/*.ts',
       'packages/salesforcedx-vscode-org/playwright*.ts',
       'packages/salesforcedx-vscode-soql/test/playwright/**/*.ts',
-      'packages/salesforcedx-vscode-soql/playwright*.ts'
+      'packages/salesforcedx-vscode-soql/playwright*.ts',
+      'packages/salesforcedx-vscode-visualforce/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-visualforce/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import

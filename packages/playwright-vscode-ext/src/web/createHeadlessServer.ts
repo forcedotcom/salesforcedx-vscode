@@ -16,6 +16,11 @@ type HeadlessServerOptions = {
   callerDirname: string;
   /** Additional extension directory names to load (services is always included automatically) */
   additionalExtensionDirs?: string[];
+  /**
+   * Local folder to mount as the VS Code Web workspace (`vscode-test-web://mount`).
+   * Use with {@link createTestWorkspace} so tests see `sfdx-project.json` and project files.
+   */
+  folderPath?: string;
 };
 
 /** Creates and starts a headless VS Code web server for testing an extension with services */
@@ -31,6 +36,9 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
     console.log(`🌐 Starting VS Code Web (headless) for ${options.extensionName} tests...`);
     console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
     console.log(`📦 Extension paths: ${extensionPaths.join(', ')}`);
+    if (options.folderPath !== undefined) {
+      console.log(`📂 Workspace folderPath: ${options.folderPath}`);
+    }
 
     const repoRoot = resolveRepoRoot(options.callerDirname);
     const testRunnerDataDir = path.join(repoRoot, '.vscode-test-web');
@@ -46,6 +54,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       extensionDevelopmentPath,
       extensionPaths,
       testRunnerDataDir,
+      ...(options.folderPath !== undefined ? { folderPath: options.folderPath } : {}),
       browserOptions: [
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor',

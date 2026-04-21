@@ -10,7 +10,6 @@ import { openSettingsUI, upsertSettings } from '../../../src/pages/settings';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import {
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden
 } from '../../../src/utils/helpers';
@@ -20,7 +19,6 @@ import { test } from '../fixtures/index';
 test.describe.serial('Settings', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
   });

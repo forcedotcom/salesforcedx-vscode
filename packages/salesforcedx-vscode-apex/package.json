@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.6.0",
+  "version": "66.7.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -168,8 +168,7 @@
         "LICENSE.txt",
         "images/**",
         "syntaxes/**",
-        "grammars/**",
-        "snippets/**"
+        "grammars/**"
       ],
       "output": [
         "*.vsix"
@@ -303,12 +302,6 @@
         "language": "apex-anon",
         "scopeName": "source.apex",
         "path": "./grammars/apex.tmLanguage"
-      }
-    ],
-    "snippets": [
-      {
-        "language": "apex",
-        "path": "./snippets/apex.json"
       }
     ]
   }

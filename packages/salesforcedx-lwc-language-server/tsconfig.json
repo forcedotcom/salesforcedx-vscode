@@ -7,7 +7,6 @@
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts", "src/**/*.json", "src/resources/**/*.json", "typings/*.d.ts", "jest/*.ts"],
-  "exclude": ["node_modules", "**/__tests__/fixtures/*.js"],
   "references": [
     {
       "path": "../salesforcedx-lightning-lsp-common"

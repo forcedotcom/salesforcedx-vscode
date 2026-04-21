@@ -64,6 +64,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'vscode-webview://', // Webview internal URLs (paired with blocked script errors)
   'Connection failed, falling back to static endpoint', // o11y unauthnticated connection
   // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
+  // Apex code-lens provider (provideCodeLenses) fires on file open even in headless/no-org tests; VS Code surfaces two console errors for the same underlying cause:
+  'No default org is set', // specific message from WorkspaceContextUtil.getConnection
+  'An unknown error occurred. Please consult the log for more details.', // VS Code workbench generic wrapper around the same no-org error
   'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
   'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
   'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)
@@ -72,6 +75,10 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Illegal assignment from String to Integer', // Execute anonymous compile error (intentionally triggered in E2E)
   'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
   'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
+  'Canceled: Canceled', // VS Code workbench / extension-host dispose during Reload Window or test teardown (non-critical)
+  // VS Code 1.116+ desktop: workbench contributions that expect remote agent (not present in @vscode/test-electron)
+  'agenthostterminal', // VS Code terminal/Copilot settings interplay — benign when running packaged VS Code in tests
+  'initialhint.copilotcli',
   'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
   'remoteAgentHostService', // VS Code remote agent host service noise (non-critical)
   'workbench.contrib.agentHostTerminal' // VS Code agent host terminal error (non-critical)
@@ -143,19 +150,10 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
     return;
   }
 
-  // Web: navigate if requested, then wait
   if (navigate) {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
   }
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
-};
-
-/** Assert that Welcome/Walkthrough tab exists and is visible - useful for debugging startup issues */
-export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
-  const welcomeTab = page.getByRole('tab', { name: /Welcome|Walkthrough/i }).first();
-  await expect(welcomeTab, 'Welcome/Walkthrough tab should exist after VS Code startup').toBeVisible({
-    timeout: 10_000
-  });
 };
 
 /** Dismiss any open quick input widgets by pressing Escape until none visible */
@@ -192,8 +190,35 @@ export const waitForQuickInputFirstOption = async (
   }).toPass({ timeout: options?.retryTimeout ?? 10_000 });
 };
 
+/**
+ * Dismiss the VS Code 1.116+ "Welcome to VS Code" modal sign-in walkthrough that can appear on
+ * first launch. This dialog is modal and blocks all other keyboard input (command palette, etc.)
+ * until dismissed, so it must be closed before anything else. Clicks "Continue without Signing In"
+ * if present, else "Skip", else Escape. Safe no-op if the dialog is not shown.
+ */
+export const dismissSignInWalkthroughDialog = async (page: Page): Promise<void> => {
+  const dialog = page.getByRole('dialog', { name: /Welcome to (Visual Studio Code|VS Code)/i });
+  const isVisible = await dialog.isVisible({ timeout: 500 }).catch(() => false);
+  if (!isVisible) return;
+
+  const continueWithoutSignIn = dialog.getByRole('button', { name: /Continue without Signing In/i });
+  if (await continueWithoutSignIn.isVisible({ timeout: 500 }).catch(() => false)) {
+    await continueWithoutSignIn.click({ force: true }).catch(() => {});
+  } else {
+    const skip = dialog.getByRole('button', { name: /^Skip$/i });
+    await ((await skip.isVisible({ timeout: 500 }).catch(() => false))
+      ? skip.click({ force: true }).catch(() => {})
+      : page.keyboard.press('Escape'));
+  }
+  await dialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+};
+
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
+  // Dismiss the 1.116+ modal sign-in walkthrough first — it blocks all other input, including
+  // the clicks/keystrokes this helper uses, so it must be gone before we try to close tabs.
+  await dismissSignInWalkthroughDialog(page);
+
   const workbench = page.locator(WORKBENCH);
 
   // Use Playwright's retry mechanism to close all welcome tabs

@@ -4,13 +4,7 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist",
-    "src/soql-parser.lib"
-  ],
+  "exclude": ["src/soql-parser.lib"],
   "include": ["src/**/*.ts"],
   "references": []
 }

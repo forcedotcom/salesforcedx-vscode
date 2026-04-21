@@ -4,7 +4,7 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts", "src/oas/generationStrategy/*.json"],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-utils"

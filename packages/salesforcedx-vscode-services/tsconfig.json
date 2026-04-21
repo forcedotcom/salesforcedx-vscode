@@ -4,8 +4,7 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "scripts/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-vscode-i18n"

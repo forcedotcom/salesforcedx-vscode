@@ -20,6 +20,12 @@
     },
     {
       "path": "../salesforcedx-vscode-i18n"
+    },
+    {
+      "path": "../playwright-vscode-ext"
+    },
+    {
+      "path": "../salesforcedx-vscode-services"
     }
   ]
 }

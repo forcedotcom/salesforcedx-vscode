@@ -10,12 +10,6 @@
     "src/**/*.ts",
     "package.nls.json"
   ],
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
   "references": [
     {
       "path": "../effect-ext-utils"

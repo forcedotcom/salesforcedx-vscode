@@ -4,12 +4,7 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": [
-    "src/**/*.ts",
-    "scripts/**/*.ts",
-    "package.nls.json"
-  ],
+  "include": ["src/**/*.ts", "package.nls.json"],
   "references": [
     { "path": "../effect-ext-utils" },
     { "path": "../salesforcedx-vscode-i18n" },
