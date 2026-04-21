@@ -28,6 +28,7 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
     outputDirParam ??
     (yield* promptService.promptForOutputDir({
       defaultUri,
+      folderName: 'triggers',
       pickerPlaceHolder: nls.localize('output_dir_prompt')
     }));
 

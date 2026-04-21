@@ -69,6 +69,16 @@ const uris = yield * api.services.FsService.readDirectory(dirPath);
 // Returns: URI[]
 ```
 
+### readDirectoryWithTypes
+
+Read dir contents preserving `FileType` per entry (avoids extra stat calls for recursive traversal):
+
+```typescript
+const entries = yield * api.services.FsService.readDirectoryWithTypes(dirPath);
+// Returns: Array<{ uri: URI, type: vscode.FileType }>
+const dirs = entries.filter(e => e.type === vscode.FileType.Directory);
+```
+
 ### stat
 
 Get file stats:
