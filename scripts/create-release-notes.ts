@@ -36,7 +36,11 @@ function getCurrentRemoteReleaseBranch(): string {
  */
 function getPreviousRemoteReleaseBranch(): string {
   logger('\nStep 2: Getting latest tag to compare last published version');
-  const latestReleasedTag = execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim();
+  // Match only top-level extension release tags (e.g. v66.5.4), excluding
+  // subpackage tags like `vscode-i18n-v66.7.0` or `soql-common-v2.0.0`.
+  const latestReleasedTag = execSync(`git describe --tags --abbrev=0 --match 'v[0-9]*'`, {
+    encoding: 'utf8'
+  }).trim();
   const latestReleasedBranchName = `${constants.REMOTE_RELEASE_BRANCH_PREFIX_NO_VERSION}/${latestReleasedTag}`;
   validateReleaseBranch(latestReleasedBranchName);
   return latestReleasedBranchName;
