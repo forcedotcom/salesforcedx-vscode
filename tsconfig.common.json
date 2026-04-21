@@ -16,7 +16,6 @@
     "declaration": true,
     "declarationMap": true,
     "isolatedModules": true,
-    "preserveConstEnums": true,
     "noImplicitAny": true,
     // TODO: cleanup unknown usage in catch blocks and remove below setting
     "useUnknownInCatchVariables": false,
