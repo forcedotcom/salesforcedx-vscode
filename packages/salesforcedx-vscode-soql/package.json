@@ -214,7 +214,8 @@
       "command": "../../node_modules/.bin/eslint --color .",
       "dependencies": [
         "../eslint-local-rules:compile",
-        "check:circular-deps"
+        "check:circular-deps",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",

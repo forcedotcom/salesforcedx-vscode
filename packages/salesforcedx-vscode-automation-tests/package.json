@@ -40,7 +40,8 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache ./test **/*.ts",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "test/**/*.ts",

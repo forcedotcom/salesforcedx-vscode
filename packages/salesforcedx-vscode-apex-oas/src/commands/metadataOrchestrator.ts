@@ -158,9 +158,6 @@ export class MetadataOrchestrator {
     const responses = await this.eligibilityDelegate({ payload: requests });
     return responses;
   };
-
-  public getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
-    ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 }
 
 const buildRequestTarget = (requestPayload: ApexOASEligiblePayload): ApexOASResource => {

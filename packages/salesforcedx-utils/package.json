@@ -57,7 +57,8 @@
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "check:circular-deps",
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
