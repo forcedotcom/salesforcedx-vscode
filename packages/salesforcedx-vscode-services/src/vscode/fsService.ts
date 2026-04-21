@@ -180,20 +180,33 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           },
           catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'deleteFile', filePath })
         }),
-      readDirectory: (dirPath: string | URI) =>
-        Effect.gen(function* () {
-          const uri = toUri(dirPath);
-          const entries = yield* Effect.tryPromise({
-            try: async () => await vscode.workspace.fs.readDirectory(uri),
-            catch: e =>
-              new FsServiceError({
-                ...unknownToErrorCause(e),
-                function: 'readDirectory',
-                filePath: typeof dirPath === 'string' ? dirPath : uriToPath(dirPath)
-              })
-          });
-          return entries.map(([name]) => Utils.joinPath(uri, name));
-        }),
+      readDirectory: Effect.fn('fsService.readDirectory')(function* (dirPath: string | URI) {
+        const uri = toUri(dirPath);
+        const entries = yield* Effect.tryPromise({
+          try: async () => await vscode.workspace.fs.readDirectory(uri),
+          catch: e =>
+            new FsServiceError({
+              ...unknownToErrorCause(e),
+              function: 'readDirectory',
+              filePath: typeof dirPath === 'string' ? dirPath : uriToPath(dirPath)
+            })
+        });
+        return entries.map(([name]) => Utils.joinPath(uri, name));
+      }),
+      /** Like readDirectory but preserves FileType for each entry, enabling recursive traversal without extra stat calls. */
+      readDirectoryWithTypes: Effect.fn('fsService.readDirectoryWithTypes')(function* (dirPath: string | URI) {
+        const uri = toUri(dirPath);
+        const entries = yield* Effect.tryPromise({
+          try: async () => await vscode.workspace.fs.readDirectory(uri),
+          catch: e =>
+            new FsServiceError({
+              ...unknownToErrorCause(e),
+              function: 'readDirectoryWithTypes',
+              filePath: typeof dirPath === 'string' ? dirPath : uriToPath(dirPath)
+            })
+        });
+        return entries.map(([name, type]) => ({ uri: Utils.joinPath(uri, name), type }));
+      }),
       stat: (filePath: string) =>
         Effect.tryPromise({
           try: async () => await vscode.workspace.fs.stat(toUri(filePath)),

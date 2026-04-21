@@ -79,6 +79,7 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
     outputDirParam ??
     (yield* promptService.promptForOutputDir({
       defaultUri,
+      folderName: 'lwc',
       pickerPlaceHolder: nls.localize('lwc_output_dir_prompt')
     }));
 

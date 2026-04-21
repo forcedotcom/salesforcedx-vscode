@@ -101,11 +101,25 @@ const className =
 
 ### `promptForOutputDir`
 
-Selects metadata package folder (apex classes/triggers, etc.).
+Selects output dir. Pass `folderName` to BFS-search all package dirs for matching folders and present all as quick pick options (default first). Without `folderName`, shows only `defaultUri`.
 
 ```typescript
-const outputDirUri = yield * promptForOutputDir(project, 'classes', 'Select output directory');
+// With folderName — finds all 'classes' dirs across package directories
+const outputDirUri = yield * promptService.promptForOutputDir({
+  defaultUri,
+  folderName: 'classes',
+  pickerPlaceHolder: nls.localize('output_dir_prompt')
+});
+
+// Without folderName — shows only defaultUri
+const outputDirUri = yield * promptService.promptForOutputDir({
+  defaultUri,
+  description: nls.localize('output_dir_description'),
+  pickerPlaceHolder: nls.localize('output_dir_prompt')
+});
 ```
+
+Requires `ProjectService` + `WorkspaceService` in the layer (already in `PromptService.Default` dependencies).
 
 ### `getApiVersion`
 

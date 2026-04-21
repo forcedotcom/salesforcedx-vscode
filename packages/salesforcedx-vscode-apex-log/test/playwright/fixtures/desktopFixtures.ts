@@ -6,6 +6,9 @@
  */
 
 import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
@@ -36,5 +39,38 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
   userSettings: {
     'git.terminalAuthentication': false,
     'git.autofetch': false
+  }
+});
+
+const createMultiPackageWorkspace = async (): Promise<string> => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-e2e-multi-pkg-'));
+  await Promise.all([
+    fs.writeFile(
+      path.join(dir, 'sfdx-project.json'),
+      JSON.stringify(
+        {
+          packageDirectories: [
+            { path: 'force-app', default: true },
+            { path: 'extra-pkg' }
+          ],
+          namespace: '',
+          sfdcLoginUrl: 'https://login.salesforce.com',
+          sourceApiVersion: '64.0'
+        },
+        null,
+        2
+      )
+    ),
+    fs.mkdir(path.join(dir, 'force-app', 'main', 'default', 'classes'), { recursive: true }),
+    fs.mkdir(path.join(dir, 'extra-pkg', 'classes'), { recursive: true }),
+    fs.mkdir(path.join(dir, '.sf'), { recursive: true })
+  ]);
+  return dir;
+};
+
+export const multiPackageNoOrgDesktopTest = noOrgDesktopTest.extend<{ workspaceDir: string }>({
+  workspaceDir: async ({}, use) => {
+    const dir = await createMultiPackageWorkspace();
+    await use(dir);
   }
 });
