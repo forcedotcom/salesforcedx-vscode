@@ -12,9 +12,9 @@
   "sideEffects": false,
   "exports": {
     ".": {
+      "types": "./out/src/index.d.ts",
       "import": "./out/src/index.js",
-      "require": "./out/src/index.js",
-      "types": "./out/src/index.d.ts"
+      "require": "./out/src/index.js"
     }
   },
   "license": "BSD-3-Clause",

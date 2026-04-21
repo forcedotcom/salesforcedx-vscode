@@ -22,9 +22,9 @@
       "require": "./out/src/workspaceLoader.js"
     },
     "./workspaceReadFileHandler": {
+      "types": "./out/src/workspaceReadFileHandler.d.ts",
       "import": "./out/src/workspaceReadFileHandler.js",
-      "require": "./out/src/workspaceReadFileHandler.js",
-      "types": "./out/src/workspaceReadFileHandler.d.ts"
+      "require": "./out/src/workspaceReadFileHandler.js"
     },
     "./testUtils": {
       "types": "./out/src/testSupport/testUtils.d.ts",
@@ -32,9 +32,9 @@
       "require": "./out/src/testSupport/testUtils.js"
     },
     "./providers/lspFileSystemAccessor": {
+      "types": "./out/src/providers/lspFileSystemAccessor.d.ts",
       "import": "./out/src/providers/lspFileSystemAccessor.js",
-      "require": "./out/src/providers/lspFileSystemAccessor.js",
-      "types": "./out/src/providers/lspFileSystemAccessor.d.ts"
+      "require": "./out/src/providers/lspFileSystemAccessor.js"
     },
     "./applyEditHandler": {
       "types": "./out/src/applyEditHandler.d.ts",
