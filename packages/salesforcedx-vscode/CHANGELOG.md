@@ -23,7 +23,7 @@
 #### salesforcedx-vscode-soql
 
 - We added a **Query Plan** step to the SOQL walkthrough and refreshed the walkthrough GIF to reflect the current behavior. ([PR #7199](https://github.com/forcedotcom/salesforcedx-vscode/pull/7199))
-- We added a **Set a Default Org** button under the blue banner in the **SOQL Builder** UI so you can open the org picker without leaving the view. ([PR #7183](https://github.com/forcedotcom/salesforcedx-vscode/pull/7183))
+- We added a **Set a Default Org** button under the blue banner in the **SOQL Builder UI** so you can open the org picker without leaving the view. ([PR #7183](https://github.com/forcedotcom/salesforcedx-vscode/pull/7183))
 
 ## Fixed
 
