@@ -105,10 +105,7 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
       Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollingIntervalSeconds())))
     )
   );
-  const orgChangeStream = Stream.concat(
-    Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), // if initial state has already been set
-    targetOrgRef.changes // ongoing org changes
-  ).pipe(
+  const orgChangeStream = targetOrgRef.changes.pipe(
     Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),
     Stream.tap(orgInfo =>
       Effect.sync(() => {
@@ -124,10 +121,7 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   );
 
   // Dynamic poll stream that restarts when interval changes
-  const dynamicPollStream = Stream.concat(
-    Stream.make(yield* SubscriptionRef.get(pollIntervalRef)),
-    pollIntervalRef.changes
-  ).pipe(
+  const dynamicPollStream = pollIntervalRef.changes.pipe(
     Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
     Stream.flatMap(
       interval => Stream.fromSchedule(Schedule.fixed(interval)).pipe(Stream.filter(() => vscode.window.state.active)),

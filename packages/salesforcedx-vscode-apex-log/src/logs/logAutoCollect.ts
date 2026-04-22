@@ -123,7 +123,7 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
 
   // when the org changes, clear the knownIds
   yield* Effect.fork(
-    Stream.concat(Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), targetOrgRef.changes).pipe(
+    targetOrgRef.changes.pipe(
       Stream.map(orgInfo => orgInfo.orgId),
       Stream.changes,
       Stream.as(undefined),
@@ -131,10 +131,7 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
     )
   );
 
-  const dynamicPollStream = Stream.concat(
-    Stream.make(yield* SubscriptionRef.get(pollIntervalRef)),
-    pollIntervalRef.changes
-  ).pipe(
+  const dynamicPollStream = pollIntervalRef.changes.pipe(
     Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
     Stream.flatMap(
       interval => Stream.fromSchedule(Schedule.spaced(interval)).pipe(Stream.filter(() => vscode.window.state.active)),
@@ -146,10 +143,7 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   const refreshStream = traceFlagRefreshRef.changes.pipe(Stream.as(undefined));
   // When org becomes ready, status bar fetches trace flags and sets the ref. LogAutoCollect must also
   // react to org changes so it doesn't miss the initial ref update (race on workspace reload).
-  const orgChangeStream = Stream.concat(
-    Stream.fromEffect(SubscriptionRef.get(targetOrgRef)),
-    targetOrgRef.changes
-  ).pipe(
+  const orgChangeStream = targetOrgRef.changes.pipe(
     Stream.map(orgInfo => orgInfo.orgId),
     Stream.changes,
     Stream.as(undefined)

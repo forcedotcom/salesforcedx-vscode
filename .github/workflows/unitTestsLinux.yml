@@ -24,6 +24,8 @@ jobs:
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - run: npm run compile
       - run: npm run test
+        env:
+          WIREIT_PARALLEL: 1
       - run: npm run capture:results
       # Archive test results and coverage reports
       - name: Archive test results and coverage reports
