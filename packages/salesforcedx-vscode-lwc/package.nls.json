@@ -5,17 +5,12 @@
   "lightning_lwc_preview_typescript_support": "Enable experimental support for TypeScript",
   "lightning_lwc_preview_typescript_support_desc": "Enables experimental TypeScript support for Lightning Web Components, including tsconfig initialization and TypeScript file generation.",
   "lightning_lwc_test_case_debug_text": "SFDX: Debug Lightning Web Component Test Case",
-  "lightning_lwc_test_collapse_all_text": "SFDX: Lightning Web Component Collapse All Tests",
   "lightning_lwc_test_case_run_text": "SFDX: Run Lightning Web Component Test Case",
   "lightning_lwc_test_debug_current_file_text": "SFDX: Debug Current Lightning Web Component Test File",
   "lightning_lwc_test_file_debug_text": "SFDX: Debug Lightning Web Component Test File",
   "lightning_lwc_test_file_run_text": "SFDX: Run Lightning Web Component Test File",
-  "lightning_lwc_test_navigate_to_test": "SFDX: Navigate to Lightning Web Component Test",
-  "lightning_lwc_test_refresh_test_explorer_text": "SFDX: Refresh Lightning Web Component Test Explorer",
-  "lightning_lwc_test_run_all_tests_text": "SFDX: Run All Lightning Web Component Tests",
   "lightning_lwc_test_run_current_file_text": "SFDX: Run Current Lightning Web Component Test File",
   "lightning_lwc_test_start_watching_text": "SFDX: Start Watching Lightning Web Component Test",
   "lightning_lwc_test_stop_watching_all_tests_text": "SFDX: Stop Watching All Lightning Web Component Tests",
-  "lightning_lwc_test_stop_watching_text": "SFDX: Stop Watching Lightning Web Component Test",
-  "lightning_lwc_test_view_name": "LWC Tests"
+  "lightning_lwc_test_stop_watching_text": "SFDX: Stop Watching Lightning Web Component Test"
 }

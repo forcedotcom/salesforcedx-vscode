@@ -18,8 +18,8 @@ import { MessageKey } from './i18n';
  * If omitted, we will assume _message.
  */
 export const messages: Partial<Record<MessageKey, string>> = {
-  lightning_lwc_test_navigate_to_test: 'SFDX: Lightning Web Component テストへ移動',
   no_workspace_folder_found_for_test_text: 'このテストのワークスペースフォルダを特定できませんでした',
+  lwc_test_controller_label: 'LWC テスト',
   run_test_title: 'テストを実行',
   debug_test_title: 'テストをデバッグ',
   run_all_tests_title: 'すべてのテストを実行',

@@ -6,10 +6,9 @@
  */
 import * as vscode from 'vscode';
 import { TestRunner, TestRunType } from '../testRunner';
-import { TestDirectoryInfo, TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
+import { TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
-import { workspace } from '../workspace';
 
 /**
  * Run an LWC Jest test from provided test execution info
@@ -40,21 +39,6 @@ export const lwcTestCaseRun = (data: { testExecutionInfo: TestExecutionInfo }) =
 export const lwcTestFileRun = (data: { testExecutionInfo: TestExecutionInfo }) => {
   const { testExecutionInfo } = data;
   return lwcTestRun(testExecutionInfo);
-};
-
-/**
- * Run all tests in the workspace folder
- */
-export const lwcTestRunAllTests = () => {
-  const workspaceFolder = workspace.getTestWorkspaceFolder();
-  if (workspaceFolder) {
-    const testExecutionInfo: TestDirectoryInfo = {
-      kind: TestInfoKind.TEST_DIRECTORY,
-      testType: TestType.LWC,
-      testUri: workspaceFolder.uri
-    };
-    return lwcTestRun(testExecutionInfo);
-  }
 };
 
 /**
