@@ -7,7 +7,7 @@ module.exports = {
     // Don't transform files from the common package - use compiled output instead
     '/node_modules/(?!(@salesforce/salesforcedx-lightning-lsp-common)/)'
   ],
-  testRegex: 'src/.*(\\.|/)(test|spec)\\.(ts|js)$',
+  testRegex: 'test/.*(\\.|/)(test|spec)\\.(ts|js)$',
   testPathIgnorePatterns: ['/out/', '/lib/'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   setupFilesAfterEnv: ['jest-extended', '<rootDir>/jest.setup.js'],
@@ -17,7 +17,7 @@ module.exports = {
   moduleNameMapper: {
     '^vscode$': '<rootDir>/../../config/__mocks__/vscode.js',
     '^@salesforce/salesforcedx-lightning-lsp-common/testUtils$':
-      '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/__tests__/testUtils',
+      '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/testSupport/testUtils',
     '^@salesforce/salesforcedx-lightning-lsp-common/providers/fileSystemDataProvider$':
       '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/providers/fileSystemDataProvider',
     '^@salesforce/salesforcedx-lightning-lsp-common$': '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/index',

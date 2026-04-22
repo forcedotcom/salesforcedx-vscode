@@ -9,10 +9,5 @@
     //  due to https://github.com/microsoft/TypeScript/issues/37832
     // "allowJs": true, // for the beautify js files
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out"
-  ],
-  "references": []
+  "include": ["src/**/*.ts"]
 }

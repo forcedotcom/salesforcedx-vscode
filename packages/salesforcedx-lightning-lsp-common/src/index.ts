@@ -17,39 +17,38 @@ export {
   writeJson,
   readPackageJson,
   extractJsonFromImport,
-  SfdxTsConfig,
-  TsConfigPaths,
   normalizePath,
-  type NormalizedPath,
   nameFromFile,
   nameFromDirectory,
   componentFromFile,
   componentFromDirectory
 } from './utils';
+export type { SfdxTsConfig, TsConfigPaths, NormalizedPath } from './utils';
 
 // Re-export from base-context
 export {
   BaseWorkspaceContext,
-  type BaseWorkspaceContextOptions,
-  Indexer,
   AURA_EXTENSIONS,
   getModulesDirs,
   updateForceIgnoreFile
 } from './baseContext';
+export type { BaseWorkspaceContextOptions, Indexer } from './baseContext';
 
 // Re-export from shared
-export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper } from './shared';
+export { isLWC, getSfdxProjectFile, detectWorkspaceHelper } from './shared';
+export type { WorkspaceType } from './shared';
 
 // Re-export from indexer
-export { TagInfo, getHover } from './indexer/tagInfo';
-export { AttributeInfo, DecoratorType, MemberType } from './indexer/attributeInfo';
+export { getHover } from './indexer/tagInfo';
+export type { TagInfo } from './indexer/tagInfo';
+export type { AttributeInfo, DecoratorType, MemberType } from './indexer/attributeInfo';
 
 // Re-export from other modules
 export { Logger } from './logger';
 export { findLwcNamespaceRoots } from './namespaceUtils';
 
 // Re-export from decorators
-export {
+export type {
   ClassMember,
   Location,
   Position,
@@ -72,8 +71,9 @@ export {
 
 // Re-export from file system providers
 export { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
-export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
-export { PackageJson, isPackageJson } from './types/packageJson';
+export type { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
+export { isPackageJson } from './types/packageJson';
+export type { PackageJson } from './types/packageJson';
 
 // Re-export TypeScript configuration templates
 export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';

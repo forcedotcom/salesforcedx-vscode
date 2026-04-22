@@ -12,7 +12,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "copy:files"
@@ -25,8 +25,7 @@
       ],
       "output": [
         "lib/**",
-        "!lib/test/testData/files/*",
-        "tsconfig.tsbuildinfo"
+        "!lib/test/testData/files/*"
       ]
     },
     "copy:files": {
@@ -41,7 +40,8 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache ./test **/*.ts",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "test/**/*.ts",

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { DebugLogState } from './debugLogState';
+export type { DebugLogState } from './debugLogState';
 export { FrameEntryState } from './frameEntryState';
 export { FrameExitState } from './frameExitState';
 export { FrameStateUtil } from './frameStateUtil';

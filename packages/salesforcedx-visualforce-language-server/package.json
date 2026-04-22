@@ -21,34 +21,43 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache",
     "compile": "wireit",
     "lint": "wireit",
-    "test": "wireit"
+    "test": "wireit",
+    "test:compile": "wireit"
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-visualforce-markup-language-server:compile"
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
-    "test": {
-      "command": "jest --coverage",
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
       "dependencies": [
         "compile"
       ],
       "files": [
-        "src/**/*.ts",
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
@@ -60,7 +69,8 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",

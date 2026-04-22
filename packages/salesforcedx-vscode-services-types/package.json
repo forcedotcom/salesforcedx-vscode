@@ -47,7 +47,7 @@
       ]
     },
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "generate-src",
@@ -60,8 +60,7 @@
         "package.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     }
   },

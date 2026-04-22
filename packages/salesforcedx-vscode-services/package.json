@@ -74,7 +74,8 @@
     "test:web:debug": "npm run test:web -- --debug",
     "test:e2e": "wireit",
     "o11y:debug": "wireit",
-    "spans:server": "wireit"
+    "spans:server": "wireit",
+    "test:compile": "wireit"
   },
   "wireit": {
     "build:icons": {
@@ -89,25 +90,22 @@
       ]
     },
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "build:icons",
         "generate-types",
-        "../salesforcedx-vscode-i18n:compile",
-        "../playwright-vscode-ext:compile"
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
     "generate-types": {
@@ -161,10 +159,9 @@
     "test": {
       "command": "jest --coverage",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
@@ -191,7 +188,8 @@
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
-        "check:circular-deps"
+        "check:circular-deps",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -222,7 +220,7 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
       "env": {
         "PLAYWRIGHT_WORKERS": {
           "external": true
@@ -234,7 +232,6 @@
         "spans:server"
       ],
       "files": [
-        "playwright.config.web.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
@@ -268,6 +265,18 @@
       "files": [
         "scripts/spanFileServer.ts"
       ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
     }
   },
   "activationEvents": [

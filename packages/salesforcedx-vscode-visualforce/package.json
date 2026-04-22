@@ -46,6 +46,7 @@
     "compile": "wireit",
     "lint": "wireit",
     "test": "wireit",
+    "test:compile": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "vscode:package": "wireit",
@@ -54,7 +55,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-visualforce-language-server:compile",
@@ -63,15 +64,13 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
     "vscode:bundle": {
@@ -91,7 +90,7 @@
     "test": {
       "command": "jest --coverage --passWithNoTests",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -106,7 +105,8 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -118,7 +118,7 @@
       "output": []
     },
     "test:desktop": {
-      "command": "playwright test --config=playwright.config.desktop.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
         "PLAYWRIGHT_WORKERS": {
@@ -132,9 +132,20 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts",
         "test/playwright/**/*.ts",
         "package*.json"
+      ],
+      "output": []
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
       ],
       "output": []
     },

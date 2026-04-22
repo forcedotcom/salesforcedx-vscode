@@ -1,27 +1,9 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
+    "isolatedModules": false,
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
-  "include": [
-    "src/**/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    }
-  ]
+  "include": ["src/**/*.ts"]
 }

@@ -6,10 +6,10 @@
  */
 
 // Types
-export { CancellationToken } from './types/cancellationToken';
-export { CommandExecution } from './types/commandExecution';
-export { Command } from './types/command';
-export { LineBreakpointInfo } from './types/debugger';
+export type { CancellationToken } from './types/cancellationToken';
+export type { CommandExecution } from './types/commandExecution';
+export type { Command } from './types/command';
+export type { LineBreakpointInfo } from './types/debugger';
 
 // Constants
 export { TELEMETRY_HEADER } from './constants';

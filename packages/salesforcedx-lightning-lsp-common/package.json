@@ -22,19 +22,19 @@
       "require": "./out/src/workspaceLoader.js"
     },
     "./workspaceReadFileHandler": {
+      "types": "./out/src/workspaceReadFileHandler.d.ts",
       "import": "./out/src/workspaceReadFileHandler.js",
-      "require": "./out/src/workspaceReadFileHandler.js",
-      "types": "./out/src/workspaceReadFileHandler.d.ts"
+      "require": "./out/src/workspaceReadFileHandler.js"
     },
     "./testUtils": {
-      "types": "./out/src/__tests__/testUtils.d.ts",
-      "import": "./out/src/__tests__/testUtils.js",
-      "require": "./out/src/__tests__/testUtils.js"
+      "types": "./out/src/testSupport/testUtils.d.ts",
+      "import": "./out/src/testSupport/testUtils.js",
+      "require": "./out/src/testSupport/testUtils.js"
     },
     "./providers/lspFileSystemAccessor": {
+      "types": "./out/src/providers/lspFileSystemAccessor.d.ts",
       "import": "./out/src/providers/lspFileSystemAccessor.js",
-      "require": "./out/src/providers/lspFileSystemAccessor.js",
-      "types": "./out/src/providers/lspFileSystemAccessor.d.ts"
+      "require": "./out/src/providers/lspFileSystemAccessor.js"
     },
     "./applyEditHandler": {
       "types": "./out/src/applyEditHandler.d.ts",
@@ -54,7 +54,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty && node scripts/build.js",
+      "command": "tsc --pretty && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
@@ -68,8 +68,7 @@
         "../../tsconfig.common.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
     "test": {
@@ -79,6 +78,7 @@
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "jest/**/*.ts",
         "jest.config.js",
         "jest.setup.js",
@@ -91,10 +91,12 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "jest/**/*.ts",
         "../../eslint.config.mjs"
       ],

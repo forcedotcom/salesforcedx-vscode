@@ -8,7 +8,7 @@
 import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
 import { URI, Utils } from 'vscode-uri';
 import { VSCODE_LWC_EXTENSION_NAME } from '../../constants';
-import { TestResult, TestResultStatus } from '../types';
+import { TestResult } from '../types';
 
 const extensionPath = extensionUris.extensionUri(VSCODE_LWC_EXTENSION_NAME);
 const LIGHT_BLUE_BUTTON = Utils.joinPath(extensionPath, 'resources', 'light', 'testNotRun.svg');
@@ -31,17 +31,17 @@ type IconPath = { light: URI; dark: URI };
  */
 export const getIconPath = (testResult?: TestResult): IconPath => {
   switch (testResult?.status) {
-    case TestResultStatus.PASSED:
+    case 'passed':
       return {
         light: LIGHT_GREEN_BUTTON,
         dark: DARK_GREEN_BUTTON
       };
-    case TestResultStatus.FAILED:
+    case 'failed':
       return {
         light: LIGHT_RED_BUTTON,
         dark: DARK_RED_BUTTON
       };
-    case TestResultStatus.SKIPPED:
+    case 'skipped':
       return {
         light: LIGHT_ORANGE_BUTTON,
         dark: DARK_ORANGE_BUTTON

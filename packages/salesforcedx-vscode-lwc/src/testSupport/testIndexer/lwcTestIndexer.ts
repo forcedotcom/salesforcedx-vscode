@@ -13,9 +13,7 @@ import {
   RawTestResult,
   TestCaseInfo,
   TestFileInfo,
-  TestInfoKind,
-  TestResultStatus,
-  TestType
+  TestResultStatus
 } from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
 import {
@@ -154,8 +152,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
         );
         const testLocation = new vscode.Location(testUri, testRange);
         const testCaseInfo: TestCaseInfo = {
-          kind: TestInfoKind.TEST_CASE,
-          testType: TestType.LWC,
+          kind: 'testCase',
           testName,
           testUri,
           testLocation,
@@ -195,8 +192,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     const testUri = URI.file(testFsPath);
     const testLocation = new vscode.Location(testUri, new vscode.Position(0, 0));
     const testFileInfo: TestFileInfo = {
-      kind: TestInfoKind.TEST_FILE,
-      testType: TestType.LWC,
+      kind: 'testFile',
       testUri,
       testLocation
     };
@@ -247,12 +243,8 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       const { name, status: testFileStatus, assertionResults } = testResult;
       const testFsPath = URI.file(name).fsPath;
       const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);
-      let testFileResultStatus: TestResultStatus = TestResultStatus.UNKNOWN;
-      if (testFileStatus === 'passed') {
-        testFileResultStatus = TestResultStatus.PASSED;
-      } else if (testFileStatus === 'failed') {
-        testFileResultStatus = TestResultStatus.FAILED;
-      }
+      const testFileResultStatus: TestResultStatus =
+        testFileStatus === 'passed' ? 'passed' : testFileStatus === 'failed' ? 'failed' : 'unknown';
       testFileInfo.testResult = {
         status: testFileResultStatus
       };
@@ -275,14 +267,8 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       // Generate test results
       const rawTestResults: RawTestResult[] = assertionResults.map(assertionResult => {
         const { title, status, ancestorTitles } = assertionResult;
-        let testResultStatus: TestResultStatus;
-        if (status === 'passed') {
-          testResultStatus = TestResultStatus.PASSED;
-        } else if (status === 'failed') {
-          testResultStatus = TestResultStatus.FAILED;
-        } else {
-          testResultStatus = TestResultStatus.SKIPPED;
-        }
+        const testResultStatus: TestResultStatus =
+          status === 'passed' ? 'passed' : status === 'failed' ? 'failed' : 'skipped';
         const testCaseInfo: RawTestResult = {
           title,
           status: testResultStatus,

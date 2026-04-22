@@ -7,7 +7,7 @@
 import { parse, ItBlock, DescribeBlock } from 'jest-editor-support';
 import { CancellationToken, CodeLens, Command, Position, Range, TextDocument, extensions } from 'vscode';
 import { nls } from '../../messages';
-import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
+import { TestExecutionInfo } from '../types';
 
 /**
  * Check if the Jest Runner extension is present and active
@@ -41,8 +41,7 @@ const createCodeLensesForTestBlock = (
   );
 
   const testExecutionInfo: TestExecutionInfo = {
-    kind: TestInfoKind.TEST_CASE,
-    testType: TestType.LWC,
+    kind: 'testCase',
     testUri: document.uri,
     testName: name
   };

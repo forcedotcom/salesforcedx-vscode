@@ -7,8 +7,8 @@
 import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../telemetry';
-import { TestRunner, TestRunType } from '../testRunner';
-import { TestCaseInfo, TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
+import { TestRunner } from '../testRunner';
+import { TestCaseInfo, TestExecutionInfo, TestFileInfo } from '../types';
 import { LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 
@@ -50,7 +50,7 @@ const getDebugConfiguration = async (
  * @param testExecutionInfo test execution information
  */
 const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
-  const testRunner = new TestRunner(testExecutionInfo, TestRunType.DEBUG);
+  const testRunner = new TestRunner(testExecutionInfo, 'debug');
   const shellExecutionInfo = await testRunner.getShellExecutionInfo();
   if (shellExecutionInfo) {
     const { command, args, workspaceFolder, testResultFsPath } = shellExecutionInfo;
@@ -85,8 +85,7 @@ export const lwcTestDebugActiveTextEditorTest = async () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
-      kind: TestInfoKind.TEST_FILE,
-      testType: TestType.LWC,
+      kind: 'testFile',
       testUri: activeTextEditor.document.uri
     };
     await lwcTestFileDebug({ testExecutionInfo });

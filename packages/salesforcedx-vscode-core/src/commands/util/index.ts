@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CommandletExecutor } from './commandletExecutor';
+export type { CommandletExecutor } from './commandletExecutor';
 export { CompositePostconditionChecker } from './compositePostconditionChecker';
 export { EmptyPreChecker } from './emptyPreChecker';
 export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
@@ -15,7 +15,7 @@ export {
   SelectOutputDir
 } from './parameterGatherers';
 export { SfCommandletExecutor } from './sfCommandletExecutor';
-export { PathStrategyFactory, SourcePathStrategy } from './sourcePathStrategies';
+export { PathStrategyFactory, type SourcePathStrategy } from './sourcePathStrategies';
 export {
   LwcAuraDuplicateComponentCheckerForCreate,
   LwcAuraDuplicateComponentCheckerForRename

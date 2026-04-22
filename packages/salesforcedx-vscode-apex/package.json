@@ -54,11 +54,12 @@
     "clean": "shx rm -rf node_modules dist coverage .nyc_output .wireit .eslintcache *.vsix && cd out && node ../../../scripts/clean-all-but-jar.js",
     "copy:grammars": "wireit",
     "copy:jar": "wireit",
-    "test": "wireit"
+    "test": "wireit",
+    "test:compile": "wireit"
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "copy:grammars",
@@ -70,17 +71,25 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json"
       ],
       "output": [
-        "out/src/**",
-        "out/test/**",
-        "tsconfig.tsbuildinfo"
+        "out/src/**"
       ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
     },
     "copy:jar": {
       "command": "shx mkdir -p out && shx cp jars/apex-jorje-lsp.jar out/",
@@ -120,10 +129,9 @@
     "test": {
       "command": "jest --coverage",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
@@ -135,7 +143,8 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",

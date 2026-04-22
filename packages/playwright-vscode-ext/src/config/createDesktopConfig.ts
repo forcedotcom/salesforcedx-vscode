@@ -8,8 +8,8 @@
 import { defineConfig } from '@playwright/test';
 
 type DesktopConfigOptions = {
-  /** Test directory relative to extension root (default: './test/playwright/specs') */
-  testDir?: string;
+  /** Test directory relative to the config file (e.g. './specs') */
+  testDir: string;
   /** Number of parallel workers (default: unset) */
   workers?: number;
   /** Run tests in parallel (default: true) */
@@ -19,11 +19,11 @@ type DesktopConfigOptions = {
 };
 
 /** Creates a standardized Playwright desktop (Electron) config for VS Code extension testing */
-export const createDesktopConfig = (options: DesktopConfigOptions = {}) => {
+export const createDesktopConfig = (options: DesktopConfigOptions) => {
   const workers =
     options.workers ?? (process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : undefined);
   return defineConfig({
-    testDir: options.testDir ?? './test/playwright/specs',
+    testDir: options.testDir,
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
     ...(workers ? { workers } : {}),

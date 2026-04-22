@@ -26,3 +26,6 @@ jobs:
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - run: npm run compile
       - run: npm run test
+        env:
+          # jest does parallel test execution; too much parallelism actually makes it slower/failure-prone
+          WIREIT_PARALLEL: 1

@@ -9,10 +9,11 @@ import {
   AuthFields,
   AuthInfo,
   AuthRemover,
+  Config,
   Org,
   OrgAuthorization,
   OrgConfigProperties,
-  Config
+  StateAggregator
 } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { notificationService, workspaceUtils, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
@@ -104,7 +105,6 @@ export const getAuthFieldsFor = async (username: string): Promise<AuthFields> =>
 };
 
 export const updateConfigAndStateAggregators = async (): Promise<void> => {
-  const { StateAggregator } = await import('@salesforce/core');
 
   // Force the ConfigAggregatorProvider to reload its stored
   // ConfigAggregators so that this config file change is accounted

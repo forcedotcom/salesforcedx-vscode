@@ -5,7 +5,7 @@ module.exports = {
     'node_modules[\\\\/]@lwc[\\\\/].+\\.js$': ['babel-jest', { plugins: ['@babel/plugin-transform-modules-commonjs'] }]
   },
   transformIgnorePatterns: ['node_modules[\\\\/](?!@lwc[\\\\/])'],
-  testRegex: 'src/.*(\\.|/)(test|spec)\\.(ts|js)$',
+  testRegex: 'test/.*(\\.|/)(test|spec)\\.(ts|js)$',
   // Use regex patterns that match both forward slashes and backslashes for cross-platform compatibility
   testPathIgnorePatterns: ['[/\\\\]out[/\\\\]', '[/\\\\]lib[/\\\\]'],
   moduleFileExtensions: ['ts', 'js', 'json'],
@@ -17,7 +17,7 @@ module.exports = {
     '^vscode$': '<rootDir>/../../config/__mocks__/vscode.js',
     '^tiny-jsonc$': '<rootDir>/../salesforcedx-lightning-lsp-common/__mocks__/tiny-jsonc.js',
     '^@salesforce/salesforcedx-lightning-lsp-common/testUtils$':
-      '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/__tests__/testUtils',
+      '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/testSupport/testUtils',
     '^@salesforce/salesforcedx-lightning-lsp-common/providers/fileSystemDataProvider$':
       '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/providers/fileSystemDataProvider',
     '^@salesforce/salesforcedx-lightning-lsp-common$': '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/index'

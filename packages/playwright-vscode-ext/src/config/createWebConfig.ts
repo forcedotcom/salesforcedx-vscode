@@ -8,8 +8,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 type WebConfigOptions = {
-  /** Test directory relative to extension root (default: './test/playwright/specs') */
-  testDir?: string;
+  /** Test directory relative to the config file (e.g. './specs') */
+  testDir: string;
   /** Number of parallel workers (default: unset) */
   workers?: number;
   /** Run tests in parallel (default: true) */
@@ -19,9 +19,9 @@ type WebConfigOptions = {
 };
 
 /** Creates a standardized Playwright web config for VS Code extension testing */
-export const createWebConfig = (options: WebConfigOptions = {}) =>
+export const createWebConfig = (options: WebConfigOptions) =>
   defineConfig({
-    testDir: options.testDir ?? './test/playwright/specs',
+    testDir: options.testDir,
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
     ...(options.workers ? { workers: options.workers } : {}),
@@ -59,7 +59,7 @@ export const createWebConfig = (options: WebConfigOptions = {}) =>
       }
     ],
     webServer: {
-      command: 'node out/test/playwright/web/headlessServer.js',
+      command: 'tsx web/headlessServer.ts',
       url: 'http://localhost:3001',
       timeout: 120 * 1000,
       // Always start fresh. Reusing run:web (port 3001) causes EPIPE/premature close when test process

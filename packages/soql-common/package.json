@@ -53,7 +53,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty && shx mkdir -p out/src && shx cp -R src/soql-parser.lib out/src/soql-parser.lib",
+      "command": "tsc --pretty && shx mkdir -p out/src && shx cp -R src/soql-parser.lib out/src/soql-parser.lib",
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
@@ -64,8 +64,7 @@
         "package.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
     "test": {
@@ -87,7 +86,8 @@
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
-        "check:circular-deps"
+        "check:circular-deps",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",

@@ -4,39 +4,5 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
-  "include": [
-    "src/**/*.ts",
-    "playwright.config.web.ts",
-    "playwright.config.desktop.ts",
-    "test/**/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-lightning-lsp-common"
-    },
-    {
-      "path": "../salesforcedx-lwc-language-server"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../playwright-vscode-ext"
-    },
-    {
-      "path": "../salesforcedx-vscode-services"
-    }
-  ]
+  "include": ["src/**/*.ts"]
 }

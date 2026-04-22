@@ -33,4 +33,4 @@ export type MetricGeneral = {
 };
 
 export { breakpointUtil } from './breakpoints';
-export { OrgInfoError } from './commands';
+export type { OrgInfoError } from './commands';

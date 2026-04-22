@@ -6,34 +6,6 @@
   },
   "include": [
     "src/**/*.ts",
-    "test/playwright/**/*.ts",
-    "playwright.config.desktop.ts",
     "package.nls.json"
-  ],
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-services-types"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../playwright-vscode-ext"
-    }
   ]
 }
