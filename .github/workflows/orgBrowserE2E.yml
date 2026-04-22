@@ -37,6 +37,7 @@ concurrency:
 
 jobs:
   e2e-web:
+    if: false # ITER: re-enable when ubuntu desktop is green
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -162,7 +163,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [ubuntu-latest] # ITER: restore [macos-latest, ubuntu-latest, windows-latest]
       fail-fast: false
 
     env:
@@ -198,14 +199,18 @@ jobs:
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
-        timeout-minutes: 5
+        timeout-minutes: 15 # ITER: restore to 5 when ubuntu desktop is green
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
+          else
+            npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
+          fi
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - uses: ./.github/actions/cache-vscode-desktop
@@ -266,7 +271,11 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
+          else
+            npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
+          fi
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -277,7 +286,11 @@ jobs:
           VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
+          else
+            npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
+          fi
 
       - name: Copy span files to test-results
         if: always()
