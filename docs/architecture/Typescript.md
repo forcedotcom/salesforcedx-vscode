@@ -33,6 +33,24 @@ export default [
   {
     plugins: { json: jsonPlugin }
   },
+  // TypeScript source files
+  {
+    files: ['src/**/*.ts'],
+    plugins: { local: localRulesPlugin },
+    rules: {
+      // i18n
+      'local/no-duplicate-i18n-values': 'error',
+      'local/no-unused-i18n-messages': 'error',
+      // vscode API hygiene
+      'local/no-vscode-message-literals': 'error',
+      'local/no-vscode-progress-title-literals': 'error',
+      'local/no-vscode-quickpick-description-literals': 'error',
+      'local/no-vscode-validateinput-literals': 'error',
+      'local/no-vscode-uri': 'error',
+      'local/command-must-be-in-package-json': 'error',
+    }
+  },
+  // package.json validation (requires @eslint/json)
   {
     files: ['**/package.json'],
     language: 'json/json',
@@ -42,14 +60,19 @@ export default [
       'local/package-json-extension-icon': 'error',
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
-      'local/package-json-view-refs': 'error'
+      'local/package-json-view-refs': 'error',
+      'local/package-json-salesforce-dep-versions': 'error',
     }
   },
+  // .vscodeignore validation
   {
     files: ['packages/*/.vscodeignore'],
     plugins: { local: localRulesPlugin },
     processor: 'local/vscodeignoreText',
-    rules: { 'local/vscodeignore-required-patterns': 'error' }
+    rules: {
+      'local/vscodeignore-required-patterns': 'error',
+      'local/vscodeignore-contributes-conflict': 'error',
+    }
   }
 ];
 ```
