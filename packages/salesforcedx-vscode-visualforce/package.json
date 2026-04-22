@@ -88,7 +88,7 @@
       ]
     },
     "test": {
-      "command": "jest --coverage --passWithNoTests",
+      "command": "jest --passWithNoTests",
       "dependencies": [
         "test:compile"
       ],

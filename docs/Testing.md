@@ -29,7 +29,11 @@ This repo uses `jest` for testing and it's probably the best place to start. [Do
 
 ### coverage
 
-We compute test coverage locally but don't send it anywhere, nor is there a requirement to do so
+Coverage is not collected by default. Pass `--coverage` to jest manually when needed; no requirement to do so.
+
+```bash
+npm run test -w packages/salesforcedx-vscode-core -- --coverage
+```
 
 ## End to End Testing
 
@@ -84,10 +88,9 @@ When the VSCode UI changes, you might have to update your e2e tests. And you mig
 
 ### Playwright selector gotchas
 
-- quick input: use `activeQuickInputTextField`, `activeQuickInputWidget`, `openCommandPalette`, `executeCommandWithCommandPalette` from `@salesforce/playwright-vscode-ext` — 1.116+ often fails `toBeVisible()` on `.quick-input-widget` while open; follow package attached waits + `force` fill/click, not visible-widget filtering
-- quick-pick rows: `waitForQuickInputFirstOption(page)` (ARIA options + Monaco list rows; attached-state waits)
-- accept first quick-pick option: `selectFirstQuickInputOption(page, { confirmCommitted?, commitTimeout? })` — unifies flaky `.click()` / Enter / `evaluate` click variants; commits via DOM `evaluate` click with optional Enter fallback when `confirmCommitted` predicate doesn't pass within `commitTimeout`
-- quick input text: fill `input.input`; avoid `keyboard.type` into ambiguous focus
+- quick input: target visible widget (`.filter({ visible: true }).first()`)
+- quick-pick option waits: use `waitForQuickInputFirstOption(page)` from `@salesforce/playwright-vscode-ext` (handles ARIA option rows + Monaco list rows)
+- quick input text entry: prefer filling `input.input`; avoid `keyboard.type` into ambiguous focus target
 - Problems view assertions: clear `Filter Problems` input before counting diagnostics
 - `expectProblemsCount*` helpers now clear Problems filter before assertion; use helpers over ad-hoc row counts
 
