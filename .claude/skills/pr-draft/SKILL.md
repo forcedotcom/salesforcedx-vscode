@@ -29,7 +29,7 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
      3. Add selected QA person: `gh pr edit <url> --add-reviewer <github_login>` (from [gus-cli Team members](../gus-cli/SKILL.md#team-members-assignee__c-qa_engineer__c))
    - **Slack ping:** After reviewer reassignment, send a message to `#ide-exp-code-review` (channel ID `C054SJJAB24`) tagging the QA person (use Slack ID from [gus-cli Team members](../gus-cli/SKILL.md#team-members-assignee__c-qa_engineer__c)):
      ```
-     <@SLACK_ID> PR ready for review: <pr_url> (W-XXXXX: <gus_wi_url>)
+     <@SLACK_ID> PR ready for review: <pr_url|PR #NNNN> (<gus_wi_url|W-XXXXX>)
      ```
      If Slack MCP is unavailable, tell the user: "Slack MCP is not configured — please manually ping `<@SLACK_ID>` in `#ide-exp-code-review` with the PR and WI links. To enable this automatically, set up the Slack MCP."
 
