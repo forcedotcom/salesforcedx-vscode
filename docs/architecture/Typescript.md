@@ -17,6 +17,45 @@ This repo has been around for a long time and doesn't always follow these guidel
 
 There are a lot of eslint rules in the repo, and we're expanding their use and trying to tighten up a lot of the older code. You can take the eslint configuration from this repo as a starting point. The custom rules for VS Code extension packages are published to npm as [`@salesforce/eslint-plugin-vscode-extensions`](https://www.npmjs.com/package/@salesforce/eslint-plugin-vscode-extensions) (source: `packages/eslint-local-rules`).
 
+#### Installing the plugin in your extension repo
+
+```bash
+npm install --save-dev @salesforce/eslint-plugin-vscode-extensions @eslint/json
+```
+
+In your `eslint.config.mjs`:
+
+```js
+import jsonPlugin from '@eslint/json';
+import localRulesPlugin from '@salesforce/eslint-plugin-vscode-extensions';
+
+export default [
+  {
+    plugins: { json: jsonPlugin }
+  },
+  {
+    files: ['**/package.json'],
+    language: 'json/json',
+    plugins: { json: jsonPlugin, local: localRulesPlugin },
+    rules: {
+      'local/package-json-i18n-descriptions': 'error',
+      'local/package-json-extension-icon': 'error',
+      'local/package-json-icon-paths': 'error',
+      'local/package-json-command-refs': 'error',
+      'local/package-json-view-refs': 'error'
+    }
+  },
+  {
+    files: ['packages/*/.vscodeignore'],
+    plugins: { local: localRulesPlugin },
+    processor: 'local/vscodeignoreText',
+    rules: { 'local/vscodeignore-required-patterns': 'error' }
+  }
+];
+```
+
+See the [package README](../../packages/eslint-local-rules/README.md) for the full list of available rules and their descriptions.
+
 ### current EcmaScript
 
 You'll see old code, and AIs are trained on it. There's often better ways in recent ES versions, but the old ones are still around for compatibility. Eslint rules can help keep things up to date using newer techniques.
