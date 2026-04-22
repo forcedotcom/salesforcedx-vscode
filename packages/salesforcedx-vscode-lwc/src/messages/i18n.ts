@@ -20,6 +20,8 @@ export const messages = {
   no_lwc_testrunner_found_text: 'LWC Test Runner is not installed. Install @salesforce/lwc-testrunner.',
   no_workspace_folder_found_for_test_text: 'Unable to determine workspace folder for this test',
   lwc_test_controller_label: 'LWC Tests',
+  lwc_test_run_profile_title: 'SFDX: Run All LWC Tests',
+  lwc_test_debug_profile_title: 'SFDX: Debug All LWC Tests',
   run_test_title: 'Run Test',
   debug_test_title: 'Debug Test',
   run_all_tests_title: 'Run All Tests',

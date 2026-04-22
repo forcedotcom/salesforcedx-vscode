@@ -22,6 +22,7 @@ import {
   TestType
 } from '../types';
 import { workspace } from '../workspace';
+import { appendLine, appendRunHeader, appendTestResultsOutput, TestItemLookup } from './testResultsOutput';
 
 const TEST_CONTROLLER_ID = 'sf.lwc.testController';
 
@@ -86,13 +87,13 @@ class LwcTestController {
 
   private setupProfiles = (): void => {
     this.controller.createRunProfile(
-      nls.localize('run_test_title'),
+      nls.localize('lwc_test_run_profile_title'),
       vscode.TestRunProfileKind.Run,
       (request, token) => this.runTests(request, token, false),
       true
     );
     this.controller.createRunProfile(
-      nls.localize('debug_test_title'),
+      nls.localize('lwc_test_debug_profile_title'),
       vscode.TestRunProfileKind.Debug,
       (request, token) => this.runTests(request, token, true)
     );
@@ -273,6 +274,8 @@ class LwcTestController {
         return;
       }
 
+      appendRunHeader(run, isDebug);
+
       // When running without any explicit selection, delegate to a single directory-level jest run
       // so we don't spawn one task per file.
       if (isImplicitRunAll) {
@@ -359,8 +362,10 @@ class LwcTestController {
       const results = await readJestResults(testResultFsPath);
       if (results) {
         this.applyResults(run, results);
+        appendTestResultsOutput(run, results, this.testItemLookup);
       } else if (sourceItem) {
         run.errored(sourceItem, new vscode.TestMessage(nls.localize('no_test_results_produced_message')));
+        appendLine(run, nls.localize('no_test_results_produced_message'));
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -370,6 +375,13 @@ class LwcTestController {
         console.error('LWC test run failed:', error);
       }
     }
+  };
+
+  /** Contract used by the output module to resolve TestItems for a Jest result. */
+  private readonly testItemLookup: TestItemLookup = {
+    findFileItem: testUri => this.fileItems.get(createFileId(testUri)),
+    findCaseItem: (testUri, title, ancestorTitles) =>
+      this.caseItems.get(createCaseId(testUri, title, ancestorTitles))
   };
 
   /** Walk the Jest JSON output and attribute results to matching TestItems. */

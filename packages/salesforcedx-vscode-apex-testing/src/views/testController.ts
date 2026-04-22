@@ -837,6 +837,17 @@ export class ApexTestController {
     // Write JSON test result file
     await writeTestResultJsonFile(result, outputDir, codeCoverage);
 
+    // Claim the file we just wrote so the testResultsFileWatcher's onResultFileCreate -> updateTestResults path
+    // treats it as already-processed and skips creating a second, disconnected TestRun for these same results.
+    // Without this, that second run is constructed with a fresh vscode.TestRunRequest() (line ~900), which
+    // detaches it from the shared Run-All request. As a consequence, when "Test: Run All Tests" kicks off both
+    // Apex and LWC controllers and Apex finishes second, the shared (LWC + Apex) group gets evicted to
+    // "older results" and only the fresh Apex-only run remains as "current".
+    const writtenResultFilename = result.summary?.testRunId
+      ? `test-result-${result.summary.testRunId}.json`
+      : TEST_RESULT_JSON_FILE;
+    this.lastProcessedResultFile = Utils.joinPath(outputDir, writtenResultFilename);
+
     // Generate and open test report
     const reportStartTime = Date.now();
     const outputFormat = settings.retrieveOutputFormat();
