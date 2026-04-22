@@ -20,4 +20,4 @@ inputs:
     description: 'A label the issue must contain to post the message'
 runs:
   using: 'node20'
-  main: 'lib/src/index.js'
+  main: 'lib/index.js'

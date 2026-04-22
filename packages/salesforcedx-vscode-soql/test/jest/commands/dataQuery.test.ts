@@ -13,24 +13,17 @@ const mockChannel = {
   getChannel: Effect.succeed({ show: jest.fn() })
 };
 
-jest.mock('@salesforce/effect-ext-utils', () => {
-  const actual = jest.requireActual('@salesforce/effect-ext-utils');
-  const mockEffect = require('effect/Effect');
-  return {
-    ...actual,
-    ExtensionProviderService: mockEffect.succeed({
-      getServicesApi: mockEffect.succeed({
-        services: {
-          ChannelService: mockEffect.succeed(mockChannel),
-          ConnectionService: { getConnection: jest.fn() },
-          WorkspaceService: { getWorkspaceInfoOrThrow: jest.fn() },
-          FsService: { writeFile: jest.fn(), showTextDocument: jest.fn() }
-        }
-      })
-    })
-  };
-});
+const mockExtensionProvider = {
+  getServicesApi: Effect.succeed({
+    services: { ChannelService: Effect.succeed(mockChannel) }
+  } as unknown as SalesforceVSCodeServicesApi)
+};
 
+jest.mock('@salesforce/effect-ext-utils', () => jest.requireActual('@salesforce/effect-ext-utils'));
+
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
+import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import {
   convertToCSV,
   escapeCSVField,
@@ -244,11 +237,13 @@ describe('DataQuery Pure Functions', () => {
 
       it('should handle malformed records with undefined first record', () => {
         const records = [undefined, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - testing malformed input
         expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
       it('should handle malformed records with null first record', () => {
         const records = [null, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - testing malformed input
         expect(convertToCSV(records)).toBe('Id,Name\n001,Test');
       });
 
@@ -266,6 +261,7 @@ describe('DataQuery Pure Functions', () => {
       it('should handle records with malformed individual records', () => {
         const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
         const expected = 'Id,Name\n001,Test1\n002,Test2';
+        // @ts-expect-error - testing malformed input
         expect(convertToCSV(records)).toBe(expected);
       });
     });
@@ -446,7 +442,14 @@ describe('DataQuery Pure Functions', () => {
         {
           Id: '001Rt00001iD52NIAS',
           Name: 'Account10001',
-          Contacts: { totalSize: 2, done: true, records: [{ Id: '003a', Name: 'Con1' }, { Id: '003b', Name: 'Con2' }] }
+          Contacts: {
+            totalSize: 2,
+            done: true,
+            records: [
+              { Id: '003a', Name: 'Con1' },
+              { Id: '003b', Name: 'Con2' }
+            ]
+          }
         }
       ];
       const output = generateTableOutput(records, 'Test Table');
@@ -604,6 +607,7 @@ describe('DataQuery Pure Functions', () => {
     describe('bad data handling', () => {
       it('should handle malformed records with undefined first record', () => {
         const records = [undefined, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - testing malformed input
         const output = generateTableOutput(records, 'Test Table');
         expect(output).toContain('Id');
         expect(output).toContain('001');
@@ -612,6 +616,7 @@ describe('DataQuery Pure Functions', () => {
 
       it('should handle malformed records with null first record', () => {
         const records = [null, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - testing malformed input
         const output = generateTableOutput(records, 'Test Table');
         expect(output).toContain('Id');
         expect(output).toContain('001');
@@ -636,6 +641,7 @@ describe('DataQuery Pure Functions', () => {
 
       it('should handle records with malformed individual records', () => {
         const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
+        // @ts-expect-error - testing malformed input
         const output = generateTableOutput(records, 'Test Table');
         expect(output).toContain('Test Table');
         expect(output).toContain('Id');
@@ -658,6 +664,7 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('should handle null records', () => {
+      // @ts-expect-error - testing malformed input
       const result = convertQueryResultToCSV({ records: null, totalSize: 0, done: true });
       expect(result).toBe(messages.data_query_no_records);
     });
@@ -708,28 +715,29 @@ describe('DataQuery Pure Functions', () => {
       jest.clearAllMocks();
     });
 
+    const runWithMocks = <A>(eff: Effect.Effect<A, unknown, ExtensionProviderService | ChannelService>) =>
+      Effect.runPromise(
+        eff.pipe(
+          Effect.provideService(ExtensionProviderService, mockExtensionProvider),
+          Effect.provideService(ChannelService, mockChannel as unknown as ChannelService)
+        )
+      );
+
     it('should display no records message for empty results', async () => {
-      await Effect.runPromise(displayTableResults({ records: [], totalSize: 0, done: true }));
+      await runWithMocks(displayTableResults({ records: [], totalSize: 0, done: true }));
     });
 
     it('should display table for results with records', async () => {
-      await Effect.runPromise(displayTableResults({
-        records: [{ Id: '001', Name: 'Test' }],
-        totalSize: 1,
-        done: true
-      }));
+      await runWithMocks(displayTableResults({ records: [{ Id: '001', Name: 'Test' }], totalSize: 1, done: true }));
     });
 
     it('should handle null records', async () => {
-      await Effect.runPromise(displayTableResults({ records: null, totalSize: 0, done: true }));
+      // @ts-expect-error - testing malformed input
+      await runWithMocks(displayTableResults({ records: null, totalSize: 0, done: true }));
     });
 
     it('should add newline before table output', async () => {
-      await Effect.runPromise(displayTableResults({
-        records: [{ Id: '001', Name: 'Test' }],
-        totalSize: 1,
-        done: true
-      }));
+      await runWithMocks(displayTableResults({ records: [{ Id: '001', Name: 'Test' }], totalSize: 1, done: true }));
     });
   });
 

@@ -7,7 +7,7 @@
 
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
-import { isTestCaseInfo, TestCaseInfo, TestFileInfo, TestInfoKind, TestType } from '../../../../src/testSupport/types';
+import { isTestCaseInfo, TestCaseInfo, TestFileInfo } from '../../../../src/testSupport/types';
 
 describe('test support types Unit Tests.', () => {
   const mockUriPath = path.join('/');
@@ -15,20 +15,18 @@ describe('test support types Unit Tests.', () => {
     fsPath: mockUriPath
   } as unknown as URI;
   describe('test isTestCase', () => {
-    it('Should return true for a TestCase', async () => {
+    it('Should return true for a TestCase', () => {
       const testName = 'Testing is Fun!';
       const testExecutionInfo: TestCaseInfo = {
-        kind: TestInfoKind.TEST_CASE,
-        testType: TestType.LWC,
+        kind: 'testCase',
         testUri: mockURI,
         testName
       };
       expect(isTestCaseInfo(testExecutionInfo)).toBeTruthy();
     });
-    it('Should return false for a TestFile', async () => {
+    it('Should return false for a TestFile', () => {
       const testExecutionInfo: TestFileInfo = {
-        kind: TestInfoKind.TEST_FILE,
-        testType: TestType.LWC,
+        kind: 'testFile',
         testUri: mockURI
       };
       expect(isTestCaseInfo(testExecutionInfo)).toBeFalsy();

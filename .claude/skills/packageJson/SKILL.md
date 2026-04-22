@@ -50,7 +50,7 @@ The `packaging` property is legacy vsce packaging script (modifying pjson during
 
 ### ESLint rules
 
-there are some rules to enforce good package.json
+Rules from `@salesforce/eslint-plugin-vscode-extensions` (`packages/eslint-local-rules`; published to npm) enforce good package.json:
 
 - **`package-json-i18n-descriptions`**: Requires `%key%` placeholders (not hardcoded strings) in commands, config, debuggers, views, walkthroughs. Validates keys exist in `package.nls.json`
 - **`package-json-extension-icon`**: Published VS Code extensions (salesforcedx-vscode*) must have top-level `icon`; icon path must exist when specified

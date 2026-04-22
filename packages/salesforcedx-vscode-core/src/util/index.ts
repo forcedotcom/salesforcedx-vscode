@@ -11,6 +11,6 @@ export {
   setSfLogLevel
 } from './cliConfiguration';
 
-export { ComponentName, ContinueOrCancel, OneOrMany, isContinue } from './types';
+export { type ComponentName, type ContinueOrCancel, type OneOrMany, isContinue } from './types';
 
 export * from './componentUtils';
