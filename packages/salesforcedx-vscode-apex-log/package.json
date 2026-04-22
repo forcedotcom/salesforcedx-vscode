@@ -54,11 +54,12 @@
     "compile": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
-    "test": "wireit"
+    "test": "wireit",
+    "test:compile": "wireit"
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty && npx ts-node scripts/generateTraceFlagsSchema.ts",
+      "command": "tsc --pretty && npx ts-node scripts/generateTraceFlagsSchema.ts",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
@@ -68,7 +69,6 @@
       "files": [
         "src/**/*.ts",
         "scripts/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
@@ -76,7 +76,6 @@
       ],
       "output": [
         "out/**",
-        "tsconfig.tsbuildinfo",
         "resources/traceFlags.schema.json"
       ]
     },
@@ -128,10 +127,9 @@
     "test": {
       "command": "jest --coverage --passWithNoTests",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
@@ -158,7 +156,8 @@
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
-        "check:circular-deps"
+        "check:circular-deps",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -191,7 +190,7 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
       "env": {
         "PLAYWRIGHT_WORKERS": {
           "external": true
@@ -205,14 +204,13 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.web.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
       "output": []
     },
     "test:desktop": {
-      "command": "playwright test --config=playwright.config.desktop.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
         "PLAYWRIGHT_WORKERS": {
@@ -226,7 +224,6 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
@@ -249,6 +246,18 @@
         "test/playwright/**/*.ts",
         "syntaxes/**"
       ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
     }
   },
   "contributes": {

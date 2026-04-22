@@ -1,0 +1,109 @@
+name: Publish ESLint Plugin to npm
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'packages/eslint-local-rules/**'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (e.g., eslint-plugin-vscode-extensions-v1.0.4). Leave empty to create a new release from commits.'
+        required: false
+        type: string
+      releaseType:
+        description: 'Version bump type when creating a new release from commits (ignored if tag is provided)'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: 'Publish as prerelease (does not affect latest dist-tag)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.tag-output.outputs.tag }}
+    steps:
+      - name: Get Github user info
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag == ''
+        id: github-user-info
+        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
+        with:
+          SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - uses: actions/checkout@v4
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag == ''
+        with:
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          fetch-depth: 0
+
+      - name: Conventional Changelog Action
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag == ''
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@3a392e9aa44a72686b0fc13259a90d287dd0877c
+        env:
+          RELEASE_TYPE: ${{ github.event.inputs.releaseType }}
+        with:
+          git-user-name: ${{ steps.github-user-info.outputs.username }}
+          git-user-email: ${{ steps.github-user-info.outputs.email }}
+          github-token: ${{ secrets.IDEE_GH_TOKEN }}
+          tag-prefix: 'eslint-plugin-vscode-extensions-v'
+          version-file: './packages/eslint-local-rules/package.json'
+          git-path: 'packages/eslint-local-rules'
+          release-count: '0'
+          output-file: 'packages/eslint-local-rules/CHANGELOG.md'
+          skip-on-empty: ${{ github.event_name == 'push' }}
+          skip-tag: false
+          pre-changelog-generation: packages/eslint-local-rules/scripts/eslint-plugin-version-hook.js
+          pre-commit: packages/eslint-local-rules/scripts/eslint-plugin-version-hook.js
+
+      - name: Create Github Release
+        if: steps.changelog.outputs.skipped == 'false'
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b
+        with:
+          name: ${{ steps.changelog.outputs.tag }}
+          tag: ${{ steps.changelog.outputs.tag }}
+          commit: develop
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          skipIfReleaseExists: true
+
+      - id: tag-output
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            echo "tag=$INPUT_TAG" >> $GITHUB_OUTPUT
+          elif [ "$CHANGELOG_SKIPPED" != "true" ] && [ -n "$CHANGELOG_TAG" ]; then
+            echo "tag=$CHANGELOG_TAG" >> $GITHUB_OUTPUT
+          else
+            echo "tag=" >> $GITHUB_OUTPUT
+          fi
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          CHANGELOG_SKIPPED: ${{ steps.changelog.outputs.skipped }}
+          CHANGELOG_TAG: ${{ steps.changelog.outputs.tag }}
+
+  publish:
+    name: Build and publish to npm
+    needs: create-release
+    if: needs.create-release.outputs.tag != ''
+    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
+    with:
+      githubTag: ${{ needs.create-release.outputs.tag }}
+      packageManager: npm
+      nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
+      packagePath: ./packages/eslint-local-rules
+      prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

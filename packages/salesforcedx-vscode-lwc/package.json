@@ -63,6 +63,7 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
+    "test:compile": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
@@ -72,7 +73,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
@@ -84,18 +85,26 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
-        "playwright.config.web.ts",
-        "playwright.config.desktop.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
     },
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
@@ -114,7 +123,7 @@
       ]
     },
     "test:web": {
-      "command": "playwright test --config=playwright.config.web.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
       "env": {
         "PLAYWRIGHT_WORKERS": {
           "external": true
@@ -127,14 +136,13 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.web.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
       "output": []
     },
     "test:desktop": {
-      "command": "playwright test --config=playwright.config.desktop.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
         "PLAYWRIGHT_WORKERS": {
@@ -147,7 +155,6 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
@@ -188,10 +195,9 @@
     "test": {
       "command": "jest --coverage",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
@@ -203,7 +209,8 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",

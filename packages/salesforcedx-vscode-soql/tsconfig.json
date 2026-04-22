@@ -3,44 +3,15 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
-    "isolatedModules": true,
     "noImplicitAny": true,
     "paths": {
       "@salesforce/soql-model/*": ["./src/soql-model/*"]
     }
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "./test/ui-test/resources/extensions",
-    "dist",
-    "src/soql-builder-ui",
-    "test/jest/soql-builder-ui"
-  ],
+  "exclude": ["src/soql-builder-ui"],
   "include": [
     "src/**/*.ts",
-    "test/playwright/**/*.ts",
-    "playwright.config.web.ts",
-    "playwright.config.desktop.ts",
     "package.json",
     "package.nls.json"
-  ],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../playwright-vscode-ext"
-    },
-    {
-      "path": "../salesforcedx-vscode-services"
-    },
-    {
-      "path": "../soql-common"
-    }
   ]
 }

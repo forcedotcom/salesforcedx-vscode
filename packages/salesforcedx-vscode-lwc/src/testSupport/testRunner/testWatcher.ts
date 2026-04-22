@@ -9,7 +9,7 @@ import { URI } from 'vscode-uri';
 import { TestExecutionInfo } from '../types';
 import { LWC_TEST_WATCH_LOG_NAME, SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
 import { SfTask } from './taskService';
-import { TestRunner, TestRunType } from './testRunner';
+import { TestRunner } from './testRunner';
 
 /**
  * Test Watcher class for watching Jest tests
@@ -22,7 +22,7 @@ class TestWatcher {
    * @param testExecutionInfo test execution info
    */
   public async watchTest(testExecutionInfo: TestExecutionInfo) {
-    const testRunner = new TestRunner(testExecutionInfo, TestRunType.WATCH, LWC_TEST_WATCH_LOG_NAME);
+    const testRunner = new TestRunner(testExecutionInfo, 'watch', LWC_TEST_WATCH_LOG_NAME);
     try {
       const sfTask = await testRunner.executeAsSfTask();
       if (sfTask) {

@@ -123,6 +123,7 @@
     "compile": "wireit",
     "lint": "wireit",
     "test": "wireit",
+    "test:compile": "wireit",
     "vscode:bundle": "wireit",
     "vscode:package:legacy": "wireit",
     "vscode:prepublish": "npm prune --production",
@@ -136,7 +137,7 @@
   "wireit": {
     "compile": {
       "clean": "if-file-deleted",
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "dependencies": [
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
@@ -145,21 +146,31 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
     },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -171,10 +182,9 @@
     "test": {
       "command": "jest --coverage",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"

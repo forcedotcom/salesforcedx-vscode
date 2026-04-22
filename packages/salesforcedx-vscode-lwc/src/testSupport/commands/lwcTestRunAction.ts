@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { TestRunner, TestRunType } from '../testRunner';
-import { TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
+import { TestRunner } from '../testRunner';
+import { TestExecutionInfo, TestFileInfo } from '../types';
 import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 
@@ -15,7 +15,7 @@ import { isLwcJestTest } from '../utils/isLwcJestTest';
  * @param testExecutionInfo test execution info
  */
 const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
-  const testRunner = new TestRunner(testExecutionInfo, TestRunType.RUN, LWC_TEST_RUN_LOG_NAME);
+  const testRunner = new TestRunner(testExecutionInfo, 'run', LWC_TEST_RUN_LOG_NAME);
   try {
     return await testRunner.executeAsSfTask();
   } catch (error) {
@@ -48,8 +48,7 @@ export const lwcTestRunActiveTextEditorTest = () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
-      kind: TestInfoKind.TEST_FILE,
-      testType: TestType.LWC,
+      kind: 'testFile',
       testUri: activeTextEditor.document.uri
     };
     return lwcTestFileRun({

@@ -20,7 +20,7 @@ export {
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL
 } from './constants';
-export { SetExceptionBreakpointsArguments } from './adapter/apexDebug';
+export type { SetExceptionBreakpointsArguments } from './adapter/apexDebug';
 export enum VscodeDebuggerMessageType {
   Info,
   Warning,

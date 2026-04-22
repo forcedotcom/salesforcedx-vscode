@@ -34,7 +34,6 @@
     "@eslint/json": "^0.3.0",
     "@html-eslint/eslint-plugin": "0.59.0",
     "@html-eslint/parser": "0.59.0",
-    "@monorepo-utils/workspaces-to-typescript-project-references": "2.11.0",
     "@octokit/core": "^5",
     "@octokit/webhooks-types": "7.6.1",
     "@playwright/test": "^1.49.0",
@@ -111,6 +110,7 @@
     "timers-browserify": "2.0.12",
     "ts-jest": "^29.4.1",
     "ts-node": "10.9.2",
+    "tsx": "4.21.0",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.50.0",
     "util": "0.12.5",
@@ -128,9 +128,7 @@
     "clean:build": "node scripts/clean-build-artifacts.js",
     "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
     "compile": "wireit",
-    "compile:clean": "tsc  --build --clean && npm run compile",
     "compile:github-actions": "wireit",
-    "compile:watch": "npm run compile && tsc --build --watch",
     "lint": "wireit",
     "test": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
@@ -352,16 +350,6 @@
       ],
       "output": []
     },
-    "check:typescript-project-references": {
-      "command": "workspaces-to-typescript-project-references --check",
-      "files": [
-        "tsconfig*.json",
-        "packages/*/tsconfig*.json",
-        "package.json",
-        "packages/*/package.json"
-      ],
-      "output": []
-    },
     "check:package-lock": {
       "command": "ts-node scripts/package-lock.validation.ts",
       "files": [
@@ -399,7 +387,6 @@
         "compile",
         "lint",
         "check:peer-deps",
-        "check:typescript-project-references",
         "check:package-lock",
         "check:lock-sync",
         "check:knip"
@@ -414,8 +401,7 @@
     },
     "postinstall": {
       "dependencies": [
-        "check:peer-deps",
-        "check:typescript-project-references"
+        "check:peer-deps"
       ]
     }
   },

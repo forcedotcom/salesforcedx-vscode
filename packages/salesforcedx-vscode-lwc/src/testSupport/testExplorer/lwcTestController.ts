@@ -10,16 +10,14 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { lwcTestIndexer } from '../testIndexer';
 import { taskService, SfTask } from '../testRunner/taskService';
-import { TestRunner, TestRunType } from '../testRunner/testRunner';
+import { TestRunner } from '../testRunner/testRunner';
 import {
   LwcJestTestResults,
   TestCaseInfo,
   TestDirectoryInfo,
   TestExecutionInfo,
   TestFileInfo,
-  TestInfoKind,
-  TestResultStatus,
-  TestType
+  TestResultStatus
 } from '../types';
 import { workspace } from '../workspace';
 import { appendLine, appendRunHeader, appendTestResultsOutput, TestItemLookup } from './testResultsOutput';
@@ -230,16 +228,14 @@ class LwcTestController {
     const testUri = URI.revive(item.uri);
     if (kind === 'file') {
       const info: TestFileInfo = {
-        kind: TestInfoKind.TEST_FILE,
-        testType: TestType.LWC,
+        kind: 'testFile',
         testUri
       };
       return info;
     }
     if (kind === 'case') {
       const info: TestCaseInfo = {
-        kind: TestInfoKind.TEST_CASE,
-        testType: TestType.LWC,
+        kind: 'testCase',
         testUri,
         testName: item.label
       };
@@ -254,8 +250,7 @@ class LwcTestController {
       return undefined;
     }
     return {
-      kind: TestInfoKind.TEST_DIRECTORY,
-      testType: TestType.LWC,
+      kind: 'testDirectory',
       testUri: workspaceFolder.uri
     };
   };
@@ -314,7 +309,7 @@ class LwcTestController {
     isDebug: boolean,
     token: vscode.CancellationToken
   ): Promise<void> => {
-    const testRunner = new TestRunner(exec, isDebug ? TestRunType.DEBUG : TestRunType.RUN);
+    const testRunner = new TestRunner(exec, isDebug ? 'debug' : 'run');
     try {
       const shellInfo = await testRunner.getShellExecutionInfo();
       if (!shellInfo) {
@@ -397,9 +392,9 @@ class LwcTestController {
           continue;
         }
         const status = jestStatusToStatus(assertion.status);
-        if (status === TestResultStatus.PASSED) {
+        if (status === 'passed') {
           run.passed(caseItem);
-        } else if (status === TestResultStatus.FAILED) {
+        } else if (status === 'failed') {
           const message = new vscode.TestMessage(
             assertion.failureMessages?.join('\n') ?? nls.localize('lwc_test_failed_message')
           );
@@ -474,12 +469,12 @@ const readJestResults = async (filePath: string): Promise<LwcJestTestResults | u
 
 const jestStatusToStatus = (status: string): TestResultStatus => {
   if (status === 'passed') {
-    return TestResultStatus.PASSED;
+    return 'passed';
   }
   if (status === 'failed') {
-    return TestResultStatus.FAILED;
+    return 'failed';
   }
-  return TestResultStatus.SKIPPED;
+  return 'skipped';
 };
 
 let instance: LwcTestController | undefined;
