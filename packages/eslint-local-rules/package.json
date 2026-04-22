@@ -1,13 +1,37 @@
 {
   "name": "@salesforce/eslint-plugin-vscode-extensions",
   "version": "65.7.0",
+  "versionedIndependently": true,
   "description": "Custom ESLint rules for Salesforce VSCode extensions",
+  "author": "Salesforce",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/eslint-local-rules",
   "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/index.d.ts",
+      "default": "./out/index.js"
+    }
+  },
   "files": [
     "out/**/*.js",
+    "out/**/*.js.map",
     "out/**/*.d.ts",
+    "out/**/*.d.ts.map",
+    "LICENSE.txt",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "compile": "wireit",
     "test": "wireit",
@@ -87,21 +111,19 @@
     "eslintplugin",
     "salesforce"
   ],
-  "author": "Salesforce",
-  "license": "BSD-3-Clause",
   "peerDependencies": {
     "@eslint/json": "^0.3.0",
     "eslint": ">=8.0.0"
   },
   "dependencies": {
+    "@humanwhocodes/momoa": "^3.3.10",
+    "@typescript-eslint/parser": "^8.50.0",
+    "@typescript-eslint/utils": "^8.50.0",
     "minimatch": "^10.2.4"
   },
   "devDependencies": {
-    "@humanwhocodes/momoa": "^3.3.10",
     "@types/eslint": "^9.0.0",
     "@types/estree": "^1.0.0",
-    "@typescript-eslint/parser": "^8.50.0",
-    "@typescript-eslint/rule-tester": "^8.50.0",
-    "@typescript-eslint/utils": "^8.50.0"
+    "@typescript-eslint/rule-tester": "^8.50.0"
   }
 }
