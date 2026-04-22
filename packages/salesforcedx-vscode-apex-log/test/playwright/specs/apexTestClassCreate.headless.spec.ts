@@ -7,6 +7,7 @@
 
 import { expect } from '@playwright/test';
 import {
+  activeQuickInputTextField,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -56,7 +57,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await quickInput.getByText(messages.apex_test_class_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
-    await page.keyboard.type(className);
+    await activeQuickInputTextField(page).fill(className, { force: true });
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step.class-name-entered.png');
   });

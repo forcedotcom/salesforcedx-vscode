@@ -7,6 +7,7 @@
 
 import { expect } from '@playwright/test';
 import {
+  activeQuickInputTextField,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -51,7 +52,7 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
 
-    await page.keyboard.type(triggerName);
+    await activeQuickInputTextField(page).fill(triggerName, { force: true });
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
