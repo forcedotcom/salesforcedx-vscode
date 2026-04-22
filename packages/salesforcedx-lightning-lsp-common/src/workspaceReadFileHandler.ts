@@ -9,7 +9,7 @@ import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import {
   WORKSPACE_READ_FILE_REQUEST,
   WORKSPACE_STAT_REQUEST,
@@ -75,7 +75,7 @@ export const registerWorkspaceReadFileHandler = (
   const log = outputChannel ?? { appendLine: () => {} };
 
   const handleReadFile = Effect.fn('WorkspaceHandler.readFile')(function* (params: WorkspaceReadFileParams) {
-    const { uri } = params;
+    const uri = URI.revive(params.uri);
     yield* logTo(log, `[readFile] request uri=${uri.toString()}`);
     const fs = yield* getFs;
     const content = yield* fs.readFile(uri);
@@ -84,7 +84,7 @@ export const registerWorkspaceReadFileHandler = (
   });
 
   const handleStat = Effect.fn('WorkspaceHandler.stat')(function* (params: WorkspaceStatParams) {
-    const { uri } = params;
+    const uri = URI.revive(params.uri);
     yield* logTo(log, `[stat] request uri=${uri.toString()}`);
     const fs = yield* getFs;
     const vstat = yield* fs.stat(uri.toString());
@@ -97,13 +97,13 @@ export const registerWorkspaceReadFileHandler = (
   const handleReadDirectory = Effect.fn('WorkspaceHandler.readDirectory')(function* (
     params: WorkspaceReadDirectoryParams
   ) {
-    const { uri } = params;
+    const uri = URI.revive(params.uri);
     yield* logTo(log, `[readDirectory] request uri=${uri.toString()}`);
     const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(uri));
     const result: DirectoryEntry[] = entries.map(([name, fileType]) => ({
       name,
       type: vscodeFileTypeToStatType(fileType),
-      uri: vscode.Uri.joinPath(uri, name).toString()
+      uri: Utils.joinPath(uri, name).toString()
     }));
     yield* logTo(log, `[readDirectory] success uri=${uri.toString()} entries=${result.length}`);
     return { entries: result };
@@ -146,7 +146,7 @@ export const registerWorkspaceReadFileHandler = (
       Effect.catchAll(e =>
         Effect.sync(() => {
           log.appendLine(
-            `[stat] error uri=${params.uri.toString()}: ${errorMessage(e) || `(no message) left=${JSON.stringify(e)}`}`
+            `[stat] error uri=${JSON.stringify(params.uri)}: ${errorMessage(e) || `(no message) left=${JSON.stringify(e)}`}`
           );
           return { error: errorMessage(e) || 'Unknown stat error' };
         })
