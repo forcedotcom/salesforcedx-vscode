@@ -5,28 +5,10 @@
     "outDir": "out",
     "resolveJsonModule": true
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "include": [
     "src/**/*.ts",
     "src/sobjects/resources/*.json",
-    "test/**/*.ts",
-    "playwright.config.web.ts",
-    "playwright.config.desktop.ts",
     "package.json",
     "package.nls.json"
-  ],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../playwright-vscode-ext"
-    },
-    {
-      "path": "../salesforcedx-vscode-services"
-    }
   ]
 }

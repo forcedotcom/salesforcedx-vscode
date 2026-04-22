@@ -24,7 +24,7 @@ import { doHover } from './services/htmlHover';
 import { findDocumentLinks } from './services/htmlLinks';
 import { findDocumentSymbols } from './services/htmlSymbolsProvider';
 
-export { HTMLFormatConfiguration, TokenType };
+export { type HTMLFormatConfiguration, TokenType };
 
 type Node = {
   tag: string;

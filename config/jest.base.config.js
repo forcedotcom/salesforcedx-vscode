@@ -13,9 +13,13 @@ module.exports = {
   },
   // Ignore .vscode-test and out directories to prevent Haste module map conflicts
   modulePathIgnorePatterns: ['/.vscode-test/', '<rootDir>/out/'],
-  testPathIgnorePatterns: ['/.vscode-test/', '<rootDir>/out/']
-  // Note: isolatedModules: true would speed up tests significantly (~4-7x faster)
-  // but breaks dynamic imports (await import(...)) used in orgUtil.ts and elsewhere
+  testPathIgnorePatterns: ['/.vscode-test/', '<rootDir>/out/'],
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
+  }
+  // isolatedModules: true speeds up ts-jest significantly (~4-7x faster).
+  // Exceptions: salesforcedx-vscode-org (orgUtil.ts await import) and
+  // salesforcedx-utils-vscode (o11yReporter ESM import) override with false.
   // This collectCoverageFrom will show coverage for all files in a projects, but slows down calculating coverage results.
   // Can be a good tool for measuring coverage of the project as a whole locally, but shouldn't be committed at this time.
   // Off:

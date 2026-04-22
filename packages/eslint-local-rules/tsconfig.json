@@ -2,9 +2,7 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "out",
-    "isolatedModules": true
+    "outDir": "out"
   },
-  "exclude": ["node_modules", "out", "test"],
   "include": ["src/**/*.ts"]
 }

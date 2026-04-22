@@ -12,9 +12,9 @@
   "sideEffects": false,
   "exports": {
     ".": {
+      "types": "./out/src/index.d.ts",
       "import": "./out/src/index.js",
-      "require": "./out/src/index.js",
-      "types": "./out/src/index.d.ts"
+      "require": "./out/src/index.js"
     }
   },
   "license": "BSD-3-Clause",
@@ -32,7 +32,9 @@
       "command": "tsc -p . && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-lightning-lsp-common:compile"
+        "../salesforcedx-lightning-lsp-common:compile",
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -41,17 +43,18 @@
         "../../tsconfig.common.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "../../eslint.config.mjs"
       ],
       "output": []
@@ -63,6 +66,7 @@
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
       ],

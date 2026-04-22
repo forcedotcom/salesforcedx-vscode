@@ -3,10 +3,8 @@ description: Run verification after code changes
 alwaysApply: true
 ---
 
-After making code changes, follow the verification checklist in .claude/skills/verification/SKILL.md: compile, lint, test, bundle, knip, check:dupes. On compile failure, use `.claude/skills/verification/references/compile.md` (TS4023 / TS1261 skills).
-
-Delegate to the verifier subagent (@.cursor/agents/verifier.md) to check for dead code (knip only). The stop hook covers compile, lint, effect LS, test, vscode:bundle; do not fix in the verifier — parent fixes.
+After making code changes, follow the verification checklist in .claude/skills/verification/SKILL.md: check:dupes. On compile failure, use `.claude/skills/verification/references/compile.md` (TS4023 / TS1261 skills).
 
 After code changes, launch the doc-maintenance subagent (@.claude/agents/doc-maintenance.md) in background.
 
-A stop hook runs compile, lint, effect LS, test, vscode:bundle when the agent stops (knip excluded — repo has pre-existing unused files). If verification fails, the agent continues with a fix instruction.
+A stop hook runs compile, lint, effect LS, test, vscode:bundle, knip when the agent stops. If verification fails, the agent continues with a fix instruction.

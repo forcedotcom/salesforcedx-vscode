@@ -50,33 +50,33 @@
     "compile": "wireit",
     "lint": "wireit",
     "test": "wireit",
+    "test:compile": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
-    "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-visualforce-language-server:compile",
         "../salesforcedx-visualforce-markup-language-server:compile",
-        "../salesforcedx-vscode-services:compile"
+        "../salesforcedx-vscode-services:compile",
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
     "vscode:bundle": {
@@ -97,7 +97,7 @@
     "test": {
       "command": "jest --coverage --passWithNoTests",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -112,7 +112,8 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -124,7 +125,7 @@
       "output": []
     },
     "test:desktop": {
-      "command": "playwright test --config=playwright.config.desktop.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
         "PLAYWRIGHT_WORKERS": {
@@ -138,16 +139,22 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
       "output": []
     },
-    "test:e2e": {
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
       "dependencies": [
-        "test:desktop"
-      ]
+        "compile",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
     },
     "vscode:package": {
       "command": "vsce package --allow-package-all-secrets",

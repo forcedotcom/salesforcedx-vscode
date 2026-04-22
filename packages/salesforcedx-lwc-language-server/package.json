@@ -12,9 +12,9 @@
   "sideEffects": false,
   "exports": {
     ".": {
+      "types": "./out/src/server.d.ts",
       "import": "./out/src/server.js",
-      "require": "./out/src/server.js",
-      "types": "./out/src/server.d.ts"
+      "require": "./out/src/server.js"
     }
   },
   "license": "BSD-3-Clause",
@@ -45,17 +45,18 @@
         "../../tsconfig.common.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "../../eslint.config.mjs"
       ],
       "output": []
@@ -67,6 +68,7 @@
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.config.js"
       ],
