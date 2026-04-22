@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-03-29T13:31:36.682Z
-Total metadata types: 1544
+Generated on: 2026-04-22T14:16:58.382Z
+Total metadata types: 1549
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -1166,7 +1166,7 @@ Total metadata types: 1544
  </xsd:complexType>
  <xsd:complexType name="AccessMapping">
   <xsd:annotation>
-   <xsd:documentation>AccessMapping represents an access mapping in the sharing set, which grants access to a target object by looking up to an account or contact associated with the user.</xsd:documentation>
+   <xsd:documentation>AccessMapping</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sharingset.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -6288,13 +6288,13 @@ Total metadata types: 1544
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="footerColor" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Optional. Determines the footer color in the app. Specify the color with a hexadecimal code, such as #0000FF for blue.</xsd:documentation>
+       <xsd:documentation>Optional. Specify the color with a hexadecimal code, such as #0000FF for blue.Determines the footer color in the app.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="headerColor" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Optional. Determines the header color in the app. Specify the color with a hexadecimal code, such as #0000FF for blue.</xsd:documentation>
+       <xsd:documentation>Optional. Specify the color with a hexadecimal code, such as #0000FF for blue.Determines the header color in the app.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -6583,7 +6583,7 @@ Total metadata types: 1544
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="mappings" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Represents how records for a specific tab open in a Salesforce console app. Required for each tab specified in the CustomApplication. In API version 42.0, this field was renamed from workspaceMapping to mappings.</xsd:documentation>
+       <xsd:documentation>Represents how records for a specific tab open in a Salesforce console app. Required for each tab specified in the CustomApplication.workspaceMapping to mappings.</xsd:documentation>
        <xsd:appinfo>Type: WorkspaceMappingSingle[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -7325,7 +7325,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="page" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Represents the name of the custom Visualforce page used as a custom article-type template. Use this field when you select Page in the template field.</xsd:documentation>
+       <xsd:documentation>Represents the name of the custom Visualforce page used as a custom article-type template. Use this field when you select template</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -10637,7 +10637,7 @@ Total metadata types: 1544
  </xsd:complexType>
  <xsd:complexType name="BrandingSet">
   <xsd:annotation>
-   <xsd:documentation>Represents the definition of a set of branding properties for an Experience Builder site or for your org&apos;s Lightning Experience theme.</xsd:documentation>
+   <xsd:documentation>Represents the definition of a set of branding properties for an Experience Builder site or for your org&apos;s Lightning Experience theme. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_brandingset.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -12270,19 +12270,19 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="caseCloseNotificationTemplate" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Specifies the email template used for case close notifications. The format must be folderName/emailTemplateName.Lightning email templates aren’t packageable. We recommend using a Classic email template.</xsd:documentation>
+       <xsd:documentation>Specifies the email template used for case close notifications. The format must be folderName/emailTemplateName. Lightning email templates aren’t packageable. We recommend using a Classic email template.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="caseCommentNotificationTemplate" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Specifies the email template used for case comment notifications. The format must be folderName/emailTemplateName.Lightning email templates aren’t packageable. We recommend using a Classic email template.</xsd:documentation>
+       <xsd:documentation>Specifies the email template used for case comment notifications. The format must be folderName/emailTemplateName. Lightning email templates aren’t packageable. We recommend using a Classic email template.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="caseCreateNotificationTemplate" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Specifies the email template used for case create notifications. The format must be folderName/emailTemplateName.Lightning email templates aren’t packageable. We recommend using a Classic email template.</xsd:documentation>
+       <xsd:documentation>Specifies the email template used for case create notifications. The format must be folderName/emailTemplateName. Lightning email templates aren’t packageable. We recommend using a Classic email template.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -18677,7 +18677,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="workspaceConfig" minOccurs="0" maxOccurs="unbounded" type="AppWorkspaceConfig">
       <xsd:annotation>
-       <xsd:documentation>Represents how records open in a Salesforce console app. Required if isServiceCloudConsole is true. In API version 42.0, this field was renamed to workspaceConfig from workspaceMappings.</xsd:documentation>
+       <xsd:documentation>isServiceCloudConsole is true.Represents how records open in a Salesforce console app. Required if workspaceConfig from workspaceMappings.</xsd:documentation>
        <xsd:appinfo>Type: AppWorkspaceConfig</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -24311,7 +24311,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="keyCommand" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The combination of keys a user presses to trigger the keyboard shortcut. Keyboard shortcuts aren’t case-sensitive, but they display as uppercase on setup pages in the Salesforce user interface so that they’re easier to read.Each key command can include up to four modifier keys followed by one non-modifier key. Modifier and non-modifier keys are separated by the + key. Modifier keys can occur in any order, but you must place non-modifier keys at the end of the key command sequence. For example, SHIFT+CTRL+ALT+META +A. Valid modifier keys are: Valid non-modifier keys are letters A through Z and numbers 0 through 9. Other valid keys are:</xsd:documentation>
+       <xsd:documentation>Each key command can include up to four modifier keys followed by one non-modifier key. Modifier and non-modifier keys are separated by the + key. Modifier keys can occur in any order, but you must place non-modifier keys at the end of the key command sequence. For example, SHIFT+CTRL+ALT+META +A.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -26737,12 +26737,7 @@ Total metadata types: 1544
        <xsd:documentation>Reserved for internal use.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="enablePBHideScopedNotif" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
-      <xsd:annotation>
-       <xsd:documentation>Reserved for internal use.</xsd:documentation>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="enablePBPromptPerformanceMetrics" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     <xsd:element name="enableAgentHealthMonitoringGA" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Reserved for internal use.</xsd:documentation>
       </xsd:annotation>
@@ -26983,6 +26978,25 @@ Total metadata types: 1544
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="EmailAuthorizationSettings">
+  <xsd:annotation>
+   <xsd:documentation>Represents your org’s email authorization settings. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailauthorizationsettings.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="enableSubstituteFromAddress" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>If true , Salesforce substitutes the From address to send outbound emails with unverified email domains. The outbound email uses the From address email@UniqueId.sfcustomeremail.com, where UniqueId is your org ID or Experience Cloud site ID. If false, Salesforce users and automations can send messages from Salesforce only when the email domain is verified. The default is false. This field applies only to outbound email that requires domain-level verification. For more information, including exemptions to domain-level verification, see Requirements to Send Email from Salesforce in Salesforce Help.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="EmailFolder">
   <xsd:annotation>
    <xsd:documentation>Represents a folder. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
@@ -27200,13 +27214,13 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="authenticationFailureAction" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Indicates what the email service does with messages that fail or do not support any of the authentication protocols if the isAuthenticationRequired field is true. One of the following values: UseSystemDefault—The system default is used. Bounce—The email service returns the message to the sender with a notification that explains why the message was rejected. Discard—The email service deletes the message without notifying the sender. Requeue—The email service queues the message for processing in the next 24 hours. If the message is not processed within 24 hours, the email service returns the message to the sender with a notification that explains why the message was rejected.</xsd:documentation>
+       <xsd:documentation>Required. Indicates what the email service does with messages that fail or do not support any of the authentication protocols if the isAuthenticationRequired field is true.</xsd:documentation>
        <xsd:appinfo>Type: EmailServicesErrorAction (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="authorizationFailureAction" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Indicates what the email service does with messages received from senders who are not listed in the authorizedSenders field on either the email service or email service address.One of the following values: UseSystemDefault—The system default is used. Bounce—The email service returns the message to the sender with a notification that explains why the message was rejected. Discard—The email service deletes the message without notifying the sender. Requeue—The email service queues the message for processing in the next 24 hours. If the message is not processed within 24 hours, the email service returns the message to the sender with a notification that explains why the message was rejected.</xsd:documentation>
+       <xsd:documentation>Required. Indicates what the email service does with messages received from senders who are not listed in the authorizedSenders field on either the email service or email service address.</xsd:documentation>
        <xsd:appinfo>Type: EmailServicesErrorAction (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -27219,7 +27233,7 @@ Total metadata types: 1544
      <xsd:element name="emailServicesAddresses" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list of EmailServiceAddress records.</xsd:documentation>
-       <xsd:appinfo>Type: EmailServicesAddress[]</xsd:appinfo>
+       <xsd:appinfo>Type: EmailServicesAddress</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="errorRoutingAddress" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -31160,7 +31174,7 @@ Total metadata types: 1544
  </xsd:complexType>
  <xsd:complexType name="ExternalClientAppSettings">
   <xsd:annotation>
-   <xsd:documentation>Represents settings to enable the External Client App feature and provide access to the OAuth consumer secret.</xsd:documentation>
+   <xsd:documentation>Represents settings to enable external client app features.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externalclientappsettings.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -31174,7 +31188,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="enableConsumerSecretApiAccess" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether OAuth consumer secrets can be accessed through Metadata API (true) or not (false).</xsd:documentation>
+       <xsd:documentation>DEPRECATED. Indicates whether OAuth consumer secrets can be accessed through Metadata API (true) or not (false).Use the external client app OAuth UI to access consumer secrets.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -33033,7 +33047,7 @@ Total metadata types: 1544
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="FeatureParameterDataFlowDirection" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>After a package containing the components is installed, indicates whether the feature parameter’s value is editable in your License Management Org (LMO) and read-only in your customer’s org or the other way around. Valid values are: LmoToSubscriber SubscriberToLmo</xsd:documentation>
+       <xsd:documentation>After a package containing the components is installed, indicates whether the feature parameter’s value is editable in your License Management Org (LMO) and read-only in your customer’s org or the other way around. LmoToSubscriber SubscriberToLmo</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -35332,7 +35346,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="filetype" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Although more filetypes exist, these are the only ones supported by FileTypeDispositionAssignmentBean: AVI EXCEL EXCEL_X EXE FLASH HTML INSIGHT MOV MP3 MP4 MPEG PDF POWER_POINT POWER_POINT_X RFC822 SVG TXML UNKNOWN WAV WEBVIEW WMA WMV WORD WORD_X XHTML XML</xsd:documentation>
+       <xsd:documentation>Although more filetypes exist, these are the only ones supported by FileTypeDispositionAssignmentBean AVI EXCEL EXCEL_X EXE FLASH HTML INSIGHT MOV MP3 MP4 MPEG PDF POWER_POINT POWER_POINT_X RFC822 SVG TXML UNKNOWN WAV WEBVIEW WMA WMV WORD WORD_X XHTML XML</xsd:documentation>
        <xsd:appinfo>Type: FileType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -40080,7 +40094,7 @@ Total metadata types: 1544
  </xsd:complexType>
  <xsd:complexType name="FlowTest">
   <xsd:annotation>
-   <xsd:documentation>Represents the metadata associated with a flow test. Before you activate a record-triggered flow, you can test it to verify its expected results and identify flow run-time failures.</xsd:documentation>
+   <xsd:documentation>Represents the metadata associated with a flow test. Before you activate a record-triggered, autolaunched, or Data Cloud-triggered flow, you can test it to verify its expected results and identify flow run-time failures.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -40098,9 +40112,10 @@ Total metadata types: 1544
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="flowTestDataSources" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     <xsd:element name="flowTestDataSources" minOccurs="0" maxOccurs="unbounded" type="FlowTestDataSource">
       <xsd:annotation>
-       <xsd:documentation>Reserved for future use.</xsd:documentation>
+       <xsd:documentation>An array of data sources for the flow test of a record-triggered flow or an autolaunched flow. This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: FlowTestDataSource[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="flowTestFlowVersions" minOccurs="0" maxOccurs="unbounded" type="FlowTestFlowVersion">
@@ -40109,9 +40124,10 @@ Total metadata types: 1544
        <xsd:appinfo>Type: FlowTestFlowVersion[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isolatedObjectExternalKeys" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     <xsd:element name="isolatedObjectExternalKeys" minOccurs="0" maxOccurs="unbounded" type="FlowTestIsolObjExtlKey">
       <xsd:annotation>
-       <xsd:documentation>Reserved for future use.</xsd:documentation>
+       <xsd:documentation>An array of isolated objects and the key fields that uniquely identify each record for the flow test of a record-triggered flow or an autolaunched flow. This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: FlowTestIsolObjExtlKey[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -40193,6 +40209,50 @@ Total metadata types: 1544
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="FlowTestDataSource">
+  <xsd:annotation>
+   <xsd:documentation>Defines the data source for a flow test of a record-triggered flow or an autolaunched flow. This subtype is available in API version 66.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="apexClass" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The Apex class associated with the data source when dataSourceType is ApexClass.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="dataSourceType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The data source type for the flow test.Possible value is ApexClass.</xsd:documentation>
+       <xsd:appinfo>Type: FlowTestDataSourceType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="FlowTestExtKeyField">
+  <xsd:annotation>
+   <xsd:documentation>Defines the external key fields that identify the unique records in isolated test data for a record-triggered flow or an autolaunched flow. This subtype is available in API version 66.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="fieldName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The field API name to identify the unique records to test.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="FlowTestFlowVersion">
   <xsd:annotation>
    <xsd:documentation>Defines the flow version for the flow test. This subtype is available in API version 66.0 and later.</xsd:documentation>
@@ -40212,9 +40272,34 @@ Total metadata types: 1544
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="FlowTestIsolObjExtlKey">
+  <xsd:annotation>
+   <xsd:documentation>Defines an external isolated object and the fields that identify unique records to test for a record-triggered flow or an autolaunched flow. This subtype is available in API version 66.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="keyFields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The key fields that identify unique records to test. Don’t use fields of the lookup data type.</xsd:documentation>
+       <xsd:appinfo>Type: FlowTestExtKeyField[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="objectType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The object type of the isolated data to test.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="FlowTestParameter">
   <xsd:annotation>
-   <xsd:documentation>Defines parameters for the triggering record in the Start test point.</xsd:documentation>
+   <xsd:documentation>Defines parameters for the triggering record, flow path, and input variable in the Start test point.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -40228,7 +40313,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The type of parameter. Possible values are: InputTriggeringRecordInitial InputTriggeringRecordUpdated InputVariable—Reserved for future use. ScheduledPath—Available in API version 56.0 and later.</xsd:documentation>
+       <xsd:documentation>Required. The type of parameter. Possible values are: InputTriggeringRecordInitial InputTriggeringRecordUpdated InputVariable—This value is available in API version 66.0 and later. ScheduledPath—Available in API version 56.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: FlowTestParameterType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -40310,9 +40395,10 @@ Total metadata types: 1544
        <xsd:documentation>Reserved for future use.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="jsonValue" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     <xsd:element name="jsonValue" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Reserved for future use.</xsd:documentation>
+       <xsd:documentation>Specifies a JSON value for the isolated test data record. This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="numberValue" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
@@ -45200,7 +45286,7 @@ Total metadata types: 1544
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="customShortcuts" minOccurs="0" maxOccurs="unbounded" type="CustomShortcut">
       <xsd:annotation>
-       <xsd:documentation>Represents custom keyboard shortcuts assigned to a Salesforce console app in Salesforce Classic. Before you can create custom shortcuts, a developer must define the shortcut’s action with the addEventListener() method in the Salesforce Console Integration Toolkit. You can’t create keyboard shortcuts for actions performed outside of the console.In API version 42.0, this field was renamed from customShortcut to customShortcuts.</xsd:documentation>
+       <xsd:documentation>addEventListener() method in the Salesforce Console Integration Toolkit. You can’t create keyboard shortcuts for actions performed outside of the console.Represents custom keyboard shortcuts assigned to a Salesforce console app in Salesforce Classic. Before you can create custom shortcuts, a developer must define the shortcut’s action with the In API version 42.0, this field was renamed from customShortcut to customShortcuts.</xsd:documentation>
        <xsd:appinfo>Type: CustomShortcut[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -45817,7 +45903,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="enableLanguageExtensionPackage_beta" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the org has enabled language extension packages (true) or not (false). Language extension packages contain translations of components in other packages. This field has a default value of false. This field is available in API version 58.0 and later. enableLanguageExtensionPackage (beta) is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
+       <xsd:documentation>Indicates whether the org has enabled language extension packages (true) or not (false). Language extension packages contain translations of components in other packages. This field has a default value of false. This field is available in API version 58.0 and later. enableLanguageExtensionPackage (beta) is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.Note</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -47928,7 +48014,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="site" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Specifies the site that hosts the images for the deployment.You must have the CustomDomain permission enabled in your organization before you can use a Salesforce site with Chat.</xsd:documentation>
+       <xsd:documentation>Specifies the site that hosts the images for the deployment. You must have the CustomDomain permission enabled in your organization before you can use a Salesforce site with Chat.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -50101,7 +50187,7 @@ Total metadata types: 1544
  </xsd:complexType>
  <xsd:complexType name="MfgServiceConsoleSettings">
   <xsd:annotation>
-   <xsd:documentation>Represents the settings to access the Service Console for Manufacturing.This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:documentation>Represents the settings to access the Service Console for Manufacturing. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_mfgserviceconsolesettings_metadata_api.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -51393,7 +51479,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="use3rdPartyCookieBlockingCompatibleHostnames" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the org’s instance name is included in Visualforce URLs when third-party cookies are blocked (true) or not (false). This field has a default value of true. Setting this field true prevents potential issues loading Visualforce pages with stabilized URLs.Only applicable when useStabilizedMyDomainHostnames is set to true and myDomainSuffix is set to MySalesforceLimited, CloudforceLimited, or DatabaseLimited. Available in API version 51.0 and later.</xsd:documentation>
+       <xsd:documentation>Indicates whether the org’s instance name is included in Visualforce URLs when third-party cookies are blocked (true) or not (false). This field has a default value of true. Setting this field true prevents potential issues loading Visualforce pages with stabilized URLs.Only applicable when DatabaseLimiteduseStabilizedMyDomainHostnames is set to true and myDomainSuffix is set to Available in API version 51.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -51411,7 +51497,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="useStabilizedMyDomainHostnames" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the instance name is hidden in My Domain URLs for Visualforce, Experience Builder, Site.com Studio, and content files (true) or not (false). This field has a default value of true. For example, MyDomainName--PackageName.na44.visual.force.com becomes MyDomainName--PackageName.visualforce.com when this field is set to true.Only applicable when myDomainSuffix is set to MySalesforceLimited, CloudforceLimited, or DatabaseLimited.</xsd:documentation>
+       <xsd:documentation>Indicates whether the instance name is hidden in My Domain URLs for Visualforce, Experience Builder, Site.com Studio, and content files (true) or not (false). This field has a default value of true. For example, MyDomainName--PackageName.na44.visual.force.com becomes MyDomainName--PackageName.visualforce.com when this field is set to true.Only applicable when DatabaseLimitedmyDomainSuffix is set to</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -54804,7 +54890,7 @@ Total metadata types: 1544
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apiAccessLevel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Package components have access via dynamic Apex and the API to standard and custom objects in the organization where they’re installed. Administrators who install packages can restrict this access after installation for improved security. The valid values are: Unrestricted—Package components have the same API access to standard objects as the user who is logged in when the component sends a request to the API. Restricted—The administrator can select which standard objects the components can access. Further, the components in restricted packages can only access custom objects in the current package if the user&apos;s permissions allow access to them. For more information, see “API and Dynamic Apex Access in Packages” in Salesforce Help.</xsd:documentation>
+       <xsd:documentation>Package components have access via dynamic Apex and the API to standard and custom objects in the organization where they’re installed. Administrators who install packages can restrict this access after installation for improved security. The valid values are: Unrestricted—Package components have the same API access to standard objects as the user who is logged in when the component sends a request to the API. Restricted—The administrator can select which standard objects the components can access. Further, the components in restricted packages can only access custom objects in the current package if the user&apos;s permissions allow access to them.</xsd:documentation>
        <xsd:appinfo>Type: APIAccessLevel (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -55270,7 +55356,7 @@ Total metadata types: 1544
      <xsd:element name="pathAssistantSteps" minOccurs="0" maxOccurs="unbounded" type="PathAssistantStep">
       <xsd:annotation>
        <xsd:documentation>List of all the steps that have been configured with fields and guidance information. Note that a missing step in the .xml file means it has not been configured, not that it doesn’t exist.</xsd:documentation>
-       <xsd:appinfo>Type: PathAssistantStep[]</xsd:appinfo>
+       <xsd:appinfo>Type: PathAssistantStep</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="recordTypeName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -58057,7 +58143,7 @@ Total metadata types: 1544
  </xsd:complexType>
  <xsd:complexType name="ProfileExternalDataSourceAccess">
   <xsd:annotation>
-   <xsd:documentation>ProfileExternalDataSourceAccess represents the data source access for users with identity type of Per User. Available in API version 27.0 and later.</xsd:documentation>
+   <xsd:documentation>ProfileExternalDataSourceAccess represents the data source access for users with identity type of Available in API version 27.0 and later.Per User.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_profile.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -58239,19 +58325,19 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="allowDelete" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the object referenced by the object field can be deleted by the users assigned to this profile (true) or not (false).This field is named revokeDelete before version 14.0 and the logic is reversed. The field name change and the update from true to false and the reverse is automatically handled between versions and doesn’t require any manual editing of existing XML component files.</xsd:documentation>
+       <xsd:documentation>Indicates whether the object referenced by the object field can be deleted by the users assigned to this profile (true) or not (false).This field is named The field name change and the update from revokeDelete before version 14.0 and the logic is reversed. true to false and the reverse is automatically handled between versions and doesn’t require any manual editing of existing XML component files.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="allowEdit" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the object referenced by the object field can be edited by the users assigned to this profile (true) or not (false).This field is named revokeEdit before version 14.0 and the logic is reversed. The field name change and the update from true to false and the reverse is automatically handled between versions and doesn’t require any manual editing of existing XML component files.</xsd:documentation>
+       <xsd:documentation>Indicates whether the object referenced by the object field can be edited by the users assigned to this profile (true) or not (false).This field is named The field name change and the update from revokeEdit before version 14.0 and the logic is reversed. true to false and the reverse is automatically handled between versions and doesn’t require any manual editing of existing XML component files.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="allowRead" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the object referenced by the object field can be seen by the users assigned to this profile (true) or not (false).This field is named revokeRead before version 14.0 and the logic is reversed. The field name change and the update from true to false and the reverse is automatically handled between versions and doesn’t require any manual editing of existing XML component files.</xsd:documentation>
+       <xsd:documentation>Indicates whether the object referenced by the object field can be seen by the users assigned to this profile (true) or not (false).This field is named The field name change and the update from revokeRead before version 14.0 and the logic is reversed. true to false and the reverse is automatically handled between versions and doesn’t require any manual editing of existing XML component files.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -64651,7 +64737,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="headerColor" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Determines the header color in a Salesforce console app. Specify the color with a hexadecimal code, such as #0000FF for blue.</xsd:documentation>
+       <xsd:documentation>Specify the color with a hexadecimal code, such as #0000FF for blue.Determines the header color in a Salesforce console app.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -64767,12 +64853,6 @@ Total metadata types: 1544
      <xsd:element name="enableRZoneCloudVoiceOptIn" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether you agree to the terms of using Service Cloud Voice with Amazon Connect in a Salesforce Government Cloud environment. The default value is false. This field is optional. Amazon Connect is a third-party Amazon service that sits outside the Salesforce Government Cloud FedRAMP environment. Amazon Connect is a separate service offered by Amazon and not a FedRAMP authorized service. Therefore, Amazon Connect’s processing environment falls outside the Government Cloud FedRAMP authorization boundary. To learn more, see Amazon Connect.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="enableSCVASAContextLinkingEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
-      <xsd:annotation>
-       <xsd:documentation>Indicates whether to link related voice calls, specifically the partner telephony/rep call and the voice-enabled agent (PSTN Voice) call. Available in API version 65.0 and later. This field is optional.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -67889,6 +67969,12 @@ Total metadata types: 1544
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="isWasteUom" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the unit of measure is used in the generated material waste calculations (true) or (false). The default value is false. This field is available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The label assigned to this object.</xsd:documentation>
@@ -68490,7 +68576,7 @@ Total metadata types: 1544
  </xsd:complexType>
  <xsd:complexType name="TabLimitConfig">
   <xsd:annotation>
-   <xsd:documentation>Represents the maximum number of primary tabs and subtabs allowed in one Salesforce console session. Required if enableTabLimits is true. Available in API version 36.0 and later.</xsd:documentation>
+   <xsd:documentation>Represents the maximum number of primary tabs and subtabs allowed in one Salesforce console session. Required if enableTabLimits is true.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -69324,7 +69410,7 @@ Total metadata types: 1544
      </xsd:element>
      <xsd:element name="eventName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Used in Real-Time Event Monitoring only. Indicates the name of the event the policy monitors. This field is available in API 45.0 and later. Valid values are: ApiEvent—Tracks these user-initiated read-only API calls: query(), queryMore(), and count(). Captures API requests through SOAP API and Bulk API for the Enterprise and Partner WSDLs. Tooling API calls and API calls originating from a Salesforce mobile app aren’t captured. ApiAnomalyEventStore—Tracks anomalies in how users make API calls. ApiAnomalyEventStore is an object that stores the event data of ApiAnomalyEvent. This object is available in API version 50.0 and later. BulkApiResultEventStore—Tracks when a user downloads the results of a Bulk API request. BulkApiResultEventStore is a big object that stores the event data of BulkApiResultEvent. This object is available in API version 50.0 and later. CredentialStuffingEventStore—Tracks when a user successfully logs into Salesforce during an identified credential stuffing attack. Credential stuffing refers to large-scale automated login requests using stolen user credentials.This value is available in API version 49.0 and later. FileEventStore (beta)—Tracks when a user downloads, previews, or uploads a file. FileEventStore is a big object that stores the event data of FileEvent. This object is available in API version 57.0 and later. GuestUserAnomalyEventStore—Tracks data access anomalies that are caused by guest user permission misconfiguration. This object is available in API version 60.0 and later. ListViewEvent—Tracks when users access data with list views using Lightning Experience, Salesforce Classic, or the API. It doesn’t track list views of Setup entities. LoginAsEvent—Tracks the login activity of admins who log in to Salesforce as other users. This object is available in API version 46.0 and later. LoginEvent—LoginEvent tracks the login activity of users who log in to Salesforce. PermissionSetEventStore —Tracks changes to permission sets and permission set groups. ReportAnomalyEventStore—Tracks anomalies in how users run or export reports, including unsaved reports. This value is available in API version 49.0 and later. ReportEvent—Tracks when reports are run in your org. SessionHijackingEventStore—Tracks when unauthorized users gain ownership of a Salesforce user’s session with a stolen session identifier. To detect such an event, Salesforce evaluates how significantly a user’s current browser fingerprint diverges from the previously known fingerprint using a probabilistically inferred significance of change. Available in API version 49.0 and later.</xsd:documentation>
+       <xsd:documentation>Used in Real-Time Event Monitoring only. Indicates the name of the event the policy monitors. This field is available in API 45.0 and later. Valid values are: ApiEvent—Tracks these user-initiated read-only API calls: query(), queryMore(), and count(). Captures API requests through SOAP API and Bulk API for the Enterprise and Partner WSDLs. Tooling API calls and API calls originating from a Salesforce mobile app aren’t captured. ApiAnomalyEventStore—Tracks anomalies in how users make API calls. ApiAnomalyEventStore is an object that stores the event data of ApiAnomalyEvent. This object is available in API version 50.0 and later. BulkApiResultEventStore—Tracks when a user downloads the results of a Bulk API request. BulkApiResultEventStore is a big object that stores the event data of BulkApiResultEvent. This object is available in API version 50.0 and later. CredentialStuffingEventStore—Tracks when a user successfully logs into Salesforce during an identified credential stuffing attack. Credential stuffing refers to large-scale automated login requests using stolen user credentials.This value is available in API version 49.0 and later. FileEventStore (beta)—Tracks when a user downloads, previews, or uploads a file. FileEventStore is a big object that stores the event data of FileEvent. This object is available in API version 57.0 and later. GuestUserAnomalyEventStore—Tracks data access anomalies that are caused by guest user permission misconfiguration. This object is available in API version 60.0 and later. ListViewEvent—Tracks when users access data with list views using Lightning Experience, Salesforce Classic, or the API. It doesn’t track list views of Setup entities. LoginAsEvent—Tracks the login activity of admins who log in to Salesforce as other users. This object is available in API version 46.0 and later. LoginEvent—LoginEvent tracks the login activity of users who log in to Salesforce. PermissionSetEventStore —Tracks changes to permission sets and permission set groups. ReportAnomalyEventStore— This value is available in API version 49.0 and later. ReportEvent—Tracks when reports are run in your org. SessionHijackingEventStore—Tracks when unauthorized users gain ownership of a Salesforce user’s session with a stolen session identifier. To detect such an event, Salesforce evaluates how significantly a user’s current browser fingerprint diverges from the previously known fingerprint using a probabilistically inferred significance of change. Available in API version 49.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: TransactionSecurityEventName (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -69550,6 +69636,55 @@ Total metadata types: 1544
       <xsd:annotation>
        <xsd:documentation>Indicates whether sample data may be deleted on trial orgs (true) or not (false). The default value is false.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="UIBundle_Beta">
+  <xsd:annotation>
+   <xsd:documentation>Represents a Salesforce Multi-Framework app, such as a React app.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uibundle.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>A description of what the web application does.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="isActive" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies whether the web application is accessible (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>For internal use only.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the web-application name that appears in the UI.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="target" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the Salesforce target where the app is supported. Valid values are: AppLauncher: Makes the app available in the App Launcher. This is the default target if you don’t specify a value. Experience: Indicates that the app is an external-facing site or portal and makes it available in the Digital Experiences app.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="version" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Indicates the version of the web application.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -74408,6 +74543,7 @@ Total metadata types: 1544
  <xsd:element name="EinsteinAgentSettings" type="EinsteinAgentSettings"/>
  <xsd:element name="EinsteinGptSettings" type="EinsteinGptSettings"/>
  <xsd:element name="EmailAdministrationSettings" type="EmailAdministrationSettings"/>
+ <xsd:element name="EmailAuthorizationSettings" type="EmailAuthorizationSettings"/>
  <xsd:element name="EmailFolder" type="EmailFolder"/>
  <xsd:element name="EmailIntegrationSettings" type="EmailIntegrationSettings"/>
  <xsd:element name="EmailServicesAddress" type="EmailServicesAddress"/>
@@ -74672,7 +74808,10 @@ Total metadata types: 1544
  <xsd:element name="FlowTest" type="FlowTest"/>
  <xsd:element name="FlowTestAssertion" type="FlowTestAssertion"/>
  <xsd:element name="FlowTestCondition" type="FlowTestCondition"/>
+ <xsd:element name="FlowTestDataSource" type="FlowTestDataSource"/>
+ <xsd:element name="FlowTestExtKeyField" type="FlowTestExtKeyField"/>
  <xsd:element name="FlowTestFlowVersion" type="FlowTestFlowVersion"/>
+ <xsd:element name="FlowTestIsolObjExtlKey" type="FlowTestIsolObjExtlKey"/>
  <xsd:element name="FlowTestParameter" type="FlowTestParameter"/>
  <xsd:element name="FlowTestPoint" type="FlowTestPoint"/>
  <xsd:element name="FlowTestReferenceOrValue" type="FlowTestReferenceOrValue"/>
@@ -75328,6 +75467,7 @@ Total metadata types: 1544
  <xsd:element name="TransactionSecurityPolicy" type="TransactionSecurityPolicy"/>
  <xsd:element name="Translations" type="Translations"/>
  <xsd:element name="TrialOrgSettings" type="TrialOrgSettings"/>
+ <xsd:element name="UIBundle_Beta" type="UIBundle_Beta"/>
  <xsd:element name="UIObjectRelationConfig" type="UIObjectRelationConfig"/>
  <xsd:element name="UIObjectRelationFieldConfig" type="UIObjectRelationFieldConfig"/>
  <xsd:element name="UiFormatSpecification" type="UiFormatSpecification"/>
