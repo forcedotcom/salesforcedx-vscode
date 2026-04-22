@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   workflow_call:
   push:
-    branches-ignore: [ main, develop, feature/W-21313277 ]
+    branches-ignore: [ main, develop ]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
