@@ -163,6 +163,9 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            test_runner_prefix: 'xvfb-run -a '
       fail-fast: false
 
     env:
@@ -199,18 +202,12 @@ jobs:
         id: try-run
         continue-on-error: true
         timeout-minutes: 5
-        shell: bash
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
-        run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            xvfb-run -a npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
-          else
-            npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
-          fi
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - uses: ./.github/actions/cache-vscode-desktop
@@ -266,33 +263,21 @@ jobs:
         if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
-        shell: bash
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
-        run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            xvfb-run -a npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
-          else
-            npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
-          fi
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
           'failure'
-        shell: bash
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
-        run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            xvfb-run -a npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
-          else
-            npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
-          fi
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
 
       - name: Copy span files to test-results
         if: always()
