@@ -44,6 +44,17 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 - Example: `build(extensions): consolidate apex-tmlanguage - W-21735053`
 - **Avoid:** leading brackets — `[W-21735053] build(extensions): …`; bare trailing WI without ` - ` — `build(extensions): … W-21735053`
 
+## GitHub issues & discussions
+
+Before finalizing body, fetch and analyze:
+
+1. **Issues:** `gh issue list --state open --limit 200 --json number,title,body,comments`
+2. **Discussions:** `gh api graphql` — fetch all open discussions (title, number, url, body)
+3. **LLM relevance pass:** read PR diff/commits + all issue/discussion titles+bodies; identify candidates
+4. **Auto-include** any issue where a comment contains the PR's W-XXXXX (e.g. `W-12345`) — no prompt needed; Git2Gus already established the link
+5. **Show remaining candidates** (issues and discussions the LLM flagged as related); ask user which to include
+6. **Format:** issues as `#<number>`, discussions as full URL — both in the "What issues does this PR fix or reference?" section
+
 ## Body format
 
 - Base body on branch commits only
