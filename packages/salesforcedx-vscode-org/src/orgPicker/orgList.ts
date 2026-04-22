@@ -12,7 +12,6 @@ import { Duration } from 'effect';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';
@@ -243,7 +242,7 @@ export const createOrgPicker = Effect.fn('OrgPicker.createOrgPicker')(function* 
   const targetOrgRef = yield* api.services.TargetOrgRef();
 
   yield* Effect.forkDaemon(
-    Stream.concat(Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), targetOrgRef.changes).pipe(
+    targetOrgRef.changes.pipe(
       Stream.tap(orgInfo => Effect.log('Org Extension:orgChange', orgInfo)),
       Stream.tap(orgInfo =>
         Effect.sync(() => (orgInfo.username ? orgOpenStatusBarItem.show() : orgOpenStatusBarItem.hide()))
