@@ -1,15 +1,15 @@
-name: Publish i18n Package to npm
+name: Publish ESLint Plugin to npm
 
 on:
   push:
     branches:
       - develop
     paths:
-      - 'packages/salesforcedx-vscode-i18n/**'
+      - 'packages/eslint-local-rules/**'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to publish (e.g., vscode-i18n-v1.0.4). Leave empty to create a new release from commits.'
+        description: 'Release tag to publish (e.g., eslint-plugin-vscode-extensions-v1.0.4). Leave empty to create a new release from commits.'
         required: false
         type: string
       releaseType:
@@ -59,15 +59,15 @@ jobs:
           git-user-name: ${{ steps.github-user-info.outputs.username }}
           git-user-email: ${{ steps.github-user-info.outputs.email }}
           github-token: ${{ secrets.IDEE_GH_TOKEN }}
-          tag-prefix: 'vscode-i18n-v'
-          version-file: './packages/salesforcedx-vscode-i18n/package.json'
-          git-path: 'packages/salesforcedx-vscode-i18n'
+          tag-prefix: 'eslint-plugin-vscode-extensions-v'
+          version-file: './packages/eslint-local-rules/package.json'
+          git-path: 'packages/eslint-local-rules'
           release-count: '0'
-          output-file: 'packages/salesforcedx-vscode-i18n/CHANGELOG.md'
+          output-file: 'packages/eslint-local-rules/CHANGELOG.md'
           skip-on-empty: ${{ github.event_name == 'push' }}
           skip-tag: false
-          pre-changelog-generation: packages/salesforcedx-vscode-i18n/scripts/vscode-i18n-version-hook.js
-          pre-commit: packages/salesforcedx-vscode-i18n/scripts/vscode-i18n-version-hook.js
+          pre-changelog-generation: packages/eslint-local-rules/scripts/eslint-plugin-version-hook.js
+          pre-commit: packages/eslint-local-rules/scripts/eslint-plugin-version-hook.js
 
       - name: Create Github Release
         if: steps.changelog.outputs.skipped == 'false'
@@ -103,7 +103,7 @@ jobs:
       githubTag: ${{ needs.create-release.outputs.tag }}
       packageManager: npm
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
-      packagePath: ./packages/salesforcedx-vscode-i18n
+      packagePath: ./packages/eslint-local-rules
       prerelease: ${{ github.event.inputs.prerelease == 'true' }}
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
