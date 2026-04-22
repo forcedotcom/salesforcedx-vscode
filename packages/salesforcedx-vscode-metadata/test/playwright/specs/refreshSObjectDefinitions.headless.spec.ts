@@ -22,7 +22,7 @@ import {
   waitForOutputChannelText,
   validateNoCriticalErrors,
   ensureSecondarySideBarHidden,
-  QUICK_INPUT_WIDGET,
+  activeQuickInputWidget,
   QUICK_INPUT_LIST_ROW,
   WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
@@ -46,10 +46,10 @@ const runRefreshAndVerify = async (
 
   await executeCommandWithCommandPalette(page, packageNls.sobjects_refresh);
 
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+  const quickInput = activeQuickInputWidget(page);
+  await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
   const row = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: quickPickOption });
-  await row.click();
+  await row.click({ force: true });
 
   await waitForOutputChannelText(page, { expectedText: expectedOutputText, timeout });
 };
