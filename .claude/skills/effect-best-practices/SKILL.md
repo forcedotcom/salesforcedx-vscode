@@ -426,6 +426,28 @@ For RPC contracts and cluster workflows, see:
 
 - `references/rpc-cluster-patterns.md` - RpcGroup, Workflow.make, Activity patterns
 
+## SubscriptionRef
+
+`SubscriptionRef<A>` is a mutable ref whose `.changes` stream **always emits the current value as element 0**, then all future mutations.
+
+Implemented as (from `effect/src/internal/subscriptionRef.ts`):
+```ts
+stream.concat(stream.make(currentValue), stream.fromPubSub(pubsub))
+```
+The `Ref.get` + pubsub subscription happen atomically under a semaphore — no events are missed.
+
+```typescript
+// WRONG — prepended get is always redundant
+Stream.concat(Stream.fromEffect(SubscriptionRef.get(ref)), ref.changes)
+Stream.concat(Stream.make(yield* SubscriptionRef.get(ref)), ref.changes)
+Stream.merge(Stream.fromEffect(SubscriptionRef.get(ref)), ref.changes)
+
+// CORRECT — .changes already provides the snapshot
+ref.changes.pipe(...)
+```
+
+To skip the initial snapshot (e.g. avoid a spurious refresh on activation), use `Stream.drop(1)`.
+
 ## Anti-Patterns (Forbidden)
 
 These patterns are **never acceptable**:
