@@ -7,7 +7,6 @@
 
 import { expect } from '@playwright/test';
 import {
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -21,6 +20,7 @@ import {
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
+import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
@@ -32,7 +32,6 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
 
   await test.step('setup with no org', async () => {
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
@@ -56,7 +55,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   await test.step('enter class name in InputBox', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await quickInput.getByText(/Enter Apex test class name/i).waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.getByText(messages.apex_test_class_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
     await page.keyboard.type(className);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step.class-name-entered.png');

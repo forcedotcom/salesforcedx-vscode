@@ -8,14 +8,8 @@
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isDesktop, isMacDesktop } from '../utils/helpers';
-import {
-  EDITOR,
-  CONTEXT_MENU,
-  EDITOR_WITH_URI,
-  TAB,
-  QUICK_INPUT_WIDGET,
-  QUICK_INPUT_LIST_ROW
-} from '../utils/locators';
+import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, QUICK_INPUT_LIST_ROW } from '../utils/locators';
+import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
 import { executeCommandWithCommandPalette, openCommandPalette } from './commands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
@@ -178,11 +172,11 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
 
   // Use F1 command palette - most reliable across all platforms per coding rules
   await openCommandPalette(page);
-  const widget = page.locator(QUICK_INPUT_WIDGET);
-  const input = widget.locator('input.input');
+  const widget = activeQuickInputWidget(page);
+  const input = activeQuickInputTextField(page);
   await input.waitFor({ state: 'attached', timeout: 5000 });
-  await expect(input).toBeVisible({ timeout: 5000 });
-  await input.fill('>Output: Focus on Output View');
+  await input.click({ force: true, timeout: 5000 });
+  await input.fill('>Output: Focus on Output View', { force: true });
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
   await page.keyboard.press('Enter');
 

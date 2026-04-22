@@ -41,13 +41,24 @@ const createFileEntry = (content: Uint8Array): FileEntry => ({
   data: content
 });
 
+const toStat = (entry: Entry): vscode.FileStat => ({
+  type: entry.type,
+  ctime: entry.ctime,
+  mtime: entry.mtime,
+  size: entry.type === vscode.FileType.File ? entry.data.length : 0
+});
+
+const pathParts = (uri: URI): string[] => uri.path.split('/').filter(Boolean);
+
 export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider {
   private readonly root = createDirectoryEntry();
   private readonly changeEmitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
   public readonly onDidChangeFile = this.changeEmitter.event;
   private readonly readOnlyErrorMessage = nls.localize('apex_testing_vfs_readonly_prefix_text');
 
+  // eslint-disable-next-line class-methods-use-this
   public watch(_uri: URI, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
+    // No-op watcher - this file system is programmatically updated, not watched
     return new vscode.Disposable(() => undefined);
   }
 
@@ -56,7 +67,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     if (!entry) {
       throw vscode.FileSystemError.FileNotFound(uri);
     }
-    return this.toStat(entry);
+    return toStat(entry);
   }
 
   public readDirectory(uri: URI): [string, vscode.FileType][] {
@@ -138,17 +149,8 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     this.changeEmitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
   }
 
-  private toStat(entry: Entry): vscode.FileStat {
-    return {
-      type: entry.type,
-      ctime: entry.ctime,
-      mtime: entry.mtime,
-      size: entry.type === vscode.FileType.File ? entry.data.length : 0
-    };
-  }
-
   private getParentDirectory(uri: URI, create: boolean): DirectoryEntry {
-    const parts = this.pathParts(uri);
+    const parts = pathParts(uri);
     const parentUri = uri.with({ path: `/${parts.slice(0, -1).join('/')}` });
     return create ? this.getOrCreateDirectory(parentUri) : this.getDirectory(parentUri);
   }
@@ -162,7 +164,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   private getOrCreateDirectory(uri: URI): DirectoryEntry {
-    const parts = this.pathParts(uri);
+    const parts = pathParts(uri);
     let current = this.root;
     for (const part of parts) {
       const existing = current.entries.get(part);
@@ -182,7 +184,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   private getEntry(uri: URI, createDirectories: boolean): Entry | undefined {
-    const parts = this.pathParts(uri);
+    const parts = pathParts(uri);
     let current: Entry = this.root;
     for (const part of parts) {
       if (current.type !== vscode.FileType.Directory) {
@@ -204,12 +206,9 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     return current;
   }
 
-  private pathParts(uri: URI): string[] {
-    return uri.path.split('/').filter(Boolean);
-  }
-
+  // eslint-disable-next-line class-methods-use-this
   private basename(uri: URI): string {
-    const parts = this.pathParts(uri);
+    const parts = pathParts(uri);
     const name = parts.at(-1);
     if (!name) {
       throw vscode.FileSystemError.NoPermissions(`Cannot write to root of ${uri.scheme}`);

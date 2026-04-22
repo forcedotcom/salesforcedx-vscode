@@ -11,7 +11,10 @@
     "dist"
   ],
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "playwright.config.web.ts",
+    "playwright.config.desktop.ts",
+    "test/**/*.ts"
   ],
   "references": [
     {
@@ -28,6 +31,12 @@
     },
     {
       "path": "../salesforcedx-vscode-i18n"
+    },
+    {
+      "path": "../playwright-vscode-ext"
+    },
+    {
+      "path": "../salesforcedx-vscode-services"
     }
   ]
 }

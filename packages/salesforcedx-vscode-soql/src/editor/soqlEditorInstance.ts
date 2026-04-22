@@ -135,10 +135,7 @@ export class SOQLEditorInstance {
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const targetOrgRef = yield* api.services.TargetOrgRef();
-        yield* Stream.concat(
-          Stream.make(undefined),
-          targetOrgRef.changes.pipe(Stream.as(undefined))
-        ).pipe(
+        yield* targetOrgRef.changes.pipe(Stream.as(undefined)).pipe(
           Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
           Stream.changes,
           Stream.runForEach(isOrgSet =>
@@ -336,6 +333,7 @@ export class SOQLEditorInstance {
     await webview.createOrShowWebView();
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected updateTextDocument(document: vscode.TextDocument, soqlQuery: string): Thenable<boolean> {
     const edit = new vscode.WorkspaceEdit();
     edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), soqlQuery);

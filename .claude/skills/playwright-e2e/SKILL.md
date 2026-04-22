@@ -25,6 +25,7 @@ Shared code (helpers, locators, configuration) for tests.
 - **No folder open** — fixture opens a Salesforce project, then call `prepareNoFolderOpenForPaletteTests(page)` (runs `Workspaces: Close Workspace` + workbench wait). Or use `closeWorkspaceToEmptyWindow` if UI is already prepared.
 - **Folder open, no `sfdx-project.json`** — `createDesktopTest({ emptyWorkspace: true })`; workspace path comes from `createEmptyTestWorkspace()` (also exported from the package).
 - **Default org in workspace** — pass `orgAlias: '…'` (e.g. `MINIMAL_ORG_ALIAS` / `DREAMHOUSE_ORG_ALIAS`) so `.sfdx/config.json` gets `target-org`. Omit `orgAlias` or use `undefined` for **no** `config.json` (no org).
+- **Multi-package directory, no org** — `multiPackageNoOrgDesktopTest` (extend `noOrgDesktopTest`); creates a temp workspace with `sfdx-project.json` listing multiple `packageDirectories` (`force-app`, `extra-pkg`). Use `multiPackageNoOrgTest` from `fixtures/index.ts` in test files.
 
 ## Span files (when debugging traces)
 

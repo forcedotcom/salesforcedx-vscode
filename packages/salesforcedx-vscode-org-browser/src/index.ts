@@ -81,15 +81,10 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   );
 
   yield* Effect.forkDaemon(
-    Stream.merge(
-      // get the initial state
-      Stream.fromEffect(SubscriptionRef.get(targetOrgRef)),
-      // get the ongoing changes
-      targetOrgRef.changes
-    ).pipe(
-      Stream.filter(isNotUndefined),
+    targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
       Stream.changes,
+      // we do want a change to "no org" to trigger the refresh so it shows the empty state.
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
       Stream.runForEach(() => Effect.promise(() => treeProvider.refreshType()))
