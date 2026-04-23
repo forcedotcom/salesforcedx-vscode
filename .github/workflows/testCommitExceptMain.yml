@@ -1,7 +1,7 @@
 name: Commit Workflow
 on:
   push:
-    branches-ignore: [main, develop, feature/W-21313309]
+    branches-ignore: [main, develop, sm/W-21313309-add-ubuntu-playwright-vscode-ext]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
