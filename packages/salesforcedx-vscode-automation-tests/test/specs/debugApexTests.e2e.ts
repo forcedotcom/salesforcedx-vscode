@@ -29,12 +29,7 @@ import {
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
-import {
-  expandTestExplorerNamespaceAndPackage,
-  findTestItemByName,
-  TestTreeItem,
-  verifyTestItems
-} from '../utils/apexTestsHelper';
+import { expandTestExplorerNamespaceAndPackage, findTestItemByName, verifyTestItems } from '../utils/apexTestsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -160,24 +155,18 @@ describe('Debug Apex Tests', () => {
     const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test'];
     await verifyTestItems(expectedItems);
 
-    // Click the debug tests button that is shown to the right when you hover a test class name on the Test sidebar
-    let apexTestItem: TestTreeItem;
+    // Click the debug tests button that is shown to the right when you hover a test class name on the Test sidebar.
+    // Re-fetch the tree row and action button on every attempt, because clicking the row causes VS Code to
+    // re-render the tree (selection highlight + action buttons), which invalidates cached WebElement refs
+    // and causes StaleElementReferenceError on subsequent interactions.
     await retryOperation(
       async () => {
         await pause(Duration.seconds(2));
-        apexTestItem = await findTestItemByName('ExampleApexClass1Test');
+        const apexTestItem = await findTestItemByName('ExampleApexClass1Test');
         await apexTestItem.click();
-      },
-      3,
-      'DebugApexTests - Error clicking apex tests section'
-    );
-
-    const debugTestsAction = await apexTestItem!.getActionButton('Debug Test');
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(debugTestsAction).to.not.be.undefined;
-    await retryOperation(
-      async () => {
-        await pause(Duration.seconds(2));
+        const debugTestsAction = await apexTestItem.getActionButton('Debug Test');
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        expect(debugTestsAction).to.not.be.undefined;
         await debugTestsAction?.click();
       },
       3,
@@ -212,22 +201,18 @@ describe('Debug Apex Tests', () => {
 
     await expandTestExplorerNamespaceAndPackage();
 
-    // Hover a test name under one of the test class sections and click the debug button that is shown to the right of the test name on the Test sidebar
-    let apexTestItem: TestTreeItem;
-    await retryOperation(
-      async () => {
-        await testExplorerSection.click();
-        apexTestItem = await findTestItemByName('validateSayHello');
-        await apexTestItem.click();
-      },
-      3,
-      'DebugApexTests - Error selecting apex test item'
-    );
-    const debugTestAction = await apexTestItem!.getActionButton('Debug Test');
-    expect(debugTestAction).to.not.be.undefined;
+    // Hover a test name under one of the test class sections and click the debug button that is shown to the right
+    // of the test name on the Test sidebar. Re-fetch the row and action button on each attempt because selecting
+    // the row re-renders the tree and can invalidate cached WebElement references (StaleElementReferenceError).
     await retryOperation(
       async () => {
         await pause(Duration.seconds(2));
+        await testExplorerSection.click();
+        const apexTestItem = await findTestItemByName('validateSayHello');
+        await apexTestItem.click();
+        const debugTestAction = await apexTestItem.getActionButton('Debug Test');
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        expect(debugTestAction).to.not.be.undefined;
         await debugTestAction?.click();
       },
       3,
