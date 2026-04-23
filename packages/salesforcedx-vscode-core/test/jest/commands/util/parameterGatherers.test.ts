@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 import { SelectFileName, SelectLwcComponentType } from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
-import { SalesforceProjectConfig } from '../../../../src/salesforceProject';
+import { SalesforceProjectConfig } from '../../../../src/salesforceProject/salesforceProjectConfig';
 
 describe('ParameterGatherers Unit Tests.', () => {
   describe('SelectFileName', () => {
