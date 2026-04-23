@@ -76,6 +76,13 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
     await saveScreenshot(page, 'step.editor-opened.png');
     const editorTab = page.locator('[role="tab"]').filter({ hasText: new RegExp(`${className}\\.cls`, 'i') });
     await expect(editorTab).toBeVisible();
+    const explorerFile = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') });
+    await expect(explorerFile).toBeVisible();
+    await saveScreenshot(page, 'step.file-in-explorer.png');
+    const editorText = page.locator('.view-lines').first();
+    await expect(editorText).toContainText('@isTest');
+    await expect(editorText).toContainText(`private class ${className}`);
+    await saveScreenshot(page, 'step.class-content-verified.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
