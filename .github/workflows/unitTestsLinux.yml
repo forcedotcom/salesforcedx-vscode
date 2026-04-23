@@ -26,11 +26,4 @@ jobs:
       - run: npm run test
         env:
           WIREIT_PARALLEL: 1
-      - run: npm run capture:results
-      # Archive test results and coverage reports
-      - name: Archive test results and coverage reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: test-results
+
