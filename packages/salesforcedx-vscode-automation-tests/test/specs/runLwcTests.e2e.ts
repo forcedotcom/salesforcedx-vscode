@@ -10,9 +10,7 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import {
-  retryOperation,
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
   createLwc,
   installJestUTToolsForLwc
@@ -32,8 +30,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
-import { findTestItemByName, getTestResultsTabText } from '../utils/apexTestsHelper';
+import { findTestItemByName, getTestResultsTabText } from '../utils/testsHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Run LWC Tests', () => {
@@ -54,8 +51,7 @@ describe('Run LWC Tests', () => {
     relativeLwcPath = path.join('force-app', 'main', 'default', 'lwc');
     lwcFolderPath = path.join(testSetup.projectFolderPath!, relativeLwcPath);
 
-    await tryToHideCopilot();
-
+    // Close both Welcome and Running Extensions tabs
     await closeAllEditors();
 
     await createLwc('lwc1', lwcFolderPath);
@@ -107,8 +103,9 @@ describe('Run LWC Tests', () => {
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
 
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
-      'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
+      'PASS',
+      'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      'force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
       'Test Suites: 2 passed, 2 total',
       'Tests:       4 passed, 4 total',
       'Snapshots:   0 total',
@@ -137,7 +134,8 @@ describe('Run LWC Tests', () => {
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      'PASS',
+      'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
@@ -167,7 +165,8 @@ describe('Run LWC Tests', () => {
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      'PASS',
+      'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       1 skipped, 1 passed, 2 total',
       'Snapshots:   0 total',
@@ -187,7 +186,8 @@ describe('Run LWC Tests', () => {
 
         const testResultsText = await getTestResultsTabText('Lightning Web Components');
         const expectedTexts = [
-          'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+          'PASS',
+          'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
           'Test Suites: 1 passed, 1 total',
           'Tests:       2 passed, 2 total',
           'Snapshots:   0 total',
@@ -227,7 +227,8 @@ describe('Run LWC Tests', () => {
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      'PASS',
+      'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
@@ -250,7 +251,8 @@ describe('Run LWC Tests', () => {
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
+      'PASS',
+      'force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       1 skipped, 1 passed, 2 total',
       'Snapshots:   0 total',
@@ -273,7 +275,8 @@ describe('Run LWC Tests', () => {
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
+      'PASS',
+      'force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',

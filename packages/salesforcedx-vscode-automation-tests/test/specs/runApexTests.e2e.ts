@@ -45,7 +45,7 @@ import {
   getTestResultsTabText,
   verifyTestItems,
   verifyTestItemsIconColor
-} from '../utils/apexTestsHelper';
+} from '../utils/testsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 

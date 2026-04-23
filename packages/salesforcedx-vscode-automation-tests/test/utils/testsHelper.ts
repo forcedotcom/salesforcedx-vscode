@@ -138,16 +138,19 @@ export const getTestResultsTabText = async (sectionName?: 'Apex Testing' | 'Ligh
   await bottomBar.maximize();
   await pause(Duration.seconds(1));
 
-  // If a section name is specified, select that section in the Test Results tree
+  // If a section name is specified, click "Show Result Output" action on that tree row
   if (sectionName) {
     try {
-      const testResultsSection = await getWorkbench().findElement(
-        By.xpath(`//div[@class='monaco-list-row' and contains(., '${sectionName}')]`)
+      const testResultsRow = await getWorkbench().findElement(
+        By.css(`.monaco-list-row[role="treeitem"][aria-label="${sectionName}"]`)
       );
-      await testResultsSection.click();
+      const showOutputButton = await testResultsRow.findElement(
+        By.css('a[aria-label="Show Result Output"]')
+      );
+      await showOutputButton.click();
       await pause(Duration.milliseconds(500));
     } catch (error) {
-      console.log(`getTestResultsTabText - Could not find or click section: ${sectionName}`, error);
+      console.log(`getTestResultsTabText - Could not find or click Show Result Output for section: ${sectionName}`, error);
     }
   }
 
