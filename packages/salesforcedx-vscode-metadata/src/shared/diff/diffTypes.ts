@@ -20,7 +20,7 @@ const isHashableUri = (u: unknown): u is HashableUri =>
 
 const HashableUriSchema = Schema.declare<HashableUri>(isHashableUri);
 
-export const DiffFilePairSchema = Schema.Struct({
+const DiffFilePairSchema = Schema.Struct({
   localUri: HashableUriSchema,
   remoteUri: HashableUriSchema,
   fileName: Schema.String
