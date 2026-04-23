@@ -18,5 +18,7 @@
   "visualforce.trace.server.desc": "Traces the communication between VS Code and the Visualforce language server.",
   "visualforce.validate.scripts": "Configures if the Visualforce language support validates embedded scripts.",
   "visualforce.validate.styles": "Configures if the Visualforce language support validates embedded styles.",
-  "visualforce.autoClosingTags": "Enable/disable autoclosing of HTML tags."
+  "visualforce.autoClosingTags": "Enable/disable autoclosing of HTML tags.",
+  "visualforce_generate_component_text": "SFDX: Create Visualforce Component",
+  "visualforce_generate_page_text": "SFDX: Create Visualforce Page"
 }

@@ -22,7 +22,7 @@ import {
   validateNoCriticalErrors,
   saveScreenshot,
   EDITOR,
-  QUICK_INPUT_WIDGET,
+  activeQuickInputWidget,
   ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
@@ -61,9 +61,9 @@ import { messages } from '../../../src/messages/i18n';
     await saveScreenshot(page, 'step1.after-context-menu.png');
 
     // Wait for input prompt
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+    const quickInput = activeQuickInputWidget(page);
+    await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
+    await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
     await saveScreenshot(page, 'step1.manifest-prompt-visible.png');
 
     // Accept default filename (package.xml) by pressing Enter
@@ -92,9 +92,9 @@ import { messages } from '../../../src/messages/i18n';
     await saveScreenshot(page, 'step2.after-context-menu.png');
 
     // Wait for input prompt
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+    const quickInput = activeQuickInputWidget(page);
+    await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
+    await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
     await saveScreenshot(page, 'step2.manifest-prompt-visible.png');
 
     // Type a different filename to avoid overwrite prompt

@@ -38,8 +38,6 @@ export const messages = {
   analytics_template_name_text: 'template name',
   apex_generate_class_text: 'SFDX: Create Apex Class',
   apex_generate_unit_test_class_text: 'SFDX: Create Apex Unit Test Class',
-  visualforce_generate_component_text: 'SFDX: Create Visualforce Component',
-  visualforce_generate_page_text: 'SFDX: Create Visualforce Page',
   lightning_generate_app_text: 'SFDX: Create Aura App',
   lightning_generate_aura_component_text: 'SFDX: Create Aura Component',
   lightning_generate_event_text: 'SFDX: Create Aura Event',

@@ -36,7 +36,9 @@ const copyTemplates = copy({
     { from: [`${templatesBase}/apexclass/**/*`], to: ['./dist/templates/apexclass'] },
     { from: [`${templatesBase}/apextrigger/**/*`], to: ['./dist/templates/apextrigger'] },
     { from: [`${templatesBase}/lightningcomponent/lwc/**/*`], to: ['./dist/templates/lightningcomponent/lwc'] },
-    { from: [`${templatesBase}/staticresource/**/*`], to: ['./dist/templates/staticresource'] }
+    { from: [`${templatesBase}/staticresource/**/*`], to: ['./dist/templates/staticresource'] },
+    { from: [`${templatesBase}/visualforcepage/**/*`], to: ['./dist/templates/visualforcepage'] },
+    { from: [`${templatesBase}/visualforcecomponent/**/*`], to: ['./dist/templates/visualforcecomponent'] }
   ]
 });
 

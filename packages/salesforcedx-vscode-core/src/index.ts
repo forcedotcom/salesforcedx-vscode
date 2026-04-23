@@ -45,9 +45,7 @@ import {
   packageInstall,
   projectGenerateWithManifest,
   renameLightningComponent,
-  sfProjectGenerate,
-  visualforceGenerateComponent,
-  visualforceGeneratePage
+  sfProjectGenerate
 } from './commands';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
@@ -56,7 +54,7 @@ import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { SalesforceProjectConfig } from './salesforceProject';
+import { SalesforceProjectConfig } from './salesforceProject/salesforceProjectConfig';
 import { buildAllServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
@@ -78,8 +76,6 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
-    vscode.commands.registerCommand('sf.visualforce.generate.component', visualforceGenerateComponent),
-    vscode.commands.registerCommand('sf.visualforce.generate.page', visualforceGeneratePage),
     vscode.commands.registerCommand('sf.lightning.generate.app', lightningGenerateApp),
     vscode.commands.registerCommand('sf.lightning.generate.aura.component', lightningGenerateAuraComponent),
     vscode.commands.registerCommand('sf.lightning.generate.event', lightningGenerateEvent),

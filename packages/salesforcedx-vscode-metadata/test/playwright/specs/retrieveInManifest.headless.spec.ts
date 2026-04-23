@@ -26,7 +26,7 @@ import {
   selectOutputChannel,
   waitForOutputChannelText,
   EDITOR,
-  QUICK_INPUT_WIDGET,
+  activeQuickInputWidget,
   NOTIFICATION_LIST_ITEM,
   ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
@@ -73,9 +73,9 @@ test.setTimeout(RETRIEVE_TIMEOUT);
       await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
 
       // Wait for input prompt
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-      await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+      const quickInput = activeQuickInputWidget(page);
+      await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
+      await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
 
       // Accept default filename (package.xml) by pressing Enter
       await page.keyboard.press('Enter');

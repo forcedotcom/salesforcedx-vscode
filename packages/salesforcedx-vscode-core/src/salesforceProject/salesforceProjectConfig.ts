@@ -20,7 +20,7 @@ import { telemetryService } from '../telemetry';
  * Class representing the local sfdx-project.json file.
  * Does not contain global values.
  */
-export default class SalesforceProjectConfig {
+export class SalesforceProjectConfig {
   private static instance: SfProjectJson;
   private constructor() {
     throw new Error('Error: *** call SfProject.getInstance() to get the singleton instance of this class ***');
