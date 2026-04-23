@@ -38,7 +38,7 @@ test.describe('Visualforce Templates (Desktop Only)', () => {
     await test.step(`Create Visualforce ${name}`, async () => {
       await verifyCommandExists(page, command, 30_000);
       await executeCommandWithCommandPalette(page, command);
-      
+
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
       await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
       await page.keyboard.type(name);
@@ -48,7 +48,7 @@ test.describe('Visualforce Templates (Desktop Only)', () => {
       await page.keyboard.press('Enter');
 
       await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
-      
+
       for (const file of expectedFiles) {
         const explorerFile = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`${file}$`, 'i') });
         await expect(explorerFile).toBeVisible();
