@@ -123,7 +123,7 @@ export const findTestItemByName = async (testName: string): Promise<TestTreeItem
 };
 
 /** Opens the Test Results tab, maximizes panel, and returns the xterm output text */
-export const getTestResultsTabText = async (): Promise<string> => {
+export const getTestResultsTabText = async (sectionName?: 'Apex Testing' | 'Lightning Web Components'): Promise<string> => {
   // Dismiss notifications to prevent click interception on maximize button
   try {
     await dismissAllNotifications();
@@ -137,6 +137,19 @@ export const getTestResultsTabText = async (): Promise<string> => {
   // Maximize the panel to ensure all content is visible (not hidden by scroll)
   await bottomBar.maximize();
   await pause(Duration.seconds(1));
+
+  // If a section name is specified, select that section in the Test Results tree
+  if (sectionName) {
+    try {
+      const testResultsSection = await getWorkbench().findElement(
+        By.xpath(`//div[@class='monaco-list-row' and contains(., '${sectionName}')]`)
+      );
+      await testResultsSection.click();
+      await pause(Duration.milliseconds(500));
+    } catch (error) {
+      console.log(`getTestResultsTabText - Could not find or click section: ${sectionName}`, error);
+    }
+  }
 
   const xtermRows = await getWorkbench().findElement(By.css('.xterm-rows'));
   const text = await xtermRows.getText();

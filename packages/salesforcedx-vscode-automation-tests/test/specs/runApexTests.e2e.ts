@@ -296,7 +296,7 @@ describe('Run Apex Tests', () => {
     expect(tabLabel).to.match(/Preview test-result-[a-zA-Z0-9]+\.md/);
 
     // Verify test results in the Test Results tab (xterm terminal)
-    const testResultsText = await getTestResultsTabText();
+    const testResultsText = await getTestResultsTabText('Apex Testing');
     const expectedTextsInTestResultsTab = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -340,7 +340,7 @@ describe('Run Apex Tests', () => {
     expect(notificationFound).to.equal(true);
 
     // Verify test results in the Test Results tab
-    const testResultsText = await getTestResultsTabText();
+    const testResultsText = await getTestResultsTabText('Apex Testing');
     const expectedTextsInTestResultsTab = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -380,7 +380,7 @@ describe('Run Apex Tests', () => {
     expect(notificationFound).to.equal(true);
 
     // Verify test results in the Test Results tab
-    const testResultsText = await getTestResultsTabText();
+    const testResultsText = await getTestResultsTabText('Apex Testing');
     const expectedTextsInTestResultsTab = [
       '=== Test Summary',
       'Outcome              Passed',

@@ -22,7 +22,6 @@ import {
   closeAllEditors,
   executeQuickPick,
   getStatusBarItemWhichIncludes,
-  getTerminalViewText,
   getTextEditor,
   getWorkbench,
   reloadWindow,
@@ -34,7 +33,7 @@ import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
-import { findTestItemByName } from '../utils/apexTestsHelper';
+import { findTestItemByName, getTestResultsTabText } from '../utils/apexTestsHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Run LWC Tests', () => {
@@ -104,9 +103,8 @@ describe('Run LWC Tests', () => {
     // Run all tests via the native command (invokes our Run profile with no include)
     await executeQuickPick('Test: Run All Tests', Duration.seconds(2));
 
-    // Verify jest ran both files and all tests passed (terminal is still used by TestRunner)
-    const workbench = getWorkbench();
-    const terminalText = await getTerminalViewText(workbench, 10);
+    // Verify jest ran both files and all tests passed (results are in Test Results tab)
+    const testResultsText = await getTestResultsTabText('Lightning Web Components');
 
     const expectedTexts = [
       'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
@@ -116,22 +114,28 @@ describe('Run LWC Tests', () => {
       'Snapshots:   0 total',
       'Ran all test suites.'
     ];
-    expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+    expect(testResultsText).to.not.be.undefined;
+    await verifyOutputPanelText(testResultsText!, expectedTexts);
   });
 
   it('Run All Tests on a LWC via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run All Tests on a LWC via the Test Sidebar');
-    const workbench = getWorkbench();
 
     // Native Test Explorer exposes a per-item "Run Test" action button
-    const lwc1Item = await findTestItemByName('lwc1');
-    await lwc1Item.click();
-    const runTestAction = await lwc1Item.getActionButton('Run Test');
-    expect(runTestAction).to.not.be.undefined;
-    await runTestAction!.click();
+    // Wrap in retryOperation to handle potential stale element references
+    await retryOperation(
+      async () => {
+        const lwc1Item = await findTestItemByName('lwc1');
+        await lwc1Item.click();
+        const runTestAction = await lwc1Item.getActionButton('Run Test');
+        expect(runTestAction).to.not.be.undefined;
+        await runTestAction!.click();
+      },
+      3,
+      'Failed to click Run Test button on lwc1 item in Test Sidebar'
+    );
 
-    const terminalText = await getTerminalViewText(workbench, 10);
+    const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
@@ -140,22 +144,28 @@ describe('Run LWC Tests', () => {
       'Ran all test suites within paths',
       `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
     ];
-    expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+    expect(testResultsText).to.not.be.undefined;
+    await verifyOutputPanelText(testResultsText!, expectedTexts);
     await closeAllEditors();
   });
 
   it('Run Single Test via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run Single Test via the Test Sidebar');
-    const workbench = getWorkbench();
 
-    const testCaseItem = await findTestItemByName('displays greeting');
-    await testCaseItem.click();
-    const runTestAction = await testCaseItem.getActionButton('Run Test');
-    expect(runTestAction).to.not.be.undefined;
-    await runTestAction!.click();
+    // Wrap in retryOperation to handle potential stale element references
+    await retryOperation(
+      async () => {
+        const testCaseItem = await findTestItemByName('displays greeting');
+        await testCaseItem.click();
+        const runTestAction = await testCaseItem.getActionButton('Run Test');
+        expect(runTestAction).to.not.be.undefined;
+        await runTestAction!.click();
+      },
+      3,
+      'Failed to click Run Test button on displays greeting test in Test Sidebar'
+    );
 
-    const terminalText = await getTerminalViewText(workbench, 10);
+    const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
@@ -164,8 +174,8 @@ describe('Run LWC Tests', () => {
       'Ran all test suites within paths',
       `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
     ];
-    expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+    expect(testResultsText).to.not.be.undefined;
+    await verifyOutputPanelText(testResultsText!, expectedTexts);
   });
 
   it('SFDX: Run Current Lightning Web Component Test File from Command Palette', async () => {
@@ -175,8 +185,7 @@ describe('Run LWC Tests', () => {
       async () => {
         await executeQuickPick('SFDX: Run Current Lightning Web Component Test File', Duration.seconds(5));
 
-        const workbench = getWorkbench();
-        const terminalText = await getTerminalViewText(workbench, 20);
+        const testResultsText = await getTestResultsTabText('Lightning Web Components');
         const expectedTexts = [
           'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
           'Test Suites: 1 passed, 1 total',
@@ -187,8 +196,8 @@ describe('Run LWC Tests', () => {
         ];
 
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        expect(terminalText).to.not.be.undefined;
-        await verifyOutputPanelText(terminalText, expectedTexts);
+        expect(testResultsText).to.not.be.undefined;
+        await verifyOutputPanelText(testResultsText, expectedTexts);
       },
       3,
       'Failed to run current lightning web component test file from command palette'
@@ -199,14 +208,24 @@ describe('Run LWC Tests', () => {
   (process.platform === 'linux' ? it.skip : it)('Run All Tests via Code Lens action', async () => {
     logTestStart(testSetup, 'Run All Tests via Code Lens action');
     const workbench = getWorkbench();
-    const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
-    const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(runAllTestsOption).to.not.be.undefined;
-    await runAllTestsOption!.click();
+    // Close all editors first to ensure a clean state
+    await closeAllEditors();
 
-    const terminalText = await getTerminalViewText(workbench, 10);
+    // Wrap in retryOperation to handle timing issues with code lens appearing
+    await retryOperation(
+      async () => {
+        const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
+        const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        expect(runAllTestsOption).to.not.be.undefined;
+        await runAllTestsOption!.click();
+      },
+      3,
+      'Failed to find and click Run All Tests code lens on lwc1.test.js'
+    );
+
+    const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
@@ -215,8 +234,8 @@ describe('Run LWC Tests', () => {
       'Ran all test suites within paths',
       `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
     ];
-    expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+    expect(testResultsText).to.not.be.undefined;
+    await verifyOutputPanelText(testResultsText!, expectedTexts);
   });
 
   // TODO: This test is skipped in Ubuntu because of a flapper after adding code lens to describe blocks
@@ -229,7 +248,7 @@ describe('Run LWC Tests', () => {
     expect(runTestOption).to.not.be.undefined;
     await runTestOption!.click();
 
-    const terminalText = await getTerminalViewText(workbench, 10);
+    const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
       'Test Suites: 1 passed, 1 total',
@@ -238,8 +257,8 @@ describe('Run LWC Tests', () => {
       'Ran all test suites within paths',
       `${path.join(relativeLwcPath, 'lwc2', '__tests__', 'lwc2.test.js')}`
     ];
-    expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+    expect(testResultsText).to.not.be.undefined;
+    await verifyOutputPanelText(testResultsText!, expectedTexts);
   });
 
   it('SFDX: Run Current Lightning Web Component Test File from main toolbar', async () => {
@@ -252,7 +271,7 @@ describe('Run LWC Tests', () => {
     expect(runTestButtonToolbar).to.not.be.undefined;
     await runTestButtonToolbar?.click();
 
-    const terminalText = await getTerminalViewText(workbench, 10);
+    const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
       'Test Suites: 1 passed, 1 total',
@@ -261,8 +280,8 @@ describe('Run LWC Tests', () => {
       'Ran all test suites within paths',
       `${path.join(relativeLwcPath, 'lwc2', '__tests__', 'lwc2.test.js')}`
     ];
-    expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+    expect(testResultsText).to.not.be.undefined;
+    await verifyOutputPanelText(testResultsText!, expectedTexts);
   });
 
   after('Tear down and clean up the testing environment', async () => {
