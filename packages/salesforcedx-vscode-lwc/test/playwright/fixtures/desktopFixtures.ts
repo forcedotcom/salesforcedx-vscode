@@ -10,16 +10,22 @@ import * as path from 'node:path';
 
 import { createDesktopTest, createTestWorkspace } from '@salesforce/playwright-vscode-ext';
 
+import { seedLwcHeadlessWorkspaceSupplement, seedSnippetsE2eEmptyBundle } from '../utils/createLwcTestWorkspace';
+
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
-  disableOtherExtensions: false
+  disableOtherExtensions: false,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata']
 }).extend({
   workspaceDir: async ({}, use) => {
     const dir = await createTestWorkspace(undefined);
-    const bundleDir = path.join(dir, 'force-app', 'main', 'default', 'lwc', 'snippetsE2E');
-    await fs.mkdir(bundleDir, { recursive: true });
-    await fs.writeFile(path.join(bundleDir, 'snippetsE2E.html'), '', 'utf8');
-    await fs.writeFile(path.join(bundleDir, 'snippetsE2E.js'), '', 'utf8');
+    const sfdxProjectPath = path.join(dir, 'sfdx-project.json');
+    const parsed: unknown = JSON.parse(await fs.readFile(sfdxProjectPath, 'utf8'));
+    if (typeof parsed === 'object' && parsed !== null) {
+      await fs.writeFile(sfdxProjectPath, JSON.stringify({ ...parsed, defaultLwcLanguage: 'javascript' }, null, 2));
+    }
+    await seedLwcHeadlessWorkspaceSupplement(dir);
+    await seedSnippetsE2eEmptyBundle(dir);
     await use(dir);
   }
 });

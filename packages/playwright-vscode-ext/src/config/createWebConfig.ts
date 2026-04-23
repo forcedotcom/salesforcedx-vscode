@@ -62,8 +62,10 @@ export const createWebConfig = (options: WebConfigOptions) =>
       command: 'tsx web/headlessServer.ts',
       url: 'http://localhost:3001',
       timeout: 120 * 1000,
-      // Always start fresh. Reusing run:web (port 3001) causes EPIPE/premature close when test process
-      // expects to control the server lifecycle.
-      reuseExistingServer: false
+      // CI: always spawn headlessServer so runs are isolated. Local (`reuseExistingServer: !process.env.CI`): if 3001
+      // is already up (stale headlessServer), reuse it instead of failing with "already used". For a guaranteed fresh
+      // server locally, free the port or run with `CI=true`. Reusing a different app on 3001 (e.g. interactive run:web)
+      // may cause EPIPE or flakes.
+      reuseExistingServer: !process.env.CI
     }
   });

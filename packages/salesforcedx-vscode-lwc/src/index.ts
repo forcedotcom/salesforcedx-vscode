@@ -13,7 +13,7 @@ import {
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
-import { ExtensionContext, workspace } from 'vscode';
+import { ExtensionContext, FileType, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
 import { log } from './constants';
@@ -25,6 +25,16 @@ import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   const telemetryModule = await import('./telemetry/index.js');
   return telemetryModule.telemetryService;
+};
+
+/** Path-string workspace detection fails for some virtual/test-web roots; `workspace.fs` uses the folder URI. */
+const rootHasSfdxProjectJson = async (folderUri: URI): Promise<boolean> => {
+  try {
+    const stat = await workspace.fs.stat(Utils.joinPath(folderUri, 'sfdx-project.json'));
+    return stat.type === FileType.File;
+  } catch {
+    return false;
+  }
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
@@ -75,11 +85,16 @@ export const activate = async (extensionContext: ExtensionContext) => {
     }
   });
 
-  // For workspace type detection, we still need to check the file system
-  // Create a temporary provider just for detection
-  // In web mode with no valid paths, default to UNKNOWN
-  const workspaceType: WorkspaceType =
+  // Path-based detection (Node fs paths) can return UNKNOWN for virtual workspaces; confirm via URI API.
+  let workspaceType: WorkspaceType =
     workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
+  if (
+    workspaceType === 'UNKNOWN' &&
+    workspace.workspaceFolders[0] &&
+    (await rootHasSfdxProjectJson(workspace.workspaceFolders[0].uri))
+  ) {
+    workspaceType = 'SFDX';
+  }
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
@@ -107,6 +122,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
     // Listen for server ready notification to update status
     client.onNotification(LWC_SERVER_READY_NOTIFICATION, () => {
       statusBarItem.ready();
+      // Web E2E: language status is not always exposed in the status bar; tests wait on this log line.
+      channelService.appendLine('LWC Language Server: indexing complete');
     });
 
     // Start the client and add it to subscriptions
