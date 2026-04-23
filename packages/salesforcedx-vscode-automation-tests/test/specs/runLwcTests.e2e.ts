@@ -7,6 +7,7 @@
 import {
   Duration,
   openFile,
+  pause,
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
@@ -99,6 +100,9 @@ describe('Run LWC Tests', () => {
     // Run all tests via the native command (invokes our Run profile with no include)
     await executeQuickPick('Test: Run All Tests', Duration.seconds(2));
 
+    // Wait for tests to complete
+    await pause(Duration.seconds(5));
+
     // Verify jest ran both files and all tests passed (results are in Test Results tab)
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
 
@@ -132,6 +136,9 @@ describe('Run LWC Tests', () => {
       'Failed to click Run Test button on lwc1 item in Test Sidebar'
     );
 
+    // Wait for tests to complete
+    await pause(Duration.seconds(5));
+
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS',
@@ -163,6 +170,9 @@ describe('Run LWC Tests', () => {
       'Failed to click Run Test button on displays greeting test in Test Sidebar'
     );
 
+    // Wait for tests to complete
+    await pause(Duration.seconds(5));
+
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS',
@@ -183,6 +193,9 @@ describe('Run LWC Tests', () => {
     await retryOperation(
       async () => {
         await executeQuickPick('SFDX: Run Current Lightning Web Component Test File', Duration.seconds(5));
+
+        // Wait for tests to complete
+        await pause(Duration.seconds(5));
 
         const testResultsText = await getTestResultsTabText('Lightning Web Components');
         const expectedTexts = [
@@ -225,6 +238,9 @@ describe('Run LWC Tests', () => {
       'Failed to find and click Run All Tests code lens on lwc1.test.js'
     );
 
+    // Wait for tests to complete
+    await pause(Duration.seconds(5));
+
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS',
@@ -249,6 +265,9 @@ describe('Run LWC Tests', () => {
     expect(runTestOption).to.not.be.undefined;
     await runTestOption!.click();
 
+    // Wait for tests to complete
+    await pause(Duration.seconds(5));
+
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS',
@@ -272,6 +291,9 @@ describe('Run LWC Tests', () => {
     const runTestButtonToolbar = await editorView.getAction('SFDX: Run Current Lightning Web Component Test File');
     expect(runTestButtonToolbar).to.not.be.undefined;
     await runTestButtonToolbar?.click();
+
+    // Wait for tests to complete
+    await pause(Duration.seconds(5));
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [

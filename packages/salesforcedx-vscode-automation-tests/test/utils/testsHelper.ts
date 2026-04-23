@@ -140,17 +140,44 @@ export const getTestResultsTabText = async (sectionName?: 'Apex Testing' | 'Ligh
 
   // If a section name is specified, click "Show Result Output" action on that tree row
   if (sectionName) {
-    try {
-      const testResultsRow = await getWorkbench().findElement(
-        By.css(`.monaco-list-row[role="treeitem"][aria-label="${sectionName}"]`)
-      );
-      const showOutputButton = await testResultsRow.findElement(
-        By.css('a[aria-label="Show Result Output"]')
-      );
-      await showOutputButton.click();
-      await pause(Duration.milliseconds(500));
-    } catch (error) {
-      console.log(`getTestResultsTabText - Could not find or click Show Result Output for section: ${sectionName}`, error);
+    // Retry the button click a few times in case of timing issues
+    let clickSuccess = false;
+    for (let attempt = 1; attempt <= 3 && !clickSuccess; attempt++) {
+      try {
+        const testResultsRow = await getWorkbench().findElement(
+          By.css(`.monaco-list-row[role="treeitem"][aria-label="${sectionName}"]`)
+        );
+
+        // Scroll the row into view first
+        await getWorkbench().getDriver().executeScript('arguments[0].scrollIntoView({block: "center"});', testResultsRow);
+        await pause(Duration.milliseconds(300));
+
+        // Click the row first to ensure it's focused
+        await testResultsRow.click();
+        await pause(Duration.milliseconds(200));
+
+        // Hover over the row to reveal action buttons
+        await getWorkbench().getDriver().actions().move({ origin: testResultsRow }).perform();
+        await pause(Duration.milliseconds(500));
+
+        const showOutputButton = await testResultsRow.findElement(
+          By.css('a[aria-label="Show Result Output"]')
+        );
+
+        // Try to click using JavaScript executor
+        await getWorkbench().getDriver().executeScript('arguments[0].click();', showOutputButton);
+
+        // Wait for the output to update
+        await pause(Duration.seconds(1.5));
+
+        clickSuccess = true;
+        console.log(`getTestResultsTabText - Successfully clicked Show Result Output for section: ${sectionName}`);
+      } catch (error) {
+        console.log(`getTestResultsTabText - Attempt ${attempt}/3 failed to click Show Result Output for section: ${sectionName}:`, error);
+        if (attempt < 3) {
+          await pause(Duration.milliseconds(500));
+        }
+      }
     }
   }
 
