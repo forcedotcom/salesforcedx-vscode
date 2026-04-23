@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   workflow_call:
   push:
-    branches-ignore: [ main, develop, sm/W-21313309-add-ubuntu-playwright-vscode-ext ]
+    branches-ignore: [ main, develop ]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
