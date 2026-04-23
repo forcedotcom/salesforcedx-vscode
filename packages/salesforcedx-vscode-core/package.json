@@ -133,7 +133,7 @@
       ]
     },
     "test": {
-      "command": "jest --coverage",
+      "command": "jest",
       "dependencies": [
         "test:compile"
       ],
@@ -200,12 +200,6 @@
       ],
       "output": []
     }
-  },
-  "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
