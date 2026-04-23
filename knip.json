@@ -7,7 +7,8 @@
     "packages/*/**/__tests__/fixtures/**",
     ".github/actions/*/lib/**",
     "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/model.ts",
-    "packages/salesforcedx-vscode-soql/src/soql-model/model/model.ts"
+    "packages/salesforcedx-vscode-soql/src/soql-model/model/model.ts",
+    "scripts/validation-utils.js"
   ],
   "tags": ["-ExportTaggedError"],
   "workspaces": {

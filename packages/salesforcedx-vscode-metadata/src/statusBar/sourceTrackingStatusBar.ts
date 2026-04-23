@@ -17,9 +17,38 @@ import { nls } from '../messages';
 import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
 
+// #region agent log
+/** Batched Extension Host log (Debug Console) — status bar stream / refresh; remove when measurement done. */
+const pubsubWasteSb = {
+  pubSubInboundPreDebounce: 0,
+  afterFirstFileDebounce: 0,
+  refresh: 0,
+  lastLogMs: 0
+};
+const pubsubWasteSbLog = (): void => {
+  const now = Date.now();
+  if (now - pubsubWasteSb.lastLogMs < 5000) {
+    return;
+  }
+  pubsubWasteSb.lastLogMs = now;
+  console.log('[sf pubsub]', 'sourceTrackingStatusBar', {
+    hypothesisId: 'H-aggregate',
+    statusBarPubSubInboundPreDebounce: pubsubWasteSb.pubSubInboundPreDebounce,
+    statusBarAfterFirstFileDebounce: pubsubWasteSb.afterFirstFileDebounce,
+    statusBarRefresh: pubsubWasteSb.refresh
+  });
+};
+// #endregion
+
 /** Refresh the status bar's data using data from tracking service */
 const refresh = Effect.fn('statusBarRefresh')(
   function* (statusBarItem: vscode.StatusBarItem) {
+    // #region agent log
+    yield* Effect.sync(() => {
+      pubsubWasteSb.refresh += 1;
+      pubsubWasteSbLog();
+    });
+    // #endregion
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const sourceTrackingService = yield* api.services.SourceTrackingService;
 
@@ -137,7 +166,25 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
 
   const fileChangeStream = Stream.merge(
     // Subscribe to file changes TODO: maybe filter out some changes by type or uri
-    Stream.fromPubSub(fileChangePubSub).pipe(Stream.debounce(Duration.millis(500))),
+    Stream.fromPubSub(fileChangePubSub).pipe(
+      Stream.tap(() =>
+        Effect.sync(() => {
+          // #region agent log
+          pubsubWasteSb.pubSubInboundPreDebounce += 1;
+          pubsubWasteSbLog();
+          // #endregion
+        })
+      ),
+      Stream.debounce(Duration.millis(500)),
+      Stream.tap(() =>
+        Effect.sync(() => {
+          // #region agent log
+          pubsubWasteSb.afterFirstFileDebounce += 1;
+          pubsubWasteSbLog();
+          // #endregion
+        })
+      )
+    ),
     // Poll for remote changes with configurable interval
     dynamicPollStream
   ).pipe(

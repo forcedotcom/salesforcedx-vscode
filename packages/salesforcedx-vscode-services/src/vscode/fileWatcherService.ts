@@ -13,6 +13,24 @@ import * as vscode from 'vscode';
 import { ChannelService } from './channelService';
 import { FileChangePubSub, type FileChangeEvent } from './fileChangePubSub';
 
+// #region agent log
+/** Batched Extension Host log (Debug Console) — pubsub / file watcher volume; remove when measurement done. */
+const pubsubWasteFw = { workspaceFiles: 0, publishOk: 0, publishFail: 0, lastLogMs: 0 };
+const pubsubWasteFwLog = (): void => {
+  const now = Date.now();
+  if (now - pubsubWasteFw.lastLogMs < 5000) {
+    return;
+  }
+  pubsubWasteFw.lastLogMs = now;
+  console.log('[sf pubsub]', 'fileWatcher', {
+    hypothesisId: 'H-aggregate',
+    workspaceFileEventsToPubSub: pubsubWasteFw.workspaceFiles,
+    pubSubPublishOk: pubsubWasteFw.publishOk,
+    pubSubPublishFail: pubsubWasteFw.publishFail
+  });
+};
+// #endregion
+
 export const FileWatcherLayer = Layer.scopedDiscard(
   Effect.gen(function* () {
     const pubsub = yield* FileChangePubSub;
@@ -26,7 +44,33 @@ export const FileWatcherLayer = Layer.scopedDiscard(
           watcher.onDidChange(uri => emit.single({ type: 'change', uri }));
           watcher.onDidDelete(uri => emit.single({ type: 'delete', uri }));
         }).pipe(
-          Stream.runForEach(event => PubSub.publish(pubsub, event).pipe(Effect.catchAll(() => Effect.void)))
+          Stream.runForEach(event =>
+            Effect.gen(function* () {
+              // #region agent log
+              pubsubWasteFw.workspaceFiles += 1;
+              pubsubWasteFwLog();
+              // #endregion
+              yield* PubSub.publish(pubsub, event).pipe(
+                Effect.tap(() =>
+                  Effect.sync(() => {
+                    // #region agent log
+                    pubsubWasteFw.publishOk += 1;
+                    pubsubWasteFwLog();
+                    // #endregion
+                  })
+                ),
+                Effect.tapError(() =>
+                  Effect.sync(() => {
+                    // #region agent log
+                    pubsubWasteFw.publishFail += 1;
+                    pubsubWasteFwLog();
+                    // #endregion
+                  })
+                ),
+                Effect.catchAll(() => Effect.void)
+              );
+            })
+          )
         ),
       watcher => Effect.sync(() => watcher.dispose()).pipe(Effect.withSpan('disposing file watcher'))
     ).pipe(Effect.forkScoped);

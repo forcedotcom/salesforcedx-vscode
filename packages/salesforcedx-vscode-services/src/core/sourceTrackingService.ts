@@ -50,6 +50,45 @@ export class SourceTrackingConflictError extends Schema.TaggedError<SourceTracki
 ) {}
 const toSourceTrackingError = (error: unknown) => new SourceTrackingError({ cause: unknownToErrorCause(error).cause });
 
+// #region agent log
+/** Batched Extension Host log (Debug Console) — getStatus call counts; remove when measurement done. */
+const pubsubWasteGs = {
+  localRemote: 0,
+  other: 0,
+  /** After semaphores + rereads; each increment is one `tracking.getStatus(...)` (STL) invocation. */
+  trackingGetStatusInvoked: 0,
+  /** `getStatus` path only — boundary around `@salesforce/source-tracking` (STL) APIs. */
+  stlReReadLocalGetStatusStart: 0,
+  stlReReadLocalGetStatusDone: 0,
+  stlReReadRemoteGetStatusStart: 0,
+  stlReReadRemoteGetStatusDone: 0,
+  lastLogMs: 0
+};
+
+/** Immediate line (not 5s-throttled) — STL calls are low volume during a run. */
+const pubsubWasteStlImmediate = (op: string, phase: 'start' | 'done'): void => {
+  console.log('[sf pubsub] STL', op, phase, { t: Date.now() });
+};
+
+const pubsubWasteGsLog = (): void => {
+  const now = Date.now();
+  if (now - pubsubWasteGs.lastLogMs < 5000) {
+    return;
+  }
+  pubsubWasteGs.lastLogMs = now;
+  console.log('[sf pubsub]', 'getStatus', {
+    hypothesisId: 'H-aggregate',
+    getStatusLocalAndRemote: pubsubWasteGs.localRemote,
+    getStatusOtherShape: pubsubWasteGs.other,
+    trackingGetStatusInvoked: pubsubWasteGs.trackingGetStatusInvoked,
+    stlReReadLocalGetStatusStart: pubsubWasteGs.stlReReadLocalGetStatusStart,
+    stlReReadLocalGetStatusDone: pubsubWasteGs.stlReReadLocalGetStatusDone,
+    stlReReadRemoteGetStatusStart: pubsubWasteGs.stlReReadRemoteGetStatusStart,
+    stlReReadRemoteGetStatusDone: pubsubWasteGs.stlReReadRemoteGetStatusDone
+  });
+};
+// #endregion
+
 const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
 type ResolvedChangeResult = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
 const isResolvedChangeResult = (c: ChangeResult): c is ResolvedChangeResult => Schema.is(ResolvedChangeResultSchema)(c);
@@ -242,6 +281,16 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     const getStatus = Effect.fn('SourceTrackingService.getStatus')(function* (
       options: { local: true; remote?: never } | { remote: true; local?: never } | { local: true; remote: true }
     ) {
+      // #region agent log
+      yield* Effect.sync(() => {
+        if (options.local === true && options.remote === true) {
+          pubsubWasteGs.localRemote += 1;
+        } else {
+          pubsubWasteGs.other += 1;
+        }
+        pubsubWasteGsLog();
+      });
+      // #endregion
       // Take only the permits we need, concurrently
       yield* Effect.all(
         [options.local ? localSemaphore.take(1) : Effect.void, options.remote ? remoteSemaphore.take(1) : Effect.void],
@@ -251,15 +300,62 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       const tracking = yield* getOrCreateTracking();
 
       return yield* Effect.gen(function* () {
-        yield* Effect.all(
-          [...(options.local ? [rereadLocal(tracking)] : []), ...(options.remote ? [rereadRemote(tracking)] : [])],
-          { concurrency: 'unbounded' }
-        );
+        // #region agent log
+        // STL lives in `@salesforce/source-tracking`; we log at the boundary (same process, same call stack into STL).
+        const rereadParts: Effect.Effect<void, SourceTrackingError, never>[] = [];
+        if (options.local) {
+          rereadParts.push(
+            Effect.gen(function* () {
+              yield* Effect.sync(() => {
+                pubsubWasteGs.stlReReadLocalGetStatusStart += 1;
+                pubsubWasteStlImmediate('reReadLocalTrackingCache', 'start');
+                pubsubWasteGsLog();
+              });
+              yield* rereadLocal(tracking);
+              yield* Effect.sync(() => {
+                pubsubWasteGs.stlReReadLocalGetStatusDone += 1;
+                pubsubWasteStlImmediate('reReadLocalTrackingCache', 'done');
+                pubsubWasteGsLog();
+              });
+            })
+          );
+        }
+        if (options.remote) {
+          rereadParts.push(
+            Effect.gen(function* () {
+              yield* Effect.sync(() => {
+                pubsubWasteGs.stlReReadRemoteGetStatusStart += 1;
+                pubsubWasteStlImmediate('reReadRemoteTracking', 'start');
+                pubsubWasteGsLog();
+              });
+              yield* rereadRemote(tracking);
+              yield* Effect.sync(() => {
+                pubsubWasteGs.stlReReadRemoteGetStatusDone += 1;
+                pubsubWasteStlImmediate('reReadRemoteTracking', 'done');
+                pubsubWasteGsLog();
+              });
+            })
+          );
+        }
+        yield* Effect.all(rereadParts, { concurrency: 'unbounded' });
+        // #endregion
 
+        // #region agent log
+        yield* Effect.sync(() => {
+          pubsubWasteGs.trackingGetStatusInvoked += 1;
+          pubsubWasteStlImmediate('tracking.getStatus', 'start');
+          pubsubWasteGsLog();
+        });
+        // #endregion
         const rows = yield* Effect.tryPromise({
           try: () => tracking.getStatus({ local: options.local === true, remote: options.remote === true }),
           catch: toSourceTrackingError
         }).pipe(Effect.withSpan('STL.GetStatus'));
+        // #region agent log
+        yield* Effect.sync(() => {
+          pubsubWasteStlImmediate('tracking.getStatus', 'done');
+        });
+        // #endregion
         yield* Effect.annotateCurrentSpan({ statusRows: rows.length });
         return rows;
       }).pipe(
