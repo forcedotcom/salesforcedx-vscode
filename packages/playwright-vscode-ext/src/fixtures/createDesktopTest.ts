@@ -8,7 +8,7 @@
 // This is Node.js test infrastructure, not extension code
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron } from '@playwright/test';
-import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath } from '@vscode/test-electron';
+import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
 import { spawnSync, type ChildProcess } from 'node:child_process';
 import * as crypto from 'node:crypto';
 import { existsSync, readdirSync } from 'node:fs';
@@ -93,8 +93,9 @@ const computeVsixCacheKey = async (vsixPaths: string[]): Promise<string> => {
 
 /**
  * Install VSIXs into a hash-keyed cache dir under <repoRoot>/.vscode-test/ext-<hash>/.
- * Atomic: installs into <dir>.tmp then renames. Idempotent: skips if <dir>/extensions.json exists.
- * Safe for concurrent workers: second worker sees <dir>/extensions.json and skips.
+ * Each worker gets its own per-pid tmp dir to avoid concurrent install conflicts.
+ * Atomic rename to final cache dir; second worker to finish sees the dir exists and cleans up.
+ * Idempotent: skips if <dir>/extensions.json already exists (first worker won).
  */
 const installVsixsToCache = async (
   cacheDir: string,
@@ -103,18 +104,18 @@ const installVsixsToCache = async (
 ): Promise<void> => {
   const extensionsJson = path.join(cacheDir, 'extensions.json');
   if (existsSync(extensionsJson)) {
-    return; // already installed by another worker
+    return; // already installed — fast path
   }
 
-  const tmpDir = `${cacheDir}.tmp`;
+  // Per-pid tmp dir: avoids concurrent workers writing to the same directory
+  const tmpDir = `${cacheDir}.tmp.${process.pid}`;
   await fs.rm(tmpDir, { recursive: true, force: true });
   await fs.mkdir(tmpDir, { recursive: true });
 
-  const [cli, ...baseArgs] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutable);
+  const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
   const result = spawnSync(
     cli,
     [
-      ...baseArgs,
       '--extensions-dir',
       tmpDir,
       '--user-data-dir',
@@ -125,14 +126,14 @@ const installVsixsToCache = async (
   );
 
   if (result.status !== 0) {
+    await fs.rm(tmpDir, { recursive: true, force: true });
     throw new Error(`VSIX install failed (exit ${result.status}). VSIXs: ${vsixPaths.join(', ')}`);
   }
 
-  // Atomic rename so concurrent workers see a complete dir or nothing
+  // Atomic rename: first worker wins; others clean up their own tmp and use the winner's dir
   try {
     await fs.rename(tmpDir, cacheDir);
   } catch {
-    // Another worker won the race — clean up our tmp and use their dir
     await fs.rm(tmpDir, { recursive: true, force: true });
   }
 };
