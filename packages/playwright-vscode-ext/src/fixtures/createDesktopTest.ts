@@ -8,8 +8,10 @@
 // This is Node.js test infrastructure, not extension code
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron } from '@playwright/test';
-import { downloadAndUnzipVSCode } from '@vscode/test-electron';
-import type { ChildProcess } from 'node:child_process';
+import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath } from '@vscode/test-electron';
+import { spawnSync, type ChildProcess } from 'node:child_process';
+import * as crypto from 'node:crypto';
+import { existsSync, readdirSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
@@ -51,6 +53,88 @@ type CreateDesktopTestOptions = {
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
   userSettings?: Record<string, unknown>;
+  /**
+   * When true, install VSIXs and launch VS Code with --extensions-dir instead of --extensionDevelopmentPath.
+   * Exercises the real shipping artifact (bundled dist/, packageUpdates, .vscodeignore).
+   * Defaults to `process.env.E2E_FROM_VSIX === '1'` — set that env var in CI to enable without code changes.
+   */
+  useVsix?: boolean;
+};
+
+/**
+ * Resolve *.vsix files for the given package directories (relative to repo root packages/).
+ * Fails loudly if a package has 0 or >1 VSIX (wireit should produce exactly one).
+ */
+const resolveVsixPaths = (repoRoot: string, packageDirs: string[]): string[] =>
+  packageDirs.map(dir => {
+    const pkgDir = path.join(repoRoot, 'packages', dir);
+    const vsixFiles = existsSync(pkgDir) ? readdirSync(pkgDir).filter(f => f.endsWith('.vsix')) : [];
+    if (vsixFiles.length !== 1) {
+      throw new Error(
+        `Expected exactly 1 VSIX in packages/${dir}/ but found ${vsixFiles.length}: [${vsixFiles.join(', ')}]. ` +
+          `Run 'npm run vscode:package -w ${dir}' first.`
+      );
+    }
+    return path.join(pkgDir, vsixFiles[0]);
+  });
+
+/**
+ * Compute a cache key from the combined sha256 of all VSIX files.
+ * Uses file sizes+mtimes as a fast proxy — avoids reading multi-MB VSIX bytes.
+ */
+const computeVsixCacheKey = async (vsixPaths: string[]): Promise<string> => {
+  const hash = crypto.createHash('sha256');
+  for (const p of vsixPaths) {
+    const stat = await fs.stat(p);
+    hash.update(`${p}:${stat.size}:${stat.mtimeMs}`);
+  }
+  return hash.digest('hex').slice(0, 16);
+};
+
+/**
+ * Install VSIXs into a hash-keyed cache dir under <repoRoot>/.vscode-test/ext-<hash>/.
+ * Atomic: installs into <dir>.tmp then renames. Idempotent: skips if <dir>/extensions.json exists.
+ * Safe for concurrent workers: second worker sees <dir>/extensions.json and skips.
+ */
+const installVsixsToCache = async (
+  cacheDir: string,
+  vsixPaths: string[],
+  vscodeExecutable: string
+): Promise<void> => {
+  const extensionsJson = path.join(cacheDir, 'extensions.json');
+  if (existsSync(extensionsJson)) {
+    return; // already installed by another worker
+  }
+
+  const tmpDir = `${cacheDir}.tmp`;
+  await fs.rm(tmpDir, { recursive: true, force: true });
+  await fs.mkdir(tmpDir, { recursive: true });
+
+  const [cli, ...baseArgs] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutable);
+  const result = spawnSync(
+    cli,
+    [
+      ...baseArgs,
+      '--extensions-dir',
+      tmpDir,
+      '--user-data-dir',
+      path.join(tmpDir, '.ud'),
+      ...vsixPaths.flatMap(p => ['--install-extension', p])
+    ],
+    { stdio: 'inherit', shell: process.platform === 'win32' }
+  );
+
+  if (result.status !== 0) {
+    throw new Error(`VSIX install failed (exit ${result.status}). VSIXs: ${vsixPaths.join(', ')}`);
+  }
+
+  // Atomic rename so concurrent workers see a complete dir or nothing
+  try {
+    await fs.rename(tmpDir, cacheDir);
+  } catch {
+    // Another worker won the race — clean up our tmp and use their dir
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
 };
 
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
@@ -63,6 +147,12 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     disableOtherExtensions = true,
     userSettings
   } = options;
+
+  const useVsix = options.useVsix ?? process.env.E2E_FROM_VSIX === '1';
+
+  // Current package name = the packages/<dir> that owns this fixture file.
+  // fixturesDir is e.g. <repoRoot>/packages/salesforcedx-vscode-org-browser/test/playwright/fixtures
+  const packageDir = path.basename(path.resolve(fixturesDir, '..', '..', '..'));
 
   const test = base.extend<TestFixtures, WorkerFixtures>({
     // Download VS Code once per worker (cached at repo root .vscode-test/)
@@ -77,6 +167,24 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       { scope: 'worker' }
     ],
 
+    // Install VSIXs once per worker into a hash-keyed cache dir (VSIX mode only)
+    installedExtensionsDir: [
+      async ({ vscodeExecutable }, use): Promise<void> => {
+        if (!useVsix) {
+          await use(undefined);
+          return;
+        }
+        const repoRoot = resolveRepoRoot(fixturesDir);
+        const allDirs = [packageDir, 'salesforcedx-vscode-services', ...additionalExtensionDirs];
+        const vsixPaths = resolveVsixPaths(repoRoot, allDirs);
+        const cacheKey = await computeVsixCacheKey(vsixPaths);
+        const cacheDir = path.join(repoRoot, '.vscode-test', `ext-${cacheKey}`);
+        await installVsixsToCache(cacheDir, vsixPaths, vscodeExecutable);
+        await use(cacheDir);
+      },
+      { scope: 'worker' }
+    ],
+
     // Create workspace directory (shared with electronApp so tests can access path)
     workspaceDir: async ({}, use): Promise<void> => {
       const dir = emptyWorkspace ? await createEmptyTestWorkspace() : await createTestWorkspace(orgAlias);
@@ -84,7 +192,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     },
 
     // Launch fresh Electron instance per test
-    electronApp: async ({ vscodeExecutable, workspaceDir }, use): Promise<void> => {
+    electronApp: async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
       // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
@@ -113,23 +221,10 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         await fs.mkdir(userSettingsDir, { recursive: true });
         await fs.writeFile(path.join(userSettingsDir, 'settings.json'), JSON.stringify(effectiveUserSettings, null, 2));
       }
-      const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
-      await fs.mkdir(extensionsDir, { recursive: true });
 
       const packageRoot = path.resolve(fixturesDir, '..', '..', '..');
-
-      // Collect all extension paths: current extension + services + any additional
-
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
       await fs.mkdir(videosDir, { recursive: true });
-
-      const extensionArgs = [
-        // Extension path is the package root (contains package.json and bundled dist/index.js)
-        packageRoot,
-        ...additionalExtensionDirs
-          .concat(['salesforcedx-vscode-services'])
-          .map(dir => path.resolve(packageRoot, '..', dir))
-      ].map(p => `--extensionDevelopmentPath=${p}`);
 
       // Explicitly disable built-in GitHub/Copilot/Chat extensions that can trigger
       // the GitHub OAuth browser tab on startup. `--disable-extensions` only disables
@@ -142,16 +237,38 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         'GitHub.copilot-chat'
       ].map(id => `--disable-extension=${id}`);
 
-      const launchArgs = [
-        `--user-data-dir=${userDataDir}`,
-        `--extensions-dir=${extensionsDir}`,
-        ...extensionArgs,
-        ...(disableOtherExtensions ? ['--disable-extensions'] : []),
-        ...disabledBuiltins,
-        '--disable-workspace-trust',
-        '--no-sandbox',
-        workspaceDir
-      ];
+      let launchArgs: string[];
+      if (useVsix) {
+        // VSIX mode: extensions installed into hash-keyed cache dir; no dev path needed
+        launchArgs = [
+          `--user-data-dir=${userDataDir}`,
+          `--extensions-dir=${installedExtensionsDir}`,
+          ...disabledBuiltins,
+          '--disable-workspace-trust',
+          '--no-sandbox',
+          workspaceDir
+        ];
+      } else {
+        const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
+        await fs.mkdir(extensionsDir, { recursive: true });
+        const extensionArgs = [
+          // Extension path is the package root (contains package.json and bundled dist/index.js)
+          packageRoot,
+          ...additionalExtensionDirs
+            .concat(['salesforcedx-vscode-services'])
+            .map(dir => path.resolve(packageRoot, '..', dir))
+        ].map(p => `--extensionDevelopmentPath=${p}`);
+        launchArgs = [
+          `--user-data-dir=${userDataDir}`,
+          `--extensions-dir=${extensionsDir}`,
+          ...extensionArgs,
+          ...(disableOtherExtensions ? ['--disable-extensions'] : []),
+          ...disabledBuiltins,
+          '--disable-workspace-trust',
+          '--no-sandbox',
+          workspaceDir
+        ];
+      }
 
       const electronApp = await electron.launch({
         executablePath: vscodeExecutable,

@@ -171,6 +171,7 @@ jobs:
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
+      E2E_FROM_VSIX: 1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -265,6 +266,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
+          E2E_FROM_VSIX: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
 
@@ -275,6 +277,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
+          E2E_FROM_VSIX: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
