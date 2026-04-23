@@ -18,7 +18,7 @@ on:
         type: string
         default: ''
   push:
-    branches-ignore: [ main, develop, sm/W-21313306-add-ubuntu-apex-testing ]
+    branches-ignore: [ main, develop ]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
