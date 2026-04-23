@@ -115,7 +115,7 @@
       ]
     },
     "test": {
-      "command": "jest --coverage",
+      "command": "jest",
       "dependencies": [
         "test:compile"
       ],
