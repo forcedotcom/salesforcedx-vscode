@@ -1,0 +1,291 @@
+name: LWC E2E (Playwright)
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main, develop]
+    paths-ignore:
+      - '.claude/**'
+      - '.cursor/**'
+      - 'contributing/**'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '**/README*'
+      - 'SECURITY*'
+      - 'CODE_OF_CONDUCT*'
+      - 'CHANGELOG*'
+      - '**/CHANGELOG*'
+
+concurrency:
+  group: ci-${{ github.ref }}-lwcPlaywrightE2E
+  cancel-in-progress: true
+
+jobs:
+  e2e-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html
+
+      # Restore cached @vscode/test-web (same pattern as org-browser / playwright-vscode-ext E2E). Sets
+      # PLAYWRIGHT_WEB_VSCODE_COMMIT when a stable folder exists so headlessServer skips redundant downloads.
+      - uses: ./.github/actions/cache-vscode-web
+        if: steps.try-run.outcome == 'failure'
+        with:
+          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli
+          retry_wait_seconds: 30
+
+      - name: Clone dreamhouse
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+          retry_wait_seconds: 60
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
+
+      - name: create scratch org and set up dreamhouse
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
+          sf project deploy start
+          sf org assign permset -n dreamhouse
+        working-directory: dreamhouse-lwc
+
+      - name: Run LWC Playwright web tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
+          PLAYWRIGHT_WORKERS: 1
+        run: |
+          npm run test:web -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-lwc/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-lwc/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-lwc-web
+          path: packages/salesforcedx-vscode-lwc/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-lwc-web
+          path: packages/salesforcedx-vscode-lwc/test-results
+          if-no-files-found: ignore
+
+      - name: Cleanup scratch org
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+
+  e2e-desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+      fail-fast: false
+
+    env:
+      DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
+          VSCODE_DESKTOP: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
+
+      # Restore cached @vscode/test-electron (same pattern as other desktop Playwright E2E workflows).
+      - uses: ./.github/actions/cache-vscode-desktop
+        if: steps.try-run.outcome == 'failure'
+        with:
+          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli
+          retry_wait_seconds: 30
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
+      - name: Clone dreamhouse
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+          retry_wait_seconds: 60
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
+
+      - name: create scratch org and set up dreamhouse
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
+          sf project deploy start
+          sf org assign permset -n dreamhouse
+        working-directory: dreamhouse-lwc
+
+      - name: Run LWC Playwright desktop tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
+          VSCODE_DESKTOP: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
+          VSCODE_DESKTOP: 1
+          PLAYWRIGHT_WORKERS: 1
+        run: |
+          npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-lwc/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-lwc/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-lwc-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-lwc/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-lwc-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-lwc/test-results
+          if-no-files-found: ignore
+
+      - name: Cleanup scratch org
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true

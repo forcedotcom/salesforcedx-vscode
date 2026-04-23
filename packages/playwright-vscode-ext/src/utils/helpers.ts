@@ -158,6 +158,7 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
     return;
   }
 
+  // Web: navigate if requested, then wait
   if (navigate) {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
   }
@@ -340,6 +341,20 @@ export const dismissSignInWalkthroughDialog = async (page: Page): Promise<void> 
       : page.keyboard.press('Escape'));
   }
   await dialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+};
+
+/**
+ * Assert a Welcome or Walkthrough editor tab is visible (typical fresh **web** window with no folder).
+ * Call before {@link closeWelcomeTabs} so specs do not race an empty tab strip.
+ * No-op on desktop: an opened-folder workspace often has no Welcome tab.
+ */
+export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
+  if (isDesktop()) {
+    return;
+  }
+  await dismissSignInWalkthroughDialog(page);
+  const welcomeTab = page.getByRole('tab', { name: /Welcome|Walkthrough/i }).first();
+  await expect(welcomeTab, 'Welcome or Walkthrough tab should be visible').toBeVisible({ timeout: 60_000 });
 };
 
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
