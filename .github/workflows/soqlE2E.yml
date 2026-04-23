@@ -18,7 +18,7 @@ on:
         type: string
         default: ''
   push:
-    branches-ignore: [ main, develop ]
+    branches-ignore: [ main, develop, sm/W-21313308-add-ubuntu-metadata ]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
