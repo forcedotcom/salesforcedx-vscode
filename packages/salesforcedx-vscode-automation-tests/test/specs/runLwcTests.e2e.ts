@@ -107,13 +107,12 @@ describe('Run LWC Tests', () => {
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
 
     const expectedTexts = [
+      'SFDX: Run All LWC Tests',
       'PASS',
       'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
-      'Test Suites: 2 passed, 2 total',
-      'Tests:       4 passed, 4 total',
-      'Snapshots:   0 total',
-      'Ran all test suites.'
+      'Test Suites:  2 passed, 2 total',
+      'Tests:        4 passed, 4 total'
     ];
     expect(testResultsText).to.not.be.undefined;
     await verifyOutputPanelText(testResultsText!, expectedTexts);
@@ -143,11 +142,8 @@ describe('Run LWC Tests', () => {
     const expectedTexts = [
       'PASS',
       'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
-      'Test Suites: 1 passed, 1 total',
-      'Tests:       2 passed, 2 total',
-      'Snapshots:   0 total',
-      'Ran all test suites within paths',
-      `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
+      'Test Suites:  1 passed, 1 total',
+      'Tests:        2 passed, 2 total'
     ];
     expect(testResultsText).to.not.be.undefined;
     await verifyOutputPanelText(testResultsText!, expectedTexts);
@@ -177,11 +173,8 @@ describe('Run LWC Tests', () => {
     const expectedTexts = [
       'PASS',
       'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
-      'Test Suites: 1 passed, 1 total',
-      'Tests:       1 skipped, 1 passed, 2 total',
-      'Snapshots:   0 total',
-      'Ran all test suites within paths',
-      `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
+      'Test Suites:  1 passed, 1 total',
+      'Tests:        1 skipped, 1 passed, 2 total'
     ];
     expect(testResultsText).to.not.be.undefined;
     await verifyOutputPanelText(testResultsText!, expectedTexts);
@@ -201,11 +194,8 @@ describe('Run LWC Tests', () => {
         const expectedTexts = [
           'PASS',
           'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
-          'Test Suites: 1 passed, 1 total',
-          'Tests:       2 passed, 2 total',
-          'Snapshots:   0 total',
-          'Ran all test suites within paths',
-          `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
+          'Test Suites:  1 passed, 1 total',
+          'Tests:        2 passed, 2 total'
         ];
 
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -245,11 +235,8 @@ describe('Run LWC Tests', () => {
     const expectedTexts = [
       'PASS',
       'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
-      'Test Suites: 1 passed, 1 total',
-      'Tests:       2 passed, 2 total',
-      'Snapshots:   0 total',
-      'Ran all test suites within paths',
-      `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
+      'Test Suites:  1 passed, 1 total',
+      'Tests:        2 passed, 2 total'
     ];
     expect(testResultsText).to.not.be.undefined;
     await verifyOutputPanelText(testResultsText!, expectedTexts);
@@ -272,11 +259,8 @@ describe('Run LWC Tests', () => {
     const expectedTexts = [
       'PASS',
       'force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
-      'Test Suites: 1 passed, 1 total',
-      'Tests:       1 skipped, 1 passed, 2 total',
-      'Snapshots:   0 total',
-      'Ran all test suites within paths',
-      `${path.join(relativeLwcPath, 'lwc2', '__tests__', 'lwc2.test.js')}`
+      'Test Suites:  1 passed, 1 total',
+      'Tests:        1 skipped, 1 passed, 2 total'
     ];
     expect(testResultsText).to.not.be.undefined;
     await verifyOutputPanelText(testResultsText!, expectedTexts);
@@ -299,11 +283,8 @@ describe('Run LWC Tests', () => {
     const expectedTexts = [
       'PASS',
       'force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
-      'Test Suites: 1 passed, 1 total',
-      'Tests:       2 passed, 2 total',
-      'Snapshots:   0 total',
-      'Ran all test suites within paths',
-      `${path.join(relativeLwcPath, 'lwc2', '__tests__', 'lwc2.test.js')}`
+      'Test Suites:  1 passed, 1 total',
+      'Tests:        2 passed, 2 total'
     ];
     expect(testResultsText).to.not.be.undefined;
     await verifyOutputPanelText(testResultsText!, expectedTexts);
