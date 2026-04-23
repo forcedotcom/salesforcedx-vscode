@@ -7,7 +7,6 @@
 
 import { expect } from '@playwright/test';
 import {
-  activeQuickInputTextField,
   activeQuickInputWidget,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
@@ -61,7 +60,7 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
       .getByText(/Enter Lightning Web Component name/i)
       .waitFor({ state: 'attached', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
-    await activeQuickInputTextField(page).fill(componentName, { force: true });
+    await page.keyboard.type(componentName);
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
