@@ -14,7 +14,8 @@ import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { coerceMessageKey, nls } from '../../messages';
-import { SalesforcePackageDirectories, SalesforceProjectConfig } from '../../salesforceProject';
+import { default as SalesforcePackageDirectories } from '../../salesforceProject/salesforcePackageDirectories';
+import { SalesforceProjectConfig } from '../../salesforceProject/salesforceProjectConfig';
 
 type FileNameParameter = {
   fileName: string;

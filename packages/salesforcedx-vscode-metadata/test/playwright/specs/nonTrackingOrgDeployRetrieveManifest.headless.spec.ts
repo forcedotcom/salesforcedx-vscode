@@ -24,7 +24,7 @@ import {
   waitForOutputChannelText,
   isDesktop,
   isMacDesktop,
-  QUICK_INPUT_WIDGET,
+  activeQuickInputWidget,
   EDITOR,
   ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
@@ -63,9 +63,9 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
     await test.step('generate manifest from apex class', async () => {
       await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
 
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-      await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+      const quickInput = activeQuickInputWidget(page);
+      await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
+      await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
 
       await page.keyboard.press('Enter');
 
