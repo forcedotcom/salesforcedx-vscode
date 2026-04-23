@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   workflow_call:
   push:
-    branches-ignore: [ main, develop ]
+    branches-ignore: [ main, develop, sm/W-21313306-add-ubuntu-apex-testing ]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
