@@ -18,7 +18,7 @@ export const TraceFlagLogType = Schema.Literal('USER_DEBUG', 'DEVELOPER_LOG', 'C
 export type TraceFlagLogType = Schema.Schema.Type<typeof TraceFlagLogType>;
 
 /** Tooling API record shape from TraceFlag query. TracedEntityName is injected by getTraceFlags when resolving entity names. */
-export const ToolingTraceFlagRecordSchema = Schema.Struct({
+const ToolingTraceFlagRecordSchema = Schema.Struct({
   Id: Schema.String,
   LogType: TraceFlagLogType,
   StartDate: Schema.optional(NullableString),
