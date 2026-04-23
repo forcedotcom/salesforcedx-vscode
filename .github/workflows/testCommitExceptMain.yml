@@ -1,7 +1,7 @@
 name: Commit Workflow
 on:
   push:
-    branches-ignore: [main, develop]
+    branches-ignore: [main, develop, sm/W-21313307-add-ubuntu-core]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
