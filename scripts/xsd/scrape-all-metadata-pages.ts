@@ -155,19 +155,9 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
     // Pages to exclude but still process their children (skip page only, continue recursion)
     const excludedPagesOnly = [
       'meta_data_cloud_types',
-      'meta_activationplatformactvattr',
-      'meta_datasourcetenant',
-      'meta_externaldatatransportfieldtemplate',
-      'meta_externaldatatransportobjecttemplate',
-      'meta_internaldataconnector',
-      'meta_appmenu',
       'meta_digitalexperiencebundle_marketing',
       'meta_digitalexperiencebundle_site',
-      'meta_flowvaluemap',
-      'meta_rparobotpoolmetadata',
-      'meta_settings',
-      'meta_userprofilesearchscope',
-      'meta_webstorebundle'
+      'meta_settings'
     ];
 
     // Recursively extract metadata type entries (including nested subtypes)
