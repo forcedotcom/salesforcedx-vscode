@@ -1,4 +1,10 @@
 {
+  "Metadata Type Limits": {
+    "fields": [],
+    "short_description": "Certain metadata types have deploy and retrieve limits. Limits apply to each individual deploy or retrieve transaction, and there are daily limits for specific metadata types. The individual deploy and retrieve limits represent the maximum count that a metadata type may be deployed or retrieved in a single package zip. Daily deploy and retrieve limits apply to individual org usage within a 24-hour period. Metadata Deploy Limits",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_metadata_type_limits.htm",
+    "parent": "Metadata"
+  },
   "ActivationPlatform": {
     "fields": [
       {
@@ -79,6 +85,12 @@
     ],
     "short_description": "Represents the ActivationPlatform configuration, such as platform name, delivery schedule, output format, and destination folder.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_activationplatform.htm",
+    "parent": "Metadata"
+  },
+  "ActivationPlatformActvAttr": {
+    "fields": [],
+    "short_description": "Represents the information about activation attributes. Reserved for future use.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_activationplatformactvattr.htm",
     "parent": "Metadata"
   },
   "ActivationPlatformField": {
@@ -998,6 +1010,12 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datasourceobject.htm",
     "parent": "Metadata"
   },
+  "DataSourceTenant": {
+    "fields": [],
+    "short_description": "For internal use only.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datasourcetenant.htm",
+    "parent": "Metadata"
+  },
   "DataSrcDataModelFieldMap": {
     "fields": [
       {
@@ -1432,6 +1450,12 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm",
     "parent": "Metadata"
   },
+  "ExternalDataTransportFieldTemplate": {
+    "fields": [],
+    "short_description": "For internal use only.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatatransportfieldtemplate.htm",
+    "parent": "Metadata"
+  },
   "ExternalDataTranObject": {
     "fields": [
       {
@@ -1613,6 +1637,12 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatatranobject.htm",
     "parent": "Metadata"
   },
+  "ExternalDataTransportObjectTemplate": {
+    "fields": [],
+    "short_description": "For internal use only.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatatransportobjecttemplate.htm",
+    "parent": "Metadata"
+  },
   "FieldSrcTrgtRelationship": {
     "fields": [
       {
@@ -1658,6 +1688,12 @@
     ],
     "short_description": "Stores the relationships between a data model object (DMO) and its fields. For example, the Individual.Id field has a one-to-many relationship (1:M) with the ContactPointEmail.PartyId field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_fieldsrctrgtrelationship.htm",
+    "parent": "Metadata"
+  },
+  "InternalDataConnector": {
+    "fields": [],
+    "short_description": "For internal use only.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_internaldataconnector.htm",
     "parent": "Metadata"
   },
   "MarketSegmentDefinition": {
@@ -4838,6 +4874,12 @@
     "short_description": "Represents an Apex trigger. A trigger is Apex code that executes before or after specific data manipulation language (DML) events occur, such as before object records are inserted into the database, or after records have been deleted. For more information, see “Manage Apex Triggers” in Salesforce Help. This type extends the MetadataWithContent metadata type and inherits its content and fullName fields.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_triggers.htm",
     "parent": "MetadataWithContent"
+  },
+  "AppMenu": {
+    "fields": [],
+    "short_description": "Represents the app menu or the Salesforce mobile navigation menu. Reserved for future use.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_appmenu.htm",
+    "parent": "Metadata"
   },
   "AppointmentAssignmentPolicy": {
     "fields": [
@@ -26121,6 +26163,12 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
     "parent": "Metadata"
   },
+  "FlowValueMap": {
+    "fields": [],
+    "short_description": "Reserved for future use.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowvaluemap.htm",
+    "parent": "Metadata"
+  },
   "DocumentFolder": {
     "fields": [
       {
@@ -28237,6 +28285,12 @@
     ],
     "short_description": "Represents a first-generation managed package to be installed or uninstalled. Deploying a newer version of a currently installed package upgrades the package. You can install up to 20 first-generation managed packages in a single deployment. To install an unlocked or second-generation managed package, use the sf package install Salesforce CLI command.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_installedpackage.htm",
+    "parent": "Metadata"
+  },
+  "IntegArtifactDef": {
+    "fields": [],
+    "short_description": "For internal use only.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_integartifactdef.htm",
     "parent": "Metadata"
   },
   "IntegrationProviderDef": {
@@ -33915,6 +33969,12 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm",
     "parent": "Metadata"
   },
+  "Industries Common Resources": {
+    "fields": [],
+    "short_description": "Certain feature sets are shared across industries. This guide contains developer documentation to help you put those features to work.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_omnisupervisorconfig.htm",
+    "parent": "Metadata"
+  },
   "OutboundNetworkConnection": {
     "fields": [
       {
@@ -39331,6 +39391,12 @@
     ],
     "short_description": "Represents the common base type and valid values for role or territory.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_roleorterritory.htm",
+    "parent": "Metadata"
+  },
+  "RpaRobotPoolMetadata": {
+    "fields": [],
+    "short_description": "Reserved for future use.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_rparobotpoolmetadata.htm",
     "parent": "Metadata"
   },
   "SalesWorkQueueSettings": {
@@ -46309,7 +46375,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the org has enabled language extension packages (true) or not (false). Language extension packages contain translations of components in other packages. This field has a default value of false. This field is available in API version 58.0 and later. enableLanguageExtensionPackage (beta) is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.Note",
+        "Description": "Indicates whether the org has enabled language extension packages (true) or not (false). Language extension packages contain translations of components in other packages. This field has a default value of false. This field is available in API version 58.0 and later. enableLanguageExtensionPackage (beta) is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
         "Field Name": "enableLanguageExtensionPackage\n                                (beta)",
         "Field Type": "boolean"
       },
@@ -46324,7 +46390,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether platform-only languages are enabled (true) or not (false). This field has a default value of false. Setting this field to true also sets enableEndUserLanguages to true.",
+        "Description": "Indicates whether platform-only languages are enabled (true) or not (false). This field has a default value of false. Setting this field to true also sets enableEndUserLanguagestrue.",
         "Field Name": "enablePlatformLanguages",
         "Field Type": "boolean"
       },
@@ -53889,6 +53955,12 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_usercriteria.htm",
     "parent": "Metadata"
   },
+  "UserProfileSearchScope": {
+    "fields": [],
+    "short_description": "Reserved for internal use.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_userprofilesearchscope.htm",
+    "parent": "Metadata"
+  },
   "UserProvisioningConfig": {
     "fields": [
       {
@@ -55050,6 +55122,12 @@
     ],
     "short_description": "WaveXmdOrganization represents a Salesforce organization.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_wavexmd.htm",
+    "parent": "Metadata"
+  },
+  "WebStoreBundle": {
+    "fields": [],
+    "short_description": "For internal use only.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_webstorebundle.htm",
     "parent": "Metadata"
   },
   "WebStoreTemplate": {

@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-04-22T14:16:58.382Z
-Total metadata types: 1549
+Generated on: 2026-04-23T03:00:33.680Z
+Total metadata types: 1562
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -2641,6 +2641,19 @@ Total metadata types: 1549
        <xsd:appinfo>Type: ActivationPlatformRefreshMode (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="ActivationPlatformActvAttr">
+  <xsd:annotation>
+   <xsd:documentation>Represents the information about activation attributes. Reserved for future use.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_activationplatformactvattr.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -6421,6 +6434,19 @@ Total metadata types: 1549
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="AppMenu">
+  <xsd:annotation>
+   <xsd:documentation>Represents the app menu or the Salesforce mobile navigation menu. Reserved for future use.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_appmenu.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -23443,6 +23469,19 @@ Total metadata types: 1549
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="DataSourceTenant">
+  <xsd:annotation>
+   <xsd:documentation>For internal use only.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datasourcetenant.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="DataSrcDataModelFieldMap">
   <xsd:annotation>
    <xsd:documentation>Represents the entity that is used for storing the design time bundle level mappings for the data source fields and data model fields.</xsd:documentation>
@@ -31775,6 +31814,32 @@ Total metadata types: 1549
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="ExternalDataTransportFieldTemplate">
+  <xsd:annotation>
+   <xsd:documentation>For internal use only.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatatransportfieldtemplate.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="ExternalDataTransportObjectTemplate">
+  <xsd:annotation>
+   <xsd:documentation>For internal use only.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatatransportobjecttemplate.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -40719,6 +40784,19 @@ Total metadata types: 1549
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="FlowValueMap">
+  <xsd:annotation>
+   <xsd:documentation>Reserved for future use.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowvaluemap.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="FlowValueMappingType">
   <xsd:annotation>
    <xsd:documentation>Defines the specific data transformation type that converts the value of a source action output parameter in valueMappingKey before assigning the result to the target output parameter in valueMappingTarget.</xsd:documentation>
@@ -44458,6 +44536,19 @@ Total metadata types: 1549
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="Industries_Common_Resources">
+  <xsd:annotation>
+   <xsd:documentation>Certain feature sets are shared across industries. This guide contains developer documentation to help you put those features to work.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_omnisupervisorconfig.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="IndustriesEinsteinFeatureSettings">
   <xsd:annotation>
    <xsd:documentation>Represents the settings for enabling the Industries Einstein feature. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for more details.</xsd:documentation>
@@ -44844,6 +44935,19 @@ Total metadata types: 1549
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="IntegArtifactDef">
+  <xsd:annotation>
+   <xsd:documentation>For internal use only.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_integartifactdef.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="IntegrationProviderAttr">
   <xsd:annotation>
    <xsd:documentation>A custom attribute that stores data associated with an Integration Definition.</xsd:documentation>
@@ -45058,6 +45162,19 @@ Total metadata types: 1549
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="InternalDataConnector">
+  <xsd:annotation>
+   <xsd:documentation>For internal use only.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_internaldataconnector.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -45903,7 +46020,7 @@ Total metadata types: 1549
      </xsd:element>
      <xsd:element name="enableLanguageExtensionPackage_beta" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the org has enabled language extension packages (true) or not (false). Language extension packages contain translations of components in other packages. This field has a default value of false. This field is available in API version 58.0 and later. enableLanguageExtensionPackage (beta) is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.Note</xsd:documentation>
+       <xsd:documentation>Indicates whether the org has enabled language extension packages (true) or not (false). Language extension packages contain translations of components in other packages. This field has a default value of false. This field is available in API version 58.0 and later. enableLanguageExtensionPackage (beta) is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -45921,7 +46038,7 @@ Total metadata types: 1549
      </xsd:element>
      <xsd:element name="enablePlatformLanguages" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether platform-only languages are enabled (true) or not (false). This field has a default value of false. Setting this field to true also sets enableEndUserLanguages to true.</xsd:documentation>
+       <xsd:documentation>Indicates whether platform-only languages are enabled (true) or not (false). This field has a default value of false. Setting this field to true also sets enableEndUserLanguagestrue.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -50082,6 +50199,19 @@ Total metadata types: 1549
        <xsd:appinfo>Type: String</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="Metadata_Type_Limits">
+  <xsd:annotation>
+   <xsd:documentation>Certain metadata types have deploy and retrieve limits. Limits apply to each individual deploy or retrieve transaction, and there are daily limits for specific metadata types. The individual deploy and retrieve limits represent the maximum count that a metadata type may be deployed or retrieved in a single package zip. Daily deploy and retrieve limits apply to individual org usage within a 24-hour period. Metadata Deploy Limits</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_metadata_type_limits.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -63180,6 +63310,19 @@ Total metadata types: 1549
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="RpaRobotPoolMetadata">
+  <xsd:annotation>
+   <xsd:documentation>Reserved for future use.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_rparobotpoolmetadata.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="RuleEntry">
   <xsd:annotation>
    <xsd:documentation>Represents the fields used by the rule.</xsd:documentation>
@@ -70756,6 +70899,19 @@ Total metadata types: 1549
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="UserProfileSearchScope">
+  <xsd:annotation>
+   <xsd:documentation>Reserved for internal use.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_userprofilesearchscope.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="UserProvisioningConfig">
   <xsd:annotation>
    <xsd:documentation>Represents information to use during a user provisioning request flow, such as the attributes for an update. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
@@ -72771,6 +72927,19 @@ Total metadata types: 1549
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="WebStoreBundle">
+  <xsd:annotation>
+   <xsd:documentation>For internal use only.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_webstorebundle.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="WebStoreTemplate">
   <xsd:annotation>
    <xsd:documentation>Represents a configuration for creating commerce stores. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
@@ -74057,6 +74226,7 @@ Total metadata types: 1549
  <xsd:element name="ActionableListMemberStatus" type="ActionableListMemberStatus"/>
  <xsd:element name="ActionsSettings" type="ActionsSettings"/>
  <xsd:element name="ActivationPlatform" type="ActivationPlatform"/>
+ <xsd:element name="ActivationPlatformActvAttr" type="ActivationPlatformActvAttr"/>
  <xsd:element name="ActivationPlatformField" type="ActivationPlatformField"/>
  <xsd:element name="ActivitiesSettings" type="ActivitiesSettings"/>
  <xsd:element name="ActvPfrmDataConnectorS3" type="ActvPfrmDataConnectorS3"/>
@@ -74128,6 +74298,7 @@ Total metadata types: 1549
  <xsd:element name="AppComponentList" type="AppComponentList"/>
  <xsd:element name="AppExperienceSettings" type="AppExperienceSettings"/>
  <xsd:element name="AppFrameworkTemplateBundle" type="AppFrameworkTemplateBundle"/>
+ <xsd:element name="AppMenu" type="AppMenu"/>
  <xsd:element name="AppPreferences" type="AppPreferences"/>
  <xsd:element name="AppProfileActionOverride" type="AppProfileActionOverride"/>
  <xsd:element name="AppSettings" type="AppSettings"/>
@@ -74472,6 +74643,7 @@ Total metadata types: 1549
  <xsd:element name="DataSourceBundleDefinition" type="DataSourceBundleDefinition"/>
  <xsd:element name="DataSourceField" type="DataSourceField"/>
  <xsd:element name="DataSourceObject" type="DataSourceObject"/>
+ <xsd:element name="DataSourceTenant" type="DataSourceTenant"/>
  <xsd:element name="DataSrcDataModelFieldMap" type="DataSrcDataModelFieldMap"/>
  <xsd:element name="DataStreamDefinition" type="DataStreamDefinition"/>
  <xsd:element name="DataStreamTemplate" type="DataStreamTemplate"/>
@@ -74642,6 +74814,8 @@ Total metadata types: 1549
  <xsd:element name="ExternalDataSrcDescriptors_for_Salesforce_Connect_Adapter_for_Amazon_DynamoDB_and_for_Amazon_Athena" type="ExternalDataSrcDescriptors_for_Salesforce_Connect_Adapter_for_Amazon_DynamoDB_and_for_Amazon_Athena"/>
  <xsd:element name="ExternalDataTranField" type="ExternalDataTranField"/>
  <xsd:element name="ExternalDataTranObject" type="ExternalDataTranObject"/>
+ <xsd:element name="ExternalDataTransportFieldTemplate" type="ExternalDataTransportFieldTemplate"/>
+ <xsd:element name="ExternalDataTransportObjectTemplate" type="ExternalDataTransportObjectTemplate"/>
  <xsd:element name="ExternalServiceOperation" type="ExternalServiceOperation"/>
  <xsd:element name="ExternalServiceRegistration" type="ExternalServiceRegistration"/>
  <xsd:element name="ExternalServicesSettings" type="ExternalServicesSettings"/>
@@ -74822,6 +74996,7 @@ Total metadata types: 1549
  <xsd:element name="FlowTransformValueAction" type="FlowTransformValueAction"/>
  <xsd:element name="FlowTransformValueActionInputParameter" type="FlowTransformValueActionInputParameter"/>
  <xsd:element name="FlowTranslation" type="FlowTranslation"/>
+ <xsd:element name="FlowValueMap" type="FlowValueMap"/>
  <xsd:element name="FlowValueMappingType" type="FlowValueMappingType"/>
  <xsd:element name="FlowVariable" type="FlowVariable"/>
  <xsd:element name="FlowVisibilityRule" type="FlowVisibilityRule"/>
@@ -74901,6 +75076,7 @@ Total metadata types: 1549
  <xsd:element name="IncidentMgmtSettings" type="IncidentMgmtSettings"/>
  <xsd:element name="Index" type="Index"/>
  <xsd:element name="IndexField" type="IndexField"/>
+ <xsd:element name="Industries_Common_Resources" type="Industries_Common_Resources"/>
  <xsd:element name="IndustriesEinsteinFeatureSettings" type="IndustriesEinsteinFeatureSettings"/>
  <xsd:element name="IndustriesLoyaltySettings" type="IndustriesLoyaltySettings"/>
  <xsd:element name="IndustriesPricingSettings" type="IndustriesPricingSettings"/>
@@ -74909,9 +75085,11 @@ Total metadata types: 1549
  <xsd:element name="IndustriesUnifiedInventorySettings" type="IndustriesUnifiedInventorySettings"/>
  <xsd:element name="Input_Folder" type="Input_Folder"/>
  <xsd:element name="InstalledPackage" type="InstalledPackage"/>
+ <xsd:element name="IntegArtifactDef" type="IntegArtifactDef"/>
  <xsd:element name="IntegrationProviderAttr" type="IntegrationProviderAttr"/>
  <xsd:element name="IntegrationProviderDef" type="IntegrationProviderDef"/>
  <xsd:element name="InterestTaggingSettings" type="InterestTaggingSettings"/>
+ <xsd:element name="InternalDataConnector" type="InternalDataConnector"/>
  <xsd:element name="InvLatePymntRiskCalcSettings" type="InvLatePymntRiskCalcSettings"/>
  <xsd:element name="InventorySettings" type="InventorySettings"/>
  <xsd:element name="InvocableActionExtension" type="InvocableActionExtension"/>
@@ -75022,6 +75200,7 @@ Total metadata types: 1549
  <xsd:element name="MessagingChannelStandardParameter" type="MessagingChannelStandardParameter"/>
  <xsd:element name="MessagingChannelUsage" type="MessagingChannelUsage"/>
  <xsd:element name="MessagingKeyword" type="MessagingKeyword"/>
+ <xsd:element name="Metadata_Type_Limits" type="Metadata_Type_Limits"/>
  <xsd:element name="MfgProgramTemplate" type="MfgProgramTemplate"/>
  <xsd:element name="MfgProgramTemplateItem" type="MfgProgramTemplateItem"/>
  <xsd:element name="MfgServiceConsoleSettings" type="MfgServiceConsoleSettings"/>
@@ -75324,6 +75503,7 @@ Total metadata types: 1549
  <xsd:element name="RoleAndSubordinatesInternal" type="RoleAndSubordinatesInternal"/>
  <xsd:element name="RoleOrTerritory" type="RoleOrTerritory"/>
  <xsd:element name="Roles" type="Roles"/>
+ <xsd:element name="RpaRobotPoolMetadata" type="RpaRobotPoolMetadata"/>
  <xsd:element name="RuleEntry" type="RuleEntry"/>
  <xsd:element name="SalesAgreementSettings" type="SalesAgreementSettings"/>
  <xsd:element name="SalesWorkQueueSettings" type="SalesWorkQueueSettings"/>
@@ -75488,6 +75668,7 @@ Total metadata types: 1549
  <xsd:element name="UserInterfaceSettings" type="UserInterfaceSettings"/>
  <xsd:element name="UserManagementSettings" type="UserManagementSettings"/>
  <xsd:element name="UserMembershipSharingRule" type="UserMembershipSharingRule"/>
+ <xsd:element name="UserProfileSearchScope" type="UserProfileSearchScope"/>
  <xsd:element name="UserProvisioningConfig" type="UserProvisioningConfig"/>
  <xsd:element name="UserSharingRules" type="UserSharingRules"/>
  <xsd:element name="Users" type="Users"/>
@@ -75525,6 +75706,7 @@ Total metadata types: 1549
  <xsd:element name="WaveXmdRecordDisplayLookup" type="WaveXmdRecordDisplayLookup"/>
  <xsd:element name="WebLink" type="WebLink"/>
  <xsd:element name="WebLinkTranslation" type="WebLinkTranslation"/>
+ <xsd:element name="WebStoreBundle" type="WebStoreBundle"/>
  <xsd:element name="WebStoreTemplate" type="WebStoreTemplate"/>
  <xsd:element name="WebToCaseSettings" type="WebToCaseSettings"/>
  <xsd:element name="WeightedSourceCategory" type="WeightedSourceCategory"/>
