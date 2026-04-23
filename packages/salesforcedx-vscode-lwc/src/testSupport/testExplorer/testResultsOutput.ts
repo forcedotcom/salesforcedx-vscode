@@ -7,7 +7,7 @@
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
-import { LwcJestTestAssertionResult, LwcJestTestResults } from '../types';
+import { LwcJestTestAssertionResult, LwcJestTestFileResult, LwcJestTestResults } from '../types';
 
 // VS Code's Test Results panel is an xterm, so we drive it with ANSI SGR codes
 // to emit a Jest-style report (colored PASS/FAIL badges, dim file paths with
@@ -79,7 +79,7 @@ export const appendTestResultsOutput = (
     const fileDurationMs = Math.max(0, fileResult.endTime - fileResult.startTime);
     const durationSuffix =
       fileDurationMs > 0 ? ` ${ANSI.gray}(${formatDuration(fileDurationMs)})${ANSI.reset}` : '';
-    run.appendOutput(toCrlf(`${fileBadge(fileResult.status)}  ${formatPrettyPath(relPath)}${durationSuffix}`));
+    run.appendOutput(toCrlf(`${fileBadge(fileResult)}  ${formatPrettyPath(relPath)}${durationSuffix}`));
 
     const fileItem = lookup.findFileItem(testUri);
     const tree = buildDescribeTree(fileResult.assertionResults);
@@ -125,7 +125,16 @@ export const appendLine = (run: vscode.TestRun, line: string): void => {
 
 const toCrlf = (line: string): string => `${line}\r\n`;
 
-const fileBadge = (status: 'passed' | 'failed'): string => (status === 'passed' ? PASS_BADGE : FAIL_BADGE);
+/**
+ * Returns PASS unless the file has at least one actually-failed assertion, or Jest explicitly flagged the whole
+ * file as failed. This avoids mislabeling files as FAIL when they contain only skipped/pending tests — for
+ * example when running a single test case via the Test Sidebar filters every other test via --testNamePattern.
+ */
+export const fileBadge = (fileResult: LwcJestTestFileResult): string => {
+  const hasFailedAssertion = fileResult.assertionResults?.some(a => a.status === 'failed') ?? false;
+  const hasFailed = fileResult.status === 'failed' || hasFailedAssertion;
+  return hasFailed ? FAIL_BADGE : PASS_BADGE;
+};
 
 const assertionGlyph = (status: string): string => {
   if (status === 'passed') {
