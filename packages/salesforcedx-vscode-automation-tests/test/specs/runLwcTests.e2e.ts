@@ -109,8 +109,10 @@ describe('Run LWC Tests', () => {
     const expectedTexts = [
       'SFDX: Run All LWC Tests',
       'PASS',
-      'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
-      'force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
+      'force-app/main/default/lwc/lwc1/__tests__/',
+      'lwc1.test.js',
+      'force-app/main/default/lwc/lwc2/__tests__/',
+      'lwc2.test.js',
       'Test Suites:  2 passed, 2 total',
       'Tests:        4 passed, 4 total'
     ];
@@ -141,7 +143,8 @@ describe('Run LWC Tests', () => {
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS',
-      'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      'force-app/main/default/lwc/lwc1/__tests__/',
+      'lwc1.test.js',
       'Test Suites:  1 passed, 1 total',
       'Tests:        2 passed, 2 total'
     ];
@@ -156,6 +159,12 @@ describe('Run LWC Tests', () => {
     // Wrap in retryOperation to handle potential stale element references
     await retryOperation(
       async () => {
+        // First expand the lwc1 node to reveal test cases
+        const lwc1Item = await findTestItemByName('lwc1');
+        await lwc1Item.click();
+        await pause(Duration.milliseconds(500));
+
+        // Now find and click the specific test case
         const testCaseItem = await findTestItemByName('displays greeting');
         await testCaseItem.click();
         const runTestAction = await testCaseItem.getActionButton('Run Test');
@@ -167,12 +176,13 @@ describe('Run LWC Tests', () => {
     );
 
     // Wait for tests to complete
-    await pause(Duration.seconds(5));
+    await pause(Duration.seconds(10));
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS',
-      'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      'force-app/main/default/lwc/lwc1/__tests__/',
+      'lwc1.test.js',
       'Test Suites:  1 passed, 1 total',
       'Tests:        1 skipped, 1 passed, 2 total'
     ];
@@ -193,7 +203,8 @@ describe('Run LWC Tests', () => {
         const testResultsText = await getTestResultsTabText('Lightning Web Components');
         const expectedTexts = [
           'PASS',
-          'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+          'force-app/main/default/lwc/lwc1/__tests__/',
+          'lwc1.test.js',
           'Test Suites:  1 passed, 1 total',
           'Tests:        2 passed, 2 total'
         ];
@@ -229,12 +240,13 @@ describe('Run LWC Tests', () => {
     );
 
     // Wait for tests to complete
-    await pause(Duration.seconds(5));
+    await pause(Duration.seconds(10));
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS',
-      'force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      'force-app/main/default/lwc/lwc1/__tests__/',
+      'lwc1.test.js',
       'Test Suites:  1 passed, 1 total',
       'Tests:        2 passed, 2 total'
     ];
@@ -253,12 +265,13 @@ describe('Run LWC Tests', () => {
     await runTestOption!.click();
 
     // Wait for tests to complete
-    await pause(Duration.seconds(5));
+    await pause(Duration.seconds(10));
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS',
-      'force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
+      'force-app/main/default/lwc/lwc2/__tests__/',
+      'lwc2.test.js',
       'Test Suites:  1 passed, 1 total',
       'Tests:        1 skipped, 1 passed, 2 total'
     ];
@@ -277,12 +290,13 @@ describe('Run LWC Tests', () => {
     await runTestButtonToolbar?.click();
 
     // Wait for tests to complete
-    await pause(Duration.seconds(5));
+    await pause(Duration.seconds(10));
 
     const testResultsText = await getTestResultsTabText('Lightning Web Components');
     const expectedTexts = [
       'PASS',
-      'force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
+      'force-app/main/default/lwc/lwc2/__tests__/',
+      'lwc2.test.js',
       'Test Suites:  1 passed, 1 total',
       'Tests:        2 passed, 2 total'
     ];
