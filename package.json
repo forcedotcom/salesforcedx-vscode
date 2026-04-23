@@ -365,6 +365,9 @@
     },
     "check:knip": {
       "command": "npx knip --include exports,types,nsExports,nsTypes --no-config-hints",
+      "dependencies": [
+        "compile"
+      ],
       "files": [
         "knip.json",
         "package.json",
