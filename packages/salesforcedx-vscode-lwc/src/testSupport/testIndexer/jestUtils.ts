@@ -6,11 +6,8 @@
  */
 import { IParseResults, ItBlock, ParsedNode, ParsedNodeTypes } from 'jest-editor-support';
 import { escapeStrForRegex } from 'jest-regex-util';
+import { stripVTControlCharacters } from 'node:util';
 import * as vscode from 'vscode';
-
-// strip-ansi: import fails (TS2306/TS1479); require works for both v5 and v7
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-const stripAnsi: (input: string) => string = require('strip-ansi');
 
 type ParsedNodeWithAncestorTitles = Pick<ParsedNode, Exclude<keyof ParsedNode, 'children'>> & {
   name?: string;
@@ -97,4 +94,4 @@ export const extractPositionFromFailureMessage = (testFsPath: string, failureMes
  * Strip the ANSI color codes from failure message
  * @param failureMessage failure message from Jest output
  */
-export const sanitizeFailureMessage = (failureMessage: string) => stripAnsi(failureMessage);
+export const sanitizeFailureMessage = (failureMessage: string) => stripVTControlCharacters(failureMessage);

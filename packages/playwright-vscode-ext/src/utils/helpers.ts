@@ -343,20 +343,6 @@ export const dismissSignInWalkthroughDialog = async (page: Page): Promise<void> 
   await dialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 };
 
-/**
- * Assert a Welcome or Walkthrough editor tab is visible (typical fresh **web** window with no folder).
- * Call before {@link closeWelcomeTabs} so specs do not race an empty tab strip.
- * No-op on desktop: an opened-folder workspace often has no Welcome tab.
- */
-export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
-  if (isDesktop()) {
-    return;
-  }
-  await dismissSignInWalkthroughDialog(page);
-  const welcomeTab = page.getByRole('tab', { name: /Welcome|Walkthrough/i }).first();
-  await expect(welcomeTab, 'Welcome or Walkthrough tab should be visible').toBeVisible({ timeout: 60_000 });
-};
-
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   // Dismiss the 1.116+ modal sign-in walkthrough first — it blocks all other input, including

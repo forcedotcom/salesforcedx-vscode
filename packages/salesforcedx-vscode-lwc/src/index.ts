@@ -13,9 +13,11 @@ import {
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
-import { ExtensionContext, FileType, workspace } from 'vscode';
+import * as Effect from 'effect/Effect';
+import { commands, ExtensionContext, FileType, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
+import { createLwcCommand } from './commands/createLwc';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import LwcLspStatusBarItem from './lwcLspStatusBarItem';
@@ -147,6 +149,13 @@ export const activate = async (extensionContext: ExtensionContext) => {
     channelService.appendLine(`Failed to start LWC Language Server: ${errorMessage}`);
     throw error; // Re-throw to prevent silent failures
   }
+
+  // Register LWC create command (moved from salesforcedx-vscode-metadata)
+  extensionContext.subscriptions.push(
+    commands.registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
+      Effect.runPromise(createLwcCommand(outputDirParam))
+    )
+  );
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
