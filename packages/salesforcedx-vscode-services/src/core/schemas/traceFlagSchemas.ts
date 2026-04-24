@@ -108,9 +108,7 @@ export const ToolingDebugLevelStruct = Schema.Struct({
   Visualforce: ToolingLogCategoryLevel.pipe(
     Schema.annotations({ description: 'Visualforce events, view state serialization/deserialization.' })
   ),
-  Wave: ToolingLogCategoryLevel.pipe(
-    Schema.annotations({ description: 'CRM Analytics (Wave) logging.' })
-  ),
+  Wave: ToolingLogCategoryLevel.pipe(Schema.annotations({ description: 'CRM Analytics (Wave) logging.' })),
   Workflow: ToolingLogCategoryLevel.pipe(
     Schema.annotations({ description: 'Workflow rules, flows, and process builder actions.' })
   )
