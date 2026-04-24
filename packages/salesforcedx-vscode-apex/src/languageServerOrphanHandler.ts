@@ -107,11 +107,9 @@ const terminationConfirmation = async (orphanedCount: number): Promise<boolean> 
   return choice === nls.localize('yes');
 };
 
-const requestsTermination = (choice: string | undefined): boolean =>
-  choice === nls.localize('terminate_processes');
+const requestsTermination = (choice: string | undefined): boolean => choice === nls.localize('terminate_processes');
 
-const showProcesses = (choice: string): boolean =>
-  choice === nls.localize('terminate_show_processes');
+const showProcesses = (choice: string): boolean => choice === nls.localize('terminate_show_processes');
 
 const showProcessTerminated = (processDetail: ProcessDetail): void => {
   channelService.appendLine(nls.localize('terminated_orphaned_process', processDetail.pid));

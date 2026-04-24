@@ -40,4 +40,3 @@ export const OUTPUT_CHANNEL: vscode.OutputChannel = new Proxy({} as vscode.Outpu
     return typeof value === 'function' ? value.bind(channel) : value;
   }
 });
-

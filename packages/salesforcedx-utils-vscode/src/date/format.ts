@@ -27,4 +27,3 @@ export const optionYYYYMMddHHmmss: Intl.DateTimeFormatOptions = {
   minute: '2-digit',
   second: '2-digit'
 };
-

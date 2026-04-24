@@ -514,9 +514,7 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = jest
-        .spyOn(RequestService.prototype, 'execute')
-        .mockResolvedValue(JSON.stringify(stateResponse));
+      stateSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue(JSON.stringify(stateResponse));
       jest.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue('file:///foo.cls');
 
       // when
@@ -566,9 +564,7 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = jest
-        .spyOn(RequestService.prototype, 'execute')
-        .mockResolvedValue(JSON.stringify(stateResponse));
+      stateSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue(JSON.stringify(stateResponse));
       jest.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue('file:///foo.cls');
 
       // when
@@ -609,9 +605,7 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = jest
-        .spyOn(RequestService.prototype, 'execute')
-        .mockResolvedValue(JSON.stringify(frameRespObj));
+      stateSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue(JSON.stringify(frameRespObj));
 
       // when
       await adapter.fetchFrameVariables(frameInfo);
