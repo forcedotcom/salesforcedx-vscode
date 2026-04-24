@@ -380,7 +380,18 @@
       "output": []
     },
     "check:format": {
-      "command": "prettier --check --cache ."
+      "command": "prettier --check --cache .",
+      "files": [
+        "**/*.{ts,tsx,js,cjs,mjs,json,yaml,yml,html,css}",
+        ".prettierrc",
+        ".prettierignore",
+        "!**/node_modules/**",
+        "!**/.wireit/**",
+        "!**/out/**",
+        "!**/lib/**",
+        "!**/dist/**"
+      ],
+      "output": []
     },
     "check:branch": {
       "command": "node scripts/check-branch.js"
