@@ -126,7 +126,10 @@ jobs:
         vars.PLAYWRIGHT_VSCODE_VERSION }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            test_runner_prefix: 'xvfb-run -a '
       fail-fast: false
 
     steps:
@@ -161,8 +164,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
-        run: |
-          npm run test:desktop -w @salesforce/playwright-vscode-ext
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w @salesforce/playwright-vscode-ext
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - uses: ./.github/actions/cache-vscode-desktop
@@ -172,7 +174,11 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        run: npx playwright install chromium --with-deps
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
 
       - name: Run Playwright desktop tests (parallel)
         if: steps.try-run.outcome == 'failure'
@@ -181,8 +187,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-        run: |
-          npm run test:desktop -w @salesforce/playwright-vscode-ext
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w @salesforce/playwright-vscode-ext
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -191,8 +196,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
-        run: |
-          npm run test:desktop -w @salesforce/playwright-vscode-ext -- --last-failed
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w @salesforce/playwright-vscode-ext -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

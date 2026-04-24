@@ -9,11 +9,13 @@ Never commit to `develop` or `main`.
 
 ## Do
 
+Branch format: `sm/W-XXXXX-short-description` (owner prefix = `sm`, Shane McLaughlin).
+
 ```bash
 git fetch origin develop
-git checkout -b feature/W-XXXXX origin/develop --no-track
+git checkout -b sm/W-XXXXX-short-description origin/develop --no-track
 # ... work, commit ...
-git push -u origin feature/W-XXXXX
+git push -u origin sm/W-XXXXX-short-description
 ```
 
 ## Don't
