@@ -8,13 +8,7 @@ import { Indexer } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { parse } from 'jest-editor-support';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import {
-  LwcJestTestResults,
-  RawTestResult,
-  TestCaseInfo,
-  TestFileInfo,
-  TestResultStatus
-} from '../types';
+import { LwcJestTestResults, RawTestResult, TestCaseInfo, TestFileInfo, TestResultStatus } from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
 import {
   extractPositionFromFailureMessage,

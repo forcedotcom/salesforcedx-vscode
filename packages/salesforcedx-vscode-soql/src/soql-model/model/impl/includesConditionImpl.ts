@@ -13,10 +13,10 @@ export class IncludesConditionImpl implements IncludesCondition {
     public field: Field,
     public operator: ConditionOperator,
     public values: CompareValue[]
-  ) { }
+  ) {}
   public toSoqlSyntax(options?: SyntaxOptions): string {
     let valuesSyntax = '';
-    this.values.forEach((value) => (valuesSyntax = `${valuesSyntax}, ${value.toSoqlSyntax(options)}`));
+    this.values.forEach(value => (valuesSyntax = `${valuesSyntax}, ${value.toSoqlSyntax(options)}`));
     if (valuesSyntax.length > 2) {
       // remove comma separator at start of string
       valuesSyntax = valuesSyntax.substring(2);
