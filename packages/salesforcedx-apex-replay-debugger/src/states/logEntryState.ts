@@ -15,12 +15,7 @@ export class LogEntryState implements DebugLogState {
     logContext
       .getFrames()
       .push(
-        new StackFrame(
-          0,
-          '',
-          new Source(logFileName, logContext.getLogFilePath()),
-          logContext.getLogLinePosition() + 1
-        )
+        new StackFrame(0, '', new Source(logFileName, logContext.getLogFilePath()), logContext.getLogLinePosition() + 1)
       );
     return true;
   }
