@@ -43,6 +43,9 @@ export default class App extends LightningElement {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public sobjectMetadata: any;
   public notifications = [];
+  // Cache of sObject name → field list for parent relationship drill-down
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private _metadataCache: Map<string, any> = new Map();
 
   public get shouldBlockQueryBuilder(): boolean {
     return (
@@ -96,12 +99,24 @@ export default class App extends LightningElement {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.toolingSDK.sobjectMetadata.subscribe((sobjectMetadata: any) => {
-      this.isFieldsLoading = false;
-      this.fields =
-        sobjectMetadata && sobjectMetadata.fields
-          ? sobjectMetadata.fields.map((f) => f.name).sort()
-          : [];
-      this.sobjectMetadata = sobjectMetadata;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (sobjectMetadata && sobjectMetadata.name) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        this._metadataCache.set((sobjectMetadata.name as string).toLowerCase(), sobjectMetadata);
+      }
+      // Only update the primary fields list when this is the main sObject being loaded
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const loadedName: string = sobjectMetadata?.name ?? '';
+      const currentSObject = this.query?.sObject ?? '';
+      if (!currentSObject || loadedName.toLowerCase() === currentSObject.toLowerCase() || !loadedName) {
+        this.isFieldsLoading = false;
+        this.fields =
+          sobjectMetadata && sobjectMetadata.fields
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            ? sobjectMetadata.fields.map((f) => f.name).sort()
+            : [];
+        this.sobjectMetadata = sobjectMetadata;
+      }
     });
 
     this.toolingSDK.queryRunState.subscribe(() => {
@@ -235,6 +250,36 @@ export default class App extends LightningElement {
   public handleFieldClearAll(): void {
     this.modelService.setFields([]);
   }
+
+  /* ---- RELATIONSHIP DRILL-DOWN HANDLER ---- */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  public handleLoadRelationship(e: CustomEvent): void {
+    const { relationshipName, referenceTo } = e.detail as { relationshipName: string; referenceTo: string[] };
+    const targetSObject = referenceTo[0];
+    if (!targetSObject) return;
+
+    const fieldsComponent = this.template.querySelector('querybuilder-fields') as any;
+    if (!fieldsComponent) return;
+
+    const cached = this._metadataCache.get(targetSObject.toLowerCase());
+    if (cached) {
+      const parentFields: string[] = cached.fields ? cached.fields.map((f) => f.name).sort() : [];
+      fieldsComponent.setParentFields(parentFields);
+      return;
+    }
+
+    this.toolingSDK.loadSObjectMetatada(targetSObject);
+    // subscribe once for this response then restore
+    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
+      if (!metadata || !metadata.name) return;
+      if (metadata.name.toLowerCase() !== targetSObject.toLowerCase()) return;
+      this._metadataCache.set(targetSObject.toLowerCase(), metadata);
+      const parentFields: string[] = metadata.fields ? metadata.fields.map((f) => f.name).sort() : [];
+      fieldsComponent.setParentFields(parentFields);
+    });
+    void sub;
+  }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 
   /* ---- ORDER BY HANDLERS ---- */
   public handleOrderBySelected(e: CustomEvent): void {

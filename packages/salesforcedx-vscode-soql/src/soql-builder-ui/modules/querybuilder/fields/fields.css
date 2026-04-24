@@ -18,3 +18,21 @@ select[multiple] {
   max-height: 10em;
   overflow-y: scroll;
 }
+
+.relationship-breadcrumb {
+  font-size: smaller;
+  color: var(--vscode-foreground);
+}
+
+.breadcrumb-back {
+  margin-right: 0.375rem;
+  color: var(--vscode-button-background);
+}
+
+.breadcrumb-back:hover {
+  opacity: 0.75;
+}
+
+.breadcrumb-label {
+  font-weight: bold;
+}

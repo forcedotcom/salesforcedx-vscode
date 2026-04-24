@@ -49,9 +49,11 @@
           <querybuilder-fields
             selected-fields={query.fields}
             fields={fields}
+            sobject-metadata={sobjectMetadata}
             onfields__selected={handleFieldSelected}
             onfields__selectall={handleFieldSelectAll}
             onfields__clearall={handleFieldClearAll}
+            onfields__loadrelationship={handleLoadRelationship}
             has-error={hasRecoverableFieldsError}
             is-loading={isFieldsLoading}
             class={theme}

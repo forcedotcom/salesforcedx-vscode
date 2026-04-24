@@ -77,7 +77,10 @@ export const messages = {
   // placeholders
   placeholder_search_object: 'Search object...',
   placeholder_search_fields: 'Search fields...',
-  placeholder_select_field: 'Select Field...'
+  placeholder_select_field: 'Select Field...',
+
+  // fields – relationship navigation
+  action_back_to_fields: 'Back to fields'
 } as const;
 
 export type MessageKey = keyof typeof messages;
