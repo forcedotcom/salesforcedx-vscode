@@ -48,6 +48,7 @@ rm -f "$SESSION_MARKER"
 
 run_step "compile" "npm run compile" && echo "[verify-stop] compile ok" >&2
 run_step "lint" "npm run lint" && echo "[verify-stop] lint ok" >&2
+run_step "check:format" "npm run check:format" && echo "[verify-stop] check:format ok" >&2
 
 # Effect LS: only uncommitted .ts files
 ts_files=$(git diff --name-only HEAD 2>/dev/null | grep '\.ts$' || true)

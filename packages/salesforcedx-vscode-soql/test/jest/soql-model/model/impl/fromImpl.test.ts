@@ -9,7 +9,6 @@ import { FromImpl } from '../../../../../src/soql-model/model/impl/fromImpl';
 import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
 import { REASON_UNMODELED_AS, REASON_UNMODELED_USING } from '../../../../../src/soql-model/model/model';
 
-
 describe('FromImpl should', () => {
   it('store SObject name as a string', () => {
     const expected = { sobjectName: 'ian' };
@@ -20,7 +19,7 @@ describe('FromImpl should', () => {
     const expected = {
       sobjectName: 'black',
       as: { kind: 'unmodeled', unmodeledSyntax: 'and', reason: REASON_UNMODELED_AS },
-      using: { kind: 'unmodeled', unmodeledSyntax: 'blue', reason: REASON_UNMODELED_USING },
+      using: { kind: 'unmodeled', unmodeledSyntax: 'blue', reason: REASON_UNMODELED_USING }
     };
     const actual = new FromImpl(
       expected.sobjectName,

@@ -12,11 +12,14 @@ import { OrderByImpl } from '../../../../../src/soql-model/model/impl/orderByImp
 describe('OrderByImpl should', () => {
   it('store ORDER BY expressions', () => {
     const expected = {
-      orderByExpressions: [{ field: { kind: 'fieldRef', fieldName: 'some' } }, { field: { kind: 'fieldRef', fieldName: 'girls' } }],
+      orderByExpressions: [
+        { field: { kind: 'fieldRef', fieldName: 'some' } },
+        { field: { kind: 'fieldRef', fieldName: 'girls' } }
+      ]
     };
     const actual = new OrderByImpl([
       new OrderByExpressionImpl(new FieldRefImpl('some')),
-      new OrderByExpressionImpl(new FieldRefImpl('girls')),
+      new OrderByExpressionImpl(new FieldRefImpl('girls'))
     ]);
     expect(actual).toEqual(expected);
   });
@@ -29,7 +32,7 @@ describe('OrderByImpl should', () => {
     const expected = 'ORDER BY some, girls';
     const actual = new OrderByImpl([
       new OrderByExpressionImpl(new FieldRefImpl('some')),
-      new OrderByExpressionImpl(new FieldRefImpl('girls')),
+      new OrderByExpressionImpl(new FieldRefImpl('girls'))
     ]).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });
