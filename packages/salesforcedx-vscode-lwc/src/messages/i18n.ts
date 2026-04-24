@@ -16,10 +16,12 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  lightning_lwc_test_navigate_to_test: 'SFDX: Navigate to Lightning Web Component Test',
   no_lwc_jest_found_text: 'LWC Jest is not installed. Run npm install in your project.',
   no_lwc_testrunner_found_text: 'LWC Test Runner is not installed. Install @salesforce/lwc-testrunner.',
   no_workspace_folder_found_for_test_text: 'Unable to determine workspace folder for this test',
+  lwc_test_controller_label: 'LWC Tests',
+  lwc_test_run_profile_title: 'SFDX: Run All LWC Tests',
+  lwc_test_debug_profile_title: 'SFDX: Debug All LWC Tests',
   run_test_title: 'Run Test',
   debug_test_title: 'Debug Test',
   run_all_tests_title: 'Run All Tests',
@@ -27,6 +29,9 @@ export const messages = {
   run_test_task_name: 'Run Test',
   watch_test_task_name: 'Watch Test',
   default_task_name: 'LWC Test',
+  lwc_one_or_more_tests_failed_in_this_file_message: 'One or more tests failed in this file.',
+  no_test_results_produced_message: 'No test results produced.',
+  lwc_test_failed_message: 'Test failed',
   task_windows_command_prompt_messaging: 'Default shell for running tasks is set to cmd.exe',
   lwc_output_channel_name: 'LWC Extension',
   lightning_lwc_no_redhat_extension_found: 'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension',
