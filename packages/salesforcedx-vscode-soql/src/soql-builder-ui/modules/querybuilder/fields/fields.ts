@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  *  Copyright (c) 2020, salesforce.com, inc.
  *  All rights reserved.
@@ -11,19 +9,25 @@
 import { LightningElement, api, track } from 'lwc';
 import { SubqueryJson, SELECT_COUNT } from '../services/model';
 import { messages } from 'querybuilder/messages';
+import {
+  REL_PREFIX,
+  SUB_PREFIX,
+  DrillLevel,
+  RelOption,
+  ChildRelOption,
+  buildDrilledOptions,
+  applyDrillMetadata,
+  buildBreadcrumb,
+  buildQualifiedFieldName,
+  popDrillStack,
+  extractRelOptions,
+  extractChildRelOptions,
+  findReferenceTo
+} from '../services/drillUtils';
 
 export const SELECT_ALL_OPTION = 'ALL FIELDS';
 export const CLEAR_OPTION = '- Clear Selection -';
-export const REL_PREFIX = '→ ';   // parent relationship (drill up)
-export const SUB_PREFIX = '← ';   // child subquery (drill down)
-const MAX_REL_DEPTH = 5;
-
-type RelDrillLevel = {
-  relationshipName: string;
-  referenceTo: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: any;
-};
+export { REL_PREFIX, SUB_PREFIX };
 
 type SubDrill = {
   relationshipName: string;
@@ -48,8 +52,8 @@ export default class Fields extends LightningElement {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @api public set sobjectMetadata(metadata: any) {
     this._sobjectMetadata = metadata;
-    this._relOptions = this._extractRelOptions(metadata);
-    this._childRelOptions = this._extractChildRelOptions(metadata);
+    this._relOptions = extractRelOptions(metadata);
+    this._childRelOptions = extractChildRelOptions(metadata);
     if (!this._isDrilledIntoRel && !this._subDrill) this._updateDisplayOptions();
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -58,14 +62,14 @@ export default class Fields extends LightningElement {
   }
 
   @track public _displayFields: string[] = [];
-  @track public _relDrillStack: RelDrillLevel[] = [];
+  @track public _relDrillStack: DrillLevel[] = [];
   @track public _subDrill: SubDrill | null = null;
 
   private _baseFields: string[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _sobjectMetadata: any = null;
-  private _relOptions: Array<{ relationshipName: string; referenceTo: string[] }> = [];
-  private _childRelOptions: Array<{ relationshipName: string; childSObject: string }> = [];
+  private _relOptions: RelOption[] = [];
+  private _childRelOptions: ChildRelOption[] = [];
 
   public get i18n() {
     return messages;
@@ -80,17 +84,12 @@ export default class Fields extends LightningElement {
   }
 
   public get breadcrumbLabel(): string {
-    if (this._isDrilledIntoRel) {
-      return this._relDrillStack.map(l => `${REL_PREFIX}${l.relationshipName}`).join(' ');
-    }
-    if (this._subDrill) {
-      return `${SUB_PREFIX}${this._subDrill.relationshipName}`;
-    }
+    if (this._isDrilledIntoRel) return buildBreadcrumb(this._relDrillStack);
+    if (this._subDrill) return `${SUB_PREFIX}${this._subDrill.relationshipName}`;
     return '';
   }
 
   public get backArrow(): string {
-    // entered subquery by going ←, so returning is →
     return this._subDrill ? '→' : '←';
   }
 
@@ -107,7 +106,6 @@ export default class Fields extends LightningElement {
     return sq ? sq.fields : [];
   }
 
-  // The selected-options passed to the combobox depends on drill mode
   public get activeSelectedOptions(): string[] {
     if (this._isDrilledIntoRel) return this.activeRelationshipFields;
     if (this._subDrill) return this.activeSubqueryFields;
@@ -124,57 +122,17 @@ export default class Fields extends LightningElement {
     this._displayFields = [CLEAR_OPTION, SELECT_ALL_OPTION, SELECT_COUNT, ...this._baseFields, ...relEntries, ...subEntries];
   }
 
-  // Called by app with full metadata for a parent relationship sObject
   @api
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setDrillMetadata(metadata: any): void {
     if (this._relDrillStack.length === 0) return;
-    this._relDrillStack = this._relDrillStack.map((level, i) =>
-      i === this._relDrillStack.length - 1 ? { ...level, metadata } : level
-    );
-    this._buildRelDrilledOptions(metadata);
+    this._relDrillStack = applyDrillMetadata(this._relDrillStack, metadata);
+    this._displayFields = buildDrilledOptions(metadata, this._relDrillStack.length);
   }
 
-  // Called by app with field names for a child subquery sObject
   @api
   public setSubqueryDrillFields(fields: string[]): void {
     this._displayFields = fields;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _buildRelDrilledOptions(metadata: any): void {
-    if (!metadata || !Array.isArray(metadata.fields)) { this._displayFields = []; return; }
-    const plain: string[] = (metadata.fields as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .filter((f: any) => f.type !== 'reference' || !f.relationshipName) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .map((f: any) => f.name as string) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .sort();
-    const refs: string[] = this._relDrillStack.length < MAX_REL_DEPTH
-      ? (metadata.fields as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .filter((f: any) => f.type === 'reference' && f.relationshipName) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .sort((a, b) => a.localeCompare(b))
-      : [];
-    this._displayFields = [...plain, ...refs];
-  }
-
-  private _extractRelOptions(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata: any
-  ): Array<{ relationshipName: string; referenceTo: string[] }> {
-    if (!metadata || !Array.isArray(metadata.fields)) return [];
-    return (metadata.fields as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .filter((f: any) => f.type === 'reference' && f.relationshipName && Array.isArray(f.referenceTo) && f.referenceTo.length > 0) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .map((f: any) => ({ relationshipName: f.relationshipName, referenceTo: f.referenceTo })); // eslint-disable-line @typescript-eslint/no-explicit-any
-  }
-
-  private _extractChildRelOptions(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata: any
-  ): Array<{ relationshipName: string; childSObject: string }> {
-    if (!metadata || !Array.isArray(metadata.childRelationships)) return [];
-    return (metadata.childRelationships as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .filter((cr: any) => cr.relationshipName && cr.childSObject) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .map((cr: any) => ({ relationshipName: cr.relationshipName, childSObject: cr.childSObject })); // eslint-disable-line @typescript-eslint/no-explicit-any
   }
 
   public handleFieldSelection(e: CustomEvent): void {
@@ -182,23 +140,18 @@ export default class Fields extends LightningElement {
     const value: string = e.detail?.value;
     if (!value) return;
 
-    // --- Drilled into parent relationship ---
     if (this._isDrilledIntoRel) {
       if (value.startsWith(REL_PREFIX)) {
-        // Drill deeper
         const relName = value.slice(REL_PREFIX.length);
         const currentMeta = this._relDrillStack[this._relDrillStack.length - 1].metadata;
-        const refField = currentMeta?.fields?.find((f: any) => f.relationshipName === relName); // eslint-disable-line @typescript-eslint/no-explicit-any
-        if (!refField) return;
-        const referenceTo: string[] = refField.referenceTo; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+        const referenceTo = findReferenceTo(currentMeta, relName);
+        if (!referenceTo) return;
         this._relDrillStack = [...this._relDrillStack, { relationshipName: relName, referenceTo, metadata: null }];
         this._displayFields = [];
         this.dispatchEvent(new CustomEvent('fields__loadrelationship', { detail: { relationshipName: relName, referenceTo } }));
       } else {
-        // Plain field — qualify with stack path below top
         const topRelName = this._relDrillStack[0].relationshipName;
-        const prefix = this._relDrillStack.slice(1).map(l => l.relationshipName).join('.');
-        const qualifiedField = prefix ? `${prefix}.${value}` : value;
+        const qualifiedField = buildQualifiedFieldName(this._relDrillStack.slice(1), value);
         const current = (this.relationships || []).find(r => r.relationshipName === topRelName);
         const currentFields = current ? current.fields : [];
         if (currentFields.includes(qualifiedField)) return;
@@ -209,7 +162,6 @@ export default class Fields extends LightningElement {
       return;
     }
 
-    // --- Drilled into child subquery ---
     if (this._subDrill) {
       const { relationshipName } = this._subDrill;
       const current = (this.subqueries || []).find(s => s.relationshipName === relationshipName);
@@ -221,7 +173,6 @@ export default class Fields extends LightningElement {
       return;
     }
 
-    // --- Top level ---
     if (value.startsWith(REL_PREFIX)) {
       const relName = value.slice(REL_PREFIX.length);
       const rel = this._relOptions.find(r => r.relationshipName === relName);
@@ -259,14 +210,10 @@ export default class Fields extends LightningElement {
         this._relDrillStack = [];
         this._updateDisplayOptions();
       } else {
-        const newStack = this._relDrillStack.slice(0, -1);
+        const newStack = popDrillStack(this._relDrillStack);
         this._relDrillStack = newStack;
         const parentMeta = newStack[newStack.length - 1].metadata;
-        if (parentMeta) {
-          this._buildRelDrilledOptions(parentMeta);
-        } else {
-          this._displayFields = [];
-        }
+        this._displayFields = parentMeta ? buildDrilledOptions(parentMeta, newStack.length) : [];
       }
     } else if (this._subDrill) {
       this._subDrill = null;

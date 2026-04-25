@@ -12,6 +12,16 @@
  *
  */
 import { api, LightningElement, track } from 'lwc';
+import {
+  REL_PREFIX,
+  DrillLevel,
+  buildDrilledOptions,
+  applyDrillMetadata,
+  buildBreadcrumb,
+  buildQualifiedFieldName,
+  popDrillStack,
+  findReferenceTo
+} from '../services/drillUtils';
 import debounce from 'debounce';
 import { messages } from 'querybuilder/messages';
 import { ConditionOperator, LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
@@ -31,14 +41,6 @@ const DEFAULT_FIELD_INPUT_VALUE = '';
 const DEFAULT_OPERATOR_INPUT_VALUE = 'EQ';
 const DEFAULT_CRITERIA_INPUT_VALUE = '';
 
-const REL_PREFIX = '→ ';
-const MAX_DEPTH = 5;
-
-type DrillLevel = {
-  relationshipName: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: any;
-};
 
 export default class WhereModifierGroup extends LightningElement {
   @api public allFields: string[];
@@ -78,18 +80,7 @@ export default class WhereModifierGroup extends LightningElement {
   public get computedAllFields(): string[] {
     if (this._drillStack.length > 0) {
       const currentMeta = this._drillStack[this._drillStack.length - 1].metadata;
-      if (!currentMeta || !Array.isArray(currentMeta.fields)) return [];
-      const plain: string[] = (currentMeta.fields as any[])
-        .filter((f: any) => f.type !== 'reference' || !f.relationshipName)
-        .map((f: any) => f.name as string)
-        .sort();
-      const refs: string[] = this._drillStack.length < MAX_DEPTH
-        ? (currentMeta.fields as any[])
-          .filter((f: any) => f.type === 'reference' && f.relationshipName)
-          .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`)
-          .sort()
-        : [];
-      return [...plain, ...refs];
+      return buildDrilledOptions(currentMeta, this._drillStack.length);
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const relEntries: string[] = (this._sobjectMetadata?.fields || [])
@@ -100,28 +91,25 @@ export default class WhereModifierGroup extends LightningElement {
   }
 
   public get relDrillBreadcrumb(): string {
-    return this._drillStack.map(l => `${REL_PREFIX}${l.relationshipName}`).join(' ');
+    return buildBreadcrumb(this._drillStack);
   }
 
   public get isDrilledIn(): boolean {
     return this._drillStack.length > 0;
   }
 
-  // Called by app/where with full metadata for the newly drilled sObject
   @api
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setRelDrillMetadata(metadata: any): void {
     if (this._drillStack.length === 0) return;
-    this._drillStack = this._drillStack.map((level, i) =>
-      i === this._drillStack.length - 1 ? { ...level, metadata } : level
-    );
+    this._drillStack = applyDrillMetadata(this._drillStack, metadata);
   }
 
   public handleRelDrillBack(): void {
     if (this._drillStack.length <= 1) {
       this._drillStack = [];
     } else {
-      this._drillStack = this._drillStack.slice(0, -1);
+      this._drillStack = popDrillStack(this._drillStack);
     }
   }
 
@@ -131,16 +119,12 @@ export default class WhereModifierGroup extends LightningElement {
 
     if (value.startsWith(REL_PREFIX)) {
       const relName = value.slice(REL_PREFIX.length);
-      // Find referenceTo from current level metadata (or top-level sobjectMetadata)
       const sourceMeta = this._drillStack.length > 0
         ? this._drillStack[this._drillStack.length - 1].metadata
         : this._sobjectMetadata;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      const refField = (sourceMeta?.fields || []).find((f: any) => f.relationshipName === relName);
-      if (!refField) return;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const referenceTo: string[] = refField.referenceTo;
-      this._drillStack = [...this._drillStack, { relationshipName: relName, metadata: null }];
+      const referenceTo = findReferenceTo(sourceMeta, relName);
+      if (!referenceTo) return;
+      this._drillStack = [...this._drillStack, { relationshipName: relName, referenceTo, metadata: null }];
       this.dispatchEvent(new CustomEvent('where__loadrelationship', {
         detail: { index: this.index, relationshipName: relName, referenceTo },
         bubbles: true,
@@ -150,10 +134,8 @@ export default class WhereModifierGroup extends LightningElement {
     }
 
     // Plain field — build full dotted path from stack
-    const prefix = this._drillStack.map(l => l.relationshipName).join('.');
-    const fieldName = prefix ? `${prefix}.${value}` : value;
+    this._currentFieldSelection = buildQualifiedFieldName(this._drillStack, value);
     this._drillStack = [];
-    this._currentFieldSelection = fieldName;
   }
 
   @api // this need to be public so parent can read value

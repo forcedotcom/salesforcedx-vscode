@@ -9,15 +9,17 @@
 import { LightningElement, api, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
 import { messages } from 'querybuilder/messages';
-
-const REL_PREFIX = '→ ';
-const MAX_DEPTH = 5;
-
-type DrillLevel = {
-  relationshipName: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: any;
-};
+import {
+  REL_PREFIX,
+  DrillLevel,
+  buildDrilledOptions,
+  applyDrillMetadata,
+  buildBreadcrumb,
+  buildQualifiedFieldName,
+  popDrillStack,
+  extractRelOptions,
+  findReferenceTo
+} from '../services/drillUtils';
 
 export default class OrderBy extends LightningElement {
   @api public orderByFields: string[];
@@ -50,7 +52,7 @@ export default class OrderBy extends LightningElement {
   }
 
   public get breadcrumbLabel(): string {
-    return this._drillStack.map(l => `${REL_PREFIX}${l.relationshipName}`).join(' ');
+    return buildBreadcrumb(this._drillStack);
   }
 
   public get placeholderText(): string {
@@ -61,12 +63,14 @@ export default class OrderBy extends LightningElement {
     return this._pendingField ? [this._pendingField] : [];
   }
 
+  public get emptySelection(): string[] {
+    return [];
+  }
+
   private _updateDisplayOptions(): void {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const relEntries: string[] = (this._sobjectMetadata?.fields || [])
-      .filter((f: any) => f.type === 'reference' && f.relationshipName) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .sort();
+    const relEntries = extractRelOptions(this._sobjectMetadata)
+      .map(r => `${REL_PREFIX}${r.relationshipName}`)
+      .sort((a, b) => a.localeCompare(b));
     this._displayFields = [...(this.orderByFields || []), ...relEntries];
   }
 
@@ -74,26 +78,8 @@ export default class OrderBy extends LightningElement {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setDrillMetadata(metadata: any): void {
     if (this._drillStack.length === 0) return;
-    this._drillStack = this._drillStack.map((level, i) =>
-      i === this._drillStack.length - 1 ? { ...level, metadata } : level
-    );
-    this._buildDrilledOptions(metadata);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _buildDrilledOptions(metadata: any): void {
-    if (!metadata || !Array.isArray(metadata.fields)) { this._displayFields = []; return; }
-    const plain: string[] = (metadata.fields as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .filter((f: any) => f.type !== 'reference' || !f.relationshipName) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .map((f: any) => f.name as string) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .sort();
-    const refs: string[] = this._drillStack.length < MAX_DEPTH
-      ? (metadata.fields as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .filter((f: any) => f.type === 'reference' && f.relationshipName) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .sort()
-      : [];
-    this._displayFields = [...plain, ...refs];
+    this._drillStack = applyDrillMetadata(this._drillStack, metadata);
+    this._displayFields = buildDrilledOptions(metadata, this._drillStack.length);
   }
 
   public handleFieldSelection(e: CustomEvent): void {
@@ -106,12 +92,9 @@ export default class OrderBy extends LightningElement {
       const sourceMeta = this._drillStack.length > 0
         ? this._drillStack[this._drillStack.length - 1].metadata
         : this._sobjectMetadata;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      const refField = (sourceMeta?.fields || []).find((f: any) => f.relationshipName === relName); // eslint-disable-line @typescript-eslint/no-explicit-any
-      if (!refField) return;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const referenceTo: string[] = refField.referenceTo;
-      this._drillStack = [...this._drillStack, { relationshipName: relName, metadata: null }];
+      const referenceTo = findReferenceTo(sourceMeta, relName);
+      if (!referenceTo) return;
+      this._drillStack = [...this._drillStack, { relationshipName: relName, referenceTo, metadata: null }];
       this._displayFields = [];
       this.dispatchEvent(new CustomEvent('orderby__loadrelationship', {
         detail: { relationshipName: relName, referenceTo }
@@ -119,16 +102,13 @@ export default class OrderBy extends LightningElement {
       return;
     }
 
-    // Plain field — store and wait for Add button
-    const prefix = this._drillStack.map(l => l.relationshipName).join('.');
-    this._pendingField = prefix ? `${prefix}.${value}` : value;
+    this._pendingField = buildQualifiedFieldName(this._drillStack, value);
     this._drillStack = [];
     this._updateDisplayOptions();
   }
 
   public handleOrderByAdd(e: Event): void {
     e.preventDefault();
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
     const fieldValue = this._pendingField;
     const orderEl = this.template.querySelector('[data-el-orderby-order]') as HTMLSelectElement;
     const nullsEl = this.template.querySelector('[data-el-orderby-nulls]') as HTMLSelectElement;
@@ -142,7 +122,6 @@ export default class OrderBy extends LightningElement {
         detail: { field: fieldValue, order, nulls }
       }));
     }
-    /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
   }
 
   public handleBackOneLevel(): void {
@@ -150,24 +129,17 @@ export default class OrderBy extends LightningElement {
       this._drillStack = [];
       this._updateDisplayOptions();
     } else {
-      const newStack = this._drillStack.slice(0, -1);
+      const newStack = popDrillStack(this._drillStack);
       this._drillStack = newStack;
       const parentMeta = newStack[newStack.length - 1].metadata;
-      if (parentMeta) {
-        this._buildDrilledOptions(parentMeta);
-      } else {
-        this._displayFields = [];
-      }
+      this._displayFields = parentMeta ? buildDrilledOptions(parentMeta, newStack.length) : [];
     }
   }
 
   public handleOrderByRemoved(e: Event): void {
     e.preventDefault();
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-    const orderByRemovedEvent = new CustomEvent('orderby__removed', {
+    this.dispatchEvent(new CustomEvent('orderby__removed', {
       detail: { field: (e.target as HTMLElement).dataset.field }
-    });
-    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
-    this.dispatchEvent(orderByRemovedEvent);
+    }));
   }
 }
