@@ -257,7 +257,7 @@ export default class App extends LightningElement {
     const { referenceTo } = e.detail as { relationshipName: string; referenceTo: string[] };
     const targetSObject = referenceTo[0];
     if (!targetSObject) return;
-    this._loadMetadataIntoComponent('querybuilder-fields', 'setDrillMetadata', targetSObject);
+    this._loadIntoFields('setDrillMetadata', targetSObject, true);
   }
 
   public handleRelationshipFieldsChanged(e: CustomEvent): void {
@@ -271,50 +271,11 @@ export default class App extends LightningElement {
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 
-  /* ---- SUBQUERY HANDLERS ---- */
+  /* ---- SUBQUERY HANDLERS (from fields component) ---- */
   /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-  public handleSubqueryLoadFields(e: CustomEvent): void {
-    const { relationshipName, childSObject } = e.detail as { relationshipName: string; childSObject: string };
-    this._loadFieldsIntoComponent('querybuilder-subqueries', 'setDrillFields', childSObject);
-    void relationshipName;
-  }
-
-  private _loadMetadataIntoComponent(selector: string, method: string, sobjectName: string): void {
-    const component = this.template.querySelector(selector) as any;
-    if (!component) return;
-    const cached = this._metadataCache.get(sobjectName.toLowerCase());
-    if (cached) {
-      component[method](cached);
-      return;
-    }
-    this.toolingSDK.loadSObjectMetatada(sobjectName);
-    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
-      if (!metadata || !metadata.name) return;
-      if (metadata.name.toLowerCase() !== sobjectName.toLowerCase()) return;
-      this._metadataCache.set(sobjectName.toLowerCase(), metadata);
-      component[method](metadata);
-    });
-    void sub;
-  }
-
-  private _loadFieldsIntoComponent(selector: string, method: string, sobjectName: string): void {
-    const component = this.template.querySelector(selector) as any;
-    if (!component) return;
-    const cached = this._metadataCache.get(sobjectName.toLowerCase());
-    if (cached) {
-      const fields: string[] = cached.fields ? cached.fields.map((f) => f.name).sort() : [];
-      component[method](fields);
-      return;
-    }
-    this.toolingSDK.loadSObjectMetatada(sobjectName);
-    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
-      if (!metadata || !metadata.name) return;
-      if (metadata.name.toLowerCase() !== sobjectName.toLowerCase()) return;
-      this._metadataCache.set(sobjectName.toLowerCase(), metadata);
-      const fields: string[] = metadata.fields ? metadata.fields.map((f) => f.name).sort() : [];
-      component[method](fields);
-    });
-    void sub;
+  public handleLoadSubquery(e: CustomEvent): void {
+    const { childSObject } = e.detail as { relationshipName: string; childSObject: string };
+    this._loadIntoFields('setSubqueryDrillFields', childSObject, false);
   }
 
   public handleSubqueryRemove(e: CustomEvent): void {
@@ -325,6 +286,26 @@ export default class App extends LightningElement {
   public handleSubqueryFieldsChanged(e: CustomEvent): void {
     const { relationshipName, fields } = e.detail as { relationshipName: string; fields: string[] };
     this.modelService.setSubqueryFields(relationshipName, fields);
+  }
+
+  // Shared helper: load sObject into querybuilder-fields via a named method.
+  // passMetadata=true sends the full describe object; false sends only field names.
+  private _loadIntoFields(method: string, sobjectName: string, passMetadata: boolean): void {
+    const component = this.template.querySelector('querybuilder-fields') as any;
+    if (!component) return;
+    const cached = this._metadataCache.get(sobjectName.toLowerCase());
+    if (cached) {
+      component[method](passMetadata ? cached : cached.fields?.map((f) => f.name).sort() ?? []);
+      return;
+    }
+    this.toolingSDK.loadSObjectMetatada(sobjectName);
+    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
+      if (!metadata || !metadata.name) return;
+      if (metadata.name.toLowerCase() !== sobjectName.toLowerCase()) return;
+      this._metadataCache.set(sobjectName.toLowerCase(), metadata);
+      component[method](passMetadata ? metadata : metadata.fields?.map((f) => f.name).sort() ?? []);
+    });
+    void sub;
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 

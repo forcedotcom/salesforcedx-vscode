@@ -50,6 +50,7 @@
             selected-fields={query.fields}
             fields={fields}
             relationships={query.relationships}
+            subqueries={query.subqueries}
             sobject-metadata={sobjectMetadata}
             onfields__selected={handleFieldSelected}
             onfields__selectall={handleFieldSelectAll}
@@ -57,19 +58,13 @@
             onfields__loadrelationship={handleRelationshipLoadFields}
             onfields__relationshipchanged={handleRelationshipFieldsChanged}
             onfields__relationshipremoved={handleRelationshipRemove}
+            onfields__loadsubquery={handleLoadSubquery}
+            onfields__subquerychanged={handleSubqueryFieldsChanged}
+            onfields__subqueryremoved={handleSubqueryRemove}
             has-error={hasRecoverableFieldsError}
             is-loading={isFieldsLoading}
             class={theme}
           ></querybuilder-fields>
-          <querybuilder-subqueries
-            subqueries={query.subqueries}
-            sobject-metadata={sobjectMetadata}
-            is-loading={isFieldsLoading}
-            onsubqueries__loadfields={handleSubqueryLoadFields}
-            onsubqueries__remove={handleSubqueryRemove}
-            onsubqueries__fieldschanged={handleSubqueryFieldsChanged}
-            class={theme}
-          ></querybuilder-subqueries>
           <querybuilder-where
             where-expr={query.where}
             where-fields={fields}
