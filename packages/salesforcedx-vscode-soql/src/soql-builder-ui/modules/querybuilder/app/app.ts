@@ -254,11 +254,10 @@ export default class App extends LightningElement {
   /* ---- RELATIONSHIP HANDLERS ---- */
   /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
   public handleRelationshipLoadFields(e: CustomEvent): void {
-    const { relationshipName, referenceTo } = e.detail as { relationshipName: string; referenceTo: string[] };
+    const { referenceTo } = e.detail as { relationshipName: string; referenceTo: string[] };
     const targetSObject = referenceTo[0];
     if (!targetSObject) return;
-    this._loadFieldsIntoComponent('querybuilder-relationships', 'setDrillFields', targetSObject);
-    void relationshipName;
+    this._loadMetadataIntoComponent('querybuilder-relationships', 'setDrillMetadata', targetSObject);
   }
 
   public handleRelationshipFieldsChanged(e: CustomEvent): void {
@@ -278,6 +277,24 @@ export default class App extends LightningElement {
     const { relationshipName, childSObject } = e.detail as { relationshipName: string; childSObject: string };
     this._loadFieldsIntoComponent('querybuilder-subqueries', 'setDrillFields', childSObject);
     void relationshipName;
+  }
+
+  private _loadMetadataIntoComponent(selector: string, method: string, sobjectName: string): void {
+    const component = this.template.querySelector(selector) as any;
+    if (!component) return;
+    const cached = this._metadataCache.get(sobjectName.toLowerCase());
+    if (cached) {
+      component[method](cached);
+      return;
+    }
+    this.toolingSDK.loadSObjectMetatada(sobjectName);
+    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
+      if (!metadata || !metadata.name) return;
+      if (metadata.name.toLowerCase() !== sobjectName.toLowerCase()) return;
+      this._metadataCache.set(sobjectName.toLowerCase(), metadata);
+      component[method](metadata);
+    });
+    void sub;
   }
 
   private _loadFieldsIntoComponent(selector: string, method: string, sobjectName: string): void {
