@@ -322,8 +322,8 @@ export default class App extends LightningElement {
 
   // Shared helper: load sObject into querybuilder-fields via a named method.
   // passMetadata=true sends the full describe object; false sends only field names.
-  private _loadIntoFields(method: string, sobjectName: string, passMetadata: boolean): void {
-    const component = this.template.querySelector('querybuilder-fields') as any;
+  private _loadIntoFields(method: string, sobjectName: string, passMetadata: boolean, selector = 'querybuilder-fields'): void {
+    const component = this.template.querySelector(selector) as any;
     if (!component) return;
     const cached = this._metadataCache.get(sobjectName.toLowerCase());
     if (cached) {
@@ -342,6 +342,15 @@ export default class App extends LightningElement {
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 
   /* ---- ORDER BY HANDLERS ---- */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  public handleOrderByLoadRelationship(e: CustomEvent): void {
+    const { referenceTo } = e.detail as { relationshipName: string; referenceTo: string[] };
+    const targetSObject = referenceTo[0];
+    if (!targetSObject) return;
+    this._loadIntoFields('setDrillMetadata', targetSObject, true, 'querybuilder-order-by');
+  }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
   public handleOrderBySelected(e: CustomEvent): void {
     this.modelService.addUpdateOrderByField(e.detail);
   }

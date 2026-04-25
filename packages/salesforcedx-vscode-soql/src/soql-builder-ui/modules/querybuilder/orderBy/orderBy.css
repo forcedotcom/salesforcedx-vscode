@@ -23,3 +23,20 @@ button,
   max-width: var(--soql-selection-container-width);
   padding-top: 5px;
 }
+
+.orderby-breadcrumb {
+  font-size: smaller;
+  color: var(--vscode-foreground);
+}
+
+.breadcrumb-back {
+  color: var(--vscode-button-background);
+}
+
+.breadcrumb-back:hover {
+  opacity: 0.75;
+}
+
+.breadcrumb-label {
+  font-weight: bold;
+}

@@ -78,9 +78,11 @@
           ></querybuilder-where>
           <querybuilder-order-by
             selected-order-by-fields={query.orderBy}
-            order-by-fields={fields}
+            order-by-fields={whereFields}
+            sobject-metadata={sobjectMetadata}
             onorderby__selected={handleOrderBySelected}
             onorderby__removed={handleOrderByRemoved}
+            onorderby__loadrelationship={handleOrderByLoadRelationship}
             has-error={hasRecoverableOrderByError}
             is-loading={isFieldsLoading}
             class={theme}

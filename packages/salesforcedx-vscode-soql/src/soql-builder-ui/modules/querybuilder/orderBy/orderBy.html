@@ -19,10 +19,23 @@
       >
     </div>
     <div class="section_selection-container">
+      <template if:true={isDrilledIn}>
+        <div class="orderby-breadcrumb">
+          <span
+            role="button"
+            class="breadcrumb-back pointer"
+            onclick={handleBackOneLevel}
+            title={i18n.action_back_to_fields}
+          >&#8592;</span>
+          <span class="breadcrumb-label">{breadcrumbLabel}</span>
+        </div>
+      </template>
       <querybuilder-custom-select
         is-loading={isLoading}
-        all-options={orderByFields}
-        placeholder-text={selectPlaceHolderText}
+        all-options={_displayFields}
+        selected-options={currentFieldSelection}
+        placeholder-text={placeholderText}
+        onoption__selection={handleFieldSelection}
       ></querybuilder-custom-select>
       <div class="group-orderby-modifiers">
         <span class="group-orderby-order">
@@ -39,7 +52,7 @@
             <option value="NULLS LAST">{i18n.label_nulls_last}</option>
           </select>
         </span>
-        <button onclick={handleOrderBySelected} data-el-add-button>{i18n.action_add}</button>
+        <button onclick={handleOrderByAdd} data-el-add-button>{i18n.action_add}</button>
       </div>
 
       <div class="selected-fields-container">
@@ -47,6 +60,7 @@
           <div class="selected-field" key={field.field}>
             {field.field} {field.order} {field.nulls}
             <span
+              role="button"
               class="pointer delete-trigger"
               onclick={handleOrderByRemoved}
               data-field={field.field}
