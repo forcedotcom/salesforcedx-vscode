@@ -53,6 +53,10 @@ export default class Subqueries extends LightningElement {
     return this._activeDrill !== null;
   }
 
+  public get placeholderText(): string {
+    return this.isDrilledIn ? messages.placeholder_search_fields : messages.placeholder_search_object;
+  }
+
   public get breadcrumbLabel(): string {
     return this._activeDrill ? `${RELATIONSHIP_PREFIX}${this._activeDrill.relationshipName}` : '';
   }
