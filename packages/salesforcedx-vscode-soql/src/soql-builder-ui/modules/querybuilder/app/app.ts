@@ -281,6 +281,42 @@ export default class App extends LightningElement {
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 
+  /* ---- SUBQUERY HANDLERS ---- */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  public handleSubqueryLoadFields(e: CustomEvent): void {
+    const { relationshipName, childSObject } = e.detail as { relationshipName: string; childSObject: string };
+    const subqueriesComponent = this.template.querySelector('querybuilder-subqueries') as any;
+    if (!subqueriesComponent) return;
+
+    const cached = this._metadataCache.get(childSObject.toLowerCase());
+    if (cached) {
+      const childFields: string[] = cached.fields ? cached.fields.map((f) => f.name).sort() : [];
+      subqueriesComponent.setDrillFields(childFields);
+      return;
+    }
+
+    this.toolingSDK.loadSObjectMetatada(childSObject);
+    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
+      if (!metadata || !metadata.name) return;
+      if (metadata.name.toLowerCase() !== childSObject.toLowerCase()) return;
+      this._metadataCache.set(childSObject.toLowerCase(), metadata);
+      const childFields: string[] = metadata.fields ? metadata.fields.map((f) => f.name).sort() : [];
+      subqueriesComponent.setDrillFields(childFields);
+    });
+    void sub;
+  }
+
+  public handleSubqueryRemove(e: CustomEvent): void {
+    const { relationshipName } = e.detail as { relationshipName: string };
+    this.modelService.removeSubquery(relationshipName);
+  }
+
+  public handleSubqueryFieldsChanged(e: CustomEvent): void {
+    const { relationshipName, fields } = e.detail as { relationshipName: string; fields: string[] };
+    this.modelService.setSubqueryFields(relationshipName, fields);
+  }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
   /* ---- ORDER BY HANDLERS ---- */
   public handleOrderBySelected(e: CustomEvent): void {
     this.modelService.addUpdateOrderByField(e.detail);

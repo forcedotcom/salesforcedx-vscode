@@ -12,6 +12,7 @@ import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
 
 export enum ModelProps {
   FIELDS = 'fields',
+  SUBQUERIES = 'subqueries',
   ORDER_BY = 'orderBy',
   LIMIT = 'limit',
   WHERE = 'where',
@@ -37,11 +38,17 @@ export type ToolingModel = IMap & {
   originalSoqlStatement: string;
 }
 
+export type SubqueryJson = {
+  relationshipName: string;
+  fields: string[];
+};
+
 // Public interface for accessing modelService.query
 export type ToolingModelJson = JsonMap & {
   headerComments?: string;
   sObject: string;
   fields: string[];
+  subqueries: SubqueryJson[];
   orderBy: JsonMap[];
   limit: string;
   where: { conditions: JsonMap; andOr: AndOr };

@@ -58,6 +58,15 @@
             is-loading={isFieldsLoading}
             class={theme}
           ></querybuilder-fields>
+          <querybuilder-subqueries
+            subqueries={query.subqueries}
+            sobject-metadata={sobjectMetadata}
+            is-loading={isFieldsLoading}
+            onsubqueries__loadfields={handleSubqueryLoadFields}
+            onsubqueries__remove={handleSubqueryRemove}
+            onsubqueries__fieldschanged={handleSubqueryFieldsChanged}
+            class={theme}
+          ></querybuilder-subqueries>
           <querybuilder-where
             where-expr={query.where}
             where-fields={fields}

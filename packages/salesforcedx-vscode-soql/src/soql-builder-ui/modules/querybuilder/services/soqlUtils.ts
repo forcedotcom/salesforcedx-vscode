@@ -6,7 +6,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConditionOperator, Query, Select, SelectExprs, UiOperatorValue } from '@salesforce/soql-model/model/model';
+import { ConditionOperator, Query, Select, SelectExprs, UiOperatorValue, UnmodeledSyntax } from '@salesforce/soql-model/model/model';
 import { SoqlModelUtils } from '@salesforce/soql-model/model/util';
 import { ModelSerializer } from '@salesforce/soql-model/serialization/serializer';
 import { deserialize } from '@salesforce/soql-model/serialization/deserializer';
@@ -23,9 +23,10 @@ import { OrderByExpressionImpl } from '@salesforce/soql-model/model/impl/orderBy
 import { OrderByImpl } from '@salesforce/soql-model/model/impl/orderByImpl';
 import { QueryImpl } from '@salesforce/soql-model/model/impl/queryImpl';
 import { SelectCountImpl } from '@salesforce/soql-model/model/impl/selectCountImpl';
+import { UnmodeledSyntaxImpl } from '@salesforce/soql-model/model/impl/unmodeledSyntaxImpl';
 import { SelectExprsImpl } from '@salesforce/soql-model/model/impl/selectExprsImpl';
 import { WhereImpl } from '@salesforce/soql-model/model/impl/whereImpl';
-import { SELECT_COUNT, ToolingModelJson } from './model';
+import { SELECT_COUNT, SubqueryJson, ToolingModelJson } from './model';
 
 export const convertSoqlToUiModel = (soql: string): ToolingModelJson => {
   const queryModel = deserialize(soql);
@@ -38,19 +39,34 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
   const unsupported = [];
   const headerComments = queryModel.headerComments ? queryModel.headerComments.text : undefined;
 
-  const fields =
-    queryModel.select && (queryModel.select as SelectExprs).selectExpressions
-      ? (queryModel.select as SelectExprs).selectExpressions
-        .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
-        .map(expr => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          if (expr.field.fieldName) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
-            return expr.field.fieldName;
-          }
-          return undefined;
-        })
-      : [SELECT_COUNT];
+  const selectExprs = queryModel.select && (queryModel.select as SelectExprs).selectExpressions;
+
+  const fields = selectExprs
+    ? selectExprs
+      .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+      .map(expr => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (expr.field.fieldName) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
+          return expr.field.fieldName;
+        }
+        return undefined;
+      })
+    : [SELECT_COUNT];
+
+  // Extract subqueries: unmodeled expressions with reason 'unmodeled:semi-join'
+  const subqueries: SubqueryJson[] = selectExprs
+    ? selectExprs
+      .filter(expr => {
+        const unmodeled = expr as unknown as UnmodeledSyntax;
+        return unmodeled.kind === 'unmodeled' && unmodeled.reason?.reasonCode === 'unmodeled:semi-join';
+      })
+      .map(expr => {
+        const syntax = (expr as unknown as UnmodeledSyntax).unmodeledSyntax;
+        return parseSubquerySyntax(syntax);
+      })
+      .filter((sq): sq is SubqueryJson => sq !== null)
+    : [];
 
   const sObject = queryModel.from && queryModel.from.sobjectName;
 
@@ -100,16 +116,21 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
       }
     }
   }
+  // Subqueries are now supported — remove them from the unsupported list
+  const filteredUnsupported = unsupported.filter(
+    u => u.reason?.reasonCode !== 'unmodeled:semi-join'
+  );
 
   const toolingModelTemplate: ToolingModelJson = {
     headerComments,
     sObject: sObject || '',
     fields: fields || [],
+    subqueries: subqueries || [],
     where: where || { conditions: [], andOr: undefined },
     orderBy: orderBy || [],
     limit: limit || '',
     errors: errors || [],
-    unsupported: unsupported || []
+    unsupported: filteredUnsupported || []
   };
 
   // USEFUL console.log('Soql -> Ui ', JSON.stringify(toolingModelTemplate.orderBy));
@@ -129,8 +150,11 @@ const convertUiModelToSoqlModel = (uiModel: ToolingModelJson): Query => {
   if (isSelectCount) {
     select = new SelectCountImpl();
   } else {
-    const selectExprs = uiModel.fields.map(field => new FieldSelectionImpl(new FieldRefImpl(field)));
-    select = new SelectExprsImpl(selectExprs);
+    const fieldExprs = uiModel.fields.map(field => new FieldSelectionImpl(new FieldRefImpl(field)));
+    const subqueryExprs = (uiModel.subqueries || [])
+      .filter(sq => sq.fields.length > 0)
+      .map(sq => new UnmodeledSyntaxImpl(buildSubquerySyntax(sq), { reasonCode: 'unmodeled:semi-join', message: '' }));
+    select = new SelectExprsImpl([...fieldExprs, ...subqueryExprs]);
   }
 
   let whereExprsImpl;
@@ -220,6 +244,21 @@ const convertSoqlModelToSoql = (soqlModel: Query): string => {
   const query = serializer.serialize();
   return query;
 };
+
+// Parse a raw subquery string like "(SELECT Id, Name FROM Contacts)" into SubqueryJson.
+// Returns null if the syntax can't be parsed.
+const parseSubquerySyntax = (syntax: string): SubqueryJson | null => {
+  const trimmed = syntax.trim().replace(/^\(|\)$/g, '').trim();
+  const match = /^SELECT\s+(.+?)\s+FROM\s+(\w+)/i.exec(trimmed);
+  if (!match) return null;
+  const fields = match[1].split(',').map(f => f.trim()).filter(Boolean);
+  const relationshipName = match[2];
+  return { relationshipName, fields };
+};
+
+// Build a subquery string from SubqueryJson, e.g. "(SELECT Id, Name FROM Contacts)".
+const buildSubquerySyntax = (sq: SubqueryJson): string =>
+  `(SELECT ${sq.fields.join(', ')} FROM ${sq.relationshipName})`;
 
 export const soqlStringLiteralToDisplayValue = (soqlString: string): string => {
   let displayValue = soqlString;

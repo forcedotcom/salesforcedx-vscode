@@ -16,12 +16,13 @@ import { AndOr } from '@salesforce/soql-model/model/model';
 import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';
 import { IMessageService } from './message/iMessageService';
 import { SoqlEditorEvent, MessageType } from './message/soqlEditorEvent';
-import { IMap, ToolingModel, ToolingModelJson, ModelProps } from './model';
+import { IMap, ToolingModel, ToolingModelJson, ModelProps, SubqueryJson } from './model';
 import { createQueryTelemetry } from './telemetryUtils';
 export class ToolingModelService {
   public static toolingModelTemplate: ToolingModelJson = {
     sObject: '',
     fields: [],
+    subqueries: [],
     orderBy: [],
     limit: '',
     where: { conditions: [], andOr: undefined },
@@ -106,6 +107,43 @@ export class ToolingModelService {
 
   private getFields(): List<string> {
     return this.getModel().get(ModelProps.FIELDS) as List<string>;
+  }
+
+  /* ---- SUBQUERIES ---- */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private getSubqueries(): List<any> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (this.getModel().get(ModelProps.SUBQUERIES) as List<any>) || List();
+  }
+
+  public addSubquery(relationshipName: string): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const alreadyExists = this.getSubqueries().some(sq => sq.get('relationshipName') === relationshipName);
+    if (alreadyExists) return;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const newSubqueries = this.getSubqueries().push(fromJS({ relationshipName, fields: [] }));
+    this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, newSubqueries));
+  }
+
+  public removeSubquery(relationshipName: string): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const filtered = this.getSubqueries().filter(sq => sq.get('relationshipName') !== relationshipName);
+    this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, filtered));
+  }
+
+  public setSubqueryFields(relationshipName: string, fields: string[]): void {
+    let subqueries = this.getSubqueries();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const index = subqueries.findIndex(sq => sq.get('relationshipName') === relationshipName);
+    if (index >= 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      subqueries = subqueries.update(index, sq => sq.set('fields', fromJS(fields)));
+    } else {
+      // Create and populate in one shot so we never emit an empty (SELECT  FROM X) to the backend
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      subqueries = subqueries.push(fromJS({ relationshipName, fields }));
+    }
+    this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, subqueries));
   }
 
   /* ---- ORDER BY ---- */
@@ -225,6 +263,7 @@ export class ToolingModelService {
     this.immutableModel.next(newModelWithSoqlQuery);
     this.sendMessageToBackend(newSoqlQuery);
   }
+
 
   public sendMessageToBackend(newSoqlQuery: string): void {
     try {

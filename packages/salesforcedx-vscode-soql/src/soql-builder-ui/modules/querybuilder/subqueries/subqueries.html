@@ -1,0 +1,69 @@
+<!--
+  Copyright (c) 2026, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+-->
+
+<template>
+  <div class="section-container">
+    <div class="section_label-container">
+      <label>{i18n.label_subqueries}</label>
+    </div>
+    <div class="section_selection-container">
+
+      <!-- Breadcrumb when drilled into a child relationship -->
+      <template if:true={isDrilledIn}>
+        <div class="relationship-breadcrumb">
+          <span
+            role="button"
+            class="breadcrumb-back pointer"
+            onclick={handleBackToTop}
+            title={i18n.action_back_to_fields}
+          >&#8592;</span>
+          <span class="breadcrumb-label">{breadcrumbLabel}</span>
+        </div>
+      </template>
+
+      <!-- Single combobox: shows → relationships at top level, child fields when drilled in -->
+      <querybuilder-custom-select
+        is-loading={isLoading}
+        all-options={_displayOptions}
+        selected-options={activeSubqueryFields}
+        onoption__selection={handleOptionSelection}
+        placeholder-text={i18n.placeholder_search_fields}
+        multiple="true"
+      ></querybuilder-custom-select>
+
+      <!-- Committed subquery pills (top-level view) -->
+      <template for:each={subqueries} for:item="sq">
+        <div key={sq.relationshipName} class="subquery-pill-group">
+          <div class="subquery-pill-header">
+            <span class="subquery-pill-name">{sq.relationshipName}</span>
+            <span
+              role="button"
+              class="pointer delete-trigger"
+              onclick={handleSubqueryRemoved}
+              data-relationship={sq.relationshipName}
+            >X</span>
+          </div>
+          <div class="selected-fields-container">
+            <template for:each={sq.fields} for:item="field">
+              <div class="selected-field" key={field}>
+                {field}
+                <span
+                  role="button"
+                  class="pointer delete-trigger"
+                  onclick={handleFieldRemoved}
+                  data-relationship={sq.relationshipName}
+                  data-field={field}
+                >X</span>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+    </div>
+  </div>
+</template>
