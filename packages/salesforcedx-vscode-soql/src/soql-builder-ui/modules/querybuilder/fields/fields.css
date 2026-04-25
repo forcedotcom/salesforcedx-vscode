@@ -37,10 +37,6 @@ select[multiple] {
   font-weight: bold;
 }
 
-.pills-gap {
-  padding-top: 5px;
-}
-
 .relationship-pill-group {
   border: 1px solid var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
   border-radius: 3px;
