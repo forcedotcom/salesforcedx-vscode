@@ -75,11 +75,7 @@ export default class Subqueries extends LightningElement {
 
   private _updateDisplayOptions(): void {
     if (this._activeDrill) return; // drilled-in options are set via setDrillFields()
-    const alreadyActive = new Set((this.subqueries || []).map(s => s.relationshipName));
-    const relOptions = this._childRelationships
-      .filter(cr => !alreadyActive.has(cr.relationshipName))
-      .map(cr => `${RELATIONSHIP_PREFIX}${cr.relationshipName}`);
-    this._displayOptions = relOptions;
+    this._displayOptions = this._childRelationships.map(cr => `${RELATIONSHIP_PREFIX}${cr.relationshipName}`);
   }
 
   // Called by app when child sObject fields are ready

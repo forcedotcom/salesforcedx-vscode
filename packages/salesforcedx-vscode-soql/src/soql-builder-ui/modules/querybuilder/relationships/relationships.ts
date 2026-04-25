@@ -68,10 +68,7 @@ export default class Relationships extends LightningElement {
 
   private _updateDisplayOptions(): void {
     if (this._activeDrill) return;
-    const activeNames = new Set((this.relationships || []).map(r => r.relationshipName));
-    this._displayOptions = this._relationshipOptions
-      .filter(r => !activeNames.has(r.relationshipName))
-      .map(r => `${RELATIONSHIP_PREFIX}${r.relationshipName}`);
+    this._displayOptions = this._relationshipOptions.map(r => `${RELATIONSHIP_PREFIX}${r.relationshipName}`);
   }
 
   @api
