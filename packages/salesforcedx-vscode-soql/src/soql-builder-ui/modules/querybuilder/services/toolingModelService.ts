@@ -22,6 +22,7 @@ export class ToolingModelService {
   public static toolingModelTemplate: ToolingModelJson = {
     sObject: '',
     fields: [],
+    relationships: [],
     subqueries: [],
     orderBy: [],
     limit: '',
@@ -107,6 +108,33 @@ export class ToolingModelService {
 
   private getFields(): List<string> {
     return this.getModel().get(ModelProps.FIELDS) as List<string>;
+  }
+
+  /* ---- RELATIONSHIPS ---- */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private getRelationships(): List<any> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (this.getModel().get(ModelProps.RELATIONSHIPS) as List<any>) || List();
+  }
+
+  public setRelationshipFields(relationshipName: string, fields: string[]): void {
+    let rels = this.getRelationships();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const index = rels.findIndex(r => r.get('relationshipName') === relationshipName);
+    if (index >= 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      rels = rels.update(index, r => r.set('fields', fromJS(fields)));
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      rels = rels.push(fromJS({ relationshipName, fields }));
+    }
+    this.changeModel(this.getModel().set(ModelProps.RELATIONSHIPS, rels));
+  }
+
+  public removeRelationship(relationshipName: string): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const filtered = this.getRelationships().filter(r => r.get('relationshipName') !== relationshipName);
+    this.changeModel(this.getModel().set(ModelProps.RELATIONSHIPS, filtered));
   }
 
   /* ---- SUBQUERIES ---- */

@@ -41,18 +41,35 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
 
   const selectExprs = queryModel.select && (queryModel.select as SelectExprs).selectExpressions;
 
-  const fields = selectExprs
+  const allFieldNames = selectExprs
     ? selectExprs
       .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
       .map(expr => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (expr.field.fieldName) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
-          return expr.field.fieldName;
+          return expr.field.fieldName as string;
         }
         return undefined;
       })
+      .filter((f): f is string => !!f)
     : [SELECT_COUNT];
+
+  // Separate plain fields from dotted relationship fields (e.g. "Account.Name")
+  const fields = allFieldNames.filter(f => !f.includes('.'));
+
+  // Group dotted fields into relationships: [{relationshipName: 'Account', fields: ['Id','Name']}]
+  const relationshipMap = new Map<string, string[]>();
+  allFieldNames.filter(f => f.includes('.')).forEach(f => {
+    const dot = f.indexOf('.');
+    const relName = f.slice(0, dot);
+    const fieldName = f.slice(dot + 1);
+    if (!relationshipMap.has(relName)) relationshipMap.set(relName, []);
+    relationshipMap.get(relName).push(fieldName);
+  });
+  const relationships: SubqueryJson[] = Array.from(relationshipMap.entries()).map(
+    ([relationshipName, relFields]) => ({ relationshipName, fields: relFields })
+  );
 
   // Extract subqueries: unmodeled expressions with reason 'unmodeled:semi-join'
   const subqueries: SubqueryJson[] = selectExprs
@@ -125,6 +142,7 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
     headerComments,
     sObject: sObject || '',
     fields: fields || [],
+    relationships: relationships || [],
     subqueries: subqueries || [],
     where: where || { conditions: [], andOr: undefined },
     orderBy: orderBy || [],
@@ -151,10 +169,13 @@ const convertUiModelToSoqlModel = (uiModel: ToolingModelJson): Query => {
     select = new SelectCountImpl();
   } else {
     const fieldExprs = uiModel.fields.map(field => new FieldSelectionImpl(new FieldRefImpl(field)));
+    const relationshipExprs = (uiModel.relationships || []).flatMap(rel =>
+      rel.fields.map(f => new FieldSelectionImpl(new FieldRefImpl(`${rel.relationshipName}.${f}`)))
+    );
     const subqueryExprs = (uiModel.subqueries || [])
       .filter(sq => sq.fields.length > 0)
       .map(sq => new UnmodeledSyntaxImpl(buildSubquerySyntax(sq), { reasonCode: 'unmodeled:semi-join', message: '' }));
-    select = new SelectExprsImpl([...fieldExprs, ...subqueryExprs]);
+    select = new SelectExprsImpl([...fieldExprs, ...relationshipExprs, ...subqueryExprs]);
   }
 
   let whereExprsImpl;

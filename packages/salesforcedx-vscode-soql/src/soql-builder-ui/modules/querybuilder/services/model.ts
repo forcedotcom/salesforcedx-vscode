@@ -12,6 +12,7 @@ import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
 
 export enum ModelProps {
   FIELDS = 'fields',
+  RELATIONSHIPS = 'relationships',
   SUBQUERIES = 'subqueries',
   ORDER_BY = 'orderBy',
   LIMIT = 'limit',
@@ -48,6 +49,7 @@ export type ToolingModelJson = JsonMap & {
   headerComments?: string;
   sObject: string;
   fields: string[];
+  relationships: SubqueryJson[];
   subqueries: SubqueryJson[];
   orderBy: JsonMap[];
   limit: string;

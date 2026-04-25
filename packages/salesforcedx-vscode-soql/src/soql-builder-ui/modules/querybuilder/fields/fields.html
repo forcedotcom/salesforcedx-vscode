@@ -19,17 +19,6 @@
       >
     </div>
     <div class="section_selection-container">
-      <template if:true={isDrilledIn}>
-        <div class="relationship-breadcrumb">
-          <span
-            role="button"
-            class="breadcrumb-back pointer"
-            onclick={handleBackToBase}
-            title={i18n.action_back_to_fields}
-          >&#8592;</span>
-          <span class="breadcrumb-label">{breadcrumbLabel}</span>
-        </div>
-      </template>
       <querybuilder-custom-select
         is-loading={isLoading}
         all-options={fields}

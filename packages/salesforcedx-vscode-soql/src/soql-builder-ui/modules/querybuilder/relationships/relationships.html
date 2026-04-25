@@ -1,0 +1,66 @@
+<!--
+  Copyright (c) 2026, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+-->
+
+<template>
+  <div class="section-container">
+    <div class="section_label-container">
+      <label>{i18n.label_relationships}</label>
+    </div>
+    <div class="section_selection-container">
+
+      <template if:true={isDrilledIn}>
+        <div class="relationship-breadcrumb">
+          <span
+            role="button"
+            class="breadcrumb-back pointer"
+            onclick={handleBackToTop}
+            title={i18n.action_back_to_fields}
+          >&#8592;</span>
+          <span class="breadcrumb-label">{breadcrumbLabel}</span>
+        </div>
+      </template>
+
+      <querybuilder-custom-select
+        is-loading={isLoading}
+        all-options={_displayOptions}
+        selected-options={activeRelationshipFields}
+        onoption__selection={handleOptionSelection}
+        placeholder-text={i18n.placeholder_search_fields}
+        multiple="true"
+      ></querybuilder-custom-select>
+
+      <template for:each={relationships} for:item="rel">
+        <div key={rel.relationshipName} class="relationship-pill-group">
+          <div class="relationship-pill-header">
+            <span class="relationship-pill-name">{rel.relationshipName}</span>
+            <span
+              role="button"
+              class="pointer delete-trigger"
+              onclick={handleRelationshipRemoved}
+              data-relationship={rel.relationshipName}
+            >X</span>
+          </div>
+          <div class="selected-fields-container">
+            <template for:each={rel.fields} for:item="field">
+              <div class="selected-field" key={field}>
+                {field}
+                <span
+                  role="button"
+                  class="pointer delete-trigger"
+                  onclick={handleFieldRemoved}
+                  data-relationship={rel.relationshipName}
+                  data-field={field}
+                >X</span>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+    </div>
+  </div>
+</template>

@@ -251,33 +251,24 @@ export default class App extends LightningElement {
     this.modelService.setFields([]);
   }
 
-  /* ---- RELATIONSHIP DRILL-DOWN HANDLER ---- */
+  /* ---- RELATIONSHIP HANDLERS ---- */
   /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-  public handleLoadRelationship(e: CustomEvent): void {
+  public handleRelationshipLoadFields(e: CustomEvent): void {
     const { relationshipName, referenceTo } = e.detail as { relationshipName: string; referenceTo: string[] };
     const targetSObject = referenceTo[0];
     if (!targetSObject) return;
+    this._loadFieldsIntoComponent('querybuilder-relationships', 'setDrillFields', targetSObject);
+    void relationshipName;
+  }
 
-    const fieldsComponent = this.template.querySelector('querybuilder-fields') as any;
-    if (!fieldsComponent) return;
+  public handleRelationshipFieldsChanged(e: CustomEvent): void {
+    const { relationshipName, fields } = e.detail as { relationshipName: string; fields: string[] };
+    this.modelService.setRelationshipFields(relationshipName, fields);
+  }
 
-    const cached = this._metadataCache.get(targetSObject.toLowerCase());
-    if (cached) {
-      const parentFields: string[] = cached.fields ? cached.fields.map((f) => f.name).sort() : [];
-      fieldsComponent.setParentFields(parentFields);
-      return;
-    }
-
-    this.toolingSDK.loadSObjectMetatada(targetSObject);
-    // subscribe once for this response then restore
-    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
-      if (!metadata || !metadata.name) return;
-      if (metadata.name.toLowerCase() !== targetSObject.toLowerCase()) return;
-      this._metadataCache.set(targetSObject.toLowerCase(), metadata);
-      const parentFields: string[] = metadata.fields ? metadata.fields.map((f) => f.name).sort() : [];
-      fieldsComponent.setParentFields(parentFields);
-    });
-    void sub;
+  public handleRelationshipRemove(e: CustomEvent): void {
+    const { relationshipName } = e.detail as { relationshipName: string };
+    this.modelService.removeRelationship(relationshipName);
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 
@@ -285,23 +276,26 @@ export default class App extends LightningElement {
   /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
   public handleSubqueryLoadFields(e: CustomEvent): void {
     const { relationshipName, childSObject } = e.detail as { relationshipName: string; childSObject: string };
-    const subqueriesComponent = this.template.querySelector('querybuilder-subqueries') as any;
-    if (!subqueriesComponent) return;
+    this._loadFieldsIntoComponent('querybuilder-subqueries', 'setDrillFields', childSObject);
+    void relationshipName;
+  }
 
-    const cached = this._metadataCache.get(childSObject.toLowerCase());
+  private _loadFieldsIntoComponent(selector: string, method: string, sobjectName: string): void {
+    const component = this.template.querySelector(selector) as any;
+    if (!component) return;
+    const cached = this._metadataCache.get(sobjectName.toLowerCase());
     if (cached) {
-      const childFields: string[] = cached.fields ? cached.fields.map((f) => f.name).sort() : [];
-      subqueriesComponent.setDrillFields(childFields);
+      const fields: string[] = cached.fields ? cached.fields.map((f) => f.name).sort() : [];
+      component[method](fields);
       return;
     }
-
-    this.toolingSDK.loadSObjectMetatada(childSObject);
+    this.toolingSDK.loadSObjectMetatada(sobjectName);
     const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
       if (!metadata || !metadata.name) return;
-      if (metadata.name.toLowerCase() !== childSObject.toLowerCase()) return;
-      this._metadataCache.set(childSObject.toLowerCase(), metadata);
-      const childFields: string[] = metadata.fields ? metadata.fields.map((f) => f.name).sort() : [];
-      subqueriesComponent.setDrillFields(childFields);
+      if (metadata.name.toLowerCase() !== sobjectName.toLowerCase()) return;
+      this._metadataCache.set(sobjectName.toLowerCase(), metadata);
+      const fields: string[] = metadata.fields ? metadata.fields.map((f) => f.name).sort() : [];
+      component[method](fields);
     });
     void sub;
   }
@@ -354,7 +348,12 @@ export default class App extends LightningElement {
   }
 
   public get isQueryValid(): boolean {
-    return Boolean(this.query.sObject) && this.query.fields.length > 0;
+    return (
+      Boolean(this.query.sObject) &&
+      (this.query.fields.length > 0 ||
+        (this.query.relationships || []).some(r => r.fields.length > 0) ||
+        (this.query.subqueries || []).some(s => s.fields.length > 0))
+    );
   }
 
   public handleRunQuery(): void {
