@@ -115,8 +115,12 @@ export default class Fields extends LightningElement {
   }
 
   private _updateDisplayOptions(): void {
-    const relEntries = this._relOptions.map(r => `${REL_PREFIX}${r.relationshipName}`);
-    const subEntries = this._childRelOptions.map(c => `${SUB_PREFIX}${c.relationshipName}`);
+    const relEntries = this._relOptions
+      .map(r => `${REL_PREFIX}${r.relationshipName}`)
+      .sort((a, b) => a.localeCompare(b));
+    const subEntries = this._childRelOptions
+      .map(c => `${SUB_PREFIX}${c.relationshipName}`)
+      .sort((a, b) => a.localeCompare(b));
     this._displayFields = [CLEAR_OPTION, SELECT_ALL_OPTION, SELECT_COUNT, ...this._baseFields, ...relEntries, ...subEntries];
   }
 
@@ -148,6 +152,7 @@ export default class Fields extends LightningElement {
       ? (metadata.fields as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
         .filter((f: any) => f.type === 'reference' && f.relationshipName) // eslint-disable-line @typescript-eslint/no-explicit-any
         .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .sort((a, b) => a.localeCompare(b))
       : [];
     this._displayFields = [...plain, ...refs];
   }
