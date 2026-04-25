@@ -28,3 +28,16 @@
   color: var(--vscode-foreground, var(--soql-foreground));
   font-weight: bold;
 }
+
+.rel-breadcrumb {
+  font-size: smaller;
+  color: var(--vscode-foreground);
+}
+
+.rel-breadcrumb__back {
+  color: var(--vscode-button-background);
+}
+
+.rel-breadcrumb__label {
+  font-weight: bold;
+}

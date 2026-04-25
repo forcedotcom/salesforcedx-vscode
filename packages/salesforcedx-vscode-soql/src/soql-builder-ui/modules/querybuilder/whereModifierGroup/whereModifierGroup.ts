@@ -31,12 +31,22 @@ const DEFAULT_FIELD_INPUT_VALUE = '';
 const DEFAULT_OPERATOR_INPUT_VALUE = 'EQ';
 const DEFAULT_CRITERIA_INPUT_VALUE = '';
 
+const REL_PREFIX = '→ ';
+const MAX_DEPTH = 5;
+
+type DrillLevel = {
+  relationshipName: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metadata: any;
+};
+
 export default class WhereModifierGroup extends LightningElement {
   @api public allFields: string[];
   @api public isLoading = false;
   @api public index;
   @track public _currentFieldSelection;
   @track public _criteriaDisplayValue;
+  @track public _drillStack: DrillLevel[] = [];
   public sobjectTypeUtils: SObjectTypeUtils;
   public fieldEl: HTMLSelectElement;
   public operatorEl: HTMLSelectElement;
@@ -62,6 +72,88 @@ export default class WhereModifierGroup extends LightningElement {
     this._sobjectMetadata = sobjectMetadata;
     this.sobjectTypeUtils = new SObjectTypeUtils(sobjectMetadata);
     this.resetErrorFlagsAndMessages();
+  }
+
+  // Base fields + → relationship entries, or drilled-in fields + deeper → entries
+  public get computedAllFields(): string[] {
+    if (this._drillStack.length > 0) {
+      const currentMeta = this._drillStack[this._drillStack.length - 1].metadata;
+      if (!currentMeta || !Array.isArray(currentMeta.fields)) return [];
+      const plain: string[] = (currentMeta.fields as any[])
+        .filter((f: any) => f.type !== 'reference' || !f.relationshipName)
+        .map((f: any) => f.name as string)
+        .sort();
+      const refs: string[] = this._drillStack.length < MAX_DEPTH
+        ? (currentMeta.fields as any[])
+          .filter((f: any) => f.type === 'reference' && f.relationshipName)
+          .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`)
+          .sort()
+        : [];
+      return [...plain, ...refs];
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const relEntries: string[] = (this._sobjectMetadata?.fields || [])
+      .filter((f: any) => f.type === 'reference' && f.relationshipName)
+      .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`)
+      .sort();
+    return [...(this.allFields || []), ...relEntries];
+  }
+
+  public get relDrillBreadcrumb(): string {
+    return this._drillStack.map(l => `${REL_PREFIX}${l.relationshipName}`).join(' ');
+  }
+
+  public get isDrilledIn(): boolean {
+    return this._drillStack.length > 0;
+  }
+
+  // Called by app/where with full metadata for the newly drilled sObject
+  @api
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public setRelDrillMetadata(metadata: any): void {
+    if (this._drillStack.length === 0) return;
+    this._drillStack = this._drillStack.map((level, i) =>
+      i === this._drillStack.length - 1 ? { ...level, metadata } : level
+    );
+  }
+
+  public handleRelDrillBack(): void {
+    if (this._drillStack.length <= 1) {
+      this._drillStack = [];
+    } else {
+      this._drillStack = this._drillStack.slice(0, -1);
+    }
+  }
+
+  public handleFieldOptionSelection(e: CustomEvent): void {
+    const value: string = e.detail?.value;
+    if (!value) return;
+
+    if (value.startsWith(REL_PREFIX)) {
+      const relName = value.slice(REL_PREFIX.length);
+      // Find referenceTo from current level metadata (or top-level sobjectMetadata)
+      const sourceMeta = this._drillStack.length > 0
+        ? this._drillStack[this._drillStack.length - 1].metadata
+        : this._sobjectMetadata;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const refField = (sourceMeta?.fields || []).find((f: any) => f.relationshipName === relName);
+      if (!refField) return;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const referenceTo: string[] = refField.referenceTo;
+      this._drillStack = [...this._drillStack, { relationshipName: relName, metadata: null }];
+      this.dispatchEvent(new CustomEvent('where__loadrelationship', {
+        detail: { index: this.index, relationshipName: relName, referenceTo },
+        bubbles: true,
+        composed: true
+      }));
+      return;
+    }
+
+    // Plain field — build full dotted path from stack
+    const prefix = this._drillStack.map(l => l.relationshipName).join('.');
+    const fieldName = prefix ? `${prefix}.${value}` : value;
+    this._drillStack = [];
+    this._currentFieldSelection = fieldName;
   }
 
   @api // this need to be public so parent can read value

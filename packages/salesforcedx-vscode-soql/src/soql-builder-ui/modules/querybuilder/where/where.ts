@@ -134,6 +134,15 @@ export default class Where extends LightningElement {
     }
   }
 
+  // Called by app with fields for a relationship drill-down in a specific modifier group
+  @api
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public setModifierGroupRelMetadata(index: number, metadata: any): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const group = this.template.querySelector(`[data-index="${index}"]`) as any;
+    if (group) group.setRelDrillMetadata(metadata);
+  }
+
   public handleModifierGroupSelection(e: Event): void {
     e.preventDefault();
     // eslint-disable-next-line camelcase

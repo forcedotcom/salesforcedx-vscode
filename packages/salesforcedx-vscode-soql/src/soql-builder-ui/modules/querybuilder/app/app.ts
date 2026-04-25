@@ -68,6 +68,14 @@ export default class App extends LightningElement {
   public get showQueryBuilderForm(): boolean {
     return !this.hasNoDefaultOrg && !this.shouldBlockQueryBuilder;
   }
+
+  // Base fields + committed relationship fields (e.g. Owner.Name) for use in Filter / Order By
+  public get whereFields(): string[] {
+    const relFields = (this.query.relationships || []).flatMap(r =>
+      r.fields.map(f => `${r.relationshipName}.${f}`)
+    );
+    return [...this.fields, ...relFields].sort();
+  }
   public hasNoDefaultOrg = false;
   public hasUnsupportedMessage = false;
   public hasRecoverableFieldsError = false;
@@ -268,6 +276,30 @@ export default class App extends LightningElement {
   public handleRelationshipRemove(e: CustomEvent): void {
     const { relationshipName } = e.detail as { relationshipName: string };
     this.modelService.removeRelationship(relationshipName);
+  }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
+  /* ---- WHERE RELATIONSHIP DRILL ---- */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  public handleWhereLoadRelationship(e: CustomEvent): void {
+    const { index, referenceTo } = e.detail as { index: number; relationshipName: string; referenceTo: string[] };
+    const targetSObject = referenceTo[0];
+    if (!targetSObject) return;
+    const whereComponent = this.template.querySelector('querybuilder-where') as any;
+    if (!whereComponent) return;
+    const cached = this._metadataCache.get(targetSObject.toLowerCase());
+    if (cached) {
+      whereComponent.setModifierGroupRelMetadata(index, cached);
+      return;
+    }
+    this.toolingSDK.loadSObjectMetatada(targetSObject);
+    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
+      if (!metadata || !metadata.name) return;
+      if (metadata.name.toLowerCase() !== targetSObject.toLowerCase()) return;
+      this._metadataCache.set(targetSObject.toLowerCase(), metadata);
+      whereComponent.setModifierGroupRelMetadata(index, metadata);
+    });
+    void sub;
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 

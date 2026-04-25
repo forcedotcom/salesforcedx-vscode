@@ -67,10 +67,11 @@
           ></querybuilder-fields>
           <querybuilder-where
             where-expr={query.where}
-            where-fields={fields}
+            where-fields={whereFields}
             onwhere__group_selection={handleWhereSelection}
             onwhere__andor_selection={handleAndOrSelection}
             onwhere__condition_removed={handleRemoveWhereCondition}
+            onwhere__loadrelationship={handleWhereLoadRelationship}
             is-loading={isFieldsLoading}
             class={theme}
             sobject-metadata={sobjectMetadata}
