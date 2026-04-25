@@ -257,7 +257,7 @@ export default class App extends LightningElement {
     const { referenceTo } = e.detail as { relationshipName: string; referenceTo: string[] };
     const targetSObject = referenceTo[0];
     if (!targetSObject) return;
-    this._loadMetadataIntoComponent('querybuilder-relationships', 'setDrillMetadata', targetSObject);
+    this._loadMetadataIntoComponent('querybuilder-fields', 'setDrillMetadata', targetSObject);
   }
 
   public handleRelationshipFieldsChanged(e: CustomEvent): void {

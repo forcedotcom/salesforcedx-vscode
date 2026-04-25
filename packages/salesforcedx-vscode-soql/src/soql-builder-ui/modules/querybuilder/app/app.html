@@ -49,22 +49,18 @@
           <querybuilder-fields
             selected-fields={query.fields}
             fields={fields}
+            relationships={query.relationships}
+            sobject-metadata={sobjectMetadata}
             onfields__selected={handleFieldSelected}
             onfields__selectall={handleFieldSelectAll}
             onfields__clearall={handleFieldClearAll}
+            onfields__loadrelationship={handleRelationshipLoadFields}
+            onfields__relationshipchanged={handleRelationshipFieldsChanged}
+            onfields__relationshipremoved={handleRelationshipRemove}
             has-error={hasRecoverableFieldsError}
             is-loading={isFieldsLoading}
             class={theme}
           ></querybuilder-fields>
-          <querybuilder-relationships
-            relationships={query.relationships}
-            sobject-metadata={sobjectMetadata}
-            is-loading={isFieldsLoading}
-            onrelationships__loadfields={handleRelationshipLoadFields}
-            onrelationships__fieldschanged={handleRelationshipFieldsChanged}
-            onrelationships__remove={handleRelationshipRemove}
-            class={theme}
-          ></querybuilder-relationships>
           <querybuilder-subqueries
             subqueries={query.subqueries}
             sobject-metadata={sobjectMetadata}

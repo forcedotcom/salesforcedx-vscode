@@ -79,9 +79,6 @@ export const messages = {
   placeholder_search_fields: 'Search fields...',
   placeholder_select_field: 'Select Field...',
 
-  // relationships
-  label_relationships: 'Relationships',
-
   // subqueries
   label_subqueries: 'Subqueries',
 
