@@ -96,7 +96,7 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
       where = {
         conditions: simpleGroupArray.conditions.map((condition, index) => {
           return {
-            condition,
+            condition: normalizeCondition(condition),
             index
           };
         }),
@@ -280,6 +280,45 @@ const parseSubquerySyntax = (syntax: string): SubqueryJson | null => {
 // Build a subquery string from SubqueryJson, e.g. "(SELECT Id, Name FROM Contacts)".
 const buildSubquerySyntax = (sq: SubqueryJson): string =>
   `(SELECT ${sq.fields.join(', ')} FROM ${sq.relationshipName})`;
+
+// Infer the LiteralType for a raw SOQL literal value string.
+const inferLiteralType = (value: string): string => {
+  if (value === 'true' || value === 'false') return 'BOOLEAN';
+  if (value === 'null') return 'NULL';
+  if (/^-?\d+(\.\d+)?$/.test(value)) return 'NUMBER';
+  if (/^\d{4}-\d{2}-\d{2}(T[\d:.Z+-]+)?$/.test(value)) return 'DATE';
+  return 'STRING';
+};
+
+// Normalize a raw parsed condition to match the shape expected by whereModifierGroup's condition setter.
+// Specifically, adds `type` to `compareValue` and `values` entries so the criteria display value loads correctly.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const normalizeCondition = (condition: any): any => {
+  if (!condition) return condition;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (condition.compareValue && condition.compareValue.value !== undefined && !condition.compareValue.type) {
+    return {
+      ...condition,
+      compareValue: {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        type: inferLiteralType(condition.compareValue.value),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        value: condition.compareValue.value
+      }
+    };
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (Array.isArray(condition.values)) {
+    return {
+      ...condition,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      values: condition.values.map((v: any) => // eslint-disable-line @typescript-eslint/no-explicit-any
+        v.type ? v : { type: inferLiteralType(v.value), value: v.value }
+      )
+    };
+  }
+  return condition;
+};
 
 export const soqlStringLiteralToDisplayValue = (soqlString: string): string => {
   let displayValue = soqlString;
