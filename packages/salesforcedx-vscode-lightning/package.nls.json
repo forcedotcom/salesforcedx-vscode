@@ -5,5 +5,9 @@
   "activation_mode_description": "Configures when the Aura and LWC language servers (LSPs) should be active (requires restart)",
   "activation_mode_always_on": "Lighning LSPs will always be activate, regardless of vscode workspace structure",
   "activation_mode_autodetect": "Lighning LSPs will only become active if a valid vscode workspace is detected",
-  "activation_mode_off": "Lighning LSPs will never be activated"
+  "activation_mode_off": "Lighning LSPs will never be activated",
+  "lightning_generate_app_text": "SFDX: Create Aura App",
+  "lightning_generate_aura_component_text": "SFDX: Create Aura Component",
+  "lightning_generate_event_text": "SFDX: Create Aura Event",
+  "lightning_generate_interface_text": "SFDX: Create Aura Interface"
 }

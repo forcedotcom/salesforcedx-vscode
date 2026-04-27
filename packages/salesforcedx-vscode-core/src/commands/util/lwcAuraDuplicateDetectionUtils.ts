@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { readDirectory, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { readDirectory } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { nls } from '../../messages';
 import { AURA, isLwcComponent, LWC, TEST_FOLDER } from '../../util/componentUtils';
-import { isLwcComponentPath } from '../../util/types';
 
 /**
  * check duplicate name under current component directory and __tests__ directory to avoid file loss
@@ -33,21 +32,6 @@ export const isNameMatch = (item: string, componentName: string, componentPath: 
     : new RegExp(`${componentName}(((Controller|Renderer|Helper)?\\.js)|(\\.(cmp|app|css|design|auradoc|svg|evt)))`);
   return Boolean(item.match(regularExp));
 };
-/**
- * Component names for LWC and Aura connot have the same name
- * Given a componentPath and name for LWC or Aura, check the opposing folder to see if the same name is being used
- * if not be used return true, otherwise throw an error
- * @param componentPath
- * @param name
- * @returns
- */
-export const checkForExistingComponentInAltLocation = async (componentPath: string, name: string): Promise<boolean> => {
-  const pathToCheck = isLwcComponentPath(componentPath)
-    ? path.join(path.dirname(componentPath), AURA)
-    : path.join(path.dirname(componentPath), LWC);
-  return pathToCheck ? await fileOrFolderExists(path.join(pathToCheck, name)) : false; // No path to check
-};
-
 export const checkForDuplicateName = async (componentPath: string, newName: string) => {
   const isNameDuplicate = await isDuplicate(componentPath, newName);
   if (isNameDuplicate) {

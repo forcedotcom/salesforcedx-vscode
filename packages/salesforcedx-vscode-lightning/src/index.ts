@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { AURA_SERVER_READY_NOTIFICATION, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ApplyWorkspaceEditRequest,
@@ -12,6 +13,8 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { detectWorkspaceType, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import * as Scope from 'effect/Scope';
 import { log } from 'node:console';
 import * as path from 'node:path';
 import { ExtensionContext, workspace } from 'vscode';
@@ -22,16 +25,53 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
+import { URI } from 'vscode-uri';
 import AuraLspStatusBarItem from './auraLspStatusBarItem';
+import { createAuraAppCommand } from './commands/createAuraApp';
+import { createAuraComponentCommand } from './commands/createAuraComponent';
+import { createAuraEventCommand } from './commands/createAuraEvent';
+import { createAuraInterfaceCommand } from './commands/createAuraInterface';
 import { nls } from './messages';
+import { buildAllServicesLayer, getRuntime, setAllServicesLayer } from './services/extensionProvider';
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
   return config.get('activationMode') ?? 'autodetect'; // default to autodetect
 };
 
+const activateCommands = Effect.fn('aura:activateCommands')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  yield* Effect.all(
+    [
+      registerCommand('sf.lightning.generate.app', createAuraAppCommand),
+      registerCommand('sf.lightning.generate.aura.component', createAuraComponentCommand),
+      registerCommand('sf.lightning.generate.event', createAuraEventCommand),
+      registerCommand('sf.lightning.generate.interface', createAuraInterfaceCommand),
+      registerCommand('sf.internal.lightning.generate.app', (sourceUri?: URI) =>
+        createAuraAppCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.internal.lightning.generate.aura.component', (sourceUri?: URI) =>
+        createAuraComponentCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.internal.lightning.generate.event', (sourceUri?: URI) =>
+        createAuraEventCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.internal.lightning.generate.interface', (sourceUri?: URI) =>
+        createAuraInterfaceCommand(sourceUri, { internal: true })
+      )
+    ],
+    { concurrency: 'unbounded' }
+  );
+});
+
 export const activate = async (extensionContext: ExtensionContext) => {
   const extensionStartTime = TimingUtils.getCurrentTime();
+
+  // Initialize services layer and register commands
+  const extensionScope = Effect.runSync(getExtensionScope());
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await getRuntime().runPromise(activateCommands().pipe(Scope.extend(extensionScope)));
 
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
@@ -165,7 +205,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionStartTime);
 };
 
-export const deactivate = () => {
+export const deactivate = async (): Promise<void> => {
   console.log('Aura Components Extension Deactivated');
   TelemetryService.getInstance().sendExtensionDeactivationEvent();
+  await getRuntime().runPromise(closeExtensionScope());
 };

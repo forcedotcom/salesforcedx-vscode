@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -34,11 +34,11 @@ test.describe('Aura Templates (Desktop Only)', () => {
     await waitForWorkspaceReady(page);
   });
 
-  const createAuraTemplate = async (page: any, command: string, name: string, expectedFiles: string[]) => {
+  const createAuraTemplate = async (page: import('@playwright/test').Page, command: string, name: string, expectedFiles: string[]) => {
     await test.step(`Create Aura ${name}`, async () => {
       await verifyCommandExists(page, command, 30_000);
       await executeCommandWithCommandPalette(page, command);
-      
+
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
       await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
       await page.keyboard.type(name);
@@ -48,7 +48,7 @@ test.describe('Aura Templates (Desktop Only)', () => {
       await page.keyboard.press('Enter');
 
       await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
-      
+
       for (const file of expectedFiles) {
         const explorerFile = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`${file}$`, 'i') });
         await expect(explorerFile).toBeVisible();
