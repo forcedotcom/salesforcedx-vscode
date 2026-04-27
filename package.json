@@ -102,6 +102,7 @@
     "path-browserify": "^1.0.1",
     "playwright": "^1.49.0",
     "prettier": "3.6.2",
+    "pretty-quick": "4.2.2",
     "process": "0.11.10",
     "querystring-es3": "0.2.1",
     "readable-stream": "^4.7.0",
@@ -135,7 +136,7 @@
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
-    "check:format": "wireit",
+    "check:format:staged": "wireit",
     "check:knip": "wireit",
     "check:branch": "wireit",
     "precommit": "wireit",
@@ -379,19 +380,8 @@
       ],
       "output": []
     },
-    "check:format": {
-      "command": "prettier --check --cache .",
-      "files": [
-        "**/*.{ts,tsx,js,cjs,mjs,json,yaml,yml,html,css}",
-        ".prettierrc",
-        ".prettierignore",
-        "!**/node_modules/**",
-        "!**/.wireit/**",
-        "!**/out/**",
-        "!**/lib/**",
-        "!**/dist/**"
-      ],
-      "output": []
+    "check:format:staged": {
+      "command": "pretty-quick --staged --check"
     },
     "check:branch": {
       "command": "node scripts/check-branch.js"
@@ -401,7 +391,7 @@
         "check:branch",
         "compile",
         "lint",
-        "check:format",
+        "check:format:staged",
         "check:peer-deps",
         "check:package-lock",
         "check:lock-sync",
