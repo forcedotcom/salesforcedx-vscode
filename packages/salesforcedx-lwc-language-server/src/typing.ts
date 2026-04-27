@@ -101,9 +101,9 @@ export const declarationsFromCustomLabels = async (xmlDocument: string | Buffer)
     return '';
   }
   const labelsNode = parsed.CustomLabels.labels;
-  const labelBlocks: CustomLabelBlock[] = Array.isArray(labelsNode) ? labelsNode : [labelsNode];
-  const declarations: string[] = labelBlocks.map((label) => declaration('customLabel', label.fullName));
-  return declarations.join('\n');
+  return (Array.isArray(labelsNode) ? labelsNode : [labelsNode])
+    .map(label => declaration('customLabel', label.fullName))
+    .join('\n');
 };
 
 // Utility function to get declaration for a Typing object
