@@ -8,7 +8,6 @@
 
 import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
 import {
-  extensionUris,
   getJsonCandidate,
   identifyJsonTypeInString,
   workspaceUtils,
@@ -219,7 +218,11 @@ const copyDirectorySync = async (src: string, dest: string) => {
  */
 const resolveTemplateDir = async (): Promise<URI> => {
   const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
-  const extensionDir = extensionUris.extensionUri(VSCODE_APEX_EXTENSION_NAME);
+  const ext = vscode.extensions.getExtension(VSCODE_APEX_EXTENSION_NAME);
+  if (!ext) {
+    throw new Error(`Unable to find extension ${VSCODE_APEX_EXTENSION_NAME}`);
+  }
+  const extensionDir = ext.extensionUri;
   if (logLevel !== 'fatal') {
     // copy contents of extensionDir to TEMPLATES_DIR
     await copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);

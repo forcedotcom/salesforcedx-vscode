@@ -29,7 +29,6 @@ export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export { ActivationTracker } from './helpers/activationTracker';
 export { isSFContainerMode } from './helpers/env';
-export { extensionUris } from './helpers/extensionUris';
 export {
   createDirectory,
   deleteFile,

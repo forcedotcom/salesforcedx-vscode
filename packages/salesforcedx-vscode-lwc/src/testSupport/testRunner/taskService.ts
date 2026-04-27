@@ -76,7 +76,7 @@ class TaskService {
       taskStartEvent => {
         const { execution } = taskStartEvent;
         const { definition } = execution.task;
-        const { sfTaskId } = definition;
+        const sfTaskId = typeof definition.sfTaskId === 'string' ? definition.sfTaskId : undefined;
         if (sfTaskId) {
           const foundTask = this.createdTasks.get(sfTaskId);
           if (foundTask) {
@@ -92,7 +92,7 @@ class TaskService {
       taskEndEvent => {
         const { execution } = taskEndEvent;
         const { definition } = execution.task;
-        const { sfTaskId } = definition;
+        const sfTaskId = typeof definition.sfTaskId === 'string' ? definition.sfTaskId : undefined;
         if (sfTaskId) {
           const foundTask = this.createdTasks.get(sfTaskId);
           if (foundTask) {

@@ -6,13 +6,16 @@
  */
 
 import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import { workspace } from 'vscode';
 import type { DocumentSelector } from 'vscode-languageclient';
 import { URI } from 'vscode-uri';
 
 /** Languages supported by the LWC language server. */
 const LWC_DOCUMENT_SELECTOR_LANGUAGES = ['html', 'javascript', 'typescript', 'json', 'xml'] as const;
+
+// https://github.com/Microsoft/vscode-languageserver-node/issues/105
+const code2ProtocolConverter = (value: URI) =>
+  process.platform.startsWith('win32') ? value.toString().replace('%3A', ':') : value.toString();
 
 const protocol2CodeConverter = (value: string) => URI.parse(value);
 
