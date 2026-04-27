@@ -11,14 +11,6 @@ import * as Stream from 'effect/Stream';
 import { workspace } from 'vscode';
 import type { URI } from 'vscode-uri';
 
-/** True if the URI path is under lwc/ and matches *.js, *.ts, *.html, or *js-meta.xml */
-const isLwcFile = (uri: URI): boolean => {
-  const pathSegment = uri.fsPath ?? uri.path;
-  return !pathSegment.includes('/lwc/') && !pathSegment.includes('\\lwc\\')
-    ? false
-    : ['.js', '.ts', '.html', 'js-meta.xml'].some(ext => pathSegment.endsWith(ext));
-};
-
 /**
  * Watch for newly created LWC files and auto-open them to trigger delayed initialization.
  * Handles files downloaded from org browser after the server starts —
@@ -31,7 +23,10 @@ export const startLwcFileWatcher = Effect.fn('lwc.watchFileCreates')(function* (
   yield* Stream.fromPubSub(fileChangePubSub).pipe(
     Stream.filter(e => e.type === 'create'),
     Stream.map(e => e.uri),
-    Stream.filter(isLwcFile),
+    Stream.filter(
+      (uri: URI) =>
+        uri.path.includes('/lwc/') && ['.js', '.ts', '.html', 'js-meta.xml'].some(ext => uri.path.endsWith(ext))
+    ),
     Stream.runForEach(uri =>
       Effect.tryPromise(() => workspace.openTextDocument(uri)).pipe(Effect.orElseSucceed(() => undefined))
     )
