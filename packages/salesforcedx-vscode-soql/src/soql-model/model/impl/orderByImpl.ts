@@ -18,7 +18,7 @@ export class OrderByImpl implements OrderBy {
     let syntax = 'ORDER BY ';
     let first = true;
     if (this.orderByExpressions.length > 0) {
-      this.orderByExpressions.forEach((orderByExpressions) => {
+      this.orderByExpressions.forEach(orderByExpressions => {
         if (!first) {
           syntax += ', ';
         }

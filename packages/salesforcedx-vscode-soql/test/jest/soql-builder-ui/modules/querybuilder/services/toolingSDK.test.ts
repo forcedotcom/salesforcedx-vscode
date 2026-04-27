@@ -101,9 +101,7 @@ describe('Tooling SDK Service', () => {
     expect(sObjectMetadataObserver.mock.calls[0][0]).toStrictEqual({
       fields: []
     });
-    expect(sObjectMetadataObserver.mock.calls[1][0]).toStrictEqual(
-      fakeSObjectMetadata
-    );
+    expect(sObjectMetadataObserver.mock.calls[1][0]).toStrictEqual(fakeSObjectMetadata);
   });
 
   it('Receive run_query_done message', () => {

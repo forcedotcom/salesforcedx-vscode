@@ -7,11 +7,5 @@
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts", "src/**/*.json", "src/**/*.js", "resources/**/*.js", "typings/*.d.ts", "jest/*.js"],
-  "exclude": [
-    "src/tern/**/*.js",
-    "src/tern/test/**/*",
-    "src/tern/doc/**/*",
-    "src/tern/emacs/**/*",
-    "src/tern/bin/**/*"
-  ],
+  "exclude": ["src/tern/**/*.js", "src/tern/test/**/*", "src/tern/doc/**/*", "src/tern/emacs/**/*", "src/tern/bin/**/*"]
 }
