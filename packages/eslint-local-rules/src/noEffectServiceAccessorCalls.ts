@@ -45,11 +45,7 @@ const getEffectGenBody = (effectNode: TSESTree.Node | undefined): TSESTree.Block
   if (effectNode?.type !== AST_NODE_TYPES.CallExpression) return undefined;
   const callee = effectNode.callee;
   if (callee.type !== AST_NODE_TYPES.MemberExpression) return undefined;
-  if (
-    callee.property.type !== AST_NODE_TYPES.Identifier ||
-    callee.property.name !== 'gen'
-  )
-    return undefined;
+  if (callee.property.type !== AST_NODE_TYPES.Identifier || callee.property.name !== 'gen') return undefined;
   const arg = effectNode.arguments[0];
   if (arg?.type !== AST_NODE_TYPES.FunctionExpression) return undefined;
   if (!arg.generator) return undefined;
@@ -66,15 +62,11 @@ const findEffectServiceContexts = (node: TSESTree.Node): EffectServiceContext[] 
   const configObj = config;
   const depsProp = configObj.properties.find(
     (p: TSESTree.ObjectLiteralElement): p is TSESTree.Property =>
-      p.type === AST_NODE_TYPES.Property &&
-      p.key.type === AST_NODE_TYPES.Identifier &&
-      p.key.name === 'dependencies'
+      p.type === AST_NODE_TYPES.Property && p.key.type === AST_NODE_TYPES.Identifier && p.key.name === 'dependencies'
   );
   const effectProp = configObj.properties.find(
     (p: TSESTree.ObjectLiteralElement): p is TSESTree.Property =>
-      p.type === AST_NODE_TYPES.Property &&
-      p.key.type === AST_NODE_TYPES.Identifier &&
-      p.key.name === 'effect'
+      p.type === AST_NODE_TYPES.Property && p.key.type === AST_NODE_TYPES.Identifier && p.key.name === 'effect'
   );
   const depsValue = depsProp?.value;
   const effectValue = effectProp?.value;
@@ -127,10 +119,7 @@ const isInsideEffectFn = (node: TSESTree.Node, effectBody: TSESTree.BlockStateme
   return false;
 };
 
-const getYieldedServiceVarNames = (
-  effectBody: TSESTree.BlockStatement,
-  dependencyNames: Set<string>
-): Set<string> => {
+const getYieldedServiceVarNames = (effectBody: TSESTree.BlockStatement, dependencyNames: Set<string>): Set<string> => {
   const names = new Set<string>();
   for (const stmt of effectBody.body) {
     if (stmt.type === AST_NODE_TYPES.VariableDeclaration) {
@@ -180,8 +169,7 @@ export const noEffectServiceAccessorCalls = RuleCreator.withoutDocs({
         if (callee.type !== AST_NODE_TYPES.MemberExpression) return;
         const obj = callee.object;
         const prop = callee.property;
-        if (obj.type !== AST_NODE_TYPES.Identifier || prop.type !== AST_NODE_TYPES.Identifier)
-          return;
+        if (obj.type !== AST_NODE_TYPES.Identifier || prop.type !== AST_NODE_TYPES.Identifier) return;
         const serviceName = obj.name;
         const methodName = prop.name;
         if (methodName === 'Default') return;

@@ -28,7 +28,10 @@ describe('vscodeignore-contributes-conflict', () => {
 
     it('should pass when package.json has no contributes', () => {
       // no-unused-i18n fixture has no contributes paths — should produce no errors
-      const errors = filterByRule(lint('node_modules\nout/**\n', fixturePath('no-unused-i18n/.vscodeignore')), RULE_NAME);
+      const errors = filterByRule(
+        lint('node_modules\nout/**\n', fixturePath('no-unused-i18n/.vscodeignore')),
+        RULE_NAME
+      );
       expect(errors).toHaveLength(0);
     });
 

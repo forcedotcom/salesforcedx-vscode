@@ -310,7 +310,9 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should configure tracing with boolean', async () => {
       const sessionId = '07aFAKE';
-      sessionPrintToDebugSpy = jest.spyOn(ApexDebugForTest.prototype, 'printToDebugConsole').mockImplementation(() => {});
+      sessionPrintToDebugSpy = jest
+        .spyOn(ApexDebugForTest.prototype, 'printToDebugConsole')
+        .mockImplementation(() => {});
       sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
       jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
       jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
@@ -330,7 +332,9 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should not do any tracing by default', async () => {
       const sessionId = '07aFAKE';
-      sessionPrintToDebugSpy = jest.spyOn(ApexDebugForTest.prototype, 'printToDebugConsole').mockImplementation(() => {});
+      sessionPrintToDebugSpy = jest
+        .spyOn(ApexDebugForTest.prototype, 'printToDebugConsole')
+        .mockImplementation(() => {});
       sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
       jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
       jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
@@ -349,7 +353,9 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should configure tracing for specific category only', async () => {
       const sessionId = '07aFAKE';
-      sessionPrintToDebugSpy = jest.spyOn(ApexDebugForTest.prototype, 'printToDebugConsole').mockImplementation(() => {});
+      sessionPrintToDebugSpy = jest
+        .spyOn(ApexDebugForTest.prototype, 'printToDebugConsole')
+        .mockImplementation(() => {});
       sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
       jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
       jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
@@ -371,7 +377,9 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should configure tracing for all categories', async () => {
       const sessionId = '07aFAKE';
-      sessionPrintToDebugSpy = jest.spyOn(ApexDebugForTest.prototype, 'printToDebugConsole').mockImplementation(() => {});
+      sessionPrintToDebugSpy = jest
+        .spyOn(ApexDebugForTest.prototype, 'printToDebugConsole')
+        .mockImplementation(() => {});
       sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
       jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
       jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
@@ -464,29 +472,25 @@ describe('Interactive debugger adapter - unit', () => {
       expect(requestService.accessToken).toBe('00DxxFaK3T0ken');
     });
 
-    it(
-      'Should save connection settings',
-      async () => {
-        configGetSpy.mockResolvedValue({
-          getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
-        } as any);
-        args = {
-          salesforceProject: 'some/project/path',
-          workspaceSettings: {
-            connectionTimeoutMs: 60_000
-          } as WorkspaceSettings,
-          lineBreakpointInfo: lineBpInfo
-        };
+    it('Should save connection settings', async () => {
+      configGetSpy.mockResolvedValue({
+        getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
+      } as any);
+      args = {
+        salesforceProject: 'some/project/path',
+        workspaceSettings: {
+          connectionTimeoutMs: 60_000
+        } as WorkspaceSettings,
+        lineBreakpointInfo: lineBpInfo
+      };
 
-        await adapter.launchRequest(initializedResponse, args);
+      await adapter.launchRequest(initializedResponse, args);
 
-        expect(requestService.proxyUrl).toBeUndefined();
-        expect(requestService.proxyStrictSSL).toBeUndefined();
-        expect(requestService.proxyAuthorization).toBeUndefined();
-        expect(requestService.connectionTimeoutMs).toBe(60_000);
-      },
-      60_000
-    );
+      expect(requestService.proxyUrl).toBeUndefined();
+      expect(requestService.proxyStrictSSL).toBeUndefined();
+      expect(requestService.proxyAuthorization).toBeUndefined();
+      expect(requestService.connectionTimeoutMs).toBe(60_000);
+    }, 60_000);
   });
 
   describe('Line breakpoint info', () => {
@@ -667,9 +671,7 @@ describe('Interactive debugger adapter - unit', () => {
     it('Should try to disconnect and stop', async () => {
       const sessionId = '07aFAKE';
       sessionStopSpy = jest.spyOn(SessionService.prototype, 'stop').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected')
-        .mockReturnValueOnce(true)
-        .mockReturnValueOnce(false);
+      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValueOnce(true).mockReturnValueOnce(false);
 
       await adapter.disconnectReq(response, args);
 
@@ -686,9 +688,7 @@ describe('Interactive debugger adapter - unit', () => {
       sessionStopSpy = jest
         .spyOn(SessionService.prototype, 'stop')
         .mockRejectedValue('{"message":"There was an error", "action":"Try again"}');
-      jest.spyOn(SessionService.prototype, 'isConnected')
-        .mockReturnValueOnce(true)
-        .mockReturnValueOnce(true);
+      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValueOnce(true).mockReturnValueOnce(true);
 
       await adapter.disconnectReq(response, args);
 
@@ -1174,9 +1174,7 @@ describe('Interactive debugger adapter - unit', () => {
 
         expect(getExceptionBreakpointCacheSpy).toHaveBeenCalledTimes(1);
         expect(adapter.getResponse(0).success).toBe(true);
-        expect(adapter.getResponse(0).body.typerefs).toEqual(
-          expect.arrayContaining(['fooexception', 'barexception'])
-        );
+        expect(adapter.getResponse(0).body.typerefs).toEqual(expect.arrayContaining(['fooexception', 'barexception']));
       });
     });
   });

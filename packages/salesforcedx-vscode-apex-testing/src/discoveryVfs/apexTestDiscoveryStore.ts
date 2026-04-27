@@ -9,7 +9,12 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { nls } from '../messages';
 import { getFullClassName } from '../utils/testUtils';
 import { isPlainObject } from '../utils/typeGuards';
-import { getApexTestingClassUri, getOrgClassesDirUri, getOrgDiscoveryUri, getOrgIndexUri } from './apexTestingDiscoveryFs';
+import {
+  getApexTestingClassUri,
+  getOrgClassesDirUri,
+  getOrgDiscoveryUri,
+  getOrgIndexUri
+} from './apexTestingDiscoveryFs';
 import { getApexTestingDiscoveryFsProvider } from './apexTestingDiscoveryFsProvider';
 
 const decoder = new TextDecoder();
@@ -55,7 +60,8 @@ export class ApexTestDiscoveryStore {
     for (const cls of classes) {
       const fullClassName = getFullClassName(cls);
       const content =
-        classBodiesByFullName.get(fullClassName) ?? nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName);
+        classBodiesByFullName.get(fullClassName) ??
+        nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName);
       const classUri = getApexTestingClassUri(orgKey, fullClassName);
       const parentPath = `/${classUri.path.split('/').filter(Boolean).slice(0, -1).join('/')}`;
       this.provider.createDirectoryInternal(classUri.with({ path: parentPath }));

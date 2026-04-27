@@ -20,7 +20,7 @@ export type ValidateResult = {
 };
 
 export abstract class Validator {
-  constructor(protected options: ValidateOptions) { }
+  constructor(protected options: ValidateOptions) {}
   public abstract validate(input: string): ValidateResult;
 }
 
@@ -58,7 +58,7 @@ const allOperators: Operator[] = [
 
 export class OperatorValidator extends Validator {
   public validate(input: string): ValidateResult {
-    const operator = allOperators.find((op) => op.description === input.toUpperCase().trim());
+    const operator = allOperators.find(op => op.description === input.toUpperCase().trim());
     const display = operator ? operator.display : input;
     const isValid = operator ? operator.types.includes(this.options.type) : false;
     const message = isValid ? undefined : messages.error_operatorInput.replace('{0}', display);
@@ -67,7 +67,10 @@ export class OperatorValidator extends Validator {
 }
 
 export class MultipleInputValidator extends Validator {
-  constructor(protected options: ValidateOptions, protected delegateValidator: Validator) {
+  constructor(
+    protected options: ValidateOptions,
+    protected delegateValidator: Validator
+  ) {
     super(options);
   }
   public validate(input: string): ValidateResult {
@@ -82,7 +85,7 @@ export class MultipleInputValidator extends Validator {
     } else {
       return {
         isValid: false,
-        message: messages.error_fieldInput_list,
+        message: messages.error_fieldInput_list
       };
     }
     return { isValid: true };

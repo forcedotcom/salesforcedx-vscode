@@ -75,7 +75,9 @@ describe('OrgLogoutSelected', () => {
     jest.spyOn(orgUtil, 'updateConfigAndStateAggregators').mockResolvedValue(undefined);
 
     resetOrgRuntimeForTesting();
-    setAllServicesLayer(buildLayer() as ReturnType<typeof import('../../../../src/extensionProvider').buildAllServicesLayer>);
+    setAllServicesLayer(
+      buildLayer() as ReturnType<typeof import('../../../../src/extensionProvider').buildAllServicesLayer>
+    );
   });
 
   afterEach(() => {

@@ -13,11 +13,14 @@ describe('SelectExprsImpl should', () => {
   it('store select expressions', () => {
     const expected = {
       kind: 'selectExprs',
-      selectExpressions: [{ kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'sticky' } }, { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'fingers' } }],
+      selectExpressions: [
+        { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'sticky' } },
+        { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'fingers' } }
+      ]
     };
     const actual = new SelectExprsImpl([
       new FieldSelectionImpl(new FieldRefImpl(expected.selectExpressions[0].field.fieldName)),
-      new FieldSelectionImpl(new FieldRefImpl(expected.selectExpressions[1].field.fieldName)),
+      new FieldSelectionImpl(new FieldRefImpl(expected.selectExpressions[1].field.fieldName))
     ]);
     expect(actual).toEqual(expected);
   });
@@ -31,7 +34,7 @@ describe('SelectExprsImpl should', () => {
     const actual = new SelectExprsImpl([
       new FieldSelectionImpl(new FieldRefImpl('let')),
       new FieldSelectionImpl(new FieldRefImpl('it')),
-      new FieldSelectionImpl(new FieldRefImpl('bleed')),
+      new FieldSelectionImpl(new FieldRefImpl('bleed'))
     ]).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

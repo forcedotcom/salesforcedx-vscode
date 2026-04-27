@@ -4,7 +4,7 @@
 
 // isatty function - checks if a file descriptor is a TTY
 // In browser, always returns false
-const isatty = (fd) => {
+const isatty = fd => {
   // In browser, there are no TTYs, so always return false
   return false;
 };

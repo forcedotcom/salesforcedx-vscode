@@ -73,47 +73,48 @@ export const withPreparationProgress =
   // ConflictsE/ConflictsR capture the error and requirements of detectConflictsFn so callers
   // can still catchTag('ConflictsDetectedError', ...) and the runtime requirement is explicit.
   <ConflictsE = never, ConflictsR = never>(
-    operationType: OperationType,
-    detectConflictsFn?: (cs: NonEmptyComponentSet) => Effect.Effect<void, ConflictsE, ConflictsR>
-  ) =>
-  <E, R>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const runtime = yield* Effect.runtime<R | ConflictsR>();
-      const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
+      operationType: OperationType,
+      detectConflictsFn?: (cs: NonEmptyComponentSet) => Effect.Effect<void, ConflictsE, ConflictsR>
+    ) =>
+    <E, R>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const runtime = yield* Effect.runtime<R | ConflictsR>();
+        const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
 
-      const raceWithCancel = <A, E2, R2>(effect: Effect.Effect<A, E2, R2>) =>
-        Effect.raceFirst(effect, Deferred.await(cancelDeferred));
+        const raceWithCancel = <A, E2, R2>(effect: Effect.Effect<A, E2, R2>) =>
+          Effect.raceFirst(effect, Deferred.await(cancelDeferred));
 
-      return yield* Effect.async<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
-        void vscode.window.withProgress(
-          {
-            location: vscode.ProgressLocation.Notification,
-            cancellable: true
-          },
-          async (progress, token) => {
-            token.onCancellationRequested(() =>
-              void Runtime.runPromise(runtime)(
-                Deferred.fail(cancelDeferred, new api.services.UserCancellationError())
-              )
-            );
+        return yield* Effect.async<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
+          void vscode.window.withProgress(
+            {
+              location: vscode.ProgressLocation.Notification,
+              cancellable: true
+            },
+            async (progress, token) => {
+              token.onCancellationRequested(
+                () =>
+                  void Runtime.runPromise(runtime)(
+                    Deferred.fail(cancelDeferred, new api.services.UserCancellationError())
+                  )
+              );
 
-            const report = (key: Parameters<typeof nls.localize>[0]) =>
-              Effect.sync(() => progress.report({ message: nls.localize(key) }));
+              const report = (key: Parameters<typeof nls.localize>[0]) =>
+                Effect.sync(() => progress.report({ message: nls.localize(key) }));
 
-            const pipeline = Effect.gen(function* () {
-              yield* report(titleKey(operationType));
-              const cs = yield* raceWithCancel(prepare);
-              if (detectConflictsFn) {
-                yield* report('checking_for_conflicts');
-                yield* raceWithCancel(detectConflictsFn(cs));
-              }
-              return cs;
-            });
+              const pipeline = Effect.gen(function* () {
+                yield* report(titleKey(operationType));
+                const cs = yield* raceWithCancel(prepare);
+                if (detectConflictsFn) {
+                  yield* report('checking_for_conflicts');
+                  yield* raceWithCancel(detectConflictsFn(cs));
+                }
+                return cs;
+              });
 
-            const exit = await Runtime.runPromise(runtime)(Effect.exit(pipeline));
-            resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
-          }
-        );
+              const exit = await Runtime.runPromise(runtime)(Effect.exit(pipeline));
+              resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+            }
+          );
+        });
       });
-    });

@@ -99,7 +99,9 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   public rename(oldUri: URI, newUri: URI, _options: { overwrite: boolean }): void {
-    throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${oldUri.toString()} -> ${newUri.toString()}`);
+    throw vscode.FileSystemError.NoPermissions(
+      `${this.readOnlyErrorMessage}: ${oldUri.toString()} -> ${newUri.toString()}`
+    );
   }
 
   // Internal API used by discovery persistence to update in-memory VFS state.
