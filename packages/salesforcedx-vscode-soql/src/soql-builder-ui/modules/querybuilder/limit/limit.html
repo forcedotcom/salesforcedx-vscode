@@ -30,4 +30,22 @@
       />
     </div>
   </div>
+  <div class="section-container">
+    <div class="section_label-container">
+      <label for="query-max-rows">{i18n.label_max_rows}</label>
+    </div>
+    <div class="section_selection-container">
+      <input
+        id="query-max-rows"
+        type="number"
+        name="maxRows"
+        value={maxRows}
+        placeholder={i18n.placeholder_max_rows}
+        min="1"
+        data-el-max-rows
+        onchange={handleMaxRowsChange}
+        onkeyup={handleMaxRowsChange}
+      />
+    </div>
+  </div>
 </template>

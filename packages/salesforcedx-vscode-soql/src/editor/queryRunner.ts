@@ -17,16 +17,16 @@ const hasMessage = (obj: unknown): obj is { message: unknown } =>
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : hasMessage(error) ? String(error.message) : String(error);
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type QueryResult<T> = Awaited<ReturnType<Connection['query']>>;
+type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
 export const runQuery =
   (conn: Connection) =>
-  async (queryText: string, options = { showErrors: true }): Promise<QueryResult<JsonMap>> => {
+  async (queryText: string, options: { showErrors?: boolean; maxRows?: number } = {}): Promise<QueryResult> => {
+    const { maxRows } = options;
     const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
 
     try {
-      const rawQueryData = await conn.autoFetchQuery(pureSOQLText);
+      const rawQueryData = await conn.query(pureSOQLText, { autoFetch: true, maxFetch: maxRows ?? 10_000 });
       return {
         ...rawQueryData,
         records: flattenQueryRecords(rawQueryData.records)

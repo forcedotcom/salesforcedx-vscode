@@ -77,8 +77,10 @@
           ></querybuilder-order-by>
           <querybuilder-limit
             limit={query.limit}
+            max-rows={maxRows}
             has-error={hasRecoverableLimitError}
             onlimit__changed={handleLimitChanged}
+            onmaxrows__changed={handleMaxRowsChanged}
             class={theme}
           ></querybuilder-limit>
         </template>

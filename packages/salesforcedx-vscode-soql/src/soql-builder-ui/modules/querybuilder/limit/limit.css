@@ -11,3 +11,7 @@
 input[name='limit'] {
   width: 4rem;
 }
+
+input[name='maxRows'] {
+  width: 8rem;
+}

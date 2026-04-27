@@ -21,5 +21,5 @@ export enum MessageType {
 
 export type SoqlEditorEvent = {
   type: MessageType;
-  payload?: string | string[] | ToolingModelJson | TelemetryModelJson;
+  payload?: string | string[] | number | ToolingModelJson | TelemetryModelJson;
 }

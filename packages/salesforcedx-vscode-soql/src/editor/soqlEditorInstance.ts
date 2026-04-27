@@ -65,7 +65,7 @@ type SoqlEditorEvent =
     }
   | {
       type: 'run_query';
-      payload: never;
+      payload: number | undefined;
     }
   | {
       type: 'get_query_plan';
@@ -228,6 +228,7 @@ export class SOQLEditorInstance {
       case 'run_query': {
         const runQueryDone = () => this.runQueryDone();
         const { document } = this;
+        const maxRows = event.payload;
         const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
         return Effect.gen(function* () {
           const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
@@ -247,7 +248,7 @@ export class SOQLEditorInstance {
                 location: vscode.ProgressLocation.Notification,
                 title: nls.localize('progress_running_query')
               },
-              () => runQuery(conn)(queryText)
+              () => runQuery(conn)(queryText, { maxRows })
             )
           );
           yield* Effect.promise(() => openQueryDataView(queryData));
