@@ -25,7 +25,7 @@ export type ColumnData = {
   subTables: ColumnData[];
 };
 
-export type Column = {
+type Column = {
   title: string;
   fieldHelper: string[];
 };
