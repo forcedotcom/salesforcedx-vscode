@@ -77,7 +77,7 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
   }
 
   // Web: navigate and manually set auth fields in settings
-  await waitForVSCodeWorkbench(page, true);
+  await waitForVSCodeWorkbench(page);
   if (waitForProject) {
     await waitForProject();
   }

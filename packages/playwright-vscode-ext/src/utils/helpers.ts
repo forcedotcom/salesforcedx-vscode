@@ -152,17 +152,15 @@ export const filterNetworkErrors = (errors: NetworkError[]): NetworkError[] =>
   });
 
 /** Wait for VS Code workbench to load. For web, navigates to /. For desktop, just waits. */
-export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promise<void> => {
+export const waitForVSCodeWorkbench = async (page: Page): Promise<void> => {
   // Desktop: page is already loaded by Electron, no navigation possible
   if (isDesktop()) {
     await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
     return;
   }
 
-  // Web: navigate if requested, then wait
-  if (navigate) {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
-  }
+  // Web: navigate, then wait
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
 };
 

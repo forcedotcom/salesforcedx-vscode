@@ -36,7 +36,7 @@ export const applyLwcWebScratchAuth = async (page: Page): Promise<void> => {
     return;
   }
   const auth = await createDreamhouseOrg();
-  await waitForVSCodeWorkbench(page, true);
+  await waitForVSCodeWorkbench(page);
   await waitForWorkspaceReady(page);
   await upsertSettings(page, {
     [`${CODE_BUILDER_WEB_SECTION}.${INSTANCE_URL_KEY}`]: auth.instanceUrl,
