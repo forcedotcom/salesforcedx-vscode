@@ -61,32 +61,18 @@ const pickNonStickyTreeItem = async (items: Locator, description: string): Promi
 };
 
 /**
- * Web / multi-root: expand a folder path in Files Explorer (`mount/` prefix when test-web presents that root).
+ * Expand a folder path in the Files Explorer.
  * Reused for LWC bundles under `force-app/.../lwc` and for `.sfdx/typings/lwc` generated typings.
  */
 const expandWebExplorerSegments = async (page: Page, pathSegments: string[]): Promise<void> => {
-  const segments = [...pathSegments];
-  const mountRows = page.getByRole('treeitem', { name: /^mount(\/|,|$)/ });
-  if ((await mountRows.count()) > 0) {
-    segments.unshift('mount');
-  }
-  for (const segment of segments) {
+  for (const segment of pathSegments) {
     const escaped = segment.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const rows = page.getByRole('treeitem', { name: new RegExp(`^${escaped}(/|,|$)`) });
     await rows.first().waitFor({ state: 'attached', timeout: 15_000 });
     // Explorer re-renders rows (sticky scroll / virtualization); a locator can detach between wait and scroll.
     // Re-resolve the row each attempt via expect().toPass().
     await expect(async () => {
-      const rowCount = await rows.count();
-      let row: Locator;
-      if (segment === 'force-app' && segments[0] === 'mount' && rowCount > 1) {
-        const last = rows.nth(rowCount - 1);
-        row = (await last.evaluate(el => el.classList.contains('monaco-tree-sticky-row')))
-          ? await pickNonStickyTreeItem(rows, `"${segment}"`)
-          : last;
-      } else {
-        row = await pickNonStickyTreeItem(rows, `"${segment}"`);
-      }
+      const row = await pickNonStickyTreeItem(rows, `"${segment}"`);
       await row.waitFor({ state: 'visible', timeout: 10_000 });
       await row.scrollIntoViewIfNeeded();
       const expanded = await row.getAttribute('aria-expanded');
@@ -102,7 +88,7 @@ const expandWebExplorerSegments = async (page: Page, pathSegments: string[]): Pr
 
 /**
  * LWC files sit under `force-app/main/default/lwc/<bundle>/`. Collapsed parents keep leaf rows out of the tree, so
- * expand the path before single-clicking a file (web may use a `mount/` root; desktop opens the folder workspace).
+ * expand the path before single-clicking a file.
  */
 const expandExplorerPathToLwcFile = async (page: Page, fileName: string): Promise<void> => {
   const dot = fileName.lastIndexOf('.');
