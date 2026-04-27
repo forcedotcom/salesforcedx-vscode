@@ -22,7 +22,8 @@
       "Bash(grep -rn \"lwc_component_name\\\\|lwc_select\\\\|lwc_output\" /Users/madhur.shrivastava/salesforcedx-vscode/packages/salesforcedx-vscode-metadata/src --include=*.ts)",
       "Bash(npx tsc:*)",
       "Bash(grep -r \"import.*Response\\\\|from.*commandletHelpers\" /Users/madhur.shrivastava/salesforcedx-vscode/packages/salesforcedx-vscode-apex-testing/src/ --include=*.ts)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(npx playwright:*)"
     ],
     "autoApprove": [
       "PostToolUse",
