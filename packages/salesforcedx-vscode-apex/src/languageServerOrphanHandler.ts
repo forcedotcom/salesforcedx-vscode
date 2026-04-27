@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Column, createTable, Row } from '@salesforce/salesforcedx-utils-vscode';
+import { type Column, createTable, type Row } from '@salesforce/effect-ext-utils';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { APEX_LSP_ORPHAN } from './constants';
@@ -107,11 +107,9 @@ const terminationConfirmation = async (orphanedCount: number): Promise<boolean> 
   return choice === nls.localize('yes');
 };
 
-const requestsTermination = (choice: string | undefined): boolean =>
-  choice === nls.localize('terminate_processes');
+const requestsTermination = (choice: string | undefined): boolean => choice === nls.localize('terminate_processes');
 
-const showProcesses = (choice: string): boolean =>
-  choice === nls.localize('terminate_show_processes');
+const showProcesses = (choice: string): boolean => choice === nls.localize('terminate_show_processes');
 
 const showProcessTerminated = (processDetail: ProcessDetail): void => {
   channelService.appendLine(nls.localize('terminated_orphaned_process', processDetail.pid));

@@ -14,7 +14,7 @@ export const getUriPath = (uri: URI): string => (uri.scheme === 'file' ? uri.fsP
 
 export type ContinueResponse<T> = { type: 'CONTINUE'; data: T };
 export type CancelResponse = { type: 'CANCEL'; msg?: string };
-export type Response<T> = ContinueResponse<T> | CancelResponse;
+type Response<T> = ContinueResponse<T> | CancelResponse;
 
 export type ParametersGatherer<T> = {
   gather: () => Promise<Response<T>>;

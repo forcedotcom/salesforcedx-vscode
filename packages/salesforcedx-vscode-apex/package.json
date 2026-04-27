@@ -28,6 +28,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.4.21",
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
@@ -64,6 +65,7 @@
       "dependencies": [
         "copy:grammars",
         "copy:jar",
+        "../effect-ext-utils:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",

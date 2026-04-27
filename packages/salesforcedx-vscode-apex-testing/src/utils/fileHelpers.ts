@@ -7,7 +7,7 @@
 
 import type { QuickPickItem } from 'vscode';
 
-export type TestType = 'All' | 'AllLocal' | 'Suite' | 'Class';
+type TestType = 'All' | 'AllLocal' | 'Suite' | 'Class';
 
 export type ApexTestQuickPickItem = QuickPickItem & {
   type: TestType;
