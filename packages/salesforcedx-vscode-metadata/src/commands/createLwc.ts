@@ -63,8 +63,12 @@ const determineComponentTemplate = Effect.fn('determineComponentTemplate')(funct
 });
 
 /** Create LWC via TemplateService from services extension.
- * outputDir: when invoked from explorer context (right-click lwc folder), VS Code passes the folder URI */
-export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputDirParam?: URI) {
+ * outputDir: when invoked from explorer context (right-click lwc folder), VS Code passes the folder URI
+ * options.internal: when true, skips lwc/ dir validation and .js-meta.xml generation (internal dev mode) */
+export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
+  outputDirParam?: URI,
+  options?: { internal?: boolean }
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const project = yield* api.services.ProjectService.getSfProject();
@@ -102,7 +106,7 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputD
       componentname: componentName,
       template,
       type: 'lwc',
-      internal: false
+      internal: options?.internal ?? false
     }
   });
 

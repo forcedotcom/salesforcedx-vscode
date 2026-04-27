@@ -62,6 +62,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     [
       svc.appendToChannel('Registering metadata commands'),
       registerCommand('sf.metadata.lightning.generate.lwc', createLwcCommand),
+      registerCommand('sf.internal.lightning.generate.lwc', (sourceUri?: URI) =>
+        createLwcCommand(sourceUri, { internal: true })
+      ),
       registerCommand('sf.metadata.delete.source', (sourceUri?: URI, uris?: URI[]) =>
         deleteSourcePathsCommand(sourceUri, uris)
       ),
