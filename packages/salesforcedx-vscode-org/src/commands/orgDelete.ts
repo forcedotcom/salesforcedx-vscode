@@ -15,7 +15,6 @@ import {
   SfCommandletExecutor,
   CliCommandExecutor,
   ContinueResponse,
-  TimingUtils,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
@@ -151,7 +150,7 @@ class OrgDeleteDefaultExecutor extends SfCommandletExecutor<{}> {
   }
 
   public execute(response: ContinueResponse<{}>): void {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {

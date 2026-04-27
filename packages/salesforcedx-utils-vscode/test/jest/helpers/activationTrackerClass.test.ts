@@ -8,14 +8,6 @@ import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provi
 import { ExtensionContext } from 'vscode';
 import { ActivationTracker } from '../../../src/helpers/activationTracker';
 import { getExtensionInfo } from '../../../src/helpers/activationTrackerUtils';
-import { TimingUtils } from '../../../src/helpers/timingUtils';
-
-jest.mock('../../../src/helpers/timingUtils', () => ({
-  TimingUtils: {
-    getCurrentTime: jest.fn(),
-    getElapsedTime: jest.fn()
-  }
-}));
 
 jest.mock('../../../src/helpers/activationTrackerUtils');
 
@@ -35,6 +27,7 @@ describe('ActivationTracker', () => {
   let extensionContext: ExtensionContext;
   let telemetryService: TelemetryServiceInterface;
   let tracker: ActivationTracker;
+  let performanceNowSpy: jest.SpyInstance;
 
   beforeEach(() => {
     extensionContext = {
@@ -48,9 +41,7 @@ describe('ActivationTracker', () => {
       sendExtensionActivationEvent: jest.fn()
     } as unknown as TelemetryServiceInterface;
 
-    // Set up default mock return values for TimingUtils
-    (TimingUtils.getCurrentTime as jest.Mock).mockReturnValue(Date.now());
-    (TimingUtils.getElapsedTime as jest.Mock).mockReturnValue(100);
+    performanceNowSpy = jest.spyOn(globalThis.performance, 'now').mockReturnValue(1000);
 
     // Mock getExtensionInfo to return undefined (simulating when extension info can't be retrieved)
     mockGetExtensionInfo.mockResolvedValue(undefined);
@@ -58,6 +49,7 @@ describe('ActivationTracker', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    performanceNowSpy.mockRestore();
   });
 
   it('should call sendActivationEventInfo on markActivationStop', async () => {
@@ -77,21 +69,15 @@ describe('ActivationTracker', () => {
   });
 
   it('should calculate elapsed time correctly', async () => {
-    // Mock TimingUtils before creating tracker
-    const mockGetCurrentTime = jest
-      .fn()
-      .mockReturnValueOnce(1000) // start time
-      .mockReturnValueOnce(2000); // end time
-    const mockGetElapsedTime = jest.fn().mockReturnValue(1000);
-
-    (TimingUtils.getCurrentTime as jest.Mock) = mockGetCurrentTime;
-    (TimingUtils.getElapsedTime as jest.Mock) = mockGetElapsedTime;
+    performanceNowSpy
+      .mockReturnValueOnce(1000) // constructor start time
+      .mockReturnValueOnce(2000) // markActivationStop end time
+      .mockReturnValueOnce(2000); // elapsed time calculation
 
     tracker = new ActivationTracker(extensionContext, telemetryService);
     await tracker.markActivationStop();
 
-    expect(mockGetCurrentTime).toHaveBeenCalledTimes(2);
-    expect(mockGetElapsedTime).toHaveBeenCalledWith(1000);
+    expect(performanceNowSpy).toHaveBeenCalledTimes(3);
     expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(
       expect.objectContaining({
         extensionActivationTime: 1000
@@ -120,6 +106,7 @@ describe('ActivationTracker', () => {
   });
 
   it('should use real dates instead of performance.now() timestamps', async () => {
+    performanceNowSpy.mockRestore();
     const startTime = Date.now();
     tracker = new ActivationTracker(extensionContext, telemetryService);
 

@@ -11,7 +11,7 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
-import { channelService } from '../channel';
+import { appendToChannel } from '../channel';
 import { buildDocumentSelector, getBaseClientOptions, type LwcInitializationOptions } from './clientOptions';
 
 export const createLanguageClient = (
@@ -28,26 +28,26 @@ export const createLanguageClient = (
     // Add error handlers to detect worker loading issues
     worker.onerror = error => {
       const errorMsg = `[LWC] Web Worker error: ${error.message || String(error)}`;
-      channelService.appendLine(errorMsg);
-      channelService.appendLine(`Failed to load language server from: ${serverPath}`);
+      appendToChannel(errorMsg);
+      appendToChannel(`Failed to load language server from: ${serverPath}`);
     };
 
     worker.onmessageerror = event => {
       const errorMsg = `[LWC] Web Worker message error: ${String(event)}`;
-      channelService.appendLine(errorMsg);
+      appendToChannel(errorMsg);
     };
 
     // Listen for messages from the worker to verify it's running
     worker.onmessage = event => {
       // Log first message to confirm server is alive
       if (event.data && typeof event.data === 'object') {
-        channelService.appendLine(`[LWC] Server message: ${JSON.stringify(event.data).substring(0, 200)}`);
+        appendToChannel(`[LWC] Server message: ${JSON.stringify(event.data).substring(0, 200)}`);
       }
     };
   } catch (error) {
     const errorMsg = `[LWC] Failed to create web worker: ${error instanceof Error ? error.message : String(error)}`;
-    channelService.appendLine(errorMsg);
-    channelService.appendLine(`Server path: ${serverPath}`);
+    appendToChannel(errorMsg);
+    appendToChannel(`Server path: ${serverPath}`);
     throw new Error(errorMsg);
   }
 
@@ -81,7 +81,7 @@ export const createLanguageClient = (
     const state = event.newState;
     // State enum values: State.Initial = 0, State.Starting = 1, State.Running = 2, State.Stopping = 3
     const stateStr = String(state);
-    channelService.appendLine(`[LWC] Language client state: ${stateStr}`);
+    appendToChannel(`[LWC] Language client state: ${stateStr}`);
     outputChannel.appendLine(`[LWC] Language client state: ${stateStr}`);
   });
 

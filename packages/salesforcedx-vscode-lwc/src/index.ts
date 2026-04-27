@@ -15,9 +15,9 @@ import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-light
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
-import { ExtensionContext, FileType, workspace } from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { channelService } from './channel';
+import { appendToChannel, channelAdapter } from './channel';
 import { createLwcCommand } from './commands/createLwc';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
@@ -32,22 +32,11 @@ const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   return telemetryModule.telemetryService;
 };
 
-/** Path-string workspace detection fails for some virtual/test-web roots; `workspace.fs` uses the folder URI. */
-const rootHasSfdxProjectJson = async (folderUri: URI): Promise<boolean> => {
-  try {
-    const stat = await workspace.fs.stat(Utils.joinPath(folderUri, 'sfdx-project.json'));
-    return stat.type === FileType.File;
-  } catch {
-    return false;
-  }
-};
-
 export const activate = async (extensionContext: ExtensionContext) => {
-  try {
-    channelService.appendLine('Lightning Web Components extension activating...');
-  } catch (e) {
-    console.error('[LWC] Failed to append to channel:', e);
-  }
+  // Initialize services layer first so ChannelService and other services are available throughout activation.
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+
+  appendToChannel('Lightning Web Components extension activating...');
 
   let activateTracker: ActivationTracker | undefined;
   let telemetryService: TelemetryServiceInterface | undefined;
@@ -59,7 +48,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
-    channelService.appendLine('LWC Language Server activationMode set to off, exiting...');
+    appendToChannel('LWC Language Server activationMode set to off, exiting...');
     return;
   }
 
@@ -68,14 +57,13 @@ export const activate = async (extensionContext: ExtensionContext) => {
     try {
       await telemetryService.initializeService(extensionContext);
     } catch (e) {
-      const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
-      channelService.appendLine(errorMsg);
+      appendToChannel(`Failed to initialize telemetry service: ${String(e)}`);
     }
   }
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-    channelService.appendLine('No workspace folders found, exiting extension');
+    appendToChannel('No workspace folders found, exiting extension');
     return;
   }
 
@@ -90,21 +78,24 @@ export const activate = async (extensionContext: ExtensionContext) => {
     }
   });
 
-  // Path-based detection (Node fs paths) can return UNKNOWN for virtual workspaces; confirm via URI API.
+  // Path-based detection (Node fs paths) can return UNKNOWN for virtual workspaces; confirm via ProjectService.
   let workspaceType: WorkspaceType =
     workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
-  if (
-    workspaceType === 'UNKNOWN' &&
-    workspace.workspaceFolders[0] &&
-    (await rootHasSfdxProjectJson(workspace.workspaceFolders[0].uri))
-  ) {
-    workspaceType = 'SFDX';
+  if (workspaceType === 'UNKNOWN') {
+    const isSf = await getRuntime()
+      .runPromise(
+        Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          return yield* api.services.ProjectService.isSalesforceProject();
+        }).pipe(Effect.orElseSucceed(() => false))
+      );
+    if (isSf) workspaceType = 'SFDX';
   }
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    channelService.appendLine(
+    appendToChannel(
       `LWC LSP - autodetect did not find a valid project structure, exiting. WorkspaceType detected: ${workspaceType}`
     );
     return;
@@ -128,32 +119,31 @@ export const activate = async (extensionContext: ExtensionContext) => {
     client.onNotification(LWC_SERVER_READY_NOTIFICATION, () => {
       statusBarItem.ready();
       // Web E2E: language status is not always exposed in the status bar; tests wait on this log line.
-      channelService.appendLine('LWC Language Server: indexing complete');
+      appendToChannel('LWC Language Server: indexing complete');
     });
 
     // Start the client and add it to subscriptions
-    channelService.appendLine('Starting LWC Language Server...');
+    appendToChannel('Starting LWC Language Server...');
     // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
-    registerWorkspaceReadFileHandler(client, channelService);
+    registerWorkspaceReadFileHandler(client, channelAdapter);
 
     try {
       await client.start();
     } catch (startError) {
       const errorMsg = `[LWC] Failed to start client: ${startError instanceof Error ? startError.message : String(startError)}`;
-      channelService.appendLine(errorMsg);
+      appendToChannel(errorMsg);
       throw startError;
     }
 
     extensionContext.subscriptions.push(client);
-    channelService.appendLine('LWC Language Server started successfully');
-    channelService.appendLine('Check "LWC Language Server" output channel for server logs');
+    appendToChannel('LWC Language Server started successfully');
+    appendToChannel('Check "LWC Language Server" output channel for server logs');
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    channelService.appendLine(`Failed to start LWC Language Server: ${errorMessage}`);
+    appendToChannel(`Failed to start LWC Language Server: ${errorMessage}`);
     throw error; // Re-throw to prevent silent failures
   }
 
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
   await getRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -178,7 +168,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
         testSupport.activateLwcTestSupport(extensionContext, workspaceType);
       }
     } catch (e) {
-      channelService.appendLine(`Failed to load test support: ${String(e)}`);
+      appendToChannel(`Failed to load test support: ${String(e)}`);
     }
   }
 
@@ -187,7 +177,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
     void activateTracker.markActivationStop();
   }
 
-  channelService.appendLine('Lightning Web Components extension activation complete.');
+  appendToChannel('Lightning Web Components extension activation complete.');
 };
 
 export const deactivate = async () => {

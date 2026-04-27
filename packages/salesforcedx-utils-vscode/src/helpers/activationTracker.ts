@@ -7,11 +7,7 @@
 import type { ActivationInfo, TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { ExtensionContext } from 'vscode';
 import { getExtensionInfo } from './activationTrackerUtils';
-import { TimingUtils } from './timingUtils';
 
-/**
- * Tracks extension activation time using TimingUtils
- */
 export class ActivationTracker {
   private readonly extensionContext: ExtensionContext;
   private readonly telemetryService: TelemetryServiceInterface;
@@ -21,13 +17,13 @@ export class ActivationTracker {
   constructor(extensionContext: ExtensionContext, telemetryService: TelemetryServiceInterface) {
     this.extensionContext = extensionContext;
     this.telemetryService = telemetryService;
-    this.startTime = TimingUtils.getCurrentTime();
+    this.startTime = globalThis.performance.now();
     this.activateStartDate = new Date(); // Store actual start date
   }
 
   public async markActivationStop(): Promise<void> {
     // capture date and elapsed HR time
-    const endTime = TimingUtils.getCurrentTime();
+    const endTime = globalThis.performance.now();
     const activateEndDate = new Date(); // Store actual end date
 
     // getting extension info. This may take up to 10 seconds, as log record creation might be lagging from
@@ -45,7 +41,7 @@ export class ActivationTracker {
       startActivateHrTime: this.startTime,
       activateStartDate: this.activateStartDate,
       activateEndDate,
-      extensionActivationTime: TimingUtils.getElapsedTime(this.startTime),
+      extensionActivationTime: globalThis.performance.now() - this.startTime,
       markEndTime: endTime,
       // Include loadStartDate from extension info if available
       loadStartDate: extensionInfo?.loadStartDate

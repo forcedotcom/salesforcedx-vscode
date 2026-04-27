@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { channelService } from '../../channel';
+import { appendToChannel } from '../../channel';
 import { nls } from '../../messages';
 
 type SfTaskDefinition = vscode.TaskDefinition & {
@@ -134,7 +134,7 @@ class TaskService {
     const isWin32 = process.platform.startsWith('win32');
     let taskShellExecutionOptions: vscode.ShellExecutionOptions | undefined;
     if (isWin32) {
-      channelService.appendLine(nls.localize('task_windows_command_prompt_messaging'));
+      appendToChannel(nls.localize('task_windows_command_prompt_messaging'));
       taskShellExecutionOptions = {
         executable: 'cmd.exe',
         shellArgs: ['/d', '/c']

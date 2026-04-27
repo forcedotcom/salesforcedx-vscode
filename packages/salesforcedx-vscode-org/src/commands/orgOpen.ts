@@ -15,7 +15,6 @@ import {
   ProgressNotification,
   SfCommandlet,
   SfCommandletExecutor,
-  TimingUtils,
   notificationService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -51,7 +50,7 @@ class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
   }
 
   public execute(response: ContinueResponse<string>): void {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {

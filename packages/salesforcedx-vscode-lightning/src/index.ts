@@ -11,7 +11,7 @@ import {
   handleApplyEditWithFs
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
-import { detectWorkspaceType, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { detectWorkspaceType, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { log } from 'node:console';
 import * as path from 'node:path';
 import { ExtensionContext, workspace } from 'vscode';
@@ -31,7 +31,7 @@ const getActivationMode = (): string => {
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
-  const extensionStartTime = TimingUtils.getCurrentTime();
+  const extensionStartTime = globalThis.performance.now();
 
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what

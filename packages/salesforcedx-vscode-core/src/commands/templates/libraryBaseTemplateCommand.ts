@@ -9,7 +9,6 @@ import {
   ConfigUtil,
   ContinueResponse,
   notificationService,
-  TimingUtils,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateOptions, TemplateService, TemplateType } from '@salesforce/templates';
@@ -58,7 +57,7 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
   protected telemetryProperties: Properties = {};
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const commandName = this.executionName;
     channelService.showCommandWithTimestamp(`Starting ${commandName}`);
     const result: ExecutionResult = await window.withProgress(

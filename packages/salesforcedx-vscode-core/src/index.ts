@@ -14,8 +14,7 @@ import {
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   SfCommandlet,
-  TelemetryService,
-  TimingUtils
+  TelemetryService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
@@ -101,7 +100,7 @@ const registerInternalDevCommands = (): vscode.Disposable =>
   );
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
-  const activationStartTime = TimingUtils.getCurrentTime();
+  const activationStartTime = globalThis.performance.now();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
 
   const rootWorkspacePath = getRootWorkspacePath();
