@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   isLWC,
   LWC_SERVER_READY_NOTIFICATION,
@@ -14,7 +15,7 @@ import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-light
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
-import { commands, ExtensionContext, FileType, workspace } from 'vscode';
+import { ExtensionContext, FileType, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
 import { createLwcCommand } from './commands/createLwc';
@@ -22,6 +23,8 @@ import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import LwcLspStatusBarItem from './lwcLspStatusBarItem';
 import { metaSupport } from './metasupport';
+import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { getRuntime } from './services/runtime';
 import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
 
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
@@ -150,11 +153,16 @@ export const activate = async (extensionContext: ExtensionContext) => {
     throw error; // Re-throw to prevent silent failures
   }
 
-  // Register LWC create command (moved from salesforcedx-vscode-metadata)
-  extensionContext.subscriptions.push(
-    commands.registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
-      Effect.runPromise(createLwcCommand(outputDirParam))
-    )
+  // Register LWC create command
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+      yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
+        createLwcCommand(outputDirParam)
+      );
+    })
   );
 
   // Creates resources for js-meta.xml to work

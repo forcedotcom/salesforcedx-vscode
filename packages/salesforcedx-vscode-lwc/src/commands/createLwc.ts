@@ -6,16 +6,15 @@
  */
 
 import type { SfProject } from '@salesforce/core/project';
-import { getServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 const promptForComponentName = Effect.fn('promptForComponentName')(function* () {
-  const api = yield* getServicesApi;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
@@ -34,7 +33,7 @@ const promptForComponentName = Effect.fn('promptForComponentName')(function* () 
 });
 
 const promptForComponentType = Effect.fn('promptForComponentType')(function* () {
-  const api = yield* getServicesApi;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showQuickPick(
@@ -63,8 +62,8 @@ const determineComponentTemplate = Effect.fn('determineComponentTemplate')(funct
   );
 });
 
-const createLwcCommandImpl = Effect.fn('createLwcCommandImpl')(function* (outputDirParam?: URI) {
-  const api = yield* getServicesApi;
+export const createLwcCommand = Effect.fn('createLwcCommand')(function* (outputDirParam?: URI) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const project = yield* api.services.ProjectService.getSfProject();
@@ -110,25 +109,3 @@ const createLwcCommandImpl = Effect.fn('createLwcCommandImpl')(function* (output
   yield* fsService.showTextDocument(mainFileUri);
 });
 
-/** Create LWC via TemplateService from services extension.
- * outputDir: when invoked from explorer context (right-click lwc folder), VS Code passes the folder URI.
- * Self-contained: builds and provides the required services layer from the API. */
-export const createLwcCommand = (outputDirParam?: URI): Effect.Effect<void, never, never> =>
-  getServicesApi.pipe(
-    Effect.flatMap(api =>
-      createLwcCommandImpl(outputDirParam).pipe(
-        Effect.provide(
-          Layer.mergeAll(
-            api.services.PromptService.Default,
-            api.services.WorkspaceService.Default,
-            api.services.ProjectService.Default,
-            api.services.ConnectionService.Default,
-            api.services.FsService.Default,
-            api.services.TemplateService.Default
-          )
-        ),
-        Effect.catchTag('UserCancellationError', () => Effect.void)
-      )
-    ),
-    Effect.catchAll(() => Effect.void)
-  );
