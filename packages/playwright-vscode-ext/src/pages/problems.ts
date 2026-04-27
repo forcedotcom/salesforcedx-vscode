@@ -69,7 +69,6 @@ export const expectProblemsCount = (page: Page, expectedCount: number, opts?: { 
 export const expectProblemsCountAtLeast = (page: Page, minCount: number, opts?: { timeout?: number }) =>
   assertProblemsCount(
     page,
-    count =>
-      expect(count, `Expected at least ${minCount} problem(s), got ${count}`).toBeGreaterThanOrEqual(minCount),
+    count => expect(count, `Expected at least ${minCount} problem(s), got ${count}`).toBeGreaterThanOrEqual(minCount),
     opts
   );

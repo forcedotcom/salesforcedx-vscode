@@ -18,7 +18,6 @@ import { MessageKey } from './i18n';
  * If omitted, we will assume _message.
  */
 export const messages: Partial<Record<MessageKey, string>> = {
-
   progress_notification_text: '%s を実行しています。',
   notification_successful_execution_text: '%s が正常に実行されました。',
   notification_canceled_execution_text: '%s がキャンセルされました。',

@@ -8,7 +8,8 @@
 import { Condition, SyntaxOptions, Where } from '../model';
 
 export class WhereImpl implements Where {
-  constructor(public condition: Condition) { }
+  constructor(public condition: Condition) {}
+
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return `WHERE ${this.condition.toSoqlSyntax(options)}`;
   }

@@ -14,7 +14,4 @@ export type Command = {
   toCommand(): string;
 };
 
-export type CommandFields = Pick<
-  Command,
-  'command' | 'description' | 'args' | 'logName'
->;
+export type CommandFields = Pick<Command, 'command' | 'description' | 'args' | 'logName'>;

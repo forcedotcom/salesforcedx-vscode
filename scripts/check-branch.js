@@ -8,7 +8,7 @@
  */
 const { execSync } = require('child_process');
 
-const run = (cmd) => execSync(cmd, { encoding: 'utf8' }).trim();
+const run = cmd => execSync(cmd, { encoding: 'utf8' }).trim();
 
 if (process.env.GITHUB_ACTIONS === 'true') process.exit(0);
 
@@ -25,7 +25,7 @@ if (PROTECTED.includes(branch)) {
 }
 
 const upstream = run('git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null || echo ""');
-const blockedUpstreams = PROTECTED.map((b) => `origin/${b}`);
+const blockedUpstreams = PROTECTED.map(b => `origin/${b}`);
 if (blockedUpstreams.includes(upstream)) {
   console.error(`ERROR: Branch '${branch}' tracks '${upstream}'. Fix with: git branch --unset-upstream`);
   process.exit(1);

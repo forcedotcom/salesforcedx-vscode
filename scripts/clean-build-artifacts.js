@@ -91,7 +91,7 @@ function cleanApexPackage(pkgRoot) {
     const jarCleaner = path.join(repoRoot, 'scripts', 'clean-all-but-jar.js');
     const r = spawnSync(process.execPath, [jarCleaner], {
       cwd: outDir,
-      stdio: 'inherit',
+      stdio: 'inherit'
     });
     if (r.status !== 0) {
       process.exitCode = r.status ?? 1;

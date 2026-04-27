@@ -32,9 +32,7 @@ describe('ensureMinXmlHeap', () => {
     });
 
     it('replaces -Xmx256M preserving surrounding args', () => {
-      expect(ensureMinXmlHeap('-Dsomething=foo -Xmx256M -Dother=bar')).toBe(
-        '-Dsomething=foo -Xmx1024M -Dother=bar'
-      );
+      expect(ensureMinXmlHeap('-Dsomething=foo -Xmx256M -Dother=bar')).toBe('-Dsomething=foo -Xmx1024M -Dother=bar');
     });
 
     it('replaces -Xmx1G (1024 MB == threshold, no change needed)', () => {

@@ -13,18 +13,13 @@ import {
   waitForOutputChannelText
 } from '../../../src/pages/outputChannel';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
-import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  ensureSecondarySideBarHidden
-} from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs, ensureSecondarySideBarHidden } from '../../../src/utils/helpers';
 import { EDITOR } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanelViewLines = (page: Page) => page.locator(OUTPUT_PANEL_ID).locator(`${EDITOR} .view-lines`);
-const outputFilterInput = (page: Page) =>
-  page.getByRole('textbox', { name: /Filter \(e\.g\./ }).first();
+const outputFilterInput = (page: Page) => page.getByRole('textbox', { name: /Filter \(e\.g\./ }).first();
 
 test.describe('Output Channel', () => {
   test.beforeEach(async ({ page }) => {

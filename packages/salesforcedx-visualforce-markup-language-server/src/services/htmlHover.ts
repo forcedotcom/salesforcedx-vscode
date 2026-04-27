@@ -4,30 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import {
-  Hover,
-  MarkedString,
-  Position,
-  Range,
-  TextDocument
-} from 'vscode-languageserver-types';
+import { Hover, MarkedString, Position, Range, TextDocument } from 'vscode-languageserver-types';
 import { HTMLDocument } from '../parser/htmlParser';
 import { createScanner, TokenType } from '../parser/htmlScanner';
 import { allTagProviders } from './tagProviders';
 
-export function doHover(
-  document: TextDocument,
-  position: Position,
-  htmlDocument: HTMLDocument
-): Hover {
+export function doHover(document: TextDocument, position: Position, htmlDocument: HTMLDocument): Hover {
   const offset = document.offsetAt(position);
   const node = htmlDocument.findNodeAt(offset);
   if (!node || !node.tag) {
     return void 0;
   }
-  const tagProviders = allTagProviders.filter(p =>
-    p.isApplicable(document.languageId)
-  );
+  const tagProviders = allTagProviders.filter(p => p.isApplicable(document.languageId));
   function getTagHover(tag: string, range: Range, open: boolean): Hover {
     tag = tag.toLowerCase();
     for (const provider of tagProviders) {
@@ -36,10 +24,7 @@ export function doHover(
         if (t === tag) {
           const tagLabel = open ? '<' + tag + '>' : '</' + tag + '>';
           hover = {
-            contents: [
-              { language: 'html', value: tagLabel },
-              MarkedString.fromPlainText(label)
-            ],
+            contents: [{ language: 'html', value: tagLabel }, MarkedString.fromPlainText(label)],
             range
           };
         }
@@ -56,8 +41,7 @@ export function doHover(
     let token = scanner.scan();
     while (
       token !== TokenType.EOS &&
-      (scanner.getTokenEnd() < offset ||
-        (scanner.getTokenEnd() === offset && token !== tokenType))
+      (scanner.getTokenEnd() < offset || (scanner.getTokenEnd() === offset && token !== tokenType))
     ) {
       token = scanner.scan();
     }

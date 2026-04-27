@@ -47,7 +47,7 @@ export default [
       'local/no-vscode-quickpick-description-literals': 'error',
       'local/no-vscode-validateinput-literals': 'error',
       'local/no-vscode-uri': 'error',
-      'local/command-must-be-in-package-json': 'error',
+      'local/command-must-be-in-package-json': 'error'
     }
   },
   // package.json validation (requires @eslint/json)
@@ -61,7 +61,7 @@ export default [
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error',
-      'local/package-json-salesforce-dep-versions': 'error',
+      'local/package-json-salesforce-dep-versions': 'error'
     }
   },
   // .vscodeignore validation
@@ -71,7 +71,7 @@ export default [
     processor: 'local/vscodeignoreText',
     rules: {
       'local/vscodeignore-required-patterns': 'error',
-      'local/vscodeignore-contributes-conflict': 'error',
+      'local/vscodeignore-contributes-conflict': 'error'
     }
   }
 ];

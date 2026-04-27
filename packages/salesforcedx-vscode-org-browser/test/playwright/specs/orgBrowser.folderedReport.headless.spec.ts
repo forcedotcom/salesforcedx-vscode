@@ -123,7 +123,10 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
       .first();
-    const overwriteVisible = await overwrite.waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false);
+    const overwriteVisible = await overwrite
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
     if (overwriteVisible) {
       await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+(Report|ReportFolder)s?\s*\?/i);
       await overwrite.getByRole('button', { name: /^Yes$/ }).click();

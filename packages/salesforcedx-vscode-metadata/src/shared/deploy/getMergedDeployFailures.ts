@@ -6,11 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type {
-  DeployMessage,
-  DeployResult,
-  FileResponseFailure
-} from '@salesforce/source-deploy-retrieve';
+import type { DeployMessage, DeployResult, FileResponseFailure } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 
 const makeKey = (type: string, name: string): string => `${type}#${name}`;

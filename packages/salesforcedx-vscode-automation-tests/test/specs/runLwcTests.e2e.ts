@@ -11,9 +11,7 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import {
-  retryOperation,
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
   createLwc,
   installJestUTToolsForLwc

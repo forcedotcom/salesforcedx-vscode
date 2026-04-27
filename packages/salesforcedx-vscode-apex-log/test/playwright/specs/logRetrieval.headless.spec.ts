@@ -46,7 +46,10 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
 
     // Clean up any existing trace flags first (in case previous test failed to clean up)
     const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR);
-    const hasExistingTrace = await statusBar.filter({ hasText: /Tracing until/ }).isVisible().catch(() => false);
+    const hasExistingTrace = await statusBar
+      .filter({ hasText: /Tracing until/ })
+      .isVisible()
+      .catch(() => false);
     if (hasExistingTrace) {
       await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
       await waitForTraceFlagStatusBar(page, /No Tracing/);

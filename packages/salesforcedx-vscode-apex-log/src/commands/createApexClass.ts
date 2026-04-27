@@ -53,7 +53,9 @@ const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
 });
 
 /** arg: explorer context URI OR explicit command params. */
-export const createApexClassCommand = Effect.fn('createApexClassCommand')(function* (arg?: URI | CreateApexClassParams) {
+export const createApexClassCommand = Effect.fn('createApexClassCommand')(function* (
+  arg?: URI | CreateApexClassParams
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const project = yield* api.services.ProjectService.getSfProject();

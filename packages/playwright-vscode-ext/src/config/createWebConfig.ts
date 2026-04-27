@@ -46,7 +46,7 @@ export const createWebConfig = (options: WebConfigOptions) =>
         ]
       }
     },
-    timeout: process.env.DEBUG_MODE ? 0 : options.timeout ?? 360 * 1000,
+    timeout: process.env.DEBUG_MODE ? 0 : (options.timeout ?? 360 * 1000),
     maxFailures: process.env.CI ? 3 : 0,
     projects: [
       {

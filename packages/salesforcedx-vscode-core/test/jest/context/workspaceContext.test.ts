@@ -162,9 +162,7 @@ describe('workspaceContext', () => {
           getAuthInfoFields: () => ({ orgId: '000' })
         })
       };
-      jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue(mockWorkspaceContextUtil);
+      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(mockWorkspaceContextUtil);
 
       mockExtensionContext = {
         extension: { id: 'salesforce.salesforcedx-vscode-core' },

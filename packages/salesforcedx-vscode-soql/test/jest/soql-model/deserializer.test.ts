@@ -32,14 +32,29 @@ const testQueryModel = {
     selectExpressions: [
       { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'field1' } },
       { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'field2' } },
-      { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'field3' }, alias: { kind: 'unmodeled', unmodeledSyntax: 'alias3', reason: REASON_UNMODELED_ALIAS } },
+      {
+        kind: 'fieldSelection',
+        field: { kind: 'fieldRef', fieldName: 'field3' },
+        alias: { kind: 'unmodeled', unmodeledSyntax: 'alias3', reason: REASON_UNMODELED_ALIAS }
+      },
       { kind: 'unmodeled', unmodeledSyntax: 'COUNT(fieldZ)', reason: REASON_UNMODELED_FUNCTIONREFERENCE },
       { kind: 'unmodeled', unmodeledSyntax: '(SELECT fieldA FROM objectA)', reason: REASON_UNMODELED_SEMIJOIN },
-      { kind: 'unmodeled', unmodeledSyntax: 'TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END', reason: REASON_UNMODELED_TYPEOF }
+      {
+        kind: 'unmodeled',
+        unmodeledSyntax: 'TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END',
+        reason: REASON_UNMODELED_TYPEOF
+      }
     ]
   },
   from: { sobjectName: 'object1' },
-  where: { condition: { kind: 'fieldCompare', field: { kind: 'fieldRef', fieldName: 'field1' }, operator: '=', compareValue: { kind: 'literal', value: '5' } } },
+  where: {
+    condition: {
+      kind: 'fieldCompare',
+      field: { kind: 'fieldRef', fieldName: 'field1' },
+      operator: '=',
+      compareValue: { kind: 'literal', value: '5' }
+    }
+  },
   with: { unmodeledSyntax: 'WITH DATA CATEGORY cat__c AT val__c', reason: REASON_UNMODELED_WITH },
   groupBy: { unmodeledSyntax: 'GROUP BY field1', reason: REASON_UNMODELED_GROUPBY },
   orderBy: {
@@ -112,7 +127,11 @@ const conditionComplex = {
   unmodeledSyntax: "field = 5 AND (field like 'A%' OR field like 'B%')",
   reason: REASON_UNMODELED_COMPLEXGROUP
 };
-const conditionCalculated = { kind: 'unmodeled', unmodeledSyntax: 'A + B > 10', reason: REASON_UNMODELED_CALCULATEDCONDITION };
+const conditionCalculated = {
+  kind: 'unmodeled',
+  unmodeledSyntax: 'A + B > 10',
+  reason: REASON_UNMODELED_CALCULATEDCONDITION
+};
 const conditionDistance = {
   kind: 'unmodeled',
   unmodeledSyntax: "DISTANCE(field,GEOLOCATION(37,122),'mi') < 100",
@@ -147,8 +166,7 @@ describe('deserialize should', () => {
       from: fromWithUnmodeledSyntax,
       errors: testQueryModel.errors
     };
-    const actual = deserialize('SELECT field1, field2 FROM object1 AS objectAs USING SCOPE everything'
-    );
+    const actual = deserialize('SELECT field1, field2 FROM object1 AS objectAs USING SCOPE everything');
     expect(actual).toEqual(expected);
   });
 
@@ -188,7 +206,7 @@ describe('deserialize should', () => {
     const expected = testQueryModel;
     const actual = deserialize(
       'SELECT field1, field2, field3 alias3, COUNT(fieldZ), (SELECT fieldA FROM objectA), TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END FROM object1 ' +
-      'WHERE field1 = 5 WITH DATA CATEGORY cat__c AT val__c GROUP BY field1 ORDER BY field2 DESC NULLS LAST, field1 LIMIT 20 OFFSET 2 BIND field1 = 5 FOR VIEW UPDATE TRACKING'
+        'WHERE field1 = 5 WITH DATA CATEGORY cat__c AT val__c GROUP BY field1 ORDER BY field2 DESC NULLS LAST, field1 LIMIT 20 OFFSET 2 BIND field1 = 5 FOR VIEW UPDATE TRACKING'
     );
     expect(actual).toMatchObject(expected);
   });
@@ -476,9 +494,7 @@ describe('deserialize should', () => {
       where: { condition: { ...conditionIncludes, operator: 'INCLUDES' } },
       errors: []
     };
-    const actual = deserialize(
-      "SELECT field1 FROM object1 WHERE field INCLUDES ( 'HelloWorld', 'other value' )"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field INCLUDES ( 'HelloWorld', 'other value' )");
     expect(actual).toEqual(expected);
   });
 
@@ -492,9 +508,7 @@ describe('deserialize should', () => {
       where: { condition: { ...conditionIncludes, operator: 'EXCLUDES' } },
       errors: []
     };
-    const actual = deserialize(
-      "SELECT field1 FROM object1 WHERE field EXCLUDES ( 'HelloWorld', 'other value' )"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field EXCLUDES ( 'HelloWorld', 'other value' )");
     expect(actual).toEqual(expected);
   });
 
@@ -508,9 +522,7 @@ describe('deserialize should', () => {
       where: { condition: { ...conditionInList, operator: 'IN' } },
       errors: []
     };
-    const actual = deserialize(
-      "SELECT field1 FROM object1 WHERE field IN ( 'HelloWorld', 'other value' )"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field IN ( 'HelloWorld', 'other value' )");
     expect(actual).toEqual(expected);
   });
 
@@ -524,9 +536,7 @@ describe('deserialize should', () => {
       where: { condition: { ...conditionInList, operator: 'NOT IN' } },
       errors: []
     };
-    const actual = deserialize(
-      "SELECT field1 FROM object1 WHERE field NOT IN ( 'HelloWorld', 'other value' )"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field NOT IN ( 'HelloWorld', 'other value' )");
     expect(actual).toEqual(expected);
   });
 
@@ -540,9 +550,7 @@ describe('deserialize should', () => {
       where: { condition: conditionIncludes },
       errors: []
     };
-    const actual = deserialize(
-      "SELECT field1 FROM object1 WHERE field INCLUDES ( 'HelloWorld', 'other value' )"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field INCLUDES ( 'HelloWorld', 'other value' )");
     expect(actual).toEqual(expected);
   });
 
@@ -556,9 +564,7 @@ describe('deserialize should', () => {
       where: { condition: conditionInList },
       errors: []
     };
-    const actual = deserialize(
-      "SELECT field1 FROM object1 WHERE field IN ( 'HelloWorld', 'other value' )"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field IN ( 'HelloWorld', 'other value' )");
     expect(actual).toEqual(expected);
   });
 
@@ -586,9 +592,7 @@ describe('deserialize should', () => {
       where: { condition: conditionDistance },
       errors: []
     };
-    const actual = deserialize(
-      "SELECT field1 FROM object1 WHERE DISTANCE(field,GEOLOCATION(37,122),'mi') < 100"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE DISTANCE(field,GEOLOCATION(37,122),'mi') < 100");
     expect(actual).toEqual(expected);
   });
 
@@ -630,9 +634,7 @@ describe('deserialize should', () => {
       where: { condition: conditionComplex },
       errors: []
     };
-    const actual = deserialize(
-      "SELECT field1 FROM object1 WHERE field = 5 AND (field like 'A%' OR field like 'B%')"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field = 5 AND (field like 'A%' OR field like 'B%')");
     expect(actual).toEqual(expected);
   });
 
@@ -646,8 +648,7 @@ describe('deserialize should', () => {
       where: { condition: { ...conditionAndOr, andOr: 'AND' } },
       errors: []
     };
-    const actual = deserialize("SELECT field1 FROM object1 WHERE field = 5 AND field LIKE 'HelloWorld'"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field = 5 AND field LIKE 'HelloWorld'");
     expect(actual).toEqual(expected);
   });
 
@@ -661,8 +662,7 @@ describe('deserialize should', () => {
       where: { condition: { ...conditionAndOr, andOr: 'OR' } },
       errors: []
     };
-    const actual = deserialize("SELECT field1 FROM object1 WHERE field = 5 OR field LIKE 'HelloWorld'"
-    );
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field = 5 OR field LIKE 'HelloWorld'");
     expect(actual).toEqual(expected);
   });
 
@@ -746,7 +746,8 @@ describe('deserialize should', () => {
       from: testQueryModel.from,
       errors: []
     };
-    const actual = deserialize('// This is a comment on line 1\n// This is a comment on line 2\nSELECT field1 FROM object1'
+    const actual = deserialize(
+      '// This is a comment on line 1\n// This is a comment on line 2\nSELECT field1 FROM object1'
     );
     expect(actual).toEqual(expected);
   });
@@ -757,8 +758,7 @@ describe('deserialize should', () => {
         text: '// This is a comment on line 1\n// This is a comment on line 2\n'
       }
     };
-    const actual = deserialize('// This is a comment on line 1\n// This is a comment on line 2\nSELECT FROM object1'
-    );
+    const actual = deserialize('// This is a comment on line 1\n// This is a comment on line 2\nSELECT FROM object1');
 
     expect(actual.errors).toBeDefined();
     expect(actual.errors?.length).toEqual(1);

@@ -18,8 +18,7 @@ export const packageJsonSalesforceDepVersions: Rule.RuleModule = {
     },
     schema: [],
     messages: {
-      pinnedVersion:
-        '"{{dep}}" version "{{version}}" must use a caret range (^), not a pinned version'
+      pinnedVersion: '"{{dep}}" version "{{version}}" must use a caret range (^), not a pinned version'
     }
   },
   create: context => {

@@ -76,18 +76,10 @@ describe('query-builder-html-i18n-keys', () => {
   it('reports unknown i18n keys', async () => {
     const eslint = createEslintForFixture();
     const badPath = path.join(fixturesDir, 'invalid-template.html');
-    fs.writeFileSync(
-      badPath,
-      '<template><p>{i18n.not_in_catalog_xyz}</p></template>',
-      'utf8'
-    );
+    fs.writeFileSync(badPath, '<template><p>{i18n.not_in_catalog_xyz}</p></template>', 'utf8');
     try {
       const results = await eslint.lintFiles([badPath]);
-      expect(
-        results[0].messages.some(
-          m => m.ruleId === ruleId && /not_in_catalog_xyz/.test(m.message)
-        )
-      ).toBe(true);
+      expect(results[0].messages.some(m => m.ruleId === ruleId && /not_in_catalog_xyz/.test(m.message))).toBe(true);
     } finally {
       fs.unlinkSync(badPath);
     }

@@ -17,12 +17,7 @@ const execAsync = promisify(exec);
  * Manages a separate SFDX project directory that deploys to the same org to simulate
  * remote changes.
  */
-export const deployApexClass = async (
-  dir: string,
-  orgAlias: string,
-  name: string,
-  content: string
-): Promise<void> => {
+export const deployApexClass = async (dir: string, orgAlias: string, name: string, content: string): Promise<void> => {
   const classDir = path.join(dir, 'force-app/main/default/classes');
   await fs.mkdir(classDir, { recursive: true });
 

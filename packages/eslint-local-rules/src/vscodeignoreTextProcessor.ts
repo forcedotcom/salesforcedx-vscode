@@ -14,7 +14,12 @@ const pluginMeta = {
 
 export const vscodeignoreTextProcessor: Linter.Processor = {
   meta: pluginMeta,
-  preprocess: sourceText => [sourceText.split(/\r?\n/).map(line => JSON.stringify(line)).join('\n')],
+  preprocess: sourceText => [
+    sourceText
+      .split(/\r?\n/)
+      .map(line => JSON.stringify(line))
+      .join('\n')
+  ],
   postprocess: messages => messages.flat(),
   supportsAutofix: false
 };

@@ -9,9 +9,5 @@
     }
   },
   "exclude": ["src/soql-builder-ui"],
-  "include": [
-    "src/**/*.ts",
-    "package.json",
-    "package.nls.json"
-  ]
+  "include": ["src/**/*.ts", "package.json", "package.nls.json"]
 }

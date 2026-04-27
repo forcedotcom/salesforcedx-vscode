@@ -120,7 +120,12 @@ test('SOQL Query Plan: code lens, current file, selected text via command palett
     // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has a
     // real, non-empty selection. If this never appears, the triple-click didn't reach Monaco and
     // the palette command would be hidden by `editorHasSelection`.
-    await expect(page.locator('.statusbar-item').filter({ hasText: /\(\d+ selected\)/ }).first()).toBeVisible({
+    await expect(
+      page
+        .locator('.statusbar-item')
+        .filter({ hasText: /\(\d+ selected\)/ })
+        .first()
+    ).toBeVisible({
       timeout: 5000
     });
     await saveScreenshot(page, 'step4.text-selected.png');

@@ -26,7 +26,9 @@ describe('FauxClassGenerator Text Content Tests', () => {
   });
 
   it('Should create a valid class for a platform event object', () => {
-    const sobject = JSON.parse('{ "name": "PE1__e", "fields": [{"name":"StringField","type":"string","referenceTo":[]},{"name":"DoubleField","type":"double","referenceTo":[]}], "childRelationships": [] }');
+    const sobject = JSON.parse(
+      '{ "name": "PE1__e", "fields": [{"name":"StringField","type":"string","referenceTo":[]},{"name":"DoubleField","type":"double","referenceTo":[]}], "childRelationships": [] }'
+    );
     const text = generateFauxClassText(generateSObjectDefinition(sobject));
     expect(text).toContain('String StringField;');
     expect(text).toContain('Double DoubleField;');
@@ -41,7 +43,8 @@ describe('FauxClassGenerator Text Content Tests', () => {
 
   it('Should create a valid class for a metadata object with EntityDefinition relationship target', () => {
     const header = '{ "name": "Custom__mdt", "childRelationships": [], "fields": [';
-    const field1 = '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
+    const field1 =
+      '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
     const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
@@ -73,8 +76,11 @@ describe('FauxClassGenerator Text Content Tests', () => {
   });
 
   it('Should generate a faux class with all types of fields that can be in custom SObjects', () => {
-    const fields = '{"name":"StringField","type":"string","referenceTo":[]},{"name":"DoubleField","type":"double","referenceTo":[]},{"name":"BooleanField","type":"boolean","referenceTo":[]},{"name":"CurrencyField","type":"currency","referenceTo":[]},{"name":"DateField","type":"date","referenceTo":[]},{"name":"DatetimeField","type":"datetime","referenceTo":[]},{"name":"EmailField","type":"email","referenceTo":[]},{"name":"LocationField","type":"location","referenceTo":[]},{"name":"PercentField","type":"percent","referenceTo":[]},{"name":"PicklistField","type":"picklist","referenceTo":[]},{"name":"MultipicklistField","type":"multipicklist","referenceTo":[]},{"name":"TextareaField","type":"textarea","referenceTo":[]},{"name":"EncryptedField","type":"encryptedstring","referenceTo":[]},{"name":"UrlField","type":"url","referenceTo":[]},{"name":"IdField","type":"id","referenceTo":[]}';
-    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(`{"name":"Custom__c","fields":[${fields}],"childRelationships":[]}`)));
+    const fields =
+      '{"name":"StringField","type":"string","referenceTo":[]},{"name":"DoubleField","type":"double","referenceTo":[]},{"name":"BooleanField","type":"boolean","referenceTo":[]},{"name":"CurrencyField","type":"currency","referenceTo":[]},{"name":"DateField","type":"date","referenceTo":[]},{"name":"DatetimeField","type":"datetime","referenceTo":[]},{"name":"EmailField","type":"email","referenceTo":[]},{"name":"LocationField","type":"location","referenceTo":[]},{"name":"PercentField","type":"percent","referenceTo":[]},{"name":"PicklistField","type":"picklist","referenceTo":[]},{"name":"MultipicklistField","type":"multipicklist","referenceTo":[]},{"name":"TextareaField","type":"textarea","referenceTo":[]},{"name":"EncryptedField","type":"encryptedstring","referenceTo":[]},{"name":"UrlField","type":"url","referenceTo":[]},{"name":"IdField","type":"id","referenceTo":[]}';
+    const text = generateFauxClassText(
+      generateSObjectDefinition(JSON.parse(`{"name":"Custom__c","fields":[${fields}],"childRelationships":[]}`))
+    );
     expect(text).toContain('String StringField;');
     expect(text).toContain('Double DoubleField;');
     expect(text).toContain('Boolean BooleanField;');
@@ -93,8 +99,11 @@ describe('FauxClassGenerator Text Content Tests', () => {
   });
 
   it('Should generate a faux class with all types of fields that show only in standard SObjects', () => {
-    const fields = '{"name":"BaseField","type":"base64","referenceTo":[]},{"name":"AddressField","type":"address","referenceTo":[]},{"name":"IntField","type":"int","referenceTo":[]},{"name":"AnytypeField","type":"anyType","referenceTo":[]},{"name":"ComboboxField","type":"combobox","referenceTo":[]}';
-    const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(`{"name":"Custom__c","fields":[${fields}],"childRelationships":[]}`)));
+    const fields =
+      '{"name":"BaseField","type":"base64","referenceTo":[]},{"name":"AddressField","type":"address","referenceTo":[]},{"name":"IntField","type":"int","referenceTo":[]},{"name":"AnytypeField","type":"anyType","referenceTo":[]},{"name":"ComboboxField","type":"combobox","referenceTo":[]}';
+    const text = generateFauxClassText(
+      generateSObjectDefinition(JSON.parse(`{"name":"Custom__c","fields":[${fields}],"childRelationships":[]}`))
+    );
     expect(text).toContain('Blob BaseField;');
     expect(text).toContain('Address AddressField;');
     expect(text).toContain('Integer IntField;');
@@ -124,7 +133,8 @@ describe('FauxClassGenerator Text Content Tests', () => {
   });
 
   it('Should create a String field type for an external lookup relationship', () => {
-    const field1 = '{"name": "ExtRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
+    const field1 =
+      '{"name": "ExtRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const sobject1 = `{ "name": "Custom__c", "childRelationships": [], "fields": [${field1}]}`;
     const text = generateFauxClassText(generateSObjectDefinition(JSON.parse(sobject1)));
     expect(text).toContain('String ExtRef__c');

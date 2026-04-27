@@ -68,17 +68,13 @@ describe('Custom Select', () => {
       document.body.appendChild(customSelect);
       expect(customSelect.isLoading).toEqual(false);
       let searchBar = getInputSearchBar();
-      expect(searchBar.getAttribute(PLACEHOLDER).toLowerCase()).not.toContain(
-        'loading'
-      );
+      expect(searchBar.getAttribute(PLACEHOLDER).toLowerCase()).not.toContain('loading');
 
       customSelect.isLoading = true;
       return Promise.resolve().then(() => {
         searchBar = getInputSearchBar();
         expect(customSelect.isLoading).toEqual(true);
-        expect(searchBar.getAttribute(PLACEHOLDER).toLowerCase()).toContain(
-          'loading'
-        );
+        expect(searchBar.getAttribute(PLACEHOLDER).toLowerCase()).toContain('loading');
         customSelect.isLoading = false;
       });
     });
@@ -320,9 +316,7 @@ describe('Custom Select', () => {
     describe('Dropdown Arrow', () => {
       it('should toggle the options menu when clicked, with directional arrow', () => {
         document.body.appendChild(customSelect);
-        const dropDownArrow = customSelect.shadowRoot.querySelector(
-          'div.select__dropdown-arrow'
-        );
+        const dropDownArrow = customSelect.shadowRoot.querySelector('div.select__dropdown-arrow');
         const optionsList = getOptionsWrapper();
         let classList;
         expect(optionsList.getAttribute(ARIA_HIDDEN)).toBe('true');
@@ -367,9 +361,7 @@ describe('Custom Select', () => {
       return Promise.resolve().then(() => {
         const optionsList = getOptionsWrapper();
 
-        expect(optionsList.children.length).toBe(
-          customSelect.allOptions.length
-        );
+        expect(optionsList.children.length).toBe(customSelect.allOptions.length);
 
         for (const option of customSelect.allOptions) {
           expect(optionsList.innerHTML).toContain(option);
@@ -384,9 +376,7 @@ describe('Custom Select', () => {
       return Promise.resolve().then(() => {
         const optionsList = getOptionsWrapper();
 
-        expect(optionsList.children.length).toBe(
-          customSelect.allOptions.length - customSelect.selectedOptions.length
-        );
+        expect(optionsList.children.length).toBe(customSelect.allOptions.length - customSelect.selectedOptions.length);
 
         expect(optionsList.innerHTML).not.toContain(OPTION_FOO);
       });
@@ -399,9 +389,7 @@ describe('Custom Select', () => {
       return Promise.resolve().then(() => {
         const optionsList = getOptionsWrapper();
 
-        expect(optionsList.children.length).toBe(
-          customSelect.allOptions.length - customSelect.selectedOptions.length
-        );
+        expect(optionsList.children.length).toBe(customSelect.allOptions.length - customSelect.selectedOptions.length);
         expect(optionsList.innerHTML).not.toContain(OPTION_FOO);
         expect(optionsList.innerHTML).not.toContain(OPTION_BAR);
       });
@@ -416,16 +404,13 @@ describe('Custom Select', () => {
           optionsList = getOptionsWrapper();
 
           expect(optionsList.getAttribute(ARIA_HIDDEN)).toBe('false');
-          expect(optionsList.children.length).toBe(
-            customSelect.allOptions.length
-          );
+          expect(optionsList.children.length).toBe(customSelect.allOptions.length);
           searchBar.value = 'foo';
           searchBar.dispatchEvent(new Event(EVENT_INPUT));
         })
         .then(() => {
           expect(optionsList.children.length).toBe(1);
-          const optionValue =
-            optionsList.firstChild.getAttribute(DATA_OPTION_VALUE);
+          const optionValue = optionsList.firstChild.getAttribute(DATA_OPTION_VALUE);
           expect(optionValue).toBe(OPTION_FOO);
         });
     });
@@ -438,17 +423,13 @@ describe('Custom Select', () => {
         .then(() => {
           optionsList = getOptionsWrapper();
           expect(optionsList.getAttribute(ARIA_HIDDEN)).toBe('false');
-          expect(optionsList.children.length).toBe(
-            customSelect.allOptions.length
-          );
+          expect(optionsList.children.length).toBe(customSelect.allOptions.length);
           searchBar.value = 'no match';
           searchBar.dispatchEvent(new Event(EVENT_INPUT));
         })
         .then(() => {
           expect(optionsList.children.length).toBe(1);
-          expect(optionsList.firstChild.classList).toContain(
-            'option--disabled'
-          );
+          expect(optionsList.firstChild.classList).toContain('option--disabled');
           expect(optionsList.firstChild.innerHTML).toContain('No results');
         });
     });
@@ -511,17 +492,13 @@ describe('Custom Select', () => {
         .then(() => {
           optionsList = getOptionsWrapper();
           firstOption = optionsList.firstChild;
-          searchBar.dispatchEvent(
-            new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowDown' })
-          );
+          searchBar.dispatchEvent(new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowDown' }));
         })
         .then(() => {
           expect(firstOption.classList).toContain(OPTION_HIGHLIGHT);
           expect(mockScrollIntoView).toHaveBeenCalled();
 
-          searchBar.dispatchEvent(
-            new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowDown' })
-          );
+          searchBar.dispatchEvent(new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowDown' }));
         })
         .then(() => {
           // only the second option should should be highlighted
@@ -539,25 +516,19 @@ describe('Custom Select', () => {
         .then(() => {
           optionsList = getOptionsWrapper();
           lastOption = optionsList.lastChild;
-          searchBar.dispatchEvent(
-            new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowUp' })
-          );
+          searchBar.dispatchEvent(new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowUp' }));
         })
         .then(() => {
           expect(lastOption.classList).toContain(OPTION_HIGHLIGHT);
           expect(mockScrollIntoView).toHaveBeenCalled();
 
-          searchBar.dispatchEvent(
-            new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowUp' })
-          );
+          searchBar.dispatchEvent(new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowUp' }));
         })
         .then(() => {
           // only the second to last option should should be highlighted
           expect(lastOption.classList).not.toContain(OPTION_HIGHLIGHT);
           const secondToLastIndex = optionsList.children.length - 2;
-          expect(optionsList.children[secondToLastIndex].classList).toContain(
-            OPTION_HIGHLIGHT
-          );
+          expect(optionsList.children[secondToLastIndex].classList).toContain(OPTION_HIGHLIGHT);
         });
     });
 
@@ -572,14 +543,10 @@ describe('Custom Select', () => {
         .then(() => {
           optionsList = getOptionsWrapper();
           firstOption = optionsList.firstChild;
-          searchBar.dispatchEvent(
-            new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowDown' })
-          );
+          searchBar.dispatchEvent(new KeyboardEvent(EVENT_KEYDOWN, { key: 'ArrowDown' }));
         })
         .then(() => {
-          searchBar.dispatchEvent(
-            new KeyboardEvent(EVENT_KEYDOWN, { key: 'Enter' })
-          );
+          searchBar.dispatchEvent(new KeyboardEvent(EVENT_KEYDOWN, { key: 'Enter' }));
           const optionValue = firstOption.getAttribute(DATA_OPTION_VALUE);
           firstOption.click();
 
@@ -595,9 +562,7 @@ describe('Custom Select', () => {
         .then(() => {
           optionsList = getOptionsWrapper();
           expect(optionsList.getAttribute(ARIA_HIDDEN)).toBe('false');
-          searchBar.dispatchEvent(
-            new KeyboardEvent(EVENT_KEYDOWN, { key: 'Escape' })
-          );
+          searchBar.dispatchEvent(new KeyboardEvent(EVENT_KEYDOWN, { key: 'Escape' }));
         })
         .then(() => {
           optionsList = getOptionsWrapper();

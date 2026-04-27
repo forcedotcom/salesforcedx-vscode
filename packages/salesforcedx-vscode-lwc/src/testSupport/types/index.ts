@@ -21,7 +21,6 @@ export type TestResult = {
   status: TestResultStatus;
 };
 
-
 /**
  * Confirms if the TestExecutionInfo kind is TestCaseInfo
  */

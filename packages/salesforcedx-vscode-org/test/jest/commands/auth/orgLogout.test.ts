@@ -64,7 +64,9 @@ describe('OrgLogoutDefault', () => {
     getAliasesFromUsernameMock = jest.fn().mockReturnValue(Effect.succeed([]));
 
     resetOrgRuntimeForTesting();
-    setAllServicesLayer(buildLayer() as ReturnType<typeof import('../../../../src/extensionProvider').buildAllServicesLayer>);
+    setAllServicesLayer(
+      buildLayer() as ReturnType<typeof import('../../../../src/extensionProvider').buildAllServicesLayer>
+    );
   });
 
   afterEach(() => {

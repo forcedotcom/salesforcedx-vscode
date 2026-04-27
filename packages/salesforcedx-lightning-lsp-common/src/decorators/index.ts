@@ -6,27 +6,27 @@
  */
 
 export interface ClassMember {
-    name: string;
-    type: DecoratorTargetType;
-    value?: ClassMemberPropertyValue;
-    decorator?: string;
-    doc?: string;
-    loc?: Location;
+  name: string;
+  type: DecoratorTargetType;
+  value?: ClassMemberPropertyValue;
+  decorator?: string;
+  doc?: string;
+  loc?: Location;
 }
 
 export interface ClassMemberPropertyValue {
-    type: string;
-    value: any;
+  type: string;
+  value: any;
 }
 
 export interface Location {
-    start: Position;
-    end: Position;
+  start: Position;
+  end: Position;
 }
 
 export interface Position {
-    line: number;
-    column: number;
+  line: number;
+  column: number;
 }
 
 export type DecoratorTargetType = DecoratorTargetProperty | DecoratorTargetMethod;

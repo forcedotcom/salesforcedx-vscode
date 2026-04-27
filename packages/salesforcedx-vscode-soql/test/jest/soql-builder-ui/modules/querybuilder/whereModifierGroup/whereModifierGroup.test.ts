@@ -21,7 +21,7 @@ import { debounce } from 'debounce';
 
 jest.mock('debounce');
 // @ts-ignore
-debounce.mockImplementation((callback) => {
+debounce.mockImplementation(callback => {
   // @ts-ignore
   // eslint-disable-next-line no-undef
   return callback;
@@ -31,13 +31,11 @@ describe('WhereModifierGroup should', () => {
   let modifierGroup;
 
   const getModifierElements = () => {
-    const selectFieldEl = modifierGroup.shadowRoot.querySelector(
-      'querybuilder-custom-select'
+    const selectFieldEl = modifierGroup.shadowRoot.querySelector('querybuilder-custom-select');
+    const selectOperatorEl: HTMLSelectElement = modifierGroup.shadowRoot.querySelector(
+      '[data-el-where-operator-input]'
     );
-    const selectOperatorEl: HTMLSelectElement =
-      modifierGroup.shadowRoot.querySelector('[data-el-where-operator-input]');
-    const criteriaInputEl: HTMLInputElement =
-      modifierGroup.shadowRoot.querySelector('[data-el-where-criteria-input]');
+    const criteriaInputEl: HTMLInputElement = modifierGroup.shadowRoot.querySelector('[data-el-where-criteria-input]');
 
     return {
       selectFieldEl,
@@ -47,8 +45,7 @@ describe('WhereModifierGroup should', () => {
   };
 
   const setModifiersToHaveAValue = (scope: string) => {
-    const { selectFieldEl, selectOperatorEl, criteriaInputEl } =
-      getModifierElements();
+    const { selectFieldEl, selectOperatorEl, criteriaInputEl } = getModifierElements();
 
     switch (scope) {
       case 'all':
@@ -70,7 +67,7 @@ describe('WhereModifierGroup should', () => {
         console.log('Unkown Case to Set Values');
         break;
     }
-  }
+  };
 
   beforeEach(() => {
     modifierGroup = createElement('querybuilder-where-modifier-group', {
@@ -173,9 +170,7 @@ describe('WhereModifierGroup should', () => {
     const handler = jest.fn();
     modifierGroup.addEventListener('where__condition_removed', handler);
 
-    const closeButton = modifierGroup.shadowRoot.querySelector(
-      '[data-el-where-delete]'
-    );
+    const closeButton = modifierGroup.shadowRoot.querySelector('[data-el-where-delete]');
 
     closeButton.click();
     expect(handler).toHaveBeenCalled();
@@ -189,11 +184,8 @@ describe('WhereModifierGroup should', () => {
     };
     document.body.appendChild(modifierGroup);
 
-    const clearConditionBtn = modifierGroup.shadowRoot.querySelector(
-      '[data-el-where-delete]'
-    );
-    const { selectFieldEl, selectOperatorEl, criteriaInputEl } =
-      getModifierElements();
+    const clearConditionBtn = modifierGroup.shadowRoot.querySelector('[data-el-where-delete]');
+    const { selectFieldEl, selectOperatorEl, criteriaInputEl } = getModifierElements();
 
     expect(selectFieldEl.value[0]).toEqual('foo');
     expect(selectOperatorEl.value).toEqual('NOT_EQ');
@@ -223,21 +215,15 @@ describe('WhereModifierGroup should', () => {
 
     return Promise.resolve()
       .then(() => {
-        const operatorContainerEl = modifierGroup.shadowRoot.querySelector(
-          '[data-el-where-criteria]'
-        );
+        const operatorContainerEl = modifierGroup.shadowRoot.querySelector('[data-el-where-criteria]');
         expect(operatorContainerEl.className).toContain('error');
       })
       .then(() => {
-        const clearConditionBtn = modifierGroup.shadowRoot.querySelector(
-          '[data-el-where-delete]'
-        );
+        const clearConditionBtn = modifierGroup.shadowRoot.querySelector('[data-el-where-delete]');
         clearConditionBtn.click();
       })
       .then(() => {
-        const operatorContainerEl = modifierGroup.shadowRoot.querySelector(
-          '[data-el-where-criteria]'
-        );
+        const operatorContainerEl = modifierGroup.shadowRoot.querySelector('[data-el-where-criteria]');
         expect(operatorContainerEl.className).not.toContain('error');
       });
   });
@@ -250,8 +236,7 @@ describe('WhereModifierGroup should', () => {
     };
     document.body.appendChild(modifierGroup);
 
-    const { selectFieldEl, selectOperatorEl, criteriaInputEl } =
-      getModifierElements();
+    const { selectFieldEl, selectOperatorEl, criteriaInputEl } = getModifierElements();
     expect(selectFieldEl.value[0]).toEqual('foo');
     expect(selectOperatorEl.value).toEqual('NOT_EQ');
     expect(criteriaInputEl.value).toEqual('HELLO');
@@ -275,8 +260,7 @@ describe('WhereModifierGroup should', () => {
     const { selectOperatorEl } = getModifierElements();
 
     expect(selectOperatorEl.value).toBe('LT');
-    const firstOptionElement = selectOperatorEl
-      .children[0] as HTMLOptionElement;
+    const firstOptionElement = selectOperatorEl.children[0] as HTMLOptionElement;
 
     expect(firstOptionElement.selected).toBeTruthy();
     expect(selectOperatorEl.children[0].innerHTML).toContain('&lt;');
@@ -316,7 +300,7 @@ describe('WhereModifierGroup should', () => {
       fields: [{ name: 'foo', type: 'string' }]
     };
     let resultingCriteria;
-    const handler = (e) => {
+    const handler = e => {
       resultingCriteria = e.detail.condition.compareValue;
     };
     modifierGroup.addEventListener('modifiergroupselection', handler);
@@ -340,7 +324,7 @@ describe('WhereModifierGroup should', () => {
       fields: [{ name: 'foo', type: 'string' }]
     };
     let resultingCriteria;
-    const handler = (e) => {
+    const handler = e => {
       resultingCriteria = e.detail.condition.compareValue;
     };
     modifierGroup.addEventListener('modifiergroupselection', handler);
@@ -364,7 +348,7 @@ describe('WhereModifierGroup should', () => {
       fields: [{ name: 'foo', type: 'boolean' }]
     };
     let resultingCriteria;
-    const handler = (e) => {
+    const handler = e => {
       resultingCriteria = e.detail.condition.compareValue;
     };
     modifierGroup.addEventListener('modifiergroupselection', handler);
@@ -387,7 +371,7 @@ describe('WhereModifierGroup should', () => {
       fields: [{ name: 'foo', type: 'boolean' }]
     };
     let resultingCriteria;
-    const handler = (e) => {
+    const handler = e => {
       resultingCriteria = e.detail.condition.values;
     };
     modifierGroup.addEventListener('modifiergroupselection', handler);
@@ -422,7 +406,7 @@ describe('WhereModifierGroup should', () => {
       ]
     };
     let resultingCriteria;
-    const handler = (e) => {
+    const handler = e => {
       resultingCriteria = e.detail.condition.compareValue;
     };
     modifierGroup.addEventListener('modifiergroupselection', handler);
@@ -455,7 +439,7 @@ describe('WhereModifierGroup should', () => {
       ]
     };
     let resultingCriteria;
-    const handler = (e) => {
+    const handler = e => {
       resultingCriteria = e.detail.condition.compareValue;
     };
     modifierGroup.addEventListener('modifiergroupselection', handler);
@@ -500,9 +484,7 @@ describe('WhereModifierGroup should', () => {
 
     expect(handler).not.toHaveBeenCalled();
     return Promise.resolve().then(() => {
-      const operatorContainerEl = modifierGroup.shadowRoot.querySelector(
-        '[data-el-where-criteria]'
-      );
+      const operatorContainerEl = modifierGroup.shadowRoot.querySelector('[data-el-where-criteria]');
       expect(operatorContainerEl.className).toContain('error');
     });
   });
@@ -524,9 +506,7 @@ describe('WhereModifierGroup should', () => {
     criteriaInputEl.dispatchEvent(new Event('input'));
     expect(handler).not.toHaveBeenCalled();
     return Promise.resolve().then(() => {
-      const operatorContainerEl = modifierGroup.shadowRoot.querySelector(
-        '[data-el-where-operator]'
-      );
+      const operatorContainerEl = modifierGroup.shadowRoot.querySelector('[data-el-where-operator]');
       expect(operatorContainerEl.className).toContain('error');
     });
   });
@@ -549,18 +529,14 @@ describe('WhereModifierGroup should', () => {
     expect(handler).not.toHaveBeenCalled();
     return Promise.resolve()
       .then(() => {
-        const operatorContainerEl = modifierGroup.shadowRoot.querySelector(
-          '[data-el-where-criteria]'
-        );
+        const operatorContainerEl = modifierGroup.shadowRoot.querySelector('[data-el-where-criteria]');
         expect(operatorContainerEl.className).toContain('error');
       })
       .then(() => {
         modifierGroup.sobjectMetadata = { fields: [] };
       })
       .then(() => {
-        const operatorContainerEl = modifierGroup.shadowRoot.querySelector(
-          '[data-el-where-criteria]'
-        );
+        const operatorContainerEl = modifierGroup.shadowRoot.querySelector('[data-el-where-criteria]');
         expect(operatorContainerEl.className).not.toContain('error');
       });
   });
@@ -582,9 +558,7 @@ describe('WhereModifierGroup should', () => {
     criteriaInputEl.dispatchEvent(new Event('input'));
     expect(handler).toHaveBeenCalled();
     return Promise.resolve().then(() => {
-      const operatorContainerEl = modifierGroup.shadowRoot.querySelector(
-        '[data-el-where-criteria]'
-      );
+      const operatorContainerEl = modifierGroup.shadowRoot.querySelector('[data-el-where-criteria]');
       expect(operatorContainerEl.className).not.toContain('error');
     });
   });
@@ -602,8 +576,7 @@ describe('WhereModifierGroup should', () => {
         const { selectOperatorEl } = getModifierElements();
 
         expect(selectOperatorEl.value).toBe('LIKE');
-        const firstOptionElement = selectOperatorEl
-          .children[0] as HTMLOptionElement;
+        const firstOptionElement = selectOperatorEl.children[0] as HTMLOptionElement;
 
         expect(firstOptionElement.selected).toBeTruthy();
         expect(selectOperatorEl.children[0].innerHTML).toContain('like');
@@ -620,8 +593,7 @@ describe('WhereModifierGroup should', () => {
         const { selectOperatorEl } = getModifierElements();
 
         expect(selectOperatorEl.value).toBe('LIKE_START');
-        const firstOptionElement = selectOperatorEl
-          .children[0] as HTMLOptionElement;
+        const firstOptionElement = selectOperatorEl.children[0] as HTMLOptionElement;
 
         expect(firstOptionElement.selected).toBeTruthy();
         expect(selectOperatorEl.children[0].innerHTML).toContain('starts with');
@@ -638,8 +610,7 @@ describe('WhereModifierGroup should', () => {
         const { selectOperatorEl } = getModifierElements();
 
         expect(selectOperatorEl.value).toBe('LIKE_END');
-        const firstOptionElement = selectOperatorEl
-          .children[0] as HTMLOptionElement;
+        const firstOptionElement = selectOperatorEl.children[0] as HTMLOptionElement;
 
         expect(firstOptionElement.selected).toBeTruthy();
         expect(selectOperatorEl.children[0].innerHTML).toContain('ends with');
@@ -656,8 +627,7 @@ describe('WhereModifierGroup should', () => {
         const { selectOperatorEl } = getModifierElements();
 
         expect(selectOperatorEl.value).toBe('LIKE_CONTAINS');
-        const firstOptionElement = selectOperatorEl
-          .children[0] as HTMLOptionElement;
+        const firstOptionElement = selectOperatorEl.children[0] as HTMLOptionElement;
 
         expect(firstOptionElement.selected).toBeTruthy();
         expect(selectOperatorEl.children[0].innerHTML).toContain('contains');

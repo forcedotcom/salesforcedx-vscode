@@ -13,7 +13,13 @@ import { URI } from 'vscode-uri';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DIAGNOSTIC_SOURCE, MAX_32BIT_INTEGER } from '../../src/constants';
 import { Metadata } from '../../src/decorators/lwcDecorators';
-import { compileDocument, compileSource, getMethods, getProperties, getClassMembers } from '../../src/javascript/compiler';
+import {
+  compileDocument,
+  compileSource,
+  getMethods,
+  getProperties,
+  getClassMembers
+} from '../../src/javascript/compiler';
 import { mapLwcMetadataToInternal } from '../../src/javascript/typeMapping';
 
 let mockTransformSyncError: CompilerError | null = null;

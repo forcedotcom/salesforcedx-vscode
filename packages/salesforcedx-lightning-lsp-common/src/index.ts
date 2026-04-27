@@ -26,12 +26,7 @@ export {
 export type { SfdxTsConfig, TsConfigPaths, NormalizedPath } from './utils';
 
 // Re-export from base-context
-export {
-  BaseWorkspaceContext,
-  AURA_EXTENSIONS,
-  getModulesDirs,
-  updateForceIgnoreFile
-} from './baseContext';
+export { BaseWorkspaceContext, AURA_EXTENSIONS, getModulesDirs, updateForceIgnoreFile } from './baseContext';
 export type { BaseWorkspaceContextOptions, Indexer } from './baseContext';
 
 // Re-export from shared

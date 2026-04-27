@@ -16,8 +16,14 @@ it('readAsTextDocument()', async () => {
   // sends LSP requests to the client—not available in unit tests). getFileContent is mocked
   // to read from this map.
   const set = (path: string, content: string) => contentMap.set(normalizePath(path), content);
-  set(`${FORCE_APP_ROOT}/lwc/hello_world/hello_world.js`, 'import { LightningElement } from "lwc";\n\nexport default class LwcHelloWorld extends LightningElement {}');
-  set(`${FORCE_APP_ROOT}/lwc/hello_world/hello_world.html`, '<template>Hello From a Lightning Web Component</template>\n');
+  set(
+    `${FORCE_APP_ROOT}/lwc/hello_world/hello_world.js`,
+    'import { LightningElement } from "lwc";\n\nexport default class LwcHelloWorld extends LightningElement {}'
+  );
+  set(
+    `${FORCE_APP_ROOT}/lwc/hello_world/hello_world.html`,
+    '<template>Hello From a Lightning Web Component</template>\n'
+  );
   set(
     `${FORCE_APP_ROOT}/aura/helloWorldApp/helloWorldApp.app`,
     '<aura:application xmlns:aura="http://soap.sforce.com/2006/04/metadata" xmlns:apex="http://soap.sforce.com/2006/04/metadata" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:js="http://soap.sforce.com/2006/04/metadata" xmlns:lwc="http://soap.sforce.com/2006/04/metadata" template="b1">Hello World</aura:application>'

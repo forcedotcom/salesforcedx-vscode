@@ -18,9 +18,7 @@ const isNlsLocalizeCall = (expr: TSESTree.Expression): boolean =>
   expr.callee.property.name === 'localize';
 
 /** Check if an expression is a string literal or template literal without nls.localize() */
-const isStringLiteralOrTemplateWithoutNls = (
-  expr: TSESTree.Expression
-): boolean => {
+const isStringLiteralOrTemplateWithoutNls = (expr: TSESTree.Expression): boolean => {
   if (expr.type === AST_NODE_TYPES.Literal && typeof expr.value === 'string') {
     return true;
   }

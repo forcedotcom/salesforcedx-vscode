@@ -23,11 +23,7 @@ import { ConflictTreePage } from '../pages/conflictTreePage';
 import { DiffEditorPage } from '../pages/diffEditorPage';
 
 test.describe('Retrieve Conflict Detection (Source Tracking)', () => {
-  test('detects conflict, views diff, then overrides and retrieves', async ({
-    page,
-    helperProject,
-    statusBarPage
-  }) => {
+  test('detects conflict, views diff, then overrides and retrieves', async ({ page, helperProject, statusBarPage }) => {
     const className = `Retrieve${Date.now().toString(36).slice(-6).toUpperCase()}`;
 
     await test.step('1. Create and deploy baseline', async () => {
@@ -52,7 +48,10 @@ test.describe('Retrieve Conflict Detection (Source Tracking)', () => {
 
     await test.step('4-5. Wait for status bar to detect conflict', async () => {
       await statusBarPage.waitForCounts({ conflicts: 1 }, 60_000);
-      expect(await statusBarPage.hasErrorBackground(), 'Status bar should show error background when conflict detected').toBe(true);
+      expect(
+        await statusBarPage.hasErrorBackground(),
+        'Status bar should show error background when conflict detected'
+      ).toBe(true);
       await saveScreenshot(page, 'retrieve-conflict-4-conflict-detected.png');
     });
 
@@ -95,7 +94,10 @@ test.describe('Retrieve Conflict Detection (Source Tracking)', () => {
 
     await test.step('9. Validate conflict cleared after override retrieve', async () => {
       await statusBarPage.waitForCounts({ conflicts: 0 });
-      expect(await statusBarPage.hasErrorBackground(), 'Status bar should not show error background after retrieve').toBe(false);
+      expect(
+        await statusBarPage.hasErrorBackground(),
+        'Status bar should not show error background after retrieve'
+      ).toBe(false);
       await saveScreenshot(page, 'retrieve-conflict-11-conflict-cleared.png');
     });
   });

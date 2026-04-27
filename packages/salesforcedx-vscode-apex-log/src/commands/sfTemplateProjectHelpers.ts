@@ -43,7 +43,9 @@ type PromptForApexTypeNameParams = {
   readonly messages?: ApexTypeNameMessages;
 };
 
-export const promptForApexTypeName = Effect.fn('promptForApexTypeName')(function* (params: PromptForApexTypeNameParams) {
+export const promptForApexTypeName = Effect.fn('promptForApexTypeName')(function* (
+  params: PromptForApexTypeNameParams
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const messages = params.messages ?? getStandardApexTypeNameMessages();

@@ -52,7 +52,10 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
     const item = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
     await item.hover();
     // Wait for toolbar buttons to appear before taking snapshot
-    await expect(item.locator('.action-label[aria-label="Retrieve Metadata"]').first(), 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
+    await expect(
+      item.locator('.action-label[aria-label="Retrieve Metadata"]').first(),
+      'Retrieve button should be visible'
+    ).toBeVisible({ timeout: 3000 });
     // Expected structure: treeitem at level 2 with toolbar containing Retrieve Metadata button (no Refresh Type button at item level)
     await expect(item).toHaveRole('treeitem');
     await expect(item).toHaveAttribute('aria-level', '2');

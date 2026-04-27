@@ -28,9 +28,7 @@ export class ConflictModalPage {
 
   public async clickOverride(operationType: 'deploy' | 'retrieve'): Promise<void> {
     const label =
-      operationType === 'deploy'
-        ? i18n.conflict_detect_override_deploy
-        : i18n.conflict_detect_override_retrieve;
+      operationType === 'deploy' ? i18n.conflict_detect_override_deploy : i18n.conflict_detect_override_retrieve;
     await this.page.getByRole('button', { name: label }).click();
   }
 }

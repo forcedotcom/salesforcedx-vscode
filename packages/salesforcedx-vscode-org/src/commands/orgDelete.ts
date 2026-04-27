@@ -40,21 +40,23 @@ const removeOrgAliases = Effect.fn('OrgDelete.removeOrgAliases')(function* (user
   yield* api.services.AliasService.unsetAliases(aliases);
 });
 
-const unsetTargetOrgIfMatch = Effect.fn('OrgDelete.unsetTargetOrgIfMatch')(
-  function* (username: string, aliases: readonly string[]) {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const isTarget = yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
-    if (isTarget) yield* api.services.ConfigService.unsetTargetOrg();
-  }
-);
+const unsetTargetOrgIfMatch = Effect.fn('OrgDelete.unsetTargetOrgIfMatch')(function* (
+  username: string,
+  aliases: readonly string[]
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const isTarget = yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
+  if (isTarget) yield* api.services.ConfigService.unsetTargetOrg();
+});
 
-const unsetTargetDevHubIfMatch = Effect.fn('OrgDelete.unsetTargetDevHubIfMatch')(
-  function* (username: string, aliases: readonly string[]) {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const isDevHub = yield* api.services.ConfigService.isCurrentTargetDevHub(username, aliases);
-    if (isDevHub) yield* api.services.ConfigService.unsetTargetDevHub();
-  }
-);
+const unsetTargetDevHubIfMatch = Effect.fn('OrgDelete.unsetTargetDevHubIfMatch')(function* (
+  username: string,
+  aliases: readonly string[]
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const isDevHub = yield* api.services.ConfigService.isCurrentTargetDevHub(username, aliases);
+  if (isDevHub) yield* api.services.ConfigService.unsetTargetDevHub();
+});
 
 /** Checks if the auth file exists in .sfdx or .sf; sf org delete may already remove it (idempotent). */
 const authFileExists = Effect.fn('OrgDelete.authFileExists')(function* (username: string) {

@@ -18,10 +18,7 @@ const isNlsLocalizeCall = (expr: TSESTree.Expression): boolean =>
   expr.callee.property.name === 'localize';
 
 /** Collect all string literal nodes in an expression that would be returned as error message */
-const collectStringLiteralNodes = (
-  expr: TSESTree.Expression | null | undefined,
-  out: TSESTree.Node[]
-): void => {
+const collectStringLiteralNodes = (expr: TSESTree.Expression | null | undefined, out: TSESTree.Node[]): void => {
   if (!expr) return;
   if (isNlsLocalizeCall(expr)) return;
   if (expr.type === AST_NODE_TYPES.Literal && typeof expr.value === 'string') {
@@ -76,10 +73,7 @@ const findValidateInputProperty = (obj: TSESTree.ObjectExpression): TSESTree.Pro
 };
 
 /** Recursively collect all ReturnStatement nodes from a block or statement */
-const collectReturnStatements = (
-  node: TSESTree.Node,
-  out: TSESTree.ReturnStatement[]
-): void => {
+const collectReturnStatements = (node: TSESTree.Node, out: TSESTree.ReturnStatement[]): void => {
   if (node.type === AST_NODE_TYPES.ReturnStatement) {
     out.push(node);
     return;
@@ -131,8 +125,7 @@ export const noVscodeValidateInputLiterals = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
     docs: {
-      description:
-        'Disallow string literals in showInputBox validateInput - use nls.localize() for error messages'
+      description: 'Disallow string literals in showInputBox validateInput - use nls.localize() for error messages'
     },
     schema: [],
     messages: {
@@ -154,10 +147,7 @@ export const noVscodeValidateInputLiterals = RuleCreator.withoutDocs({
       const value = validateInputProp.value;
       if (value.type === AST_NODE_TYPES.Identifier) return; // External function - skip
 
-      if (
-        value.type === AST_NODE_TYPES.ArrowFunctionExpression ||
-        value.type === AST_NODE_TYPES.FunctionExpression
-      ) {
+      if (value.type === AST_NODE_TYPES.ArrowFunctionExpression || value.type === AST_NODE_TYPES.FunctionExpression) {
         checkValidateInputFunction(value, context);
       }
     }

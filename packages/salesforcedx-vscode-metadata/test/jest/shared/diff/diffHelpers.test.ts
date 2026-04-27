@@ -57,31 +57,30 @@ const createMockFsService = (overrides?: { readFile?: (path: string | URI) => Ef
   return overrides ? { ...base, ...overrides } : base;
 };
 
-const createMockExtensionProvider = () => ({
-  getServicesApi: Effect.succeed({
-    services: { FsService }
-  })
-}) as unknown as ExtensionProviderService;
+const createMockExtensionProvider = () =>
+  ({
+    getServicesApi: Effect.succeed({
+      services: { FsService }
+    })
+  }) as unknown as ExtensionProviderService;
 
-const provideMocks = (fsService = createMockFsService()) => (e: Effect.Effect<unknown, unknown, unknown>) =>
-  e.pipe(
-    Effect.provideService(ExtensionProviderService, createMockExtensionProvider()),
-    Effect.provideService(FsService, fsService as InstanceType<typeof FsService>)
-  );
+const provideMocks =
+  (fsService = createMockFsService()) =>
+  (e: Effect.Effect<unknown, unknown, unknown>) =>
+    e.pipe(
+      Effect.provideService(ExtensionProviderService, createMockExtensionProvider()),
+      Effect.provideService(FsService, fsService as InstanceType<typeof FsService>)
+    );
 
 /** Run effect with mocks - cast to satisfy runPromise's never requirement */
-const runWithMocks = <A, E, R>(
-  effect: Effect.Effect<A, E, R>,
-  fsService = createMockFsService()
-) => Effect.runPromise(effect.pipe(provideMocks(fsService)) as Effect.Effect<A, E, never>);
+const runWithMocks = <A, E, R>(effect: Effect.Effect<A, E, R>, fsService = createMockFsService()) =>
+  Effect.runPromise(effect.pipe(provideMocks(fsService)) as Effect.Effect<A, E, never>);
 
 describe('matchUrisToComponents', () => {
   it('returns pairs when local .cls matches remote .cls path', async () => {
     const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
-    const remoteCls =
-      '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
-    const remoteMeta =
-      '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls-meta.xml';
+    const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
+    const remoteMeta = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls-meta.xml';
 
     const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
     const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
@@ -102,8 +101,7 @@ describe('matchUrisToComponents', () => {
 
   it('returns empty when no remote component matches fullName', async () => {
     const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
-    const remoteCls =
-      '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/OtherClass.cls';
+    const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/OtherClass.cls';
 
     const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
     const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
@@ -118,10 +116,8 @@ describe('matchUrisToComponents', () => {
 
   it('matches .cls not .cls-meta.xml when local file is ConflictsTest.cls', async () => {
     const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
-    const remoteCls =
-      '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
-    const remoteMeta =
-      '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls-meta.xml';
+    const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
+    const remoteMeta = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls-meta.xml';
 
     const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
     // project component has only the .cls (no -meta.xml) so only .cls is iterated locally
@@ -142,8 +138,7 @@ describe('matchUrisToComponents', () => {
 
   it('returns empty when localUriFilter filters out all local files', async () => {
     const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
-    const remoteCls =
-      '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
+    const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
 
     const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
     const retrievedSet = createMockRetrievedSet([createMockComponent('ConflictsTest', 'ApexClass', remoteCls)]);
@@ -217,9 +212,7 @@ describe('filesAreNotIdentical', () => {
     const mockFsService = {
       ...createMockFsService(),
       readFile: (path: string | URI) =>
-        Effect.succeed(
-          path.toString().includes('remote') ? 'remote content' : 'local content'
-        )
+        Effect.succeed(path.toString().includes('remote') ? 'remote content' : 'local content')
     };
 
     const result = await runWithMocks(filesAreNotIdentical(pair), mockFsService);

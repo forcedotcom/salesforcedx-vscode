@@ -30,20 +30,31 @@ const DebugLevelItemStruct = Schema.Struct({
   developerName: Schema.String.pipe(Schema.annotations({ description: 'Unique API name for this debug level.' })),
   masterLabel: Schema.String.pipe(Schema.annotations({ description: 'User-facing label for this debug level.' })),
   language: Schema.NullOr(Schema.String).pipe(Schema.annotations({ description: 'Language of the MasterLabel.' })),
-  apexCode: LogCategoryLevel.pipe(Schema.annotations({ description: 'Apex code execution: DML, SOQL/SOSL, triggers, and test methods.' })),
-  apexProfiling: LogCategoryLevel.pipe(Schema.annotations({ description: 'Cumulative profiling info: namespace limits, emails sent.' })),
-  callout: LogCategoryLevel.pipe(Schema.annotations({ description: 'Request-response XML from external web service and API calls.' })),
+  apexCode: LogCategoryLevel.pipe(
+    Schema.annotations({ description: 'Apex code execution: DML, SOQL/SOSL, triggers, and test methods.' })
+  ),
+  apexProfiling: LogCategoryLevel.pipe(
+    Schema.annotations({ description: 'Cumulative profiling info: namespace limits, emails sent.' })
+  ),
+  callout: LogCategoryLevel.pipe(
+    Schema.annotations({ description: 'Request-response XML from external web service and API calls.' })
+  ),
   database: LogCategoryLevel.pipe(Schema.annotations({ description: 'DML statements and inline SOQL/SOSL queries.' })),
   nba: LogCategoryLevel.pipe(Schema.annotations({ description: 'Einstein Next Best Action strategy execution.' })),
   system: LogCategoryLevel.pipe(Schema.annotations({ description: 'System method calls such as System.debug().' })),
-  validation: LogCategoryLevel.pipe(Schema.annotations({ description: 'Validation rule names and evaluation results.' })),
-  visualforce: LogCategoryLevel.pipe(Schema.annotations({ description: 'Visualforce events, view state serialization/deserialization.' })),
+  validation: LogCategoryLevel.pipe(
+    Schema.annotations({ description: 'Validation rule names and evaluation results.' })
+  ),
+  visualforce: LogCategoryLevel.pipe(
+    Schema.annotations({ description: 'Visualforce events, view state serialization/deserialization.' })
+  ),
   wave: LogCategoryLevel.pipe(Schema.annotations({ description: 'CRM Analytics (Wave) logging.' })),
-  workflow: LogCategoryLevel.pipe(Schema.annotations({ description: 'Workflow rules, flows, and process builder actions.' }))
+  workflow: LogCategoryLevel.pipe(
+    Schema.annotations({ description: 'Workflow rules, flows, and process builder actions.' })
+  )
 });
 
-const isRecord = (x: unknown): x is Record<string, unknown> =>
-  typeof x === 'object' && x !== null && !Array.isArray(x);
+const isRecord = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
 /** TraceFlagItem + debugLevelName. Apex-log enriches from DebugLevel lookup. Kept optional for defensive parsing. */
 export const buildExtendedTraceFlagItemStruct = <A, I>(base: Schema.Schema<A, I, never>) =>
@@ -112,7 +123,9 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
   const reorderTraceFlagItem = (obj: Record<string, unknown>): Record<string, unknown> =>
     Object.fromEntries([
       ...TRACE_FLAG_ORDER.filter(k => k in obj).map(k => [k, obj[k]]),
-      ...Object.keys(obj).filter(k => !ORDER_SET.has(k)).map(k => [k, obj[k]])
+      ...Object.keys(obj)
+        .filter(k => !ORDER_SET.has(k))
+        .map(k => [k, obj[k]])
     ]);
 
   const reorderTraceFlagsInConfig = (encoded: unknown): unknown => {
@@ -135,7 +148,9 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
     JSON.stringify(reorderTraceFlagsInConfig(Schema.encodeSync(TraceFlagsConfigSchema)(config)), undefined, 2);
 
   /** Decodes TraceFlagsConfig from JSON string. Returns undefined on invalid JSON or schema mismatch. */
-  const decodeTraceFlagsConfigFromJson = (json: string): Schema.Schema.Type<typeof TraceFlagsConfigSchema> | undefined =>
+  const decodeTraceFlagsConfigFromJson = (
+    json: string
+  ): Schema.Schema.Type<typeof TraceFlagsConfigSchema> | undefined =>
     Either.getOrElse(Schema.decodeUnknownEither(Schema.parseJson(TraceFlagsConfigSchema))(json), () => undefined);
 
   return { TraceFlagsConfigSchema, encodeTraceFlagsConfigToJson, decodeTraceFlagsConfigFromJson };

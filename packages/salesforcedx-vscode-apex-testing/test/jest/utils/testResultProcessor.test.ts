@@ -62,12 +62,7 @@ describe('testResultProcessor', () => {
     }));
   });
 
-  const createMockTestItem = (
-    id: string,
-    label: string,
-    uri?: URI,
-    children?: vscode.TestItem[]
-  ): vscode.TestItem => {
+  const createMockTestItem = (id: string, label: string, uri?: URI, children?: vscode.TestItem[]): vscode.TestItem => {
     // Create a plain object with label and uri as direct, enumerable properties
     // The implementation accesses item.label and item.uri, so we need to ensure they're accessible
     const childrenArray = children ?? [];

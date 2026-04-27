@@ -6,7 +6,12 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ComponentStatus, RequestStatus, type FileResponse, type RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentStatus,
+  RequestStatus,
+  type FileResponse,
+  type RetrieveResult
+} from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import { isSDRFailure, toRequestStatus } from 'salesforcedx-vscode-services/src/core/sdrGuards';
@@ -22,7 +27,11 @@ const mockExtensionProvider: ExtensionProviderService = {
 
 const run = <A>(effect: Effect.Effect<A, unknown, unknown>) =>
   Effect.runPromise(
-    effect.pipe(Effect.provideService(ExtensionProviderService, mockExtensionProvider)) as Effect.Effect<A, never, never>
+    effect.pipe(Effect.provideService(ExtensionProviderService, mockExtensionProvider)) as Effect.Effect<
+      A,
+      never,
+      never
+    >
   );
 
 const makeResult = (partial: {

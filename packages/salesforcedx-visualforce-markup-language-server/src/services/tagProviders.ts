@@ -7,7 +7,4 @@
 import { getHTML5TagProvider, IHTMLTagProvider } from '../parser/htmlTags';
 import { getVisualforceTagProvider } from '../parser/visualforceTags';
 
-export const allTagProviders: IHTMLTagProvider[] = [
-  getHTML5TagProvider(),
-  getVisualforceTagProvider()
-];
+export const allTagProviders: IHTMLTagProvider[] = [getHTML5TagProvider(), getVisualforceTagProvider()];

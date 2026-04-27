@@ -160,8 +160,11 @@ export const openOrgApexClass = async (className: string, position?: vscode.Posi
     }).pipe(
       Effect.catchAll((error: unknown) => {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        return Effect.sync(() =>
-          void vscode.window.showErrorMessage(nls.localize('apex_test_open_org_class_failed_message', className, errorMessage))
+        return Effect.sync(
+          () =>
+            void vscode.window.showErrorMessage(
+              nls.localize('apex_test_open_org_class_failed_message', className, errorMessage)
+            )
         );
       })
     )

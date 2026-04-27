@@ -46,10 +46,7 @@ describe('vscodeignore-required-patterns', () => {
 
     it('should pass when .vscodeignore is valid', () => {
       const fixturePath = path.resolve(__dirname, '../../salesforcedx-vscode-org-browser/.vscodeignore');
-      const errors = filterByRule(
-        lintVscodeignore(fs.readFileSync(fixturePath, 'utf-8'), fixturePath),
-        RULE_NAME
-      );
+      const errors = filterByRule(lintVscodeignore(fs.readFileSync(fixturePath, 'utf-8'), fixturePath), RULE_NAME);
       expect(errors).toHaveLength(0);
     });
 

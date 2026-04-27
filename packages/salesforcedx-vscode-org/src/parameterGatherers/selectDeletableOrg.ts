@@ -41,14 +41,12 @@ export class SelectDeletableOrg implements ParametersGatherer<{ orgs: OrgToDelet
       return { type: 'CANCEL' };
     }
 
-    const targetOrgs: OrgToDelete[] = selections
-      .filter(isOrgItem)
-      .flatMap(s => {
-        if (!s.orgUsername) return [];
-        const auth = freshAuthorizations.find(o => o.username === s.orgUsername);
-        const orgType = auth?.isScratchOrg === true ? 'scratch' : 'sandbox';
-        return [{ username: s.orgUsername, orgType }];
-      });
+    const targetOrgs: OrgToDelete[] = selections.filter(isOrgItem).flatMap(s => {
+      if (!s.orgUsername) return [];
+      const auth = freshAuthorizations.find(o => o.username === s.orgUsername);
+      const orgType = auth?.isScratchOrg === true ? 'scratch' : 'sandbox';
+      return [{ username: s.orgUsername, orgType }];
+    });
 
     if (targetOrgs.length === 0) {
       return { type: 'CANCEL' };

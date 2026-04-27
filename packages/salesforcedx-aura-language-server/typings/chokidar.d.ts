@@ -1,8 +1,8 @@
 import 'chokidar';
 
 declare module 'chokidar' {
-    interface FSWatcher {
-        ref(): this;
-        unref(): this;
-    }
+  interface FSWatcher {
+    ref(): this;
+    unref(): this;
+  }
 }

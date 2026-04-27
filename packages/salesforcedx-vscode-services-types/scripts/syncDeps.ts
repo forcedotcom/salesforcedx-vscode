@@ -1,5 +1,11 @@
-import * as fs from 'fs';
-import * as path from 'path';
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 type PackageJson = {
   name?: string;
@@ -57,9 +63,8 @@ const syncDeps = (): void => {
   // Sync version number
   typesPkg.version = parentPkg.version;
 
-  fs.writeFileSync(typesPkgPath, JSON.stringify(typesPkg, null, 2) + '\n', 'utf8');
+  fs.writeFileSync(typesPkgPath, `${JSON.stringify(typesPkg, null, 2)}\n`, 'utf8');
   console.log('Synced dependencies and version from parent package');
 };
 
 syncDeps();
-

@@ -26,9 +26,7 @@ export const sfProjectPreconditionChecker = {
         );
         if (!isProject) {
           return yield* Effect.sync(() => {
-            void vscode.window.showErrorMessage(
-              nls.localize('predicates_no_salesforce_project_found_text')
-            );
+            void vscode.window.showErrorMessage(nls.localize('predicates_no_salesforce_project_found_text'));
             return false;
           });
         }

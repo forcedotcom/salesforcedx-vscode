@@ -32,9 +32,7 @@ const getActions = (error: unknown): string[] => {
 const isMetadataCompletedWithErrorsSummaryError = (error: unknown): boolean => {
   if (typeof error !== 'object' || error === null || !('_tag' in error)) return false;
   const tag = Reflect.get(error, '_tag');
-  return (
-    tag === 'DeployCompletedWithErrorsError' || tag === 'RetrieveCompletedWithErrorsError'
-  );
+  return tag === 'DeployCompletedWithErrorsError' || tag === 'RetrieveCompletedWithErrorsError';
 };
 
 const getBaseMessage = (error: unknown): string => {

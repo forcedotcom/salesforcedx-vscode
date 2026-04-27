@@ -32,9 +32,7 @@ const isStringLiteralOrTemplateWithoutNls = (expr: TSESTree.Expression): boolean
 const findTitleProperty = (obj: TSESTree.ObjectExpression): TSESTree.Property | undefined => {
   const p = obj.properties.find(
     prop =>
-      prop.type === AST_NODE_TYPES.Property &&
-      prop.key.type === AST_NODE_TYPES.Identifier &&
-      prop.key.name === 'title'
+      prop.type === AST_NODE_TYPES.Property && prop.key.type === AST_NODE_TYPES.Identifier && prop.key.name === 'title'
   );
   return p?.type === AST_NODE_TYPES.Property ? p : undefined;
 };
@@ -93,8 +91,7 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
     docs: {
-      description:
-        'Disallow string literals in withProgress title - use nls.localize() or variables instead'
+      description: 'Disallow string literals in withProgress title - use nls.localize() or variables instead'
     },
     schema: [],
     messages: {

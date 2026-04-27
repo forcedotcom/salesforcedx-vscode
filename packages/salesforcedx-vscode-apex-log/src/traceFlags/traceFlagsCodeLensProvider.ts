@@ -34,7 +34,9 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
   const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas(ExtendedItemStruct);
   const parsed = decodeTraceFlagsConfigFromJson(document.getText());
   const text = document.getText();
-  const allActiveItems = Object.values(parsed?.traceFlags ?? {}).flat().filter(item => item.isActive);
+  const allActiveItems = Object.values(parsed?.traceFlags ?? {})
+    .flat()
+    .filter(item => item.isActive);
   const deleteLenses = allActiveItems.flatMap(item => {
     const idx = text.indexOf(`"id": "${item.id}"`);
     if (idx < 0) return [];
@@ -49,8 +51,7 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
     ];
   });
   const itemsWithDebugLevel = allActiveItems.filter(
-    (item): item is typeof item & { debugLevelName: string } =>
-      typeof item.debugLevelName === 'string'
+    (item): item is typeof item & { debugLevelName: string } => typeof item.debugLevelName === 'string'
   );
   const changeDebugLevelLenses = itemsWithDebugLevel.flatMap(item => {
     const idIdx = text.indexOf(`"id": "${item.id}"`);

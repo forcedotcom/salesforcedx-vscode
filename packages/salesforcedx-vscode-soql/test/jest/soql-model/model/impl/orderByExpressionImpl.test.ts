@@ -9,19 +9,14 @@ import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefI
 import { OrderByExpressionImpl } from '../../../../../src/soql-model/model/impl/orderByExpressionImpl';
 import { NullsOrder, Order } from '../../../../../src/soql-model/model/model';
 
-
 describe('OrderByExpressionImpl should', () => {
   it('store order by expression components', () => {
     const expected = {
       field: { kind: 'fieldRef', fieldName: 'shattered' },
       order: 'ASC',
-      nullsOrder: 'NULLS FIRST',
+      nullsOrder: 'NULLS FIRST'
     };
-    const actual = new OrderByExpressionImpl(
-      new FieldRefImpl('shattered'),
-      Order.Ascending,
-      NullsOrder.First
-    );
+    const actual = new OrderByExpressionImpl(new FieldRefImpl('shattered'), Order.Ascending, NullsOrder.First);
     expect(actual).toEqual(expected);
   });
   it('return field, order, and nulls order separated by spaces for toSoqlSyntax()', () => {

@@ -44,7 +44,10 @@ function init(modules: { typescript: typeof import('typescript/lib/tsserverlibra
         sourceFile.languageVersion ?? 99,
         true
       ) as ts.SourceFile;
-      node = (ts as { getTokenAtPosition?: (f: ts.SourceFile, p: number) => ts.Node }).getTokenAtPosition?.(sf, position);
+      node = (ts as { getTokenAtPosition?: (f: ts.SourceFile, p: number) => ts.Node }).getTokenAtPosition?.(
+        sf,
+        position
+      );
       if (!node) return undefined;
     }
     const str =
@@ -73,7 +76,10 @@ function init(modules: { typescript: typeof import('typescript/lib/tsserverlibra
       SyntaxKind: ts.SyntaxKind as unknown as Record<string, number>
     };
 
-    const resolveKey = (fileName: string, position: number): { key: string; sourceFile: ts.SourceFile; result: MessagesResult } | undefined => {
+    const resolveKey = (
+      fileName: string,
+      position: number
+    ): { key: string; sourceFile: ts.SourceFile; result: MessagesResult } | undefined => {
       const program = info.languageService.getProgram();
       const sourceFile = program?.getSourceFile(fileName);
       if (!program || !sourceFile) return undefined;
@@ -93,10 +99,11 @@ function init(modules: { typescript: typeof import('typescript/lib/tsserverlibra
         kind: ts.ScriptElementKind.string,
         kindModifiers: '',
         textSpan: prior?.textSpan ?? {
-          start: sourceFile.getPositionOfLineAndCharacter?.(
-            sourceFile.getLineAndCharacterOfPosition(position).line,
-            sourceFile.getLineAndCharacterOfPosition(position).character
-          ) ?? position,
+          start:
+            sourceFile.getPositionOfLineAndCharacter?.(
+              sourceFile.getLineAndCharacterOfPosition(position).line,
+              sourceFile.getLineAndCharacterOfPosition(position).character
+            ) ?? position,
           length: key.length + 2
         },
         displayParts: [{ kind: 'text' as const, text: `(i18n) ${key}` }],
@@ -104,7 +111,10 @@ function init(modules: { typescript: typeof import('typescript/lib/tsserverlibra
       };
     };
 
-    proxy.getDefinitionAndBoundSpan = (fileName: string, position: number): ts.DefinitionInfoAndBoundSpan | undefined => {
+    proxy.getDefinitionAndBoundSpan = (
+      fileName: string,
+      position: number
+    ): ts.DefinitionInfoAndBoundSpan | undefined => {
       const prior = info.languageService.getDefinitionAndBoundSpan(fileName, position);
       const resolved = resolveKey(fileName, position);
       if (!resolved) return prior;

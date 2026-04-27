@@ -19,7 +19,6 @@ export class PicklistValidator extends Validator {
       isValid = validValues.includes(input);
       if (!isValid) {
         const commaSeparatedValues = validValues.reduce((soFar, next) => {
-           
           if (soFar.length > 0) {
             // eslint-disable-next-line no-param-reassign
             soFar += ', ';

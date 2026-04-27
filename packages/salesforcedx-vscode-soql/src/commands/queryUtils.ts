@@ -17,7 +17,11 @@ const API_ITEMS = [
 const ensureTextAndNormalize = Effect.fn('ensureTextAndNormalize')(function* (text: string) {
   const servicesApi = yield* getServicesApi;
   const promptService = yield* servicesApi.services.PromptService;
-  const normalized = text.replace('[', '').replace(']', '').replaceAll(/(\r\n|\n)/g, ' ').trim();
+  const normalized = text
+    .replace('[', '')
+    .replace(']', '')
+    .replaceAll(/(\r\n|\n)/g, ' ')
+    .trim();
   return yield* promptService.considerUndefinedAsCancellation(normalized);
 });
 

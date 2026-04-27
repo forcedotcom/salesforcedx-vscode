@@ -17,7 +17,13 @@ import { URI } from 'vscode-uri';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
 import { ComponentSetService, type NonEmptyComponentSet } from '../../../src/core/componentSetService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
-import { isSDRSuccess, isSDRFailure, makeFileResponseFailure, toComponentStatusChangeType, toRequestStatus } from '../../../src/core/sdrGuards';
+import {
+  isSDRSuccess,
+  isSDRFailure,
+  makeFileResponseFailure,
+  toComponentStatusChangeType,
+  toRequestStatus
+} from '../../../src/core/sdrGuards';
 import { FsService } from '../../../src/vscode/fsService';
 
 /** Create a mock ComponentSetService that only provides the type guards needed for tests */
@@ -120,7 +126,11 @@ describe('parseRetrieveOnLoad', () => {
 });
 
 describe('filterFileResponses', () => {
-  const testLayer = Layer.mergeAll(createMockComponentSetService(), createMockMetadataRegistryService(), FsService.Default);
+  const testLayer = Layer.mergeAll(
+    createMockComponentSetService(),
+    createMockMetadataRegistryService(),
+    FsService.Default
+  );
 
   it('should include .cls files for ApexClass and not include cls-meta.xml', async () => {
     const fileResponses: FileResponse[] = [
@@ -128,9 +138,7 @@ describe('filterFileResponses', () => {
       createFileResponse('ApexClass', 'Foo', '/path/to/Foo.cls-meta.xml')
     ];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toEqual([URI.file('/path/to/Foo.cls')]);
     expect(filesToOpen).not.toContainEqual(URI.file('/path/to/Foo.cls-meta.xml'));
@@ -139,9 +147,7 @@ describe('filterFileResponses', () => {
   it('should include .tab-meta.xml for CustomTab', async () => {
     const fileResponses: FileResponse[] = [createFileResponse('CustomTab', 'Foo', '/path/to/Foo.tab-meta.xml')];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toEqual([URI.file('/path/to/Foo.tab-meta.xml')]);
   });
@@ -159,9 +165,7 @@ describe('filterFileResponses', () => {
       }
     ];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toEqual([URI.file('/path/to/Foo.cls')]);
   });
@@ -176,9 +180,7 @@ describe('filterFileResponses', () => {
       } as FileResponse
     ];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toEqual([URI.file('/path/to/Foo.cls')]);
   });
@@ -186,9 +188,7 @@ describe('filterFileResponses', () => {
   it('should produce a URI for Windows paths', async () => {
     const fileResponses: FileResponse[] = [createFileResponse('ApexClass', 'Foo', 'C:\\path\\to\\Foo.cls')];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toEqual([URI.file('c:\\path\\to\\Foo.cls')]);
   });
@@ -202,9 +202,7 @@ describe('filterFileResponses', () => {
       createFileResponse('ApexPage', 'TestPage', '/path/to/TestPage.page-meta.xml')
     ];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toEqual([
       URI.file('/path/to/Foo.cls'),
@@ -221,9 +219,7 @@ describe('filterFileResponses', () => {
       createFileResponse('ApexClass', 'Foo', '/path/to/Foo.xyz-meta.xml')
     ];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toEqual([URI.file('/path/to/Foo.cls')]);
     expect(filesToOpen).not.toContainEqual(URI.file('/path/to/Foo.xyz-meta.xml'));
@@ -232,9 +228,7 @@ describe('filterFileResponses', () => {
   it('should return empty array when no file responses have recognized suffixes', async () => {
     const fileResponses: FileResponse[] = [createFileResponse('ApexClass', 'Foo', '/path/to/Foo.xyz-meta.xml')];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toHaveLength(0);
   });
@@ -242,9 +236,7 @@ describe('filterFileResponses', () => {
   it('should handle empty file responses array', async () => {
     const fileResponses: FileResponse[] = [];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toHaveLength(0);
   });
@@ -257,9 +249,7 @@ describe('filterFileResponses', () => {
       createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.js-meta.xml')
     ];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toHaveLength(1);
     expect(filesToOpen[0].toString()).toBe(URI.file('/path/lwc/foo/foo.js').toString());
@@ -272,9 +262,7 @@ describe('filterFileResponses', () => {
       createFileResponse('LightningComponentBundle', 'foo', '/path/lwc/foo/foo.html')
     ];
 
-    const filesToOpen = await Effect.runPromise(
-      filterFileResponses(fileResponses).pipe(Effect.provide(testLayer))
-    );
+    const filesToOpen = await Effect.runPromise(filterFileResponses(fileResponses).pipe(Effect.provide(testLayer)));
 
     expect(filesToOpen).toContainEqual(URI.file('/path/classes/Bar.cls'));
     expect(filesToOpen).toContainEqual(URI.file('/path/lwc/foo/foo.js'));

@@ -4,10 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type {
-  Command as CommandType,
-  CommandFields
-} from '../types/command';
+import type { Command as CommandType, CommandFields } from '../types/command';
 
 export class Command implements CommandType {
   public readonly command: string;

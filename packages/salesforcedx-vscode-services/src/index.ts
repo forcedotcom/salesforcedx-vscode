@@ -444,7 +444,13 @@ export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';
-export { DebugLevelItemSchema, TraceFlagItemStruct, TraceFlagLogType, type DebugLevelItem, type TraceFlagItem } from './core/schemas/traceFlagSchemas';
+export {
+  DebugLevelItemSchema,
+  TraceFlagItemStruct,
+  TraceFlagLogType,
+  type DebugLevelItem,
+  type TraceFlagItem
+} from './core/schemas/traceFlagSchemas';
 export { type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
 export type { UserCancellationError } from './vscode/prompts/promptService';

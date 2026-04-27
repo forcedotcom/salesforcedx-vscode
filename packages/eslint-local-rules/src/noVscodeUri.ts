@@ -38,8 +38,7 @@ export const noVscodeUri = RuleCreator.withoutDocs({
     },
     schema: [],
     messages: {
-      useVscodeUri:
-        'Use URI from vscode-uri instead of vscode.Uri. Import { URI } from "vscode-uri".'
+      useVscodeUri: 'Use URI from vscode-uri instead of vscode.Uri. Import { URI } from "vscode-uri".'
     }
   },
   defaultOptions: [],

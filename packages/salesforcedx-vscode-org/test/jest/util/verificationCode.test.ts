@@ -6,7 +6,11 @@
  */
 
 import * as vscode from 'vscode';
-import { generateVerificationCode, getVerificationCodeDescription, showVerificationCodeIfNeeded } from '../../../src/util/verificationCode';
+import {
+  generateVerificationCode,
+  getVerificationCodeDescription,
+  showVerificationCodeIfNeeded
+} from '../../../src/util/verificationCode';
 
 describe('generateVerificationCode', () => {
   it('should return cc0a for test_token (matches server-side test vector)', () => {

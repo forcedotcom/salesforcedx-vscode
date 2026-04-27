@@ -88,11 +88,7 @@ export const noDuplicateI18nValues = RuleCreator.withoutDocs({
 
     return {
       VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
-        if (
-          node.id.type === AST_NODE_TYPES.Identifier &&
-          node.id.name === 'messages' &&
-          node.init
-        ) {
+        if (node.id.type === AST_NODE_TYPES.Identifier && node.id.name === 'messages' && node.init) {
           const init = unwrapAsExpression(node.init);
           if (init.type === AST_NODE_TYPES.ObjectExpression) {
             messagesObject = init;

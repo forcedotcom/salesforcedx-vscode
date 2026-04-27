@@ -12,8 +12,7 @@ import { telemetryService } from '../telemetry';
 const SOBJECTS_DIR = 'sobjects';
 const STANDARDOBJECTS_DIR = 'standardObjects';
 
-const getSObjectsDirectory = (projectPath: string) =>
-  path.join(projectPath, '.sfdx', 'tools', SOBJECTS_DIR);
+const getSObjectsDirectory = (projectPath: string) => path.join(projectPath, '.sfdx', 'tools', SOBJECTS_DIR);
 
 const getStandardSObjectsDirectory = (projectPath: string) =>
   path.join(projectPath, '.sfdx', 'tools', SOBJECTS_DIR, STANDARDOBJECTS_DIR);

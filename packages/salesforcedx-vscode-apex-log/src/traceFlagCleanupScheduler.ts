@@ -19,10 +19,6 @@ export const traceFlagCleanupScheduler = Effect.fn('traceFlagCleanupScheduler')(
     Effect.tapError(e => Effect.logWarning(String(e))),
     Effect.catchAll(() => Effect.void)
   );
-  yield* Effect.fork(
-    Stream.fromSchedule(Schedule.fixed(Duration.minutes(5))).pipe(
-      Stream.runForEach(() => cleanup)
-    )
-  );
+  yield* Effect.fork(Stream.fromSchedule(Schedule.fixed(Duration.minutes(5))).pipe(Stream.runForEach(() => cleanup)));
   yield* Effect.sleep(Duration.infinity);
 });

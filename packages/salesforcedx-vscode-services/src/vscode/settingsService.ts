@@ -76,11 +76,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
      * @param key The settings key
      * @param value The value to set
      */
-    const setValue = Effect.fn('SettingsService.setValue')(function* <T>(
-      section: string,
-      key: string,
-      value: T
-    ) {
+    const setValue = Effect.fn('SettingsService.setValue')(function* <T>(section: string, key: string, value: T) {
       return yield* Effect.tryPromise({
         try: async () => {
           const config = vscode.workspace.getConfiguration(section);

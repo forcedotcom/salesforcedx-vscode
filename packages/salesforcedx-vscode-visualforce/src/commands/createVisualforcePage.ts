@@ -19,13 +19,7 @@ export const createVisualforcePageCommand = Effect.fn('createVisualforcePageComm
 
   const pageName = yield* promptForVfTypeName(nls.localize('vf_page_name_prompt'));
 
-  const defaultUri = Utils.joinPath(
-    workspaceInfo.uri,
-    project.getDefaultPackage().path,
-    'main',
-    'default',
-    'pages'
-  );
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'pages');
 
   const outputDirUri =
     arg ??

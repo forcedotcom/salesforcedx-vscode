@@ -16,7 +16,7 @@ import {
   LanguageModelAccessInformation,
   LanguageModelChat,
   Memento,
-  SecretStorage,
+  SecretStorage
 } from 'vscode';
 import { URI } from 'vscode-uri';
 

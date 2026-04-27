@@ -83,9 +83,7 @@ class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
       if (!apexClassSelection || apexClassSelection.length === 0) {
         return { type: 'CANCEL' };
       }
-      const apexClassNames = apexClassSelection.map(
-        selection => selection.fullClassName ?? selection.label
-      );
+      const apexClassNames = apexClassSelection.map(selection => selection.fullClassName ?? selection.label);
       return {
         type: 'CONTINUE',
         data: { suitename: testSuiteName.label, tests: apexClassNames }
@@ -133,9 +131,7 @@ class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
       if (!apexClassSelection || apexClassSelection.length === 0) {
         return { type: 'CANCEL' };
       }
-      const apexClassNames = apexClassSelection.map(
-        selection => selection.fullClassName ?? selection.label
-      );
+      const apexClassNames = apexClassSelection.map(selection => selection.fullClassName ?? selection.label);
       return {
         type: 'CONTINUE',
         data: { suitename: testSuiteName, tests: apexClassNames }
