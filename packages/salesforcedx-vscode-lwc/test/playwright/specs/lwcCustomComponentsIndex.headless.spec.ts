@@ -15,12 +15,10 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
 import { createLwc, openLwcFile, openSfdxCustomComponentsJson, waitForLwcLspReady } from '../utils/lwcUtils';
-import { applyLwcWebScratchAuth } from '../utils/lwcWebScratchAuth';
 
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
-  await applyLwcWebScratchAuth(page);
   await ensureSecondarySideBarHidden(page);
 });
 

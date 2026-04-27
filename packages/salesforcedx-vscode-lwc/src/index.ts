@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import {
   isLWC,
   LWC_SERVER_READY_NOTIFICATION,
@@ -15,7 +15,8 @@ import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-light
 import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
-import { ExtensionContext, FileType, workspace } from 'vscode';
+import * as Layer from 'effect/Layer';
+import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
 import { createLwcCommand } from './commands/createLwc';
@@ -30,16 +31,6 @@ import { startLwcFileWatcher } from './util/lwcFileWatcher';
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   const telemetryModule = await import('./telemetry/index.js');
   return telemetryModule.telemetryService;
-};
-
-/** Path-string workspace detection fails for some virtual/test-web roots; `workspace.fs` uses the folder URI. */
-const rootHasSfdxProjectJson = async (folderUri: URI): Promise<boolean> => {
-  try {
-    const stat = await workspace.fs.stat(Utils.joinPath(folderUri, 'sfdx-project.json'));
-    return stat.type === FileType.File;
-  } catch {
-    return false;
-  }
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
@@ -90,15 +81,23 @@ export const activate = async (extensionContext: ExtensionContext) => {
     }
   });
 
-  // Path-based detection (Node fs paths) can return UNKNOWN for virtual workspaces; confirm via URI API.
+  // Path-based detection (Node fs paths) can return UNKNOWN for virtual workspaces; fall back to ProjectService.
   let workspaceType: WorkspaceType =
     workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
-  if (
-    workspaceType === 'UNKNOWN' &&
-    workspace.workspaceFolders[0] &&
-    (await rootHasSfdxProjectJson(workspace.workspaceFolders[0].uri))
-  ) {
-    workspaceType = 'SFDX';
+  if (workspaceType === 'UNKNOWN') {
+    const isSfdx = await Effect.runPromise(
+      getServicesApi.pipe(
+        Effect.flatMap(api =>
+          api.services.ProjectService.isSalesforceProject().pipe(
+            Effect.provide(Layer.mergeAll(api.services.ProjectService.Default, api.services.WorkspaceService.Default))
+          )
+        ),
+        Effect.catchAll(() => Effect.succeed(false))
+      )
+    );
+    if (isSfdx) {
+      workspaceType = 'SFDX';
+    }
   }
 
   // Check if we have a valid project structure

@@ -8,7 +8,6 @@
 import { expect, type Page } from '@playwright/test';
 
 import {
-  closeSettingsTab,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -20,7 +19,6 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   typingSpeed,
-  upsertSettings,
   validateNoCriticalErrors,
   waitForExtensionsActivated,
   waitForQuickInputFirstOption,
@@ -31,15 +29,7 @@ import {
 
 import { test } from '../fixtures';
 import { createLwcViaSfdxCommand } from '../utils/lwcUtils';
-
-/** Web: no scratch auth in this spec — disable deploy-on-save so `File: Save` does not log deploy errors (empty instanceUrl). */
-const disableDeployOnSaveWeb = async (page: Page): Promise<void> => {
-  if (isDesktop()) {
-    return;
-  }
-  await upsertSettings(page, { 'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'false' });
-  await closeSettingsTab(page);
-};
+import { disableDeployOnSaveWeb } from '../utils/lwcWebScratchAuth';
 
 /**
  * Desktop: Quick Open works against the real filesystem; the desktop fixture seeds `snippetsE2E`.
