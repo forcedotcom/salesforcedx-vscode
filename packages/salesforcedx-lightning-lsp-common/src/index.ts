@@ -35,7 +35,7 @@ export {
 export type { BaseWorkspaceContextOptions, Indexer } from './baseContext';
 
 // Re-export from shared
-export { isLWC, getSfdxProjectFile, detectWorkspaceHelper, detectWorkspaceType } from './shared';
+export { isLWC, getSfdxProjectFile } from './shared';
 export type { WorkspaceType } from './shared';
 
 // Re-export from indexer
