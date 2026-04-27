@@ -115,3 +115,20 @@ export const detectWorkspaceHelper = async (
 
   return 'UNKNOWN';
 };
+
+/**
+ * @param workspaceRoots
+ * @param fileSystemAccessor
+ * @returns WorkspaceType — multi-root only supported when all roots are CORE_PARTIAL
+ */
+export const detectWorkspaceType = async (
+  workspaceRoots: string[],
+  fileSystemAccessor: LspFileSystemAccessor
+): Promise<WorkspaceType> => {
+  const types = await Promise.all(workspaceRoots.map(root => detectWorkspaceHelper(root, fileSystemAccessor)));
+  return types.length === 1
+    ? types[0]
+    : types.every(t => t === 'CORE_PARTIAL')
+      ? 'CORE_PARTIAL'
+      : 'UNKNOWN';
+};

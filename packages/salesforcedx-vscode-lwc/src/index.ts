@@ -10,8 +10,9 @@ import {
   LWC_SERVER_READY_NOTIFICATION,
   type WorkspaceType
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
-import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
