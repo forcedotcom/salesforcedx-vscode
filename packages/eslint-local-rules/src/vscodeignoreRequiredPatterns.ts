@@ -107,42 +107,40 @@ export const vscodeignoreRequiredPatterns: Rule.RuleModule = {
       const sourceLines = context.sourceCode.getLines();
       const parsedLines = getVscodeignoreLines(sourceLines);
       const configuredPatterns = new Set(
-        parsedLines
-          .map(line => line.value.trim())
-          .filter(line => line.length > 0 && !line.startsWith('#'))
+        parsedLines.map(line => line.value.trim()).filter(line => line.length > 0 && !line.startsWith('#'))
       );
       const firstLine = parsedLines[0]?.line ?? 1;
 
-      REQUIRED_STATIC_ENTRIES
-        .filter(pattern => !configuredPatterns.has(pattern))
-        .map(pattern =>
-          context.report({
-            node: programNode,
-            loc: {
-              start: { line: firstLine, column: 0 },
-              end: { line: firstLine, column: 0 }
-            },
-            messageId: 'missingRequiredPattern',
-            data: { pattern }
-          })
-        );
-
-      EXISTENCE_CHECKED_DIRS
-        .filter(pattern => {
-          const existingDirPath = pathModule.join(packageDir, pattern.replace(/\/\*\*$/, ''));
-          return fs.existsSync(existingDirPath) && fs.statSync(existingDirPath).isDirectory() && !configuredPatterns.has(pattern);
+      REQUIRED_STATIC_ENTRIES.filter(pattern => !configuredPatterns.has(pattern)).map(pattern =>
+        context.report({
+          node: programNode,
+          loc: {
+            start: { line: firstLine, column: 0 },
+            end: { line: firstLine, column: 0 }
+          },
+          messageId: 'missingRequiredPattern',
+          data: { pattern }
         })
-        .map(pattern =>
-          context.report({
-            node: programNode,
-            loc: {
-              start: { line: firstLine, column: 0 },
-              end: { line: firstLine, column: 0 }
-            },
-            messageId: 'missingExistingDirPattern',
-            data: { pattern }
-          })
+      );
+
+      EXISTENCE_CHECKED_DIRS.filter(pattern => {
+        const existingDirPath = pathModule.join(packageDir, pattern.replace(/\/\*\*$/, ''));
+        return (
+          fs.existsSync(existingDirPath) &&
+          fs.statSync(existingDirPath).isDirectory() &&
+          !configuredPatterns.has(pattern)
         );
+      }).map(pattern =>
+        context.report({
+          node: programNode,
+          loc: {
+            start: { line: firstLine, column: 0 },
+            end: { line: firstLine, column: 0 }
+          },
+          messageId: 'missingExistingDirPattern',
+          data: { pattern }
+        })
+      );
     }
   })
 };

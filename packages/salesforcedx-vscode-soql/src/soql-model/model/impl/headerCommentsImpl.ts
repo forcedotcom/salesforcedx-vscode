@@ -8,7 +8,7 @@
 import { HeaderComments, SyntaxOptions } from '../model';
 
 export class HeaderCommentsImpl implements HeaderComments {
-  constructor(public text: string) { }
+  constructor(public text: string) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public toSoqlSyntax(options?: SyntaxOptions): string {

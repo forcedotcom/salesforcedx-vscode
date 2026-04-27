@@ -47,9 +47,7 @@ const makeAliasServiceLayer = (getAliasesFromUsername: jest.Mock) =>
 
 describe('watchAliasFile', () => {
   beforeEach(async () => {
-    await Effect.runPromise(
-      getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {})))
-    );
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
   });
 
   const runWatcherTest = async (
@@ -119,11 +117,7 @@ describe('watchAliasFile', () => {
 
   it('does not update aliases when a non-alias file changes', async () => {
     const mock = jest.fn().mockReturnValue(Effect.succeed(['myAlias']));
-    const result = await runWatcherTest(
-      mock,
-      { username: 'user@example.com', aliases: ['myAlias'] },
-      OTHER_FILE_PATH
-    );
+    const result = await runWatcherTest(mock, { username: 'user@example.com', aliases: ['myAlias'] }, OTHER_FILE_PATH);
     expect(mock).not.toHaveBeenCalled();
     expect(result.aliases).toEqual(['myAlias']);
   });

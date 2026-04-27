@@ -60,12 +60,8 @@ describe('Fields', () => {
     const handler = jest.fn();
     fields.addEventListener('fields__selected', handler);
 
-    const customSelect = fields.shadowRoot.querySelector(
-      'querybuilder-custom-select'
-    );
-    customSelect.dispatchEvent(
-      new CustomEvent('option__selection', { detail: { value: 'foo' } })
-    );
+    const customSelect = fields.shadowRoot.querySelector('querybuilder-custom-select');
+    customSelect.dispatchEvent(new CustomEvent('option__selection', { detail: { value: 'foo' } }));
 
     expect(handler).toHaveBeenCalled();
   });
@@ -76,8 +72,7 @@ describe('Fields', () => {
 
     const handler = jest.fn();
     fields.addEventListener('fields__selected', handler);
-    const selectedFieldCloseEl =
-      fields.shadowRoot.querySelector("[data-field='foo']");
+    const selectedFieldCloseEl = fields.shadowRoot.querySelector("[data-field='foo']");
     selectedFieldCloseEl.click();
 
     expect(handler).toHaveBeenCalled();
@@ -93,9 +88,7 @@ describe('Fields', () => {
     fields.addEventListener('fields__selected', selectHandler);
     fields.addEventListener('fields__selectall', selectAllHandler);
 
-    const customSelect = fields.shadowRoot.querySelector(
-      'querybuilder-custom-select'
-    );
+    const customSelect = fields.shadowRoot.querySelector('querybuilder-custom-select');
     customSelect.dispatchEvent(
       new CustomEvent('option__selection', {
         detail: { value: '- Clear Selection -' }
@@ -117,9 +110,7 @@ describe('Fields', () => {
     fields.addEventListener('fields__selected', selectHandler);
     fields.addEventListener('fields__selectall', selectAllHandler);
 
-    const customSelect = fields.shadowRoot.querySelector(
-      'querybuilder-custom-select'
-    );
+    const customSelect = fields.shadowRoot.querySelector('querybuilder-custom-select');
     customSelect.dispatchEvent(
       new CustomEvent('option__selection', {
         detail: { value: 'ALL FIELDS' }
@@ -168,17 +159,13 @@ describe('Fields', () => {
     document.body.appendChild(fields);
 
     let selectionFromEvent;
-    const selectHandler = jest.fn().mockImplementation((e) => {
+    const selectHandler = jest.fn().mockImplementation(e => {
       selectionFromEvent = e.detail.fields;
     });
     fields.addEventListener('fields__selected', selectHandler);
 
-    const customSelect = fields.shadowRoot.querySelector(
-      'querybuilder-custom-select'
-    );
-    customSelect.dispatchEvent(
-      new CustomEvent('option__selection', { detail: { value: SELECT_COUNT } })
-    );
+    const customSelect = fields.shadowRoot.querySelector('querybuilder-custom-select');
+    customSelect.dispatchEvent(new CustomEvent('option__selection', { detail: { value: SELECT_COUNT } }));
 
     expect(selectHandler).toHaveBeenCalledTimes(1);
     expect(selectionFromEvent).toEqual([SELECT_COUNT]);
@@ -189,17 +176,13 @@ describe('Fields', () => {
     document.body.appendChild(fields);
 
     let selectionFromEvent;
-    const selectHandler = jest.fn().mockImplementation((e) => {
+    const selectHandler = jest.fn().mockImplementation(e => {
       selectionFromEvent = e.detail.fields;
     });
     fields.addEventListener('fields__selected', selectHandler);
 
-    const customSelect = fields.shadowRoot.querySelector(
-      'querybuilder-custom-select'
-    );
-    customSelect.dispatchEvent(
-      new CustomEvent('option__selection', { detail: { value: 'foo' } })
-    );
+    const customSelect = fields.shadowRoot.querySelector('querybuilder-custom-select');
+    customSelect.dispatchEvent(new CustomEvent('option__selection', { detail: { value: 'foo' } }));
 
     expect(selectHandler).toHaveBeenCalledTimes(1);
     expect(selectionFromEvent).toEqual(['foo']);

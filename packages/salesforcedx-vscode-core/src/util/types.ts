@@ -20,7 +20,6 @@ export type LocalComponent = DirFileNameSelection & {
   suffix?: string;
 };
 
-
 export type OneOrMany = LocalComponent | LocalComponent[];
 export type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 export type ComponentName = {

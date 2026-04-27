@@ -10,10 +10,10 @@ import { CsvDataProvider } from '../../../src/queryDataView/dataProviders/csvDat
 describe('CsvDataProvider', () => {
   it('delegates CSV export to convertToCSV', () => {
     const provider = new CsvDataProvider('q');
-    const csv = provider.getFileContent(
-      'SELECT Name FROM X',
-      [{ Name: 'A' }, { Name: 'B' }] as unknown as import('@salesforce/ts-types').JsonMap[]
-    );
+    const csv = provider.getFileContent('SELECT Name FROM X', [
+      { Name: 'A' },
+      { Name: 'B' }
+    ] as unknown as import('@salesforce/ts-types').JsonMap[]);
     expect(csv).toBe('Name\nA\nB');
   });
 });

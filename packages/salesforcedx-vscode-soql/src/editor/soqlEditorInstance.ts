@@ -138,9 +138,7 @@ export class SOQLEditorInstance {
         yield* targetOrgRef.changes.pipe(Stream.as(undefined)).pipe(
           Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
           Stream.changes,
-          Stream.runForEach(isOrgSet =>
-            isOrgSet ? onConnectionChanged() : onNoDefaultOrg()
-          )
+          Stream.runForEach(isOrgSet => (isOrgSet ? onConnectionChanged() : onNoDefaultOrg()))
         );
       })
     );
@@ -149,13 +147,8 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  protected sendMessageToUi(
-    type: MessageType,
-    payload?: string | string[] | DescribeSObjectResult
-  ) {
-    return Effect.promise<boolean>(
-      () => this.webviewPanel.webview.postMessage({ type, payload })
-    ).pipe(
+  protected sendMessageToUi(type: MessageType, payload?: string | string[] | DescribeSObjectResult) {
+    return Effect.promise<boolean>(() => this.webviewPanel.webview.postMessage({ type, payload })).pipe(
       Effect.asVoid,
       Effect.catchAllCause(cause =>
         appendToChannel(nls.localize('error_unknown_error', 'web_view_post_message')).pipe(
@@ -193,9 +186,7 @@ export class SOQLEditorInstance {
     switch (event.type) {
       case 'ui_activated': {
         return Effect.promise(() => isDefaultOrgSet()).pipe(
-          Effect.flatMap(isOrgSet =>
-            isOrgSet ? Effect.void : this.sendMessageToUi('no_default_org')
-          ),
+          Effect.flatMap(isOrgSet => (isOrgSet ? Effect.void : this.sendMessageToUi('no_default_org'))),
           Effect.andThen(this.updateWebview(this.document)),
           Effect.withSpan('SOQLEditor.ui_activated')
         );
@@ -215,28 +206,22 @@ export class SOQLEditorInstance {
       case 'ui_telemetry': {
         const { unsupported } = event.payload;
         const hasUnsupported = Array.isArray(unsupported) ? unsupported.length : unsupported;
-        return (
-          hasUnsupported
-            ? appendToChannel(nls.localize('info_syntax_unsupported'))
-            : Effect.void
-        ).pipe(Effect.withSpan('SOQLEditor.ui_telemetry'));
+        return (hasUnsupported ? appendToChannel(nls.localize('info_syntax_unsupported')) : Effect.void).pipe(
+          Effect.withSpan('SOQLEditor.ui_telemetry')
+        );
       }
 
       case 'sobject_metadata_request':
         return retrieveSObjectRawEffect(event.payload).pipe(
           Effect.flatMap(sobject => (sobject ? this.updateSObjectMetadata(sobject) : Effect.void)),
-          Effect.catchAll(() =>
-            appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))
-          ),
+          Effect.catchAll(() => appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))),
           Effect.withSpan('SOQLEditor.sobject_metadata_request', { attributes: { sobjectName: event.payload } })
         );
 
       case 'sobjects_request':
         return listSObjectNamesEffect.pipe(
           Effect.flatMap(names => (names ? this.updateSObjects(names) : Effect.void)),
-          Effect.catchAll(() =>
-            appendToChannel(nls.localize('error_sobjects_request'))
-          ),
+          Effect.catchAll(() => appendToChannel(nls.localize('error_sobjects_request'))),
           Effect.withSpan('SOQLEditor.sobjects_request')
         );
 
