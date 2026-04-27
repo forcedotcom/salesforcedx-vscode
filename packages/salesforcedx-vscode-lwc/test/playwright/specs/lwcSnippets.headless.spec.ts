@@ -8,7 +8,6 @@
 import { expect, type Page } from '@playwright/test';
 
 import {
-  assertWelcomeTabExists,
   closeSettingsTab,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
@@ -86,7 +85,6 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
 
   await test.step('wait for Salesforce project workspace', async () => {
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
@@ -150,7 +148,6 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, test
 
   await test.step('wait for Salesforce project workspace', async () => {
     await waitForVSCodeWorkbench(page);
-    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);

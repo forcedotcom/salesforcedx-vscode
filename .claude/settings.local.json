@@ -10,8 +10,7 @@
       "Bash(WIREIT_CACHE=none npm run *)",
       "Bash(sf org:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:code.visualstudio.com)",
-      "Bash(find .vscode-test-web/ -name *.json)"
+      "WebFetch(domain:code.visualstudio.com)"
     ],
     "autoApprove": [
       "PostToolUse",

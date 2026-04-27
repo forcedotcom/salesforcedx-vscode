@@ -29,9 +29,9 @@ export class FailedToResolveSfProjectError extends Schema.TaggedError<FailedToRe
 ) {}
 
 const setProjectOpenedContext = (value: boolean, reason: string) =>
-  Effect.promise(async () => {
-    await vscode.commands.executeCommand('setContext', 'sf:project_opened', value);
-    console.info(`[ProjectService] sf:project_opened=${String(value)} reason=${reason}`);
+  Effect.gen(function* () {
+    yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:project_opened', value));
+    yield* Effect.logInfo(`[ProjectService] sf:project_opened=${String(value)} reason=${reason}`);
   }).pipe(Effect.withSpan('setProjectOpenedContext', { attributes: { value, reason } }));
 
 const resolveSfProject = (fsPath: string) =>

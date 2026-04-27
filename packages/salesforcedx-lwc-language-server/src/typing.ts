@@ -7,14 +7,13 @@
 import * as path from 'node:path';
 import * as xml2js from 'xml2js';
 
-/** One `<labels>` block from CustomLabels.labels-meta.xml (xml2js shape). */
+/** One `<labels>` block from CustomLabels.labels-meta.xml (xml2js shape with explicitArray: false). */
 interface CustomLabelBlock {
-  fullName: string | string[];
+  fullName: string;
 }
 
 interface CustomLabelsXml {
   CustomLabels?: {
-    /** xml2js: one `<labels>` → object; multiple → array of objects */
     labels?: CustomLabelBlock | CustomLabelBlock[];
   };
 }
@@ -97,17 +96,13 @@ export const fromMeta = (metaFilename: string): Typing => {
 
 // Utility function to generate declarations from custom labels
 export const declarationsFromCustomLabels = async (xmlDocument: string | Buffer): Promise<string> => {
-  const parsed: unknown = await new xml2js.Parser().parseStringPromise(xmlDocument);
+  const parsed: unknown = await new xml2js.Parser({ explicitArray: false }).parseStringPromise(xmlDocument);
   if (!isCustomLabelsXml(parsed) || !parsed.CustomLabels?.labels) {
     return '';
   }
   const labelsNode = parsed.CustomLabels.labels;
   const labelBlocks: CustomLabelBlock[] = Array.isArray(labelsNode) ? labelsNode : [labelsNode];
-  const declarations: string[] = labelBlocks.map((label) => {
-    const raw = label.fullName;
-    const name = Array.isArray(raw) ? raw[0] : raw;
-    return declaration('customLabel', name);
-  });
+  const declarations: string[] = labelBlocks.map((label) => declaration('customLabel', label.fullName));
   return declarations.join('\n');
 };
 

@@ -60,7 +60,7 @@ Monitor running e2e playwright tests, download artifacts on failure, provide ana
 **Running workflow → failure:**
 
 1. Branch: `feature/my-branch`
-2. Find "Metadata E2E (Playwright)" or "LWC E2E (Playwright)" `in_progress`
+2. Find "Metadata E2E (Playwright)" `in_progress`
 3. Monitor until `failure`
 4. Download to `.e2e-artifacts/feature/my-branch/<run-id>-Metadata-E2E-Playwright/`
 5. Report failure with artifact location, offer HTML report

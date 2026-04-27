@@ -36,7 +36,6 @@
     "effect": "^3.20.0",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
-    "strip-ansi": "^5.2.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
     "vscode-html-languageservice": "^5.5.1",
@@ -50,8 +49,7 @@
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-services",
-    "salesforce.salesforcedx-vscode-metadata"
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -400,7 +398,12 @@
           "group": "inline"
         }
       ],
-      "explorer/context": [],
+      "explorer/context": [
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
+        }
+      ],
       "commandPalette": [
         {
           "command": "sf.lightning.lwc.test.file.run",
@@ -453,10 +456,18 @@
         {
           "command": "sf.lightning.lwc.test.stopWatchingAllTests",
           "when": "sf:project_opened || sf:internal_dev"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "sf:project_opened"
         }
       ]
     },
     "commands": [
+      {
+        "command": "sf.metadata.lightning.generate.lwc",
+        "title": "%lightning_generate_lwc_text%"
+      },
       {
         "command": "sf.lightning.lwc.test.runAllTests",
         "title": "%lightning_lwc_test_run_all_tests_text%",
