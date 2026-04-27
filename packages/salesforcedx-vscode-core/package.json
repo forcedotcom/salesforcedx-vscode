@@ -33,13 +33,13 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "@salesforce/templates": "^66.7.10",
+    "@salesforce/templates": "^66.7.11",
     "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
     "effect": "^3.20.0",
-    "fast-xml-parser": "^5.5.9",
+    "fast-xml-parser": "^5.7.1",
     "glob": "^11.1.0",
     "rxjs": "^7.8.2",
     "vscode-uri": "^3.1.0"
@@ -133,7 +133,7 @@
       ]
     },
     "test": {
-      "command": "jest --coverage",
+      "command": "jest",
       "dependencies": [
         "test:compile"
       ],
@@ -201,12 +201,6 @@
       "output": []
     }
   },
-  "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
-  },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
@@ -221,14 +215,6 @@
         {
           "command": "sf.analytics.generate.template",
           "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sf:project_opened"
-        },
-        {
-          "command": "sf.visualforce.generate.component",
-          "when": "explorerResourceIsFolder && resourceFilename == components && sf:project_opened"
-        },
-        {
-          "command": "sf.visualforce.generate.page",
-          "when": "explorerResourceIsFolder && resourceFilename == pages && sf:project_opened"
         },
         {
           "command": "sf.lightning.generate.app",
@@ -278,14 +264,6 @@
         },
         {
           "command": "sf.analytics.generate.template",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.visualforce.generate.component",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.visualforce.generate.page",
           "when": "sf:project_opened"
         },
         {
@@ -366,14 +344,6 @@
       {
         "command": "sf.analytics.generate.template",
         "title": "%analytics_generate_template_text%"
-      },
-      {
-        "command": "sf.visualforce.generate.component",
-        "title": "%visualforce_generate_component_text%"
-      },
-      {
-        "command": "sf.visualforce.generate.page",
-        "title": "%visualforce_generate_page_text%"
       },
       {
         "command": "sf.lightning.generate.app",

@@ -27,18 +27,22 @@
     "Programming Languages"
   ],
   "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-i18n": "*",
+    "effect": "^3.20.0",
     "vscode-css-languageservice": "^6.3.7",
     "vscode-languageclient": "^9.0.1",
-    "vscode-languageserver-protocol": "^3.17.5"
+    "vscode-languageserver-protocol": "^3.17.5",
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/salesforcedx-visualforce-language-server": "*",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
@@ -60,7 +64,9 @@
       "dependencies": [
         "../salesforcedx-visualforce-language-server:compile",
         "../salesforcedx-visualforce-markup-language-server:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-services:compile",
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -76,7 +82,8 @@
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
-        "compile"
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -88,7 +95,7 @@
       ]
     },
     "test": {
-      "command": "jest --coverage --passWithNoTests",
+      "command": "jest --passWithNoTests",
       "dependencies": [
         "test:compile"
       ],
@@ -128,7 +135,7 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -170,6 +177,38 @@
   },
   "main": "./dist/index.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "sf.visualforce.generate.component",
+        "title": "%visualforce_generate_component_text%"
+      },
+      {
+        "command": "sf.visualforce.generate.page",
+        "title": "%visualforce_generate_page_text%"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sf.visualforce.generate.component",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.visualforce.generate.page",
+          "when": "sf:project_opened"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.visualforce.generate.component",
+          "when": "explorerResourceIsFolder && resourceFilename == components && sf:project_opened"
+        },
+        {
+          "command": "sf.visualforce.generate.page",
+          "when": "explorerResourceIsFolder && resourceFilename == pages && sf:project_opened"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "visualforce",
