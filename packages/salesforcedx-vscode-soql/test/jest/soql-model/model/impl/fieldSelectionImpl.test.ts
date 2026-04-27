@@ -10,7 +10,6 @@ import { FieldSelectionImpl } from '../../../../../src/soql-model/model/impl/fie
 import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
 import { REASON_UNMODELED_ALIAS } from '../../../../../src/soql-model/model/model';
 
-
 describe('FieldSelectionImpl should', () => {
   it('store a field', () => {
     const expected = { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'charlie' } };
@@ -21,7 +20,7 @@ describe('FieldSelectionImpl should', () => {
     const expected = {
       kind: 'fieldSelection',
       field: { kind: 'fieldRef', fieldName: 'brian' },
-      alias: { kind: 'unmodeled', unmodeledSyntax: 'bill', reason: REASON_UNMODELED_ALIAS },
+      alias: { kind: 'unmodeled', unmodeledSyntax: 'bill', reason: REASON_UNMODELED_ALIAS }
     };
     const actual = new FieldSelectionImpl(
       new FieldRefImpl(expected.field.fieldName),

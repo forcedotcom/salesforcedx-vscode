@@ -9,10 +9,9 @@ import path from 'path';
 import { glob } from 'glob';
 import JSZip from 'jszip';
 
-const isInvalidPartUri = (entryPath) =>
-  entryPath !== entryPath.trim() || entryPath.includes(' ');
+const isInvalidPartUri = entryPath => entryPath !== entryPath.trim() || entryPath.includes(' ');
 
-const validateVsix = async (vsixPath) => {
+const validateVsix = async vsixPath => {
   const buffer = fs.readFileSync(vsixPath);
   const zip = await JSZip.loadAsync(buffer);
   const invalid = Object.keys(zip.files).filter(isInvalidPartUri);
@@ -39,12 +38,12 @@ const main = async () => {
   console.error('OPC Part URI validation failed. Invalid paths (spaces/whitespace):');
   errors.forEach(({ vsix, invalid }) => {
     console.error(`  ${path.relative(process.cwd(), vsix)}:`);
-    invalid.forEach((p) => console.error(`    - ${JSON.stringify(p)}`));
+    invalid.forEach(p => console.error(`    - ${JSON.stringify(p)}`));
   });
   process.exit(1);
 };
 
-main().catch((err) => {
+main().catch(err => {
   console.error(err);
   process.exit(1);
 });

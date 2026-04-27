@@ -9,7 +9,5 @@
   "namespace": "",
   "sfdcLoginUrl": "https://login.salesforce.com",
   "sourceApiVersion": "63.0",
-  "sourceBehaviorOptions": [
-    "decomposeExternalServiceRegistrationBeta"
-  ]
+  "sourceBehaviorOptions": ["decomposeExternalServiceRegistrationBeta"]
 }

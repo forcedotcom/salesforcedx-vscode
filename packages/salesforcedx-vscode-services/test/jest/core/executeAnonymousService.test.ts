@@ -5,22 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  buildSoapRequest,
-  parseSoapResponse
-} from '../../../src/core/executeAnonymousService';
+import { buildSoapRequest, parseSoapResponse } from '../../../src/core/executeAnonymousService';
 
 describe('buildSoapRequest', () => {
   it('produces correct URL with orgId from accessToken', () => {
-    const req = buildSoapRequest(
-      'https://myorg.my.salesforce.com',
-      '59.0',
-      '00Dxx!APItoken',
-      'System.debug(1);'
-    );
-    expect(req.url).toBe(
-      'https://myorg.my.salesforce.com/services/Soap/s/59.0/00Dxx'
-    );
+    const req = buildSoapRequest('https://myorg.my.salesforce.com', '59.0', '00Dxx!APItoken', 'System.debug(1);');
+    expect(req.url).toBe('https://myorg.my.salesforce.com/services/Soap/s/59.0/00Dxx');
     expect(req.method).toBe('POST');
     expect(req.headers['content-type']).toBe('text/xml');
     expect(req.headers.soapaction).toBe('executeAnonymous');

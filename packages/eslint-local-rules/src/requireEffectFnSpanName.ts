@@ -19,10 +19,7 @@ const isEffectFnDirectCall = (
   if (prop.type !== AST_NODE_TYPES.Identifier || prop.name !== 'fn') return false;
 
   const arg = node.arguments[0];
-  return (
-    arg?.type === AST_NODE_TYPES.FunctionExpression &&
-    arg.generator === true
-  );
+  return arg?.type === AST_NODE_TYPES.FunctionExpression && arg.generator === true;
 };
 
 export const requireEffectFnSpanName = RuleCreator.withoutDocs({

@@ -43,9 +43,7 @@ const expandTreeRowByTwistie = async (
   workbench: Awaited<ReturnType<typeof getWorkbench>>,
   rowLabel: string
 ): Promise<void> => {
-  const row = await workbench.findElement(
-    By.css(`.monaco-list-row[role="treeitem"][aria-label*="${rowLabel}"]`)
-  );
+  const row = await workbench.findElement(By.css(`.monaco-list-row[role="treeitem"][aria-label*="${rowLabel}"]`));
   const twistie = await row.findElement(By.css('.monaco-tl-twistie'));
   const twistieClass = await twistie.getAttribute('class');
   if (twistieClass?.includes('collapsed')) {
