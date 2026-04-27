@@ -47,12 +47,7 @@ export {
   writeFile
 } from './helpers/fs';
 export { fileExtensionsMatch, getTestResultsFolder, projectPaths, TOOLS } from './helpers/paths';
-export {
-  extractJson,
-  getJsonCandidate,
-  getMessageFromError,
-  identifyJsonTypeInString
-} from './helpers/utils';
+export { extractJson, getJsonCandidate, getMessageFromError, identifyJsonTypeInString } from './helpers/utils';
 export { isAlphaNumSpaceString, isIntegerInRange, isRecordIdFormat } from './helpers/validations';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
@@ -77,7 +72,6 @@ export type { ContinueResponse, CancelResponse, ParametersGatherer } from './com
 export type { PreconditionChecker } from './commands/preconditionCheckers';
 export type { PostconditionChecker } from './commands/postconditionCheckers';
 export { getYYYYMMddHHmmssDateFormat, optionYYYYMMddHHmmss } from './date/format';
-export { Column, createTable, Row } from './output/table';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
 export { UserService } from './services/userService';
 export { SettingsService } from './settings/settingsService';
