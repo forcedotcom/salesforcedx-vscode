@@ -26,7 +26,7 @@ export const runQuery =
     const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
 
     try {
-      const rawQueryData = await conn.query(pureSOQLText);
+      const rawQueryData = await conn.autoFetchQuery(pureSOQLText);
       return {
         ...rawQueryData,
         records: flattenQueryRecords(rawQueryData.records)
