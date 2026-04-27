@@ -54,9 +54,7 @@ const gatherMetadataInfo = Effect.fn('gatherMetadataInfo')(function* () {
   const typeGroups = Map.groupBy(components, comp => comp.type.name);
 
   const fileSizesMap = yield* Stream.fromIterable(components).pipe(
-    Stream.mapConcat(comp =>
-      sourceComponentToPaths(comp).map(file => ({ typeName: comp.type.name, file }))
-    ),
+    Stream.mapConcat(comp => sourceComponentToPaths(comp).map(file => ({ typeName: comp.type.name, file }))),
     Stream.mapEffect(({ typeName, file }) =>
       fsService.stat(file).pipe(
         Effect.map(s => ({ typeName, size: s.size })),
@@ -69,14 +67,19 @@ const gatherMetadataInfo = Effect.fn('gatherMetadataInfo')(function* () {
     })
   );
 
-  const typeStats = [...typeGroups.keys()].toSorted((a, b) => a.localeCompare(b)).map(typeName => {
-    const { totalSize = 0, fileCount = 0 } = fileSizesMap.get(typeName) ?? {};
-    return [typeName, {
-      componentCount: typeGroups.get(typeName)?.length ?? 0,
-      fileCount,
-      totalSizeKb: Math.round(totalSize / 1024)
-    }] as const;
-  });
+  const typeStats = [...typeGroups.keys()]
+    .toSorted((a, b) => a.localeCompare(b))
+    .map(typeName => {
+      const { totalSize = 0, fileCount = 0 } = fileSizesMap.get(typeName) ?? {};
+      return [
+        typeName,
+        {
+          componentCount: typeGroups.get(typeName)?.length ?? 0,
+          fileCount,
+          totalSizeKb: Math.round(totalSize / 1024)
+        }
+      ] as const;
+    });
 
   return {
     typeStats,
@@ -287,11 +290,13 @@ const doProjectInfo = Effect.fn('doProjectInfo')(function* () {
   yield* api.services.FsService.safeWriteFile(outputUri, content);
 
   yield* Effect.sync(() => {
-    void vscode.window.showInformationMessage(nls.localize('project_info_written_message'), nls.localize('open_button')).then(selection => {
-      if (selection === nls.localize('open_button')) {
-        void vscode.window.showTextDocument(outputUri);
-      }
-    });
+    void vscode.window
+      .showInformationMessage(nls.localize('project_info_written_message'), nls.localize('open_button'))
+      .then(selection => {
+        if (selection === nls.localize('open_button')) {
+          void vscode.window.showTextDocument(outputUri);
+        }
+      });
   });
 });
 

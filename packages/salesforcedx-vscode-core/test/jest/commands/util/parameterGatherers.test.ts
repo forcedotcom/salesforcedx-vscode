@@ -143,9 +143,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       getConfigSpy.mockReturnValue(mockConfig);
 
       const selectLwcComponentTypeInstance = new SelectLwcComponentType();
-      const showMenuSpy = jest
-        .spyOn(selectLwcComponentTypeInstance, 'showMenu')
-        .mockResolvedValue('TypeScript');
+      const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu').mockResolvedValue('TypeScript');
 
       const result = await selectLwcComponentTypeInstance.gather();
 
@@ -189,9 +187,7 @@ describe('ParameterGatherers Unit Tests.', () => {
         type: 'CONTINUE',
         data: { extension: 'TypeScript' }
       });
-      expect(showInfoMessageSpy).toHaveBeenCalledWith(
-        expect.stringContaining('deprecated')
-      );
+      expect(showInfoMessageSpy).toHaveBeenCalledWith(expect.stringContaining('deprecated'));
     });
 
     it('Should prompt user when both configs are not set', async () => {
@@ -200,9 +196,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       getConfigSpy.mockReturnValue(mockConfig);
 
       const selectLwcComponentTypeInstance = new SelectLwcComponentType();
-      const showMenuSpy = jest
-        .spyOn(selectLwcComponentTypeInstance, 'showMenu')
-        .mockResolvedValue('JavaScript');
+      const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu').mockResolvedValue('JavaScript');
 
       const result = await selectLwcComponentTypeInstance.gather();
 
@@ -219,9 +213,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       getConfigSpy.mockReturnValue(mockConfig);
 
       const selectLwcComponentTypeInstance = new SelectLwcComponentType();
-      const showMenuSpy = jest
-        .spyOn(selectLwcComponentTypeInstance, 'showMenu')
-        .mockResolvedValue(undefined);
+      const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu').mockResolvedValue(undefined);
 
       const result = await selectLwcComponentTypeInstance.gather();
 

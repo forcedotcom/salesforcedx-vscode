@@ -1,6 +1,3 @@
-const baseConfig =  require('../../config/jest.integration.config');
+const baseConfig = require('../../config/jest.integration.config');
 
-module.exports = Object.assign({},
-  baseConfig,
-  {}
-);
+module.exports = Object.assign({}, baseConfig, {});

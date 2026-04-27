@@ -54,9 +54,10 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
 
   const localUriFilter = HashSet.fromIterable(uris.map(uri => HashableUri.fromUri(uri)));
 
-  return yield* (yield* matchUrisToComponents(
-    localComponentSet,
-    retrieveResult.components,
-    localUriFilter
-  )).pipe(Stream.fromIterable, Stream.filterEffect(filesAreNotIdentical), Stream.runCollect, Effect.map(Chunk.toArray));
+  return yield* (yield* matchUrisToComponents(localComponentSet, retrieveResult.components, localUriFilter)).pipe(
+    Stream.fromIterable,
+    Stream.filterEffect(filesAreNotIdentical),
+    Stream.runCollect,
+    Effect.map(Chunk.toArray)
+  );
 });

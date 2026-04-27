@@ -41,7 +41,5 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
       retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
     })
   ),
-  withConfigurableSuccessNotification(
-    nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text'))
-  )
+  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text')))
 );

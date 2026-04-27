@@ -35,11 +35,7 @@ const CONNECTION_NETWORK_PATTERNS = [
 ];
 const ORG_RESOURCE_PATTERNS = ['requested resource does not exist', '404', 'not found'];
 /** Org deleted or unreachable (server returns HTML error page, e.g. status 420) */
-const ORG_UNREACHABLE_PATTERNS = [
-  'http response contains html content',
-  'status code: 420',
-  'status code 420'
-];
+const ORG_UNREACHABLE_PATTERNS = ['http response contains html content', 'status code: 420', 'status code 420'];
 
 const getMessageFromObject = (obj: object): string | undefined => {
   const m = Object.getOwnPropertyDescriptor(obj, 'message')?.value;

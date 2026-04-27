@@ -28,8 +28,7 @@ const stateRefHolder: { ref?: SubscriptionRef.SubscriptionRef<ConflictTreeState>
 export const setConflictStateRef = (ref: SubscriptionRef.SubscriptionRef<ConflictTreeState>): void => {
   stateRefHolder.ref = ref;
 };
-export const getConflictStateRef = (): SubscriptionRef.SubscriptionRef<ConflictTreeState> =>
-  stateRefHolder.ref!;
+export const getConflictStateRef = (): SubscriptionRef.SubscriptionRef<ConflictTreeState> => stateRefHolder.ref!;
 
 const getChildrenFromState = async (element?: ConflictTreeItem): Promise<ConflictTreeItem[]> => {
   const state = await getMetadataRuntime().runPromise(SubscriptionRef.get(getConflictStateRef()));
@@ -39,12 +38,19 @@ const getChildrenFromState = async (element?: ConflictTreeItem): Promise<Conflic
     }
     const rootLabel = state.title ?? state.emptyLabel;
     const count = state.entries.length;
-    return [new ConflictTreeItem({ kind: 'group', label: rootLabel ?? nls.localize('conflict_detect_no_conflicts'), count })];
+    return [
+      new ConflictTreeItem({ kind: 'group', label: rootLabel ?? nls.localize('conflict_detect_no_conflicts'), count })
+    ];
   }
 
   if (element.kind === 'group') {
     return state.entries.length === 0
-      ? [new ConflictTreeItem({ kind: 'empty', label: state.emptyLabel ?? nls.localize('conflict_detect_no_conflicts') })]
+      ? [
+          new ConflictTreeItem({
+            kind: 'empty',
+            label: state.emptyLabel ?? nls.localize('conflict_detect_no_conflicts')
+          })
+        ]
       : state.entries.map(pair => new ConflictTreeItem({ kind: 'conflict', pair }));
   }
 

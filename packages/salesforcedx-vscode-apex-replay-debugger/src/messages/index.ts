@@ -9,4 +9,8 @@ import { createNls } from '@salesforce/vscode-i18n';
 import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
-export const nls = createNls({ instanceName: 'salesforcedx-vscode-apex-replay-debugger', messages: enMessages, jaMessages });
+export const nls = createNls({
+  instanceName: 'salesforcedx-vscode-apex-replay-debugger',
+  messages: enMessages,
+  jaMessages
+});
