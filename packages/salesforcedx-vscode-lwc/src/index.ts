@@ -25,7 +25,7 @@ import LwcLspStatusBarItem from './lwcLspStatusBarItem';
 import { metaSupport } from './metasupport';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
-import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
+import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   const telemetryModule = await import('./telemetry/index.js');
@@ -153,7 +153,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
     throw error; // Re-throw to prevent silent failures
   }
 
-  // Register LWC create command
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
   await getRuntime().runPromise(
     Effect.gen(function* () {
@@ -162,16 +161,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
       yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
         createLwcCommand(outputDirParam)
       );
+      yield* Effect.forkDaemon(startLwcFileWatcher());
     })
   );
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
-
-  // Watch for newly created LWC files and auto-open them to trigger delayed initialization
-  // This handles the case where files are downloaded from org browser after server starts
-  // Opening files syncs them to the server via onDidOpen, which triggers delayed initialization
-  startLwcFileWatcherViaServices();
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
   if (process.env.ESBUILD_PLATFORM !== 'web') {
