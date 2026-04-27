@@ -10,20 +10,7 @@
       "Bash(WIREIT_CACHE=none npm run *)",
       "Bash(sf org:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:code.visualstudio.com)",
-      "Bash(find .vscode-test-web/ -name *.json)",
-      "Bash(gh api:*)",
-      "Bash(python3 -c \"import json,sys; reviews=json.load\\(sys.stdin\\); [print\\(f''''Review {r[\"\"id\"\"]} by {r[\"\"user\"\"][\"\"login\"\"]}: {r[\"\"state\"\"]}''''\\) for r in reviews]\")",
-      "Bash(brew list:*)",
-      "Read(//opt/homebrew/bin/**)",
-      "Read(//Users/madhur.shrivastava/bin/**)",
-      "Bash(source ~/.zshrc)",
-      "Bash(python3:*)",
-      "Bash(grep -rn \"lwc_component_name\\\\|lwc_select\\\\|lwc_output\" /Users/madhur.shrivastava/salesforcedx-vscode/packages/salesforcedx-vscode-metadata/src --include=*.ts)",
-      "Bash(npx tsc:*)",
-      "Bash(grep -r \"import.*Response\\\\|from.*commandletHelpers\" /Users/madhur.shrivastava/salesforcedx-vscode/packages/salesforcedx-vscode-apex-testing/src/ --include=*.ts)",
-      "Bash(git:*)",
-      "Bash(npx playwright:*)"
+      "WebFetch(domain:code.visualstudio.com)"
     ],
     "autoApprove": [
       "PostToolUse",
