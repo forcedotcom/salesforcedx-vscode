@@ -18,7 +18,7 @@ on:
         type: string
         default: ''
   push:
-    branches-ignore: [ main, develop, feature/W-21432332 ] # vsix-desktop-e2e rollout
+    branches-ignore: [ main, develop ]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
