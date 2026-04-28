@@ -16,12 +16,10 @@ export enum MessageType {
   NO_DEFAULT_ORG = 'no_default_org',
   GET_QUERY_PLAN = 'get_query_plan',
   GET_QUERY_PLAN_DONE = 'get_query_plan_done',
-  SET_DEFAULT_ORG = 'set_default_org',
-  MAX_ROWS_CHANGED = 'max_rows_changed',
-  MAX_ROWS = 'max_rows'
+  SET_DEFAULT_ORG = 'set_default_org'
 }
 
 export type SoqlEditorEvent = {
   type: MessageType;
-  payload?: string | string[] | number | ToolingModelJson | TelemetryModelJson;
+  payload?: string | string[] | ToolingModelJson | TelemetryModelJson;
 }

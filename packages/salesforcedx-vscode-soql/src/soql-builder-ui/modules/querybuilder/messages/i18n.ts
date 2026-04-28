@@ -67,10 +67,6 @@ export const messages = {
   label_limit: 'Limit',
   placeholder_limit: 'Limit...',
 
-  // max rows
-  label_max_rows: 'Max Rows',
-  placeholder_max_rows: 'Default: 2000',
-
   // customSelect / shared
   label_no_results_found: 'No results found.',
   label_loading: 'Loading...',

@@ -438,6 +438,12 @@
           "type": "boolean",
           "default": false,
           "description": "%soql_validation_flag%"
+        },
+        "salesforcedx-vscode-soql.maxQueryLimit": {
+          "type": "integer",
+          "default": 50000,
+          "minimum": 1,
+          "description": "%soql_max_query_limit%"
         }
       }
     },

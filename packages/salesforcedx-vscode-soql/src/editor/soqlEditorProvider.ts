@@ -39,7 +39,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       localResourceRoots: [soqlBuilderUri]
     };
     webviewPanel.webview.html = await this.getWebViewContent(webviewPanel.webview);
-    const instance = new SOQLEditorInstance(document, webviewPanel, _token, this.extensionContext);
+    const instance = new SOQLEditorInstance(document, webviewPanel, _token);
     this.instances.push(instance);
     instance.onDispose(this.disposeInstance.bind(this));
     this.extensionContext.subscriptions.push(...instance.subscriptions);

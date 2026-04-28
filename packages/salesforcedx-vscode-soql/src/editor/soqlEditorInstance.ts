@@ -65,7 +65,7 @@ type SoqlEditorEvent =
     }
   | {
       type: 'run_query';
-      payload: number | undefined;
+      payload: never;
     }
   | {
       type: 'get_query_plan';
@@ -74,10 +74,6 @@ type SoqlEditorEvent =
   | {
       type: 'set_default_org';
       payload: never;
-    }
-  | {
-      type: 'max_rows_changed';
-      payload: number | undefined;
     };
 
 // TODO: This should be shared with soql-builder-ui
@@ -96,11 +92,7 @@ type MessageType =
   | 'no_default_org'
   | 'get_query_plan'
   | 'get_query_plan_done'
-  | 'set_default_org'
-  | 'max_rows_changed'
-  | 'max_rows';
-
-const MAX_ROWS_GLOBAL_STATE_KEY = 'soqlBuilder.maxRows';
+  | 'set_default_org';
 
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
@@ -112,8 +104,7 @@ export class SOQLEditorInstance {
   constructor(
     protected document: vscode.TextDocument,
     protected webviewPanel: vscode.WebviewPanel,
-    protected _token: vscode.CancellationToken,
-    protected extensionContext: vscode.ExtensionContext
+    protected _token: vscode.CancellationToken
   ) {
     vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
 
@@ -156,7 +147,7 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  protected sendMessageToUi(type: MessageType, payload?: string | string[] | number | DescribeSObjectResult) {
+  protected sendMessageToUi(type: MessageType, payload?: string | string[] | DescribeSObjectResult) {
     return Effect.promise<boolean>(() => this.webviewPanel.webview.postMessage({ type, payload })).pipe(
       Effect.asVoid,
       Effect.catchAllCause(cause =>
@@ -194,11 +185,9 @@ export class SOQLEditorInstance {
   private handleMessageEffect = (event: SoqlEditorEvent) => {
     switch (event.type) {
       case 'ui_activated': {
-        const savedMaxRows = this.extensionContext.globalState.get<number>(MAX_ROWS_GLOBAL_STATE_KEY);
         return Effect.promise(() => isDefaultOrgSet()).pipe(
           Effect.flatMap(isOrgSet => (isOrgSet ? Effect.void : this.sendMessageToUi('no_default_org'))),
           Effect.andThen(this.updateWebview(this.document)),
-          Effect.andThen(savedMaxRows !== undefined ? this.sendMessageToUi('max_rows', savedMaxRows) : Effect.void),
           Effect.withSpan('SOQLEditor.ui_activated')
         );
       }
@@ -239,8 +228,8 @@ export class SOQLEditorInstance {
       case 'run_query': {
         const runQueryDone = () => this.runQueryDone();
         const { document } = this;
-        const maxRows = event.payload;
         const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
+        const maxRows = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit');
         return Effect.gen(function* () {
           const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
           if (!isOrgSet) {
@@ -305,15 +294,6 @@ export class SOQLEditorInstance {
           Effect.asVoid,
           Effect.withSpan('SOQLEditor.set_default_org')
         );
-
-      case 'max_rows_changed': {
-        const maxRows = event.payload;
-        return Effect.promise(() =>
-          maxRows !== undefined
-            ? this.extensionContext.globalState.update(MAX_ROWS_GLOBAL_STATE_KEY, maxRows)
-            : this.extensionContext.globalState.update(MAX_ROWS_GLOBAL_STATE_KEY, undefined)
-        ).pipe(Effect.withSpan('SOQLEditor.max_rows_changed'));
-      }
 
       default:
         return appendToChannel(nls.localize('error_unknown_error', event.type)).pipe(

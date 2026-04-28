@@ -12,7 +12,6 @@ import { messages } from 'querybuilder/messages';
 export default class Limit extends LightningElement {
   @api public hasError = false;
   @api public limit;
-  @api public maxRows;
 
   public get i18n() {
     return messages;
@@ -23,12 +22,6 @@ export default class Limit extends LightningElement {
     e.preventDefault();
     const limit = e.target.value;
     this.dispatchEvent(new CustomEvent('limit__changed', { detail: { limit } }));
-  }
-
-  public handleMaxRowsChange(e: Event): void {
-    e.preventDefault();
-    const maxRows = e.target.value;
-    this.dispatchEvent(new CustomEvent('maxrows__changed', { detail: { maxRows } }));
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access */
 }

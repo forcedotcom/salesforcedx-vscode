@@ -77,7 +77,6 @@ export default class App extends LightningElement {
   public isQueryRunning = false;
   public isQueryPlanRunning = false;
   public dismissNotifications = false;
-  public maxRows: number | undefined = undefined;
 
   public constructor() {
     super();
@@ -88,12 +87,6 @@ export default class App extends LightningElement {
 
   /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return */
   public connectedCallback(): void {
-    this.messageService.messagesToUI.subscribe((event: SoqlEditorEvent) => {
-      if (event.type === MessageType.MAX_ROWS && typeof event.payload === 'number') {
-        this.maxRows = event.payload;
-      }
-    });
-
     this.modelService.UIModel.subscribe(this.uiModelSubscriber.bind(this));
 
     this.toolingSDK.sobjects.subscribe((objs: string[]) => {
@@ -254,14 +247,7 @@ export default class App extends LightningElement {
   public handleLimitChanged(e: CustomEvent): void {
     this.modelService.changeLimit(e.detail.limit);
   }
-  public handleMaxRowsChanged(e: CustomEvent): void {
-    const parsed = parseInt(e.detail.maxRows, 10);
-    this.maxRows = isNaN(parsed) ? undefined : parsed;
-    this.messageService.sendMessage({
-      type: MessageType.MAX_ROWS_CHANGED,
-      payload: this.maxRows
-    });
-  }
+
   /* ---- WHERE HANDLERS ---- */
   public handleWhereSelection(e: CustomEvent): void {
     this.modelService.upsertWhereFieldExpr(e.detail);
@@ -293,10 +279,7 @@ export default class App extends LightningElement {
 
   public handleRunQuery(): void {
     this.isQueryRunning = true;
-    const runQueryEvent: SoqlEditorEvent = {
-      type: MessageType.RUN_SOQL_QUERY,
-      payload: this.maxRows
-    };
+    const runQueryEvent: SoqlEditorEvent = { type: MessageType.RUN_SOQL_QUERY };
     this.messageService.sendMessage(runQueryEvent);
   }
 
