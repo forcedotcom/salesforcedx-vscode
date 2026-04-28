@@ -3,29 +3,26 @@
   All rights reserved.
   Licensed under the BSD 3-Clause license.
   For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-
- -->
+-->
 
 <template>
   <div class="section-container">
     <div class="section_label-container">
-      <label
-        >{i18n.label_fields}
+      <label>
+        {i18n.label_fields}
         <template if:true={hasError}
-          ><span class="text-color-required" data-el-has-error
-            >*</span
-          ></template
-        ></label
-      >
+          ><span class="text-color-required" data-el-has-error>*</span></template
+        >
+      </label>
     </div>
     <div class="section_selection-container">
 
-      <!-- Breadcrumb when drilled in -->
+      <!-- Breadcrumb shown while drilled in -->
       <template if:true={isDrilledIn}>
-        <div class="relationship-breadcrumb">
+        <div class="fields-breadcrumb">
           <span
             role="button"
-            class="breadcrumb-back pointer"
+            class="pointer breadcrumb-back"
             onclick={handleBackOneLevel}
             title={i18n.action_back_to_fields}
           >{backArrow}</span>
@@ -33,16 +30,82 @@
         </div>
       </template>
 
-      <querybuilder-custom-select
-        is-loading={isLoading}
-        all-options={_displayFields}
-        selected-options={activeSelectedOptions}
-        onoption__selection={handleFieldSelection}
-        placeholder-text={i18n.placeholder_search_fields}
-        multiple="true"
-      ></querybuilder-custom-select>
+      <!-- 3-column selector panel -->
+      <div class="fields-columns">
 
-      <!-- Plain field pills -->
+        <!-- Left column: child sObjects (subqueries) -->
+        <div class="fields-column fields-column--left">
+          <div class="fields-column__header">{i18n.label_subqueries}</div>
+          <div class="fields-column__list">
+            <template if:true={isLoading}>
+              <p class="fields-column__item fields-column__item--disabled">{i18n.label_loading}</p>
+            </template>
+            <template if:false={isLoading}>
+              <template if:false={hasLeftItems}>
+                <p class="fields-column__item fields-column__item--disabled">—</p>
+              </template>
+              <template if:true={hasLeftItems}>
+                <template for:each={_leftItems} for:item="name">
+                  <p
+                    key={name}
+                    class="fields-column__item"
+                    data-name={name}
+                    onclick={handleLeftItemClick}
+                  >{name}</p>
+                </template>
+              </template>
+            </template>
+          </div>
+        </div>
+
+        <!-- Middle column: base fields -->
+        <div class="fields-column fields-column--middle">
+          <div class="fields-column__header">{i18n.label_fields}</div>
+          <div class="fields-column__list">
+            <template if:true={isLoading}>
+              <p class="fields-column__item fields-column__item--disabled">{i18n.label_loading}</p>
+            </template>
+            <template if:false={isLoading}>
+              <template for:each={_middleItems} for:item="name">
+                <p
+                  key={name}
+                  class="fields-column__item"
+                  data-name={name}
+                  onclick={handleMiddleItemClick}
+                >{name}</p>
+              </template>
+            </template>
+          </div>
+        </div>
+
+        <!-- Right column: parent relationships -->
+        <div class="fields-column fields-column--right">
+          <div class="fields-column__header">{i18n.label_relationships}</div>
+          <div class="fields-column__list">
+            <template if:true={isLoading}>
+              <p class="fields-column__item fields-column__item--disabled">{i18n.label_loading}</p>
+            </template>
+            <template if:false={isLoading}>
+              <template if:false={hasRightItems}>
+                <p class="fields-column__item fields-column__item--disabled">—</p>
+              </template>
+              <template if:true={hasRightItems}>
+                <template for:each={_rightItems} for:item="name">
+                  <p
+                    key={name}
+                    class="fields-column__item"
+                    data-name={name}
+                    onclick={handleRightItemClick}
+                  >{name}</p>
+                </template>
+              </template>
+            </template>
+          </div>
+        </div>
+
+      </div><!-- end .fields-columns -->
+
+      <!-- Selected base field pills -->
       <div class="selected-fields-container">
         <template for:each={selectedFields} for:item="field">
           <div class="selected-field" key={field}>
@@ -57,7 +120,7 @@
         </template>
       </div>
 
-      <!-- Relationship boxes (flattened by prefix) -->
+      <!-- Relationship boxes -->
       <template for:each={flatRelationshipPillGroups} for:item="relGroup">
         <div key={relGroup.pathKey} class="relationship-pill-group">
           <div class="relationship-pill-header">
@@ -86,9 +149,9 @@
         </div>
       </template>
 
-      <!-- Subquery boxes (flattened tree) -->
+      <!-- Subquery boxes -->
       <template for:each={flatSubqueryPillGroups} for:item="sq">
-        <div key={sq.groupLabel} class="relationship-pill-group">
+        <div key={sq.pathKey} class="relationship-pill-group">
           <div class="relationship-pill-header">
             <span class="relationship-pill-name">{sq.groupLabel}</span>
             <span
@@ -115,6 +178,6 @@
         </div>
       </template>
 
-    </div>
+    </div><!-- end .section_selection-container -->
   </div>
 </template>
