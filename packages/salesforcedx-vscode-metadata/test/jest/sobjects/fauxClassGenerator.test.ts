@@ -7,11 +7,7 @@
 
 import { EOL } from 'node:os';
 import { generateSObjectDefinition } from '../../../src/sobjects/declarationGenerator';
-import {
-  commentToString,
-  generateFauxClassText,
-  INDENT
-} from '../../../src/sobjects/fauxClassGenerator';
+import { commentToString, generateFauxClassText, INDENT } from '../../../src/sobjects/fauxClassGenerator';
 
 describe('FauxClassGenerator Unit Tests.', () => {
   describe('commentToString()', () => {
@@ -76,7 +72,9 @@ describe('FauxClassGenerator Unit Tests.', () => {
     });
 
     it('Should include field declarations', () => {
-      const sobject = JSON.parse('{ "name": "Custom__c", "fields": [{"name":"Name","type":"string","referenceTo":[]}], "childRelationships": [] }');
+      const sobject = JSON.parse(
+        '{ "name": "Custom__c", "fields": [{"name":"Name","type":"string","referenceTo":[]}], "childRelationships": [] }'
+      );
       const definition = generateSObjectDefinition(sobject);
       const text = generateFauxClassText(definition);
       expect(text).toContain('String Name;');

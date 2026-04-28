@@ -16,7 +16,10 @@ describe('InListConditionImpl should', () => {
       kind: 'inList',
       field: { kind: 'fieldRef', fieldName: 'field' },
       operator: 'NOT IN',
-      values: [{ kind: 'literal', value: "'abc'" }, { kind: 'literal', value: "'def'" }]
+      values: [
+        { kind: 'literal', value: "'abc'" },
+        { kind: 'literal', value: "'def'" }
+      ]
     };
     const actual = new InListConditionImpl(new FieldRefImpl('field'), ConditionOperator.NotIn, [
       new LiteralImpl("'abc'"),

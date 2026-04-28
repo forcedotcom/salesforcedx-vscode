@@ -46,11 +46,7 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
   }
 
   // Match URIs to components using ComponentSet identity — local dir name is irrelevant
-  const pairsSet = yield* matchUrisToComponents(
-    componentSet,
-    retrieveResult.components,
-    localUriFilter
-  );
+  const pairsSet = yield* matchUrisToComponents(componentSet, retrieveResult.components, localUriFilter);
 
   if (HashSet.size(pairsSet) === 0) {
     yield* channelService.appendToChannel('No matching files found to diff');

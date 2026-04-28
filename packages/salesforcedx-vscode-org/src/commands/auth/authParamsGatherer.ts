@@ -99,9 +99,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
     const skipAlias = this.instanceUrl !== undefined;
     // allow passing in the instance url programmatically instead of via quick pick
     if (!this.instanceUrl) {
-      const orgTypes = buildOrgTypes(
-        await getOrgRuntime().runPromise(getProjectLoginUrl)
-      );
+      const orgTypes = buildOrgTypes(await getOrgRuntime().runPromise(getProjectLoginUrl));
       const selection = await vscode.window.showQuickPick(Object.values(orgTypes));
       if (!selection) {
         return { type: 'CANCEL' };

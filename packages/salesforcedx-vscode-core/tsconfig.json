@@ -4,8 +4,5 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": [
-    "src/**/*.ts",
-    "package.nls.json"
-  ]
+  "include": ["src/**/*.ts", "package.nls.json"]
 }
