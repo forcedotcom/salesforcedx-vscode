@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { AURA_SERVER_READY_NOTIFICATION, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ApplyWorkspaceEditRequest,
@@ -14,6 +15,7 @@ import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-comm
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import * as Scope from 'effect/Scope';
 import { log } from 'node:console';
 import * as path from 'node:path';
 import { ExtensionContext, workspace } from 'vscode';
@@ -24,7 +26,12 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
+import { URI } from 'vscode-uri';
 import AuraLspStatusBarItem from './auraLspStatusBarItem';
+import { createAuraAppCommand } from './commands/createAuraApp';
+import { createAuraComponentCommand } from './commands/createAuraComponent';
+import { createAuraEventCommand } from './commands/createAuraEvent';
+import { createAuraInterfaceCommand } from './commands/createAuraInterface';
 import { nls } from './messages';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
@@ -33,6 +40,32 @@ const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
   return config.get('activationMode') ?? 'autodetect'; // default to autodetect
 };
+
+const activateCommands = Effect.fn('aura:activateCommands')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  yield* Effect.all(
+    [
+      registerCommand('sf.lightning.generate.app', createAuraAppCommand),
+      registerCommand('sf.lightning.generate.aura.component', createAuraComponentCommand),
+      registerCommand('sf.lightning.generate.event', createAuraEventCommand),
+      registerCommand('sf.lightning.generate.interface', createAuraInterfaceCommand),
+      registerCommand('sf.internal.lightning.generate.app', (sourceUri?: URI) =>
+        createAuraAppCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.internal.lightning.generate.aura.component', (sourceUri?: URI) =>
+        createAuraComponentCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.internal.lightning.generate.event', (sourceUri?: URI) =>
+        createAuraEventCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.internal.lightning.generate.interface', (sourceUri?: URI) =>
+        createAuraInterfaceCommand(sourceUri, { internal: true })
+      )
+    ],
+    { concurrency: 'unbounded' }
+  );
+});
 
 export const activate = async (extensionContext: ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
@@ -54,6 +87,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
     log('No workspace, exiting extension');
     return;
   }
+
+  // Register commands eagerly so they're available even if LSP startup fails
+  const extensionScope = Effect.runSync(getExtensionScope());
+  yield* activateCommands().pipe(Scope.extend(extensionScope));
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
   const workspaceType = yield* detectWorkspaceType(workspace.workspaceFolders.map(folder => folder.uri.fsPath));
@@ -168,7 +205,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
   log('Finished with workspace awareness');
 });
 
-export const deactivate = () => {
+export const deactivate = async (): Promise<void> => {
   console.log('Aura Components Extension Deactivated');
   TelemetryService.getInstance().sendExtensionDeactivationEvent();
+  await getRuntime().runPromise(closeExtensionScope());
 };

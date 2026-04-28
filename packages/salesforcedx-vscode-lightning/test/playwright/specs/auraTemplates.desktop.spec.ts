@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -34,7 +34,12 @@ test.describe('Aura Templates (Desktop Only)', () => {
     await waitForWorkspaceReady(page);
   });
 
-  const createAuraTemplate = async (page: any, command: string, name: string, expectedFiles: string[]) => {
+  const createAuraTemplate = async (
+    page: import('@playwright/test').Page,
+    command: string,
+    name: string,
+    expectedFiles: string[]
+  ) => {
     await test.step(`Create Aura ${name}`, async () => {
       await verifyCommandExists(page, command, 30_000);
       await executeCommandWithCommandPalette(page, command);

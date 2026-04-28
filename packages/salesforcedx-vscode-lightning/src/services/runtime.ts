@@ -8,9 +8,10 @@
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { AllServicesLayer } from './extensionProvider';
 
-const createLightningRuntime = () => ManagedRuntime.make(AllServicesLayer);
-let _lightningRuntime: ReturnType<typeof createLightningRuntime> | undefined;
+const createAuraRuntime = () => ManagedRuntime.make(AllServicesLayer);
+// eslint-disable-next-line functional/no-let -- Lazy singleton runtime
+let _auraRuntime: ReturnType<typeof createAuraRuntime> | undefined;
 export const getRuntime = () => {
-  _lightningRuntime ??= createLightningRuntime();
-  return _lightningRuntime;
+  _auraRuntime ??= createAuraRuntime();
+  return _auraRuntime;
 };
