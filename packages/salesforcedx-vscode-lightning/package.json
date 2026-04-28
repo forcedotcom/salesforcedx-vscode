@@ -65,6 +65,7 @@
     "Programming Languages"
   ],
   "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-aura-language-server": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -139,6 +140,7 @@
       "clean": "if-file-deleted",
       "command": "tsc --pretty",
       "dependencies": [
+        "../effect-ext-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-aura-language-server:compile",
@@ -196,7 +198,8 @@
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
-        "compile"
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",

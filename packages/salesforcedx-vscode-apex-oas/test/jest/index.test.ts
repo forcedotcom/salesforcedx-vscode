@@ -57,14 +57,21 @@ jest.mock('../../src/oasUtils', () => ({
 }));
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  ActivationTracker: class {
-    public markActivationStop = jest.fn();
-  },
   WorkspaceContextUtil: {
     getInstance: () => ({
       initialize: jest.fn().mockResolvedValue(undefined)
     })
   }
+}));
+
+jest.mock('../../src/services/extensionProvider', () => ({
+  buildAllServicesLayer: () => ({}),
+  setAllServicesLayer: () => {}
+}));
+
+jest.mock('../../src/services/runtime', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  getRuntime: () => ({ runPromise: (eff: any) => require('effect/Effect').runPromise(eff) })
 }));
 
 jest.mock('../../src/coreExtensionUtils', () => ({

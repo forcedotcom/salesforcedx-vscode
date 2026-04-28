@@ -1,6 +1,6 @@
 ---
 name: services-extension-consumption
-description: Guidelines for consuming salesforcedx-vscode-services extension API. Use when working with extensions that have extensionDependency on salesforcedx-vscode-services, registering commands, using Workspace/Connection/Project/Settings/FS/Channel/Media services, quickpick/quickInput, or implementing file/config watchers.
+description: Guidelines for consuming salesforcedx-vscode-services extension API. Use when working with extensions that have extensionDependency on salesforcedx-vscode-services, registering commands, using Workspace/Connection/Project/Settings/FS/Channel/Media services, quickpick/quickInput, implementing file/config watchers, editing extensionProvider.ts, buildAllServicesLayer, AllServicesLayer, setAllServicesLayer, prebuiltServicesDependencies, or Layer composition for VS Code extensions.
 ---
 
 # Consuming salesforcedx-vscode-services

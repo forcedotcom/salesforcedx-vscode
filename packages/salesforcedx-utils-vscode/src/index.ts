@@ -27,13 +27,9 @@ export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
-export { ActivationTracker } from './helpers/activationTracker';
 export {
   createDirectory,
-  deleteFile,
-  ensureCurrentWorkingDirIsProjectPath,
   fileOrFolderExists,
-  isEmptyDirectory,
   isDirectory,
   isFile,
   readDirectory,
