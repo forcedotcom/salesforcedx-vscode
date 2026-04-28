@@ -37,12 +37,11 @@ import packageNls from '../../../package.nls.json';
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     });
 
-    // Wait for extension activation: LWC create is gated on sf:project_opened only,
+    // Wait for extension activation: sobjects_refresh is gated on sf:project_opened only,
     // so its presence confirms the metadata extension is fully initialized before
     // we assert tracking commands are absent (avoids false passes on slow startup).
     await test.step('verify extension-activated commands are present', async () => {
-      await verifyCommandExists(page, packageNls.lightning_generate_lwc_text, 30_000);
-      await verifyCommandExists(page, packageNls.sobjects_refresh);
+      await verifyCommandExists(page, packageNls.sobjects_refresh, 30_000);
     });
 
     await test.step('verify push/pull and view-changes commands do not exist', async () => {

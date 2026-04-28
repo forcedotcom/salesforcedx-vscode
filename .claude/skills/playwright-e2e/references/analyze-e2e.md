@@ -79,7 +79,7 @@ PY
 
 ## Workflow Detection
 
-Filter `workflowName` containing "(Playwright)". Examples: Metadata E2E, Services E2E, OrgBrowser E2E.
+Filter `workflowName` containing "(Playwright)". Examples: Metadata E2E, Services E2E, OrgBrowser E2E, LWC E2E.
 
 ## Finding video
 

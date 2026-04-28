@@ -30,10 +30,6 @@ import packageNls from '../../../package.nls.json';
       await ensureSecondarySideBarHidden(page);
     });
 
-    await emptyWorkspaceDesktopTest.step('verify tempaltes commands do not exist', async () => {
-      await verifyCommandDoesNotExist(page, packageNls.lightning_generate_lwc_text);
-    });
-
     await emptyWorkspaceDesktopTest.step('verify deploy/retrieve/delete/generate manifest do not exist', async () => {
       await verifyCommandDoesNotExist(page, packageNls.project_deploy_start_default_org_text);
       await verifyCommandDoesNotExist(page, packageNls.project_deploy_start_ignore_conflicts_default_org_text);

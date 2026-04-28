@@ -34,7 +34,7 @@ const packageDirs = (yield* api.services.ProjectService.getSfProject()).getPacka
 
 ## Notes
 
-- `isEmpty` - workspace folders exist
+- `isEmpty` — no workspace folders
 - `isVirtualFs` - non-file scheme (e.g., memfs://)
 - `fsPath` normalized (backslashes → forward slashes for virtual FS)
-- Cached globally
+- Cached globally; web: memo on first `yield*` (not import), so folders exist before snapshot

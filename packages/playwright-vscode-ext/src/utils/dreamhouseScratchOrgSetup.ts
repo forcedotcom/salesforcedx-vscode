@@ -17,6 +17,34 @@ export const DREAMHOUSE_ORG_ALIAS = 'orgBrowserDreamhouseTestOrg';
 
 const execAsync = promisify(exec);
 
+type SfOrgDisplayResultBody = {
+  accessToken: string;
+  instanceUrl: string;
+  apiVersion: string;
+};
+
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+
+const isSfOrgDisplayJson = (v: unknown): v is { result: SfOrgDisplayResultBody } => {
+  if (!isRecord(v) || !('result' in v)) return false;
+  const r = v.result;
+  if (!isRecord(r)) return false;
+  return (
+    typeof r.accessToken === 'string' &&
+    typeof r.instanceUrl === 'string' &&
+    typeof r.apiVersion === 'string'
+  );
+};
+
+type SfScratchCreateAuthFields = {
+  instanceUrl?: string;
+  accessToken?: string;
+  instanceApiVersion?: string;
+};
+
+const isSfScratchCreateJson = (v: unknown): v is { result?: { authFields?: SfScratchCreateAuthFields } } =>
+  isRecord(v) && (!('result' in v) || v.result === undefined || isRecord(v.result));
+
 const env = { ...process.env, NO_COLOR: '1' };
 /** this, if running all your tests locally, could create a lot of scratch orgs in parallel.  It's definitely better to run the steps once, or run just one test to get things going */
 export const create = async (): Promise<
@@ -25,10 +53,12 @@ export const create = async (): Promise<
   // Fast path for local iteration: use provided org and skip org creation/deploy
   // requires that you already did the deploy, permset, etc on the org.
   try {
-    const displayResponse = JSON.parse(
-      (await execAsync(`sf org display -o ${DREAMHOUSE_ORG_ALIAS} --json`, { env })).stdout
-    );
-    const result = displayResponse.result;
+    const stdout = (await execAsync(`sf org display -o ${DREAMHOUSE_ORG_ALIAS} --json`, { env })).stdout;
+    const displayResponse: unknown = JSON.parse(stdout);
+    if (!isSfOrgDisplayJson(displayResponse)) {
+      throw new Error('sf org display returned unexpected JSON shape');
+    }
+    const { result } = displayResponse;
 
     return {
       accessToken: result.accessToken,
@@ -53,8 +83,11 @@ export const create = async (): Promise<
     { cwd: repoDir, env }
   );
 
-  const createResponse = JSON.parse(createStdout);
-  const authFields = createResponse?.result?.authFields ?? {};
+  const createResponse: unknown = JSON.parse(createStdout);
+  if (!isSfScratchCreateJson(createResponse)) {
+    throw new Error('sf org create scratch returned unexpected JSON shape');
+  }
+  const authFields = createResponse.result?.authFields ?? {};
 
   if (!authFields.instanceUrl || !authFields.accessToken || !authFields.instanceApiVersion) {
     throw new Error(

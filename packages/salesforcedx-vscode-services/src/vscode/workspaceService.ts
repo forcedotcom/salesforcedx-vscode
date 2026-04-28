@@ -55,11 +55,6 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
   Effect.withSpan('getWorkspaceInfoTask')
 );
 
-// Global cached workspace info - created once at module level.  Only used on web, since ws can change on desktop
-const globalCachedWorkspaceInfo = Effect.runSync(
-  Effect.cached(getWorkspaceInfoTask).pipe(Effect.withSpan('getWorkspaceInfo'))
-);
-
 const isNonEmptyWorkspace = (info: WorkspaceInfo): info is WorkspaceWithFolder => !info.isEmpty;
 
 export class NoWorkspaceOpenError extends Schema.TaggedError<NoWorkspaceOpenError>()('NoWorkspaceOpenError', {
@@ -71,13 +66,15 @@ export class WorkspaceService extends Effect.Service<WorkspaceService>()('Worksp
   effect: Effect.gen(function* () {
     /** Get info about the workspace */
     const getWorkspaceInfo = Effect.fn('WorkspaceService.getWorkspaceInfo')(function* () {
-      return process.env.ESBUILD_PLATFORM === 'web' ? yield* globalCachedWorkspaceInfo : yield* getWorkspaceInfoTask;
+      // Always read `vscode.workspace.workspaceFolders` fresh. Cached workspace info on web poisoned the first
+      // value when the memo ran before `vscode-test-web` mounted the folder (empty / wrong `fsPath`), breaking
+      // `sf:project_opened` and commands such as **SFDX: Create Lightning Web Component** in Playwright web E2E.
+      return yield* getWorkspaceInfoTask;
     });
 
     /** GetWorkspaceInfo, throws if there is not one open */
     const getWorkspaceInfoOrThrow = Effect.fn('WorkspaceService.getWorkspaceInfoOrThrow')(function* () {
-      const info =
-        process.env.ESBUILD_PLATFORM === 'web' ? yield* globalCachedWorkspaceInfo : yield* getWorkspaceInfoTask;
+      const info = yield* getWorkspaceInfoTask;
       return yield* isNonEmptyWorkspace(info)
         ? Effect.succeed(info)
         : Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }));
