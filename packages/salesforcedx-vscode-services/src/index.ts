@@ -35,6 +35,7 @@ import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
+import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { TerminalService } from './terminal/terminalService';
@@ -213,6 +214,7 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   context: vscode.ExtensionContext
 ) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
+  yield* annotateExtensionPackType;
   // do this first to prevent Connection issues.
   yield* updateTelemetryUserIds(context);
   const scope = yield* getExtensionScope();

@@ -55,7 +55,6 @@ import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { reportExtensionPackStatus } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
@@ -146,7 +145,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   if (internalDev) {
     // Internal Dev commands
     extensionContext.subscriptions.push(registerInternalDevCommands());
-    reportExtensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
     return;
   }
@@ -183,8 +181,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
       initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup)
     );
   }
-
-  reportExtensionPackStatus();
 
   setImmediate(() => {
     void WorkspaceContext.getInstance().initialize(extensionContext);
