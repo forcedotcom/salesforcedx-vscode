@@ -106,7 +106,10 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            test_runner_prefix: 'xvfb-run -a '
       fail-fast: false
     env:
       VSCODE_DESKTOP: 1
@@ -141,9 +144,9 @@ jobs:
         timeout-minutes: 5
         env:
           CI: 1
+          VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -164,16 +167,16 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
+          VSCODE_DESKTOP: 1
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
+          VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
 
       - name: Copy span files to test-results
         if: always()
