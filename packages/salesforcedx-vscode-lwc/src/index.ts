@@ -22,7 +22,7 @@ import { createLwcCommand } from './commands/createLwc';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import LwcLspStatusBarItem from './lwcLspStatusBarItem';
-import { metaSupport } from './metasupport';
+import { activateMetaSupport } from './metasupport/metaSupport';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { startLwcFileWatcher } from './util/lwcFileWatcher';
@@ -82,13 +82,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
   let workspaceType: WorkspaceType =
     workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
   if (workspaceType === 'UNKNOWN') {
-    const isSf = await getRuntime()
-      .runPromise(
-        Effect.gen(function* () {
-          const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          return yield* api.services.ProjectService.isSalesforceProject();
-        }).pipe(Effect.orElseSucceed(() => false))
-      );
+    const isSf = await getRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        return yield* api.services.ProjectService.isSalesforceProject();
+      }).pipe(Effect.orElseSucceed(() => false))
+    );
     if (isSf) workspaceType = 'SFDX';
   }
 
@@ -152,11 +151,10 @@ export const activate = async (extensionContext: ExtensionContext) => {
         createLwcCommand(outputDirParam)
       );
       yield* Effect.forkDaemon(startLwcFileWatcher());
+      // Creates resources for js-meta.xml to work
+      yield* activateMetaSupport(extensionContext.extensionUri);
     })
   );
-
-  // Creates resources for js-meta.xml to work
-  await metaSupport.getMetaSupport();
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
   if (process.env.ESBUILD_PLATFORM !== 'web') {
