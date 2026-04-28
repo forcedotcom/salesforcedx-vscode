@@ -334,6 +334,11 @@ export default class App extends LightningElement {
     this._loadIntoFields('setSubqueryDrillMetadata', childSObject, true);
   }
 
+  public handleSubqueryClear(e: CustomEvent): void {
+    const { path } = e.detail as { path: string[] };
+    this.modelService.clearSubqueryFieldsAtPath(path);
+  }
+
   public handleSubqueryRemove(e: CustomEvent): void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const detail = e.detail as { path?: string[]; relationshipName?: string };

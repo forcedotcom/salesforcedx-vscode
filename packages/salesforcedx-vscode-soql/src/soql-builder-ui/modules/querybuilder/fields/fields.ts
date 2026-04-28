@@ -128,8 +128,6 @@ export default class Fields extends LightningElement {
         const parts = field.split('.');
         const leafField = parts[parts.length - 1];
         // Build label: top-level rel name + any intermediate segments joined with →
-        const labelParts = [rel.relationshipName, ...parts.slice(0, -1)];
-        const label = labelParts.join(' → ');
         // pathKey uniquely identifies this group for removal: topRelName + all segments
         const pathKey = [rel.relationshipName, ...parts.slice(0, -1)].join('|');
         if (!groupMap.has(pathKey)) groupMap.set(pathKey, []);
@@ -422,6 +420,7 @@ export default class Fields extends LightningElement {
       this._subDrillStack = [];
       this._updateDisplayOptions();
     }
-    this.dispatchEvent(new CustomEvent('fields__subqueryremoved', { detail: { path } }));
+    // Clear only this box's fields (not nested children) — mirrors relationship box behaviour
+    this.dispatchEvent(new CustomEvent('fields__subqueryclear', { detail: { path } }));
   }
 }

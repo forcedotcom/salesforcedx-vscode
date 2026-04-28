@@ -266,6 +266,57 @@ export class ToolingModelService {
     };
   }
 
+  // Clear only the fields at a given path, leaving nested subqueries intact.
+  // If the result has no fields and no nested subqueries, the node is pruned.
+  public clearSubqueryFieldsAtPath(path: string[]): void {
+    const subqueries = this.getSubqueries();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const topIndex = subqueries.findIndex(sq => sq.get('relationshipName') === path[0]);
+    if (topIndex < 0) return;
+    if (path.length === 1) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const topSq = subqueries.get(topIndex).toJS() as { relationshipName: string; fields: string[]; subqueries: any[] };
+      if ((topSq.subqueries || []).length === 0) {
+        // No children left — prune entirely
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const pruned = subqueries.filter(sq => sq.get('relationshipName') !== path[0]);
+        this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, pruned));
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const updated = subqueries.update(topIndex, sq => sq.set('fields', fromJS([])));
+        this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, updated));
+      }
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const topSq = subqueries.get(topIndex).toJS() as { relationshipName: string; fields: string[]; subqueries: any[] };
+      const updatedTopSq = this._clearFieldsAtPath(topSq, path.slice(1));
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const updated = subqueries.update(topIndex, () => fromJS(updatedTopSq));
+      this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, updated));
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private _clearFieldsAtPath(sq: { relationshipName: string; fields: string[]; subqueries: any[] }, path: string[]): any {
+    if (path.length === 1) {
+      return {
+        ...sq,
+        subqueries: (sq.subqueries || []).map((s: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+          if (s.relationshipName !== path[0]) return s;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const hasChildren = (s.subqueries as any[] || []).length > 0;
+          return hasChildren ? { ...s, fields: [] } : null;
+        }).filter(Boolean)
+      };
+    }
+    return {
+      ...sq,
+      subqueries: (sq.subqueries || []).map((s: any) => // eslint-disable-line @typescript-eslint/no-explicit-any
+        s.relationshipName === path[0] ? this._clearFieldsAtPath(s, path.slice(1)) : s
+      )
+    };
+  }
+
   // Remove an entire nested subquery at a given path.
   public removeSubqueryAtPath(path: string[]): void {
     const subqueries = this.getSubqueries();
