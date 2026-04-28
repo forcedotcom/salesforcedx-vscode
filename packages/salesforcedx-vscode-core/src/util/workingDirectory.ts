@@ -8,6 +8,13 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 
+/**
+ * Switch to the project directory so that the main `@salesforce` node libraries
+ * work correctly. `@salesforce/core`, `@salesforce/source-tracking`, etc. all
+ * use `process.cwd()` internally. VSCE processes can run with `process.cwd()`
+ * returning `/`, so switching here at activation time ensures commands run with
+ * the correct project path.
+ */
 export const ensureCurrentWorkingDirIsProjectPath = Effect.fn('ensureCurrentWorkingDirIsProjectPath')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfo();

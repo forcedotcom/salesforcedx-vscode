@@ -4,12 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import {
-  ActivationTracker,
   ChannelService,
-  ensureCurrentWorkingDirIsProjectPath,
-  getRootWorkspacePath,
   notificationService,
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -18,7 +15,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -55,19 +51,14 @@ import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { SalesforceProjectConfig } from './salesforceProject/salesforceProjectConfig';
 import { buildAllServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
+import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { reportExtensionPackStatus } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
-
-const registerEffectCommands = () =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
-    yield* registerCommand('sf.alias.list', () => aliasListCommand());
-  });
+import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
 /** Customer-facing commands */
 const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>
@@ -100,29 +91,8 @@ const registerInternalDevCommands = (): vscode.Disposable =>
   );
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
-  const activationStartTime = globalThis.performance.now();
-  const activateTracker = new ActivationTracker(extensionContext, telemetryService);
-
-  const rootWorkspacePath = getRootWorkspacePath();
-  // Switch to the project directory so that the main @salesforce
-  // node libraries work correctly.  @salesforce/core,
-  // @salesforce/source-tracking, etc. all use process.cwd()
-  // internally.  This causes issues when used from VSCE, as VSCE
-  // processes can run with a path that does not reflect the current
-  // project path (it often returns '/' from process.cwd()).
-  // Switching to the project path here at activation time ensures that
-  // commands are run with the project path returned from process.cwd(),
-  // thus avoiding the potential errors surfaced when the libs call
-  // process.cwd().
-  await ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-  setNodeExtraCaCerts();
-  setSfLogLevel();
-  await telemetryService.initializeService(extensionContext);
-  void showTelemetryMessage(extensionContext);
-
-  // Set internal dev context
-  const internalDev = salesforceCoreSettings.getInternalDev();
-  await vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
+  // Initialize services layer first so getRuntime() can use it.
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
 
   // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();
@@ -154,43 +124,47 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     }
   };
 
+  await getRuntime().runPromise(activateEffect(extensionContext));
+
+  return api;
+};
+
+export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(function* (
+  extensionContext: vscode.ExtensionContext
+) {
+  yield* ensureCurrentWorkingDirIsProjectPath();
+
+  setNodeExtraCaCerts();
+  setSfLogLevel();
+  yield* Effect.promise(() => telemetryService.initializeService(extensionContext));
+  void showTelemetryMessage(extensionContext);
+
+  // Set internal dev context
+  const internalDev = salesforceCoreSettings.getInternalDev();
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
+
   if (internalDev) {
     // Internal Dev commands
     extensionContext.subscriptions.push(registerInternalDevCommands());
-
-    telemetryService.sendExtensionActivationEvent(activationStartTime);
     reportExtensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
-    return api;
+    return;
   }
 
   // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
-  const salesforceProjectOpened = await Effect.runPromise(
-    Effect.gen(function* () {
-      const servicesApi = yield* getServicesApi;
-      return yield* servicesApi.services.ProjectService.isSalesforceProject().pipe(
-        Effect.provide(Layer.succeedContext(servicesApi.services.prebuiltServicesDependencies))
-      );
-    }).pipe(Effect.catchAllCause(() => Effect.succeed(false)))
-  );
-
-  // TODO: move this and the replay debugger commands to the apex extension
-  void vscode.commands.executeCommand(
-    'setContext',
-    'sf:replay_debugger_extension',
-    vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex-replay-debugger') !== undefined
-  );
+  const servicesApi = yield* getServicesApi;
+  const salesforceProjectOpened = yield* servicesApi.services.ProjectService.isSalesforceProject();
 
   // Set Code Builder context
   const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
   void vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', codeBuilderEnabled);
 
   if (salesforceProjectOpened) {
-    await initializeProject(extensionContext);
+    yield* Effect.promise(() => initializeProject(extensionContext));
   }
 
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  await Effect.runPromise(registerEffectCommands().pipe(Effect.provide(AllServicesLayer)));
+  const registerCommand = servicesApi.services.registerCommandWithLayer(AllServicesLayer);
+  yield* registerCommand('sf.alias.list', () => aliasListCommand());
 
   extensionContext.subscriptions.push(registerCommands(extensionContext), CommandEventDispatcher.getInstance());
 
@@ -205,10 +179,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
-    await initSObjectDefinitions(vscode.workspace.workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
+    yield* Effect.promise(() =>
+      initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup)
+    );
   }
 
-  void activateTracker.markActivationStop();
   reportExtensionPackStatus();
 
   setImmediate(() => {
@@ -217,8 +192,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
-  return api;
-};
+});
 
 const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   // Initialize metadata hover provider
@@ -237,7 +211,7 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   );
 };
 
-export const deactivate = async (): Promise<void> => {
+export const deactivate = (): void => {
   console.log('SF CLI Extension Deactivated');
 
   // Send metric data.

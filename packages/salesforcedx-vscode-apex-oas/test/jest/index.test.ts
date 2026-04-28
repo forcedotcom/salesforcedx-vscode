@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 
 // Mock vscode and other dependencies BEFORE importing the index file
-const mockWorkspaceContext = { initialize: jest.fn() };
+const mockWorkspaceContext = { initialize: jest.fn().mockResolvedValue(undefined) };
 const mockTelemetryService = {
   initializeService: jest.fn(),
   sendExtensionDeactivationEvent: jest.fn()
@@ -80,7 +80,7 @@ jest.mock('../../src/coreExtensionUtils', () => ({
 
 // Import the activate function and dependencies AFTER mocks are set up
 import { getVscodeCoreExtension } from '../../src/coreExtensionUtils';
-import { activate } from '../../src/index';
+import { activate, apexActionController } from '../../src/index';
 
 describe('OAS Extension Activation', () => {
   let mockContext: vscode.ExtensionContext;
@@ -89,7 +89,11 @@ describe('OAS Extension Activation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // resetMocks: true wipes implementations; re-establish Promise returns for async mocks
+    jest.spyOn(vscode.commands, 'executeCommand').mockImplementation(() => Promise.resolve());
     mockCheckIfESRIsDecomposed.mockResolvedValue(false);
+    mockWorkspaceContext.initialize.mockResolvedValue(undefined);
+    (apexActionController.initialize as jest.Mock).mockResolvedValue(undefined);
 
     mockContext = {
       subscriptions: [],

@@ -13,12 +13,10 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
-import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
-import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
 import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { appendToChannel, channelAdapter } from './channel';
+import { channelAdapter } from './channel';
 import { createLwcCommand } from './commands/createLwc';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
@@ -28,7 +26,7 @@ import { buildAllServicesLayer, setAllServicesLayer } from './services/extension
 import { getRuntime } from './services/runtime';
 import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
-const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
+const getTelemetryService = async () => {
   const telemetryModule = await import('./telemetry/index.js');
   return telemetryModule.telemetryService;
 };
@@ -36,149 +34,128 @@ const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
 export const activate = async (extensionContext: ExtensionContext) => {
   // Initialize services layer first so ChannelService and other services are available throughout activation.
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await getRuntime().runPromise(activateEffect(extensionContext));
+};
 
-  appendToChannel('Lightning Web Components extension activating...');
+export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(function* (
+  extensionContext: ExtensionContext
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channelSvc = yield* api.services.ChannelService;
 
-  let activateTracker: ActivationTracker | undefined;
-  let telemetryService: TelemetryServiceInterface | undefined;
+  yield* channelSvc.appendToChannel('Lightning Web Components extension activating...');
+
   if (process.env.ESBUILD_PLATFORM !== 'web') {
-    telemetryService = await getTelemetryService();
-    activateTracker = new ActivationTracker(extensionContext, telemetryService);
+    yield* Effect.promise(() => getTelemetryService()).pipe(
+      Effect.flatMap(telemetryService => Effect.promise(() => telemetryService.initializeService(extensionContext))),
+      Effect.catchAll(e => channelSvc.appendToChannel(`Failed to initialize telemetry service: ${String(e)}`))
+    );
   }
 
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
-    appendToChannel('LWC Language Server activationMode set to off, exiting...');
+    yield* channelSvc.appendToChannel('LWC Language Server activationMode set to off, exiting...');
     return;
-  }
-
-  // Initialize telemetry service (now works in both Node.js and web mode)
-  if (telemetryService) {
-    try {
-      await telemetryService.initializeService(extensionContext);
-    } catch (e) {
-      appendToChannel(`Failed to initialize telemetry service: ${String(e)}`);
-    }
   }
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-    appendToChannel('No workspace folders found, exiting extension');
+    yield* channelSvc.appendToChannel('No workspace folders found, exiting extension');
     return;
   }
 
   // Pass the workspace folder URIs to the language server
-  const workspaceFolderPaths: string[] = [];
-  workspace.workspaceFolders.forEach(folder => {
-    // In web mode, fsPath might be undefined for non-file:// URIs
-    // Use fsPath if available, otherwise fall back to URI path
-    const folderPath = folder.uri.fsPath ?? folder.uri.path;
-    if (folderPath) {
-      workspaceFolderPaths.push(folderPath);
-    }
-  });
 
   // Path-based detection (Node fs paths) can return UNKNOWN for virtual workspaces; confirm via ProjectService.
-  const detected = await detectWorkspaceType(workspaceFolderPaths);
-  const workspaceType: WorkspaceType =
-    detected !== 'UNKNOWN'
-      ? detected
-      : (await getRuntime().runPromise(
-            Effect.gen(function* () {
-              const api = yield* (yield* ExtensionProviderService).getServicesApi;
-              return yield* api.services.ProjectService.isSalesforceProject();
-            }).pipe(Effect.orElseSucceed(() => false))
-          ))
-        ? 'SFDX'
-        : detected;
+  const detected = yield* detectWorkspaceType(
+    // In web mode, fsPath might be undefined for non-file:// URIs
+    workspace.workspaceFolders.map(folder => folder.uri.fsPath ?? folder.uri.path).filter(Boolean)
+  );
+  const isSalesforceProject =
+    detected === 'UNKNOWN'
+      ? yield* api.services.ProjectService.isSalesforceProject().pipe(Effect.orElseSucceed(() => false))
+      : false;
+  const workspaceType: WorkspaceType = detected !== 'UNKNOWN' ? detected : isSalesforceProject ? 'SFDX' : detected;
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    appendToChannel(
+    yield* channelSvc.appendToChannel(
       `LWC LSP - autodetect did not find a valid project structure, exiting. WorkspaceType detected: ${workspaceType}`
     );
     return;
   }
 
   // Start the LWC Language Server
-  try {
-    const sfdxTypingsDir = Utils.joinPath(
-      URI.from(extensionContext.extensionUri),
-      'resources',
-      'sfdx',
-      'typings'
-    ).toString();
-    const client = await createLanguageClient(extensionContext.extensionUri, { workspaceType, sfdxTypingsDir });
+  const sfdxTypingsDir = Utils.joinPath(
+    URI.from(extensionContext.extensionUri),
+    'resources',
+    'sfdx',
+    'typings'
+  ).toString();
 
-    // Create language status item to show indexing progress
-    const statusBarItem = new LwcLspStatusBarItem();
-    extensionContext.subscriptions.push(statusBarItem);
-
-    // Listen for server ready notification to update status
-    client.onNotification(LWC_SERVER_READY_NOTIFICATION, () => {
-      statusBarItem.ready();
-      // Web E2E: language status is not always exposed in the status bar; tests wait on this log line.
-      appendToChannel('LWC Language Server: indexing complete');
-    });
-
-    // Start the client and add it to subscriptions
-    appendToChannel('Starting LWC Language Server...');
-    // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
-    registerWorkspaceReadFileHandler(client, channelAdapter);
-
-    try {
-      await client.start();
-    } catch (startError) {
-      const errorMsg = `[LWC] Failed to start client: ${startError instanceof Error ? startError.message : String(startError)}`;
-      appendToChannel(errorMsg);
-      throw startError;
-    }
-
-    extensionContext.subscriptions.push(client);
-    appendToChannel('LWC Language Server started successfully');
-    appendToChannel('Check "LWC Language Server" output channel for server logs');
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    appendToChannel(`Failed to start LWC Language Server: ${errorMessage}`);
-    throw error; // Re-throw to prevent silent failures
-  }
-
-  await getRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
-      yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
-        createLwcCommand(outputDirParam)
-      );
-      yield* Effect.forkDaemon(startLwcFileWatcher());
-      // Creates resources for js-meta.xml to work
-      yield* activateMetaSupport(extensionContext.extensionUri);
-    })
+  const client = yield* Effect.tryPromise({
+    try: () => createLanguageClient(extensionContext.extensionUri, { workspaceType, sfdxTypingsDir }),
+    catch: e => e
+  }).pipe(
+    Effect.tapError(error =>
+      channelSvc.appendToChannel(
+        `Failed to start LWC Language Server: ${error instanceof Error ? error.message : String(error)}`
+      )
+    )
   );
+
+  // Create language status item to show indexing progress
+  const statusBarItem = new LwcLspStatusBarItem();
+  extensionContext.subscriptions.push(statusBarItem);
+
+  // Listen for server ready notification to update status
+  client.onNotification(LWC_SERVER_READY_NOTIFICATION, () => {
+    statusBarItem.ready();
+    // Web E2E: language status is not always exposed in the status bar; tests wait on this log line.
+    getRuntime().runFork(channelSvc.appendToChannel('LWC Language Server: indexing complete'));
+  });
+
+  yield* channelSvc.appendToChannel('Starting LWC Language Server...');
+  // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
+  registerWorkspaceReadFileHandler(client, channelAdapter);
+
+  yield* Effect.tryPromise({ try: () => client.start(), catch: e => e }).pipe(
+    Effect.tapError(startError =>
+      channelSvc.appendToChannel(
+        `[LWC] Failed to start client: ${startError instanceof Error ? startError.message : String(startError)}`
+      )
+    )
+  );
+
+  extensionContext.subscriptions.push(client);
+  yield* channelSvc.appendToChannel('LWC Language Server started successfully');
+  yield* channelSvc.appendToChannel('Check "LWC Language Server" output channel for server logs');
+
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
+    createLwcCommand(outputDirParam)
+  );
+  yield* Effect.forkDaemon(startLwcFileWatcher());
+  // Creates resources for js-meta.xml to work
+  yield* activateMetaSupport(extensionContext.extensionUri);
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
   if (process.env.ESBUILD_PLATFORM !== 'web') {
-    try {
+    yield* Effect.promise(() => import('./testSupport/index.js')).pipe(
       // Lazy load test support to avoid bundling jest-editor-support in web mode
-      const testSupport = await import('./testSupport/index.js');
-
-      if (testSupport.shouldActivateLwcTestSupport(workspaceType)) {
-        testSupport.activateLwcTestSupport(extensionContext, workspaceType);
-      }
-    } catch (e) {
-      appendToChannel(`Failed to load test support: ${String(e)}`);
-    }
+      Effect.tap(testSupport =>
+        testSupport.shouldActivateLwcTestSupport(workspaceType)
+          ? Effect.sync(() => testSupport.activateLwcTestSupport(extensionContext, workspaceType))
+          : Effect.void
+      ),
+      Effect.catchAll(e => channelSvc.appendToChannel(`Failed to load test support: ${String(e)}`))
+    );
   }
 
-  // Notify telemetry that our extension is now active
-  if (activateTracker) {
-    void activateTracker.markActivationStop();
-  }
-
-  appendToChannel('Lightning Web Components extension activation complete.');
-};
+  yield* channelSvc.appendToChannel('Lightning Web Components extension activation complete.');
+});
 
 export const deactivate = async () => {
   log('Lightning Web Components Extension Deactivated');

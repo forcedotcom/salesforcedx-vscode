@@ -13,6 +13,7 @@ import {
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import { log } from 'node:console';
 import * as path from 'node:path';
 import { ExtensionContext, workspace } from 'vscode';
@@ -25,6 +26,8 @@ import {
 } from 'vscode-languageclient/node';
 import AuraLspStatusBarItem from './auraLspStatusBarItem';
 import { nls } from './messages';
+import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { getRuntime } from './services/runtime';
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
@@ -32,8 +35,13 @@ const getActivationMode = (): string => {
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
-  const extensionStartTime = globalThis.performance.now();
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await getRuntime().runPromise(activateEffect(extensionContext));
+};
 
+export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightning')(function* (
+  extensionContext: ExtensionContext
+) {
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
@@ -47,14 +55,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
     return;
   }
 
-  // Pass the workspace folder URIs to the language server
-  const workspaceUris: string[] = [];
-  workspace.workspaceFolders.forEach(folder => {
-    workspaceUris.push(folder.uri.fsPath);
-  });
-
   // 3) If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = await detectWorkspaceType(workspaceUris);
+  const workspaceType = yield* detectWorkspaceType(workspace.workspaceFolders.map(folder => folder.uri.fsPath));
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
@@ -66,9 +68,10 @@ export const activate = async (extensionContext: ExtensionContext) => {
   }
 
   // Initialize telemetry service
-  await TelemetryService.getInstance().initializeService(extensionContext);
+  yield* Effect.promise(() => TelemetryService.getInstance().initializeService(extensionContext));
 
   // Start the Aura Language Server
+  // TODO: derive the path from extensionUri instead of pjson
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
 
@@ -146,14 +149,16 @@ export const activate = async (extensionContext: ExtensionContext) => {
   log('Workspace read file handler registered');
 
   // Start the language server
-  try {
-    await client.start();
-    console.log('Aura Language Server started successfully');
-  } catch (error) {
-    const errorMessage = `Failed to start Aura Language Server: ${String(error)}`;
-    log(errorMessage);
-    throw error;
-  }
+  yield* Effect.promise(async () => {
+    try {
+      await client.start();
+      console.log('Aura Language Server started successfully');
+    } catch (error) {
+      const errorMessage = `Failed to start Aura Language Server: ${String(error)}`;
+      log(errorMessage);
+      throw error;
+    }
+  });
 
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
@@ -161,10 +166,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // finising up with workspace awareness
   log('Finished with workspace awareness');
-
-  // Notify telemetry that our extension is now active
-  TelemetryService.getInstance().sendExtensionActivationEvent(extensionStartTime);
-};
+});
 
 export const deactivate = () => {
   console.log('Aura Components Extension Deactivated');
