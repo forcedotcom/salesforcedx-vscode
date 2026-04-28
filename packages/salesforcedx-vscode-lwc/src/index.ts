@@ -5,18 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { isLWC, LWC_SERVER_READY_NOTIFICATION } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import * as Effect from 'effect/Effect';
 import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
+import { createLwcCommand } from './commands/createLwc';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import LwcLspStatusBarItem from './lwcLspStatusBarItem';
 import { metaSupport } from './metasupport';
+import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { getRuntime } from './services/runtime';
 import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
 
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
@@ -131,6 +136,21 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // This handles the case where files are downloaded from org browser after server starts
   // Opening files syncs them to the server via onDidOpen, which triggers delayed initialization
   startLwcFileWatcherViaServices();
+
+  // Register Effect-based commands using the services runtime
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+      yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
+        createLwcCommand(outputDirParam)
+      );
+      yield* registerCommand('sf.internal.lightning.generate.lwc', (sourceUri?: URI) =>
+        createLwcCommand(sourceUri, { internal: true })
+      );
+    })
+  );
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
   if (process.env.ESBUILD_PLATFORM !== 'web') {

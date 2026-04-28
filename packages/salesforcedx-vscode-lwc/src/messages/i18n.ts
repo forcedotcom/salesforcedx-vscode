@@ -35,6 +35,13 @@ export const messages = {
   lightning_lwc_redhat_extension_regression:
     'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
   lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension',
+  lwc_component_name_empty_error: 'Component name cannot be empty',
+  lwc_component_name_format_error:
+    'Component name must start with a lowercase letter and contain only alphanumeric characters and underscores',
+  lwc_component_name_prompt: 'Enter Lightning Web Component name',
+  lwc_component_name_placeholder: 'e.g. myComponent',
+  lwc_output_dir_prompt: 'Select output directory',
+  lwc_select_component_type: 'Select component type',
   lwc_language_server_loading: 'Indexing LWC files. Hold tight, almost ready… $(sync~spin)',
   lwc_language_server_loaded: 'Indexing complete $(check)'
 } as const;
