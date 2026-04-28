@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  detectWorkspaceHelper,
   WorkspaceType,
   readJsonSync,
   writeJson,
@@ -21,6 +20,7 @@ import * as path from 'node:path';
 import { Connection, DocumentUri } from 'vscode-languageserver';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
+import { detectWorkspaceHelper } from './detectWorkspaceHelper';
 
 import { Tag, TagAttrs, createTag, createTagFromFile, getTagName } from './tag';
 

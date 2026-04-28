@@ -40,6 +40,11 @@
       "types": "./out/src/applyEditHandler.d.ts",
       "import": "./out/src/applyEditHandler.js",
       "require": "./out/src/applyEditHandler.js"
+    },
+    "./detectWorkspaceTypeVscode": {
+      "types": "./out/src/detectWorkspaceTypeVscode.d.ts",
+      "import": "./out/src/detectWorkspaceTypeVscode.js",
+      "require": "./out/src/detectWorkspaceTypeVscode.js"
     }
   },
   "license": "BSD-3-Clause",

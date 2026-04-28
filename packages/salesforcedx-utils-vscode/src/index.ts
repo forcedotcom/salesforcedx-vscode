@@ -29,7 +29,6 @@ export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export { TimingUtils } from './helpers/timingUtils';
 export { ActivationTracker } from './helpers/activationTracker';
-export { isSFContainerMode } from './helpers/env';
 export { extensionUris } from './helpers/extensionUris';
 export {
   createDirectory,
@@ -71,9 +70,7 @@ export { SFDX_FOLDER } from './constants';
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
 export type { PreconditionChecker } from './commands/preconditionCheckers';
 export type { PostconditionChecker } from './commands/postconditionCheckers';
-export { getYYYYMMddHHmmssDateFormat, optionYYYYMMddHHmmss } from './date/format';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
 export { UserService } from './services/userService';
 export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';
-export { detectWorkspaceType } from './workspaceTypeFiles';

@@ -11,7 +11,6 @@ import {
   CliCommandExecutor,
   ContinueResponse,
   EmptyParametersGatherer,
-  isSFContainerMode,
   ProgressNotification,
   SfCommandlet,
   SfCommandletExecutor,
@@ -29,6 +28,8 @@ import {
   OrgOpenSuccessResult
 } from '../parsers/orgOpenContainerResultParser';
 import { telemetryService } from '../telemetry';
+
+const isSFContainerMode = (): boolean => (process.env.SF_CONTAINER_MODE ? true : false);
 
 class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
   public build(_data: {}): Command {
