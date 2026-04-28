@@ -95,7 +95,7 @@
               role="button"
               class="pointer delete-trigger"
               onclick={handleSubqueryRemoved}
-              data-relationship={sq.relationshipName}
+              data-path={sq.pathKey}
             >X</span>
           </div>
           <div class="selected-fields-container">
@@ -106,7 +106,7 @@
                   role="button"
                   class="pointer delete-trigger"
                   onclick={handleSubqueryFieldRemoved}
-                  data-relationship={sq.relationshipName}
+                  data-path={sq.pathKey}
                   data-field={field}
                 >X</span>
               </div>

@@ -118,19 +118,21 @@ export default class Fields extends LightningElement {
     return node ? node.fields : [];
   }
 
-  // Flatten the subquery tree into a list of { groupLabel, fields, relationshipName } for pill rendering
-  public get flatSubqueryPillGroups(): Array<{ groupLabel: string; fields: string[]; relationshipName: string }> {
-    const result: Array<{ groupLabel: string; fields: string[]; relationshipName: string }> = [];
-    const walk = (sqs: SubqueryJson[], prefix: string) => {
+  // Flatten the subquery tree into a list for pill rendering.
+  // Each entry carries the full path so removal handlers can navigate to the correct nested node.
+  public get flatSubqueryPillGroups(): Array<{ groupLabel: string; fields: string[]; path: string[]; pathKey: string }> {
+    const result: Array<{ groupLabel: string; fields: string[]; path: string[]; pathKey: string }> = [];
+    const walk = (sqs: SubqueryJson[], prefix: string, pathSoFar: string[]) => {
       for (const sq of sqs || []) {
         const label = prefix ? `${prefix} ← ${sq.relationshipName}` : sq.relationshipName;
+        const path = [...pathSoFar, sq.relationshipName];
         if (sq.fields.length > 0) {
-          result.push({ groupLabel: label, fields: sq.fields, relationshipName: sq.relationshipName });
+          result.push({ groupLabel: label, fields: sq.fields, path, pathKey: path.join('|') });
         }
-        walk(sq.subqueries || [], label);
+        walk(sq.subqueries || [], label, path);
       }
     };
-    walk(this.subqueries || [], '');
+    walk(this.subqueries || [], '', []);
     return result;
   }
 
@@ -329,22 +331,30 @@ export default class Fields extends LightningElement {
   public handleSubqueryFieldRemoved(e: Event): void {
     e.preventDefault();
     const target = e.target as HTMLElement;
-    const relationshipName = target.dataset.relationship;
+    const pathKey = target.dataset.path;
     const field = target.dataset.field;
-    if (!relationshipName || !field) return;
-    const current = (this.subqueries || []).find(s => s.relationshipName === relationshipName);
-    const newFields = current ? current.fields.filter(f => f !== field) : [];
-    this.dispatchEvent(new CustomEvent('fields__subquerychanged', { detail: { relationshipName, fields: newFields } }));
+    if (!pathKey || !field) return;
+    const path = pathKey.split('|');
+    // Navigate to the correct node to get current fields
+    let node: SubqueryJson | undefined = (this.subqueries || []).find(s => s.relationshipName === path[0]);
+    for (let i = 1; i < path.length; i++) {
+      if (!node) break;
+      node = (node.subqueries || []).find(s => s.relationshipName === path[i]);
+    }
+    const newFields = node ? node.fields.filter(f => f !== field) : [];
+    this.dispatchEvent(new CustomEvent('fields__subquerychanged', { detail: { path, fields: newFields } }));
   }
 
   public handleSubqueryRemoved(e: Event): void {
     e.preventDefault();
-    const relationshipName = (e.target as HTMLElement).dataset.relationship;
-    if (!relationshipName) return;
-    if (this._subDrillStack[0]?.relationshipName === relationshipName) {
+    const pathKey = (e.target as HTMLElement).dataset.path;
+    if (!pathKey) return;
+    const path = pathKey.split('|');
+    const topRelName = path[0];
+    if (this._subDrillStack[0]?.relationshipName === topRelName) {
       this._subDrillStack = [];
       this._updateDisplayOptions();
     }
-    this.dispatchEvent(new CustomEvent('fields__subqueryremoved', { detail: { relationshipName } }));
+    this.dispatchEvent(new CustomEvent('fields__subqueryremoved', { detail: { path } }));
   }
 }

@@ -335,18 +335,31 @@ export default class App extends LightningElement {
   }
 
   public handleSubqueryRemove(e: CustomEvent): void {
-    const { relationshipName } = e.detail as { relationshipName: string };
-    this.modelService.removeSubquery(relationshipName);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const detail = e.detail as { path?: string[]; relationshipName?: string };
+    const path = detail.path;
+    if (path && path.length > 1) {
+      // Nested: remove the nested subquery entry
+      this.modelService.removeSubqueryAtPath(path);
+    } else {
+      const relationshipName = path ? path[0] : detail.relationshipName;
+      if (relationshipName) this.modelService.removeSubquery(relationshipName);
+    }
   }
 
   public handleSubqueryFieldsChanged(e: CustomEvent): void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (e.detail.path) {
-      // Path-based: field added at a specific nested depth
-      const { path, field } = e.detail as { path: string[]; field: string };
-      this.modelService.addSubqueryFieldAtPath(path, field);
+      const detail = e.detail as { path: string[]; field?: string; fields?: string[] };
+      if (detail.field !== undefined) {
+        // Field addition: path + single field
+        this.modelService.addSubqueryFieldAtPath(detail.path, detail.field);
+      } else {
+        // Field removal: path + updated fields array
+        this.modelService.setSubqueryFieldsAtPath(detail.path, detail.fields || []);
+      }
     } else {
-      // Legacy flat: full fields list replacement (used by pill removal)
+      // Legacy flat
       const { relationshipName, fields } = e.detail as { relationshipName: string; fields: string[] };
       this.modelService.setSubqueryFields(relationshipName, fields);
     }
