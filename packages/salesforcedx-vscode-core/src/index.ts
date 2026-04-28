@@ -34,7 +34,6 @@ import {
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,
   internalLightningGenerateInterface,
-  internalLightningGenerateLwc,
   lightningGenerateApp,
   lightningGenerateAuraComponent,
   lightningGenerateEvent,
@@ -94,7 +93,6 @@ const registerInternalDevCommands = (): vscode.Disposable =>
       'sf.internal.lightning.generate.aura.component',
       internalLightningGenerateAuraComponent
     ),
-    vscode.commands.registerCommand('sf.internal.lightning.generate.lwc', internalLightningGenerateLwc),
     vscode.commands.registerCommand('sf.internal.lightning.generate.app', internalLightningGenerateApp),
     vscode.commands.registerCommand('sf.internal.lightning.generate.event', internalLightningGenerateEvent),
     vscode.commands.registerCommand('sf.internal.lightning.generate.interface', internalLightningGenerateInterface)
@@ -121,9 +119,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await telemetryService.initializeService(extensionContext);
   void showTelemetryMessage(extensionContext);
 
-  // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
-  await vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
   // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();

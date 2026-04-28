@@ -13,4 +13,3 @@ export {
 } from './lightningGenerateAuraComponent';
 export { internalLightningGenerateEvent, lightningGenerateEvent } from './lightningGenerateEvent';
 export { internalLightningGenerateInterface, lightningGenerateInterface } from './lightningGenerateInterface';
-export { internalLightningGenerateLwc } from './lightningGenerateLwc';

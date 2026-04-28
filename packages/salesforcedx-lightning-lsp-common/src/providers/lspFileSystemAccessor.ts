@@ -47,8 +47,7 @@ const getEmptyDirectoryListing = (_uri: NormalizedPath): DirectoryEntry[] => [];
  * True when `s` is already a document URI (`scheme:…`), including `memfs:/MyProject/…` (no `//` authority).
  * Excludes Windows paths (`C:/…`) so they still go through path → URI conversion.
  */
-const isDocumentUriString = (s: string): boolean =>
-  /^[a-z][\w+.-]*:/i.test(s) && !/^[A-Za-z]:[/\\]/i.test(s);
+const isDocumentUriString = (s: string): boolean => /^[a-z][\w+.-]*:/i.test(s) && !/^[A-Za-z]:[/\\]/i.test(s);
 
 /**
  * Convert a URI to a normalized file path.

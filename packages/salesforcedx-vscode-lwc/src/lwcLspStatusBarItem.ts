@@ -5,7 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LanguageStatusSeverity, languages, type Disposable, type DocumentSelector, type LanguageStatusItem } from 'vscode';
+import {
+  LanguageStatusSeverity,
+  languages,
+  type Disposable,
+  type DocumentSelector,
+  type LanguageStatusItem
+} from 'vscode';
 import { nls } from './messages';
 
 /** LWC bundle paths; virtual / test-web URIs may not glob-match the usual `lwc` path segment pattern. */

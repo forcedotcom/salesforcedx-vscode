@@ -29,11 +29,7 @@ const isSfOrgDisplayJson = (v: unknown): v is { result: SfOrgDisplayResultBody }
   if (!isRecord(v) || !('result' in v)) return false;
   const r = v.result;
   if (!isRecord(r)) return false;
-  return (
-    typeof r.accessToken === 'string' &&
-    typeof r.instanceUrl === 'string' &&
-    typeof r.apiVersion === 'string'
-  );
+  return typeof r.accessToken === 'string' && typeof r.instanceUrl === 'string' && typeof r.apiVersion === 'string';
 };
 
 type SfScratchCreateAuthFields = {

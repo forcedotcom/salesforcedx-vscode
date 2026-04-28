@@ -161,6 +161,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
       yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
         createLwcCommand(outputDirParam)
       );
+      yield* registerCommand('sf.internal.lightning.generate.lwc', (sourceUri?: URI) =>
+        createLwcCommand(sourceUri, { internal: true })
+      );
       yield* Effect.forkDaemon(startLwcFileWatcher());
     })
   );

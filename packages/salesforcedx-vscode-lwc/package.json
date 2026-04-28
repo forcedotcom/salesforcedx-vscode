@@ -402,9 +402,21 @@
         {
           "command": "sf.metadata.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
+        },
+        {
+          "command": "sf.internal.lightning.generate.lwc",
+          "when": "explorerResourceIsFolder && sf:internal_dev"
         }
       ],
       "commandPalette": [
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.internal.lightning.generate.lwc",
+          "when": "false"
+        },
         {
           "command": "sf.lightning.lwc.test.file.run",
           "when": "false"
@@ -466,6 +478,10 @@
     "commands": [
       {
         "command": "sf.metadata.lightning.generate.lwc",
+        "title": "%lightning_generate_lwc_text%"
+      },
+      {
+        "command": "sf.internal.lightning.generate.lwc",
         "title": "%lightning_generate_lwc_text%"
       },
       {

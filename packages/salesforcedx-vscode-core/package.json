@@ -209,10 +209,6 @@
     "menus": {
       "explorer/context": [
         {
-          "command": "sf.internal.lightning.generate.lwc",
-          "when": "explorerResourceIsFolder && sf:internal_dev"
-        },
-        {
           "command": "sf.analytics.generate.template",
           "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sf:project_opened"
         },
@@ -292,10 +288,6 @@
         },
         {
           "command": "sf.rename.lightning.component",
-          "when": "false"
-        },
-        {
-          "command": "sf.internal.lightning.generate.lwc",
           "when": "false"
         },
         {
@@ -400,10 +392,6 @@
       {
         "command": "sf.project.generate.with.manifest",
         "title": "%project_generate_with_manifest_text%"
-      },
-      {
-        "command": "sf.internal.lightning.generate.lwc",
-        "title": "%lightning_generate_lwc_text%"
       },
       {
         "command": "sf.rename.lightning.component",
