@@ -78,6 +78,27 @@
     // Display the total number of records returned from the query
     const totalRecordsSizeEl = document.getElementById('total-records-size');
     totalRecordsSizeEl.innerText = `Returned ${queryData.records.length} of ${queryData.totalSize} total records`; // TODO: i18n
+    const hintEl = document.getElementById('max-rows-hint');
+    if (queryData.records.length < queryData.totalSize) {
+      const tooltipText = hintEl.querySelector('.info-tooltip__text');
+      tooltipText.innerText =
+        'To retrieve more records, update the Max Query Limit setting (salesforcedx-vscode-soql.maxQueryLimit).';
+      hintEl.removeAttribute('hidden');
+      if (!hintEl.dataset.listenersAttached) {
+        hintEl.addEventListener('mouseenter', () => {
+          const rect = hintEl.getBoundingClientRect();
+          tooltipText.style.left = `${rect.left + rect.width / 2}px`;
+          tooltipText.style.top = `${rect.bottom + 4}px`;
+          tooltipText.style.display = 'block';
+        });
+        hintEl.addEventListener('mouseleave', () => {
+          tooltipText.style.display = 'none';
+        });
+        hintEl.dataset.listenersAttached = 'true';
+      }
+    } else {
+      hintEl.setAttribute('hidden', '');
+    }
 
     renderTableWith(queryData);
   }
