@@ -7,27 +7,9 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-
-const promptForName = Effect.fn('createAuraEvent.promptForName')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  return yield* Effect.promise(() =>
-    vscode.window.showInputBox({
-      prompt: nls.localize('aura_component_name_prompt'),
-      validateInput: (value: string) => {
-        if (!value || value.trim().length === 0) return nls.localize('aura_component_name_empty_error');
-        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value)) return nls.localize('aura_component_name_format_error');
-        return undefined;
-      }
-    })
-  ).pipe(
-    Effect.map(raw => raw?.trim()),
-    Effect.flatMap(promptService.considerUndefinedAsCancellation)
-  );
-});
+import { promptForAuraName } from './promptForAuraName';
 
 export const createAuraEventCommand = Effect.fn('createAuraEventCommand')(function* (
   outputDirParam?: URI,
@@ -39,7 +21,7 @@ export const createAuraEventCommand = Effect.fn('createAuraEventCommand')(functi
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
 
-  const eventName = yield* promptForName();
+  const eventName = yield* promptForAuraName();
 
   const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'aura');
 

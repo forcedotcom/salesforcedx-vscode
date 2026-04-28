@@ -69,11 +69,6 @@ const activateCommands = Effect.fn('aura:activateCommands')(function* () {
 export const activate = async (extensionContext: ExtensionContext) => {
   const extensionStartTime = TimingUtils.getCurrentTime();
 
-  // Initialize services layer and register commands
-  const extensionScope = Effect.runSync(getExtensionScope());
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  await getRuntime().runPromise(activateCommands().pipe(Scope.extend(extensionScope)));
-
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
@@ -86,6 +81,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
     log('No workspace, exiting extension');
     return;
   }
+
+  // Initialize services layer and register commands
+  const extensionScope = Effect.runSync(getExtensionScope());
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await getRuntime().runPromise(activateCommands().pipe(Scope.extend(extensionScope)));
 
   // Pass the workspace folder URIs to the language server
   const workspaceUris: string[] = [];
