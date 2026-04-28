@@ -156,10 +156,7 @@ const getContent = (fs: ReadFileFs, path: string): Promise<string | undefined> =
   'readFileContent' in fs ? fs.readFileContent(path) : fs.getFileContent(path);
 
 /** Reads and parses the package.json at the given root directory. Returns `undefined` if not found, unparseable, or not a valid PackageJson shape. */
-export const readPackageJson = async (
-  root: string,
-  fs: ReadFileFs
-): Promise<PackageJson | undefined> => {
+export const readPackageJson = async (root: string, fs: ReadFileFs): Promise<PackageJson | undefined> => {
   const content = await getContent(fs, join(root, 'package.json'));
   if (!content) {
     return undefined;

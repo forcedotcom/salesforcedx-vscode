@@ -18,6 +18,7 @@ import {
 import { snakeCase, camelCase } from 'change-case';
 import * as path from 'node:path';
 import { Connection, DocumentUri } from 'vscode-languageserver';
+import { URI, Utils } from 'vscode-uri';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 import { detectWorkspaceHelper } from './detectWorkspaceHelper';
@@ -32,6 +33,8 @@ type ComponentIndexerAttributes = {
   workspaceRoot: NormalizedPath;
   fileSystemAccessor: LspFileSystemAccessor;
   workspaceType?: WorkspaceType;
+  /** First workspace folder URI (web virtual roots); used to stat `sfdx-project.json` when path strings are not real disk paths. */
+  workspaceFolderUri?: DocumentUri;
 };
 
 const AURA_DELIMITER = ':';
@@ -383,8 +386,10 @@ export default class ComponentIndexer {
 
     // For SFDX workspaces, ensure sfdx-project.json is loaded before initializing
     if (this.workspaceType === 'SFDX') {
-      const sfdxProjectPath = normalizePath(path.join(this.attributes.workspaceRoot, 'sfdx-project.json'));
-      if (!(await this.fileSystemAccessor.fileExists(sfdxProjectPath))) {
+      const sfdxProjectRef = this.attributes.workspaceFolderUri
+        ? Utils.joinPath(URI.parse(this.attributes.workspaceFolderUri), 'sfdx-project.json').toString()
+        : normalizePath(path.join(this.attributes.workspaceRoot, 'sfdx-project.json'));
+      if (!(await this.fileSystemAccessor.fileExists(sfdxProjectRef))) {
         return;
       }
     }

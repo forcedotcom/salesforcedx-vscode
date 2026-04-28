@@ -36,7 +36,7 @@ class LwcTestCodeLensProvider implements CodeLensProvider {
    * @param document text document
    * @param token cancellation token
    */
-  public async provideCodeLenses(document: TextDocument, token: CancellationToken): Promise<CodeLens[]> {
+  public provideCodeLenses(document: TextDocument, token: CancellationToken): CodeLens[] {
     return provideLwcTestCodeLens(document, token);
   }
 }

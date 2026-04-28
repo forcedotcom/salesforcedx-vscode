@@ -1,24 +1,9 @@
-name: Snippets E2E (Playwright)
+name: LWC E2E (Playwright)
 
 on:
   workflow_dispatch:
-    inputs:
-      vscode_version:
-        description: 'VS Code version for E2E (e.g. 1.116.0). Empty uses repo variable
-          PLAYWRIGHT_VSCODE_VERSION.'
-        required: false
-        type: string
-        default: ''
-  workflow_call:
-    inputs:
-      vscode_version:
-        description: 'VS Code version for E2E (e.g. 1.116.0). Empty uses repo variable
-          PLAYWRIGHT_VSCODE_VERSION.'
-        required: false
-        type: string
-        default: ''
   push:
-    branches-ignore: [ main, develop ]
+    branches-ignore: [main, develop]
     paths-ignore:
       - '.claude/**'
       - '.cursor/**'
@@ -32,7 +17,7 @@ on:
       - '**/CHANGELOG*'
 
 concurrency:
-  group: ci-${{ github.ref }}-snippetsE2E
+  group: ci-${{ github.ref }}-lwcPlaywrightE2E
   cancel-in-progress: true
 
 jobs:
@@ -40,13 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
-        inputs.vscode_version != '' && inputs.vscode_version ||
-        vars.PLAYWRIGHT_VSCODE_VERSION }}
-    strategy:
-      matrix:
-        package: [ salesforcedx-vscode-lwc ]
-      fail-fast: false
+      PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -75,70 +54,63 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w ${{ matrix.package }} -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html
 
-      - name: Install Playwright browsers and OS deps
+      - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
 
-      - name: Run E2E tests (parallel)
+      - name: Run LWC Playwright web tests (parallel)
         if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
           CI: 1
         run: |
-          npm run test:web -w ${{ matrix.package }} -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html
 
       - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
-          'failure'
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w ${{ matrix.package }} -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
 
       - name: Copy span files to test-results
         if: always()
         shell: bash
         run: |
-          mkdir -p packages/${{ matrix.package }}/test-results/spans
-          cp -r ~/.sf/vscode-spans/. packages/${{ matrix.package }}/test-results/spans/ 2>/dev/null || true
+          mkdir -p packages/salesforcedx-vscode-lwc/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-lwc/test-results/spans/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.package }}-web
-          path: packages/${{ matrix.package }}/playwright-report
+          name: playwright-report-lwc-web
+          path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
 
-      - name: Upload Playwright Test Results
+      - name: Upload Playwright test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-${{ matrix.package }}-web
-          path: packages/${{ matrix.package }}/test-results
+          name: playwright-test-results-lwc-web
+          path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore
 
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
-    env:
-      VSCODE_DESKTOP: 1
-      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
-        inputs.vscode_version != '' && inputs.vscode_version ||
-        vars.PLAYWRIGHT_VSCODE_VERSION }}
     strategy:
       matrix:
-        os: [ macos-latest, windows-latest ]
-        package: [ salesforcedx-vscode-lwc ]
+        os: [macos-latest, windows-latest]
       fail-fast: false
+    env:
+      VSCODE_DESKTOP: 1
+      PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -169,10 +141,14 @@ jobs:
         timeout-minutes: 5
         env:
           CI: 1
-          VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w ${{ matrix.package }} -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
+
+      - uses: ./.github/actions/cache-vscode-desktop
+        if: steps.try-run.outcome == 'failure'
+        with:
+          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
@@ -182,45 +158,42 @@ jobs:
           command: npx playwright install chromium --with-deps
           retry_wait_seconds: 60
 
-      - name: Run E2E tests (parallel)
+      - name: Run LWC Playwright desktop tests (parallel)
         if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
         env:
           CI: 1
-          VSCODE_DESKTOP: 1
         run: |
-          npm run test:desktop -w ${{ matrix.package }} -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
 
       - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
-          'failure'
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
-          VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:desktop -w ${{ matrix.package }} -- --last-failed --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
 
       - name: Copy span files to test-results
         if: always()
         shell: bash
         run: |
-          mkdir -p packages/${{ matrix.package }}/test-results/spans
-          cp -r ~/.sf/vscode-spans/. packages/${{ matrix.package }}/test-results/spans/ 2>/dev/null || true
+          mkdir -p packages/salesforcedx-vscode-lwc/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-lwc/test-results/spans/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.package }}-desktop-${{ matrix.os }}
-          path: packages/${{ matrix.package }}/playwright-report
+          name: playwright-report-lwc-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
 
-      - name: Upload Playwright Test Results
+      - name: Upload Playwright test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-${{ matrix.package }}-desktop-${{ matrix.os }}
-          path: packages/${{ matrix.package }}/test-results
+          name: playwright-test-results-lwc-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore

@@ -11,7 +11,6 @@ import {
   type WorkspaceType
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 
-
 const toLspFs = (accessor: LspFileSystemAccessor) => ({
   fileExists: (filePath: string): Promise<boolean> => accessor.fileExists(filePath),
   readFileContent: (filePath: string): Promise<string | undefined> => accessor.getFileContent(filePath)
