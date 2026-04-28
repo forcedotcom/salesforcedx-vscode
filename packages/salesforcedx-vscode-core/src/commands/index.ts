@@ -22,7 +22,6 @@ export {
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,
   internalLightningGenerateInterface,
-  internalLightningGenerateLwc,
   lightningGenerateApp,
   lightningGenerateAuraComponent,
   lightningGenerateEvent,

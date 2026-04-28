@@ -58,7 +58,10 @@ test('LWC LSP provides hover documentation for lightning-accordion in HTML templ
     await goToLineCol(page, 2, 2);
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="hoverHtmlComp.html"]`);
     // Find the tag-name token rendered by Monaco for "lightning-accordion"
-    const tagToken = editor.locator('.view-lines span').filter({ hasText: /^lightning-accordion$/ }).first();
+    const tagToken = editor
+      .locator('.view-lines span')
+      .filter({ hasText: /^lightning-accordion$/ })
+      .first();
     await tagToken.waitFor({ state: 'visible', timeout: 10_000 });
     await tagToken.hover();
     // The LWC LSP hover provider (doHover) returns markdown documentation for the component;
@@ -96,7 +99,10 @@ test('LWC LSP provides hover type information for LightningElement in JS files',
     // TypeScript language service resolves LightningElement from .sfdx/typings/lwc/engine.d.ts
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="hoverJsComp.js"]`);
     await editor.waitFor({ state: 'visible', timeout: 10_000 });
-    const lightningToken = editor.locator('.view-lines span').filter({ hasText: /^LightningElement$/ }).first();
+    const lightningToken = editor
+      .locator('.view-lines span')
+      .filter({ hasText: /^LightningElement$/ })
+      .first();
     await lightningToken.waitFor({ state: 'visible', timeout: 10_000 });
     await lightningToken.hover();
     await expect(

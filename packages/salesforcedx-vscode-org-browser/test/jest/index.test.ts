@@ -159,7 +159,8 @@ const MockSettingsServiceLayer = Layer.succeed(
         try: async () => undefined,
         catch: () => new SettingsError({ cause: new Error('Mock error'), section: '', key: '', message: 'Mock error' })
       }),
-    getRetrieveOnLoad: () => Effect.succeed('')
+    getRetrieveOnLoad: () => Effect.succeed(''),
+    getInternalDev: () => Effect.succeed(false)
   } as const)
 );
 

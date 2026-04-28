@@ -25,7 +25,6 @@ export const messages = {
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
   parameter_gatherer_enter_project_name: 'Enter project name',
-  parameter_gatherer_select_lwc_type: 'Select LWC component type',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
   project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
@@ -79,8 +78,6 @@ export const messages = {
   javascript_language_description: 'Create LWC components using JavaScript',
   typescript_language_option: 'TypeScript',
   typescript_language_description: 'Create LWC components using TypeScript',
-  typescript_legacy_flag_deprecation:
-    "The 'preview.typeScriptSupport' setting is deprecated. Please set 'defaultLwcLanguage': 'typescript' in your sfdx-project.json instead.",
 
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',

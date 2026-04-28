@@ -54,4 +54,3 @@ export const seedSnippetsE2eEmptyBundle = async (workspaceDir: string): Promise<
     fs.writeFile(path.join(bundleDir, 'snippetsE2E.js'), '', 'utf8')
   ]);
 };
-
