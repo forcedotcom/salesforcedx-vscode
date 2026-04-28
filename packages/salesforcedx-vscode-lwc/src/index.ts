@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  isLWC,
-  LWC_SERVER_READY_NOTIFICATION,
-  type WorkspaceType
-} from '@salesforce/salesforcedx-lightning-lsp-common';
+import { isLWC, LWC_SERVER_READY_NOTIFICATION } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
@@ -76,11 +72,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
     }
   });
 
-  // For workspace type detection, we still need to check the file system
-  // Create a temporary provider just for detection
-  // In web mode with no valid paths, default to UNKNOWN
-  const workspaceType: WorkspaceType =
-    workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
+  const workspaceType = await detectWorkspaceType(workspaceFolderPaths);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {

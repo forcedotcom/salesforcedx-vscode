@@ -60,6 +60,9 @@ const vsCodeFs: WorkspaceFileSystem = { fileExists, readFileContent };
  * @returns WorkspaceType, actively not supporting workspaces of mixed type
  */
 export const detectWorkspaceType = async (workspaceRoots: string[]): Promise<WorkspaceType> => {
+  if (workspaceRoots.length === 0) {
+    return 'UNKNOWN';
+  }
   if (workspaceRoots.length === 1) {
     return detectWorkspaceHelper(workspaceRoots[0], vsCodeFs);
   }
