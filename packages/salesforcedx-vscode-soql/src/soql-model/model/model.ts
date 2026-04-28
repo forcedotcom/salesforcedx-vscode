@@ -127,10 +127,18 @@ export type SelectExprs = Select & {
 
 export type SelectExpression = SoqlModelObject & {
   // field => FieldSelection
-  // subquery => UnmodeledSyntax
+  // subquery => SubquerySelection
   // typeof => UnmodeledSyntax
-  kind: 'fieldSelection' | 'unmodeled';
+  kind: 'fieldSelection' | 'subquerySelection' | 'unmodeled';
   alias?: UnmodeledSyntax;
+};
+
+export type SubquerySelection = SelectExpression & {
+  kind: 'subquerySelection';
+  // The inner query, with select/from/where/orderBy/limit
+  sobjectName: string;
+  fields: string[];            // plain field names
+  subqueries: SubquerySelection[]; // nested child subqueries
 };
 
 export type FieldSelection = SelectExpression & {

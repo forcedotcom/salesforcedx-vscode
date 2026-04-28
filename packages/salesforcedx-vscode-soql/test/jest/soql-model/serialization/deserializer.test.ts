@@ -18,7 +18,6 @@ import {
   REASON_UNMODELED_INSEMIJOINCONDITION,
   REASON_UNMODELED_OFFSET,
   REASON_UNMODELED_RECORDTRACKING,
-  REASON_UNMODELED_SEMIJOIN,
   REASON_UNMODELED_TYPEOF,
   REASON_UNMODELED_UPDATE,
   REASON_UNMODELED_USING,
@@ -33,7 +32,7 @@ const testQueryModel = {
       { field: { fieldName: 'field2' } },
       { field: { fieldName: 'field3' }, alias: { unmodeledSyntax: 'alias3', reason: REASON_UNMODELED_ALIAS } },
       { unmodeledSyntax: 'COUNT(fieldZ)', reason: REASON_UNMODELED_FUNCTIONREFERENCE },
-      { unmodeledSyntax: '(SELECT fieldA FROM objectA)', reason: REASON_UNMODELED_SEMIJOIN },
+      { kind: 'subquerySelection', sobjectName: 'objectA', fields: ['fieldA'], subqueries: [] },
       { unmodeledSyntax: 'TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END', reason: REASON_UNMODELED_TYPEOF },
     ],
   },
@@ -142,7 +141,7 @@ describe('deserialize should', () => {
     expect(actual).toMatchObject(expected);
   });
 
-  it('model functions, inner queries, TYPEOF, and aliases in SELECT clause as unmodeled syntax', () => {
+  it('model functions, TYPEOF, and aliases in SELECT clause as unmodeled syntax; model inner queries as SubquerySelection', () => {
     const expected = {
       select: {
         selectExpressions: [

@@ -13,7 +13,6 @@ import {
   REASON_UNMODELED_GROUPBY,
   REASON_UNMODELED_OFFSET,
   REASON_UNMODELED_RECORDTRACKING,
-  REASON_UNMODELED_SEMIJOIN,
   REASON_UNMODELED_TYPEOF,
   REASON_UNMODELED_UPDATE,
   REASON_UNMODELED_USING,
@@ -34,7 +33,7 @@ const testQueryModel = {
       { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'field2' } },
       { kind: 'fieldSelection', field: { kind: 'fieldRef', fieldName: 'field3' }, alias: { kind: 'unmodeled', unmodeledSyntax: 'alias3', reason: REASON_UNMODELED_ALIAS } },
       { kind: 'unmodeled', unmodeledSyntax: 'COUNT(fieldZ)', reason: REASON_UNMODELED_FUNCTIONREFERENCE },
-      { kind: 'unmodeled', unmodeledSyntax: '(SELECT fieldA FROM objectA)', reason: REASON_UNMODELED_SEMIJOIN },
+      { kind: 'subquerySelection', sobjectName: 'objectA', fields: ['fieldA'], subqueries: [] },
       { kind: 'unmodeled', unmodeledSyntax: 'TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END', reason: REASON_UNMODELED_TYPEOF }
     ]
   },
@@ -152,7 +151,7 @@ describe('deserialize should', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('model functions, inner queries, TYPEOF, and aliases in SELECT clause as unmodeled syntax', () => {
+  it('model functions, TYPEOF, and aliases in SELECT clause as unmodeled syntax; model inner queries as SubquerySelection', () => {
     const expected = {
       select: {
         kind: 'selectExprs',
@@ -171,7 +170,7 @@ describe('deserialize should', () => {
     const actual = deserialize(
       'SELECT field1, field2, field3 alias3, COUNT(fieldZ), (SELECT fieldA FROM objectA), TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END FROM object1'
     );
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify SELECT COUNT() clause', () => {

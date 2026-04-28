@@ -86,11 +86,11 @@
         </div>
       </template>
 
-      <!-- Subquery boxes -->
-      <template for:each={subqueries} for:item="sq">
-        <div key={sq.relationshipName} class="relationship-pill-group">
+      <!-- Subquery boxes (flattened tree) -->
+      <template for:each={flatSubqueryPillGroups} for:item="sq">
+        <div key={sq.groupLabel} class="relationship-pill-group">
           <div class="relationship-pill-header">
-            <span class="relationship-pill-name">{sq.relationshipName}</span>
+            <span class="relationship-pill-name">{sq.groupLabel}</span>
             <span
               role="button"
               class="pointer delete-trigger"

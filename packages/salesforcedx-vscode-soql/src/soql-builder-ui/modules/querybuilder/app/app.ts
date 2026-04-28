@@ -298,8 +298,8 @@ export default class App extends LightningElement {
       if (metadata.name.toLowerCase() !== targetSObject.toLowerCase()) return;
       this._metadataCache.set(targetSObject.toLowerCase(), metadata);
       whereComponent.setModifierGroupRelMetadata(index, metadata);
+      sub.unsubscribe();
     });
-    void sub;
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 
@@ -307,7 +307,31 @@ export default class App extends LightningElement {
   /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
   public handleLoadSubquery(e: CustomEvent): void {
     const { childSObject } = e.detail as { relationshipName: string; childSObject: string };
-    this._loadIntoFields('setSubqueryDrillFields', childSObject, false);
+    this._loadIntoFields('setSubqueryDrillMetadata', childSObject, true);
+  }
+
+  public handleLoadNested(e: CustomEvent): void {
+    const { parentRelationshipName, childRelationshipName } = e.detail as {
+      parentRelationshipName: string;
+      childRelationshipName: string;
+    };
+    // The parent subquery's sObject was loaded into the cache when we drilled into it.
+    // Find it by scanning the cache for a sObject whose childRelationships contains this relationshipName.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    let childSObject: string | undefined;
+    this._metadataCache.forEach((meta: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+      if (childSObject) return;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const found = (meta?.childRelationships || []).find(
+        (cr: any) => cr.relationshipName === childRelationshipName // eslint-disable-line @typescript-eslint/no-explicit-any
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (found) childSObject = found.childSObject;
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    void parentRelationshipName;
+    if (!childSObject) return;
+    this._loadIntoFields('setSubqueryDrillMetadata', childSObject, true);
   }
 
   public handleSubqueryRemove(e: CustomEvent): void {
@@ -316,8 +340,16 @@ export default class App extends LightningElement {
   }
 
   public handleSubqueryFieldsChanged(e: CustomEvent): void {
-    const { relationshipName, fields } = e.detail as { relationshipName: string; fields: string[] };
-    this.modelService.setSubqueryFields(relationshipName, fields);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (e.detail.path) {
+      // Path-based: field added at a specific nested depth
+      const { path, field } = e.detail as { path: string[]; field: string };
+      this.modelService.addSubqueryFieldAtPath(path, field);
+    } else {
+      // Legacy flat: full fields list replacement (used by pill removal)
+      const { relationshipName, fields } = e.detail as { relationshipName: string; fields: string[] };
+      this.modelService.setSubqueryFields(relationshipName, fields);
+    }
   }
 
   // Shared helper: load sObject into querybuilder-fields via a named method.
@@ -336,8 +368,8 @@ export default class App extends LightningElement {
       if (metadata.name.toLowerCase() !== sobjectName.toLowerCase()) return;
       this._metadataCache.set(sobjectName.toLowerCase(), metadata);
       component[method](passMetadata ? metadata : metadata.fields?.map((f) => f.name).sort() ?? []);
+      sub.unsubscribe();
     });
-    void sub;
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 

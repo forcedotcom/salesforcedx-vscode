@@ -29,7 +29,7 @@ export const SELECT_ALL_OPTION = 'ALL FIELDS';
 export const CLEAR_OPTION = '- Clear Selection -';
 export { REL_PREFIX, SUB_PREFIX };
 
-type SubDrill = {
+type SubDrillLevel = {
   relationshipName: string;
   childSObject: string;
 };
@@ -37,7 +37,7 @@ type SubDrill = {
 export default class Fields extends LightningElement {
   @api public set fields(fields: string[]) {
     this._baseFields = fields || [];
-    if (!this._isDrilledIntoRel && !this._subDrill) this._updateDisplayOptions();
+    if (!this._isDrilledIntoRel && !this._subDrillStack.length) this._updateDisplayOptions();
   }
   public get fields(): string[] {
     return this._displayFields;
@@ -54,7 +54,7 @@ export default class Fields extends LightningElement {
     this._sobjectMetadata = metadata;
     this._relOptions = extractRelOptions(metadata);
     this._childRelOptions = extractChildRelOptions(metadata);
-    if (!this._isDrilledIntoRel && !this._subDrill) this._updateDisplayOptions();
+    if (!this._isDrilledIntoRel && !this._subDrillStack.length) this._updateDisplayOptions();
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public get sobjectMetadata(): any {
@@ -63,7 +63,7 @@ export default class Fields extends LightningElement {
 
   @track public _displayFields: string[] = [];
   @track public _relDrillStack: DrillLevel[] = [];
-  @track public _subDrill: SubDrill | null = null;
+  @track public _subDrillStack: SubDrillLevel[] = [];
 
   private _baseFields: string[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,17 +80,19 @@ export default class Fields extends LightningElement {
   }
 
   public get isDrilledIn(): boolean {
-    return this._isDrilledIntoRel || this._subDrill !== null;
+    return this._isDrilledIntoRel || this._subDrillStack.length > 0;
   }
 
   public get breadcrumbLabel(): string {
     if (this._isDrilledIntoRel) return buildBreadcrumb(this._relDrillStack);
-    if (this._subDrill) return `${SUB_PREFIX}${this._subDrill.relationshipName}`;
+    if (this._subDrillStack.length > 0) {
+      return this._subDrillStack.map(l => `${SUB_PREFIX}${l.relationshipName}`).join(' ');
+    }
     return '';
   }
 
   public get backArrow(): string {
-    return this._subDrill ? '→' : '←';
+    return this._subDrillStack.length > 0 ? '→' : '←';
   }
 
   public get activeRelationshipFields(): string[] {
@@ -101,14 +103,39 @@ export default class Fields extends LightningElement {
   }
 
   public get activeSubqueryFields(): string[] {
-    if (!this._subDrill) return [];
-    const sq = (this.subqueries || []).find(s => s.relationshipName === this._subDrill.relationshipName);
-    return sq ? sq.fields : [];
+    if (!this._subDrillStack.length) return [];
+    // Navigate the full drill path to find the fields at the current level
+    let node: SubqueryJson | undefined = (this.subqueries || []).find(
+      s => s.relationshipName === this._subDrillStack[0].relationshipName
+    );
+    for (let i = 1; i < this._subDrillStack.length; i++) {
+      if (!node) break;
+      node = (node.subqueries || []).find(
+        s => s.relationshipName === this._subDrillStack[i].relationshipName
+      );
+    }
+    return node ? node.fields : [];
+  }
+
+  // Flatten the subquery tree into a list of { groupLabel, fields, relationshipName } for pill rendering
+  public get flatSubqueryPillGroups(): Array<{ groupLabel: string; fields: string[]; relationshipName: string }> {
+    const result: Array<{ groupLabel: string; fields: string[]; relationshipName: string }> = [];
+    const walk = (sqs: SubqueryJson[], prefix: string) => {
+      for (const sq of sqs || []) {
+        const label = prefix ? `${prefix} ← ${sq.relationshipName}` : sq.relationshipName;
+        if (sq.fields.length > 0) {
+          result.push({ groupLabel: label, fields: sq.fields, relationshipName: sq.relationshipName });
+        }
+        walk(sq.subqueries || [], label);
+      }
+    };
+    walk(this.subqueries || [], '');
+    return result;
   }
 
   public get activeSelectedOptions(): string[] {
     if (this._isDrilledIntoRel) return this.activeRelationshipFields;
-    if (this._subDrill) return this.activeSubqueryFields;
+    if (this._subDrillStack.length > 0) return this.activeSubqueryFields;
     return this.selectedFields;
   }
 
@@ -125,14 +152,35 @@ export default class Fields extends LightningElement {
   @api
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setDrillMetadata(metadata: any): void {
+    // Discard stale responses if the user navigated back
     if (this._relDrillStack.length === 0) return;
     this._relDrillStack = applyDrillMetadata(this._relDrillStack, metadata);
     this._displayFields = buildDrilledOptions(metadata, this._relDrillStack.length);
   }
 
   @api
-  public setSubqueryDrillFields(fields: string[]): void {
-    this._displayFields = fields;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public setSubqueryDrillMetadata(metadata: any): void {
+    // If the user navigated back before this response arrived, discard it
+    if (this._subDrillStack.length === 0) return;
+    if (!metadata || !Array.isArray(metadata.fields)) { this._displayFields = []; return; }
+    // Store the sObject name on the current top of stack so back-navigation can reload it
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const sobjectName: string = metadata.name ?? '';
+    if (this._subDrillStack.length > 0) {
+      this._subDrillStack = this._subDrillStack.map((l, i) =>
+        i === this._subDrillStack.length - 1 ? { ...l, childSObject: sobjectName } : l
+      );
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const plain: string[] = (metadata.fields as any[])
+      .map((f: any) => f.name as string) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .sort();
+    const subEntries: string[] = ((metadata.childRelationships as any[]) || [])
+      .filter((cr: any) => cr.relationshipName && cr.childSObject) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .map((cr: any) => `${SUB_PREFIX}${cr.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .sort((a, b) => a.localeCompare(b));
+    this._displayFields = [...plain, ...subEntries];
   }
 
   public handleFieldSelection(e: CustomEvent): void {
@@ -162,13 +210,22 @@ export default class Fields extends LightningElement {
       return;
     }
 
-    if (this._subDrill) {
-      const { relationshipName } = this._subDrill;
-      const current = (this.subqueries || []).find(s => s.relationshipName === relationshipName);
-      const currentFields = current ? current.fields : [];
-      if (currentFields.includes(value)) return;
+    if (this._subDrillStack.length > 0) {
+      if (value.startsWith(SUB_PREFIX)) {
+        // Drill deeper into a nested child subquery
+        const childRelName = value.slice(SUB_PREFIX.length);
+        const topRelName = this._subDrillStack[0].relationshipName;
+        this._subDrillStack = [...this._subDrillStack, { relationshipName: childRelName, childSObject: '' }];
+        this._displayFields = [];
+        this.dispatchEvent(new CustomEvent('fields__loadnested', {
+          detail: { parentRelationshipName: topRelName, childRelationshipName: childRelName }
+        }));
+        return;
+      }
+      // Plain field — dispatch full path so the model can navigate to the correct nested level
+      const path = this._subDrillStack.map(l => l.relationshipName);
       this.dispatchEvent(new CustomEvent('fields__subquerychanged', {
-        detail: { relationshipName, fields: [...currentFields, value] }
+        detail: { path, field: value }
       }));
       return;
     }
@@ -186,7 +243,7 @@ export default class Fields extends LightningElement {
       const relName = value.slice(SUB_PREFIX.length);
       const child = this._childRelOptions.find(c => c.relationshipName === relName);
       if (!child) return;
-      this._subDrill = { relationshipName: child.relationshipName, childSObject: child.childSObject };
+      this._subDrillStack = [{ relationshipName: child.relationshipName, childSObject: child.childSObject }];
       this._displayFields = [];
       this.dispatchEvent(new CustomEvent('fields__loadsubquery', {
         detail: { relationshipName: child.relationshipName, childSObject: child.childSObject }
@@ -215,9 +272,20 @@ export default class Fields extends LightningElement {
         const parentMeta = newStack[newStack.length - 1].metadata;
         this._displayFields = parentMeta ? buildDrilledOptions(parentMeta, newStack.length) : [];
       }
-    } else if (this._subDrill) {
-      this._subDrill = null;
-      this._updateDisplayOptions();
+    } else if (this._subDrillStack.length > 0) {
+      if (this._subDrillStack.length <= 1) {
+        this._subDrillStack = [];
+        this._updateDisplayOptions();
+      } else {
+        const newStack = this._subDrillStack.slice(0, -1);
+        this._subDrillStack = newStack;
+        this._displayFields = [];
+        // Reload the parent level's metadata — its childSObject was stored when we received the metadata
+        const parentLevel = newStack[newStack.length - 1];
+        this.dispatchEvent(new CustomEvent('fields__loadsubquery', {
+          detail: { relationshipName: parentLevel.relationshipName, childSObject: parentLevel.childSObject }
+        }));
+      }
     }
   }
 
@@ -267,8 +335,8 @@ export default class Fields extends LightningElement {
     e.preventDefault();
     const relationshipName = (e.target as HTMLElement).dataset.relationship;
     if (!relationshipName) return;
-    if (this._subDrill?.relationshipName === relationshipName) {
-      this._subDrill = null;
+    if (this._subDrillStack[0]?.relationshipName === relationshipName) {
+      this._subDrillStack = [];
       this._updateDisplayOptions();
     }
     this.dispatchEvent(new CustomEvent('fields__subqueryremoved', { detail: { relationshipName } }));

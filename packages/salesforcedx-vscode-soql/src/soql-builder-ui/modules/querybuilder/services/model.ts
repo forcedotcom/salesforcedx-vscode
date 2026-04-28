@@ -42,6 +42,7 @@ export type ToolingModel = IMap & {
 export type SubqueryJson = {
   relationshipName: string;
   fields: string[];
+  subqueries?: SubqueryJson[];
 };
 
 // Public interface for accessing modelService.query

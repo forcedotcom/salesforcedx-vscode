@@ -6,7 +6,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConditionOperator, Query, Select, SelectExprs, UiOperatorValue, UnmodeledSyntax } from '@salesforce/soql-model/model/model';
+import { ConditionOperator, Query, Select, SelectExprs, SubquerySelection, UiOperatorValue } from '@salesforce/soql-model/model/model';
 import { SoqlModelUtils } from '@salesforce/soql-model/model/util';
 import { ModelSerializer } from '@salesforce/soql-model/serialization/serializer';
 import { deserialize } from '@salesforce/soql-model/serialization/deserializer';
@@ -23,8 +23,8 @@ import { OrderByExpressionImpl } from '@salesforce/soql-model/model/impl/orderBy
 import { OrderByImpl } from '@salesforce/soql-model/model/impl/orderByImpl';
 import { QueryImpl } from '@salesforce/soql-model/model/impl/queryImpl';
 import { SelectCountImpl } from '@salesforce/soql-model/model/impl/selectCountImpl';
-import { UnmodeledSyntaxImpl } from '@salesforce/soql-model/model/impl/unmodeledSyntaxImpl';
 import { SelectExprsImpl } from '@salesforce/soql-model/model/impl/selectExprsImpl';
+import { SubquerySelectionImpl } from '@salesforce/soql-model/model/impl/subquerySelectionImpl';
 import { WhereImpl } from '@salesforce/soql-model/model/impl/whereImpl';
 import { SELECT_COUNT, SubqueryJson, ToolingModelJson } from './model';
 
@@ -43,7 +43,7 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
 
   const allFieldNames = selectExprs
     ? selectExprs
-      .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+      .filter(expr => expr.kind === 'fieldSelection' && !SoqlModelUtils.containsUnmodeledSyntax(expr))
       .map(expr => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (expr.field.fieldName) {
@@ -71,18 +71,11 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
     ([relationshipName, relFields]) => ({ relationshipName, fields: relFields })
   );
 
-  // Extract subqueries: unmodeled expressions with reason 'unmodeled:semi-join'
+  // Extract subqueries from properly-modeled SubquerySelection expressions
   const subqueries: SubqueryJson[] = selectExprs
     ? selectExprs
-      .filter(expr => {
-        const unmodeled = expr as unknown as UnmodeledSyntax;
-        return unmodeled.kind === 'unmodeled' && unmodeled.reason?.reasonCode === 'unmodeled:semi-join';
-      })
-      .map(expr => {
-        const syntax = (expr as unknown as UnmodeledSyntax).unmodeledSyntax;
-        return parseSubquerySyntax(syntax);
-      })
-      .filter((sq): sq is SubqueryJson => sq !== null)
+      .filter(expr => expr.kind === 'subquerySelection')
+      .map(expr => subquerySelectionToJson(expr as unknown as SubquerySelection))
     : [];
 
   const sObject = queryModel.from && queryModel.from.sobjectName;
@@ -133,10 +126,7 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
       }
     }
   }
-  // Subqueries are now supported — remove them from the unsupported list
-  const filteredUnsupported = unsupported.filter(
-    u => u.reason?.reasonCode !== 'unmodeled:semi-join'
-  );
+  const filteredUnsupported = unsupported;
 
   const toolingModelTemplate: ToolingModelJson = {
     headerComments,
@@ -173,8 +163,8 @@ const convertUiModelToSoqlModel = (uiModel: ToolingModelJson): Query => {
       rel.fields.map(f => new FieldSelectionImpl(new FieldRefImpl(`${rel.relationshipName}.${f}`)))
     );
     const subqueryExprs = (uiModel.subqueries || [])
-      .filter(sq => sq.fields.length > 0)
-      .map(sq => new UnmodeledSyntaxImpl(buildSubquerySyntax(sq), { reasonCode: 'unmodeled:semi-join', message: '' }));
+      .filter(sq => sq.fields.length > 0 || (sq.subqueries || []).length > 0)
+      .map(sq => subqueryJsonToImpl(sq));
     select = new SelectExprsImpl([...fieldExprs, ...relationshipExprs, ...subqueryExprs]);
   }
 
@@ -280,6 +270,21 @@ const parseSubquerySyntax = (syntax: string): SubqueryJson | null => {
 // Build a subquery string from SubqueryJson, e.g. "(SELECT Id, Name FROM Contacts)".
 const buildSubquerySyntax = (sq: SubqueryJson): string =>
   `(SELECT ${sq.fields.join(', ')} FROM ${sq.relationshipName})`;
+
+// Convert a SubquerySelection model node to SubqueryJson (recursive).
+const subquerySelectionToJson = (sel: SubquerySelection): SubqueryJson => ({
+  relationshipName: sel.sobjectName,
+  fields: sel.fields,
+  subqueries: (sel.subqueries || []).map(subquerySelectionToJson)
+});
+
+// Convert SubqueryJson back to a SubquerySelectionImpl (recursive).
+const subqueryJsonToImpl = (sq: SubqueryJson): SubquerySelectionImpl =>
+  new SubquerySelectionImpl(
+    sq.relationshipName,
+    sq.fields,
+    (sq.subqueries || []).map(subqueryJsonToImpl)
+  );
 
 // Infer the LiteralType for a raw SOQL literal value string.
 const inferLiteralType = (value: string): string => {

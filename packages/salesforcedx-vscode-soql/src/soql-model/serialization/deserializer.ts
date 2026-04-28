@@ -31,12 +31,14 @@ import { OrderByImpl } from '../model/impl/orderByImpl';
 import { QueryImpl } from '../model/impl/queryImpl';
 import { SelectCountImpl } from '../model/impl/selectCountImpl';
 import { SelectExprsImpl } from '../model/impl/selectExprsImpl';
+import { SubquerySelectionImpl } from '../model/impl/subquerySelectionImpl';
 import { UnmodeledSyntaxImpl } from '../model/impl/unmodeledSyntaxImpl';
 import { WhereImpl } from '../model/impl/whereImpl';
 import {
   AndOr,
   Bind,
   Condition,
+  SubquerySelection,
   ConditionOperator,
   CompareValue,
   ErrorType,
@@ -380,6 +382,40 @@ class ErrorIdentifier {
 }
 
 /**
+ * Parse a SoqlSelectInnerQueryExprContext into a SubquerySelectionImpl.
+ * Uses a fresh QueryListener so the inner query state doesn't bleed into the outer one.
+ * Returns null if the inner query can't be parsed into the supported shape.
+ */
+function parseSubqueryExpr(ctx: Parser.SoqlSelectInnerQueryExprContext): SubquerySelection | null {
+  const innerCtx = ctx.soqlInnerQuery?.();
+  if (!innerCtx) return null;
+
+  const listener = new QueryListener();
+  innerCtx.enterRule(listener as ParseTreeListener);
+
+  const fromName = listener.from?.sobjectName;
+  if (!fromName) return null;
+
+  // Only support SelectExprs (not COUNT)
+  const select = listener.select;
+  if (!select || select.kind !== 'selectExprs') return null;
+
+  const fields: string[] = [];
+  const subqueries: SubquerySelection[] = [];
+
+  for (const expr of (select as any).selectExpressions ?? []) {
+    if (expr.kind === 'fieldSelection' && expr.field?.fieldName) {
+      fields.push(expr.field.fieldName as string);
+    } else if (expr.kind === 'subquerySelection') {
+      subqueries.push(expr as SubquerySelection);
+    }
+    // Unmodeled expressions inside a subquery are silently dropped for now
+  }
+
+  return new SubquerySelectionImpl(fromName, fields, subqueries);
+}
+
+/**
 // If we want to use a proper Visitor:
 class QueryVisitor
   extends AbstractParseTreeVisitor<void>
@@ -460,16 +496,22 @@ class QueryListener implements SoqlParserListener {
           }
           this.selectExpressions.push(new FieldSelectionImpl(field, alias));
         }
+      } else if (exprContext instanceof Parser.SoqlSelectInnerQueryExprContext) {
+        // Parse subquery into a proper SubquerySelectionImpl
+        const subquery = parseSubqueryExpr(exprContext);
+        if (subquery) {
+          this.selectExpressions.push(subquery);
+        } else {
+          this.selectExpressions.push(this.toUnmodeledSyntax(exprContext.start, exprContext.stop as Token, REASON_UNMODELED_SEMIJOIN));
+        }
       } else {
         // not a modeled case
         const reason =
-          exprContext instanceof Parser.SoqlSelectInnerQueryExprContext
-            ? REASON_UNMODELED_SEMIJOIN
-            : exprContext instanceof Parser.SoqlSelectTypeofExprContext
-              ? REASON_UNMODELED_TYPEOF
-              : exprContext instanceof Parser.SoqlSelectDistanceExprContext
-                ? REASON_UNMODELED_DISTANCE
-                : REASON_UNMODELED_SELECT;
+          exprContext instanceof Parser.SoqlSelectTypeofExprContext
+            ? REASON_UNMODELED_TYPEOF
+            : exprContext instanceof Parser.SoqlSelectDistanceExprContext
+              ? REASON_UNMODELED_DISTANCE
+              : REASON_UNMODELED_SELECT;
         this.selectExpressions.push(this.toUnmodeledSyntax(exprContext.start, exprContext.stop as Token, reason));
       }
     });

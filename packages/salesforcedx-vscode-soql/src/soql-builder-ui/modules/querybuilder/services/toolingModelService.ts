@@ -149,7 +149,7 @@ export class ToolingModelService {
     const alreadyExists = this.getSubqueries().some(sq => sq.get('relationshipName') === relationshipName);
     if (alreadyExists) return;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const newSubqueries = this.getSubqueries().push(fromJS({ relationshipName, fields: [] }));
+    const newSubqueries = this.getSubqueries().push(fromJS({ relationshipName, fields: [], subqueries: [] }));
     this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, newSubqueries));
   }
 
@@ -167,11 +167,72 @@ export class ToolingModelService {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       subqueries = subqueries.update(index, sq => sq.set('fields', fromJS(fields)));
     } else {
-      // Create and populate in one shot so we never emit an empty (SELECT  FROM X) to the backend
+      // Create and populate in one shot so we never emit an empty (SELECT  FROM X) to the backend.
+      // Always include subqueries:[] so the Immutable model shape matches what convertSoqlToUiModel produces.
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      subqueries = subqueries.push(fromJS({ relationshipName, fields }));
+      subqueries = subqueries.push(fromJS({ relationshipName, fields, subqueries: [] }));
     }
     this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, subqueries));
+  }
+
+  // Add a single field to a nested subquery identified by a path of relationship names.
+  // path[0] is the top-level subquery; path[1..] are nested subqueries.
+  public addSubqueryFieldAtPath(path: string[], field: string): void {
+    let subqueries = this.getSubqueries();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    let topIndex = subqueries.findIndex(sq => sq.get('relationshipName') === path[0]);
+    if (topIndex < 0) {
+      // Create the top-level entry so nested fields have somewhere to live
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      subqueries = subqueries.push(fromJS({ relationshipName: path[0], fields: [], subqueries: [] }));
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      topIndex = subqueries.findIndex(sq => sq.get('relationshipName') === path[0]);
+    }
+
+    if (path.length === 1) {
+      // Top-level subquery
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const current: string[] = subqueries.getIn([topIndex, 'fields'])?.toJS() ?? [];
+      if (current.includes(field)) return;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const updated = subqueries.update(topIndex, sq => sq.set('fields', fromJS([...current, field])));
+      this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, updated));
+    } else {
+      // Navigate and update the nested subquery, then write back
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const topSq = subqueries.get(topIndex).toJS() as { relationshipName: string; fields: string[]; subqueries: any[] };
+      const updatedTopSq = this._addFieldAtPath(topSq, path.slice(1), field);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const updatedSubqueries = subqueries.update(topIndex, () => fromJS(updatedTopSq));
+      this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, updatedSubqueries));
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private _addFieldAtPath(sq: { relationshipName: string; fields: string[]; subqueries: any[] }, path: string[], field: string): any {
+    if (path.length === 0) return sq;
+    if (path.length === 1) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const nested = (sq.subqueries || []).find((s: any) => s.relationshipName === path[0]);
+      if (!nested) {
+        // Create new nested subquery
+        return { ...sq, subqueries: [...(sq.subqueries || []), { relationshipName: path[0], fields: [field], subqueries: [] }] };
+      }
+      if (nested.fields.includes(field)) return sq;
+      return {
+        ...sq,
+        subqueries: (sq.subqueries || []).map((s: any) => // eslint-disable-line @typescript-eslint/no-explicit-any
+          s.relationshipName === path[0] ? { ...s, fields: [...s.fields, field] } : s
+        )
+      };
+    }
+    // Recurse deeper
+    return {
+      ...sq,
+      subqueries: (sq.subqueries || []).map((s: any) => // eslint-disable-line @typescript-eslint/no-explicit-any
+        s.relationshipName === path[0] ? this._addFieldAtPath(s, path.slice(1), field) : s
+      )
+    };
   }
 
   /* ---- ORDER BY ---- */
