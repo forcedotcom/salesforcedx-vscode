@@ -9,7 +9,6 @@ import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { AllServicesLayer } from './extensionProvider';
 
 const createLwcRuntime = () => ManagedRuntime.make(AllServicesLayer);
-// eslint-disable-next-line functional/no-let
 let _lwcRuntime: ReturnType<typeof createLwcRuntime> | undefined;
 export const getRuntime = () => {
   _lwcRuntime ??= createLwcRuntime();

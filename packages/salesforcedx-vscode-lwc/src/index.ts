@@ -5,13 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { isLWC, LWC_SERVER_READY_NOTIFICATION } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
+import {
+  isLWC,
+  LWC_SERVER_READY_NOTIFICATION,
+  type WorkspaceType
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
@@ -22,7 +27,7 @@ import LwcLspStatusBarItem from './lwcLspStatusBarItem';
 import { metaSupport } from './metasupport';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
-import { startLwcFileWatcherViaServices } from './util/lwcFileWatcher';
+import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   const telemetryModule = await import('./telemetry/index.js');
@@ -77,7 +82,24 @@ export const activate = async (extensionContext: ExtensionContext) => {
     }
   });
 
-  const workspaceType = await detectWorkspaceType(workspaceFolderPaths);
+  // Path-based detection (Node fs paths) can return UNKNOWN for virtual workspaces; fall back to ProjectService.
+  let workspaceType: WorkspaceType =
+    workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
+  if (workspaceType === 'UNKNOWN') {
+    const isSfdx = await Effect.runPromise(
+      getServicesApi.pipe(
+        Effect.flatMap(api =>
+          api.services.ProjectService.isSalesforceProject().pipe(
+            Effect.provide(Layer.mergeAll(api.services.ProjectService.Default, api.services.WorkspaceService.Default))
+          )
+        ),
+        Effect.catchAll(() => Effect.succeed(false))
+      )
+    );
+    if (isSfdx) {
+      workspaceType = 'SFDX';
+    }
+  }
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
@@ -105,6 +127,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
     // Listen for server ready notification to update status
     client.onNotification(LWC_SERVER_READY_NOTIFICATION, () => {
       statusBarItem.ready();
+      // Web E2E: language status is not always exposed in the status bar; tests wait on this log line.
+      channelService.appendLine('LWC Language Server: indexing complete');
     });
 
     // Start the client and add it to subscriptions
@@ -129,15 +153,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
     throw error; // Re-throw to prevent silent failures
   }
 
-  // Creates resources for js-meta.xml to work
-  await metaSupport.getMetaSupport();
-
-  // Watch for newly created LWC files and auto-open them to trigger delayed initialization
-  // This handles the case where files are downloaded from org browser after server starts
-  // Opening files syncs them to the server via onDidOpen, which triggers delayed initialization
-  startLwcFileWatcherViaServices();
-
-  // Register Effect-based commands using the services runtime
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
   await getRuntime().runPromise(
     Effect.gen(function* () {
@@ -149,8 +164,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
       yield* registerCommand('sf.internal.lightning.generate.lwc', (sourceUri?: URI) =>
         createLwcCommand(sourceUri, { internal: true })
       );
+      yield* Effect.forkDaemon(startLwcFileWatcher());
     })
   );
+
+  // Creates resources for js-meta.xml to work
+  await metaSupport.getMetaSupport();
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
   if (process.env.ESBUILD_PLATFORM !== 'web') {

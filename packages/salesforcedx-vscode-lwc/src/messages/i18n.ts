@@ -29,12 +29,6 @@ export const messages = {
   default_task_name: 'LWC Test',
   task_windows_command_prompt_messaging: 'Default shell for running tasks is set to cmd.exe',
   lwc_output_channel_name: 'LWC Extension',
-  lightning_lwc_no_redhat_extension_found: 'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension',
-  lightning_lwc_deprecated_redhat_extension:
-    'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
-  lightning_lwc_redhat_extension_regression:
-    'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
-  lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension',
   lwc_component_name_empty_error: 'Component name cannot be empty',
   lwc_component_name_format_error:
     'Component name must start with a lowercase letter and contain only alphanumeric characters and underscores',
@@ -42,6 +36,12 @@ export const messages = {
   lwc_component_name_placeholder: 'e.g. myComponent',
   lwc_output_dir_prompt: 'Select output directory',
   lwc_select_component_type: 'Select component type',
+  lightning_lwc_no_redhat_extension_found: 'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension',
+  lightning_lwc_deprecated_redhat_extension:
+    'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
+  lightning_lwc_redhat_extension_regression:
+    'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
+  lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension',
   lwc_language_server_loading: 'Indexing LWC files. Hold tight, almost ready… $(sync~spin)',
   lwc_language_server_loaded: 'Indexing complete $(check)'
 } as const;

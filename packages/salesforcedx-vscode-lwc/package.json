@@ -36,7 +36,6 @@
     "effect": "^3.20.0",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
-    "strip-ansi": "^5.2.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
     "vscode-html-languageservice": "^5.5.1",
@@ -66,9 +65,9 @@
     "test:compile": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
-    "test:web:debug": "npm run test:web -- --debug",
+    "test:web:debug": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "wireit",
     "test:e2e": "wireit"
   },
   "wireit": {
@@ -133,6 +132,28 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.web.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:web:debug": {
+      "command": "playwright test --config=playwright.config.web.ts --debug",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -152,6 +173,28 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts",
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:desktop:debug": {
+      "command": "playwright test --config=playwright.config.desktop.ts --debug",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -184,12 +227,13 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-org-browser --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3001 --verbose --printServerLog --quality stable",
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-org-browser --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable",
       "service": true,
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-org-browser:vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle"
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle"
       ]
     },
     "test": {
@@ -424,6 +468,10 @@
         {
           "command": "sf.lightning.lwc.test.stopWatchingAllTests",
           "when": "sf:project_opened || sf:internal_dev"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "sf:project_opened"
         }
       ]
     },
