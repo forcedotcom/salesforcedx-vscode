@@ -118,6 +118,31 @@ export default class Fields extends LightningElement {
     return node ? node.fields : [];
   }
 
+  // Flatten relationship fields into layered boxes matching the subquery display style.
+  // e.g. Owner.Name → { groupLabel: 'Owner', field: 'Name' }
+  //      Owner.Profile.Name → { groupLabel: 'Owner → Profile', field: 'Name' }
+  public get flatRelationshipPillGroups(): Array<{ groupLabel: string; fields: string[]; pathKey: string }> {
+    const groupMap = new Map<string, string[]>();
+    for (const rel of this.relationships || []) {
+      for (const field of rel.fields) {
+        const parts = field.split('.');
+        const leafField = parts[parts.length - 1];
+        // Build label: top-level rel name + any intermediate segments joined with →
+        const labelParts = [rel.relationshipName, ...parts.slice(0, -1)];
+        const label = labelParts.join(' → ');
+        // pathKey uniquely identifies this group for removal: topRelName + all segments
+        const pathKey = [rel.relationshipName, ...parts.slice(0, -1)].join('|');
+        if (!groupMap.has(pathKey)) groupMap.set(pathKey, []);
+        groupMap.get(pathKey)!.push(leafField);
+      }
+    }
+    return Array.from(groupMap.entries()).map(([pathKey, fields]) => ({
+      groupLabel: pathKey.split('|').join(' → '),
+      fields,
+      pathKey
+    }));
+  }
+
   // Flatten the subquery tree into a list for pill rendering.
   // Each entry carries the full path so removal handlers can navigate to the correct nested node.
   public get flatSubqueryPillGroups(): Array<{ groupLabel: string; fields: string[]; path: string[]; pathKey: string }> {
@@ -304,6 +329,48 @@ export default class Fields extends LightningElement {
         detail: { fields: this.selectedFields.filter(v => v !== (e.target as HTMLElement).dataset.field) }
       })
     );
+  }
+
+  // Remove all fields under a given path prefix from the relationship entry
+  public handleRelationshipGroupRemoved(e: Event): void {
+    e.preventDefault();
+    const pathKey = (e.target as HTMLElement).dataset.path;
+    if (!pathKey) return;
+    const parts = pathKey.split('|');
+    const topRelName = parts[0];
+    // The dotted prefix to match (empty for top-level, e.g. "Profile" for Owner|Profile)
+    const dotPrefix = parts.slice(1).join('.');
+    const current = (this.relationships || []).find(r => r.relationshipName === topRelName);
+    if (!current) return;
+    const newFields = current.fields.filter(f => {
+      const fieldPrefix = f.includes('.') ? f.substring(0, f.lastIndexOf('.')) : '';
+      return dotPrefix ? fieldPrefix !== dotPrefix && !fieldPrefix.startsWith(`${dotPrefix}.`) : fieldPrefix !== '';
+    });
+    if (newFields.length === current.fields.length) {
+      // All fields are under this prefix — remove the whole relationship
+      this.dispatchEvent(new CustomEvent('fields__relationshipremoved', { detail: { relationshipName: topRelName } }));
+    } else if (newFields.length === 0) {
+      this.dispatchEvent(new CustomEvent('fields__relationshipremoved', { detail: { relationshipName: topRelName } }));
+    } else {
+      this.dispatchEvent(new CustomEvent('fields__relationshipchanged', { detail: { relationshipName: topRelName, fields: newFields } }));
+    }
+  }
+
+  // Remove a single leaf field identified by pathKey + field name
+  public handleRelationshipPillFieldRemoved(e: Event): void {
+    e.preventDefault();
+    const target = e.target as HTMLElement;
+    const pathKey = target.dataset.path;
+    const leafField = target.dataset.field;
+    if (!pathKey || !leafField) return;
+    const parts = pathKey.split('|');
+    const topRelName = parts[0];
+    // Reconstruct the full dotted field name stored in the model
+    const dotPrefix = parts.slice(1).join('.');
+    const fullField = dotPrefix ? `${dotPrefix}.${leafField}` : leafField;
+    const current = (this.relationships || []).find(r => r.relationshipName === topRelName);
+    const newFields = current ? current.fields.filter(f => f !== fullField) : [];
+    this.dispatchEvent(new CustomEvent('fields__relationshipchanged', { detail: { relationshipName: topRelName, fields: newFields } }));
   }
 
   public handleRelationshipFieldRemoved(e: Event): void {
