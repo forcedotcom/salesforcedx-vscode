@@ -26,9 +26,9 @@ import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { AllServicesLayer } from '../services/extensionProvider';
 
-const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
+export const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
 
-const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
+export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
   const month2Digit = makeDoubleDigit(localUTCDate.getMonth() + 1);
   const date2Digit = makeDoubleDigit(localUTCDate.getDate());
   const hour2Digit = makeDoubleDigit(localUTCDate.getHours());
