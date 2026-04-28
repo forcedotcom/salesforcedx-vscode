@@ -212,9 +212,9 @@ describe('OrgDisplay unit tests.', () => {
 
   it('Should retrieve all aliases when available.', async () => {
     // Mock disk-based alias lookup: test@example.com → ['alias1', 'alias2']
-    jest.spyOn(orgUtil, 'readAliasesByUsernameFromDisk').mockResolvedValue(
-      new Map([['test@example.com', ['alias1', 'alias2']]])
-    );
+    jest
+      .spyOn(orgUtil, 'readAliasesByUsernameFromDisk')
+      .mockResolvedValue(new Map([['test@example.com', ['alias1', 'alias2']]]));
 
     const result = await getOrgInfo('test@example.com');
 

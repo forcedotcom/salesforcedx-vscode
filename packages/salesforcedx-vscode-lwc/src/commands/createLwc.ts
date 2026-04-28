@@ -71,8 +71,8 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  const project = yield* api.services.ProjectService.getSfProject();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const project = yield* api.services.ProjectService.getSfProject();
 
   const template = yield* determineComponentTemplate(project);
   const componentName = yield* promptForComponentName();

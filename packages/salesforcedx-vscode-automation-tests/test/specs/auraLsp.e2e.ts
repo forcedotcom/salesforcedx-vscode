@@ -6,9 +6,7 @@
  */
 import { Duration, ProjectShapeOption, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log, openFile, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
-import {
-  retryOperation,
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createAura } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {

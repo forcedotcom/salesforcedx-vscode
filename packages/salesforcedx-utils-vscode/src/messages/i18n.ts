@@ -16,7 +16,6 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-
   progress_notification_text: 'Running %s',
   notification_successful_execution_text: '%s successfully ran',
   notification_canceled_execution_text: '%s was canceled',

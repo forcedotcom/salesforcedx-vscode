@@ -11,8 +11,9 @@ import {
   ApplyWorkspaceEditRequest,
   handleApplyEditWithFs
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
+import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
-import { detectWorkspaceType, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import { log } from 'node:console';

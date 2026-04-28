@@ -91,9 +91,7 @@ export const declarationsFromCustomLabels = async (xmlDocument: string | Buffer)
   if (!isCustomLabelsXml(parsed) || !parsed.CustomLabels?.labels) {
     return '';
   }
-  const declarations: string[] = parsed.CustomLabels.labels.map(label =>
-    declaration('customLabel', label.fullName[0])
-  );
+  const declarations: string[] = parsed.CustomLabels.labels.map(label => declaration('customLabel', label.fullName[0]));
   return declarations.join('\n');
 };
 

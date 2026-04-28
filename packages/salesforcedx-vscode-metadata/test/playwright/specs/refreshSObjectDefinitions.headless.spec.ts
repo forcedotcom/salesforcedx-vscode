@@ -75,15 +75,30 @@ test('Refresh SObject Definitions: Custom, Standard, All via output channel', as
   });
 
   await test.step('Refresh SObject Definitions for Custom SObjects', async () => {
-    await runRefreshAndVerify(page, packageNls.sobject_refresh_custom, packageNls.sobject_refresh_output_custom, CUSTOM_TIMEOUT);
+    await runRefreshAndVerify(
+      page,
+      packageNls.sobject_refresh_custom,
+      packageNls.sobject_refresh_output_custom,
+      CUSTOM_TIMEOUT
+    );
   });
 
   await test.step('Refresh SObject Definitions for Standard SObjects', async () => {
-    await runRefreshAndVerify(page, packageNls.sobject_refresh_standard, packageNls.sobject_refresh_output_standard, STANDARD_TIMEOUT);
+    await runRefreshAndVerify(
+      page,
+      packageNls.sobject_refresh_standard,
+      packageNls.sobject_refresh_output_standard,
+      STANDARD_TIMEOUT
+    );
   });
 
   await test.step('Refresh SObject Definitions for All SObjects', async () => {
-    await runRefreshAndVerify(page, packageNls.sobject_refresh_all, packageNls.sobject_refresh_output_standard, STANDARD_TIMEOUT);
+    await runRefreshAndVerify(
+      page,
+      packageNls.sobject_refresh_all,
+      packageNls.sobject_refresh_output_standard,
+      STANDARD_TIMEOUT
+    );
     await waitForOutputChannelText(page, {
       expectedText: packageNls.sobject_refresh_output_custom,
       timeout: 10_000

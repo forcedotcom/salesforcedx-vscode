@@ -93,8 +93,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   rename_not_supported: '複数コンポーネントの名前変更はサポートされていません',
   input_no_component_name: '入力にコンポーネント名が含まれていません',
   component_empty: 'コンポーネントは空にできません',
-  create_not_supported: '複数コンポーネントの作成はサポートされていません',
-  input_incorrect_properties: '入力に正しいコンポーネントプロパティが含まれていません',
   // eslint-disable-next-line prefer-template
   missing_label: MISSING_LABEL_MSG + ': %s'
 };

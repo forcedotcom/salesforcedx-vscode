@@ -435,8 +435,6 @@ export const messages = {
   rename_not_supported: 'Rename is not supported for multiple components',
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',
-  create_not_supported: 'Create is not supported for multiple components',
-  input_incorrect_properties: 'Input does not contain correct component properties',
   missing_label: `${MISSING_LABEL_MSG}: %s`,
 
   // Metadata XML Support Messages

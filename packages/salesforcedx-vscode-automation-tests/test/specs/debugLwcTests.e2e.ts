@@ -12,9 +12,7 @@ import {
   openFile,
   pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import {
-  retryOperation,
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {

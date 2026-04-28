@@ -8,7 +8,11 @@
 import { messages } from '../../../../src/soql-model/messages/i18n';
 import { SObjectFieldType } from '../../../../src/soql-model/model/model';
 import { StringValidator } from '../../../../src/soql-model/validators/stringValidator';
-import { DefaultValidator, MultipleInputValidator, OperatorValidator } from '../../../../src/soql-model/validators/validator';
+import {
+  DefaultValidator,
+  MultipleInputValidator,
+  OperatorValidator
+} from '../../../../src/soql-model/validators/validator';
 
 describe('DefaultValidator should', () => {
   it('return valid result', () => {

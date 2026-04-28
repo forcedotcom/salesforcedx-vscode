@@ -13,9 +13,9 @@ import { ApexTestingDecorationProvider } from '../../../src/discoveryVfs/apexTes
 describe('ApexTestingDecorationProvider', () => {
   it('returns ORG read-only decoration for apex-testing URIs', () => {
     const provider = new ApexTestingDecorationProvider();
-    const decoration = provider.provideFileDecoration(
-      URI.parse('apex-testing:/orgs/org123/classes/MyTest.cls')
-    ) as vscode.FileDecoration | undefined;
+    const decoration = provider.provideFileDecoration(URI.parse('apex-testing:/orgs/org123/classes/MyTest.cls')) as
+      | vscode.FileDecoration
+      | undefined;
 
     expect(decoration?.badge).toBe(messages.apex_testing_vfs_org_badge_text);
     expect(decoration?.tooltip).toBe(messages.apex_testing_vfs_org_file_tooltip_text);
@@ -28,4 +28,3 @@ describe('ApexTestingDecorationProvider', () => {
     expect(decoration).toBeUndefined();
   });
 });
-

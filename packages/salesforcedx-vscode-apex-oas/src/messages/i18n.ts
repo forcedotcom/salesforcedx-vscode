@@ -57,5 +57,5 @@ export const messages = {
   unknown_bid_rule: 'Unknown bid rule "%s"',
   validate_eligibility: 'Validating eligibility.',
   validation_failed: 'Failed to validate eligibility.',
-  write_openapi_document: 'Writing OpenAPI Document.',
+  write_openapi_document: 'Writing OpenAPI Document.'
 } as const;
