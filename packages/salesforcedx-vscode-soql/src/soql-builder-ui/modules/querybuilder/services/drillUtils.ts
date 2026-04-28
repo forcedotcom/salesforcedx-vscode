@@ -12,7 +12,8 @@
 
 export const REL_PREFIX = '→ ';
 export const SUB_PREFIX = '← ';
-export const MAX_DRILL_DEPTH = 5;
+export const MAX_DRILL_DEPTH = 5;       // max parent relationship traversal depth
+export const MAX_SUBQUERY_DEPTH = 4;    // max child subquery nesting depth
 
 export type DrillLevel = {
   relationshipName: string;

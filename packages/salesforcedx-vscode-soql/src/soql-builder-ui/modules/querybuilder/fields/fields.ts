@@ -12,6 +12,7 @@ import { messages } from 'querybuilder/messages';
 import {
   REL_PREFIX,
   SUB_PREFIX,
+  MAX_SUBQUERY_DEPTH,
   DrillLevel,
   RelOption,
   ChildRelOption,
@@ -143,9 +144,12 @@ export default class Fields extends LightningElement {
     const relEntries = this._relOptions
       .map(r => `${REL_PREFIX}${r.relationshipName}`)
       .sort((a, b) => a.localeCompare(b));
-    const subEntries = this._childRelOptions
-      .map(c => `${SUB_PREFIX}${c.relationshipName}`)
-      .sort((a, b) => a.localeCompare(b));
+    // Hide ← entries once we've reached the maximum nesting depth
+    const subEntries = this._subDrillStack.length < MAX_SUBQUERY_DEPTH
+      ? this._childRelOptions
+        .map(c => `${SUB_PREFIX}${c.relationshipName}`)
+        .sort((a, b) => a.localeCompare(b))
+      : [];
     this._displayFields = [CLEAR_OPTION, SELECT_ALL_OPTION, SELECT_COUNT, ...this._baseFields, ...relEntries, ...subEntries];
   }
 
@@ -176,10 +180,12 @@ export default class Fields extends LightningElement {
     const plain: string[] = (metadata.fields as any[])
       .map((f: any) => f.name as string) // eslint-disable-line @typescript-eslint/no-explicit-any
       .sort();
-    const subEntries: string[] = ((metadata.childRelationships as any[]) || [])
-      .filter((cr: any) => cr.relationshipName && cr.childSObject) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .map((cr: any) => `${SUB_PREFIX}${cr.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .sort((a, b) => a.localeCompare(b));
+    const subEntries: string[] = this._subDrillStack.length < MAX_SUBQUERY_DEPTH
+      ? ((metadata.childRelationships as any[]) || [])
+        .filter((cr: any) => cr.relationshipName && cr.childSObject) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .map((cr: any) => `${SUB_PREFIX}${cr.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .sort((a, b) => a.localeCompare(b))
+      : [];
     this._displayFields = [...plain, ...subEntries];
   }
 
