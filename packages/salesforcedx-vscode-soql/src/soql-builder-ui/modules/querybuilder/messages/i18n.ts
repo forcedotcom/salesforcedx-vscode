@@ -69,7 +69,7 @@ export const messages = {
 
   // max rows
   label_max_rows: 'Max Rows',
-  placeholder_max_rows: 'Default: 10000',
+  placeholder_max_rows: 'Default: 2000',
 
   // customSelect / shared
   label_no_results_found: 'No results found.',

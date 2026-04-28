@@ -26,7 +26,7 @@ export const runQuery =
     const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
 
     try {
-      const rawQueryData = await conn.query(pureSOQLText, { autoFetch: true, maxFetch: maxRows ?? 10_000 });
+      const rawQueryData = await conn.query(pureSOQLText, { autoFetch: true, maxFetch: maxRows ?? 2000 });
       return {
         ...rawQueryData,
         records: flattenQueryRecords(rawQueryData.records)
