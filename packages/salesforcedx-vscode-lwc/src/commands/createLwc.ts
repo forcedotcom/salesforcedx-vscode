@@ -64,7 +64,7 @@ const determineComponentTemplate = Effect.fn('determineComponentTemplate')(funct
 
 /** Create LWC via TemplateService from services extension.
  * outputDir: when invoked from explorer context (right-click lwc folder), VS Code passes the folder URI
- * options.internal: when true, skips lwc/ dir validation and .js-meta.xml generation (internal dev mode) */
+ * options.internal: passed to the template library.  Used for LWC on Salesforce Core, not for customer use  */
 export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
   outputDirParam?: URI,
   options?: { internal?: boolean }
