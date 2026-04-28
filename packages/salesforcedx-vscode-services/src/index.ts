@@ -214,7 +214,6 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   context: vscode.ExtensionContext
 ) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
-  yield* annotateExtensionPackType;
   // do this first to prevent Connection issues.
   yield* updateTelemetryUserIds(context);
   const scope = yield* getExtensionScope();
@@ -231,9 +230,9 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       { concurrency: 'unbounded' }
     );
   }
-  // watch default org changes to update VS Code context variables and other services
   yield* Effect.all(
     [
+      Effect.fork(annotateExtensionPackType),
       // watch default org changes to update VS Code context variables and other services
       Effect.forkIn(watchDefaultOrgContext(), scope),
       // watch the config files for changes, which various services use to invalidate caches
