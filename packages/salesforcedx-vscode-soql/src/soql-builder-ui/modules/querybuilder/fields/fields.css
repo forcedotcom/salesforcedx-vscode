@@ -8,14 +8,24 @@
 
 @import 'querybuilder/cssCommon';
 
-/* ---- breadcrumb ---- */
+select[multiple] {
+  height: auto;
+  max-height: 4em;
+  padding: 3px;
+}
 
-.fields-breadcrumb {
+.selected-fields-container {
+  max-height: 10em;
+  overflow-y: scroll;
+}
+
+.relationship-breadcrumb {
   font-size: smaller;
   color: var(--vscode-foreground);
 }
 
 .breadcrumb-back {
+  margin-right: 0.375rem;
   color: var(--vscode-button-background);
 }
 
@@ -27,75 +37,6 @@
   font-weight: bold;
 }
 
-/* ---- 3-column panel ---- */
-
-.fields-columns {
-  border: 1px solid var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
-  border-radius: 3px;
-  white-space: nowrap;
-  font-size: 0;
-}
-
-.fields-column {
-  display: inline-block;
-  vertical-align: top;
-  width: 33.33%;
-  overflow-y: scroll;
-  max-height: 10rem;
-  font-size: 1rem;
-  white-space: normal;
-  box-sizing: border-box;
-}
-
-.fields-column--left {
-  border-right: 1px solid var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
-}
-
-.fields-column--middle {
-  border-right: 1px solid var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
-}
-
-.fields-column__header {
-  font-size: smaller;
-  font-weight: bold;
-  padding: 3px 6px;
-  border-bottom: 1px solid var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
-  background-color: var(--vscode-sideBar-background, transparent);
-  position: sticky;
-  top: 0;
-}
-
-.fields-column__item {
-  padding: 2px 6px;
-  cursor: pointer;
-  font-size: smaller;
-  color: var(--vscode-foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fields-column__item:hover {
-  background-color: var(--vscode-list-hoverBackground, var(--soql-color-medium-grey));
-}
-
-.fields-column__item--disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.fields-column__item--disabled:hover {
-  background-color: transparent;
-}
-
-/* ---- pills ---- */
-
-.selected-fields-container {
-  display: flex;
-  flex-wrap: wrap;
-  max-width: var(--soql-selection-container-width);
-}
-
 .relationship-pill-group {
   border: 1px solid var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
   border-radius: 3px;
@@ -105,9 +46,4 @@
 .relationship-pill-header {
   font-size: smaller;
   font-weight: bold;
-  padding: 1px 4px;
-}
-
-.relationship-pill-name {
-  font-size: smaller;
 }

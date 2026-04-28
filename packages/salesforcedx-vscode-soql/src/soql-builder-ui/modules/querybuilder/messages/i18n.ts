@@ -79,10 +79,6 @@ export const messages = {
   placeholder_search_fields: 'Search fields...',
   placeholder_select_field: 'Select Field...',
 
-  // fields – 3-column panel headers
-  label_subqueries: 'Subqueries',
-  label_relationships: 'Relationships',
-
   // fields – relationship navigation
   action_back_to_fields: 'Back to fields'
 } as const;
