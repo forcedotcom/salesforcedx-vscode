@@ -88,6 +88,12 @@ export default class App extends LightningElement {
 
   /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return */
   public connectedCallback(): void {
+    this.messageService.messagesToUI.subscribe((event: SoqlEditorEvent) => {
+      if (event.type === MessageType.MAX_ROWS && typeof event.payload === 'number') {
+        this.maxRows = event.payload;
+      }
+    });
+
     this.modelService.UIModel.subscribe(this.uiModelSubscriber.bind(this));
 
     this.toolingSDK.sobjects.subscribe((objs: string[]) => {
@@ -251,6 +257,10 @@ export default class App extends LightningElement {
   public handleMaxRowsChanged(e: CustomEvent): void {
     const parsed = parseInt(e.detail.maxRows, 10);
     this.maxRows = isNaN(parsed) ? undefined : parsed;
+    this.messageService.sendMessage({
+      type: MessageType.MAX_ROWS_CHANGED,
+      payload: this.maxRows
+    });
   }
   /* ---- WHERE HANDLERS ---- */
   public handleWhereSelection(e: CustomEvent): void {
