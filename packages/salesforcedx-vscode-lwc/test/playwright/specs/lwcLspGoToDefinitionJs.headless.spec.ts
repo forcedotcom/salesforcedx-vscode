@@ -27,12 +27,10 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
 import { createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
-import { applyLwcWebScratchAuth } from '../utils/lwcWebScratchAuth';
 
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
-  await applyLwcWebScratchAuth(page);
   await ensureSecondarySideBarHidden(page);
 });
 
@@ -60,7 +58,10 @@ test('LWC LSP Go to Definition navigates from JS import to engine.d.ts LWC modul
     // Use `.first()` to select the import binding, not the extends clause occurrence.
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="gtdJsComp.js"]`);
     await editor.waitFor({ state: 'visible', timeout: 10_000 });
-    const lightningToken = editor.locator('.view-lines span').filter({ hasText: /^LightningElement$/ }).first();
+    const lightningToken = editor
+      .locator('.view-lines span')
+      .filter({ hasText: /^LightningElement$/ })
+      .first();
     await lightningToken.waitFor({ state: 'visible', timeout: 10_000 });
     // Hover to trigger TypeScript type resolution; wait for the hover card to show `LightningElement`
     // before cmd+clicking — ensures TS has computed the declaration before Go to Definition fires.
@@ -70,7 +71,7 @@ test('LWC LSP Go to Definition navigates from JS import to engine.d.ts LWC modul
       page.locator('.monaco-hover').filter({ hasText: /LightningElement/ }),
       'hover tooltip should show LightningElement type info before cmd+click'
     ).toBeVisible({ timeout: 20_000 });
-    await lightningToken.click({ modifiers: ['Meta'] });
+    await lightningToken.click({ modifiers: ['ControlOrMeta'] });
   });
 
   await test.step('verify navigation opened the engine.d.ts LWC module declaration', async () => {
