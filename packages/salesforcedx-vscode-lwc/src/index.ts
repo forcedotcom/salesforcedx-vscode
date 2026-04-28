@@ -11,8 +11,9 @@ import {
   LWC_SERVER_READY_NOTIFICATION,
   type WorkspaceType
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
-import { ActivationTracker, detectWorkspaceType } from '@salesforce/salesforcedx-utils-vscode';
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
 import { ExtensionContext, workspace } from 'vscode';
@@ -79,17 +80,18 @@ export const activate = async (extensionContext: ExtensionContext) => {
   });
 
   // Path-based detection (Node fs paths) can return UNKNOWN for virtual workspaces; confirm via ProjectService.
-  let workspaceType: WorkspaceType =
-    workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
-  if (workspaceType === 'UNKNOWN') {
-    const isSf = await getRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        return yield* api.services.ProjectService.isSalesforceProject();
-      }).pipe(Effect.orElseSucceed(() => false))
-    );
-    if (isSf) workspaceType = 'SFDX';
-  }
+  const detected = await detectWorkspaceType(workspaceFolderPaths);
+  const workspaceType: WorkspaceType =
+    detected !== 'UNKNOWN'
+      ? detected
+      : (await getRuntime().runPromise(
+            Effect.gen(function* () {
+              const api = yield* (yield* ExtensionProviderService).getServicesApi;
+              return yield* api.services.ProjectService.isSalesforceProject();
+            }).pipe(Effect.orElseSucceed(() => false))
+          ))
+        ? 'SFDX'
+        : detected;
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
