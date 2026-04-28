@@ -144,7 +144,6 @@ jobs:
         timeout-minutes: 5
         env:
           CI: 1
-          VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
 
@@ -167,14 +166,12 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-          VSCODE_DESKTOP: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
-          VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
 
