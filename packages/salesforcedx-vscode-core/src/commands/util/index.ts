@@ -7,7 +7,6 @@
 
 export type { CommandletExecutor } from './commandletExecutor';
 export { EmptyPreChecker } from './emptyPreChecker';
-export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
 export { SelectFileName, SelectOutputDir } from './parameterGatherers';
 export { SfCommandletExecutor } from './sfCommandletExecutor';
 export { PathStrategyFactory, type SourcePathStrategy } from './sourcePathStrategies';

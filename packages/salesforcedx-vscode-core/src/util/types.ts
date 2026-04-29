@@ -14,7 +14,7 @@ export type DirFileNameSelection = {
   extension?: 'JavaScript' | 'TypeScript';
 };
 
-export type LocalComponent = DirFileNameSelection & {
+type LocalComponent = DirFileNameSelection & {
   type: string;
   suffix?: string;
 };
