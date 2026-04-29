@@ -10,12 +10,17 @@ import {
   CancelResponse,
   CompositeParametersGatherer,
   ContinueResponse,
-  isRecordIdFormat,
   ParametersGatherer,
   SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { PKG_ID_PREFIX } from '../constants';
+
+const isAlphaNumString = (value: string | undefined): boolean =>
+  value !== undefined && value !== '' && !/\W/.test(value);
+
+const isRecordIdFormat = (value: string = '', prefix: string): boolean =>
+  isAlphaNumString(value) && value.startsWith(prefix) && (value.length === 15 || value.length === 18);
 import { nls } from '../messages';
 import { EmptyPreChecker, SfCommandletExecutor } from './util';
 

@@ -12,8 +12,6 @@ import {
   CancelResponse,
   CliCommandExecutor,
   ContinueResponse,
-  isAlphaNumSpaceString,
-  isIntegerInRange,
   ParametersGatherer,
   ProgressNotification,
   SfCommandlet,
@@ -30,6 +28,18 @@ import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreat
 import { checkDevHubConfigured } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
+
+const isAlphaNumSpaceString = (value: string | undefined): boolean =>
+  value !== undefined && /^\w+( *\w*)*$/.test(value);
+
+const isInteger = (value: string | undefined): boolean =>
+  value !== undefined && !/\D/.test(value) && Number.isSafeInteger(Number.parseInt(value, 10));
+
+const isIntegerInRange = (value: string | undefined, range: [number, number]): boolean =>
+  value !== undefined &&
+  isInteger(value) &&
+  Number.parseInt(value, 10) >= range[0] &&
+  Number.parseInt(value, 10) <= range[1];
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
