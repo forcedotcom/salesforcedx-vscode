@@ -3,7 +3,7 @@
 /**
  * Extract extension names from VSIX filenames in a directory.
  *
- * Usage: node scripts/collect-extension-names.js <directory>
+ * Usage: node scripts/parse-extension-names.js <directory>
  *
  * VSIX files follow the naming convention: <extension-name>-<semver>.vsix
  * For example: salesforcedx-vscode-apex-log-66.5.2.vsix → salesforcedx-vscode-apex-log
@@ -16,7 +16,7 @@ const path = require('path');
 
 const dir = process.argv[2];
 if (!dir) {
-  console.error('Usage: node collect-extension-names.js <directory>');
+  console.error('Usage: node parse-extension-names.js <directory>');
   process.exit(1);
 }
 

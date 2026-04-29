@@ -87,7 +87,7 @@ jobs:
       - name: Collect published extension names
         id: collect-extensions
         run: |
-          NAMES=$(node scripts/collect-extension-names.js ./extensions)
+          NAMES=$(node scripts/parse-extension-names.js ./extensions)
           echo "names=$NAMES" >> "$GITHUB_OUTPUT"
           echo "Published extensions: $NAMES"
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
