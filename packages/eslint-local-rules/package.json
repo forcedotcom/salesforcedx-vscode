@@ -118,7 +118,7 @@
   "dependencies": {
     "@humanwhocodes/momoa": "^3.3.10",
     "@typescript-eslint/parser": "^8.50.0",
-    "@typescript-eslint/utils": "^8.50.0",
+    "@typescript-eslint/utils": "^8.59.1",
     "minimatch": "^10.2.4"
   },
   "devDependencies": {
