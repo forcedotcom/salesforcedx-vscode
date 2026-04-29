@@ -37,10 +37,6 @@ export const messages = {
   analytics_template_name_text: 'template name',
   apex_generate_class_text: 'SFDX: Create Apex Class',
   apex_generate_unit_test_class_text: 'SFDX: Create Apex Unit Test Class',
-  lightning_generate_app_text: 'SFDX: Create Aura App',
-  lightning_generate_aura_component_text: 'SFDX: Create Aura Component',
-  lightning_generate_event_text: 'SFDX: Create Aura Event',
-  lightning_generate_interface_text: 'SFDX: Create Aura Interface',
   project_generate_manifest: 'SFDX: Generate Manifest File',
   view_local_changes_text: 'SFDX: View Local Changes',
   view_remote_changes_text: 'SFDX: View Changes in Default Org',
@@ -439,8 +435,6 @@ export const messages = {
   rename_not_supported: 'Rename is not supported for multiple components',
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',
-  create_not_supported: 'Create is not supported for multiple components',
-  input_incorrect_properties: 'Input does not contain correct component properties',
   missing_label: `${MISSING_LABEL_MSG}: %s`,
 
   // Metadata XML Support Messages

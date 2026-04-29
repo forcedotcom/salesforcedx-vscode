@@ -108,24 +108,3 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
     } satisfies vscode.QuickPickOptions);
   }
 }
-
-class SimpleGatherer<T> implements ParametersGatherer<T> {
-  private input: T;
-
-  constructor(input: T) {
-    this.input = input;
-  }
-
-  public gather(): Promise<ContinueResponse<T>> {
-    return Promise.resolve({
-      type: 'CONTINUE',
-      data: this.input
-    });
-  }
-}
-
-export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
-  constructor(metadataType: string) {
-    super({ type: metadataType });
-  }
-}

@@ -213,38 +213,6 @@
           "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sf:project_opened"
         },
         {
-          "command": "sf.lightning.generate.app",
-          "when": "explorerResourceIsFolder && resourceFilename == aura && sf:project_opened"
-        },
-        {
-          "command": "sf.internal.lightning.generate.app",
-          "when": "explorerResourceIsFolder && sf:internal_dev"
-        },
-        {
-          "command": "sf.lightning.generate.aura.component",
-          "when": "explorerResourceIsFolder && resourceFilename == aura && sf:project_opened"
-        },
-        {
-          "command": "sf.internal.lightning.generate.aura.component",
-          "when": "explorerResourceIsFolder && sf:internal_dev"
-        },
-        {
-          "command": "sf.lightning.generate.event",
-          "when": "explorerResourceIsFolder && resourceFilename == aura && sf:project_opened"
-        },
-        {
-          "command": "sf.internal.lightning.generate.event",
-          "when": "explorerResourceIsFolder && sf:internal_dev"
-        },
-        {
-          "command": "sf.lightning.generate.interface",
-          "when": "explorerResourceIsFolder && resourceFilename == aura && sf:project_opened"
-        },
-        {
-          "command": "sf.internal.lightning.generate.interface",
-          "when": "explorerResourceIsFolder && sf:internal_dev"
-        },
-        {
           "command": "sf.rename.lightning.component",
           "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
@@ -289,38 +257,6 @@
         {
           "command": "sf.rename.lightning.component",
           "when": "false"
-        },
-        {
-          "command": "sf.lightning.generate.app",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.internal.lightning.generate.app",
-          "when": "false"
-        },
-        {
-          "command": "sf.lightning.generate.aura.component",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.internal.lightning.generate.aura.component",
-          "when": "false"
-        },
-        {
-          "command": "sf.lightning.generate.event",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.internal.lightning.generate.event",
-          "when": "false"
-        },
-        {
-          "command": "sf.lightning.generate.interface",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.internal.lightning.generate.interface",
-          "when": "false"
         }
       ]
     },
@@ -336,38 +272,6 @@
       {
         "command": "sf.analytics.generate.template",
         "title": "%analytics_generate_template_text%"
-      },
-      {
-        "command": "sf.lightning.generate.app",
-        "title": "%lightning_generate_app_text%"
-      },
-      {
-        "command": "sf.internal.lightning.generate.app",
-        "title": "%lightning_generate_app_text%"
-      },
-      {
-        "command": "sf.lightning.generate.aura.component",
-        "title": "%lightning_generate_aura_component_text%"
-      },
-      {
-        "command": "sf.internal.lightning.generate.aura.component",
-        "title": "%lightning_generate_aura_component_text%"
-      },
-      {
-        "command": "sf.lightning.generate.event",
-        "title": "%lightning_generate_event_text%"
-      },
-      {
-        "command": "sf.internal.lightning.generate.event",
-        "title": "%lightning_generate_event_text%"
-      },
-      {
-        "command": "sf.lightning.generate.interface",
-        "title": "%lightning_generate_interface_text%"
-      },
-      {
-        "command": "sf.internal.lightning.generate.interface",
-        "title": "%lightning_generate_interface_text%"
       },
       {
         "command": "sf.config.list",
