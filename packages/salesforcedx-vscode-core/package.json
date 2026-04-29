@@ -209,10 +209,6 @@
     "menus": {
       "explorer/context": [
         {
-          "command": "sf.analytics.generate.template",
-          "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sf:project_opened"
-        },
-        {
           "command": "sf.rename.lightning.component",
           "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
@@ -224,10 +220,6 @@
         },
         {
           "command": "sf.open.documentation",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.analytics.generate.template",
           "when": "sf:project_opened"
         },
         {
@@ -268,10 +260,6 @@
       {
         "command": "sf.open.documentation",
         "title": "%open_documentation_text%"
-      },
-      {
-        "command": "sf.analytics.generate.template",
-        "title": "%analytics_generate_template_text%"
       },
       {
         "command": "sf.config.list",

@@ -22,7 +22,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   channel_starting_message: '開始しています: ',
   channel_end: 'が終了しました。',
 
-  parameter_gatherer_enter_dir_name: 'フォルダを入力 (Enter で確認または Esc でキャンセル)',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
   project_retrieve_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織からソースをプル',
 
@@ -62,7 +61,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   telemetry_legal_dialog_button_text: 'さらに表示',
   error_parsing_sfdx_project_file: 'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
 
-  custom_output_directory: 'ディレクトリを選択',
   lightning_generate_lwc_text: 'SFDX: Lightning Web コンポーネントを作成',
 
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',

@@ -442,6 +442,10 @@
           "when": "isFileSystemResource && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
+          "command": "sf.analytics.generate.template",
+          "when": "sf:project_opened"
+        },
+        {
           "command": "sf.metadata.project.info",
           "when": "sf:project_opened"
         }
@@ -504,6 +508,10 @@
         {
           "command": "sf.metadata.source.diff",
           "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.analytics.generate.template",
+          "when": "explorerResourceIsFolder && resourcePath =~ /waveTemplates/ && sf:project_opened"
         }
       ],
       "view/item/context": [
@@ -603,6 +611,10 @@
       {
         "command": "sf.metadata.project.generate.manifest",
         "title": "%project_generate_manifest_text%"
+      },
+      {
+        "command": "sf.analytics.generate.template",
+        "title": "%analytics_generate_template_text%"
       },
       {
         "command": "sf.metadata.source.diff",

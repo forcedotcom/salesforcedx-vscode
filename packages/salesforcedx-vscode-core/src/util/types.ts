@@ -7,7 +7,7 @@
 
 import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 
-export type DirFileNameSelection = {
+type DirFileNameSelection = {
   fileName: string;
   outputdir: string;
   template?: 'ApexUnitTest' | 'BasicUnitTest';

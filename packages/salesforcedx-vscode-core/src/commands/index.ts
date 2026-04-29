@@ -16,4 +16,3 @@ export {
   projectGenerateWithManifest,
   sfProjectGenerate
 } from './projectGenerate';
-export { analyticsGenerateTemplate } from './templates';

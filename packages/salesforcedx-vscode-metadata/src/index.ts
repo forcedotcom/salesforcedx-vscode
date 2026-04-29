@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { analyticsGenerateTemplate } from './commands/analyticsGenerateTemplate';
 import { deleteSourcePathsCommand } from './commands/deleteSourcePath';
 import { deployManifestCommand } from './commands/deployManifest';
 import { deployActiveEditorCommand, deploySourcePathsCommand } from './commands/deploySourcePath';
@@ -71,6 +72,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       registerCommand('sf.metadata.project.deploy.start.ignore.conflicts', () => projectDeployStartCommand(true)),
       registerCommand('sf.metadata.project.generate.manifest', (sourceUri?: URI, uris?: URI[]) =>
         generateManifestCommand(sourceUri, uris)
+      ),
+      registerCommand('sf.analytics.generate.template', (outputDirParam?: URI) =>
+        analyticsGenerateTemplate(outputDirParam)
       ),
       registerCommand('sf.metadata.project.retrieve.start', () => projectRetrieveStartCommand(false)),
       registerCommand('sf.metadata.project.retrieve.start.ignore.conflicts', () => projectRetrieveStartCommand(true)),

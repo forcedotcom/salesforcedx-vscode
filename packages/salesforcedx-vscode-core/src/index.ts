@@ -20,7 +20,6 @@ import { SharedAuthState } from './auth/sharedAuthState';
 import { channelService } from './channels';
 import {
   aliasListCommand,
-  analyticsGenerateTemplate,
   configListCommand,
   initSObjectDefinitions,
   agentProjectGenerate,
@@ -53,7 +52,6 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
   vscode.Disposable.from(
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
-    vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
     vscode.commands.registerCommand('sf.agent.generate.project', agentProjectGenerate),
     vscode.commands.registerCommand('sf.nativemobile.generate.project', nativemobileProjectGenerate),

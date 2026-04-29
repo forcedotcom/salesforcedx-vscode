@@ -19,7 +19,6 @@ export const messages = {
   channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
   channel_end: 'Ended',
-  parameter_gatherer_enter_dir_name: 'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_package_id: 'Enter the ID of the package to install',
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
@@ -32,8 +31,6 @@ export const messages = {
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   retrieve_this_source_text: 'SFDX: Retrieve This Source from Org',
   delete_source_text: 'SFDX: Delete from Project and Org',
-  analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
-  analytics_template_name_text: 'template name',
   apex_generate_class_text: 'SFDX: Create Apex Class',
   apex_generate_unit_test_class_text: 'SFDX: Create Apex Unit Test Class',
   project_generate_manifest: 'SFDX: Generate Manifest File',
@@ -79,7 +76,6 @@ export const messages = {
   telemetry_internal_user_message:
     "We're collecting information on the usage of our extensions and sending it to AppInsights to help us understand how our internal developers use them. We want to gather data on developer adoption to improve our products and services. Thanks for being a part of this process!",
   error_parsing_sfdx_project_file: "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
-  custom_output_directory: 'Choose a Custom Directory',
   lightning_generate_lwc_text: 'SFDX: Create Lightning Web Component',
 
   AccessControlPolicy: 'Access Control Policies',
@@ -403,7 +399,6 @@ export const messages = {
   WaveDataset: 'Wave Datasets',
   WaveLens: 'Wave Lenses',
   WaveRecipe: 'Wave Recipes',
-  WaveTemplateBundle: 'Wave Template Bundles',
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
