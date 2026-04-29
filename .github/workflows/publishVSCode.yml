@@ -63,6 +63,8 @@ jobs:
   publish:
     needs: ['ctc-open', 'prepare-environment-from-main']
     runs-on: ubuntu-latest
+    outputs:
+      extensions: ${{ steps.collect-extensions.outputs.names }}
     env:
       VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
       PUBLISH_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
@@ -82,6 +84,12 @@ jobs:
           gh release download v${{ env.PUBLISH_VERSION }} -D ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
+      - name: Collect published extension names
+        id: collect-extensions
+        run: |
+          NAMES=$(node scripts/parse-extension-names.js ./extensions)
+          echo "names=$NAMES" >> "$GITHUB_OUTPUT"
+          echo "Published extensions: $NAMES"
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - name: Validate VSIX OPC Part URIs
         run: node scripts/validate-vsix-opc.mjs ./extensions
@@ -108,24 +116,13 @@ jobs:
       status: Not Implemented
 
   # Set repo variable CBW_TRIGGER_ENABLED=false to disable dispatch to code-builder-web.
-  # Default (unset): dispatch after publish. Use when publishing without CBW promotion.
+  # Default (unset): trigger CBW release after publish. Use when publishing without CBW promotion.
   trigger-cbw-release:
     needs: [publish, prepare-environment-from-main]
     if: needs.publish.result == 'success' && vars.CBW_TRIGGER_ENABLED != 'false'
     continue-on-error: true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Code Builder Web release
-        env:
-          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-        run: |
-          VERSION="${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}"
-          RELEASE_TYPE="${{ needs.prepare-environment-from-main.outputs.CBW_RELEASE_TYPE }}"
-          echo "Dispatching extension-publish event to code-builder-web with version $VERSION (release-type: $RELEASE_TYPE)"
-          gh api repos/forcedotcom/code-builder-web/dispatches \
-            --method POST \
-            -f event_type=extension-publish \
-            -f "client_payload[version]=$VERSION" \
-            -f "client_payload[source]=publishVSCode" \
-            -f "client_payload[release_type]=$RELEASE_TYPE"
-          echo "Dispatch sent successfully"
+    uses: forcedotcom/code-builder-web/.github/workflows/release-on-extension-publish.yml@main
+    with:
+      extensions: ${{ needs.publish.outputs.extensions }}
+      version: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
+      release-type: ${{ needs.prepare-environment-from-main.outputs.CBW_RELEASE_TYPE }}
