@@ -19,7 +19,6 @@ export const messages = {
   channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
   channel_end: 'Ended',
-  parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name: 'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_package_id: 'Enter the ID of the package to install',
   parameter_gatherer_enter_installation_key_if_necessary:
@@ -43,13 +42,7 @@ export const messages = {
   warning_prompt_dir_overwrite:
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_overwrite_cancel: 'Cancel',
-  warning_prompt_overwrite_message: 'Are you sure you want to overwrite %s:%s?\n\n%s\n\n%s',
   warning_prompt_overwrite: 'Overwrite',
-  warning_prompt_overwrite_all: 'Overwrite All',
-  warning_prompt_skip: 'Skip',
-  warning_prompt_skip_all: 'Skip All',
-  warning_prompt_other_existing: '%d other existing components',
-  warning_prompt_other_not_shown: '...%d other components not shown\n',
   config_list_text: 'SFDX: List All Config Variables',
   alias_list_text: 'SFDX: List All Aliases',
   package_install_text: 'SFDX: Install Package',
@@ -83,7 +76,6 @@ export const messages = {
   error_parsing_sfdx_project_file: "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   custom_output_directory: 'Choose a Custom Directory',
   lightning_generate_lwc_text: 'SFDX: Create Lightning Web Component',
-  error_overwrite_prompt: 'Error checking workspace for existing components',
 
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
@@ -431,7 +423,7 @@ export const messages = {
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
   functions_doc_url: 'https://developer.salesforce.com/tools/vscode/en/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
-  parameter_gatherer_file_name_max_length_validation_error_message: 'File name cannot exceed {0} characters',
+
   rename_not_supported: 'Rename is not supported for multiple components',
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',

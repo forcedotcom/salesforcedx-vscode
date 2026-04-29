@@ -16,38 +16,9 @@ import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { default as SalesforcePackageDirectories } from '../../salesforceProject/salesforcePackageDirectories';
 
-type FileNameParameter = {
-  fileName: string;
-};
-
 type OutputDirParameter = {
   outputdir: string;
 };
-
-export class SelectFileName implements ParametersGatherer<FileNameParameter> {
-  private maxFileNameLength: number;
-
-  constructor(maxFileNameLength?: number) {
-    this.maxFileNameLength = maxFileNameLength ?? Infinity;
-  }
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<{ fileName: string }>> {
-    const fileNameInputBoxOptions: vscode.InputBoxOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_file_name'),
-      ...(this.maxFileNameLength !== Infinity && {
-        validateInput: value =>
-          value.length > this.maxFileNameLength
-            ? nls
-                .localize('parameter_gatherer_file_name_max_length_validation_error_message')
-                .replace('{0}', this.maxFileNameLength.toString())
-            : null
-      })
-    };
-
-    const fileName = await vscode.window.showInputBox(fileNameInputBoxOptions);
-    return fileName ? { type: 'CONTINUE', data: { fileName } } : { type: 'CANCEL' };
-  }
-}
 
 export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
   private typeDir: string;
