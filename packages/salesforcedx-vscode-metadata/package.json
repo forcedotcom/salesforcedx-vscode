@@ -187,15 +187,18 @@
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts --project=parallel",
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
-        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -228,15 +231,18 @@
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts --project=conflicts",
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
-        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
