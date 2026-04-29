@@ -126,4 +126,3 @@ jobs:
       extensions: ${{ needs.publish.outputs.extensions }}
       version: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
       release-type: ${{ needs.prepare-environment-from-main.outputs.CBW_RELEASE_TYPE }}
-    secrets: inherit
