@@ -25,7 +25,6 @@ export const messages = {
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
   parameter_gatherer_enter_project_name: 'Enter project name',
-  parameter_gatherer_select_lwc_type: 'Select LWC component type',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
   project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
@@ -38,10 +37,6 @@ export const messages = {
   analytics_template_name_text: 'template name',
   apex_generate_class_text: 'SFDX: Create Apex Class',
   apex_generate_unit_test_class_text: 'SFDX: Create Apex Unit Test Class',
-  lightning_generate_app_text: 'SFDX: Create Aura App',
-  lightning_generate_aura_component_text: 'SFDX: Create Aura Component',
-  lightning_generate_event_text: 'SFDX: Create Aura Event',
-  lightning_generate_interface_text: 'SFDX: Create Aura Interface',
   project_generate_manifest: 'SFDX: Generate Manifest File',
   view_local_changes_text: 'SFDX: View Local Changes',
   view_remote_changes_text: 'SFDX: View Changes in Default Org',
@@ -79,8 +74,6 @@ export const messages = {
   javascript_language_description: 'Create LWC components using JavaScript',
   typescript_language_option: 'TypeScript',
   typescript_language_description: 'Create LWC components using TypeScript',
-  typescript_legacy_flag_deprecation:
-    "The 'preview.typeScriptSupport' setting is deprecated. Please set 'defaultLwcLanguage': 'typescript' in your sfdx-project.json instead.",
 
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
@@ -442,8 +435,6 @@ export const messages = {
   rename_not_supported: 'Rename is not supported for multiple components',
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',
-  create_not_supported: 'Create is not supported for multiple components',
-  input_incorrect_properties: 'Input does not contain correct component properties',
   missing_label: `${MISSING_LABEL_MSG}: %s`,
 
   // Metadata XML Support Messages

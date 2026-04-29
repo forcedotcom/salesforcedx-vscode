@@ -6,11 +6,3 @@
  */
 
 export { analyticsGenerateTemplate } from './analyticsGenerateTemplate';
-export { internalLightningGenerateApp, lightningGenerateApp } from './lightningGenerateApp';
-export {
-  internalLightningGenerateAuraComponent,
-  lightningGenerateAuraComponent
-} from './lightningGenerateAuraComponent';
-export { internalLightningGenerateEvent, lightningGenerateEvent } from './lightningGenerateEvent';
-export { internalLightningGenerateInterface, lightningGenerateInterface } from './lightningGenerateInterface';
-export { internalLightningGenerateLwc } from './lightningGenerateLwc';

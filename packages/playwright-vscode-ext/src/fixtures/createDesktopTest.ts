@@ -227,49 +227,59 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
       await fs.mkdir(videosDir, { recursive: true });
 
-      // Explicitly disable built-in GitHub/Copilot/Chat extensions that can trigger
-      // the GitHub OAuth browser tab on startup. `--disable-extensions` only disables
-      // user-installed extensions; built-ins must be disabled individually.
+      // Explicitly disable built-in GitHub/Microsoft/Copilot/Chat extensions that can trigger
+      // sign-in modals or the GitHub OAuth browser tab on startup. `--disable-extensions` only
+      // disables user-installed extensions; built-ins must be disabled individually.
       const disabledBuiltins = [
         'vscode.github',
         'vscode.github-authentication',
+        'vscode.microsoft-authentication',
         'GitHub.vscode-pull-request-github',
         'GitHub.copilot',
-        'GitHub.copilot-chat'
+        'GitHub.copilot-chat',
+        // Azure MS sign-in prompts during local desktop E2E (not needed for Salesforce extension tests).
+        'ms-vscode.azure-account'
       ].map(id => `--disable-extension=${id}`);
 
-      let launchArgs: string[];
-      if (useVsix) {
-        // VSIX mode: extensions installed into hash-keyed cache dir; no dev path needed
-        launchArgs = [
+      const startupArgs = [
+        // Align with `vscode-test`/runTest.ts: suppress welcome/release-notes churn and updates.
+        // `--skip-welcome` is critical to avoid first-run sign-in modals blocking desktop Playwright runs.
+        '--disable-updates',
+        '--skip-welcome',
+        '--skip-release-notes',
+        '--disable-gpu-sandbox',
+        '--disable-workspace-trust',
+        '--no-sandbox',
+        workspaceDir
+      ];
+
+      const launchArgs = useVsix
+        ? [
+          // VSIX mode: extensions installed into hash-keyed cache dir; no dev path needed
           `--user-data-dir=${userDataDir}`,
           `--extensions-dir=${installedExtensionsDir}`,
           ...disabledBuiltins,
-          '--disable-workspace-trust',
-          '--no-sandbox',
-          workspaceDir
-        ];
-      } else {
-        const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
-        await fs.mkdir(extensionsDir, { recursive: true });
-        const extensionArgs = [
-          // Extension path is the package root (contains package.json and bundled dist/index.js)
-          packageRoot,
-          ...additionalExtensionDirs
-            .concat(['salesforcedx-vscode-services'])
-            .map(dir => path.resolve(packageRoot, '..', dir))
-        ].map(p => `--extensionDevelopmentPath=${p}`);
-        launchArgs = [
-          `--user-data-dir=${userDataDir}`,
-          `--extensions-dir=${extensionsDir}`,
-          ...extensionArgs,
-          ...(disableOtherExtensions ? ['--disable-extensions'] : []),
-          ...disabledBuiltins,
-          '--disable-workspace-trust',
-          '--no-sandbox',
-          workspaceDir
-        ];
-      }
+          ...startupArgs
+        ]
+        : await (async (): Promise<string[]> => {
+          const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
+          await fs.mkdir(extensionsDir, { recursive: true });
+          const extensionArgs = [
+            // Extension path is the package root (contains package.json and bundled dist/index.js)
+            packageRoot,
+            ...additionalExtensionDirs
+              .concat(['salesforcedx-vscode-services'])
+              .map(dir => path.resolve(packageRoot, '..', dir))
+          ].map(p => `--extensionDevelopmentPath=${p}`);
+          return [
+            `--user-data-dir=${userDataDir}`,
+            `--extensions-dir=${extensionsDir}`,
+            ...extensionArgs,
+            ...(disableOtherExtensions ? ['--disable-extensions'] : []),
+            ...disabledBuiltins,
+            ...startupArgs
+          ];
+        })();
 
       const electronApp = await electron.launch({
         executablePath: vscodeExecutable,

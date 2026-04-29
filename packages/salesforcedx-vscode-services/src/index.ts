@@ -256,6 +256,9 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   // their commands on startup — must be blocking (not forked) so the context key is set before
   // VS Code evaluates `when` clauses for command palette visibility
   yield* ProjectService.isSalesforceProject();
+  // set sf:internal_dev context so internal commands are visible in explorer menus when enabled
+  const internalDev = yield* SettingsService.getInternalDev();
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
 });
 
 /**
@@ -444,7 +447,13 @@ export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';
-export { DebugLevelItemSchema, TraceFlagItemStruct, TraceFlagLogType, type DebugLevelItem, type TraceFlagItem } from './core/schemas/traceFlagSchemas';
+export {
+  DebugLevelItemSchema,
+  TraceFlagItemStruct,
+  TraceFlagLogType,
+  type DebugLevelItem,
+  type TraceFlagItem
+} from './core/schemas/traceFlagSchemas';
 export { type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
 export type { UserCancellationError } from './vscode/prompts/promptService';

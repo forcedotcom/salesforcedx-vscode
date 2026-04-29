@@ -23,10 +23,7 @@ import { ConflictTreePage } from '../pages/conflictTreePage';
 import { DiffEditorPage } from '../pages/diffEditorPage';
 
 test.describe('Retrieve Conflict Detection (Non-Source Tracking)', () => {
-  test('detects conflict, views diff, then overrides and retrieves', async ({
-    page,
-    helperProject
-  }) => {
+  test('detects conflict, views diff, then overrides and retrieves', async ({ page, helperProject }) => {
     const className = `NTRetrieve${Date.now().toString(36).slice(-6).toUpperCase()}`;
 
     await test.step('1. Create and deploy baseline', async () => {

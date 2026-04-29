@@ -298,19 +298,19 @@ class ErrorIdentifier {
 
     return knownErrorMatch
       ? {
-        type: knownErrorMatch.type,
-        message: knownErrorMatch.message,
-        lineNumber: error.getLineNumber(),
-        charInLine: error.getCharacterPositionInLine(),
-        grammarRule: this.getGrammarRule(error)
-      }
+          type: knownErrorMatch.type,
+          message: knownErrorMatch.message,
+          lineNumber: error.getLineNumber(),
+          charInLine: error.getCharacterPositionInLine(),
+          grammarRule: this.getGrammarRule(error)
+        }
       : {
-        type: 'UNKNOWN',
-        message: error.getMessage(),
-        lineNumber: error.getLineNumber(),
-        charInLine: error.getCharacterPositionInLine(),
-        grammarRule: this.getGrammarRule(error)
-      };
+          type: 'UNKNOWN',
+          message: error.getMessage(),
+          lineNumber: error.getLineNumber(),
+          charInLine: error.getCharacterPositionInLine(),
+          grammarRule: this.getGrammarRule(error)
+        };
   }
 
   protected findExceptionsAndErrorNodes(context: ParseTree): void {

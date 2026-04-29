@@ -8,13 +8,7 @@ import { Indexer } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { parse } from 'jest-editor-support';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import {
-  LwcJestTestResults,
-  RawTestResult,
-  TestCaseInfo,
-  TestFileInfo,
-  TestResultStatus
-} from '../types';
+import { LwcJestTestResults, RawTestResult, TestCaseInfo, TestFileInfo, TestResultStatus } from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
 import {
   extractPositionFromFailureMessage,
@@ -111,7 +105,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     return await this.indexAllTestFiles();
   }
 
-  public async indexTestCases(testUri: URI) {
+  public indexTestCases(testUri: URI): TestCaseInfo[] {
     // parse
     const { fsPath: testFsPath } = testUri;
     const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);
@@ -123,7 +117,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
    * It lazily parses test information, until expanding the test file or providing code lens
    * @param testUri uri of test file
    */
-  public async findTestInfoFromLwcJestTestFile(testUri: URI): Promise<TestCaseInfo[]> {
+  public findTestInfoFromLwcJestTestFile(testUri: URI): TestCaseInfo[] {
     // parse
     const { fsPath: testFsPath } = testUri;
     const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);

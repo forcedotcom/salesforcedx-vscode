@@ -10,10 +10,6 @@
   "delete_source_text": "SFDX: プロジェクトおよび組織から削除",
   "deploy_this_source_text": "SFDX: このソースを組織へデプロイ",
   "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject 定義がない場合、拡張機能が有効化される際に自動的に sObject 定義を更新するかどうかを指定します。",
-  "lightning_generate_app_text": "SFDX: Aura アプリケーションを作成",
-  "lightning_generate_aura_component_text": "SFDX: Aura コンポーネントを作成",
-  "lightning_generate_event_text": "SFDX: Aura イベントを作成",
-  "lightning_generate_interface_text": "SFDX: Aura インターフェースを作成",
   "lightning_generate_lwc_text": "SFDX: Lightning Web コンポーネントを作成",
   "node_extra_ca_certs_description": "NODE_EXTRA_CA_CERTS CLI environment variable value",
   "package_install_text": "SFDX: パッケージをインストール",
@@ -35,6 +31,5 @@
   "telemetry_enabled_description": "Salesforce による利用状況データの収集を有効化するかどうかを指定します。この設定で有効化していても、VS Code 全体の設定 `telemetry.enableTelemetry` が優先されます。",
   "view_all_changes_text": "SFDX: すべての変更を表示 (ローカルとデフォルトのスクラッチ組織内)",
   "view_local_changes_text": "SFDX: ローカルの変更を表示",
-  "view_remote_changes_text": "SFDX: デフォルトのスクラッチ組織内の変更を表示",
-  "typescript_legacy_flag_deprecation": "'preview.typeScriptSupport' 設定は非推奨です。代わりに sfdx-project.json で 'defaultLwcLanguage': 'typescript' を設定してください。"
+  "view_remote_changes_text": "SFDX: デフォルトのスクラッチ組織内の変更を表示"
 }

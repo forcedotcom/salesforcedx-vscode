@@ -16,7 +16,10 @@ describe('IncludesConditionImpl should', () => {
       kind: 'includes',
       field: { kind: 'fieldRef', fieldName: 'field' },
       operator: 'INCLUDES',
-      values: [{ kind: 'literal', value: "'abc'" }, { kind: 'literal', value: "'def'" }]
+      values: [
+        { kind: 'literal', value: "'abc'" },
+        { kind: 'literal', value: "'def'" }
+      ]
     };
     const actual = new IncludesConditionImpl(new FieldRefImpl('field'), ConditionOperator.Includes, [
       new LiteralImpl("'abc'"),

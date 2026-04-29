@@ -25,7 +25,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private instances: SOQLEditorInstance[] = [];
 
-  constructor(private readonly extensionContext: vscode.ExtensionContext) { }
+  constructor(private readonly extensionContext: vscode.ExtensionContext) {}
 
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,

@@ -12,7 +12,7 @@ import { PicklistValidator } from '../../../../src/soql-model/validators/picklis
 describe('PicklistValidator should', () => {
   const options = {
     type: SObjectFieldType.Picklist,
-    picklistValues: ["'A'", "'B'"],
+    picklistValues: ["'A'", "'B'"]
   };
   it('return valid result when input is contained in picklist vales', () => {
     const expected = { isValid: true };

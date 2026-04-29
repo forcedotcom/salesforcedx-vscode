@@ -6,7 +6,6 @@
  */
 
 import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import { LWC } from './componentUtils';
 
 export type DirFileNameSelection = {
   fileName: string;
@@ -20,7 +19,6 @@ export type LocalComponent = DirFileNameSelection & {
   suffix?: string;
 };
 
-
 export type OneOrMany = LocalComponent | LocalComponent[];
 export type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 export type ComponentName = {
@@ -32,9 +30,3 @@ export const isContinue = (continueOrCancel: ContinueOrCancel): continueOrCancel
 
 export const isComponentName = (component: ComponentName | LocalComponent): component is ComponentName =>
   Reflect.has(component, 'name');
-
-export const isDirFileNameSelection = (
-  component: DirFileNameSelection | LocalComponent
-): component is DirFileNameSelection => Reflect.has(component, 'fileName') && Reflect.has(component, 'outputdir');
-
-export const isLwcComponentPath = (componentDir: string): boolean => componentDir.endsWith(LWC);

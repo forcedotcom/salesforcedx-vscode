@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.8.0",
+  "version": "66.9.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -408,10 +408,6 @@
           "when": "sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.metadata.lightning.generate.lwc",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.metadata.delete.source",
           "when": "never"
         },
@@ -514,10 +510,6 @@
         {
           "command": "sf.metadata.source.diff",
           "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
-        },
-        {
-          "command": "sf.metadata.lightning.generate.lwc",
-          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
         }
       ],
       "view/item/context": [
@@ -577,10 +569,6 @@
       {
         "command": "sf.metadata.source.tracking.reset.remote",
         "title": "%reset_remote_tracking_text%"
-      },
-      {
-        "command": "sf.metadata.lightning.generate.lwc",
-        "title": "%lightning_generate_lwc_text%"
       },
       {
         "command": "sf.metadata.delete.source",

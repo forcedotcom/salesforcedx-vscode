@@ -71,10 +71,7 @@ export const extractMessagesObject = (ast: TSESTree.Program): MessagesObject => 
  * `{i18n.label_foo}` or `placeholder={i18n.placeholder_bar}`.
  * Keep in sync with queryBuilderHtmlI18nKeys.
  */
-export const collectQueryBuilderI18nKeyRefsFromHtml = (
-  source: string,
-  knownKeys: Set<string>
-): Map<string, number> => {
+export const collectQueryBuilderI18nKeyRefsFromHtml = (source: string, knownKeys: Set<string>): Map<string, number> => {
   const counts = new Map<string, number>();
   const re = /i18n\.([a-zA-Z0-9_]+)/g;
   let m: RegExpExecArray | null;

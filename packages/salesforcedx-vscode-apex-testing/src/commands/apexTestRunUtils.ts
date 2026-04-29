@@ -75,14 +75,7 @@ export const runApexTests = Effect.fn('runApexTests')(function* (
 
   // TODO: fix in apex-node W-18453221
   const result = yield* Effect.tryPromise({
-    try: () =>
-      testService.runTestAsynchronous(
-        options.payload,
-        options.codeCoverage,
-        false,
-        progressReporter,
-        token
-      ),
+    try: () => testService.runTestAsynchronous(options.payload, options.codeCoverage, false, progressReporter, token),
     catch: (e: unknown): Cancelled | Cause.UnknownException => {
       if (token?.isCancellationRequested) {
         return Cancelled;

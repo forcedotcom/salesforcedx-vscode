@@ -33,5 +33,4 @@ describe('SettingsService', () => {
       expect(mockConfiguration.get).toHaveBeenCalledWith(SETTING_CLEAR_OUTPUT_TAB, false);
     });
   });
-
 });
