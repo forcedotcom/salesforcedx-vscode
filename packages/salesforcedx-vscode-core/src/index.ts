@@ -7,8 +7,6 @@
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import {
   ChannelService,
-  notificationService,
-  ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   SfCommandlet,
   TelemetryService
@@ -33,7 +31,7 @@ import {
   renameLightningComponent,
   sfProjectGenerate
 } from './commands';
-import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
+import { SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
@@ -74,17 +72,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   const api: SalesforceVSCodeCoreApi = {
     channelService,
-    getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
     getUserId,
     getAuthFields,
     isCLIInstalled,
-    notificationService,
-    ProgressNotification,
-    SelectFileName,
-    SelectOutputDir,
     SfCommandlet,
     SfCommandletExecutor,
-    salesforceCoreSettings,
     WorkspaceContext,
     telemetryService,
     workspaceContextUtils,
@@ -232,17 +224,11 @@ const handleTheUnhandled = (): void => {
 
 export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
-  getTargetOrgOrAlias: typeof workspaceContextUtils.getTargetOrgOrAlias;
   getUserId: typeof getUserId;
   getAuthFields: typeof getAuthFields;
   isCLIInstalled: typeof isCLIInstalled;
-  notificationService: typeof notificationService;
-  ProgressNotification: typeof ProgressNotification;
-  SelectFileName: typeof SelectFileName;
-  SelectOutputDir: typeof SelectOutputDir;
   SfCommandlet: typeof SfCommandlet;
   SfCommandletExecutor: typeof SfCommandletExecutor;
-  salesforceCoreSettings: typeof salesforceCoreSettings;
   WorkspaceContext: typeof WorkspaceContext;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
