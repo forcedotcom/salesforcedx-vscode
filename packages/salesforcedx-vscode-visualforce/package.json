@@ -136,9 +136,8 @@
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
