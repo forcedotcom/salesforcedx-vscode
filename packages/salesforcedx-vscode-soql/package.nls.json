@@ -5,6 +5,7 @@
   "soql_open_new_text_editor": "SFDX: Create SOQL Query",
   "soql_builder_toggle": "Switch Between SOQL Builder and Text Editor",
   "soql_validation_flag": "Use REST API to validate SOQL queries and to identify errors.",
+  "soql_max_query_limit": "Maximum number of records to retrieve when running a query in the SOQL Builder. Default: 50000.\nWarning: Setting this to a high value may cause performance issues or timeouts.",
   "soql_walkthrough_open": "Open SOQL Walkthrough",
   "soql_walkthrough_title": "Get Started with SOQL",
   "soql_walkthrough_description": "Learn how to build and run SOQL queries using the visual SOQL Builder in VS Code.",

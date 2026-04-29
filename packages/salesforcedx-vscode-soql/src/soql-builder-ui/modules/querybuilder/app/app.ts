@@ -247,6 +247,7 @@ export default class App extends LightningElement {
   public handleLimitChanged(e: CustomEvent): void {
     this.modelService.changeLimit(e.detail.limit);
   }
+
   /* ---- WHERE HANDLERS ---- */
   public handleWhereSelection(e: CustomEvent): void {
     this.modelService.upsertWhereFieldExpr(e.detail);
