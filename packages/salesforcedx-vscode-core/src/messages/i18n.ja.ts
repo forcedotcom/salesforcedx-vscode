@@ -37,11 +37,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   view_all_changes_text: 'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
   apex_generate_class_text: 'SFDX: Apex クラスを作成',
-  lightning_generate_app_text: 'SFDX: Aura アプリケーションを作成',
-  lightning_generate_aura_component_text: 'SFDX: Aura コンポーネントを作成',
-  lightning_generate_event_text: 'SFDX: Aura イベントを作成',
-  lightning_generate_interface_text: 'SFDX: Aura インタフェースを作成',
-
   view_local_changes_text: 'SFDX: ローカルの変更を表示',
   view_remote_changes_text: 'SFDX: デフォルトのスクラッチ組織の変更を参照',
   warning_prompt_dir_overwrite:
@@ -98,8 +93,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   rename_not_supported: '複数コンポーネントの名前変更はサポートされていません',
   input_no_component_name: '入力にコンポーネント名が含まれていません',
   component_empty: 'コンポーネントは空にできません',
-  create_not_supported: '複数コンポーネントの作成はサポートされていません',
-  input_incorrect_properties: '入力に正しいコンポーネントプロパティが含まれていません',
   // eslint-disable-next-line prefer-template
   missing_label: MISSING_LABEL_MSG + ': %s'
 };
