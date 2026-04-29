@@ -25,12 +25,14 @@ if (!dir) {
 // digits that are part of the extension name itself (e.g. "vscode-i18n").
 const VSIX_VERSION_SUFFIX = /-\d+\.\d+\.\d+\.vsix$/;
 
-const names = fs
-  .readdirSync(dir)
-  .filter(f => f.endsWith('.vsix'))
-  .map(f => f.replace(VSIX_VERSION_SUFFIX, ''))
-  .filter((v, i, a) => a.indexOf(v) === i)
-  .sort();
+const names = [
+  ...new Set(
+    fs
+      .readdirSync(dir)
+      .filter(filename => filename.endsWith('.vsix'))
+      .map(filename => filename.replace(VSIX_VERSION_SUFFIX, ''))
+  )
+].sort();
 
 if (names.length === 0) {
   console.error(`No .vsix files found in ${dir}`);
