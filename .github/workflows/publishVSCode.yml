@@ -87,16 +87,7 @@ jobs:
       - name: Collect published extension names
         id: collect-extensions
         run: |
-          NAMES=$(node -e "
-            const fs = require('fs');
-            const names = fs.readdirSync('./extensions')
-              .filter(f => f.endsWith('.vsix'))
-              .map(f => f.replace(/-\d+\.\d+\.\d+\.vsix$/, ''))
-              .filter((v, i, a) => a.indexOf(v) === i)
-              .sort()
-              .join(',');
-            process.stdout.write(names);
-          ")
+          NAMES=$(node scripts/collect-extension-names.js ./extensions)
           echo "names=$NAMES" >> "$GITHUB_OUTPUT"
           echo "Published extensions: $NAMES"
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
