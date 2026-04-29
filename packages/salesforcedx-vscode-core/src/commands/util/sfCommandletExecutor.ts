@@ -11,7 +11,6 @@ import {
   ContinueResponse,
   notificationService,
   ProgressNotification,
-  TimingUtils,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Properties, Measurements } from '@salesforce/vscode-service-provider';
@@ -52,7 +51,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   }
 
   public execute(response: ContinueResponse<T>): void | Promise<void> {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {

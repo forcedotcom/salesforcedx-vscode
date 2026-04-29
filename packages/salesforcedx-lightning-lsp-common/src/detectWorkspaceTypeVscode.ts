@@ -4,10 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import { FileType, workspace } from 'vscode';
 import { URI } from 'vscode-uri';
-import { detectWorkspaceHelper, type WorkspaceFileSystem, type WorkspaceType } from './shared';
+import { detectWorkspaceHelper, type WorkspaceFileSystem } from './shared';
 
 /** Resolve path to URI, preserving workspace folder URI scheme if possible. */
 const toUri = (filePath: string): URI => {
@@ -59,18 +60,20 @@ const vsCodeFs: WorkspaceFileSystem = { fileExists, readFileContent };
  * @param workspaceRoots
  * @returns WorkspaceType, actively not supporting workspaces of mixed type
  */
-export const detectWorkspaceType = async (workspaceRoots: string[]): Promise<WorkspaceType> => {
+export const detectWorkspaceType = (workspaceRoots: string[]) => {
   if (workspaceRoots.length === 0) {
-    return 'UNKNOWN';
+    return Effect.succeed('UNKNOWN' as const);
   }
   if (workspaceRoots.length === 1) {
-    return detectWorkspaceHelper(workspaceRoots[0], vsCodeFs);
+    return Effect.promise(() => detectWorkspaceHelper(workspaceRoots[0], vsCodeFs));
   }
-  for (const root of workspaceRoots) {
-    const type = await detectWorkspaceHelper(root, vsCodeFs);
-    if (type !== 'CORE_PARTIAL') {
-      return 'UNKNOWN';
+  return Effect.gen(function* () {
+    for (const root of workspaceRoots) {
+      const type = yield* Effect.promise(() => detectWorkspaceHelper(root, vsCodeFs));
+      if (type !== 'CORE_PARTIAL') {
+        return 'UNKNOWN' as const;
+      }
     }
-  }
-  return 'CORE_PARTIAL';
+    return 'CORE_PARTIAL' as const;
+  });
 };

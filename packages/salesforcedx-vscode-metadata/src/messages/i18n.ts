@@ -75,6 +75,9 @@ export const messages = {
   manifest_file_name_format_error:
     'File name must start with a letter and contain only alphanumeric characters and underscores',
   project_generate_manifest_text: 'SFDX: Generate Manifest File',
+  analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
+  analytics_template_name_text: 'template name',
+  analytics_output_dir_prompt: 'Select Analytics template output directory',
   generate_manifest_select_file_or_directory:
     'You can run SFDX: Generate Manifest File only on a source file or directory.',
   source_diff_unsupported_type: 'Diff for this metadata type is currently not supported',

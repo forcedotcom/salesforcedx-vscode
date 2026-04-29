@@ -31,6 +31,16 @@ jest.mock('../../src/telemetry/telemetry', () => ({
   setTelemetryService: jest.fn()
 }));
 
+jest.mock('../../src/services/extensionProvider', () => ({
+  buildAllServicesLayer: () => ({}),
+  setAllServicesLayer: () => {}
+}));
+
+jest.mock('../../src/services/runtime', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  getRuntime: () => ({ runPromise: (eff: any) => require('effect/Effect').runPromise(eff) })
+}));
+
 import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';

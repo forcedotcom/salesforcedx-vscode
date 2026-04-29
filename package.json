@@ -381,7 +381,7 @@
       "output": []
     },
     "check:format:staged": {
-      "command": "pretty-quick --staged --check"
+      "command": "pretty-quick --staged"
     },
     "check:branch": {
       "command": "node scripts/check-branch.js"

@@ -28,7 +28,6 @@ export const messages = {
   watch_test_task_name: 'Watch Test',
   default_task_name: 'LWC Test',
   task_windows_command_prompt_messaging: 'Default shell for running tasks is set to cmd.exe',
-  lwc_output_channel_name: 'LWC Extension',
   lwc_component_name_empty_error: 'Component name cannot be empty',
   lwc_component_name_format_error:
     'Component name must start with a lowercase letter and contain only alphanumeric characters and underscores',

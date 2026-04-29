@@ -24,8 +24,8 @@ import {
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
-import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import { DebugProtocol } from '@vscode/debugprotocol';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { debuggerStop } from './commands/debuggerStop';
@@ -33,6 +33,8 @@ import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getActiveApexExtension } from './context/apexExtension';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context/isvContext';
 import { nls } from './messages';
+import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { getRuntime } from './services/runtime';
 import { getActiveSalesforceCoreExtension, getTelemetryService } from './utils/coreExtensionUtils';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
@@ -239,39 +241,47 @@ const registerDebugHandlers = (): vscode.Disposable => {
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  await getRuntime().runPromise(activateEffect(extensionContext));
   console.log('Apex Debugger Extension Activated');
+};
 
-  const commands = registerCommands();
-  const debugHandlers = registerDebugHandlers();
-  const fileWatchers = registerFileWatchers();
-  extensionContext.subscriptions.push(
-    commands,
-    fileWatchers,
-    debugHandlers,
-    vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
-  );
+export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-debugger')(function* (
+  extensionContext: vscode.ExtensionContext
+) {
+  yield* Effect.sync(() => {
+    const commands = registerCommands();
+    const debugHandlers = registerDebugHandlers();
+    const fileWatchers = registerFileWatchers();
+    extensionContext.subscriptions.push(
+      commands,
+      fileWatchers,
+      debugHandlers,
+      vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
+    );
+  });
 
-  const salesforceCoreExtension = await getActiveSalesforceCoreExtension();
+  const salesforceCoreExtension = yield* Effect.promise(() => getActiveSalesforceCoreExtension());
   if (salesforceCoreExtension.exports.isCLIInstalled()) {
     console.log('Setting up ISV Debugger environment variables');
     // register watcher for ISV authentication and setup default user for CLI
     // this is done in core because it shares access to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
-    try {
-      registerIsvAuthWatcher(extensionContext);
-      await setupGlobalDefaultUserIsvAuth();
-    } catch (e) {
-      console.error(e);
-      vscode.window.showWarningMessage(nls.localize('isv_debug_config_environment_error'));
-    }
+    yield* Effect.promise(async () => {
+      try {
+        registerIsvAuthWatcher(extensionContext);
+        await setupGlobalDefaultUserIsvAuth();
+      } catch (e) {
+        console.error(e);
+        vscode.window.showWarningMessage(nls.localize('isv_debug_config_environment_error'));
+      }
+    });
   }
 
   // Telemetry
-  const telemetryService = await getTelemetryService();
-  await telemetryService.initializeService(extensionContext);
-  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
-  await activationTracker.markActivationStop();
-};
+  const telemetryService = yield* Effect.promise(() => getTelemetryService());
+  yield* Effect.promise(() => telemetryService.initializeService(extensionContext));
+});
 
 export const deactivate = async () => {
   console.log('Apex Debugger Extension Deactivated');

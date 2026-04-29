@@ -1,6 +1,6 @@
 ---
 name: services-extension-consumption
-description: Guidelines for consuming salesforcedx-vscode-services extension API. Use when working with extensions that have extensionDependency on salesforcedx-vscode-services, registering commands, using Workspace/Connection/Project/Settings/FS/Channel/Media services, quickpick/quickInput, or implementing file/config watchers.
+description: Guidelines for consuming salesforcedx-vscode-services extension API. Use when working with extensions that have extensionDependency on salesforcedx-vscode-services, registering commands, using Workspace/Connection/Project/Settings/FS/Channel/Media services, quickpick/quickInput, implementing file/config watchers, editing extensionProvider.ts, buildAllServicesLayer, AllServicesLayer, setAllServicesLayer, prebuiltServicesDependencies, or Layer composition for VS Code extensions.
 ---
 
 # Consuming salesforcedx-vscode-services
@@ -322,3 +322,30 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 - `Effect.forkIn(..., yield* getExtensionScope())` for watcher cleanup on deactivation
 - `registerCommandWithLayer` for all commands (tracing + error handling)
 - Use `getRuntime().runPromise` / `runFork` instead of `Effect.provide(AllServicesLayer)` for execution
+
+## Don't: rebuild services already in prebuiltServicesDependencies
+
+```typescript
+// WRONG — creates new singleton instances, duplicating caches/watchers/state
+return Layer.mergeAll(
+  ExtensionProviderServiceLive,
+  api.services.ExtensionContextServiceLayer(context),
+  api.services.FsService.Default,           // ← already in prebuilt
+  api.services.AliasService.Default,        // ← already in prebuilt
+  api.services.SdkLayerFor(context),
+  channelLayer,
+  errorHandlerWithChannel
+);
+
+// CORRECT — share the already-built singletons
+return Layer.mergeAll(
+  Layer.succeedContext(api.services.prebuiltServicesDependencies),
+  ExtensionProviderServiceLive,
+  api.services.ExtensionContextServiceLayer(context),
+  api.services.SdkLayerFor(context),
+  channelLayer,
+  errorHandlerWithChannel
+);
+```
+
+`prebuiltServicesDependencies` contains ~27 services built once during services extension activation. Calling `.Default` on any of them creates a **second instance** with its own caches, watchers, and state — silently breaking cross-extension sharing.

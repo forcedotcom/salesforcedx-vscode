@@ -31,14 +31,12 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       const channelLayer = api.services.ChannelServiceLayer(displayName);
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       return Layer.mergeAll(
+        Layer.succeedContext(api.services.prebuiltServicesDependencies),
         ExtensionProviderServiceLive,
+        errorHandlerWithChannel,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.ChannelServiceLayer(displayName),
-        api.services.FsService.Default,
-        api.services.AliasService.Default,
         api.services.SdkLayerFor(context),
-        channelLayer,
-        errorHandlerWithChannel
+        channelLayer
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );

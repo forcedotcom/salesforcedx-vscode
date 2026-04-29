@@ -19,7 +19,6 @@ import {
   projectPaths,
   readFile,
   safeDelete,
-  TimingUtils,
   writeFile,
   fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -400,7 +399,7 @@ export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ): Promise<string> {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     // do not inherit global env because we are setting our own auth
     const execution = new CliCommandExecutor(command, options, false).execute(cancellationToken);
 

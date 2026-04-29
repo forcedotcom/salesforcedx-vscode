@@ -22,8 +22,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   channel_starting_message: '開始しています: ',
   channel_end: 'が終了しました。',
 
-  parameter_gatherer_enter_file_name: 'ファイル名を入力',
-  parameter_gatherer_enter_dir_name: 'フォルダを入力 (Enter で確認または Esc でキャンセル)',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
   project_retrieve_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織からソースをプル',
 
@@ -42,13 +40,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   warning_prompt_dir_overwrite:
     '指定されたプロジェクト名は選択されたディレクトリ上に既に存在します。上書きしてもよろしいですか？',
   warning_prompt_overwrite_cancel: 'キャンセル',
-  warning_prompt_overwrite_message: '上書きしてもよろしいですか？ %s:%s?\n\n%s\n\n%s',
   warning_prompt_overwrite: '上書き',
-  warning_prompt_overwrite_all: 'すべて上書き',
-  warning_prompt_skip: 'スキップ',
-  warning_prompt_skip_all: 'すべてスキップ',
-  warning_prompt_other_existing: '%s つの既存コンポーネント',
-  warning_prompt_other_not_shown: '...表示されていない残り %s つのコンポーネント\n',
   config_list_text: 'SFDX: すべての設定変数を一覧表示',
   alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   project_generate_text: 'SFDX: プロジェクトを作成',
@@ -69,9 +61,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   telemetry_legal_dialog_button_text: 'さらに表示',
   error_parsing_sfdx_project_file: 'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
 
-  custom_output_directory: 'ディレクトリを選択',
   lightning_generate_lwc_text: 'SFDX: Lightning Web コンポーネントを作成',
-  error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
 
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
@@ -79,7 +69,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/lwc/writing',
   functions_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
-  parameter_gatherer_file_name_max_length_validation_error_message: 'ファイル名は {0} 文字を超えることはできません',
 
   component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています',
   rename_component_input_dup_file_name_error:
