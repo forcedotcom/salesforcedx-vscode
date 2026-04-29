@@ -8,16 +8,18 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import type { Connection } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
 import { ActionScriptType, CHECKPOINT, FIELD_INTEGRITY_EXCEPTION, MAX_ALLOWED_CHECKPOINTS } from '../debuggerConstants';
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
-import { getVscodeCoreExtension } from '../utils/coreExtensionUtils';
+import { getRuntime } from '../services/runtime';
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -33,12 +35,15 @@ type ApexExecutionOverlayAction = {
   Line: number;
 };
 
-/** Gets the Connection from the core extension */
+/** Gets the Connection from the services ConnectionService */
 const getConnection = async (): Promise<Connection | undefined> => {
   try {
-    const coreExtension = await getVscodeCoreExtension();
-    const connection = await coreExtension.exports.services.WorkspaceContext.getInstance().getConnection();
-    return connection;
+    return await getRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        return yield* api.services.ConnectionService.getConnection();
+      })
+    );
   } catch (error) {
     const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${
       error instanceof Error ? error.message : String(error)
@@ -51,8 +56,13 @@ const getConnection = async (): Promise<Connection | undefined> => {
 /** Clears existing checkpoints from the org, making VS Code the source of truth */
 const clearExistingCheckpoints = async (): Promise<boolean> => {
   try {
-    const coreExtension = await getVscodeCoreExtension();
-    const userId = await coreExtension.exports.getUserId();
+    const userId = await getRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const ref = yield* api.services.TargetOrgRef();
+        return (yield* SubscriptionRef.get(ref)).userId;
+      })
+    );
 
     if (!userId) {
       const errorMessage = nls.localize('unable_to_retrieve_active_user_for_sf_project');

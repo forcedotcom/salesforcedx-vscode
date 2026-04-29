@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ConfigUtil, readFile } from '@salesforce/salesforcedx-utils-vscode';
-import { getVscodeCoreExtension } from '../../../coreExtensionUtils';
+import * as Effect from 'effect/Effect';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
+import { getRuntime } from '../../../services/runtime';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -63,9 +65,13 @@ export class AuraEnabledStrategy extends GenerationStrategy {
       this.isDefaultOrg = targetOrg !== undefined;
 
       if (this.isDefaultOrg) {
-        const vscodeCoreExtension = await getVscodeCoreExtension();
-        const apiVersion = await vscodeCoreExtension.exports.services.WorkspaceContext.getInstance().getConnection();
-        const numericVersion = parseFloat(apiVersion.getApiVersion());
+        const connection = await getRuntime().runPromise(
+          Effect.gen(function* () {
+            const api = yield* (yield* ExtensionProviderService).getServicesApi;
+            return yield* api.services.ConnectionService.getConnection();
+          })
+        );
+        const numericVersion = parseFloat(connection.getApiVersion());
         this.isOrgVersionCompatible = numericVersion >= MIN_ORG_VERSION;
       }
     } catch (err) {
@@ -95,10 +101,13 @@ export class AuraEnabledStrategy extends GenerationStrategy {
 
   public async generateOAS(): Promise<string> {
     const responses: string[] = [];
-    const coreExtension = await getVscodeCoreExtension();
 
-    // Get the connection and make the API call
-    const connection = await coreExtension.exports.services.WorkspaceContext.getInstance().getConnection();
+    const connection = await getRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        return yield* api.services.ConnectionService.getConnection();
+      })
+    );
     const apiVersion = connection.getApiVersion();
     const endpoint = `${connection.instanceUrl}/services/data/v${apiVersion}/specifications/oas3/apex/${this.context.classDetail.name}`;
 

@@ -6,6 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   OrgUserInfo,
   WorkspaceContextUtil,
@@ -13,7 +14,9 @@ import {
   refreshAllExtensionReporters,
   getDevHubIdFromScratchOrg
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { getRuntime } from '../services/runtime';
 import { workspaceContextUtils } from '.';
 
 /**
@@ -52,12 +55,15 @@ export class WorkspaceContext {
     return this.instance;
   }
 
+  // @deprecated. Use getConnection from the Services extension.
+  // maintained for backward compatibility for 2PP using vscode-core API
   public async getConnection(): Promise<Connection> {
-    // Wait for initialization to complete before proceeding
-    if (this.initializationPromise) {
-      await this.initializationPromise;
-    }
-    return await WorkspaceContextUtil.getInstance().getConnection();
+    return getRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        return yield* api.services.ConnectionService.getConnection();
+      })
+    );
   }
 
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {

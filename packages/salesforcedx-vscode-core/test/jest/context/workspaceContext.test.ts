@@ -13,6 +13,11 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   getDevHubIdFromScratchOrg: (...args: any[]) => getDevHubIdFromScratchOrgMock(...args)
 }));
 
+const mockRunPromise = jest.fn();
+jest.mock('../../../src/services/runtime', () => ({
+  getRuntime: () => ({ runPromise: mockRunPromise })
+}));
+
 describe('workspaceContext', () => {
   describe('handleOrgShapeChange', () => {
     jest.mock('../../../src/context', () => ({
@@ -113,17 +118,16 @@ describe('workspaceContext', () => {
   describe('initialization promise logic', () => {
     let mockWorkspaceContextUtil: any;
     let mockExtensionContext: any;
+    const mockConnection = { getAuthInfoFields: () => ({ orgId: '000' }) };
 
     beforeEach(() => {
       jest.clearAllMocks();
       mockWorkspaceContextUtil = {
         onOrgChange: jest.fn(),
-        initialize: jest.fn().mockResolvedValue(undefined),
-        getConnection: jest.fn().mockResolvedValue({
-          getAuthInfoFields: () => ({ orgId: '000' })
-        })
+        initialize: jest.fn().mockResolvedValue(undefined)
       };
       jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(mockWorkspaceContextUtil);
+      mockRunPromise.mockResolvedValue(mockConnection);
 
       mockExtensionContext = {
         extension: { id: 'salesforce.salesforcedx-vscode-core' },
@@ -150,49 +154,31 @@ describe('workspaceContext', () => {
 
       await Promise.all([promise1, promise2, promise3]);
 
-      // Should only call the underlying initialize once (idempotent behavior)
       expect(mockWorkspaceContextUtil.initialize).toHaveBeenCalledTimes(1);
     });
 
-    it('should wait for initialization before calling getConnection()', async () => {
+    it('should delegate getConnection() to the services runtime', async () => {
       const workspaceContext = WorkspaceContext.getInstance(true);
-      let initializeResolved = false;
 
-      // Make initialize take some time
-      mockWorkspaceContextUtil.initialize.mockImplementation(async () => {
-        await new Promise(resolve => setTimeout(resolve, 10));
-        initializeResolved = true;
-      });
+      const conn = await workspaceContext.getConnection();
 
-      const initPromise = workspaceContext.initialize(mockExtensionContext);
-      const connPromise = workspaceContext.getConnection();
-
-      // getConnection should not complete until initialize completes
-      expect(initializeResolved).toBe(false);
-
-      await Promise.all([initPromise, connPromise]);
-
-      expect(initializeResolved).toBe(true);
-      expect(mockWorkspaceContextUtil.initialize).toHaveBeenCalledTimes(1);
-      expect(mockWorkspaceContextUtil.getConnection).toHaveBeenCalledTimes(1);
+      expect(conn).toBe(mockConnection);
+      expect(mockRunPromise).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle multiple concurrent getConnection() calls during initialization', async () => {
+    it('should handle multiple concurrent getConnection() calls', async () => {
       const workspaceContext = WorkspaceContext.getInstance(true);
 
-      mockWorkspaceContextUtil.initialize.mockImplementation(async () => {
-        await new Promise(resolve => setTimeout(resolve, 10));
-      });
+      const [conn1, conn2, conn3] = await Promise.all([
+        workspaceContext.getConnection(),
+        workspaceContext.getConnection(),
+        workspaceContext.getConnection()
+      ]);
 
-      const initPromise = workspaceContext.initialize(mockExtensionContext);
-      const connPromise1 = workspaceContext.getConnection();
-      const connPromise2 = workspaceContext.getConnection();
-      const connPromise3 = workspaceContext.getConnection();
-
-      await Promise.all([initPromise, connPromise1, connPromise2, connPromise3]);
-
-      expect(mockWorkspaceContextUtil.initialize).toHaveBeenCalledTimes(1);
-      expect(mockWorkspaceContextUtil.getConnection).toHaveBeenCalledTimes(3);
+      expect(conn1).toBe(mockConnection);
+      expect(conn2).toBe(mockConnection);
+      expect(conn3).toBe(mockConnection);
+      expect(mockRunPromise).toHaveBeenCalledTimes(3);
     });
   });
 });
