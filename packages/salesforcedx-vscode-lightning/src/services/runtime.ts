@@ -6,7 +6,7 @@
  */
 
 import * as ManagedRuntime from 'effect/ManagedRuntime';
-import { AllServicesLayer } from './extensionProvider';
+import { AllServicesLayer } from './allServicesLayerRef';
 
 const createAuraRuntime = () => ManagedRuntime.make(AllServicesLayer);
 // eslint-disable-next-line functional/no-let -- Lazy singleton runtime

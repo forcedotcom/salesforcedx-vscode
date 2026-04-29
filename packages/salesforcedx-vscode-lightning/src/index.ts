@@ -33,8 +33,7 @@ import { createAuraComponentCommand } from './commands/createAuraComponent';
 import { createAuraEventCommand } from './commands/createAuraEvent';
 import { createAuraInterfaceCommand } from './commands/createAuraInterface';
 import { nls } from './messages';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
-import { getRuntime } from './services/runtime';
+import { buildAllServicesLayer, getRuntime, setAllServicesLayer } from './services/extensionProvider';
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');

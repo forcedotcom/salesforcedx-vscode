@@ -35,17 +35,13 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       return Layer.mergeAll(
         Layer.succeedContext(api.services.prebuiltServicesDependencies),
         ExtensionProviderServiceLive,
+        errorHandlerWithChannel,
         api.services.ExtensionContextServiceLayer(context),
         api.services.SdkLayerFor(context),
-        channelLayer,
-        errorHandlerWithChannel
+        channelLayer
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
 
-// eslint-disable-next-line functional/no-let
-export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
-
-export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
-  AllServicesLayer = layer;
-};
+export { setAllServicesLayer } from './allServicesLayerRef';
+export { getRuntime } from './runtime';
