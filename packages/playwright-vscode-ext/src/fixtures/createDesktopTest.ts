@@ -11,7 +11,7 @@ import { test as base, _electron as electron } from '@playwright/test';
 import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
 import { spawnSync, type ChildProcess } from 'node:child_process';
 import * as crypto from 'node:crypto';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
@@ -59,6 +59,41 @@ type CreateDesktopTestOptions = {
    * Defaults to `process.env.E2E_FROM_VSIX === '1'` — set that env var in CI to enable without code changes.
    */
   useVsix?: boolean;
+};
+
+type ExtensionPackageJson = {
+  name: string;
+  publisher: string;
+  extensionDependencies?: string[];
+};
+
+const unique = <T>(values: T[]): T[] => values.filter((value, index) => values.indexOf(value) === index);
+
+const readExtensionPackageJson = (repoRoot: string, packageDir: string): ExtensionPackageJson =>
+  JSON.parse(readFileSync(path.join(repoRoot, 'packages', packageDir, 'package.json'), 'utf8')) as ExtensionPackageJson;
+
+const orderExtensionDirsForInstall = (repoRoot: string, packageDirs: string[]): string[] => {
+  const dirs = unique(packageDirs);
+  const packagesByDir = new Map(dirs.map(dir => [dir, readExtensionPackageJson(repoRoot, dir)]));
+  const dirsByExtensionId = new Map(dirs.map(dir => [`${packagesByDir.get(dir)!.publisher}.${packagesByDir.get(dir)!.name}`, dir]));
+  const orderedDirs: string[] = [];
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+  const visit = (dir: string): void => {
+    if (visited.has(dir) || visiting.has(dir)) return;
+    visiting.add(dir);
+    packagesByDir
+      .get(dir)
+      ?.extensionDependencies?.map(id => dirsByExtensionId.get(id))
+      .filter((dependencyDir): dependencyDir is string => dependencyDir !== undefined)
+      .forEach(visit);
+    visiting.delete(dir);
+    visited.add(dir);
+    orderedDirs.push(dir);
+  };
+
+  dirs.forEach(visit);
+  return orderedDirs;
 };
 
 /**
@@ -176,7 +211,11 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           return;
         }
         const repoRoot = resolveRepoRoot(fixturesDir);
-        const allDirs = [packageDir, 'salesforcedx-vscode-services', ...additionalExtensionDirs];
+        const allDirs = orderExtensionDirsForInstall(repoRoot, [
+          'salesforcedx-vscode-services',
+          packageDir,
+          ...additionalExtensionDirs
+        ]);
         const vsixPaths = resolveVsixPaths(repoRoot, allDirs);
         const cacheKey = await computeVsixCacheKey(vsixPaths);
         const cacheDir = path.join(repoRoot, '.vscode-test', `ext-${cacheKey}`);

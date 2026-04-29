@@ -30,6 +30,7 @@ Shared code (helpers, locators, configuration) for tests.
 **VSIX mode** (`useVsix` option):
 
 - `createDesktopTest({ useVsix: true })` — installs built VSIXs into a hash-keyed cache dir (`.vscode-test/ext-<hash>/`) and launches VS Code with `--extensions-dir` instead of `--extensionDevelopmentPath`. Exercises real shipping artifact (bundled `dist/`, `.vscodeignore`, `packageUpdates`).
+- Installs requested local VSIX dirs in `extensionDependencies` order (from each local `package.json`), so local dependency VSIXs install before dependents.
 - Default: `process.env.E2E_FROM_VSIX === '1'` — set in CI to enable without code changes.
 - Requires `vscode:package` to have run first (produces `.vsix` in package dir). org-browser `test:desktop` depends on `vscode:package` for this reason.
 - Idempotent across parallel workers: atomic rename; second worker skips if cache exists.
