@@ -29,7 +29,6 @@ export class WorkspaceContext {
   protected constructor() {
     const workspaceContextUtil = WorkspaceContextUtil.getInstance();
     this.onOrgChange = workspaceContextUtil.onOrgChange;
-    this.onOrgChange(c => this.handleCliConfigChange(c));
     this.onOrgChange(c => this.handleOrgShapeChange(c));
     this.onOrgChange(() => this.handleTelemetryUpdate());
   }
@@ -59,14 +58,6 @@ export class WorkspaceContext {
       await this.initializationPromise;
     }
     return await WorkspaceContextUtil.getInstance().getConnection();
-  }
-
-  protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
-    await workspaceContextUtils.setupWorkspaceOrgType(orgInfo.username).catch(e =>
-      // error reported by setupWorkspaceOrgType
-      console.error(e)
-    );
-    // Note: decorators.showOrg() has been moved to the salesforcedx-vscode-org extension
   }
 
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {

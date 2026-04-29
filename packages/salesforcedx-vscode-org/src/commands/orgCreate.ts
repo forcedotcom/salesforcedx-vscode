@@ -76,9 +76,6 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
         const createParser = new OrgCreateResultParser(stdOut);
 
         if (createParser.createIsSuccessful()) {
-          // Set workspace org type to source-tracked for newly created scratch orgs
-          // Scratch orgs are always source-tracked, so set the context to true
-          await vscode.commands.executeCommand('setContext', 'sf:target_org_has_change_tracking', true);
           await updateConfigAndStateAggregators();
         } else {
           // remove when we drop CLI invocations

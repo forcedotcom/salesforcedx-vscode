@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { OrgUserInfo, OrgShape, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
 import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
 
 const getDevHubIdFromScratchOrgMock = jest.fn();
@@ -15,44 +14,6 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
 }));
 
 describe('workspaceContext', () => {
-  describe('handleCliConfigChange', () => {
-    const mockWorkspaceContextUtil = {
-      onOrgChange: jest.fn(),
-      getConnection: jest.fn().mockResolvedValue({
-        getAuthInfoFields: () => ({ orgId: '000' })
-      })
-    };
-    let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
-    let setupWorkspaceOrgTypeMock: jest.SpyInstance;
-    let createStatusBarItemMock: jest.SpyInstance;
-    const mockStatusBarItem: any = {};
-
-    beforeEach(() => {
-      workspaceContextUtilGetInstanceSpy = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue(mockWorkspaceContextUtil as any);
-      setupWorkspaceOrgTypeMock = jest.spyOn(workspaceContextUtils, 'setupWorkspaceOrgType').mockResolvedValue();
-      createStatusBarItemMock = vscode.window.createStatusBarItem as jest.Mock;
-    });
-
-    it('should update context variables and UI elements when the config file changes', async () => {
-      mockStatusBarItem.tooltip = '';
-      mockStatusBarItem.command = '';
-      mockStatusBarItem.text = '';
-      mockStatusBarItem.show = jest.fn();
-      mockStatusBarItem.dispose = jest.fn();
-      createStatusBarItemMock.mockReturnValue(mockStatusBarItem);
-      const workspaceContext = WorkspaceContext.getInstance();
-      await (workspaceContext as any).handleCliConfigChange({
-        username: 'test@test.com'
-      });
-
-      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
-      expect(setupWorkspaceOrgTypeMock).toHaveBeenCalled();
-      // Note: decorators.showOrg() has been moved to the salesforcedx-vscode-org extension
-    });
-  });
-
   describe('handleOrgShapeChange', () => {
     jest.mock('../../../src/context', () => ({
       workspaceContextUtils: {
