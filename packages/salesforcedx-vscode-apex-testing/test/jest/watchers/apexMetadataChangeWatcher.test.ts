@@ -6,7 +6,6 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
@@ -15,10 +14,9 @@ import * as Scope from 'effect/Scope';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
 import { MetadataChangeNotificationService, type MetadataChangeEventType } from 'salesforcedx-vscode-services';
+import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { URI } from 'vscode-uri';
 import { setupApexMetadataChangeWatcher } from '../../../src/watchers/apexMetadataChangeWatcher';
-
-const FsServiceTag = Context.GenericTag<{ readFile: (uri: unknown) => Effect.Effect<string> }>('FsService');
 
 const APEX_TEST_CONTENT = '@isTest\npublic class MyTest {}';
 const NON_TEST_CONTENT = 'public class MyClass {}';
@@ -37,7 +35,7 @@ const makeEvent = (
 /**
  * `replay: 16` lets us publish before the watcher subscribes; the subscriber receives buffered events.
  * `forkScoped` ties the watcher fiber to the test's scope so it's interrupted on test exit.
- * `TestClock.adjust` already calls `awaitSuspended` internally, so no manual fiber-yield flushing is needed.
+ * `TestClock.adjust` runs actions scheduled on or before the adjusted time.
  */
 const setupHarness = Effect.fn('setupHarness')(function* (readFileResponses: Map<string, string> = new Map()) {
   const pubsub = yield* PubSub.unbounded<MetadataChangeEventType>({ replay: 16 });
@@ -47,20 +45,19 @@ const setupHarness = Effect.fn('setupHarness')(function* (readFileResponses: Map
   const readFileFn = jest.fn((uri: unknown) => Effect.succeed(readFileResponses.get(String(uri)) ?? NON_TEST_CONTENT));
 
   const notificationLayer = Layer.succeed(MetadataChangeNotificationService, { pubsub } as any);
-  const fsLayer = Layer.succeed(FsServiceTag, { readFile: readFileFn });
+  const fsLayer = Layer.succeed(FsService, { readFile: readFileFn } as unknown as InstanceType<typeof FsService>);
   const extensionProviderLayer = Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {
         MetadataChangeNotificationService,
-        FsService: FsServiceTag
+        FsService
       }
     })
   } as any);
 
-  // FsServiceTag identifier matches the real FsService at runtime, but TS sees them as different
   const provided = setupApexMetadataChangeWatcher(testController).pipe(
     Effect.provide(Layer.mergeAll(notificationLayer, fsLayer, extensionProviderLayer))
-  ) as unknown as Effect.Effect<void>;
+  );
   yield* Effect.forkScoped(provided);
 
   return { pubsub, discoverTests, readFileFn };
@@ -79,6 +76,8 @@ describe('setupApexMetadataChangeWatcher', () => {
         const { pubsub, discoverTests } = yield* setupHarness(responses);
 
         yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexClass' }));
+        expect(discoverTests).not.toHaveBeenCalled();
+
         yield* advance;
 
         expect(discoverTests).toHaveBeenCalledTimes(1);
