@@ -16,7 +16,7 @@ type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
- * `org-max-query-limit` (default 10,000). Emits a lifecycle warning if results are truncated.
+ * `salesforcedx-vscode-soql.maxQueryLimit` setting (default 50,000).
  *
  * @param query - SOQL query string to execute
  * @param useTooling - Whether to use the Tooling API instead of REST
@@ -30,7 +30,12 @@ const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTool
     nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
   );
 
-  return yield* Effect.promise(() => connection.autoFetchQuery(query, { tooling: useTooling }));
+  const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
+  return yield* Effect.promise(() =>
+    useTooling
+      ? connection.tooling.query(query, { autoFetch: true, maxFetch })
+      : connection.query(query, { autoFetch: true, maxFetch })
+  );
 });
 
 const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult) {
