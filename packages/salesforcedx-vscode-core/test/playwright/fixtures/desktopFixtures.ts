@@ -14,17 +14,3 @@ export const desktopTest = createDesktopTest({
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
 });
-
-export const createProjectTest = createDesktopTest({
-  fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
-  // use vscode's dialog box instead of the native OS, so playwright can interact with it
-  userSettings: { 'files.simpleDialog.enable': true }
-});
-
-/** Workspace path is an empty temp folder (no `sfdx-project.json`) — folder is open, not "close workspace" */
-export const folderWithoutSfdxProjectTest = createDesktopTest({
-  fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
-  emptyWorkspace: true
-});

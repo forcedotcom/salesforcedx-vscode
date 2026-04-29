@@ -47,7 +47,8 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   emptyWorkspace: true,
   userSettings: {
-    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true,
+    'files.simpleDialog.enable': true
   }
 });
 

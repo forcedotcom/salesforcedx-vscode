@@ -5,20 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
 import { expect } from '@playwright/test';
-import { createProjectTest as test } from '../fixtures/desktopFixtures';
 import {
   executeCommandWithCommandPalette,
   prepareNoFolderOpenForPaletteTests,
-  verifyCommandExists,
-  saveScreenshot,
-  waitForQuickInputFirstOption,
+  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
-  QUICK_INPUT_LIST_ROW
+  saveScreenshot,
+  verifyCommandExists,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import packageNls from '../../../package.nls.json';
+import { emptyWorkspaceDesktopTest as test } from '../fixtures';
 
 const PROJECT_NAME = `TestProject${Date.now()}`;
 
@@ -57,18 +57,6 @@ test('Create Project: standard project via command palette', async ({ page, work
     await saveScreenshot(page, 'createProject.02-standard-selected.png');
   });
 
-  await test.step.skip('select LWC language when prompted', async () => {
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-
-    const javascriptOption = quickInput.getByRole('option', { name: /^JavaScript\b/i });
-    const typescriptOption = quickInput.getByRole('option', { name: /^TypeScript\b/i });
-    await javascriptOption.waitFor({ state: 'visible', timeout: 10_000 });
-    await expect(typescriptOption).toBeVisible({ timeout: 10_000 });
-    await javascriptOption.click();
-    await saveScreenshot(page, 'createProject.03-language-selected.png');
-  });
-
   await test.step('enter project name', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
@@ -86,7 +74,7 @@ test('Create Project: standard project via command palette', async ({ page, work
     // Use .fill() to set path directly (avoids autocomplete issues with keyboard.type).
     // Trailing sep forces the simple dialog to navigate INTO the directory immediately.
     // Without it, Windows shows the parent dir with the folder highlighted, then auto-navigates
-    // after a debounce — clicking "Create Project" during that transition doesn't register.
+    // after a debounce - clicking "Create Project" during that transition doesn't register.
     const input = quickInput.locator('input.input');
     const targetPath = `${targetDir}${path.sep}`;
     await input.fill(targetPath);

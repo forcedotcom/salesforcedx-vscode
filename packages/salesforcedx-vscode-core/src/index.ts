@@ -20,16 +20,11 @@ import { SharedAuthState } from './auth/sharedAuthState';
 import { channelService } from './channels';
 import {
   aliasListCommand,
-  analyticsGenerateTemplate,
   configListCommand,
   initSObjectDefinitions,
-  agentProjectGenerate,
-  nativemobileProjectGenerate,
   openDocumentation,
   packageInstall,
-  projectGenerateWithManifest,
-  renameLightningComponent,
-  sfProjectGenerate
+  renameLightningComponent
 } from './commands';
 import { SfCommandletExecutor } from './commands/util';
 
@@ -53,12 +48,7 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
   vscode.Disposable.from(
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
-    vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
-    vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
-    vscode.commands.registerCommand('sf.agent.generate.project', agentProjectGenerate),
-    vscode.commands.registerCommand('sf.nativemobile.generate.project', nativemobileProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
-    vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
     registerGetTelemetryServiceCommand()
   );
 

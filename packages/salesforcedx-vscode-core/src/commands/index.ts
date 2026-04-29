@@ -10,10 +10,3 @@ export { packageInstall } from './packageInstall';
 export { initSObjectDefinitions } from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';
 export { openDocumentation } from './openDocumentation';
-export {
-  agentProjectGenerate,
-  nativemobileProjectGenerate,
-  projectGenerateWithManifest,
-  sfProjectGenerate
-} from './projectGenerate';
-export { analyticsGenerateTemplate } from './templates';

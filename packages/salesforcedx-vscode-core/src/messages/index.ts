@@ -6,19 +6,7 @@
  */
 
 import { createNls } from '@salesforce/vscode-i18n';
-import { telemetryService } from '../telemetry';
-import { messages as enMessages, isValidMessageKey, MessageKey } from './i18n';
+import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
 export const nls = createNls({ instanceName: 'salesforcedx-vscode-core', messages: enMessages, jaMessages });
-
-export const coerceMessageKey = (key: string): MessageKey => {
-  const isValid = isValidMessageKey(key);
-
-  if (!isValid) {
-    // Send telemetry exception for missing message key
-    telemetryService.sendException('missing_message_key', `Invalid message key: ${key}`);
-  }
-
-  return isValid ? key : 'missing_label';
-};
