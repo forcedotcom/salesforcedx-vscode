@@ -13,7 +13,10 @@ import * as PubSub from 'effect/PubSub';
 import * as Scope from 'effect/Scope';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
-import { MetadataChangeNotificationService, type MetadataChangeEventType } from 'salesforcedx-vscode-services';
+import {
+  MetadataChangeNotificationService,
+  type MetadataChangeEvent as MetadataChangeEventType
+} from 'salesforcedx-vscode-services/src/core/metadataChangeNotificationService';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { URI } from 'vscode-uri';
 import { setupApexMetadataChangeWatcher } from '../../../src/watchers/apexMetadataChangeWatcher';

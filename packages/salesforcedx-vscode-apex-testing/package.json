@@ -69,7 +69,8 @@
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../effect-ext-utils:compile"
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
