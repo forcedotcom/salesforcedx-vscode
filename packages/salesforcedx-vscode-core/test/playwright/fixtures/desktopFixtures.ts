@@ -22,7 +22,7 @@ export const createProjectTest = createDesktopTest({
   userSettings: { 'files.simpleDialog.enable': true }
 });
 
-/** Workspace path is an empty temp folder (no `sfdx-project.json`) — folder is open, not “close workspace” */
+/** Workspace path is an empty temp folder (no `sfdx-project.json`) — folder is open, not "close workspace" */
 export const folderWithoutSfdxProjectTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],

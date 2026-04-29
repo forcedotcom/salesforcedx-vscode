@@ -21,7 +21,7 @@ import { channelService } from './channels';
 import {
   aliasListCommand,
   analyticsGenerateTemplate,
-  configList,
+  configListCommand,
   initSObjectDefinitions,
   agentProjectGenerate,
   nativemobileProjectGenerate,
@@ -54,7 +54,6 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
-    vscode.commands.registerCommand('sf.config.list', configList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
     vscode.commands.registerCommand('sf.agent.generate.project', agentProjectGenerate),
     vscode.commands.registerCommand('sf.nativemobile.generate.project', nativemobileProjectGenerate),
@@ -129,6 +128,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
 
   const registerCommand = servicesApi.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.alias.list', () => aliasListCommand());
+  yield* registerCommand('sf.config.list', () => configListCommand());
 
   extensionContext.subscriptions.push(registerCommands(extensionContext), CommandEventDispatcher.getInstance());
 
