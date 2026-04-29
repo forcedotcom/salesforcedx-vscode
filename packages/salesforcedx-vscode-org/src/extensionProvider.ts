@@ -42,17 +42,10 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       // ErrorHandlerService depends on ChannelService, provide the extension's channel
       const channelLayer = api.services.ChannelServiceLayer(displayName);
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
-      // Merge all the service layers from the API
       return Layer.mergeAll(
+        Layer.succeedContext(api.services.prebuiltServicesDependencies),
         ExtensionProviderServiceLive,
         api.services.ExtensionContextServiceLayer(context),
-        api.services.ChannelServiceLayer(displayName),
-        api.services.FsService.Default,
-        api.services.AliasService.Default,
-        api.services.ConfigService.Default,
-        api.services.ConnectionService.Default,
-        api.services.ProjectService.Default,
-        api.services.WorkspaceService.Default,
         api.services.SdkLayerFor(context),
         channelLayer,
         errorHandlerWithChannel
