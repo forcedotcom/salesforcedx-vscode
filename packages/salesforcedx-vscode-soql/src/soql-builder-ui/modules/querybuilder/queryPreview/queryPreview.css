@@ -29,20 +29,22 @@ pre {
 
 .query-segment {
   cursor: pointer;
-  border-radius: 2px;
 }
 
 .query-segment:hover {
   background-color: var(--vscode-editor-hoverHighlightBackground, rgba(173, 214, 255, 0.15));
+  border-radius: 2px;
 }
 
 .query-segment--subquery {
-  text-decoration: underline;
-  text-decoration-color: var(--vscode-textLink-foreground, #3794ff);
-  text-underline-offset: 2px;
-  text-decoration-style: dotted;
+  border-left: 2px solid var(--vscode-textLink-foreground, #3794ff);
+  padding-left: 4px;
+  margin-left: 2px;
+  border-radius: 2px;
+  background-color: var(--vscode-editor-inactiveSelectionBackground, rgba(173, 214, 255, 0.07));
 }
 
 .query-segment--active {
   background-color: var(--vscode-editor-findMatchHighlightBackground, rgba(234, 184, 57, 0.3));
+  border-left-color: var(--vscode-editorWarning-foreground, #cca700);
 }

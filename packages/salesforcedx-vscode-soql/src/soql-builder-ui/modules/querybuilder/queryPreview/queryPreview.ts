@@ -42,11 +42,11 @@ export default class QueryPreview extends LightningElement {
   private _segmentClass(seg: SoqlSegment): string {
     const classes = ['query-segment'];
     const isActive = this._pathsEqual(seg.contextPath, this.activeContextPath);
-    if (isActive) {
-      classes.push('query-segment--active');
-    }
     if (seg.isSubquery) {
       classes.push('query-segment--subquery');
+      if (isActive) {
+        classes.push('query-segment--active');
+      }
     }
     return classes.join(' ');
   }
