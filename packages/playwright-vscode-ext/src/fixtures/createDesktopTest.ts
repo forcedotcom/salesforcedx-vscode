@@ -56,7 +56,7 @@ type CreateDesktopTestOptions = {
   /**
    * When true, install VSIXs and launch VS Code with --extensions-dir instead of --extensionDevelopmentPath.
    * Exercises the real shipping artifact (bundled dist/, packageUpdates, .vscodeignore).
-   * Defaults to `process.env.E2E_FROM_VSIX === '1'` — set that env var in CI to enable without code changes.
+   * Defaults to false; set E2E_FROM_VSIX=1 to enable without code changes.
    */
   useVsix?: boolean;
 };
