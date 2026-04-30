@@ -35,6 +35,8 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
   if (yield* retrieveHasErrors(result)) {
     const channel = yield* channelService.getChannel;
     yield* Effect.sync(() => channel.show());
-    return yield* new RetrieveCompletedWithErrorsError({ userMessage: nls.localize('retrieve_completed_with_errors_message') });
+    return yield* new RetrieveCompletedWithErrorsError({
+      userMessage: nls.localize('retrieve_completed_with_errors_message')
+    });
   }
 });

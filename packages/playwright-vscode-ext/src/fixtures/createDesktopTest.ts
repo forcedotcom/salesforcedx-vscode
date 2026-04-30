@@ -131,15 +131,18 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           .map(dir => path.resolve(packageRoot, '..', dir))
       ].map(p => `--extensionDevelopmentPath=${p}`);
 
-      // Explicitly disable built-in GitHub/Copilot/Chat extensions that can trigger
-      // the GitHub OAuth browser tab on startup. `--disable-extensions` only disables
-      // user-installed extensions; built-ins must be disabled individually.
+      // Explicitly disable built-in GitHub/Microsoft/Copilot/Chat extensions that can trigger
+      // sign-in modals or the GitHub OAuth browser tab on startup. `--disable-extensions` only
+      // disables user-installed extensions; built-ins must be disabled individually.
       const disabledBuiltins = [
         'vscode.github',
         'vscode.github-authentication',
+        'vscode.microsoft-authentication',
         'GitHub.vscode-pull-request-github',
         'GitHub.copilot',
-        'GitHub.copilot-chat'
+        'GitHub.copilot-chat',
+        // Azure MS sign-in prompts during local desktop E2E (not needed for Salesforce extension tests).
+        'ms-vscode.azure-account'
       ].map(id => `--disable-extension=${id}`);
 
       const launchArgs = [
@@ -148,6 +151,12 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         ...extensionArgs,
         ...(disableOtherExtensions ? ['--disable-extensions'] : []),
         ...disabledBuiltins,
+        // Align with `vscode-test`/runTest.ts: suppress welcome/release-notes churn and updates.
+        // `--skip-welcome` is critical to avoid first-run sign-in modals blocking desktop Playwright runs.
+        '--disable-updates',
+        '--skip-welcome',
+        '--skip-release-notes',
+        '--disable-gpu-sandbox',
         '--disable-workspace-trust',
         '--no-sandbox',
         workspaceDir

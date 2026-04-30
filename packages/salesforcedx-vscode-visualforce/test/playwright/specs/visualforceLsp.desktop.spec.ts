@@ -22,34 +22,30 @@ import { test } from '../fixtures';
 
 const FOO_PAGE_NAME = 'FooPage.page';
 
-const FOO_PAGE_CONTENT = [
-  '<apex:page controller="myController" tabStyle="Account">',
-  '\t<apex:form>',
-  '\t',
-  '\t\t<apex:pageBlock title="Congratulations {!$User.FirstName}">',
-  '\t\t\tYou belong to Account Name: <apex:inputField value="{!account.name}"/>',
-  '\t\t\t<apex:commandButton action="{!save}" value="save"/>',
-  '\t\t</apex:pageBlock>',
-  '\t</apex:form>',
-  '</apex:page>'
-].join('\n');
+const FOO_PAGE_CONTENT = `<apex:page controller="myController" tabStyle="Account">
+\t<apex:form>
+\t
+\t\t<apex:pageBlock title="Congratulations {!$User.FirstName}">
+\t\t\tYou belong to Account Name: <apex:inputField value="{!account.name}"/>
+\t\t\t<apex:commandButton action="{!save}" value="save"/>
+\t\t</apex:pageBlock>
+\t</apex:form>
+</apex:page>`;
 
-const MY_CONTROLLER_CONTENT = [
-  'public class MyController {',
-  '\tprivate final Account account;',
-  '\tpublic MyController() {',
-  '\t\taccount = [SELECT Id, Name, Phone, Site FROM Account ',
-  '\t\tWHERE Id = :ApexPages.currentPage().getParameters().get(\'id\')];',
-  '\t}',
-  '\tpublic Account getAccount() {',
-  '\t\treturn account;',
-  '\t}',
-  '\tpublic PageReference save() {',
-  '\t\tupdate account;',
-  '\t\treturn null;',
-  '\t}',
-  '}'
-].join('\n');
+const MY_CONTROLLER_CONTENT = `public class MyController {
+\tprivate final Account account;
+\tpublic MyController() {
+\t\taccount = [SELECT Id, Name, Phone, Site FROM Account 
+\t\tWHERE Id = :ApexPages.currentPage().getParameters().get('id')];
+\t}
+\tpublic Account getAccount() {
+\t\treturn account;
+\t}
+\tpublic PageReference save() {
+\t\tupdate account;
+\t\treturn null;
+\t}
+}`;
 
 test.describe('Visualforce LSP', () => {
   test.beforeEach(async ({ page, workspaceDir }) => {
@@ -59,10 +55,7 @@ test.describe('Visualforce LSP', () => {
     const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
     const pagesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'pages');
 
-    await Promise.all([
-      fs.mkdir(classesDir, { recursive: true }),
-      fs.mkdir(pagesDir, { recursive: true })
-    ]);
+    await Promise.all([fs.mkdir(classesDir, { recursive: true }), fs.mkdir(pagesDir, { recursive: true })]);
 
     await Promise.all([
       fs.writeFile(path.join(classesDir, 'MyController.cls'), MY_CONTROLLER_CONTENT),

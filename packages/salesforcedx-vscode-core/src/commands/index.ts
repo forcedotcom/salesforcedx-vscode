@@ -16,15 +16,4 @@ export {
   projectGenerateWithManifest,
   sfProjectGenerate
 } from './projectGenerate';
-export {
-  analyticsGenerateTemplate,
-  internalLightningGenerateApp,
-  internalLightningGenerateAuraComponent,
-  internalLightningGenerateEvent,
-  internalLightningGenerateInterface,
-  internalLightningGenerateLwc,
-  lightningGenerateApp,
-  lightningGenerateAuraComponent,
-  lightningGenerateEvent,
-  lightningGenerateInterface
-} from './templates';
+export { analyticsGenerateTemplate } from './templates';

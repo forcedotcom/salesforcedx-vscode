@@ -47,12 +47,8 @@ describe('From', () => {
 
     const handler = jest.fn();
     from.addEventListener('from__object_selected', handler);
-    const customSelect = from.shadowRoot.querySelector(
-      'querybuilder-custom-select'
-    );
-    customSelect.dispatchEvent(
-      new CustomEvent('option__selection', { detail: { value: 'foo' } })
-    );
+    const customSelect = from.shadowRoot.querySelector('querybuilder-custom-select');
+    customSelect.dispatchEvent(new CustomEvent('option__selection', { detail: { value: 'foo' } }));
 
     return Promise.resolve().then(() => {
       expect(handler).toHaveBeenCalled();

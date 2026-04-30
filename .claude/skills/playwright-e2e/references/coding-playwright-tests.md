@@ -28,12 +28,18 @@ One test per file. Many steps allowed.
 
 **Use UI interactions:**
 
-- `Control+p` - Quick Open
+- Quick Open: `@salesforce/playwright-vscode-ext` `openFileByName` — palette "Go to File…" (web + desktop); VS Code 1.116+ rows often `basename` + segments + trailing `file results` — match logic `packages/playwright-vscode-ext/src/utils/fileHelpers.ts`
 - `Control+Home`, `Control+s` - navigate and save
 - `page.keyboard.type()` - edit content
 - Monaco editor selectors - interact with editor
 
 Tests must work identically in web and desktop.
+
+## Web headless (`createHeadlessServer`)
+
+- Virtual `folderPath` mount: Node `fs` does not see project files; use `folderUri` (`file://…`) or `.vscode/vscode-extension-test-disk-root.txt` (disk root) when services must resolve `SfProject` — see JSDoc on `packages/playwright-vscode-ext/src/web/createHeadlessServer.ts`
+- Load extra extensions via `additionalExtensionDirs` (e.g. metadata for LWC create). **Web** `headlessServer` + **desktop** fixture: empty `lwc/` + CustomLabels + empty `snippetsE2E` (snippet specs); other bundles via **SFDX: Create Lightning Web Component**.
+- LWC LSP ready (`waitForLwcLspReady` in `salesforcedx-vscode-lwc` `test/playwright/utils/lwcUtils.ts`): **web** — `LWC Extension` output line `LWC Language Server: indexing complete`; **desktop** — Editor Language Status / legacy status text `Indexing complete` (language status item often missing on web)
 
 ## Virtualized DOM
 

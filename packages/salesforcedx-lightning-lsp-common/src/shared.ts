@@ -6,8 +6,7 @@
  */
 
 import * as path from 'node:path';
-import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
-import { readPackageJson } from './utils';
+import { isPackageJson } from './types/packageJson';
 
 const SFDX_PROJECT = 'sfdx-project.json';
 
@@ -21,6 +20,12 @@ export type WorkspaceType =
   | 'CORE_PARTIAL'
   | 'UNKNOWN';
 
+// can be used by LSPFileAccessor or "normal" fs
+export type WorkspaceFileSystem = {
+  fileExists: (path: string) => Promise<boolean>;
+  readFileContent: (path: string) => Promise<string | undefined>;
+};
+
 export const isLWC = (type: WorkspaceType): boolean =>
   type === 'SFDX' || type === 'STANDARD_LWC' || type === 'CORE_ALL' || type === 'CORE_PARTIAL';
 
@@ -28,89 +33,52 @@ export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX
 
 /**
  * @param root
- * @returns WorkspaceType for singular root
+ * @param fs
+ * @returns WorkspaceType for a singular root
  */
-export const detectWorkspaceHelper = async (
-  root: string,
-  fileSystemAccessor: LspFileSystemAccessor
-): Promise<WorkspaceType> => {
-  try {
-    const sfdxProjectFile = getSfdxProjectFile(root);
-    const fileStat = await fileSystemAccessor.getFileStat(sfdxProjectFile);
-
-    if (fileStat?.type === 'file') {
-      return 'SFDX';
-    }
-  } catch {
-    // File doesn't exist, continue
+export const detectWorkspaceHelper = async (root: string, fs: WorkspaceFileSystem): Promise<WorkspaceType> => {
+  if (await fs.fileExists(getSfdxProjectFile(root))) {
+    return 'SFDX';
+  }
+  if (await fs.fileExists(path.join(root, 'workspace-user.xml'))) {
+    return 'CORE_ALL';
+  }
+  if (await fs.fileExists(path.join(root, '..', 'workspace-user.xml'))) {
+    return 'CORE_PARTIAL';
+  }
+  if (await fs.fileExists(path.join(root, 'lwc.config.json'))) {
+    return 'STANDARD_LWC';
   }
 
-  try {
-    const fileStat = await fileSystemAccessor.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
-    if (fileStat?.type === 'file') {
-      return 'CORE_ALL';
-    }
-  } catch {
-    // File doesn't exist, continue
-  }
-
-  try {
-    const parentWorkspaceUserUri = path.join(root, '..', 'workspace-user.xml');
-    const fileStat = await fileSystemAccessor.getFileStat(`${parentWorkspaceUserUri}`);
-    if (fileStat?.type === 'file') {
-      return 'CORE_PARTIAL';
-    }
-  } catch {
-    // File doesn't exist, continue
-  }
-
-  try {
-    const lwcConfigUri = path.join(root, 'lwc.config.json');
-    const fileStat = await fileSystemAccessor.getFileStat(`${lwcConfigUri}`);
-    if (fileStat?.type === 'file') {
-      return 'STANDARD_LWC';
-    }
-  } catch {
-    // File doesn't exist, continue
-  }
-
-  try {
-    const packageInfo = await readPackageJson(root, fileSystemAccessor);
-    if (!packageInfo) {
-      throw new Error('Package info not found');
-    }
-    const dependencies = Object.keys(packageInfo.dependencies ?? {});
-    const devDependencies = Object.keys(packageInfo.devDependencies ?? {});
-    const allDependencies: string[] = [...dependencies, ...devDependencies];
-    const hasLWCdependencies = allDependencies.some(key => key.startsWith('@lwc/') || key === 'lwc');
-
-    // any type of @lwc is a dependency
-    if (hasLWCdependencies) {
-      return 'STANDARD_LWC';
-    }
-
-    // has any type of lwc configuration
-    if (packageInfo.lwc) {
-      return 'STANDARD_LWC';
-    }
-
-    if (packageInfo.workspaces) {
-      return 'MONOREPO';
-    }
-
+  const packageJsonContent = await fs.readFileContent(path.join(root, 'package.json'));
+  if (packageJsonContent) {
     try {
-      const lernaJsonUri = path.join(root, 'lerna.json');
-      const fileStat = await fileSystemAccessor.getFileStat(`${lernaJsonUri}`);
-      if (fileStat?.type === 'file') {
-        return 'MONOREPO';
+      const parsed: unknown = JSON.parse(packageJsonContent);
+      const packageInfo = isPackageJson(parsed) ? parsed : undefined;
+      if (packageInfo) {
+        const allDeps = [
+          ...Object.keys(packageInfo.dependencies ?? {}),
+          ...Object.keys(packageInfo.devDependencies ?? {})
+        ];
+        if (allDeps.some(k => k.startsWith('@lwc/') || k === 'lwc')) {
+          return 'STANDARD_LWC';
+        }
+        if (packageInfo.lwc) {
+          return 'STANDARD_LWC';
+        }
+        if (packageInfo.workspaces) {
+          return 'MONOREPO';
+        }
+        if (await fs.fileExists(path.join(root, 'lerna.json'))) {
+          return 'MONOREPO';
+        }
+        return 'STANDARD';
       }
-    } catch {
-      // File doesn't exist, continue
+    } catch (e) {
+      console.error(
+        `Error encountered while trying to detect workspace type: ${e instanceof Error ? e.message : String(e)}`
+      );
     }
-
-    return 'STANDARD';
-  } catch {
-    // Log error and fallback to setting workspace type to Unknown
   }
 
   return 'UNKNOWN';

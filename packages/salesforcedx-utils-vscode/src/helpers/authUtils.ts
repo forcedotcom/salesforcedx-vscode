@@ -22,8 +22,12 @@ export interface SharedAuthState {
 }
 
 const getActiveCoreExtension = (): SharedAuthState | undefined => {
-  const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
-  return coreExtension?.isActive && coreExtension.exports?.sharedAuthState ? coreExtension.exports.sharedAuthState : undefined;
+  const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>(
+    'salesforce.salesforcedx-vscode-core'
+  );
+  return coreExtension?.isActive && coreExtension.exports?.sharedAuthState
+    ? coreExtension.exports.sharedAuthState
+    : undefined;
 };
 /**
  * Gets the shared login prompt promise for a username from the Core extension.

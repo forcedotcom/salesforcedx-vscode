@@ -28,7 +28,9 @@ class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
 
   public build(data: AuthDevHubParams): Command {
-    const command = new SfCommandBuilder().withDescription(getVerificationCodeDescription(nls.localize('org_login_web_authorize_dev_hub_text')));
+    const command = new SfCommandBuilder().withDescription(
+      getVerificationCodeDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
+    );
 
     command
       .withArg(ORG_LOGIN_WEB)

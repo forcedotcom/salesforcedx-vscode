@@ -6,7 +6,12 @@
  */
 
 import { test as webTest } from '@playwright/test';
-import { desktopTest, dreamhouseDesktopTest, nonTrackingDesktopTest, trackingConflictTest as trackingConflictDesktopTest } from './desktopFixtures';
+import {
+  desktopTest,
+  dreamhouseDesktopTest,
+  nonTrackingDesktopTest,
+  trackingConflictTest as trackingConflictDesktopTest
+} from './desktopFixtures';
 import { webTrackingConflictTest } from './webConflictFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';

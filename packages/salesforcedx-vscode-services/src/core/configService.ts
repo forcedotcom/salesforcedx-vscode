@@ -83,24 +83,26 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
     });
 
     /** Returns true if the given username/aliases match the currently configured target org */
-    const isCurrentTargetOrg = Effect.fn('ConfigService.isCurrentTargetOrg')(
-      function* (username: string, aliases: readonly string[]) {
-        const agg = yield* getConfigAggregator();
-        const targetOrgOrAlias = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
-        if (!targetOrgOrAlias) return false;
-        return targetOrgOrAlias === username || aliases.includes(targetOrgOrAlias);
-      }
-    );
+    const isCurrentTargetOrg = Effect.fn('ConfigService.isCurrentTargetOrg')(function* (
+      username: string,
+      aliases: readonly string[]
+    ) {
+      const agg = yield* getConfigAggregator();
+      const targetOrgOrAlias = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
+      if (!targetOrgOrAlias) return false;
+      return targetOrgOrAlias === username || aliases.includes(targetOrgOrAlias);
+    });
 
     /** Returns true if the given username/aliases match the currently configured target dev hub */
-    const isCurrentTargetDevHub = Effect.fn('ConfigService.isCurrentTargetDevHub')(
-      function* (username: string, aliases: readonly string[]) {
-        const agg = yield* getConfigAggregator();
-        const targetDevHubOrAlias = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
-        if (!targetDevHubOrAlias) return false;
-        return targetDevHubOrAlias === username || aliases.includes(targetDevHubOrAlias);
-      }
-    );
+    const isCurrentTargetDevHub = Effect.fn('ConfigService.isCurrentTargetDevHub')(function* (
+      username: string,
+      aliases: readonly string[]
+    ) {
+      const agg = yield* getConfigAggregator();
+      const targetDevHubOrAlias = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
+      if (!targetDevHubOrAlias) return false;
+      return targetDevHubOrAlias === username || aliases.includes(targetDevHubOrAlias);
+    });
 
     /** Unsets target-org from the local project config and clears the reactive org state */
     const unsetTargetOrg = Effect.fn('ConfigService.unsetTargetOrg')(function* () {
@@ -119,6 +121,14 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       yield* invalidateConfigAggregator();
     });
 
-    return { getConfigAggregator, invalidateConfigAggregator, getTargetDevHub, isCurrentTargetOrg, isCurrentTargetDevHub, unsetTargetOrg, unsetTargetDevHub };
+    return {
+      getConfigAggregator,
+      invalidateConfigAggregator,
+      getTargetDevHub,
+      isCurrentTargetOrg,
+      isCurrentTargetDevHub,
+      unsetTargetOrg,
+      unsetTargetDevHub
+    };
   })
 }) {}

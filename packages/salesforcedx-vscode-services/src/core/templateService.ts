@@ -86,7 +86,9 @@ const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
   const ext = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
   const extensionUri = ext?.extensionUri;
   if (!extensionUri) {
-    return yield* new TemplatesRootPathNotAvailableError({ message: nls.localize('template_service_extension_context_not_available') });
+    return yield* new TemplatesRootPathNotAvailableError({
+      message: nls.localize('template_service_extension_context_not_available')
+    });
   }
   return extensionUri;
 });
@@ -127,7 +129,11 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
         },
         catch: e =>
           new TemplatesManifestLoadError({
-            message: nls.localize('template_service_file_copy_failed', relativePath, e instanceof Error ? e.message : String(e)),
+            message: nls.localize(
+              'template_service_file_copy_failed',
+              relativePath,
+              e instanceof Error ? e.message : String(e)
+            ),
             cause: e
           })
       }).pipe(
@@ -148,7 +154,12 @@ const getApiVersionFromProject = Effect.fn('TemplateService.getApiVersionFromPro
   const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
   return yield* Effect.fromNullable(sourceApiVersion).pipe(
     Effect.map(String),
-    Effect.orElseFail(() => new MissingProjectSourceApiVersionError({ message: nls.localize('template_service_source_api_version_not_defined') }))
+    Effect.orElseFail(
+      () =>
+        new MissingProjectSourceApiVersionError({
+          message: nls.localize('template_service_source_api_version_not_defined')
+        })
+    )
   );
 });
 

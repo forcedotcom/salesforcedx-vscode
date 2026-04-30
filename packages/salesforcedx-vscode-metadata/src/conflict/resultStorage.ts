@@ -178,7 +178,9 @@ export const buildTimestampIndexFromDir = Effect.fn('resultStorage.buildTimestam
     // Group by component key; first entry wins because rows are sorted newest-first.
     Effect.map(sortedArray => Object.groupBy(sortedArray, (x: TimestampRow) => x.key)),
     // Delete stale files in the background — best-effort, must not block the caller.
-    Effect.tap(bk => Effect.forkDaemon(Effect.forEach(getStaleUris(bk, allJsonUris), uri => fs.safeDelete(uri.toUri()))))
+    Effect.tap(bk =>
+      Effect.forkDaemon(Effect.forEach(getStaleUris(bk, allJsonUris), uri => fs.safeDelete(uri.toUri())))
+    )
   );
 
   return new Map(Object.entries(byKey).map(([key, rows]) => [key, rows![0].lastModifiedDate]));

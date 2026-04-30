@@ -38,11 +38,10 @@ describe('ApexTestDiscoveryStore', () => {
     const snapshot = store.readDiscoveredClassesIndex('org123');
 
     expect(createDirectoryInternal).toHaveBeenCalled();
-    expect(writeFileInternal).toHaveBeenCalledWith(
-      getApexTestingClassUri('org123', 'MyTest'),
-      expect.any(Uint8Array),
-      { create: true, overwrite: true }
-    );
+    expect(writeFileInternal).toHaveBeenCalledWith(getApexTestingClassUri('org123', 'MyTest'), expect.any(Uint8Array), {
+      create: true,
+      overwrite: true
+    });
     expect(readFile).toHaveBeenCalledWith(getOrgIndexUri('org123'));
     expect(snapshot?.classes).toEqual(classes);
   });

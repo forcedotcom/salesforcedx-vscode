@@ -12,13 +12,9 @@ import {
   readDirectory
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../../messages';
-import { ContinueOrCancel, getComponentName, getComponentPath, isContinue, OneOrMany } from '../../util';
-import { isComponentName, isDirFileNameSelection } from '../../util/types';
-import {
-  checkForExistingComponentInAltLocation,
-  checkForDuplicateInComponent,
-  checkForDuplicateName
-} from './lwcAuraDuplicateDetectionUtils';
+import { ContinueOrCancel, getComponentPath, isContinue, OneOrMany } from '../../util';
+import { isComponentName } from '../../util/types';
+import { checkForDuplicateInComponent, checkForDuplicateName } from './lwcAuraDuplicateDetectionUtils';
 
 /*
  * Checks for existing component name between LWC and Aura during rename
@@ -55,31 +51,3 @@ export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionC
   }
 }
 
-/**
- * Checks for existing component name between LWC and Aura during create
- */
-export class LwcAuraDuplicateComponentCheckerForCreate implements PostconditionChecker<OneOrMany> {
-  public async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
-    if (!isContinue(inputs)) {
-      return inputs;
-    }
-    if (Array.isArray(inputs.data)) {
-      return { type: 'CANCEL', msg: nls.localize('create_not_supported') };
-    }
-
-    if (!isDirFileNameSelection(inputs.data)) {
-      return { type: 'CANCEL', msg: nls.localize('input_incorrect_properties') };
-    }
-
-    const componentPath = inputs.data.outputdir;
-    const componentName = getComponentName(inputs.data.fileName);
-    return checkForExistingComponentInAltLocation(componentPath, componentName).then(exists => {
-      if (exists) {
-        void notificationService.showErrorMessage(nls.localize('component_input_dup_error'));
-        return { type: 'CANCEL', msg: nls.localize('component_input_dup_error') };
-      }
-      // No duplicates found, continue with the process
-      return { type: 'CONTINUE', data: inputs.data };
-    });
-  }
-}

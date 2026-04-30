@@ -62,7 +62,8 @@ const makeMockFs = (
     Ref.update(deletedRef, arr => [...arr, typeof uri === 'string' ? uri : uri.toString()])
 });
 
-const provideServices = (mockFs: Partial<InstanceType<typeof FsService>>) =>
+const provideServices =
+  (mockFs: Partial<InstanceType<typeof FsService>>) =>
   <A, E, R>(e: Effect.Effect<A, E, R>) =>
     e.pipe(
       Effect.provideService(ExtensionProviderService, createMockExtensionProvider()),
@@ -70,10 +71,7 @@ const provideServices = (mockFs: Partial<InstanceType<typeof FsService>>) =>
     );
 
 /** Run an effect with mock services. Yields after completion so forkDaemon cleanup can execute. */
-const runWithMocks = <A>(
-  effect: Effect.Effect<A, unknown, unknown>,
-  mockFs: Partial<InstanceType<typeof FsService>>
-) =>
+const runWithMocks = <A>(effect: Effect.Effect<A, unknown, unknown>, mockFs: Partial<InstanceType<typeof FsService>>) =>
   Effect.runPromise(
     effect.pipe(
       // forkDaemon schedules cleanup outside the main fiber's execution; Effect.yieldNow()

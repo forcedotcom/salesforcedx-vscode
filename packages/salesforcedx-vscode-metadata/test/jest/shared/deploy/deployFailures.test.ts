@@ -22,7 +22,11 @@ const mockExtensionProvider: ExtensionProviderService = {
 
 const run = <A>(effect: Effect.Effect<A, unknown, unknown>) =>
   Effect.runPromise(
-    effect.pipe(Effect.provideService(ExtensionProviderService, mockExtensionProvider)) as Effect.Effect<A, never, never>
+    effect.pipe(Effect.provideService(ExtensionProviderService, mockExtensionProvider)) as Effect.Effect<
+      A,
+      never,
+      never
+    >
   );
 
 describe('getMergedDeployFailures', () => {

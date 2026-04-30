@@ -222,9 +222,11 @@ export class ApexTestController {
       const chunkIds = classIds.slice(start, start + chunkSize);
       const inClause = chunkIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
       const query = `SELECT Id, Name, NamespacePrefix, Body FROM ApexClass WHERE Id IN (${inClause})`;
-      const queryResult = await connection.tooling.query<{ Name: string; NamespacePrefix?: string | null; Body?: string | null }>(
-        query
-      );
+      const queryResult = await connection.tooling.query<{
+        Name: string;
+        NamespacePrefix?: string | null;
+        Body?: string | null;
+      }>(query);
       for (const record of queryResult.records) {
         const fullClassName = record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name;
         bodyByFullName.set(
@@ -376,7 +378,11 @@ export class ApexTestController {
 
       // Create parent "Apex Test Suites" node
       const suiteParentId = 'apex-test-suites-parent';
-      this.suiteParentItem = this.controller.createTestItem(suiteParentId, nls.localize('apex_test_suites_parent_text'), undefined);
+      this.suiteParentItem = this.controller.createTestItem(
+        suiteParentId,
+        nls.localize('apex_test_suites_parent_text'),
+        undefined
+      );
       if (this.suiteTag) {
         this.suiteParentItem.tags = [this.suiteTag];
       }
@@ -475,10 +481,9 @@ export class ApexTestController {
       const result = await getApexTestingRuntime().runPromise(
         Effect.gen(function* () {
           const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          return yield* api.services.MetadataRetrieveService.retrieve(
-            [{ type: 'ApexClass', fullName: className }],
-            { ignoreConflicts: true }
-          );
+          return yield* api.services.MetadataRetrieveService.retrieve([{ type: 'ApexClass', fullName: className }], {
+            ignoreConflicts: true
+          });
         })
       );
 

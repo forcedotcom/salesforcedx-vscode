@@ -68,13 +68,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   # ⚡ LWC Features
-  lwc-lsp:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'lwcLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # lwc-lsp: migrated to Playwright in lwcPlaywrightE2E.yml (lwcLspIndexing, lwcLspGoToDefinitionJs, lwcLspGoToDefinitionHtml, lwcLspAutocompletion)
 
   lwc-run-tests:
     uses: ./.github/workflows/runE2ETest.yml

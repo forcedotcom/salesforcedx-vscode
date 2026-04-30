@@ -65,7 +65,7 @@ See `references/full-suite-execution.md` for complete guide on running all E2E t
 
 To run only your new test in CI while iterating:
 
-1. **Disable other workflows** — add your branch to `branches-ignore` in `.github/workflows/*.yml` that have `push: branches-ignore: [main, develop]` (e.g. `testCommitExceptMain.yml`, `coreE2E.yml`, `orgBrowserE2E.yml`, etc.)
+1. **Disable other workflows** — add your branch to `branches-ignore` in `.github/workflows/*.yml` that have `push: branches-ignore: [main, develop]` (e.g. `testCommitExceptMain.yml`, `coreE2E.yml`, `orgBrowserE2E.yml`, `lwcPlaywrightE2E.yml`, etc.)
 2. **Filter target workflow** — add `--grep "Your Test Title"` to the test run command in the workflow you care about
 3. **Optional** — skip org setup steps not needed for your test (e.g. minimal/non-tracking orgs)
 4. **Restore** — remove branch from `branches-ignore`, remove `--grep`, uncomment skipped steps

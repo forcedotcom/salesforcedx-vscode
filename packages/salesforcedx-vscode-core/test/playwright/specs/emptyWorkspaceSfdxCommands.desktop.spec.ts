@@ -13,7 +13,10 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { desktopTest as testNoFolderOpen, folderWithoutSfdxProjectTest as testEmptyFolder } from '../fixtures/desktopFixtures';
+import {
+  desktopTest as testNoFolderOpen,
+  folderWithoutSfdxProjectTest as testEmptyFolder
+} from '../fixtures/desktopFixtures';
 
 const assertCreateProjectCommands = async (page: Parameters<typeof verifyCommandExists>[0]): Promise<void> => {
   await verifyCommandExists(page, packageNls.project_generate_text, 120_000);

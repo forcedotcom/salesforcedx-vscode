@@ -30,15 +30,6 @@ import {
   analyticsGenerateTemplate,
   configList,
   initSObjectDefinitions,
-  internalLightningGenerateApp,
-  internalLightningGenerateAuraComponent,
-  internalLightningGenerateEvent,
-  internalLightningGenerateInterface,
-  internalLightningGenerateLwc,
-  lightningGenerateApp,
-  lightningGenerateAuraComponent,
-  lightningGenerateEvent,
-  lightningGenerateInterface,
   agentProjectGenerate,
   nativemobileProjectGenerate,
   openDocumentation,
@@ -76,10 +67,6 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
-    vscode.commands.registerCommand('sf.lightning.generate.app', lightningGenerateApp),
-    vscode.commands.registerCommand('sf.lightning.generate.aura.component', lightningGenerateAuraComponent),
-    vscode.commands.registerCommand('sf.lightning.generate.event', lightningGenerateEvent),
-    vscode.commands.registerCommand('sf.lightning.generate.interface', lightningGenerateInterface),
     vscode.commands.registerCommand('sf.config.list', configList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
     vscode.commands.registerCommand('sf.agent.generate.project', agentProjectGenerate),
@@ -87,17 +74,6 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
     registerGetTelemetryServiceCommand()
-  );
-const registerInternalDevCommands = (): vscode.Disposable =>
-  vscode.Disposable.from(
-    vscode.commands.registerCommand(
-      'sf.internal.lightning.generate.aura.component',
-      internalLightningGenerateAuraComponent
-    ),
-    vscode.commands.registerCommand('sf.internal.lightning.generate.lwc', internalLightningGenerateLwc),
-    vscode.commands.registerCommand('sf.internal.lightning.generate.app', internalLightningGenerateApp),
-    vscode.commands.registerCommand('sf.internal.lightning.generate.event', internalLightningGenerateEvent),
-    vscode.commands.registerCommand('sf.internal.lightning.generate.interface', internalLightningGenerateInterface)
   );
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
@@ -121,9 +97,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await telemetryService.initializeService(extensionContext);
   void showTelemetryMessage(extensionContext);
 
-  // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
-  await vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
   // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();
@@ -156,9 +130,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   };
 
   if (internalDev) {
-    // Internal Dev commands
-    extensionContext.subscriptions.push(registerInternalDevCommands());
-
     telemetryService.sendExtensionActivationEvent(activationStartTime);
     reportExtensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');

@@ -1,9 +1,6 @@
 {
   "threshold": 0,
-  "reporters": [
-    "console",
-    "json"
-  ],
+  "reporters": ["console", "json"],
   "output": "./jscpd-report",
   "ignore": [
     "**/node_modules/**",
@@ -18,7 +15,5 @@
   ],
   "minLines": 5,
   "minTokens": 50,
-  "format": [
-    "typescript"
-  ]
+  "format": ["typescript"]
 }

@@ -44,6 +44,12 @@ import { NormalizedPath, normalizePath } from '../utils';
 const getEmptyDirectoryListing = (_uri: NormalizedPath): DirectoryEntry[] => [];
 
 /**
+ * True when `s` is already a document URI (`scheme:…`), including `memfs:/MyProject/…` (no `//` authority).
+ * Excludes Windows paths (`C:/…`) so they still go through path → URI conversion.
+ */
+const isDocumentUriString = (s: string): boolean => /^[a-z][\w+.-]*:/i.test(s) && !/^[A-Za-z]:[/\\]/i.test(s);
+
+/**
  * Convert a URI to a normalized file path.
  * Web uses memfs (single scheme); desktop uses file://. Pass the workspace folder URI when in web to align path extraction.
  */
@@ -198,10 +204,10 @@ export class LspFileSystemAccessor {
 
   public async getFileContent(uri: string): Promise<string | undefined> {
     if (this.connection) {
-      // If the caller already provides a full URI (e.g. an extension resource URI), use it as-is.
+      // If the caller already provides a full URI (e.g. file:///…, memfs:/MyProject/…), use it as-is.
       // Otherwise convert the filesystem path to the correct URI for the current workspace scheme.
-      const fileUri = uri.includes('://') ? uri : getFileUriForPath(normalizePath(uri), this.workspaceFolderUri);
-      const key = uri.includes('://') ? uri : normalizePath(uri);
+      const fileUri = isDocumentUriString(uri) ? uri : getFileUriForPath(normalizePath(uri), this.workspaceFolderUri);
+      const key = isDocumentUriString(uri) ? uri : normalizePath(uri);
       const params: WorkspaceReadFileParams = { uri: URI.parse(fileUri) };
       const result = await this.connection.sendRequest<WorkspaceReadFileResult>(WORKSPACE_READ_FILE_REQUEST, params);
       if (result.error) {
@@ -214,15 +220,18 @@ export class LspFileSystemAccessor {
   }
 
   public async getFileStat(uri: string): Promise<FileStat | undefined> {
-    const key = normalizePath(uri);
-    if (this.connection) {
-      const fileUri = getFileUriForPath(key, this.workspaceFolderUri);
-      const params: WorkspaceStatParams = { uri: URI.parse(fileUri) };
-      const result = await this.connection.sendRequest<WorkspaceStatResult>(WORKSPACE_STAT_REQUEST, params);
-      if (result.error) return undefined;
-      return result.stat;
+    if (!this.connection) {
+      return undefined;
     }
-    return undefined;
+    // Match getFileContent: callers pass full DocumentUris (file:///…, memfs:/MyProject/…). Do not run
+    // getFileUriForPath + URI.file() on those — especially memfs, which uses a single slash after the scheme.
+    const fileUri = isDocumentUriString(uri) ? uri : getFileUriForPath(normalizePath(uri), this.workspaceFolderUri);
+    const params: WorkspaceStatParams = { uri: URI.parse(fileUri) };
+    const result = await this.connection.sendRequest<WorkspaceStatResult>(WORKSPACE_STAT_REQUEST, params);
+    if (result.error) {
+      return undefined;
+    }
+    return result.stat;
   }
 
   public async fileExists(uri: string): Promise<boolean> {

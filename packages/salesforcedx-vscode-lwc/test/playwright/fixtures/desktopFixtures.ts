@@ -5,21 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-
 import { createDesktopTest, createTestWorkspace } from '@salesforce/playwright-vscode-ext';
+
+import { seedLwcHeadlessWorkspaceSupplement, seedSnippetsE2eEmptyBundle } from '../utils/createLwcTestWorkspace';
 
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
-  disableOtherExtensions: false
+  disableOtherExtensions: false,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata']
 }).extend({
   workspaceDir: async ({}, use) => {
     const dir = await createTestWorkspace(undefined);
-    const bundleDir = path.join(dir, 'force-app', 'main', 'default', 'lwc', 'snippetsE2E');
-    await fs.mkdir(bundleDir, { recursive: true });
-    await fs.writeFile(path.join(bundleDir, 'snippetsE2E.html'), '', 'utf8');
-    await fs.writeFile(path.join(bundleDir, 'snippetsE2E.js'), '', 'utf8');
+    await seedLwcHeadlessWorkspaceSupplement(dir);
+    await seedSnippetsE2eEmptyBundle(dir);
     await use(dir);
   }
 });

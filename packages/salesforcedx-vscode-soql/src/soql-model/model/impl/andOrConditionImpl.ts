@@ -13,7 +13,7 @@ export class AndOrConditionImpl implements AndOrCondition {
     public leftCondition: Condition,
     public andOr: AndOr,
     public rightCondition: Condition
-  ) { }
+  ) {}
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return `${this.leftCondition.toSoqlSyntax(options)} ${this.andOr} ${this.rightCondition.toSoqlSyntax(options)}`;
   }

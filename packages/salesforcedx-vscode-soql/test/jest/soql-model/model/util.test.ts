@@ -50,10 +50,7 @@ describe('SoqlModelUtils should', () => {
     const actual = SoqlModelUtils.isUnmodeledSyntax(
       new QueryImpl(
         new SelectExprsImpl([
-          new FieldSelectionImpl(
-            new FieldRefImpl('field1'),
-            new UnmodeledSyntaxImpl('alias1', REASON_UNMODELED_ALIAS)
-          )
+          new FieldSelectionImpl(new FieldRefImpl('field1'), new UnmodeledSyntaxImpl('alias1', REASON_UNMODELED_ALIAS))
         ]),
         new FromImpl('object1')
       )
@@ -64,10 +61,7 @@ describe('SoqlModelUtils should', () => {
     const actual = SoqlModelUtils.containsUnmodeledSyntax(
       new QueryImpl(
         new SelectExprsImpl([
-          new FieldSelectionImpl(
-            new FieldRefImpl('field1'),
-            new UnmodeledSyntaxImpl('alias1', REASON_UNMODELED_ALIAS)
-          )
+          new FieldSelectionImpl(new FieldRefImpl('field1'), new UnmodeledSyntaxImpl('alias1', REASON_UNMODELED_ALIAS))
         ]),
         new FromImpl('object1')
       )
@@ -148,11 +142,7 @@ describe('SoqlModelUtils should', () => {
       // mixing AND and OR
       new AndOrConditionImpl(conditionFieldCompare, AndOr.Or, conditionAndOr),
       // combined simple groups
-      new AndOrConditionImpl(
-        new NestedConditionImpl(conditionAndOr),
-        AndOr.Or,
-        new NestedConditionImpl(conditionAndOr)
-      )
+      new AndOrConditionImpl(new NestedConditionImpl(conditionAndOr), AndOr.Or, new NestedConditionImpl(conditionAndOr))
     ];
     let actual = true;
     nonSimpleGroups.forEach(condition => (actual &&= !SoqlModelUtils.isSimpleGroup(condition)));

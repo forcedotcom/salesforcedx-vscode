@@ -11,7 +11,6 @@ import {
   LibraryCommandletExecutor,
   ParametersGatherer,
   SfCommandlet,
-  getYYYYMMddHHmmssDateFormat,
   hasRootWorkspace,
   projectPaths,
   createDirectory,
@@ -20,11 +19,24 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
+import { format } from 'node:util';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { AllServicesLayer } from '../services/extensionProvider';
+
+export const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
+
+export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
+  const month2Digit = makeDoubleDigit(localUTCDate.getMonth() + 1);
+  const date2Digit = makeDoubleDigit(localUTCDate.getDate());
+  const hour2Digit = makeDoubleDigit(localUTCDate.getHours());
+  const mins2Digit = makeDoubleDigit(localUTCDate.getMinutes());
+  const sec2Digit = makeDoubleDigit(localUTCDate.getSeconds());
+
+  return `${localUTCDate.getFullYear()}${month2Digit}${date2Digit}${hour2Digit}${mins2Digit}${sec2Digit}`;
+};
 
 type ApexExecuteParameters = {
   apexCode?: string;

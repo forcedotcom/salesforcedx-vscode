@@ -42,12 +42,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
   accessors: true,
   dependencies: [],
   effect: Effect.gen(function* () {
-    /**
-     * Get a value from settings
-     * @param section The settings section
-     * @param key The settings key
-     * @param defaultValue Optional default value
-     */
     const getValue = Effect.fn('SettingsService.getValue')(function* <T>(
       section: string,
       key: string,
@@ -70,12 +64,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       });
     });
 
-    /**
-     * Set a value in settings
-     * @param section The settings section
-     * @param key The settings key
-     * @param value The value to set
-     */
     const setValue = Effect.fn('SettingsService.setValue')(function* <T>(
       section: string,
       key: string,
@@ -98,9 +86,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       });
     });
 
-    /**
-     * Get the Salesforce instance URL from settings
-     */
     const getInstanceUrl = Effect.fn('SettingsService.getInstanceUrl')(function* () {
       return yield* Effect.try({
         try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim(),
@@ -116,9 +101,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       }).pipe(Effect.flatMap(isNonEmptyString(INSTANCE_URL_KEY)));
     });
 
-    /**
-     * Get the Salesforce access token from settings
-     */
     const getAccessToken = Effect.fn('SettingsService.getAccessToken')(function* () {
       return yield* Effect.try({
         try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY)?.trim(),
@@ -134,9 +116,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY)));
     });
 
-    /**
-     * Get the Salesforce API version from settings.  In the form of '64.0'
-     */
     const getApiVersion = Effect.fn('SettingsService.getApiVersion')(function* () {
       return yield* Effect.try({
         try: () => {
@@ -156,9 +135,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       });
     });
 
-    /**
-     * Set the Salesforce instance URL in settings
-     */
     const setInstanceUrl = Effect.fn('SettingsService.setInstanceUrl')(function* (url: string) {
       return yield* Effect.tryPromise({
         try: async () => {
@@ -177,9 +153,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       });
     });
 
-    /**
-     * Set the Salesforce access token in settings
-     */
     const setAccessToken = Effect.fn('SettingsService.setAccessToken')(function* (token: string) {
       return yield* Effect.tryPromise({
         try: async () => {
@@ -198,9 +171,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       });
     });
 
-    /**
-     * Set the Salesforce API version in settings
-     */
     const setApiVersion = Effect.fn('SettingsService.setApiVersion')(function* (version: string) {
       return yield* Effect.tryPromise({
         try: async () => {
@@ -219,7 +189,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       });
     });
 
-    /** Get the retrieve on load setting value */
     const getRetrieveOnLoad = Effect.fn('SettingsService.getRetrieveOnLoad')(function* () {
       return yield* Effect.try({
         try: () => {
@@ -238,16 +207,31 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       });
     });
 
+    const getInternalDev = Effect.fn('SettingsService.getInternalDev')(function* () {
+      return (yield* getValue<boolean>('salesforcedx-vscode-core', 'internal-development', false)) ?? false;
+    });
+
     return {
+      /** Get a value from settings. @param section The settings section @param key The settings key @param defaultValue Optional default value */
       getValue,
+      /** Set a value in settings. @param section The settings section @param key The settings key @param value The value to set */
       setValue,
+      /** Get the Salesforce instance URL from settings */
       getInstanceUrl,
+      /** Get the Salesforce access token from settings */
       getAccessToken,
+      /** Get the Salesforce API version from settings. In the form of '64.0' */
       getApiVersion,
+      /** Set the Salesforce instance URL in settings */
       setInstanceUrl,
+      /** Set the Salesforce access token in settings */
       setAccessToken,
+      /** Set the Salesforce API version in settings */
       setApiVersion,
-      getRetrieveOnLoad
+      /** Get the retrieve on load setting value */
+      getRetrieveOnLoad,
+      /** Read the salesforcedx-vscode-core.internal-development setting */
+      getInternalDev
     };
   })
 }) {}

@@ -22,7 +22,7 @@ This extension is part of the Salesforce Extensions for VS Code package.
 ## Settings
 
 | Setting | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `salesforcedx-vscode-core.push-or-deploy-on-save.enabled` | boolean | `false` | Specifies whether or not to automatically deploy when a local source file is saved. |
 | `salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush` | boolean | `false` | Specifies whether to always use --ignore-conflicts when deploy-on-save runs |
 | `salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve` | boolean | `false` | When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts. |
