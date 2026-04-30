@@ -34,7 +34,12 @@ test.describe('Aura Templates (Desktop Only)', () => {
     await waitForWorkspaceReady(page);
   });
 
-  const createAuraTemplate = async (page: import('@playwright/test').Page, command: string, name: string, expectedFiles: string[]) => {
+  const createAuraTemplate = async (
+    page: import('@playwright/test').Page,
+    command: string,
+    name: string,
+    expectedFiles: string[]
+  ) => {
     await test.step(`Create Aura ${name}`, async () => {
       await verifyCommandExists(page, command, 30_000);
       await executeCommandWithCommandPalette(page, command);

@@ -113,6 +113,7 @@ jobs:
       fail-fast: false
     env:
       VSCODE_DESKTOP: 1
+      E2E_FROM_VSIX: 1
       PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository

@@ -10,7 +10,7 @@ runs:
     - uses: actions/cache/restore@v4
       id: restore
       with:
-        path: .vscode-test
+        path: .vscode-test/vscode-*
         key: vscode-desktop-${{ runner.os }}-${{ inputs.vscode-version }}
         restore-keys: vscode-desktop-${{ runner.os }}-
     - shell: bash
@@ -27,5 +27,5 @@ runs:
     - uses: actions/cache/save@v4
       if: always() && steps.restore.outputs.cache-hit != 'true'
       with:
-        path: .vscode-test
+        path: .vscode-test/vscode-*
         key: vscode-desktop-${{ runner.os }}-${{ inputs.vscode-version }}

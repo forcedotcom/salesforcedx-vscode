@@ -29,13 +29,6 @@ test('Create Project: standard project via command palette', async ({ page, work
 
   await test.step('close workspace to reach empty state', async () => {
     await prepareNoFolderOpenForPaletteTests(page);
-
-    // Closing workspace disables extensions - click reload button to re-enable
-    const reloadButton = page.getByRole('button', { name: /Reload and Enable Extensions/i });
-    await reloadButton.waitFor({ state: 'visible', timeout: 10_000 });
-    await reloadButton.click();
-    await page.waitForTimeout(3000); // Wait for extensions to reload
-
     await saveScreenshot(page, 'createProject.01-empty-workspace.png');
   });
 
