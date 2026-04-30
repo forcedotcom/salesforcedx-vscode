@@ -21,7 +21,6 @@ import {
   activeQuickInputWidget,
   ensureSecondarySideBarHidden,
   waitForQuickInputFirstOption,
-  isMacDesktop,
   EDITOR
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
@@ -86,12 +85,10 @@ test('Analytics Templates: creates sample template via command palette and explo
     await saveScreenshot(page, `analytics-${name}-created.png`);
   });
 
-  await test.step('create analytics template via explorer context menu', async step => {
-    step.skip(isMacDesktop(), 'Explorer context menu not available on Mac Desktop');
-
+  await test.step('create analytics template via explorer context menu', async () => {
     const name = `AnalyticsExplorer${Date.now()}`;
     await executeCommandWithCommandPalette(page, 'View: Close All Editors');
-    await executeExplorerContextMenuCommand(page, /^waveTemplates$/, packageNls.analytics_generate_template_text);
+    await executeExplorerContextMenuCommand(page, /^waveTemplates\b/, packageNls.analytics_generate_template_text);
     await enterTemplateName(page, name);
     await verifyGeneratedTemplate(page, name);
     await saveScreenshot(page, `analytics-${name}-created.png`);

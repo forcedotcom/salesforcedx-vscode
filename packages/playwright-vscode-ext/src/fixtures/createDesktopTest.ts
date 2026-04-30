@@ -90,6 +90,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       await fs.mkdir(userDataDir, { recursive: true });
       const effectiveUserSettings = {
         'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
+        'window.menuStyle': 'custom', // Keep context menus in the DOM so Playwright can interact with them on macOS.
         'settingsSync.enabled': false, // Prevent Settings Sync from overwriting test settings
         'salesforcedx-vscode-salesforcedx.enableFileTraces': true,
         // Avoid GitHub/Git prompts opening the system browser during local E2E (oauth, autofetch, etc.)
