@@ -11,6 +11,7 @@ import {
   prepareNoFolderOpenForPaletteTests,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
+  isDesktop,
   saveScreenshot,
   verifyCommandExists,
   waitForQuickInputFirstOption
@@ -22,82 +23,85 @@ import { emptyWorkspaceDesktopTest as test } from '../fixtures';
 
 const PROJECT_NAME = `TestProject${Date.now()}`;
 
-test('Create Project: standard project via command palette', async ({ page, workspaceDir }) => {
-  test.setTimeout(120_000);
+(isDesktop() ? test : test.skip.bind(test))(
+  'Create Project: standard project via command palette',
+  async ({ page, workspaceDir }) => {
+    test.setTimeout(120_000);
 
-  const targetDir = path.dirname(workspaceDir);
+    const targetDir = path.dirname(workspaceDir);
 
-  await test.step('close workspace to reach empty state', async () => {
-    await prepareNoFolderOpenForPaletteTests(page);
+    await test.step('close workspace to reach empty state', async () => {
+      await prepareNoFolderOpenForPaletteTests(page);
 
-    // Closing workspace disables extensions - click reload button to re-enable
-    const reloadButton = page.getByRole('button', { name: /Reload and Enable Extensions/i });
-    await reloadButton.waitFor({ state: 'visible', timeout: 10_000 });
-    await reloadButton.click();
-    await page.waitForTimeout(3000); // Wait for extensions to reload
+      // Closing workspace disables extensions - click reload button to re-enable
+      const reloadButton = page.getByRole('button', { name: /Reload and Enable Extensions/i });
+      await reloadButton.waitFor({ state: 'visible', timeout: 10_000 });
+      await reloadButton.click();
+      await page.waitForTimeout(3000); // Wait for extensions to reload
 
-    await saveScreenshot(page, 'createProject.01-empty-workspace.png');
-  });
-
-  await test.step('verify Create Project command available', async () => {
-    await verifyCommandExists(page, packageNls.project_generate_text, 120_000);
-  });
-
-  await test.step('run Create Project, select Standard template', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.project_generate_text);
-    await waitForQuickInputFirstOption(page, {
-      quickInputVisibleTimeout: 30_000,
-      optionVisibleTimeout: 15_000,
-      retryTimeout: 60_000
+      await saveScreenshot(page, 'createProject.01-empty-workspace.png');
     });
 
-    const standardRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Standard/ });
-    await standardRow.waitFor({ state: 'visible', timeout: 20_000 });
-    await standardRow.click();
-    await saveScreenshot(page, 'createProject.02-standard-selected.png');
-  });
+    await test.step('verify Create Project command available', async () => {
+      await verifyCommandExists(page, packageNls.project_generate_text, 120_000);
+    });
 
-  await test.step('enter project name', async () => {
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await page.keyboard.type(PROJECT_NAME);
-    await saveScreenshot(page, 'createProject.03-name-entered.png');
-    await page.keyboard.press('Enter');
-  });
+    await test.step('run Create Project, select Standard template', async () => {
+      await executeCommandWithCommandPalette(page, packageNls.project_generate_text);
+      await waitForQuickInputFirstOption(page, {
+        quickInputVisibleTimeout: 30_000,
+        optionVisibleTimeout: 15_000,
+        retryTimeout: 60_000
+      });
 
-  await test.step('select folder in simple dialog', async () => {
-    // files.simpleDialog.enable=true replaces native OS dialog with VS Code quick-input folder picker
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
-    await saveScreenshot(page, 'createProject.04-folder-dialog.png');
+      const standardRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Standard/ });
+      await standardRow.waitFor({ state: 'visible', timeout: 20_000 });
+      await standardRow.click();
+      await saveScreenshot(page, 'createProject.02-standard-selected.png');
+    });
 
-    // Use .fill() to set path directly (avoids autocomplete issues with keyboard.type).
-    // Trailing sep forces the simple dialog to navigate INTO the directory immediately.
-    // Without it, Windows shows the parent dir with the folder highlighted, then auto-navigates
-    // after a debounce - clicking "Create Project" during that transition doesn't register.
-    const input = quickInput.locator('input.input');
-    const targetPath = `${targetDir}${path.sep}`;
-    await input.fill(targetPath);
+    await test.step('enter project name', async () => {
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+      await page.keyboard.type(PROJECT_NAME);
+      await saveScreenshot(page, 'createProject.03-name-entered.png');
+      await page.keyboard.press('Enter');
+    });
 
-    // Wait for dialog to show the directory contents (not just highlight the folder name)
-    await expect(quickInput.getByText('path does not exist')).not.toBeVisible({ timeout: 5000 });
-    await expect(input).toHaveValue(new RegExp(`${targetDir.replaceAll('\\', '\\\\')}[/\\\\]$`), { timeout: 5000 });
-    await saveScreenshot(page, 'createProject.05-folder-path-set.png');
+    await test.step('select folder in simple dialog', async () => {
+      // files.simpleDialog.enable=true replaces native OS dialog with VS Code quick-input folder picker
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
+      await saveScreenshot(page, 'createProject.04-folder-dialog.png');
 
-    // Click "Create Project" button (openLabel from extension's showOpenDialog call)
-    const createButton = quickInput.getByRole('button', { name: 'Create Project' });
-    await createButton.click();
-  });
+      // Use .fill() to set path directly (avoids autocomplete issues with keyboard.type).
+      // Trailing sep forces the simple dialog to navigate INTO the directory immediately.
+      // Without it, Windows shows the parent dir with the folder highlighted, then auto-navigates
+      // after a debounce - clicking "Create Project" during that transition doesn't register.
+      const input = quickInput.locator('input.input');
+      const targetPath = `${targetDir}${path.sep}`;
+      await input.fill(targetPath);
 
-  await test.step('verify project files on disk', async () => {
-    const projectDir = path.join(targetDir, PROJECT_NAME);
+      // Wait for dialog to show the directory contents (not just highlight the folder name)
+      await expect(quickInput.getByText('path does not exist')).not.toBeVisible({ timeout: 5000 });
+      await expect(input).toHaveValue(new RegExp(`${targetDir.replaceAll('\\', '\\\\')}[/\\\\]$`), { timeout: 5000 });
+      await saveScreenshot(page, 'createProject.05-folder-path-set.png');
 
-    // Poll for sfdx-project.json (project generation may take a moment)
-    await expect(async () => {
-      await fs.access(path.join(projectDir, 'sfdx-project.json'));
-    }).toPass({ timeout: 120_000 });
+      // Click "Create Project" button (openLabel from extension's showOpenDialog call)
+      const createButton = quickInput.getByRole('button', { name: 'Create Project' });
+      await createButton.click();
+    });
 
-    await fs.access(path.join(projectDir, 'force-app'));
-    await saveScreenshot(page, 'createProject.06-verified.png');
-  });
-});
+    await test.step('verify project files on disk', async () => {
+      const projectDir = path.join(targetDir, PROJECT_NAME);
+
+      // Poll for sfdx-project.json (project generation may take a moment)
+      await expect(async () => {
+        await fs.access(path.join(projectDir, 'sfdx-project.json'));
+      }).toPass({ timeout: 120_000 });
+
+      await fs.access(path.join(projectDir, 'force-app'));
+      await saveScreenshot(page, 'createProject.06-verified.png');
+    });
+  }
+);
