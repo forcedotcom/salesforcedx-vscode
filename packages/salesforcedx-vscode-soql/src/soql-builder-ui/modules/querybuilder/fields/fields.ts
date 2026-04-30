@@ -23,7 +23,8 @@ import {
   popDrillStack,
   extractRelOptions,
   extractChildRelOptions,
-  findReferenceTo
+  findReferenceTo,
+  stripTypeAnnotation
 } from '../services/drillUtils';
 
 export const SELECT_ALL_OPTION = 'ALL FIELDS';
@@ -69,6 +70,9 @@ export default class Fields extends LightningElement {
   private _baseFields: string[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _sobjectMetadata: any = null;
+  // Full metadata of the current subquery sObject — used to resolve → referenceTo when inside a subquery
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private _subquerySObjectMeta: any = null;
   private _relOptions: RelOption[] = [];
   private _childRelOptions: ChildRelOption[] = [];
 
@@ -85,15 +89,20 @@ export default class Fields extends LightningElement {
   }
 
   public get breadcrumbLabel(): string {
-    if (this._isDrilledIntoRel) return buildBreadcrumb(this._relDrillStack);
-    if (this._subDrillStack.length > 0) {
-      return this._subDrillStack.map(l => `${SUB_PREFIX}${l.relationshipName}`).join(' ');
-    }
-    return '';
+    const subPart = this._subDrillStack.length > 0
+      ? this._subDrillStack.map(l => `${SUB_PREFIX}${l.relationshipName}`).join(' ')
+      : '';
+    const relPart = this._isDrilledIntoRel ? buildBreadcrumb(this._relDrillStack) : '';
+    if (subPart && relPart) return `${subPart} ${relPart}`;
+    return subPart || relPart;
   }
 
   public get backArrow(): string {
-    return this._subDrillStack.length > 0 ? '→' : '←';
+    // In State 3 (both stacks), popping rel → returns toward subquery, so back is ←
+    // In State 2 (subquery only), going back goes forward in parent direction →
+    // In State 1 (rel only), going back goes ←
+    if (this._subDrillStack.length > 0 && !this._isDrilledIntoRel) return '→';
+    return '←';
   }
 
   public get activeRelationshipFields(): string[] {
@@ -167,12 +176,12 @@ export default class Fields extends LightningElement {
 
   private _updateDisplayOptions(): void {
     const relEntries = this._relOptions
-      .map(r => `${REL_PREFIX}${r.relationshipName}`)
+      .map(r => `${REL_PREFIX}${r.relationshipName} (${r.referenceTo[0] ?? ''})`)
       .sort((a, b) => a.localeCompare(b));
     // Hide ← entries once we've reached the maximum nesting depth
     const subEntries = this._subDrillStack.length < MAX_SUBQUERY_DEPTH
       ? this._childRelOptions
-        .map(c => `${SUB_PREFIX}${c.relationshipName}`)
+        .map(c => `${SUB_PREFIX}${c.relationshipName} (${c.childSObject})`)
         .sort((a, b) => a.localeCompare(b))
       : [];
     this._displayFields = [CLEAR_OPTION, SELECT_ALL_OPTION, SELECT_COUNT, ...this._baseFields, ...relEntries, ...subEntries];
@@ -196,6 +205,7 @@ export default class Fields extends LightningElement {
     // Store the sObject name on the current top of stack so back-navigation can reload it
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const sobjectName: string = metadata.name ?? '';
+    this._subquerySObjectMeta = metadata;
     if (this._subDrillStack.length > 0) {
       this._subDrillStack = this._subDrillStack.map((l, i) =>
         i === this._subDrillStack.length - 1 ? { ...l, childSObject: sobjectName } : l
@@ -208,10 +218,15 @@ export default class Fields extends LightningElement {
     const subEntries: string[] = this._subDrillStack.length < MAX_SUBQUERY_DEPTH
       ? ((metadata.childRelationships as any[]) || [])
         .filter((cr: any) => cr.relationshipName && cr.childSObject) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .map((cr: any) => `${SUB_PREFIX}${cr.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .map((cr: any) => `${SUB_PREFIX}${cr.relationshipName as string} (${cr.childSObject as string})`) // eslint-disable-line @typescript-eslint/no-explicit-any
         .sort((a, b) => a.localeCompare(b))
       : [];
-    this._displayFields = [...plain, ...subEntries];
+    // Also offer → parent relationships within this subquery sObject
+    const relEntries: string[] = (metadata.fields as any[])
+      .filter((f: any) => f.type === 'reference' && f.relationshipName && Array.isArray(f.referenceTo) && f.referenceTo.length) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .map((f: any) => `${REL_PREFIX}${f.relationshipName as string} (${(f.referenceTo as string[])[0]})`) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .sort((a, b) => a.localeCompare(b));
+    this._displayFields = [...plain, ...relEntries, ...subEntries];
   }
 
   public handleFieldSelection(e: CustomEvent): void {
@@ -219,9 +234,32 @@ export default class Fields extends LightningElement {
     const value: string = e.detail?.value;
     if (!value) return;
 
+    // State 3: inside a subquery AND following a → relationship within it
+    if (this._isDrilledIntoRel && this._subDrillStack.length > 0) {
+      if (value.startsWith(REL_PREFIX)) {
+        // Drill deeper up the rel chain within the subquery
+        const relName = stripTypeAnnotation(value.slice(REL_PREFIX.length));
+        const currentMeta = this._relDrillStack[this._relDrillStack.length - 1].metadata;
+        const referenceTo = findReferenceTo(currentMeta, relName);
+        if (!referenceTo) return;
+        this._relDrillStack = [...this._relDrillStack, { relationshipName: relName, referenceTo, metadata: null }];
+        this._displayFields = [];
+        this.dispatchEvent(new CustomEvent('fields__loadrelationship', { detail: { relationshipName: relName, referenceTo } }));
+      } else {
+        // Plain field — qualified relative to the rel stack, stored in the subquery
+        const relPrefix = buildQualifiedFieldName(this._relDrillStack, value);
+        const path = this._subDrillStack.map(l => l.relationshipName);
+        this.dispatchEvent(new CustomEvent('fields__subquerychanged', {
+          detail: { path, field: relPrefix }
+        }));
+      }
+      return;
+    }
+
+    // State 1: drilled into a top-level relationship (not inside a subquery)
     if (this._isDrilledIntoRel) {
       if (value.startsWith(REL_PREFIX)) {
-        const relName = value.slice(REL_PREFIX.length);
+        const relName = stripTypeAnnotation(value.slice(REL_PREFIX.length));
         const currentMeta = this._relDrillStack[this._relDrillStack.length - 1].metadata;
         const referenceTo = findReferenceTo(currentMeta, relName);
         if (!referenceTo) return;
@@ -241,10 +279,22 @@ export default class Fields extends LightningElement {
       return;
     }
 
+    // State 2: drilled into a subquery (no rel stack yet)
     if (this._subDrillStack.length > 0) {
+      if (value.startsWith(REL_PREFIX)) {
+        // Enter a → relationship within this subquery sObject
+        const relName = stripTypeAnnotation(value.slice(REL_PREFIX.length));
+        const referenceTo = findReferenceTo(this._subquerySObjectMeta, relName);
+        if (!referenceTo) return;
+        this._relDrillStack = [{ relationshipName: relName, referenceTo, metadata: null }];
+        this._displayFields = [];
+        this.dispatchEvent(new CustomEvent('fields__loadrelationship', { detail: { relationshipName: relName, referenceTo } }));
+        return;
+      }
       if (value.startsWith(SUB_PREFIX)) {
         // Drill deeper into a nested child subquery
-        const childRelName = value.slice(SUB_PREFIX.length);
+        if (this._subDrillStack.length >= MAX_SUBQUERY_DEPTH) return;
+        const childRelName = stripTypeAnnotation(value.slice(SUB_PREFIX.length));
         const topRelName = this._subDrillStack[0].relationshipName;
         this._subDrillStack = [...this._subDrillStack, { relationshipName: childRelName, childSObject: '' }];
         this._displayFields = [];
@@ -262,7 +312,7 @@ export default class Fields extends LightningElement {
     }
 
     if (value.startsWith(REL_PREFIX)) {
-      const relName = value.slice(REL_PREFIX.length);
+      const relName = stripTypeAnnotation(value.slice(REL_PREFIX.length));
       const rel = this._relOptions.find(r => r.relationshipName === relName);
       if (!rel) return;
       this._relDrillStack = [{ relationshipName: rel.relationshipName, referenceTo: rel.referenceTo, metadata: null }];
@@ -271,7 +321,7 @@ export default class Fields extends LightningElement {
         detail: { relationshipName: rel.relationshipName, referenceTo: rel.referenceTo }
       }));
     } else if (value.startsWith(SUB_PREFIX)) {
-      const relName = value.slice(SUB_PREFIX.length);
+      const relName = stripTypeAnnotation(value.slice(SUB_PREFIX.length));
       const child = this._childRelOptions.find(c => c.relationshipName === relName);
       if (!child) return;
       this._subDrillStack = [{ relationshipName: child.relationshipName, childSObject: child.childSObject }];
@@ -296,7 +346,30 @@ export default class Fields extends LightningElement {
     if (this._isDrilledIntoRel) {
       if (this._relDrillStack.length <= 1) {
         this._relDrillStack = [];
-        this._updateDisplayOptions();
+        if (this._subDrillStack.length > 0) {
+          // Return to State 2: restore the subquery sObject's display using cached metadata
+          if (this._subquerySObjectMeta) {
+            // Re-invoke the same logic as setSubqueryDrillMetadata to rebuild _displayFields
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const plain: string[] = (this._subquerySObjectMeta.fields as any[])
+              .map((f: any) => f.name as string) // eslint-disable-line @typescript-eslint/no-explicit-any
+              .sort();
+            const subEntries: string[] = this._subDrillStack.length < MAX_SUBQUERY_DEPTH
+              ? ((this._subquerySObjectMeta.childRelationships as any[]) || [])
+                .filter((cr: any) => cr.relationshipName && cr.childSObject) // eslint-disable-line @typescript-eslint/no-explicit-any
+                .map((cr: any) => `${SUB_PREFIX}${cr.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
+                .sort((a, b) => a.localeCompare(b))
+              : [];
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const relEntries: string[] = (this._subquerySObjectMeta.fields as any[])
+              .filter((f: any) => f.type === 'reference' && f.relationshipName) // eslint-disable-line @typescript-eslint/no-explicit-any
+              .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`) // eslint-disable-line @typescript-eslint/no-explicit-any
+              .sort((a, b) => a.localeCompare(b));
+            this._displayFields = [...plain, ...relEntries, ...subEntries];
+          }
+        } else {
+          this._updateDisplayOptions();
+        }
       } else {
         const newStack = popDrillStack(this._relDrillStack);
         this._relDrillStack = newStack;
@@ -306,6 +379,8 @@ export default class Fields extends LightningElement {
     } else if (this._subDrillStack.length > 0) {
       if (this._subDrillStack.length <= 1) {
         this._subDrillStack = [];
+        this._relDrillStack = [];
+        this._subquerySObjectMeta = null;
         this._updateDisplayOptions();
       } else {
         const newStack = this._subDrillStack.slice(0, -1);
