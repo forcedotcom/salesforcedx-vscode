@@ -105,12 +105,12 @@
             sobject-metadata={activeMetadata}
             ondetail__fieldschanged={handleDetailFieldsChanged}
             ondetail__navigate={handleDetailNavigate}
-            onwhere__group_selection={handleContextWhereSelection}
-            onwhere__andor_selection={handleAndOrSelection}
-            onwhere__condition_removed={handleRemoveWhereCondition}
-            onorderby__selected={handleContextOrderBySelected}
-            onorderby__removed={handleOrderByRemoved}
-            onlimit__changed={handleContextLimitChanged}
+            ondetail__limitchanged={handleContextLimitChanged}
+            ondetail__whereselection={handleContextWhereSelection}
+            ondetail__andorselection={handleContextAndOrSelection}
+            ondetail__whereremoved={handleContextWhereRemoved}
+            ondetail__orderbyselected={handleContextOrderBySelected}
+            ondetail__orderbyremoved={handleContextOrderByRemoved}
           ></querybuilder-detail-panel>
         </section>
       </article>

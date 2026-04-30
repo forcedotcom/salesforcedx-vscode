@@ -847,10 +847,35 @@ export default class App extends LightningElement {
       this.handleWhereSelection(e);
     } else {
       const ctx = this.modelService.getContextData(this.activeContextPath);
-      // Forward to context-aware setter
       this.modelService.setContextWhere(this.activeContextPath, {
         ...ctx.where,
         conditions: [...ctx.where.conditions, e.detail.fieldCompareExpr]
+      });
+    }
+  }
+
+  public handleContextAndOrSelection(e: CustomEvent): void {
+    if (this.activeContextPath.length === 0) {
+      this.handleAndOrSelection(e);
+    } else {
+      const ctx = this.modelService.getContextData(this.activeContextPath);
+      this.modelService.setContextWhere(this.activeContextPath, {
+        ...ctx.where,
+        andOr: e.detail
+      });
+    }
+  }
+
+  public handleContextWhereRemoved(e: CustomEvent): void {
+    if (this.activeContextPath.length === 0) {
+      this.handleRemoveWhereCondition(e);
+    } else {
+      const ctx = this.modelService.getContextData(this.activeContextPath);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const filtered = ctx.where.conditions.filter(c => c.index !== e.detail.index);
+      this.modelService.setContextWhere(this.activeContextPath, {
+        ...ctx.where,
+        conditions: filtered
       });
     }
   }
@@ -861,6 +886,17 @@ export default class App extends LightningElement {
     } else {
       const ctx = this.modelService.getContextData(this.activeContextPath);
       this.modelService.setContextOrderBy(this.activeContextPath, [...ctx.orderBy, e.detail]);
+    }
+  }
+
+  public handleContextOrderByRemoved(e: CustomEvent): void {
+    if (this.activeContextPath.length === 0) {
+      this.handleOrderByRemoved(e);
+    } else {
+      const ctx = this.modelService.getContextData(this.activeContextPath);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const filtered = ctx.orderBy.filter(ob => ob.field !== e.detail.field);
+      this.modelService.setContextOrderBy(this.activeContextPath, filtered);
     }
   }
 

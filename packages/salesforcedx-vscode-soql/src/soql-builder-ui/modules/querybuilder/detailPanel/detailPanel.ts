@@ -82,4 +82,28 @@ export default class DetailPanel extends LightningElement {
       detail: { fields: current }
     }));
   }
+
+  public handleLimitChanged(e: CustomEvent): void {
+    this.dispatchEvent(new CustomEvent('detail__limitchanged', { detail: e.detail }));
+  }
+
+  public handleWhereSelection(e: CustomEvent): void {
+    this.dispatchEvent(new CustomEvent('detail__whereselection', { detail: e.detail }));
+  }
+
+  public handleAndOrSelection(e: CustomEvent): void {
+    this.dispatchEvent(new CustomEvent('detail__andorselection', { detail: e.detail }));
+  }
+
+  public handleWhereRemoved(e: CustomEvent): void {
+    this.dispatchEvent(new CustomEvent('detail__whereremoved', { detail: e.detail }));
+  }
+
+  public handleOrderBySelected(e: CustomEvent): void {
+    this.dispatchEvent(new CustomEvent('detail__orderbyselected', { detail: e.detail }));
+  }
+
+  public handleOrderByRemoved(e: CustomEvent): void {
+    this.dispatchEvent(new CustomEvent('detail__orderbyremoved', { detail: e.detail }));
+  }
 }

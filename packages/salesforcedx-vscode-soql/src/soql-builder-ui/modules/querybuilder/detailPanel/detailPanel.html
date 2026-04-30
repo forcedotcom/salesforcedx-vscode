@@ -64,6 +64,9 @@
       where-fields={whereFields}
       is-loading={isLoading}
       sobject-metadata={sobjectMetadata}
+      onwhere__group_selection={handleWhereSelection}
+      onwhere__andor_selection={handleAndOrSelection}
+      onwhere__condition_removed={handleWhereRemoved}
     ></querybuilder-where>
 
     <querybuilder-order-by
@@ -72,11 +75,14 @@
       sobject-metadata={sobjectMetadata}
       has-error={hasOrderByError}
       is-loading={isLoading}
+      onorderby__selected={handleOrderBySelected}
+      onorderby__removed={handleOrderByRemoved}
     ></querybuilder-order-by>
 
     <querybuilder-limit
       limit={limit}
       has-error={hasLimitError}
+      onlimit__changed={handleLimitChanged}
     ></querybuilder-limit>
   </div>
 </template>
