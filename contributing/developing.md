@@ -181,6 +181,10 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 - Ignores [429 Too Many Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429)
   - We get 429 mostly from github as there are many URLs pointing to PRs etc in Changelog
 
+### `npm run check:actions`
+
+Validates `.github/workflows/*.yml` and `.github/actions/*/action.yml`.
+
 ### `npm run check:peer-deps`
 
 This runs [check-peer-dependencies](https://www.npmjs.com/package/check-peer-dependencies) which

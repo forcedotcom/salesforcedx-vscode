@@ -27,6 +27,7 @@
     "url": "0.11.4"
   },
   "devDependencies": {
+    "@action-validator/core": "0.6.0",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@effect/eslint-plugin": "0.3.2",
@@ -136,6 +137,7 @@
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
+    "check:actions": "wireit",
     "check:format:staged": "wireit",
     "check:knip": "wireit",
     "check:branch": "wireit",
@@ -365,6 +367,16 @@
       ],
       "output": []
     },
+    "check:actions": {
+      "command": "ts-node scripts/validateActions.ts",
+      "files": [
+        "scripts/validateActions.ts",
+        "scripts/tsconfig.json",
+        ".github/workflows/*.yml",
+        ".github/actions/*/action.yml"
+      ],
+      "output": []
+    },
     "check:knip": {
       "command": "npx knip --include exports,types,nsExports,nsTypes --no-config-hints",
       "dependencies": [
@@ -395,6 +407,7 @@
         "check:peer-deps",
         "check:package-lock",
         "check:lock-sync",
+        "check:actions",
         "check:knip"
       ]
     },
