@@ -8,7 +8,23 @@
 <template>
   <div class="detail-panel-container">
     <div class="detail-panel-header">
-      <label class="detail-panel-title">{panelTitle}</label>
+      <div class="breadcrumb-bar">
+        <template for:each={breadcrumbs} for:item="crumb">
+          <template if:false={crumb.isLast}>
+            <span
+              key={crumb.id}
+              class="breadcrumb-link"
+              data-index={crumb.index}
+              onclick={handleBreadcrumbClick}
+              role="button"
+            >{crumb.label}</span>
+            <span key={crumb.id} class="breadcrumb-sep"> &rsaquo; </span>
+          </template>
+          <template if:true={crumb.isLast}>
+            <span key={crumb.id} class="breadcrumb-current">{crumb.label}</span>
+          </template>
+        </template>
+      </div>
     </div>
 
     <div class="detail-section">

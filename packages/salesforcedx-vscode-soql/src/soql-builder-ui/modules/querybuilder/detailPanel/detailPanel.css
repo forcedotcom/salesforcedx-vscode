@@ -23,6 +23,30 @@
   font-size: 13px;
 }
 
+.breadcrumb-bar {
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.breadcrumb-link {
+  color: var(--vscode-textLink-foreground, #3794ff);
+  cursor: pointer;
+}
+
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-sep {
+  color: var(--vscode-descriptionForeground, #888);
+  margin: 0 2px;
+}
+
+.breadcrumb-current {
+  font-weight: bold;
+  color: var(--vscode-foreground);
+}
+
 .detail-section {
   display: flex;
   min-width: 100%;

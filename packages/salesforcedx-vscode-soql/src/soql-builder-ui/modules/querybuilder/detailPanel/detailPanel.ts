@@ -10,9 +10,19 @@ import { LightningElement, api } from 'lwc';
 import { messages } from 'querybuilder/messages';
 import { JsonMap } from '@salesforce/ts-types';
 
+export type BreadcrumbItem = {
+  id: string;
+  index: number;
+  label: string;
+  contextPath: string[];
+  relPath: string[];
+  isLast: boolean;
+};
+
 export default class DetailPanel extends LightningElement {
   @api public contextLabel = '';
   @api public contextPath: string[] = [];
+  @api public breadcrumbs: BreadcrumbItem[] = [];
   @api public availableFields: string[] = [];
   @api public selectedFields: string[] = [];
   @api public whereExpr: JsonMap;
@@ -33,6 +43,17 @@ export default class DetailPanel extends LightningElement {
 
   public get panelTitle(): string {
     return this.contextLabel || 'Query Clauses';
+  }
+
+  public handleBreadcrumbClick(e: Event): void {
+    e.preventDefault();
+    const target = e.currentTarget as HTMLElement;
+    const index = parseInt(target.dataset.index || '0', 10);
+    const crumb = this.breadcrumbs[index];
+    if (!crumb) return;
+    this.dispatchEvent(new CustomEvent('detail__navigate', {
+      detail: { contextPath: crumb.contextPath, relPath: crumb.relPath }
+    }));
   }
 
   public get fieldPills(): string[] {

@@ -25,6 +25,10 @@
   background-color: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.1));
 }
 
+.tree-node--has-content {
+  font-weight: bold;
+}
+
 .tree-node--selected {
   background-color: var(--vscode-list-activeSelectionBackground, #094771);
   color: var(--vscode-list-activeSelectionForeground, #fff);

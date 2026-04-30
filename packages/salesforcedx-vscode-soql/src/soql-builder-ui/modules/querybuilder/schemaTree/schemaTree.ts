@@ -17,6 +17,7 @@ export type TreeNode = {
   isExpanded: boolean;
   isSelected: boolean;
   isChecked?: boolean;
+  hasContent?: boolean;
   contextPath: string[];
   relPath?: string[];
   isLoading?: boolean;
@@ -46,6 +47,7 @@ export default class SchemaTree extends LightningElement {
   private nodeClass(node: TreeNode, index: number): string {
     const classes = ['tree-node'];
     if (node.isSelected) classes.push('tree-node--selected');
+    if (node.hasContent) classes.push('tree-node--has-content');
     if (index === this.focusedIndex) classes.push('tree-node--focused');
     return classes.join(' ');
   }

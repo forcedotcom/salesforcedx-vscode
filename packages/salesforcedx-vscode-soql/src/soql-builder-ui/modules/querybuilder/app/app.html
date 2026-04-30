@@ -91,6 +91,7 @@
             class={theme}
             context-label={activeContextLabel}
             context-path={activeContextPath}
+            breadcrumbs={activeBreadcrumbs}
             available-fields={activeAvailableFields}
             selected-fields={activeSelectedFields}
             has-fields-error={hasRecoverableFieldsError}
@@ -103,6 +104,7 @@
             is-loading={isFieldsLoading}
             sobject-metadata={activeMetadata}
             ondetail__fieldschanged={handleDetailFieldsChanged}
+            ondetail__navigate={handleDetailNavigate}
             onwhere__group_selection={handleContextWhereSelection}
             onwhere__andor_selection={handleAndOrSelection}
             onwhere__condition_removed={handleRemoveWhereCondition}

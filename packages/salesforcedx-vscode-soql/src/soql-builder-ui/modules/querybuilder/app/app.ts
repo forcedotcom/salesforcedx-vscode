@@ -28,6 +28,7 @@ import { getBodyClass } from '../services/globals';
 import { ToolingModelJson, SubqueryJson } from '../services/model';
 import { lwcIndexableArray } from '../services/lwcUtils';
 import type { TreeNode } from '../schemaTree/schemaTree';
+import type { BreadcrumbItem } from '../detailPanel/detailPanel';
 import {
   extractRelOptions,
   extractChildRelOptions
@@ -71,6 +72,45 @@ export default class App extends LightningElement {
     }
     if (this.activeContextPath.length === 0) return this.query.sObject;
     return this.activeContextPath[this.activeContextPath.length - 1];
+  }
+
+  public get activeBreadcrumbs(): BreadcrumbItem[] {
+    const crumbs: BreadcrumbItem[] = [];
+    const allSegments: Array<{ label: string; contextPath: string[]; relPath: string[] }> = [];
+
+    // Root sObject is always the first crumb
+    allSegments.push({ label: this.query.sObject || 'Query', contextPath: [], relPath: [] });
+
+    // Subquery context segments
+    for (let i = 0; i < this.activeContextPath.length; i++) {
+      allSegments.push({
+        label: this.activeContextPath[i],
+        contextPath: this.activeContextPath.slice(0, i + 1),
+        relPath: []
+      });
+    }
+
+    // Relationship path segments
+    for (let i = 0; i < this.activeRelPath.length; i++) {
+      allSegments.push({
+        label: this.activeRelPath[i],
+        contextPath: [...this.activeContextPath],
+        relPath: this.activeRelPath.slice(0, i + 1)
+      });
+    }
+
+    for (let i = 0; i < allSegments.length; i++) {
+      const seg = allSegments[i];
+      crumbs.push({
+        id: `bc-${i}`,
+        index: i,
+        label: seg.label,
+        contextPath: seg.contextPath,
+        relPath: seg.relPath,
+        isLast: i === allSegments.length - 1
+      });
+    }
+    return crumbs;
   }
 
   public get activeSelectedFields(): string[] {
@@ -179,6 +219,10 @@ export default class App extends LightningElement {
     const isRootSelected = this.activeContextPath.length === 0;
     const rootFieldCount = this.query.fields.length;
 
+    const rootHasContent = rootFieldCount > 0 ||
+      (this.query.relationships || []).length > 0 ||
+      (this.query.subqueries || []).length > 0;
+
     nodes.push({
       id: rootId,
       label: `${this.query.sObject}${this._fieldCountLabel(rootFieldCount)}`,
@@ -186,6 +230,7 @@ export default class App extends LightningElement {
       depth: 0,
       isExpanded: rootExpanded,
       isSelected: isRootSelected,
+      hasContent: rootHasContent,
       contextPath: [],
       hasChildren: true,
       isLoading: this.isFieldsLoading
@@ -231,6 +276,7 @@ export default class App extends LightningElement {
       depth,
       isExpanded,
       isSelected,
+      hasContent: relFieldCount > 0,
       contextPath: [...contextPath],
       relPath: [...relPath],
       hasChildren: true
@@ -257,6 +303,11 @@ export default class App extends LightningElement {
     const isSelected = this._pathsEqual(this.activeContextPath, path);
     const sq = this._findSubquery(path);
     const fieldCount = sq ? sq.fields.length : 0;
+    const sqHasContent = sq !== null && (
+      sq.fields.length > 0 ||
+      (sq.relationships || []).length > 0 ||
+      (sq.subqueries || []).length > 0
+    );
 
     nodes.push({
       id: nodeId,
@@ -265,6 +316,7 @@ export default class App extends LightningElement {
       depth,
       isExpanded,
       isSelected,
+      hasContent: sqHasContent,
       contextPath: [...path],
       hasChildren: true
     });
@@ -738,6 +790,25 @@ export default class App extends LightningElement {
       updated.delete(nodeId);
     }
     this._expandedNodes = updated;
+  }
+
+  public handleDetailNavigate(e: CustomEvent): void {
+    const { contextPath, relPath } = e.detail as { contextPath: string[]; relPath: string[] };
+    this.activeContextPath = [...contextPath];
+    this.activeRelPath = [...relPath];
+    if (contextPath.length > 0) {
+      this._ensureSubqueryMetadataLoaded(contextPath);
+    }
+    if (relPath.length > 0) {
+      this._resolveRelSObject(relPath);
+    }
+    // Auto-expand tree nodes along the path so the selected node is visible
+    if (contextPath.length === 0 && relPath.length === 0) {
+      // Root — ensure root is expanded
+      const updated = new Set(this._expandedNodes);
+      updated.add('root');
+      this._expandedNodes = updated;
+    }
   }
 
   public handleDetailFieldsChanged(e: CustomEvent): void {
