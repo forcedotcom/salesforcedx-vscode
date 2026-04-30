@@ -148,21 +148,27 @@ const installVsixsToCache = async (
   await fs.mkdir(tmpDir, { recursive: true });
 
   const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
-  const result = spawnSync(
-    cli,
-    [
-      '--extensions-dir',
-      tmpDir,
-      '--user-data-dir',
-      path.join(tmpDir, '.ud'),
-      ...vsixPaths.flatMap(p => ['--install-extension', p])
-    ],
-    { stdio: 'inherit', shell: process.platform === 'win32' }
-  );
+  // VS Code 1.115+ CLI auto-installs `extensionDependencies` from the marketplace gallery
+  // when multiple --install-extension flags are passed in one invocation; the dep-resolver
+  // queries gallery before sibling vsixs register in extensions.json, so the published
+  // (potentially older) gallery version wins over our local vsix. Install one vsix per
+  // spawn, in dependency order, so each registers before its dependents are processed.
+  const failedInstalls = vsixPaths
+    .map(p => ({
+      p,
+      status: spawnSync(
+        cli,
+        ['--extensions-dir', tmpDir, '--user-data-dir', path.join(tmpDir, '.ud'), '--install-extension', p],
+        { stdio: 'inherit', shell: process.platform === 'win32' }
+      ).status
+    }))
+    .filter(r => r.status !== 0);
 
-  if (result.status !== 0) {
+  if (failedInstalls.length > 0) {
     await fs.rm(tmpDir, { recursive: true, force: true });
-    throw new Error(`VSIX install failed (exit ${result.status}). VSIXs: ${vsixPaths.join(', ')}`);
+    throw new Error(
+      `VSIX install failed: ${failedInstalls.map(r => `${r.p} (exit ${r.status})`).join(', ')}`
+    );
   }
 
   // Atomic rename: first worker wins; others clean up their own tmp and use the winner's dir
