@@ -11,34 +11,51 @@ main {
   max-width: var(--soql-main-max-width);
 }
 
+.querybuilder-from-bar {
+  margin-bottom: 0.75rem;
+}
+
 .querybuilder-body {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: 50vh;
+  gap: 0;
 }
 
-.querybuilder-form {
-  flex: 1;
-  min-width: var(--soql-main-min-width);
+.schema-tree-panel {
+  grid-column: 1;
+  overflow-y: auto;
+  border-right: 1px solid var(--vscode-panel-border, var(--vscode-list-inactiveSelectionBackground));
+  padding-right: 0.5rem;
+  max-height: 60vh;
 }
 
-.query-preview {
-  flex-grow: 1;
+.detail-panel {
+  grid-column: 2;
   padding-left: 1rem;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.query-preview-panel {
+  border-top: 1px solid var(--vscode-panel-border, var(--vscode-list-inactiveSelectionBackground));
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
 }
 
 @media screen and (max-width: 750px) {
-  .query-preview {
-    padding: 0 0 2rem 0;
-    max-width: var(--soql-media-max-width);
-    flex-grow: unset;
-    flex: unset;
-  }
   .querybuilder-body {
-    flex-direction: column-reverse;
+    grid-template-columns: 1fr;
   }
-  .querybuilder-form {
-    flex-grow: 1;
+  .schema-tree-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-list-inactiveSelectionBackground));
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    max-height: 30vh;
+  }
+  .detail-panel {
+    padding-left: 0;
   }
 }
 

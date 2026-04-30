@@ -16,7 +16,7 @@ import { AndOr } from '@salesforce/soql-model/model/model';
 import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';
 import { IMessageService } from './message/iMessageService';
 import { SoqlEditorEvent, MessageType } from './message/soqlEditorEvent';
-import { IMap, ToolingModel, ToolingModelJson, ModelProps, SubqueryJson } from './model';
+import { IMap, ToolingModel, ToolingModelJson, ModelProps, SubqueryJson, QueryContext, QueryContextPath } from './model';
 import { createQueryTelemetry } from './telemetryUtils';
 export class ToolingModelService {
   public static toolingModelTemplate: ToolingModelJson = {
@@ -235,12 +235,17 @@ export class ToolingModelService {
     };
   }
 
-  // Set fields on a nested subquery at an arbitrary path.
+  // Set fields on a nested subquery at an arbitrary path, creating it if it doesn't exist.
   public setSubqueryFieldsAtPath(path: string[], fields: string[]): void {
-    const subqueries = this.getSubqueries();
+    let subqueries = this.getSubqueries();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const topIndex = subqueries.findIndex(sq => sq.get('relationshipName') === path[0]);
-    if (topIndex < 0) return;
+    let topIndex = subqueries.findIndex(sq => sq.get('relationshipName') === path[0]);
+    if (topIndex < 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      subqueries = subqueries.push(fromJS({ relationshipName: path[0], fields: [], subqueries: [] }));
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      topIndex = subqueries.findIndex(sq => sq.get('relationshipName') === path[0]);
+    }
     if (path.length === 1) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const updated = subqueries.update(topIndex, sq => sq.set('fields', fromJS(fields)));
@@ -348,6 +353,159 @@ export class ToolingModelService {
         s.relationshipName === path[0] ? this._removeAtPath(s, path.slice(1)) : s
       )
     };
+  }
+
+  /* ---- QUERY CONTEXT ---- */
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private findSubqueryAtPath(path: QueryContextPath): SubqueryJson | null {
+    const model = this.getModel().toJS() as unknown as ToolingModelJson;
+    let node: SubqueryJson | undefined;
+    const subqueries: SubqueryJson[] = model.subqueries || [];
+    for (let i = 0; i < path.length; i++) {
+      const list = i === 0 ? subqueries : (node?.subqueries || []);
+      node = list.find(sq => sq.relationshipName === path[i]);
+      if (!node) return null;
+    }
+    return node ?? null;
+  }
+
+  public getContextData(path: QueryContextPath): QueryContext {
+    const model = this.getModel().toJS() as unknown as ToolingModelJson;
+    if (path.length === 0) {
+      return {
+        path,
+        sObjectName: model.sObject,
+        fields: [],
+        selectedFields: model.fields,
+        where: model.where || { conditions: [], andOr: undefined as unknown as AndOr },
+        orderBy: model.orderBy || [],
+        limit: model.limit || ''
+      };
+    }
+    const sq = this.findSubqueryAtPath(path);
+    if (!sq) {
+      return {
+        path,
+        sObjectName: '',
+        fields: [],
+        selectedFields: [],
+        where: { conditions: [], andOr: undefined as unknown as AndOr },
+        orderBy: [],
+        limit: ''
+      };
+    }
+    return {
+      path,
+      sObjectName: sq.relationshipName,
+      fields: [],
+      selectedFields: sq.fields,
+      where: sq.where || { conditions: [], andOr: undefined as unknown as AndOr },
+      orderBy: sq.orderBy || [],
+      limit: sq.limit || ''
+    };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private updateSubqueryAtPath(path: QueryContextPath, updater: (sq: any) => any): void {
+    if (path.length === 0) return;
+    let subqueries = this.getSubqueries();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    let topIndex = subqueries.findIndex(sq => sq.get('relationshipName') === path[0]);
+    if (topIndex < 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      subqueries = subqueries.push(fromJS({ relationshipName: path[0], fields: [], subqueries: [], relationships: [] }));
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      topIndex = subqueries.findIndex(sq => sq.get('relationshipName') === path[0]);
+    }
+
+    if (path.length === 1) {
+      subqueries = subqueries.update(topIndex, updater);
+      this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, subqueries));
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const topSq = subqueries.get(topIndex).toJS();
+      const updated = this._updateNestedSubquery(topSq, path.slice(1), updater);
+      const updatedSubqueries = subqueries.update(topIndex, () => fromJS(updated));
+      this.changeModel(this.getModel().set(ModelProps.SUBQUERIES, updatedSubqueries));
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private _updateNestedSubquery(sq: any, path: string[], updater: (sq: any) => any): any {
+    if (path.length === 0) return updater(sq);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const existingSubs: any[] = sq.subqueries || []; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const found = existingSubs.some((s: any) => s.relationshipName === path[0]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const subs = found
+      ? existingSubs
+      : [...existingSubs, { relationshipName: path[0], fields: [], subqueries: [], relationships: [] }];
+    return {
+      ...sq,
+      subqueries: subs.map((s: any) => // eslint-disable-line @typescript-eslint/no-explicit-any
+        s.relationshipName === path[0] ? this._updateNestedSubquery(s, path.slice(1), updater) : s
+      )
+    };
+  }
+
+  public setContextFields(path: QueryContextPath, fields: string[]): void {
+    if (path.length === 0) {
+      this.setFields(fields);
+    } else {
+      this.setSubqueryFieldsAtPath(path, fields);
+    }
+  }
+
+  public setContextWhere(path: QueryContextPath, where: { conditions: JsonMap[]; andOr: AndOr }): void {
+    if (path.length === 0) {
+      const currentModel = this.getModel();
+      const newModel = currentModel.set(ModelProps.WHERE, fromJS(where));
+      this.changeModel(newModel);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      this.updateSubqueryAtPath(path, sq => fromJS({ ...sq.toJS?.() ?? sq, where }));
+    }
+  }
+
+  public setContextOrderBy(path: QueryContextPath, orderBy: JsonMap[]): void {
+    if (path.length === 0) {
+      const currentModel = this.getModel();
+      const newModel = currentModel.set(ModelProps.ORDER_BY, fromJS(orderBy));
+      this.changeModel(newModel);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      this.updateSubqueryAtPath(path, sq => fromJS({ ...sq.toJS?.() ?? sq, orderBy }));
+    }
+  }
+
+  public setContextLimit(path: QueryContextPath, limit: string): void {
+    if (path.length === 0) {
+      this.changeLimit(limit);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      this.updateSubqueryAtPath(path, sq => fromJS({ ...sq.toJS?.() ?? sq, limit }));
+    }
+  }
+
+  public setContextRelationshipFields(path: QueryContextPath, relationshipName: string, fields: string[]): void {
+    if (path.length === 0) {
+      this.setRelationshipFields(relationshipName, fields);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+      this.updateSubqueryAtPath(path, (sq: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const jsObj = sq.toJS?.() ?? sq;
+        const rels: Array<{ relationshipName: string; fields: string[] }> = jsObj.relationships || [];
+        const idx = rels.findIndex(r => r.relationshipName === relationshipName);
+        if (idx >= 0) {
+          rels[idx] = { relationshipName, fields };
+        } else {
+          rels.push({ relationshipName, fields });
+        }
+        return fromJS({ ...jsObj, relationships: rels });
+      });
+    }
   }
 
   /* ---- ORDER BY ---- */

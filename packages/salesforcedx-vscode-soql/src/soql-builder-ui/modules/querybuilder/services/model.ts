@@ -43,6 +43,22 @@ export type SubqueryJson = {
   relationshipName: string;
   fields: string[];
   subqueries?: SubqueryJson[];
+  relationships?: SubqueryJson[];
+  where?: { conditions: JsonMap[]; andOr: AndOr };
+  orderBy?: JsonMap[];
+  limit?: string;
+};
+
+export type QueryContextPath = string[];
+
+export type QueryContext = {
+  path: QueryContextPath;
+  sObjectName: string;
+  fields: string[];
+  selectedFields: string[];
+  where: { conditions: JsonMap[]; andOr: AndOr };
+  orderBy: JsonMap[];
+  limit: string;
 };
 
 // Public interface for accessing modelService.query

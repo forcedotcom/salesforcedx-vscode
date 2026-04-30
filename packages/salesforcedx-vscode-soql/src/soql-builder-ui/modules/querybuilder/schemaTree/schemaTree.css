@@ -1,0 +1,82 @@
+/*
+ *  Copyright (c) 2026, salesforce.com, inc.
+ *  All rights reserved.
+ *  Licensed under the BSD 3-Clause license.
+ *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ *
+ */
+
+.schema-tree {
+  font-size: 13px;
+  line-height: 22px;
+  outline: none;
+  user-select: none;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding-right: 8px;
+  border-radius: 3px;
+}
+
+.tree-node:hover {
+  background-color: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.1));
+}
+
+.tree-node--selected {
+  background-color: var(--vscode-list-activeSelectionBackground, #094771);
+  color: var(--vscode-list-activeSelectionForeground, #fff);
+}
+
+.tree-node--focused {
+  outline: 1px solid var(--vscode-focusBorder, #007fd4);
+  outline-offset: -1px;
+}
+
+.tree-chevron {
+  display: inline-flex;
+  width: 16px;
+  min-width: 16px;
+  justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.tree-chevron-spacer {
+  display: inline-block;
+  width: 16px;
+  min-width: 16px;
+}
+
+input[type='checkbox'] {
+  margin: 0 4px 0 0;
+  cursor: pointer;
+}
+
+.tree-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-active-indicator {
+  font-size: 8px;
+  color: var(--vscode-button-background, #007acc);
+  vertical-align: middle;
+}
+
+.tree-loading {
+  color: var(--vscode-descriptionForeground, #888);
+  font-style: italic;
+}
+
+:host(.dark) .tree-node--selected {
+  background-color: var(--vscode-list-activeSelectionBackground, #094771);
+}
+
+:host(.contrast) .tree-node--selected {
+  background-color: var(--vscode-list-activeSelectionBackground, #000);
+  border: 1px solid var(--vscode-contrastActiveBorder, #f38518);
+}

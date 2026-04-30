@@ -1,0 +1,69 @@
+/*
+ *  Copyright (c) 2026, salesforce.com, inc.
+ *  All rights reserved.
+ *  Licensed under the BSD 3-Clause license.
+ *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ *
+ */
+
+@import 'querybuilder/cssCommon';
+
+.detail-panel-container {
+  padding: 0 0.5rem;
+}
+
+.detail-panel-header {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-list-inactiveSelectionBackground));
+}
+
+.detail-panel-title {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.detail-section {
+  display: flex;
+  min-width: 100%;
+  margin-bottom: 1rem;
+}
+
+.detail-section-label {
+  width: var(--soql-label-container-width);
+  min-width: var(--soql-label-container-width);
+}
+
+.detail-section-content {
+  min-width: 300px;
+  max-width: var(--soql-selection-container-width);
+}
+
+.selected-fields-container {
+  max-height: 8em;
+  overflow-y: auto;
+}
+
+.selected-field {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 2px;
+  border-radius: 3px;
+  font-size: 12px;
+  background-color: var(--vscode-badge-background, var(--soql-color-light-grey));
+  color: var(--vscode-badge-foreground, inherit);
+}
+
+.delete-trigger {
+  margin-left: 4px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.delete-trigger:hover {
+  opacity: 1;
+}
+
+.text-color-required {
+  color: var(--vscode-errorForeground, red);
+}

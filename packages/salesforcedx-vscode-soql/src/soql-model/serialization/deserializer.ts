@@ -412,7 +412,14 @@ function parseSubqueryExpr(ctx: Parser.SoqlSelectInnerQueryExprContext): Subquer
     // Unmodeled expressions inside a subquery are silently dropped for now
   }
 
-  return new SubquerySelectionImpl(fromName, fields, subqueries);
+  return new SubquerySelectionImpl(
+    fromName,
+    fields,
+    subqueries,
+    listener.where,
+    listener.orderBy,
+    listener.limit
+  );
 }
 
 /**

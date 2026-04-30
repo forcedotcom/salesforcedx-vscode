@@ -1,0 +1,61 @@
+<!--
+  Copyright (c) 2026, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ -->
+
+<template>
+  <div
+    class="schema-tree"
+    role="tree"
+    tabindex="0"
+    onkeydown={handleKeyDown}
+    aria-label={i18n.label_schema_tree}
+  >
+    <template for:each={nodes} for:item="node">
+      <div
+        key={node.id}
+        class={node.cssClass}
+        style={node.indent}
+        role="treeitem"
+        data-node-id={node.id}
+        onclick={handleNodeClick}
+      >
+        <template if:true={node.showChevron}>
+          <span
+            class="tree-chevron"
+            data-node-id={node.id}
+            onclick={handleChevronClick}
+          >
+            <template if:true={node.isExpanded}>&#9660;</template>
+            <template if:false={node.isExpanded}>&#9654;</template>
+          </span>
+        </template>
+        <template if:false={node.showChevron}>
+          <span class="tree-chevron-spacer"></span>
+        </template>
+
+        <template if:true={node.showCheckbox}>
+          <input
+            type="checkbox"
+            checked={node.isChecked}
+            data-node-id={node.id}
+            onclick={handleCheckboxClick}
+            aria-label={node.label}
+          />
+        </template>
+
+        <span class="tree-label">
+          <template if:true={node.isLoading}>
+            <span class="tree-loading">...</span>
+          </template>
+          {node.label}
+          <template if:true={node.isSelected}>
+            <span class="tree-active-indicator"> &#9679;</span>
+          </template>
+        </span>
+      </div>
+    </template>
+  </div>
+</template>
