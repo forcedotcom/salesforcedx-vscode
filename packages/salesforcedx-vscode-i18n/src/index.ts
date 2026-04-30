@@ -6,12 +6,12 @@
  */
 
 // Types
-export { Locale } from './types/localization/config';
-export { MessageArgs } from './types/localization/messageArgs';
-export { MessageBundle } from './types/localization/messageBundle';
-export { AdvancedMessageBundle } from './types/localization/advancedTypes';
-export { LocalizationProvider } from './types/localization/localizationProvider';
-export { Config } from './types/localization/config';
+export type { Locale } from './types/localization/config';
+export type { MessageArgs } from './types/localization/messageArgs';
+export type { MessageBundle } from './types/localization/messageBundle';
+export type { AdvancedMessageBundle } from './types/localization/advancedTypes';
+export type { LocalizationProvider } from './types/localization/localizationProvider';
+export type { Config } from './types/localization/config';
 
 // i18n
 export { LocalizationService, LocalizationConfig, MessageBundleManager } from './i18n/advancedLocalization';
@@ -22,4 +22,5 @@ export { Message } from './i18n/message';
 export { DEFAULT_LOCALE, LOCALE_JA, MISSING_LABEL_MSG } from './constants';
 
 // Factory
-export { createNls, Nls } from './nlsFactory';
+export { createNls } from './nlsFactory';
+export type { Nls } from './nlsFactory';

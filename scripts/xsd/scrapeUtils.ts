@@ -138,10 +138,10 @@ export const loadMetadataPage = async (
       const tableCount = await contentFrame.evaluate(getTableCountEvaluator());
 
       if (tableCount === 0) {
-        console.log(`${indent}❌ No tables found after all strategies`);
-        return { success: false, contentFrame: null };
+        console.log(`${indent}⚠️ No tables found — will attempt description-only extraction`);
+      } else {
+        console.log(`${indent}✅ Found ${tableCount} tables after scroll`);
       }
-      console.log(`${indent}✅ Found ${tableCount} tables after scroll`);
     }
 
     return { success: true, contentFrame };
@@ -528,7 +528,9 @@ export const extractMetadataFromPage = async (
       return {
         tablesData,
         pageHeadings: Array.from(pageHeadings),
-        headingsWithoutTables
+        headingsWithoutTables,
+        pageLevelDescription,
+        pageTitle
       };
 
       // ============================================================================
@@ -913,8 +915,13 @@ export const extractMetadataFromPage = async (
     const allTableFields = extractionResult.tablesData;
     const pageHeadingsSet = new Set<string>(extractionResult.pageHeadings as string[]);
 
-    // If no tables and no headings without tables, return empty
-    if (allTableFields.length === 0 && !extractionResult.headingsWithoutTables?.length) return [];
+    // If no tables, no headings without tables, and no page-level description, return empty
+    if (
+      allTableFields.length === 0 &&
+      !extractionResult.headingsWithoutTables?.length &&
+      !extractionResult.pageLevelDescription
+    )
+      return [];
 
     // Process all tables
     for (let i = 0; i < allTableFields.length; i++) {
@@ -948,6 +955,24 @@ export const extractMetadataFromPage = async (
     // Process headings without tables
     if (extractionResult.headingsWithoutTables && extractionResult.headingsWithoutTables.length > 0) {
       processHeadingsWithoutTables(results, extractionResult.headingsWithoutTables, url);
+    }
+
+    // Fallback for description-only pages (e.g. AppMenu): no tables, no section headings that
+    // produced entries, but the page does have a shortdesc.  Use the page title / typeName so the
+    // type at least gets a description entry and an XSD definition.
+    if (results.length === 0 && extractionResult.pageLevelDescription) {
+      const name = (extractionResult.pageTitle as string) || typeName;
+      const cleanedDesc = normalizeWhitespace(extractionResult.pageLevelDescription as string);
+      console.log(`     ℹ️  Adding description-only entry for ${name}`);
+      results.push({
+        name,
+        data: {
+          fields: [],
+          short_description: cleanedDesc,
+          url: url.split('#')[0],
+          parent: extractParentType(cleanedDesc, [])
+        }
+      });
     }
 
     // Special handling for Folder metadata type

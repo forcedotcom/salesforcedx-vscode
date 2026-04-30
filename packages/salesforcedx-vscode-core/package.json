@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.7.0",
+  "version": "66.9.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -33,13 +33,13 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "@salesforce/templates": "^66.7.10",
+    "@salesforce/templates": "^66.7.11",
     "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
     "effect": "^3.20.0",
-    "fast-xml-parser": "^5.5.9",
+    "fast-xml-parser": "^5.7.1",
     "glob": "^11.1.0",
     "rxjs": "^7.8.2",
     "vscode-uri": "^3.1.0"
@@ -83,31 +83,29 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug"
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:compile": "wireit"
   },
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
+      "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-services:compile",
-        "../playwright-vscode-ext:compile"
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json"
       ],
       "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
+        "out/**"
       ]
     },
     "copy:schemas": {
@@ -135,12 +133,11 @@
       ]
     },
     "test": {
-      "command": "jest --coverage",
+      "command": "jest",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
@@ -152,7 +149,8 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -170,7 +168,7 @@
       ]
     },
     "test:desktop": {
-      "command": "playwright test --config=playwright.config.desktop.ts",
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
         "PLAYWRIGHT_WORKERS": {
@@ -185,18 +183,23 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "playwright.config.desktop.ts",
         "test/playwright/**/*.ts",
         "package*.json"
       ],
       "output": []
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
     }
-  },
-  "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
@@ -212,14 +215,6 @@
         {
           "command": "sf.analytics.generate.template",
           "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sf:project_opened"
-        },
-        {
-          "command": "sf.visualforce.generate.component",
-          "when": "explorerResourceIsFolder && resourceFilename == components && sf:project_opened"
-        },
-        {
-          "command": "sf.visualforce.generate.page",
-          "when": "explorerResourceIsFolder && resourceFilename == pages && sf:project_opened"
         },
         {
           "command": "sf.lightning.generate.app",
@@ -269,14 +264,6 @@
         },
         {
           "command": "sf.analytics.generate.template",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.visualforce.generate.component",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.visualforce.generate.page",
           "when": "sf:project_opened"
         },
         {
@@ -357,14 +344,6 @@
       {
         "command": "sf.analytics.generate.template",
         "title": "%analytics_generate_template_text%"
-      },
-      {
-        "command": "sf.visualforce.generate.component",
-        "title": "%visualforce_generate_component_text%"
-      },
-      {
-        "command": "sf.visualforce.generate.page",
-        "title": "%visualforce_generate_page_text%"
       },
       {
         "command": "sf.lightning.generate.app",

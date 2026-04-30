@@ -6,7 +6,6 @@
  */
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { ChannelService } from './channelService';
@@ -28,10 +27,7 @@ const updateContext = (orgInfo: { orgId?: string; username?: string; tracksSourc
 export const watchDefaultOrgContext = Effect.fn('watchDefaultOrgContext')(function* () {
   const ref = yield* getDefaultOrgRef();
   const channelService = yield* ChannelService;
-  return yield* Stream.concat(
-    Stream.fromEffect(SubscriptionRef.get(ref)), // current value
-    ref.changes // future changes
-  ).pipe(
+  return yield* ref.changes.pipe(
     Stream.tap(orgInfo => channelService.appendToChannel(`watchDefaultOrgContext: ${JSON.stringify(orgInfo)}`)),
     Stream.runForEach(updateContext)
   );

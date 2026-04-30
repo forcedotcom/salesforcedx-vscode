@@ -38,7 +38,8 @@ Interact with Gus (Salesforce Agile Accelerator org) via sf CLI. Requires alias 
 | Team ID                 | `a00B0000000w9xPIAQ` |
 | Product Tag             | `a1aB000000005G3IAI` |
 | User Story RecordTypeId | `0129000000006gDAAQ` |
-| Bug RecordTypeId        | `012T00000004MUHIA2` |
+
+**Always use User Story RecordTypeId.** Never create Bug records. If user describes a bug/repro, still create it as a User Story.
 
 Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 
@@ -46,16 +47,15 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 
 **Default when unassigned:** Platform Dev Tools Scrum Team `005B0000000GIODIA4` – use when work isn't assigned to a person yet.
 
-| Name | Id | GitHub login |
-|---|---|---|
-| Cristina Cañizales | `005EE000008cgrGYAQ` | `CristiCanizales` |
-| Daphne Yang | `005EE000005d0jdYAA` | `daphne-sfdc` |
-| Jonny Hork | `005B0000004pYWjIAM` | `jonnyhork` |
-| Kyle Walker | `005EE0000010oCLYAY` | `kylewalke` |
-| Madhur Shrivastava | `005EE00000VZK5FYAX` | `madhur310` |
-| Peter Hale | `005B0000000GFvWIAW` | `peternhale` |
-| Shane McLaughlin | `005B00000024wGBIAY` | `mshanemc` |
-| Sonal Budhiraja | `005B0000005ccPnIAI` | `sbudhirajadoc` |
+| Name               | Id                   | GitHub login      | Slack ID      |
+| ------------------ | -------------------- | ----------------- | ------------- |
+| Cristina Cañizales | `005EE000008cgrGYAQ` | `CristiCanizales` | `U040DRU0ADA` |
+| Daphne Yang        | `005EE000005d0jdYAA` | `daphne-sfdc`     | `U03CKVATVCY` |
+| Jonny Hork         | `005B0000004pYWjIAM` | `jonnyhork`       | `WFGT1L8HF`   |
+| Kyle Walker        | `005EE0000010oCLYAY` | `kylewalke`       | `U02GCUGEAUU` |
+| Madhur Shrivastava | `005EE00000VZK5FYAX` | `madhur310`       | `U0852LWKWSW` |
+| Peter Hale         | `005B0000000GFvWIAW` | `peternhale`      | `WAR9BDB8T`   |
+| Shane McLaughlin   | `005B00000024wGBIAY` | `mshanemc`        | `WB4TF6RFY`   |
 
 ## Work items (ADM_Work\_\_c)
 
@@ -76,7 +76,9 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 
 **Create:** Always set `Story_Points__c=2`, `Product_Tag__c=a1aB000000005G3IAI`, `RecordTypeId`. Include `Subject__c`, `Assignee__c`, `Scrum_Team__c=a00B0000000w9xPIAQ`, `Epic__c` (optional), `QA_Engineer__c` (optional), `Details__c` (optional). Leave `Sprint__c` blank; never modify it. **Details\_\_c:** write concisely—fragments/bullets, minimal words, no repetition (see .claude/skills/concise/SKILL.md).
 
-**Details\_\_c formatting (readable WI body):** Details__c is a Rich Text Area (extraTypeInfo: richtextarea)—use HTML, not markdown. The `-v` flag parses space-separated key=value; use `--flags-dir` with a `values` file ([ref](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_flag_values_in_files.htm)):
+**`-v` + `--flags-dir` don't combine on create:** `-v` takes precedence; flags-dir values are dropped. Workaround: create without Details, then update with `--flags-dir` only.
+
+**Details\_\_c formatting (readable WI body):** Details\_\_c is a Rich Text Area (extraTypeInfo: richtextarea)—use HTML, not markdown. The `-v` flag parses space-separated key=value; use `--flags-dir` with a `values` file ([ref](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_flag_values_in_files.htm)):
 
 1. `mkdir -p /tmp/gus-flags`
 2. Create `values` with one line: `Details__c='<p><strong>Section</strong></p><p>Content. <code>inline code</code></p><ul><li>item</li></ul><p><strong>Ref:</strong> <a href="https://...">url</a></p>'`
@@ -87,6 +89,7 @@ Constraints: File must be single-line (flags-dir treats each line as a separate 
 **After create:** Always provide the work item link. Format: `https://gus.lightning.force.com/lightning/r/ADM_Work__c/<recordId>/view` (replace `<recordId>` with the Id from the create output, e.g. `a07EE00002V3a8YYAR`). Example: [a07EE00002V3a8YYAR](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002V3a8YYAR/view).
 
 **CRITICAL:** After creation, you MUST query the `Name` (W-XXXXX) to append to the PR title as ` - W-XXXXX`. The `id` returned by `sf data create` is NOT the `W-XXXXX` name.
+
 ```bash
 sf data query --query "SELECT Name FROM ADM_Work__c WHERE Id = '<id_from_create>'" -o gus --json
 ```
@@ -136,14 +139,14 @@ When unsure which epic: ask the user.
 
 ## Compound workflows
 
-**Create a bug from this PR**
+**Create a WI from this PR**
 
 1. Get PR context: title, body/description, URL (from git/GitHub if available)
 2. Resolve User Id (reuse from conversation if known)
-3. Pick epic: IDEx - Trust (`a3QEE0000023FPZ2A2`) for bugs unless PR/context indicates otherwise
+3. Pick epic: IDEx - Trust (`a3QEE0000023FPZ2A2`) for bug-like issues unless PR/context indicates otherwise
 4. Subject\_\_c: concise from PR title
 5. Details\_\_c: PR link + key bullets; see .claude/skills/concise/SKILL.md
-6. RecordTypeId: `012T00000004MUHIA2` (Bug)
+6. RecordTypeId: `0129000000006gDAAQ` (User Story — always, even for bug-like issues)
 7. Show draft, ask "Create this work item?" — run `sf data create record` only after yes
 8. After create: provide WI link (see **After create** above)
 

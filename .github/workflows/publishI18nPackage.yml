@@ -21,6 +21,11 @@ on:
           - patch
           - minor
           - major
+      prerelease:
+        description: 'Publish as prerelease (does not affect latest dist-tag)'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   create-release:
@@ -99,6 +104,6 @@ jobs:
       packageManager: npm
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/salesforcedx-vscode-i18n
-      prerelease: false
+      prerelease: ${{ github.event.inputs.prerelease == 'true' }}
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -18,5 +18,7 @@
   "visualforce.trace.server.desc": "Visuallforce 言語サーバと VS Code 間の通信を追跡する。",
   "visualforce.validate.scripts": "Visualforce の言語サポートをインライン Javacript に適用するかどうかを設定します。",
   "visualforce.validate.styles": "Visualforce の言語サポートをインライン CSS に適用するかどうかを設定します。",
-  "visualforce.autoClosingTags": "終了タグの自動挿入を有効化/無効化します。"
+  "visualforce.autoClosingTags": "終了タグの自動挿入を有効化/無効化します。",
+  "visualforce_generate_component_text": "SFDX: Visualforce コンポーネントを作成",
+  "visualforce_generate_page_text": "SFDX: Visualforce ページを作成"
 }

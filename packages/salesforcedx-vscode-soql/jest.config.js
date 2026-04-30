@@ -6,10 +6,8 @@ module.exports = Object.assign({}, baseConfig, {
     ...(baseConfig.testPathIgnorePatterns || []),
     '/test/jest/soql-builder-ui/'
   ],
-  // Enable isolatedModules for faster test execution
-  // This package doesn't use dynamic imports, so it's safe
   transform: {
-    '^.+\\.tsx?$': 'ts-jest'
+    '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
   },
   // Map @salesforce/soql-model to actual source path for Jest
   moduleNameMapper: {

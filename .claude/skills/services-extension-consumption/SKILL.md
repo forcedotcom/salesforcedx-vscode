@@ -239,10 +239,24 @@ yield *
   );
 ```
 
+**`ref.changes` always emits the current value as element 0**, then future changes. Never prepend an explicit get:
+
+```typescript
+// WRONG — the fromEffect/get is redundant; .changes already emits current value first
+Stream.concat(Stream.fromEffect(SubscriptionRef.get(ref)), ref.changes)
+Stream.concat(Stream.make(yield* SubscriptionRef.get(ref)), ref.changes)
+
+// CORRECT
+ref.changes
+```
+
+To suppress the initial snapshot (e.g. avoid triggering a refresh before a tree provider is ready), use `Stream.drop(1)`.
+
 Ref behavior (concise):
 
 - Default-org update: username from User SOQL when present; else AuthInfo login username on the connection.
 - `TargetOrgRef` snapshot without username: optional `ConfigUtil.getUsername()` (project default) before treating as no target org — see `salesforcedx-vscode-org` `orgDisplay`.
+- `TargetOrgRef` value is always an object (never `undefined`); only fields like `orgId` within it are optional.
 
 ## Complete Example Pattern
 

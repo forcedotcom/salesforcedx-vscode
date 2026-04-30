@@ -24,11 +24,15 @@ import {
   WORKSPACE_READ_DIRECTORY_REQUEST,
   WORKSPACE_STAT_REQUEST,
   WORKSPACE_FIND_FILES_REQUEST,
+  type WorkspaceReadFileParams,
   type WorkspaceReadFileResult,
+  type WorkspaceStatParams,
   type WorkspaceStatResult,
+  type WorkspaceReadDirectoryParams,
   type WorkspaceReadDirectoryResult,
   type WorkspaceFindFilesParams,
   type WorkspaceFindFilesResult,
+  type WorkspaceDeleteFileParams,
   type WorkspaceDeleteFileResult
 } from '../lspCustomRequests';
 import { FileStat, DirectoryEntry } from '../types/fileSystemTypes';
@@ -145,9 +149,11 @@ export class LspFileSystemAccessor {
     }
     try {
       const fileUri = getFileUriForPath(uri, this.workspaceFolderUri);
-      const result = await this.connection.sendRequest<WorkspaceReadDirectoryResult>(WORKSPACE_READ_DIRECTORY_REQUEST, {
-        uri: fileUri
-      });
+      const params: WorkspaceReadDirectoryParams = { uri: URI.parse(fileUri) };
+      const result = await this.connection.sendRequest<WorkspaceReadDirectoryResult>(
+        WORKSPACE_READ_DIRECTORY_REQUEST,
+        params
+      );
       if (result?.error) {
         Logger.error(`[LspFileSystemAccessor] workspace/readDirectory failed for ${uri}: ${result.error}`);
         return getEmptyDirectoryListing(uri);
@@ -196,9 +202,8 @@ export class LspFileSystemAccessor {
       // Otherwise convert the filesystem path to the correct URI for the current workspace scheme.
       const fileUri = uri.includes('://') ? uri : getFileUriForPath(normalizePath(uri), this.workspaceFolderUri);
       const key = uri.includes('://') ? uri : normalizePath(uri);
-      const result = await this.connection.sendRequest<WorkspaceReadFileResult>(WORKSPACE_READ_FILE_REQUEST, {
-        uri: fileUri
-      });
+      const params: WorkspaceReadFileParams = { uri: URI.parse(fileUri) };
+      const result = await this.connection.sendRequest<WorkspaceReadFileResult>(WORKSPACE_READ_FILE_REQUEST, params);
       if (result.error) {
         Logger.error(`[LspFileSystemAccessor] workspace/readFile failed for ${key}: ${result.error}`);
         return undefined;
@@ -212,9 +217,8 @@ export class LspFileSystemAccessor {
     const key = normalizePath(uri);
     if (this.connection) {
       const fileUri = getFileUriForPath(key, this.workspaceFolderUri);
-      const result = await this.connection.sendRequest<WorkspaceStatResult>(WORKSPACE_STAT_REQUEST, {
-        uri: fileUri
-      });
+      const params: WorkspaceStatParams = { uri: URI.parse(fileUri) };
+      const result = await this.connection.sendRequest<WorkspaceStatResult>(WORKSPACE_STAT_REQUEST, params);
       if (result.error) return undefined;
       return result.stat;
     }
@@ -255,9 +259,11 @@ export class LspFileSystemAccessor {
     if (this.connection) {
       const key = normalizePath(pathOrUri);
       const fileUri = key.includes('://') ? key : getFileUriForPath(key, this.workspaceFolderUri);
-      const result = await this.connection.sendRequest<WorkspaceDeleteFileResult>(WORKSPACE_DELETE_FILE_REQUEST, {
-        uri: fileUri
-      });
+      const deleteParams: WorkspaceDeleteFileParams = { uri: fileUri };
+      const result = await this.connection.sendRequest<WorkspaceDeleteFileResult>(
+        WORKSPACE_DELETE_FILE_REQUEST,
+        deleteParams
+      );
       if (result?.error) {
         Logger.error(`[LspFileSystemAccessor] workspace/deleteFile failed for ${fileUri}: ${result.error}`);
         throw new Error(result.error);

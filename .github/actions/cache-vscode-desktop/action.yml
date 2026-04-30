@@ -15,9 +15,9 @@ runs:
         restore-keys: vscode-desktop-${{ runner.os }}-
     - shell: bash
       run: |
-        exact=$(ls .vscode-test 2>/dev/null | grep -E "^vscode-.*-${{ inputs.vscode-version }}$" | head -1)
+        exact=$(ls .vscode-test 2>/dev/null | grep -E "^vscode-.*-${{ inputs.vscode-version }}$" | head -1 || true)
         if [ -z "$exact" ]; then
-          fallback=$(ls .vscode-test 2>/dev/null | grep -E '^vscode-.*-[0-9.]+$' | sort -V | tail -1)
+          fallback=$(ls .vscode-test 2>/dev/null | grep -E '^vscode-.*-[0-9.]+$' | sort -V | tail -1 || true)
           if [ -n "$fallback" ]; then
             onDisk=$(echo "$fallback" | sed -E 's/.*-([0-9.]+)$/\1/')
             echo "PLAYWRIGHT_VSCODE_VERSION=$onDisk" >> "$GITHUB_ENV"

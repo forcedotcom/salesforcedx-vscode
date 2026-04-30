@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { testWatcher } from '../testRunner/testWatcher';
-import { TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
+import { TestExecutionInfo, TestFileInfo } from '../types';
 
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 
@@ -63,8 +63,7 @@ const getCurrentFileTestInfo = (): TestFileInfo | undefined => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     return {
-      kind: TestInfoKind.TEST_FILE,
-      testType: TestType.LWC,
+      kind: 'testFile',
       testUri: activeTextEditor.document.uri
     };
   }

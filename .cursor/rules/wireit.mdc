@@ -4,3 +4,5 @@ alwaysApply: true
 ---
 
 When working with wireit — answering questions, authoring scripts, or editing `package.json` — read `.claude/skills/wireit/SKILL.md` first.
+
+If you see "Unknown error thrown: Error: Did not expect..." that's b/c another process was running the same scripts. Simply re-run to be sure it passes. DO NOT CLEAR `.wireit` to solve this

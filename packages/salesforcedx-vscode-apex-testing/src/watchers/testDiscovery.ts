@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getTestController } from '../views/testController';
 
 /** Initialize test discovery when an org is available, and re-discover on org changes */
@@ -21,10 +20,7 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
   const channelService = yield* api.services.ChannelService;
   // Subscribe to org changes and re-discover tests when org changes
   yield* Effect.forkDaemon(
-    Stream.concat(
-      Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), // current value
-      targetOrgRef.changes // any changes to the org
-    ).pipe(
+    targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
       Stream.filter(isString),
       Stream.changes,

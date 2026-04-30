@@ -42,8 +42,8 @@ export class SfTestNode extends TestNode {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.testExecutionInfo = testExecutionInfo;
     if (testExecutionInfo) {
-      const { testType, testResult } = testExecutionInfo;
-      this.contextValue = `${testType}Test`;
+      const { testResult } = testExecutionInfo;
+      this.contextValue = 'lwcTest';
       this.iconPath = getIconPath(testResult);
       if ('testLocation' in testExecutionInfo) {
         this.location = testExecutionInfo.testLocation;
@@ -67,8 +67,8 @@ export class SfTestGroupNode extends TestNode {
     super(label, collapsibleState);
     this.testExecutionInfo = testExecutionInfo;
     if (testExecutionInfo) {
-      const { testType, testResult } = testExecutionInfo;
-      this.contextValue = `${testType}TestGroup`;
+      const { testResult } = testExecutionInfo;
+      this.contextValue = 'lwcTestGroup';
       this.iconPath = getIconPath(testResult);
       if ('testLocation' in testExecutionInfo) {
         this.location = testExecutionInfo.testLocation;

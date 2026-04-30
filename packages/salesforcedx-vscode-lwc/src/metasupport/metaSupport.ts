@@ -72,6 +72,7 @@ export class MetaSupport {
     if (redHatExtension === undefined) {
       return channelService.appendLine(nls.localize('lightning_lwc_no_redhat_extension_found'));
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const pluginVersionNumber = redHatExtension.packageJSON['version'];
 
     if (typeof pluginVersionNumber !== 'string') {

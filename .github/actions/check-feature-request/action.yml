@@ -14,4 +14,4 @@ inputs:
     description: 'Token taken from secrets env var'
 runs:
   using: 'node20'
-  main: 'lib/src/index.js'
+  main: 'lib/index.js'

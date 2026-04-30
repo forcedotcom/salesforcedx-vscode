@@ -23,7 +23,7 @@ git mv WrongCaseName.ts _tmp_rename.ts
 git mv _tmp_rename.ts RightCaseName.ts
 ```
 
-Then `npm run compile` (or package `tsc --build`).
+Then `npm run compile`.
 
 ## Why not a single `git mv`?
 
@@ -35,7 +35,7 @@ Goal is an index entry whose path **string** matches imports. `git rm --cached <
 
 ## Verify
 
-- `npm run compile` (or affected package `tsc --build`)
+- `npm run compile`
 - `git ls-files path/to/dir | grep -i <basename>` shows one line, casing matches imports
 
 ## Checklist

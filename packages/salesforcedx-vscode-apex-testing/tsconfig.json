@@ -1,32 +1,13 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
+    "isolatedModules": false,
     "rootDir": ".",
     "outDir": "out",
     "resolveJsonModule": true
   },
   "include": [
     "src/**/*.ts",
-    "test/**/*.ts",
-    "playwright.config.web.ts",
-    "playwright.config.desktop.ts",
     "package.nls.json"
-  ],
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
-  "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
-    },
-    {
-      "path": "../playwright-vscode-ext"
-    }
   ]
 }

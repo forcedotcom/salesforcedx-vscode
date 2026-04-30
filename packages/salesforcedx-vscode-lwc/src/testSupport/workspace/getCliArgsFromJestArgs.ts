@@ -19,7 +19,7 @@ export const getCliArgsFromJestArgs = (jestArgs: string[], testRunType: TestRunT
 
   // W-9883286
   // Since VS Code 1.60, `debug.javascript.usePreview` setting is no longer available
-  if (testRunType === TestRunType.DEBUG && usePreviewJavaScriptDebugger === false) {
+  if (testRunType === 'debug' && usePreviewJavaScriptDebugger === false) {
     cliArgs.unshift('--debug');
   }
   return cliArgs;

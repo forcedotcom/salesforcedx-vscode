@@ -6,7 +6,7 @@
  */
 
 import * as path from 'node:path';
-import { SalesforceProjectConfig } from '../salesforceProject';
+import { SalesforceProjectConfig } from './salesforceProjectConfig';
 
 export default class SalesforcePackageDirectories {
   public static async getPackageDirectoryPaths(): Promise<string[]> {

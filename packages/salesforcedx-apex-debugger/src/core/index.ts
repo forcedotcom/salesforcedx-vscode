@@ -8,11 +8,11 @@
 export { BreakpointService } from './breakpointService';
 export { SessionService } from './sessionService';
 export {
-  ApexDebuggerEventType,
-  DebuggerMessage,
+  type ApexDebuggerEventType,
+  type DebuggerMessage,
   StreamingClient,
   StreamingClientInfo,
   StreamingClientInfoBuilder,
-  StreamingEvent
+  type StreamingEvent
 } from './streamingClient';
 export { StreamingService } from './streamingService';

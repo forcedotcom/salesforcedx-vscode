@@ -90,7 +90,9 @@ test.describe('Output Channel', () => {
   });
 
   test('should filter output channel content', async ({ page }) => {
-    test.setTimeout(15_000);
+    // Use the default per-test timeout (60s on desktop). Overriding to 15s here is too tight on
+    // Windows because `selectOutputChannel` can take up to ~30s internally on first call, and the
+    // subsequent filter steps each have ~5-15s of their own retries.
     const viewLines = () => page.locator(OUTPUT_PANEL_ID).locator(`${EDITOR} .view-line`);
 
     await test.step('open output panel and select high-volume channel', async () => {

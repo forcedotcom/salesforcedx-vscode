@@ -34,6 +34,41 @@
     }
   }
 
+  function adjustContainerHeight() {
+    var tEl = document.querySelector('#data-table');
+    if (!tEl || !mainTable) {
+      return;
+    }
+    var pageHeader = document.querySelector('header');
+    var pageHeaderH = pageHeader ? pageHeader.offsetHeight : 0;
+    var colHeaderEl = tEl.querySelector('.tabulator-header');
+    var colHeaderH = colHeaderEl ? Math.max(colHeaderEl.offsetHeight, colHeaderEl.scrollHeight) : 0;
+    var rowsH = (tEl.querySelector('.tabulator-tableHolder .tabulator-table') || {}).offsetHeight || 0;
+    var footerH = (tEl.querySelector('.tabulator-footer') || {}).offsetHeight || 0;
+    var tableHolder = tEl.querySelector('.tabulator-tableHolder');
+    var hScrollbarH = tableHolder ? Math.max(0, tableHolder.offsetHeight - tableHolder.clientHeight) : 0;
+    var contentH = colHeaderH + rowsH + hScrollbarH + footerH + 2;
+    var maxH = window.innerHeight - pageHeaderH - 20;
+    var container = document.querySelector('body > div');
+    if (!container) {
+      return;
+    }
+    if (contentH < maxH) {
+      // Small table: shrink container to exact content height, no gray space
+      container.style.setProperty('--soql-table-height', pageHeaderH + contentH + 'px');
+      mainTable.setHeight(contentH + 'px');
+    } else {
+      // Large table: let CSS fill the full available height reliably
+      container.style.setProperty('--soql-table-height', 'calc(100% - 20px)');
+      mainTable.setHeight('100%');
+    }
+    // After height is set, the vertical scrollbar may have appeared, reducing
+    // the available width. Redraw forces fitColumns to recalculate column
+    // widths accounting for the scrollbar, preventing a spurious horizontal
+    // scrollbar.
+    mainTable.redraw(true);
+  }
+
   // ---- RENDER THE WEBVIEW CONTENT ---- //
 
   function updateUIWith(queryData, documentName) {
@@ -60,10 +95,11 @@
         pagination: 'local',
         paginationSize: 50,
         layout: 'fitColumns',
-        height: '60vh',
+        height: '100%',
         virtualDom: false,
         columns: getFlattenedGridColumns(fg.fields)
       });
+      adjustContainerHeight();
       return;
     }
 
@@ -72,7 +108,7 @@
       pagination: 'local',
       paginationSize: 50,
       layout: 'fitColumns',
-      height: '60vh',
+      height: '100%',
       virtualDom: false,
       columns: getColumns(tableData, tableData.columnData),
       rowFormatter: row => {
@@ -109,6 +145,7 @@
         });
       }
     });
+    adjustContainerHeight();
   }
 
   function getFlattenedGridColumns(fields) {
@@ -223,6 +260,11 @@
       format: FileType.JSON
     });
   });
+
+  window.addEventListener('resize', () => {
+    adjustContainerHeight();
+  });
+
   // incoming messages from VS Code
   window.addEventListener('message', event => {
     const { type, data, documentName } = event.data;

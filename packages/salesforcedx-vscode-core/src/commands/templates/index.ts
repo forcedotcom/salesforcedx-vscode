@@ -14,5 +14,3 @@ export {
 export { internalLightningGenerateEvent, lightningGenerateEvent } from './lightningGenerateEvent';
 export { internalLightningGenerateInterface, lightningGenerateInterface } from './lightningGenerateInterface';
 export { internalLightningGenerateLwc } from './lightningGenerateLwc';
-export { visualforceGenerateComponent } from './visualforceGenerateComponent';
-export { visualforceGeneratePage } from './visualforceGeneratePage';

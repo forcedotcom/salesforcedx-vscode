@@ -30,8 +30,10 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
+// Applies to fixtures (e.g. launching VS Code); inner test.setTimeout runs too late for page setup.
+test.describe.configure({ timeout: 180_000 });
+
 test('Execute Anonymous Apex: document, selection, script creation, compile error', async ({ page }) => {
-  test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -89,8 +91,25 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
   await test.step('select first line and execute selection', async () => {
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
-    await executeCommandWithCommandPalette(page, 'Select All');
-    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeSelection']);
+    await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+    // editorHasSelection must be true for the selection command. Triple-click is a native
+    // Monaco gesture that both focuses the editor and selects the whole line — more reliable
+    // than `click + Ctrl/Cmd+A` (which on web can produce a browser-level DOM selection
+    // instead of a Monaco selection) and avoids opening the palette to invoke "Expand Line
+    // Selection" (which itself clears the active selection).
+    await editor.locator('.view-line').first().click({ clickCount: 3 });
+    // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has
+    // a real, non-empty Monaco selection. Failing fast here is much cheaper than waiting 30s
+    // for the palette command lookup to time out.
+    await expect(page.locator('.statusbar-item').filter({ hasText: /\(\d+ selected\)/ }).first()).toBeVisible({
+      timeout: 5000
+    });
+    // Pass `preserveSelection` so the shared helper skips the focus-click, palette-input
+    // clicks, and Escape-based dismiss — all of which would otherwise collapse the selection
+    // and make `editorHasSelection` false, hiding this command from the palette.
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeSelection'], undefined, {
+      preserveSelection: true
+    });
 
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)

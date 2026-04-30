@@ -26,7 +26,5 @@ export {
   lightningGenerateApp,
   lightningGenerateAuraComponent,
   lightningGenerateEvent,
-  lightningGenerateInterface,
-  visualforceGenerateComponent,
-  visualforceGeneratePage
+  lightningGenerateInterface
 } from './templates';

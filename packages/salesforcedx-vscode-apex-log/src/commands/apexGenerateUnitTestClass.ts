@@ -5,17 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForApexTypeName } from './sfTemplateProjectHelpers';
-
-type SfProject = Effect.Effect.Success<
-  ReturnType<SalesforceVSCodeServicesApi['services']['ProjectService']['getSfProject']>
->;
 
 const ApexTestTemplate = Schema.Literal('BasicUnitTest', 'ApexUnitTest');
 type ApexTestTemplate = Schema.Schema.Type<typeof ApexTestTemplate>;
@@ -25,19 +21,6 @@ type ApexGenerateUnitTestClassParams = {
   readonly outputDir?: URI;
   readonly template?: ApexTestTemplate;
 };
-
-const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const defaultPkg = project.getDefaultPackage();
-  const defaultUri = Utils.joinPath(workspaceInfo.uri, defaultPkg.path, 'main', 'default', 'classes');
-  return yield* promptService.promptForOutputDir({
-    defaultUri,
-    folderName: 'classes',
-    pickerPlaceHolder: nls.localize('output_dir_prompt')
-  });
-});
 
 const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -71,6 +54,7 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
   const promptService = yield* api.services.PromptService;
   const fsService = yield* api.services.FsService;
   const project = yield* api.services.ProjectService.getSfProject();
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   const template = params?.template ?? (yield* promptForTemplate());
   const className =
@@ -78,9 +62,16 @@ export const apexGenerateUnitTestClassCommand = Effect.fn('apexGenerateUnitTestC
     (yield* promptForApexTypeName({
       prompt: nls.localize('apex_test_class_name_prompt')
     }));
-  const outputDirUri = params?.outputDir ?? outputDirectory ?? (yield* promptForOutputDir(project));
 
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'classes');
+  const outputDirUri =
+    params?.outputDir ??
+    outputDirectory ??
+    (yield* promptService.promptForOutputDir({
+      defaultUri,
+      folderName: 'classes',
+      pickerPlaceHolder: nls.localize('output_dir_prompt')
+    }));
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 

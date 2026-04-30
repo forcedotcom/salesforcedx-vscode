@@ -7,9 +7,9 @@
 
 import { expect } from '@playwright/test';
 import {
+  activeQuickInputWidget,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -52,8 +52,8 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     await executeCommandWithCommandPalette(page, packageNls.soql_open_new_builder);
     await saveScreenshot(page, 'step1.after-command.png');
 
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 60_000 });
+    const quickInput = activeQuickInputWidget(page);
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await page.keyboard.type(SOQL_FILE);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.file-name-entered.png');

@@ -9,8 +9,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { lwcTestIndexer } from '../testIndexer';
-import { TestExecutionInfo } from '../types';
-
 /**
  * Test result watcher to watch for creating/updating test results,
  * and update test indexer.
@@ -33,10 +31,9 @@ class TestResultsWatcher implements vscode.Disposable {
    * @param workspaceFolder workspace folder of the test
    * @param testExecutionInfo test execution info
    */
-  public getTempFolder(workspaceFolder: vscode.WorkspaceFolder, testExecutionInfo: TestExecutionInfo) {
-    const { testType } = testExecutionInfo;
+  public getTempFolder(workspaceFolder: vscode.WorkspaceFolder) {
     const workspaceFsPath = workspaceFolder.uri.fsPath;
-    return getTestResultsFolder(workspaceFsPath, testType);
+    return getTestResultsFolder(workspaceFsPath, 'lwc');
   }
 
   /**

@@ -8,23 +8,10 @@ import { Location } from 'vscode';
 import { URI } from 'vscode-uri';
 
 /**
- * Test type is 'lwc' for all LWC Jest tests.
- * The enum is created for future extensibility.
- */
-export const enum TestType {
-  LWC = 'lwc'
-}
-
-/**
  * Test result statuses are presented with
  * different colors in the test explorer.
  */
-export const enum TestResultStatus {
-  PASSED,
-  FAILED,
-  SKIPPED,
-  UNKNOWN
-}
+export type TestResultStatus = 'passed' | 'failed' | 'skipped' | 'unknown';
 
 /**
  * Test Result type contains the test result status.
@@ -34,20 +21,12 @@ export type TestResult = {
   status: TestResultStatus;
 };
 
-/**
- * The discriminant enum for the TestExecutionInfo discriminated union.
- */
-export const enum TestInfoKind {
-  TEST_CASE = 'testCase',
-  TEST_FILE = 'testFile',
-  TEST_DIRECTORY = 'testDirectory'
-}
 
 /**
  * Confirms if the TestExecutionInfo kind is TestCaseInfo
  */
 export const isTestCaseInfo = (testExecutionInfo: TestExecutionInfo): testExecutionInfo is TestCaseInfo =>
-  testExecutionInfo.kind === TestInfoKind.TEST_CASE;
+  testExecutionInfo.kind === 'testCase';
 
 /**
  * Raw Test Results generated from Jest output.
@@ -66,8 +45,7 @@ export type RawTestResult = {
  * test results and associated test cases information.
  */
 export type TestFileInfo = {
-  kind: TestInfoKind.TEST_FILE;
-  testType: TestType;
+  kind: 'testFile';
   testUri: URI;
   testLocation?: Location;
   testResult?: TestResult;
@@ -81,8 +59,7 @@ export type TestFileInfo = {
  * test name and ancestor titles, which are used for matching with test results.
  */
 export type TestCaseInfo = {
-  kind: TestInfoKind.TEST_CASE;
-  testType: TestType;
+  kind: 'testCase';
   testUri: URI;
   testLocation?: Location;
   testResult?: TestResult;
@@ -95,8 +72,7 @@ export type TestCaseInfo = {
  * It contains the test directory Uri.
  */
 export type TestDirectoryInfo = {
-  kind: TestInfoKind.TEST_DIRECTORY;
-  testType: TestType;
+  kind: 'testDirectory';
   testUri: URI;
   testResult?: TestResult;
 };

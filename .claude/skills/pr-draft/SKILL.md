@@ -27,6 +27,11 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
      1. Get current review requests: `gh pr view <url> --json reviewRequests --jq '.reviewRequests[].login'`
      2. Remove each existing reviewer: `gh pr edit <url> --remove-reviewer <login>`
      3. Add selected QA person: `gh pr edit <url> --add-reviewer <github_login>` (from [gus-cli Team members](../gus-cli/SKILL.md#team-members-assignee__c-qa_engineer__c))
+   - **Slack ping:** After reviewer reassignment, send a message to `#ide-exp-code-review` (channel ID `C054SJJAB24`) tagging the QA person (use Slack ID from [gus-cli Team members](../gus-cli/SKILL.md#team-members-assignee__c-qa_engineer__c)):
+     ```
+     <@SLACK_ID> PR ready for review: <pr_url|PR #NNNN> (<gus_wi_url|W-XXXXX>)
+     ```
+     If Slack MCP is unavailable, tell the user: "Slack MCP is not configured — please manually ping `<@SLACK_ID>` in `#ide-exp-code-review` with the PR and WI links. To enable this automatically, set up the Slack MCP."
 
 ## Target branch
 
@@ -43,6 +48,17 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 - **Scope**: optional
 - Example: `build(extensions): consolidate apex-tmlanguage - W-21735053`
 - **Avoid:** leading brackets — `[W-21735053] build(extensions): …`; bare trailing WI without ` - ` — `build(extensions): … W-21735053`
+
+## GitHub issues & discussions
+
+Before finalizing body, fetch and analyze:
+
+1. **Issues:** `gh issue list --state open --limit 200 --json number,title,body,comments`
+2. **Discussions:** `gh api graphql` — fetch all open discussions (title, number, url, body)
+3. **LLM relevance pass:** read PR diff/commits + all issue/discussion titles+bodies; identify candidates
+4. **Auto-include** any issue where a comment contains the PR's W-XXXXX (e.g. `W-12345`) — no prompt needed; Git2Gus already established the link
+5. **Show remaining candidates** (issues and discussions the LLM flagged as related); ask user which to include
+6. **Format:** issues as `#<number>`, discussions as full URL — both in the "What issues does this PR fix or reference?" section
 
 ## Body format
 

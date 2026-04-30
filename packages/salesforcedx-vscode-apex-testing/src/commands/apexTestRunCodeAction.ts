@@ -17,7 +17,7 @@ import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
-import { apexTestRunCacheService, isEmpty } from '../testRunCache';
+import { apexTestRunCacheService, isEmpty } from '../testRunCache/apexTestRunCacheService';
 import {
   EmptyParametersGatherer,
   LibraryCommandletExecutor,

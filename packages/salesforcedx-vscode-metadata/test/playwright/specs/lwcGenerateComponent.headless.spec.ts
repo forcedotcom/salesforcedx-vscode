@@ -7,11 +7,11 @@
 
 import { expect } from '@playwright/test';
 import {
+  activeQuickInputWidget,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -45,26 +45,29 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await executeCommandWithCommandPalette(page, packageNls.lightning_generate_lwc_text);
     await saveScreenshot(page, 'step1.after-command.png');
 
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+    const quickInput = activeQuickInputWidget(page);
+    await quickInput.waitFor({ state: 'attached', timeout: 30_000 });
 
     // Step 1: Select component type (JavaScript/TypeScript)
+    // Click the first option instead of Enter — 1.116+ sometimes drops Enter on quick picks (see PR #7193).
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
-    await page.keyboard.press('Enter');
+    await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
     await saveScreenshot(page, 'step1.component-type-selected.png');
 
     // Step 2: Enter component name
-    await quickInput.getByText(/Enter Lightning Web Component name/i).waitFor({ state: 'visible', timeout: 10_000 });
+    await activeQuickInputWidget(page)
+      .getByText(/Enter Lightning Web Component name/i)
+      .waitFor({ state: 'attached', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
     await page.keyboard.type(componentName);
     await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
 
-    // Step 3: Select output directory
+    // Step 3: Select output directory (click first option instead of Enter)
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
-    await page.keyboard.press('Enter');
+    await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
     await saveScreenshot(page, 'step1.after-accept-directory.png');
 
     // Step 4: Wait for editor to open with the new component

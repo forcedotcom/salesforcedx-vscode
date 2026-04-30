@@ -10,16 +10,12 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { isTestCaseInfo, TestExecutionInfo, TestInfoKind } from '../types';
+import { isTestCaseInfo, TestExecutionInfo } from '../types';
 import { workspace, workspaceService } from '../workspace';
 import { SfTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 
-export const enum TestRunType {
-  RUN = 'run',
-  DEBUG = 'debug',
-  WATCH = 'watch'
-}
+export type TestRunType = 'run' | 'debug' | 'watch';
 
 /**
  * Returns relative path for Jest runTestsByPath on Windows
@@ -74,13 +70,13 @@ export class TestRunner {
     const { testRunId, testRunType, testExecutionInfo } = this;
     const { kind, testUri } = testExecutionInfo;
     const { fsPath: testFsPath } = testUri;
-    const tempFolder = await testResultsWatcher.getTempFolder(workspaceFolder, testExecutionInfo);
+    const tempFolder = await testResultsWatcher.getTempFolder(workspaceFolder);
 
     const testResultFileName = `test-result-${testRunId}.json`;
     const outputFilePath = path.join(tempFolder, testResultFileName);
     // Specify --runTestsByPath if running test on individual files
     let runTestsByPathArgs: string[];
-    if (kind === TestInfoKind.TEST_FILE || kind === TestInfoKind.TEST_CASE) {
+    if (kind === 'testFile' || kind === 'testCase') {
       const workspaceFolderFsPath = workspaceFolder.uri.fsPath;
       runTestsByPathArgs = ['--runTestsByPath', normalizeRunTestsByPath(workspaceFolderFsPath, testFsPath)];
     } else {
@@ -91,7 +87,7 @@ export class TestRunner {
         ? getTestNamePatternArgs(testExecutionInfo.testName)
         : [];
 
-    const runModeArgs = testRunType === TestRunType.WATCH ? ['--watch'] : [];
+    const runModeArgs = testRunType === 'watch' ? ['--watch'] : [];
     const args = [
       ...runModeArgs,
       '--json',
@@ -142,9 +138,9 @@ export class TestRunner {
   private getTaskName() {
     // Only run and watch uses tasks for execution
     switch (this.testRunType) {
-      case TestRunType.RUN:
+      case 'run':
         return nls.localize('run_test_task_name');
-      case TestRunType.WATCH:
+      case 'watch':
         return nls.localize('watch_test_task_name');
       default:
         return nls.localize('default_task_name');

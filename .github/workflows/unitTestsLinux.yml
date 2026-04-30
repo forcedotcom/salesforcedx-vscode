@@ -11,7 +11,7 @@ env:
 jobs:
   linux-unit-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,11 +24,6 @@ jobs:
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - run: npm run compile
       - run: npm run test
-      - run: npm run capture:results
-      # Archive test results and coverage reports
-      - name: Archive test results and coverage reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: test-results
+        env:
+          WIREIT_PARALLEL: 1
+

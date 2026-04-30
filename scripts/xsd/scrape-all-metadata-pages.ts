@@ -111,10 +111,13 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
   console.log(`   Fetching: ${JSON_DOC_URL}`);
 
   try {
-    // Fetch the JSON document directly (no browser needed for this part!)
-    const response = await page.context().request.get(JSON_DOC_URL);
-    if (!response.ok()) {
-      throw new Error(`Failed to fetch JSON document: ${response.status()} ${response.statusText()}`);
+    // Use page.goto() so the actual Chromium engine makes the request with its real TLS
+    // fingerprint and browser-specific headers (sec-ch-ua, sec-fetch-*, etc.).
+    // page.context().request.get() uses Node.js networking, which fails TLS fingerprint
+    // checks on bot-protected endpoints like Salesforce docs from cloud runner IPs.
+    const response = await page.goto(JSON_DOC_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    if (!response || !response.ok()) {
+      throw new Error(`Failed to fetch JSON document: ${response?.status()} ${response?.statusText()}`);
     }
 
     const docData = await response.json();
@@ -152,19 +155,9 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
     // Pages to exclude but still process their children (skip page only, continue recursion)
     const excludedPagesOnly = [
       'meta_data_cloud_types',
-      'meta_activationplatformactvattr',
-      'meta_datasourcetenant',
-      'meta_externaldatatransportfieldtemplate',
-      'meta_externaldatatransportobjecttemplate',
-      'meta_internaldataconnector',
-      'meta_appmenu',
       'meta_digitalexperiencebundle_marketing',
       'meta_digitalexperiencebundle_site',
-      'meta_flowvaluemap',
-      'meta_rparobotpoolmetadata',
-      'meta_settings',
-      'meta_userprofilesearchscope',
-      'meta_webstorebundle'
+      'meta_settings'
     ];
 
     // Recursively extract metadata type entries (including nested subtypes)

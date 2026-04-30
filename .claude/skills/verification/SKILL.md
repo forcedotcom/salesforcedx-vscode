@@ -5,15 +5,11 @@ description: Verification steps for code changes. Use after ANY code change to e
 
 # Verification
 
-The stop hook runs compile, lint, effect LS, test, and vscode:bundle automatically when the agent stops — no need to run these manually.
+The stop hook runs compile, lint, effect LS, test, vscode:bundle, and knip automatically when the agent stops — no need to run these manually.
 
-Run these **only if the stop hook doesn't catch them**:
+Run this **only if the stop hook doesn't catch it**:
 
-1. **Knip / unused exports** — `npm run check:knip` (see [ts4023 exceptions](../ts4023-effect-errors/SKILL.md))
-   - Fix ALL unused exports unless test-only or ts4023 exception
-   - Remove exports only used within the same file
-
-2. **Dupes** — `npm run check:dupes`, check `jscpd-report` for flagged changes
+1. **Dupes** — `npm run check:dupes`, check `jscpd-report` for flagged changes
 
 3. **Playwright** (only if working in these packages: `salesforcedx-vscode-core`, `salesforcedx-vscode-org`, `salesforcedx-vscode-services`, `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata`, `salesforcedx-vscode-apex-testing`, `salesforcedx-vscode-apex-log`, `playwright-vscode-ext`)
    - Run from root: `npm run test:web -w <package-name> -- --retries 0` / `npm run test:desktop -w <package-name> -- --retries 0`

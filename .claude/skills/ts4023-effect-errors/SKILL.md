@@ -48,7 +48,7 @@ export type { EmptyComponentSetError } from './core/componentSetService';
 ### 4. Verify
 
 ```bash
-npx tsc --build packages/salesforcedx-vscode-metadata --force
+npm run compile -w packages/salesforcedx-vscode-metadata
 ```
 
 ## Why non-exported errors matter
@@ -73,5 +73,5 @@ export class NoFilesRetrievedError extends Schema.TaggedError<NoFilesRetrievedEr
 - [ ] `rg "class.*TaggedError"` - find ALL errors (with AND without `export`)
 - [ ] Add `export` to any non-exported error classes used in Effect chains
 - [ ] Add `export type { ErrorName }` to services `index.ts`
-- [ ] `npx tsc --build <package> --force` passes
+- [ ] `npm run compile -w <package>` passes
 - [ ] Add `/** @ExportTaggedError */` JSDoc to suppress knip false positives (for errors that are only used within the same package, not consumed by other packages)

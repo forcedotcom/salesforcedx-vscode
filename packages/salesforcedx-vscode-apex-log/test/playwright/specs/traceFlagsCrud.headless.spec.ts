@@ -12,15 +12,14 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
+  selectFirstQuickInputOption,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  verifyCommandExists,
-  waitForQuickInputFirstOption
+  verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -118,13 +117,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await page.keyboard.type(debugLevelDeveloperName);
     await page.keyboard.press('Enter');
 
-    await waitForQuickInputFirstOption(page);
-    const useDefaultsChoice = quickInput.locator(QUICK_INPUT_LIST_ROW).first();
-    await expect(useDefaultsChoice).toBeAttached({ timeout: 10_000 });
-    await useDefaultsChoice.evaluate(el => {
-      el.scrollIntoView({ block: 'center', behavior: 'instant' });
-      (el as HTMLElement).click();
-    });
+    await selectFirstQuickInputOption(page, { optionVisibleTimeout: 10_000 });
 
     await openTraceFlagsAndExpectContent(page, debugLevelMasterLabel);
     await saveScreenshot(page, 'debug-level.created.png');

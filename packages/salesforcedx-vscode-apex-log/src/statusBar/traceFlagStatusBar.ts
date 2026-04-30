@@ -72,7 +72,7 @@ export const createTraceFlagStatusBar = () =>
       Stream.mergeAll(
         [
           // because the org changed — re-query trace flags from the new org
-          Stream.concat(Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), targetOrgRef.changes).pipe(
+          targetOrgRef.changes.pipe(
             Stream.map(orgInfo => orgInfo.orgId),
             Stream.changes,
             Stream.tap(() =>
