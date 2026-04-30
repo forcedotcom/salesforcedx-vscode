@@ -263,9 +263,14 @@ export class ToolingModelService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _setFieldsAtPath(sq: { relationshipName: string; fields: string[]; subqueries: any[] }, path: string[], fields: string[]): any {
     if (path.length === 0) return { ...sq, fields };
+    const existingSubs: any[] = sq.subqueries || []; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const found = existingSubs.some((s: any) => s.relationshipName === path[0]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const subs = found
+      ? existingSubs
+      : [...existingSubs, { relationshipName: path[0], fields: [], subqueries: [], relationships: [] }];
     return {
       ...sq,
-      subqueries: (sq.subqueries || []).map((s: any) => // eslint-disable-line @typescript-eslint/no-explicit-any
+      subqueries: subs.map((s: any) => // eslint-disable-line @typescript-eslint/no-explicit-any
         s.relationshipName === path[0] ? this._setFieldsAtPath(s, path.slice(1), fields) : s
       )
     };

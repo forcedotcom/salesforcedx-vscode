@@ -251,7 +251,8 @@ export default class App extends LightningElement {
     const isExpanded = this._expandedNodes.has(nodeId);
     const isSelected = this._pathsEqual(this.activeContextPath, path);
     const sq = this._findSubquery(path);
-    const fieldCount = sq ? sq.fields.length : 0;
+    const relFieldCount = sq ? (sq.relationships || []).reduce((sum, r) => sum + r.fields.length, 0) : 0;
+    const fieldCount = sq ? sq.fields.length + relFieldCount : 0;
 
     nodes.push({
       id: nodeId,
