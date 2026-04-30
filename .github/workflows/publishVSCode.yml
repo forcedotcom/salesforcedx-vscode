@@ -120,7 +120,6 @@ jobs:
   trigger-cbw-release:
     needs: [publish, prepare-environment-from-main]
     if: needs.publish.result == 'success' && vars.CBW_TRIGGER_ENABLED != 'false'
-    continue-on-error: true
     uses: forcedotcom/code-builder-web/.github/workflows/release-on-extension-publish.yml@main
     with:
       extensions: ${{ needs.publish.outputs.extensions }}
