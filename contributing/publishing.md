@@ -80,7 +80,25 @@ find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {
 
 After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" and "Publish in Open VSX Registry" to allow the extensions to be uploaded and complete the release process.
 
-**Code Builder Web promotion:** After publishing to the MS Marketplace, the workflow dispatches to `code-builder-web` to trigger a CBW release and auto-promote to production. Set repo variable `CBW_TRIGGER_ENABLED=false` (Settings → Secrets and variables → Actions → Variables) to publish without triggering CBW. Default (unset) enables the trigger.
+### Web Console Release
+
+After extensions are published to the MS Marketplace, Web Console needs a new release so customers get the updated extensions. There are two paths:
+
+**Automatic (default):** The `publishVSCode.yml` workflow dispatches to `code-builder-web/release-on-extension-publish.yml` via `workflow_call`. That workflow polls the marketplace until the published extensions are available at the new version, then triggers a Web Console release with auto-promote to production. No manual steps needed.
+
+To disable the automatic trigger, set repo variable `CBW_TRIGGER_ENABLED=false` (Settings → Secrets and variables → Actions → Variables). Default (unset) enables the trigger.
+
+**Manual (when auto-promote is broken or disabled):** If the automatic flow fails or is disabled, you need to manually release and promote Web Console after confirming extensions are live in the marketplace:
+
+1. Go to the [release.yml](https://github.com/forcedotcom/code-builder-web/actions/workflows/release.yml) workflow in `code-builder-web`
+2. Click **Run workflow** from the `main` branch
+3. Set **release-type** to `patch` (or `minor` if the extension version bumped minor)
+4. Set **auto-promote** to `prd`
+5. Run the workflow — this builds, creates a new version, and dispatches `promote.yml` to sync to `/latest/` in production
+
+If you need to promote without a new release (e.g., re-promoting an existing version), use the [promote.yml](https://github.com/forcedotcom/code-builder-web/actions/workflows/promote.yml) workflow directly and select the version to promote to `prd`.
+
+Full details on the CBW release lifecycle, CDN caching, and rollback procedures are in [code-builder-web/docs/application-lifecycle.md](https://github.com/forcedotcom/code-builder-web/blob/main/docs/application-lifecycle.md).
 
 ## Troubleshooting
 
