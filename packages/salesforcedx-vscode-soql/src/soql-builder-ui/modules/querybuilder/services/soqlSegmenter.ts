@@ -19,7 +19,6 @@ export function segmentSoql(soql: string, model: ToolingModelJson): SoqlSegment[
   if (!soql || !model) return [{ id: 'full', text: soql || '', contextPath: [], isSubquery: false }];
 
   const subqueries = model.subqueries || [];
-
   if (subqueries.length === 0) {
     return [{ id: 'root', text: soql, contextPath: [], isSubquery: false }];
   }
@@ -92,10 +91,59 @@ function _segmentWithSubqueries(
 }
 
 function _findSubqueryStart(text: string, relationshipName: string): number {
-  const escaped = relationshipName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp('\\(SELECT\\s[^)]*?FROM\\s+' + escaped, 'i');
-  const match = pattern.exec(text);
-  return match ? match.index : -1;
+  const upperText = text.toUpperCase();
+  const upperName = relationshipName.toUpperCase();
+  let searchFrom = 0;
+
+  while (searchFrom < text.length) {
+    const parenIdx = text.indexOf('(', searchFrom);
+    if (parenIdx < 0) return -1;
+
+    const afterParen = upperText.substring(parenIdx + 1).trimStart();
+    if (!afterParen.startsWith('SELECT')) {
+      searchFrom = parenIdx + 1;
+      continue;
+    }
+
+    const closeParen = _findMatchingParen(text, parenIdx);
+    if (closeParen < 0) return -1;
+
+    const innerText = text.substring(parenIdx + 1, closeParen);
+    if (_innerQueryMatchesRelName(innerText, upperName)) {
+      return parenIdx;
+    }
+
+    searchFrom = parenIdx + 1;
+  }
+
+  return -1;
+}
+
+function _innerQueryMatchesRelName(innerText: string, upperRelName: string): boolean {
+  const upper = innerText.toUpperCase();
+  let depth = 0;
+  let i = 0;
+
+  while (i < upper.length) {
+    if (innerText[i] === '(') { depth++; i++; continue; }
+    if (innerText[i] === ')') { depth--; i++; continue; }
+    if (depth > 0) { i++; continue; }
+
+    if (upper.substring(i).startsWith('FROM')) {
+      const afterFrom = i + 4;
+      if (afterFrom < upper.length && /\s/.test(upper[afterFrom])) {
+        const rest = upper.substring(afterFrom).trimStart();
+        if (rest.startsWith(upperRelName)) {
+          const charAfter = rest[upperRelName.length];
+          if (!charAfter || /[\s),]/.test(charAfter)) {
+            return true;
+          }
+        }
+      }
+    }
+    i++;
+  }
+  return false;
 }
 
 function _findMatchingParen(text: string, openIndex: number): number {
