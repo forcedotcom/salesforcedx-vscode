@@ -119,6 +119,9 @@
       <querybuilder-query-preview
         class={theme}
         soql-statement={query.originalSoqlStatement}
+        segments={querySegments}
+        active-context-path={activeContextPath}
+        onpreview__navigate={handlePreviewNavigate}
       ></querybuilder-query-preview>
     </section>
   </main>

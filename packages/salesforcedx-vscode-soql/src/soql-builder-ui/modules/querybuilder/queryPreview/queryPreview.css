@@ -26,3 +26,17 @@ pre {
   margin: 1em;
   white-space: pre-wrap;
 }
+
+.query-segment--subquery {
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.query-segment--subquery:hover {
+  background-color: var(--vscode-editor-hoverHighlightBackground, rgba(173, 214, 255, 0.15));
+  text-decoration: underline;
+}
+
+.query-segment--active {
+  background-color: var(--vscode-editor-findMatchHighlightBackground, rgba(234, 184, 57, 0.3));
+}

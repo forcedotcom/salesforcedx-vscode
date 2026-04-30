@@ -33,6 +33,8 @@ import {
   extractRelOptions,
   extractChildRelOptions
 } from '../services/drillUtils';
+import { segmentSoql } from '../services/soqlSegmenter';
+import type { SoqlSegment } from '../services/soqlSegmenter';
 
 export default class App extends LightningElement {
   @track
@@ -60,6 +62,10 @@ export default class App extends LightningElement {
   public get treeNodes(): TreeNode[] {
     if (!this.query.sObject) return [];
     return this._buildTreeNodes();
+  }
+
+  public get querySegments(): SoqlSegment[] {
+    return segmentSoql(this.query.originalSoqlStatement, this.query);
   }
 
   public get activeContextData() {
@@ -788,6 +794,22 @@ export default class App extends LightningElement {
       updated.add(nodeId);
     } else {
       updated.delete(nodeId);
+    }
+    this._expandedNodes = updated;
+  }
+
+  public handlePreviewNavigate(e: CustomEvent): void {
+    const { contextPath } = e.detail as { contextPath: string[] };
+    this.activeContextPath = [...contextPath];
+    this.activeRelPath = [];
+    if (contextPath.length > 0) {
+      this._ensureSubqueryMetadataLoaded(contextPath);
+    }
+    // Auto-expand tree nodes along the path
+    const updated = new Set(this._expandedNodes);
+    updated.add('root');
+    for (let i = 0; i < contextPath.length; i++) {
+      updated.add(`subquery.${contextPath.slice(0, i + 1).join('.')}`);
     }
     this._expandedNodes = updated;
   }
