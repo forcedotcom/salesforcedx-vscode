@@ -215,9 +215,14 @@ export default class App extends LightningElement {
     const isSelected = this._pathsEqual(this.activeContextPath, contextPath) &&
       this._pathsEqual(this.activeRelPath, relPath);
 
-    const isRootRel = contextPath.length === 0;
-    const relData = isRootRel ? (this.query.relationships || []).find(r => r.relationshipName === relPath[0]) : null;
-    const relFieldCount = isRootRel && relPath.length === 1 && relData ? relData.fields.length : 0;
+    let relFieldCount = 0;
+    if (relPath.length === 1) {
+      const contextRels = contextPath.length === 0
+        ? (this.query.relationships || [])
+        : (this._findSubquery(contextPath)?.relationships || []);
+      const relData = contextRels.find(r => r.relationshipName === relPath[0]);
+      relFieldCount = relData ? relData.fields.length : 0;
+    }
 
     nodes.push({
       id: nodeId,
@@ -251,8 +256,7 @@ export default class App extends LightningElement {
     const isExpanded = this._expandedNodes.has(nodeId);
     const isSelected = this._pathsEqual(this.activeContextPath, path);
     const sq = this._findSubquery(path);
-    const relFieldCount = sq ? (sq.relationships || []).reduce((sum, r) => sum + r.fields.length, 0) : 0;
-    const fieldCount = sq ? sq.fields.length + relFieldCount : 0;
+    const fieldCount = sq ? sq.fields.length : 0;
 
     nodes.push({
       id: nodeId,
