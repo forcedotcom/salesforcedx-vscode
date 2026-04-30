@@ -40,8 +40,8 @@ export const buildDrilledOptions = (metadata: any, stackDepth: number): string[]
     .sort();
   const refs: string[] = stackDepth < MAX_DRILL_DEPTH
     ? (metadata.fields as any[])
-      .filter((f: any) => f.type === 'reference' && f.relationshipName)
-      .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`)
+      .filter((f: any) => f.type === 'reference' && f.relationshipName && Array.isArray(f.referenceTo) && f.referenceTo.length)
+      .map((f: any) => `${REL_PREFIX}${f.relationshipName as string} (${(f.referenceTo as string[])[0]})`)
       .sort((a, b) => a.localeCompare(b))
     : [];
   return [...plain, ...refs];
@@ -103,4 +103,13 @@ export const findReferenceTo = (metadata: any, relationshipName: string): string
     (f: any) => f.relationshipName === relationshipName
   );
   return field?.referenceTo ?? null;
+};
+
+/**
+ * Strip a ` (SObjectType)` type annotation from a display name.
+ * e.g. "CreatedBy (User)" → "CreatedBy"
+ */
+export const stripTypeAnnotation = (value: string): string => {
+  const parenIdx = value.indexOf(' (');
+  return parenIdx >= 0 ? value.slice(0, parenIdx) : value;
 };

@@ -18,7 +18,8 @@ import {
   buildQualifiedFieldName,
   popDrillStack,
   extractRelOptions,
-  findReferenceTo
+  findReferenceTo,
+  stripTypeAnnotation
 } from '../services/drillUtils';
 
 export default class OrderBy extends LightningElement {
@@ -69,7 +70,7 @@ export default class OrderBy extends LightningElement {
 
   private _updateDisplayOptions(): void {
     const relEntries = extractRelOptions(this._sobjectMetadata)
-      .map(r => `${REL_PREFIX}${r.relationshipName}`)
+      .map(r => `${REL_PREFIX}${r.relationshipName} (${r.referenceTo[0] ?? ''})`)
       .sort((a, b) => a.localeCompare(b));
     this._displayFields = [...(this.orderByFields || []), ...relEntries];
   }
@@ -88,7 +89,7 @@ export default class OrderBy extends LightningElement {
     if (!value) return;
 
     if (value.startsWith(REL_PREFIX)) {
-      const relName = value.slice(REL_PREFIX.length);
+      const relName = stripTypeAnnotation(value.slice(REL_PREFIX.length));
       const sourceMeta = this._drillStack.length > 0
         ? this._drillStack[this._drillStack.length - 1].metadata
         : this._sobjectMetadata;

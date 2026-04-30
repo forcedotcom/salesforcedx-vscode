@@ -20,7 +20,8 @@ import {
   buildBreadcrumb,
   buildQualifiedFieldName,
   popDrillStack,
-  findReferenceTo
+  findReferenceTo,
+  stripTypeAnnotation
 } from '../services/drillUtils';
 import debounce from 'debounce';
 import { messages } from 'querybuilder/messages';
@@ -84,8 +85,8 @@ export default class WhereModifierGroup extends LightningElement {
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const relEntries: string[] = (this._sobjectMetadata?.fields || [])
-      .filter((f: any) => f.type === 'reference' && f.relationshipName)
-      .map((f: any) => `${REL_PREFIX}${f.relationshipName as string}`)
+      .filter((f: any) => f.type === 'reference' && f.relationshipName && Array.isArray(f.referenceTo) && f.referenceTo.length)
+      .map((f: any) => `${REL_PREFIX}${f.relationshipName as string} (${(f.referenceTo as string[])[0]})`)
       .sort();
     return [...(this.allFields || []), ...relEntries];
   }
@@ -118,7 +119,7 @@ export default class WhereModifierGroup extends LightningElement {
     if (!value) return;
 
     if (value.startsWith(REL_PREFIX)) {
-      const relName = value.slice(REL_PREFIX.length);
+      const relName = stripTypeAnnotation(value.slice(REL_PREFIX.length));
       const sourceMeta = this._drillStack.length > 0
         ? this._drillStack[this._drillStack.length - 1].metadata
         : this._sobjectMetadata;
