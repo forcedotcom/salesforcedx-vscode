@@ -30,6 +30,17 @@ export default class SchemaTree extends LightningElement {
 
   @track private focusedIndex = 0;
   @track private showContextMenu = false;
+  private _lastScrolledPath = '';
+
+  public renderedCallback(): void {
+    const pathKey = this.activeContextPath.join('.');
+    if (pathKey === this._lastScrolledPath) return;
+    this._lastScrolledPath = pathKey;
+    const selectedEl = this.template.querySelector('.tree-node--selected') as HTMLElement;
+    if (selectedEl) {
+      selectedEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
   @track private contextMenuX = 0;
   @track private contextMenuY = 0;
   private contextMenuNode: TreeNode | null = null;
