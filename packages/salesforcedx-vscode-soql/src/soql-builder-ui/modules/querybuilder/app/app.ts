@@ -673,6 +673,37 @@ export default class App extends LightningElement {
     this._expandedNodes = updated;
   }
 
+  public handleTreeClearNode(e: CustomEvent): void {
+    const { contextPath, relPath, type } = e.detail as {
+      contextPath: string[]; relPath: string[]; type: string
+    };
+
+    if (type === 'root') {
+      this.modelService.setFields([]);
+      // Clear all relationships
+      for (const rel of [...(this.query.relationships || [])]) {
+        this.modelService.removeRelationship(rel.relationshipName);
+      }
+      // Clear all subqueries
+      for (const sq of [...(this.query.subqueries || [])]) {
+        this.modelService.removeSubquery(sq.relationshipName);
+      }
+    } else if (type === 'parentRel') {
+      const topRelName = relPath[0];
+      if (contextPath.length === 0) {
+        this.modelService.removeRelationship(topRelName);
+      } else {
+        this.modelService.setContextRelationshipFields(contextPath, topRelName, []);
+      }
+    } else if (type === 'childSubquery') {
+      if (contextPath.length === 1) {
+        this.modelService.removeSubquery(contextPath[0]);
+      } else {
+        this.modelService.removeSubqueryAtPath(contextPath);
+      }
+    }
+  }
+
   public handlePreviewNavigate(e: CustomEvent): void {
     const { contextPath } = e.detail as { contextPath: string[] };
     this.activeContextPath = [...contextPath];

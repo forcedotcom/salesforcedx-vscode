@@ -13,6 +13,12 @@
     onkeydown={handleKeyDown}
     aria-label={i18n.label_schema_tree}
   >
+    <template if:true={showContextMenu}>
+      <div class="tree-context-menu" style={contextMenuStyle}>
+        <div class="tree-context-menu-item" onclick={handleClearNode}>Clear from query</div>
+      </div>
+    </template>
+
     <template for:each={nodes} for:item="node">
       <div
         key={node.id}
@@ -21,6 +27,7 @@
         role="treeitem"
         data-node-id={node.id}
         onclick={handleNodeClick}
+        oncontextmenu={handleContextMenu}
       >
         <template if:true={node.showChevron}>
           <span

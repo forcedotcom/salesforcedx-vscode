@@ -7,6 +7,7 @@
  */
 
 .schema-tree {
+  position: relative;
   font-size: 13px;
   line-height: 22px;
   outline: none;
@@ -99,4 +100,28 @@ input[type='checkbox'] {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.tree-context-menu {
+  position: absolute;
+  z-index: 100;
+  min-width: 160px;
+  background-color: var(--vscode-menu-background, #252526);
+  border: 1px solid var(--vscode-menu-border, #454545);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  padding: 4px 0;
+}
+
+.tree-context-menu-item {
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--vscode-menu-foreground, #ccc);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tree-context-menu-item:hover {
+  background-color: var(--vscode-menu-selectionBackground, #094771);
+  color: var(--vscode-menu-selectionForeground, #fff);
 }

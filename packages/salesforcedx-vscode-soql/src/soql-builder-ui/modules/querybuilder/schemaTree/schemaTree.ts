@@ -29,6 +29,10 @@ export default class SchemaTree extends LightningElement {
   @api public activeContextPath: string[] = [];
 
   @track private focusedIndex = 0;
+  @track private showContextMenu = false;
+  @track private contextMenuX = 0;
+  @track private contextMenuY = 0;
+  private contextMenuNode: TreeNode | null = null;
 
   public get i18n() {
     return messages;
@@ -54,6 +58,56 @@ export default class SchemaTree extends LightningElement {
 
   private pathsEqual(a: string[], b: string[]): boolean {
     return a.length === b.length && a.every((v, i) => v === b[i]);
+  }
+
+  public get contextMenuStyle(): string {
+    return `left: ${this.contextMenuX}px; top: ${this.contextMenuY}px`;
+  }
+
+  public connectedCallback(): void {
+    this._dismissContextMenu = this._dismissContextMenu.bind(this);
+  }
+
+  private _dismissContextMenu(): void {
+    this.showContextMenu = false;
+    this.contextMenuNode = null;
+    document.removeEventListener('click', this._dismissContextMenu);
+  }
+
+  public handleContextMenu(e: MouseEvent): void {
+    e.preventDefault();
+    const target = e.currentTarget as HTMLElement;
+    const nodeId = target.dataset.nodeId;
+    const node = this.visibleNodes.find(n => n.id === nodeId);
+    if (!node || !node.hasContent) {
+      this.showContextMenu = false;
+      return;
+    }
+
+    const rect = this.template.querySelector('.schema-tree')?.getBoundingClientRect();
+    this.contextMenuX = e.clientX - (rect?.left ?? 0);
+    this.contextMenuY = e.clientY - (rect?.top ?? 0);
+    this.contextMenuNode = node;
+    this.showContextMenu = true;
+
+    requestAnimationFrame(() => {
+      document.addEventListener('click', this._dismissContextMenu);
+    });
+  }
+
+  public handleClearNode(): void {
+    if (!this.contextMenuNode) return;
+    const node = this.contextMenuNode;
+    this.showContextMenu = false;
+    this.contextMenuNode = null;
+
+    this.dispatchEvent(new CustomEvent('tree__clearnode', {
+      detail: {
+        contextPath: node.contextPath,
+        relPath: node.relPath || [],
+        type: node.type
+      }
+    }));
   }
 
   public handleNodeClick(e: Event): void {
