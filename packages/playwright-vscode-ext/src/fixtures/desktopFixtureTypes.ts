@@ -10,6 +10,8 @@ import type { ElectronApplication, Page } from '@playwright/test';
 /** Worker-scoped fixtures (shared across tests in same worker) */
 export type WorkerFixtures = {
   vscodeExecutable: string;
+  /** Resolved extensions dir: VSIX-install cache path (VSIX mode) or undefined (dev-path mode). */
+  installedExtensionsDir: string | undefined;
 };
 
 /** Test-scoped fixtures (fresh for each test) */
