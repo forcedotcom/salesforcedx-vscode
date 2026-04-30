@@ -277,7 +277,7 @@ export default class App extends LightningElement {
 
     nodes.push({
       id: nodeId,
-      label: `${relName}${this._fieldCountLabel(relFieldCount)}`,
+      label: `⬆ ${relName}${this._fieldCountLabel(relFieldCount)}`,
       type: 'parentRel',
       depth,
       isExpanded,
@@ -317,7 +317,7 @@ export default class App extends LightningElement {
 
     nodes.push({
       id: nodeId,
-      label: `${relName}${this._fieldCountLabel(fieldCount)}`,
+      label: `⬇ ${relName}${this._fieldCountLabel(fieldCount)}`,
       type: 'childSubquery',
       depth,
       isExpanded,
