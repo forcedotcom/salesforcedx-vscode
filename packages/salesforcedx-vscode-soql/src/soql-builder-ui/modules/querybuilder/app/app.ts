@@ -267,12 +267,16 @@ export default class App extends LightningElement {
       this._pathsEqual(this.activeRelPath, relPath);
 
     let relFieldCount = 0;
-    if (relPath.length === 1) {
-      const contextRels = contextPath.length === 0
-        ? (this.query.relationships || [])
-        : (this._findSubquery(contextPath)?.relationships || []);
-      const relData = contextRels.find(r => r.relationshipName === relPath[0]);
-      relFieldCount = relData ? relData.fields.length : 0;
+    const contextRels = contextPath.length === 0
+      ? (this.query.relationships || [])
+      : (this._findSubquery(contextPath)?.relationships || []);
+    const relData = contextRels.find(r => r.relationshipName === relPath[0]);
+    if (relData) {
+      const dottedPrefix = relPath.slice(1).join('.');
+      relFieldCount = relData.fields.filter(f => {
+        const fPrefix = f.includes('.') ? f.substring(0, f.lastIndexOf('.')) : '';
+        return fPrefix === dottedPrefix;
+      }).length;
     }
 
     nodes.push({
