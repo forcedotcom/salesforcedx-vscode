@@ -58,8 +58,11 @@ export default class App extends LightningElement {
   @track public activeContextPath: string[] = [];
   @track public activeRelPath: string[] = [];
   @track private _expandedNodes: Set<string> = new Set(['root']);
+  @track private _metadataCacheVersion = 0;
 
   public get treeNodes(): TreeNode[] {
+    // Reference tracked version to trigger re-render when new metadata loads
+    void this._metadataCacheVersion;
     if (!this.query.sObject) return [];
     return this._buildTreeNodes();
   }
@@ -279,6 +282,10 @@ export default class App extends LightningElement {
       }).length;
     }
 
+    const targetSObject = isExpanded ? this._resolveRelSObject(relPath) : null;
+    const targetCached = targetSObject ? this._metadataCache.has(targetSObject.toLowerCase()) : false;
+    const nodeIsLoading = isExpanded && !targetCached;
+
     nodes.push({
       id: nodeId,
       label: `⬆ ${relName}${this._fieldCountLabel(relFieldCount)}`,
@@ -286,6 +293,7 @@ export default class App extends LightningElement {
       depth,
       isExpanded,
       isSelected,
+      isLoading: nodeIsLoading,
       hasContent: relFieldCount > 0,
       contextPath: [...contextPath],
       relPath: [...relPath],
@@ -293,7 +301,6 @@ export default class App extends LightningElement {
     });
 
     if (isExpanded) {
-      const targetSObject = this._resolveRelSObject(relPath);
       if (targetSObject) {
         const cached = this._metadataCache.get(targetSObject.toLowerCase());
         if (cached) {
@@ -319,6 +326,10 @@ export default class App extends LightningElement {
       (sq.subqueries || []).length > 0
     );
 
+    const childSObject = isExpanded ? this._resolveChildSObject(relName) : null;
+    const childCached = childSObject ? this._metadataCache.has(childSObject.toLowerCase()) : false;
+    const sqIsLoading = isExpanded && !childCached;
+
     nodes.push({
       id: nodeId,
       label: `⬇ ${relName}${this._fieldCountLabel(fieldCount)}`,
@@ -326,13 +337,13 @@ export default class App extends LightningElement {
       depth,
       isExpanded,
       isSelected,
+      isLoading: sqIsLoading,
       hasContent: sqHasContent,
       contextPath: [...path],
       hasChildren: true
     });
 
     if (isExpanded) {
-      const childSObject = this._resolveChildSObject(relName);
       const cached = childSObject ? this._metadataCache.get(childSObject.toLowerCase()) : null;
       if (cached) {
         // Parent relationships for this child sObject
@@ -419,6 +430,7 @@ export default class App extends LightningElement {
       if (sobjectMetadata && sobjectMetadata.name) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this._metadataCache.set((sobjectMetadata.name as string).toLowerCase(), sobjectMetadata);
+        this._metadataCacheVersion++;
       }
       // Only update the primary fields list when this is the main sObject being loaded
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
