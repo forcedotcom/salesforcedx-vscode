@@ -12,7 +12,6 @@ Full doc: [contributing/publishing.md](../../../contributing/publishing.md)
 Run from repo root via `npx ts-node` (no global `ts-node`):
 
 - `npx ts-node .claude/skills/release/detect-state.ts` — outputs JSON with `currentRelease`, `version`, `priorRelease`, `tagExists`, `onReleaseBranch`, `commitCount`, `branchUrl`, `compareUrl`
-- `npx ts-node .claude/skills/release/slack-post.ts [--version X.Y.Z]` — outputs Slack mrkdwn to stdout
 
 ## Step 0 — Verify release branch
 
@@ -151,15 +150,21 @@ find ~/Downloads/v<version> -type f -name "*.vsix" -exec <binary> --install-exte
 
 User should reload VS Code and run a few commands to validate.
 
-## Step 9 — Generate Slack post
+## Step 9 — Slack post
 
-Run from repo root:
+Compose the post from `packages/salesforcedx-vscode/CHANGELOG.md` (top section). Format:
 
-```sh
-npx ts-node .claude/skills/release/slack-post.ts
-```
+- Header: `*Salesforce Extensions for VS Code v<version> is out* :tada:`
+- Marketplace link: `<https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode|VS Code Marketplace>` — note "see the *Changelog* tab for full details"
+- Sections: `*Added*` / `*Fixed*` (from `## Added` / `## Fixed`)
+- Subsection headers (`#### foo`) → blockquote (`> foo`)
+- Bullets: drop ` ([PR #N](url), [ISSUE #N](url))` trailers
 
-Capture stdout and print inside a fenced code block for copy-paste into `#platform-dev-tools`.
+Show the composed post to the user in a fenced code block.
+
+**If Slack MCP is available**: offer to post or draft to `#platform-dev-tools`. Wait for explicit approval or change feedback before calling `slack_send_message` / `slack_send_message_draft`.
+
+**If not**: user copy-pastes manually.
 
 ## Conventions
 
