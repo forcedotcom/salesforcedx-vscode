@@ -41,11 +41,12 @@ export default class QueryPreview extends LightningElement {
 
   private _segmentClass(seg: SoqlSegment): string {
     const classes = ['query-segment'];
+    const isActive = this._pathsEqual(seg.contextPath, this.activeContextPath);
+    if (isActive) {
+      classes.push('query-segment--active');
+    }
     if (seg.isSubquery) {
       classes.push('query-segment--subquery');
-      if (this._pathsEqual(seg.contextPath, this.activeContextPath)) {
-        classes.push('query-segment--active');
-      }
     }
     return classes.join(' ');
   }
@@ -54,7 +55,7 @@ export default class QueryPreview extends LightningElement {
     const target = e.currentTarget as HTMLElement;
     const segId = target.dataset.segId;
     const seg = this.segments.find(s => s.id === segId);
-    if (!seg || !seg.isSubquery) return;
+    if (!seg) return;
     this.dispatchEvent(new CustomEvent('preview__navigate', {
       detail: { contextPath: seg.contextPath }
     }));
