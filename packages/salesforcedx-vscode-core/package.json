@@ -29,7 +29,7 @@
   "dependencies": {
     "@salesforce/core": "^8.28.0",
     "@salesforce/effect-ext-utils": "*",
-    "@salesforce/o11y-reporter": "^1.8.1",
+    "@salesforce/o11y-reporter": "^1.8.4",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
