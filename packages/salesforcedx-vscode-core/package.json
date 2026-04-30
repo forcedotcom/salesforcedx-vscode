@@ -171,15 +171,18 @@
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-metadata:vscode:bundle",
-        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "vscode:package:legacy",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-metadata:vscode:package",
+        "../salesforcedx-vscode-apex-log:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [

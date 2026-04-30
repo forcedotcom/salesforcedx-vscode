@@ -127,7 +127,8 @@
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
-        "node_modules/@salesforce/templates/lib/**"
+        "node_modules/@salesforce/templates/lib/**",
+        "../../node_modules/@salesforce/templates/lib/**"
       ],
       "output": [
         "dist"
