@@ -619,19 +619,20 @@ export default class App extends LightningElement {
   }
 
   private _ensureSubqueryMetadataLoaded(path: string[]): void {
-    const relName = path[path.length - 1];
-    // Find the child sObject name from the parent's cached metadata
-    let childSObject: string | undefined;
-    this._metadataCache.forEach((meta: any) => {
-      if (childSObject) return;
-      const cr = (meta?.childRelationships || []).find(
-        (c: any) => c.relationshipName === relName
-      );
-      if (cr) childSObject = cr.childSObject as string;
-    });
-    if (!childSObject) return;
-    if (this._metadataCache.has(childSObject.toLowerCase())) return;
-    this.toolingSDK.loadSObjectMetatada(childSObject);
+    for (let i = 0; i < path.length; i++) {
+      const relName = path[i];
+      let childSObject: string | undefined;
+      this._metadataCache.forEach((meta: any) => {
+        if (childSObject) return;
+        const cr = (meta?.childRelationships || []).find(
+          (c: any) => c.relationshipName === relName
+        );
+        if (cr) childSObject = cr.childSObject as string;
+      });
+      if (!childSObject) continue;
+      if (this._metadataCache.has(childSObject.toLowerCase())) continue;
+      this.toolingSDK.loadSObjectMetatada(childSObject);
+    }
   }
   /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
 
