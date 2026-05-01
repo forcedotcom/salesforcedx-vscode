@@ -6,7 +6,7 @@
  */
 
 import * as ManagedRuntime from 'effect/ManagedRuntime';
-import { AllServicesLayer } from './allServicesLayerRef';
+import { AllServicesLayer } from './extensionProvider';
 
 const createReplayDebuggerRuntime = () => ManagedRuntime.make(AllServicesLayer);
 let _replayDebuggerRuntime: ReturnType<typeof createReplayDebuggerRuntime> | undefined;

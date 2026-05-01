@@ -76,6 +76,7 @@ export type SalesforceVSCodeServicesApi = {
       | ConnectionService
       | EditorService
       | ErrorHandlerService
+      | ExecuteAnonymousService
       | FileChangePubSub
       | FsService
       | MediaService
@@ -93,6 +94,7 @@ export type SalesforceVSCodeServicesApi = {
       | SourceTrackingService
       | TemplateService
       | TerminalService
+      | TraceFlagService
       | TransmogrifierService
       | WorkspaceService
     >;
