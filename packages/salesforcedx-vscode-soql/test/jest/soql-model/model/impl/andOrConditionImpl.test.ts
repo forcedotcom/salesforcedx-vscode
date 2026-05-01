@@ -19,29 +19,45 @@ describe('AndOrConditionImpl should', () => {
         kind: 'fieldCompare',
         field: { kind: 'fieldRef', fieldName: 'field' },
         operator: '>',
-        compareValue: { kind: 'literal', value: '1' }
+        compareValue: { kind: 'literal', type: 'NUMBER', value: '1' }
       },
       andOr: 'OR',
       rightCondition: {
         kind: 'fieldCompare',
         field: { kind: 'fieldRef', fieldName: 'field' },
         operator: '<',
-        compareValue: { kind: 'literal', value: '5' }
+        compareValue: { kind: 'literal', type: 'NUMBER', value: '5' }
       }
     };
     const actual = new AndOrConditionImpl(
-      new FieldCompareConditionImpl(new FieldRefImpl('field'), ConditionOperator.GreaterThan, new LiteralImpl('1')),
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.GreaterThan,
+        new LiteralImpl('NUMBER', '1')
+      ),
       AndOr.Or,
-      new FieldCompareConditionImpl(new FieldRefImpl('field'), ConditionOperator.LessThan, new LiteralImpl('5'))
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.LessThan,
+        new LiteralImpl('NUMBER', '5')
+      )
     );
     expect(actual).toEqual(expected);
   });
   it('return left condition followed by AndOr operator followed by right condition for toSoqlSyntax()', () => {
     const expected = 'field > 1 OR field < 5';
     const actual = new AndOrConditionImpl(
-      new FieldCompareConditionImpl(new FieldRefImpl('field'), ConditionOperator.GreaterThan, new LiteralImpl('1')),
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.GreaterThan,
+        new LiteralImpl('NUMBER', '1')
+      ),
       AndOr.Or,
-      new FieldCompareConditionImpl(new FieldRefImpl('field'), ConditionOperator.LessThan, new LiteralImpl('5'))
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.LessThan,
+        new LiteralImpl('NUMBER', '5')
+      )
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

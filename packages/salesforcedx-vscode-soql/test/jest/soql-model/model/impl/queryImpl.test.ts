@@ -36,7 +36,7 @@ describe('QueryImpl should', () => {
           kind: 'fieldCompare',
           field: { kind: 'fieldRef', fieldName: 'paint_it' },
           operator: '=',
-          compareValue: { kind: 'literal', value: "'black'" }
+          compareValue: { kind: 'literal', type: 'STRING' as const, value: "'black'" }
         }
       },
       with: {
@@ -75,7 +75,7 @@ describe('QueryImpl should', () => {
         new FieldCompareConditionImpl(
           new FieldRefImpl(expected.where.condition.field.fieldName),
           ConditionOperator.Equals,
-          new LiteralImpl(expected.where.condition.compareValue.value)
+          new LiteralImpl(expected.where.condition.compareValue.type, expected.where.condition.compareValue.value)
         )
       ),
       new UnmodeledSyntaxImpl(expected.with.unmodeledSyntax, REASON_UNMODELED_WITH),
@@ -100,7 +100,7 @@ describe('QueryImpl should', () => {
         new FieldCompareConditionImpl(
           new FieldRefImpl('paint_it'),
           ConditionOperator.Equals,
-          new LiteralImpl("'black'")
+          new LiteralImpl('STRING', "'black'")
         )
       )
     ).toSoqlSyntax();

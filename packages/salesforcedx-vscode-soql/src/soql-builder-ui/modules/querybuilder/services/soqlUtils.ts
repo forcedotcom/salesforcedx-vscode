@@ -165,9 +165,9 @@ const convertUiModelToSoqlModel = (uiModel: ToolingModelJson): Query => {
       }
 
       const compareValue = uiModelCondition.compareValue
-        ? new LiteralImpl(uiModelCondition.compareValue.value)
+        ? new LiteralImpl(uiModelCondition.compareValue.type, uiModelCondition.compareValue.value)
         : uiModelCondition.values
-          ? uiModelCondition.values.map(value => new LiteralImpl(value.value))
+          ? uiModelCondition.values.map(value => new LiteralImpl(value.type, value.value))
           : undefined;
 
       if (field && compareValue) {

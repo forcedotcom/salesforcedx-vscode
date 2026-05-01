@@ -29,7 +29,7 @@ import {
 import { SoqlModelUtils } from '../../../../src/soql-model/model/util';
 
 const field = new FieldRefImpl('field');
-const literal = new LiteralImpl("'Hello'");
+const literal = new LiteralImpl('STRING', "'Hello'");
 const conditionFieldCompare = new FieldCompareConditionImpl(field, ConditionOperator.Equals, literal);
 const conditionLike = new FieldCompareConditionImpl(field, ConditionOperator.Like, literal);
 const conditionInList = new InListConditionImpl(field, ConditionOperator.In, [literal]);
