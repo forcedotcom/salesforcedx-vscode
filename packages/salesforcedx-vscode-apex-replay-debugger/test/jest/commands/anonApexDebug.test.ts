@@ -5,21 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getYYYYMMddHHmmssDateFormat, makeDoubleDigit } from '../../../src/commands/anonApexDebug';
-
-describe('makeDoubleDigit', () => {
-  it('pads single-digit numbers with a leading zero', () => {
-    expect(makeDoubleDigit(0)).toBe('00');
-    expect(makeDoubleDigit(1)).toBe('01');
-    expect(makeDoubleDigit(9)).toBe('09');
-  });
-
-  it('leaves double-digit numbers unchanged', () => {
-    expect(makeDoubleDigit(10)).toBe('10');
-    expect(makeDoubleDigit(12)).toBe('12');
-    expect(makeDoubleDigit(31)).toBe('31');
-  });
-});
+import { getYYYYMMddHHmmssDateFormat } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('getYYYYMMddHHmmssDateFormat', () => {
   it('formats a date with all double-digit components', () => {
