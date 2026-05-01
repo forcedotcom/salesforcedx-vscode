@@ -26,12 +26,14 @@ const program = Stream.concat(
 void Effect.runPromise(program).then(failureCount => process.exit(failureCount > 0 ? 1 : 0));
 
 const collectLeafErrors = (errors: ValidationError[]): string[] =>
-  errors.flatMap(err => {
-    if ('states' in err && err.states?.length) {
-      return err.states.flatMap(s => collectLeafErrors(s.errors));
+  errors.flatMap(error => {
+    if ('states' in error && error.states?.length) {
+      return error.states.flatMap(state => collectLeafErrors(state.errors));
     }
-    const msg = ('detail' in err && err.detail) ?? err.title;
-    return ['path' in err ? `  ${err.path}: ${msg}` : `  ${msg}`];
+
+    const message = ('detail' in error && error.detail) ?? error.title;
+
+    return ['path' in error ? `  ${error.path}: ${message}` : `  ${message}`];
   });
 
 const formatErrors = (result: ValidationState): string => collectLeafErrors(result.errors).join('\n');
