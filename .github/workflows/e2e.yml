@@ -118,89 +118,91 @@ jobs:
     uses: ./.github/workflows/playwrightVscodeExtE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-services:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/servicesE2E.yml
     secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-metadata:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/metadataE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-apex-log:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/apexLogE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-apex-testing:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/apexTestingE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-org:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/orgE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-org-browser:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/orgBrowserE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-soql:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/soqlE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-core:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-apex-replay-debugger:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/apexReplayDebuggerE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-visualforce:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/visualforceE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-aura:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/auraE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   playwright-lwc:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/lwcPlaywrightE2E.yml
     secrets: inherit
     with:
-      vscode_version: 'latest'
+      vscode_version: ${{ inputs.vscodeVersion || 'latest' }}
 
   Apex_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
