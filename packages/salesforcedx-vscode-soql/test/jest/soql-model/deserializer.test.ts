@@ -52,7 +52,7 @@ const testQueryModel = {
       kind: 'fieldCompare',
       field: { kind: 'fieldRef', fieldName: 'field1' },
       operator: '=',
-      compareValue: { kind: 'literal', value: '5' }
+      compareValue: { kind: 'literal', type: 'NUMBER', value: '5' }
     }
   },
   with: { unmodeledSyntax: 'WITH DATA CATEGORY cat__c AT val__c', reason: REASON_UNMODELED_WITH },
@@ -85,13 +85,13 @@ const selectCount = { kind: 'selectCount' };
 
 const limitZero = { limit: 0 };
 
-const literalTrue = { kind: 'literal', value: 'TRUE' };
-const literalFalse = { kind: 'literal', value: 'FALSE' };
-const literalCurrency = { kind: 'literal', value: 'USD1000' };
-const literalDate = { kind: 'literal', value: '2020-11-11' };
-const literalNull = { kind: 'literal', value: 'null' };
-const literalNumber = { kind: 'literal', value: '5' };
-const literalString = { kind: 'literal', value: "'HelloWorld'" };
+const literalTrue = { kind: 'literal', type: 'BOOLEAN', value: 'TRUE' };
+const literalFalse = { kind: 'literal', type: 'BOOLEAN', value: 'FALSE' };
+const literalCurrency = { kind: 'literal', type: 'CURRENCY', value: 'USD1000' };
+const literalDate = { kind: 'literal', type: 'DATE', value: '2020-11-11' };
+const literalNull = { kind: 'literal', type: 'NULL', value: 'null' };
+const literalNumber = { kind: 'literal', type: 'NUMBER', value: '5' };
+const literalString = { kind: 'literal', type: 'STRING', value: "'HelloWorld'" };
 
 const field = { kind: 'fieldRef', fieldName: 'field' };
 
