@@ -31,3 +31,14 @@ jobs:
         name: Compile ESLint rules
       - name: Lint
         run: npm run lint
+  validate-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          cache: npm
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Validate GitHub Actions
+        run: npm run check:actions
