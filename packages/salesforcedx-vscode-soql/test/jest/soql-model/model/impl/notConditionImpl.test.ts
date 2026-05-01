@@ -19,18 +19,26 @@ describe('NotConditionImpl should', () => {
         kind: 'fieldCompare',
         field: { kind: 'fieldRef', fieldName: 'field' },
         operator: '=',
-        compareValue: { kind: 'literal', value: "'abc'" }
+        compareValue: { kind: 'literal', type: 'STRING', value: "'abc'" }
       }
     };
     const actual = new NotConditionImpl(
-      new FieldCompareConditionImpl(new FieldRefImpl('field'), ConditionOperator.Equals, new LiteralImpl("'abc'"))
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.Equals,
+        new LiteralImpl('STRING', "'abc'")
+      )
     );
     expect(actual).toEqual(expected);
   });
   it('return condition preceded by NOT keyword for toSoqlSyntax()', () => {
     const expected = "NOT field = 'abc'";
     const actual = new NotConditionImpl(
-      new FieldCompareConditionImpl(new FieldRefImpl('field'), ConditionOperator.Equals, new LiteralImpl("'abc'"))
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.Equals,
+        new LiteralImpl('STRING', "'abc'")
+      )
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

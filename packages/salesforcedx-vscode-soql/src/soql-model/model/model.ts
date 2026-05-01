@@ -204,6 +204,7 @@ export type LiteralType = 'BOOLEAN' | 'CURRENCY' | 'DATE' | 'NULL' | 'NUMBER' | 
 
 export type Literal = CompareValue & {
   kind: 'literal';
+  type: LiteralType;
   value: string;
 };
 
