@@ -3,7 +3,7 @@ description: Run verification after code changes
 alwaysApply: true
 ---
 
-After making code changes, follow the verification checklist in .claude/skills/verification/SKILL.md: check:dupes. On compile failure, use `.claude/skills/verification/references/compile.md` (TS4023 / TS1261 skills).
+After making code changes, follow the verification checklist in .claude/skills/verification/SKILL.md: check:dupes; check:actions for GitHub Action changes. On compile failure, use `.claude/skills/verification/references/compile.md` (TS4023 / TS1261 skills).
 
 After code changes, launch the doc-maintenance subagent (@.claude/agents/doc-maintenance.md) in background.
 

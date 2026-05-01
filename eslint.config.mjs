@@ -725,6 +725,12 @@ export default [
       '@typescript-eslint/no-unsafe-assignment': 'off'
     }
   },
+  {
+    files: ['scripts/validateActions.ts'],
+    rules: {
+      'no-restricted-imports': 'off'
+    }
+  },
   // ESLint plugin rules for eslint-local-rules package only
   {
     files: ['packages/eslint-local-rules/src/**/*.ts'],
