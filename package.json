@@ -372,8 +372,8 @@
       "files": [
         "scripts/validateActions.ts",
         "scripts/tsconfig.json",
-        ".github/workflows/*.yml",
-        ".github/actions/*/action.yml"
+        ".github/workflows/*.{yml,yaml}",
+        ".github/actions/*/action.{yml,yaml}"
       ],
       "output": []
     },

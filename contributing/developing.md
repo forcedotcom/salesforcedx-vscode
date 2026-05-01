@@ -183,7 +183,7 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 
 ### `npm run check:actions`
 
-Validates `.github/workflows/*.yml` and `.github/actions/*/action.yml`.
+Validates `.github/workflows/*.{yml,yaml}` and `.github/actions/*/action.{yml,yaml}`.
 
 ### `npm run check:peer-deps`
 
