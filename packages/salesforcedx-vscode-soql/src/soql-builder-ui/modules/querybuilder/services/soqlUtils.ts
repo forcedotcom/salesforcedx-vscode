@@ -163,7 +163,7 @@ const convertUiModelToSoqlModel = (uiModel: ToolingModelJson): Query => {
       rel.fields.map(f => new FieldSelectionImpl(new FieldRefImpl(`${rel.relationshipName}.${f}`)))
     );
     const subqueryExprs = (uiModel.subqueries || [])
-      .filter(sq => sq.fields.length > 0 || (sq.subqueries || []).length > 0 || (sq.relationships || []).length > 0)
+      .filter(sq => sq.fields.length > 0 || (sq.subqueries || []).length > 0)
       .map(sq => subqueryJsonToImpl(sq));
     select = new SelectExprsImpl([...fieldExprs, ...relationshipExprs, ...subqueryExprs]);
   }
@@ -272,122 +272,19 @@ const buildSubquerySyntax = (sq: SubqueryJson): string =>
   `(SELECT ${sq.fields.join(', ')} FROM ${sq.relationshipName})`;
 
 // Convert a SubquerySelection model node to SubqueryJson (recursive).
-const subquerySelectionToJson = (sel: SubquerySelection): SubqueryJson => {
-  // Separate plain fields from dotted relationship fields
-  const plainFields = sel.fields.filter(f => !f.includes('.'));
-  const relMap = new Map<string, string[]>();
-  sel.fields.filter(f => f.includes('.')).forEach(f => {
-    const dot = f.indexOf('.');
-    const relName = f.slice(0, dot);
-    const fieldName = f.slice(dot + 1);
-    if (!relMap.has(relName)) relMap.set(relName, []);
-    relMap.get(relName)!.push(fieldName);
-  });
-  const relationships: SubqueryJson[] = Array.from(relMap.entries()).map(
-    ([relationshipName, relFields]) => ({ relationshipName, fields: relFields })
-  );
-
-  const json: SubqueryJson = {
-    relationshipName: sel.sobjectName,
-    fields: plainFields,
-    subqueries: (sel.subqueries || []).map(subquerySelectionToJson),
-    relationships: relationships.length > 0 ? relationships : undefined
-  };
-
-  if (sel.where && sel.where.condition && !SoqlModelUtils.isUnmodeledSyntax(sel.where.condition)) {
-    const simpleGroupArray = SoqlModelUtils.simpleGroupToArray(sel.where.condition);
-    json.where = {
-      conditions: simpleGroupArray.conditions.map((condition, index) => ({
-        condition: normalizeCondition(condition),
-        index
-      })),
-      andOr: simpleGroupArray.andOr
-    };
-  }
-
-  if (sel.orderBy) {
-    json.orderBy = sel.orderBy.orderByExpressions
-      .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
-      .map(expression => ({
-        field: expression.field.fieldName,
-        order: expression.order,
-        nulls: expression.nullsOrder
-      }));
-  }
-
-  if (sel.limit) {
-    json.limit = sel.limit.limit.toString();
-  }
-
-  return json;
-};
+const subquerySelectionToJson = (sel: SubquerySelection): SubqueryJson => ({
+  relationshipName: sel.sobjectName,
+  fields: sel.fields,
+  subqueries: (sel.subqueries || []).map(subquerySelectionToJson)
+});
 
 // Convert SubqueryJson back to a SubquerySelectionImpl (recursive).
-const subqueryJsonToImpl = (sq: SubqueryJson): SubquerySelectionImpl => {
-  let whereImpl;
-  if (sq.where && sq.where.conditions.length) {
-    const simpleGroupArray = sq.where.conditions.map(condition => {
-      const c = condition.condition;
-      const field = c.field && c.field.fieldName ? new FieldRefImpl(c.field.fieldName) : undefined;
-
-      enum ConditionType { FieldCompare = 0, In = 1, Includes = 2 }
-      let conditionType = ConditionType.FieldCompare;
-      switch (c.operator) {
-        case ConditionOperator.In:
-        case ConditionOperator.NotIn:
-          conditionType = ConditionType.In;
-          break;
-        case ConditionOperator.Includes:
-        case ConditionOperator.Excludes:
-          conditionType = ConditionType.Includes;
-          break;
-      }
-
-      const compareValue = c.compareValue
-        ? new LiteralImpl(c.compareValue.value)
-        : c.values
-          ? c.values.map((v: any) => new LiteralImpl(v.value)) // eslint-disable-line @typescript-eslint/no-explicit-any
-          : undefined;
-
-      if (field && compareValue) {
-        switch (conditionType) {
-          case ConditionType.FieldCompare:
-            return new FieldCompareConditionImpl(field, c.operator, compareValue);
-          case ConditionType.In:
-            return new InListConditionImpl(field, c.operator, compareValue);
-          case ConditionType.Includes:
-            return new IncludesConditionImpl(field, c.operator, compareValue);
-        }
-      }
-      return undefined;
-    });
-    const condition = SoqlModelUtils.arrayToSimpleGroup(simpleGroupArray, sq.where.andOr);
-    if (condition && Object.keys(condition).length) {
-      whereImpl = new WhereImpl(condition);
-    }
-  }
-
-  const orderByExprs = (sq.orderBy || []).map(
-    ob => new OrderByExpressionImpl(new FieldRefImpl(ob.field), ob.order, ob.nulls)
-  );
-  const orderByImpl = orderByExprs.length > 0 ? new OrderByImpl(orderByExprs) : undefined;
-  const limitImpl = sq.limit && sq.limit.length > 0 ? new LimitImpl(sq.limit) : undefined;
-
-  // Merge relationship fields back into dotted field names
-  const relFields = (sq.relationships || []).flatMap(rel =>
-    rel.fields.map(f => `${rel.relationshipName}.${f}`)
-  );
-  const allFields = [...sq.fields, ...relFields];
-
-  return new SubquerySelectionImpl(
+const subqueryJsonToImpl = (sq: SubqueryJson): SubquerySelectionImpl =>
+  new SubquerySelectionImpl(
     sq.relationshipName,
-    allFields,
-    (sq.subqueries || []).map(subqueryJsonToImpl),
-    whereImpl,
-    orderByImpl,
-    limitImpl
+    sq.fields,
+    (sq.subqueries || []).map(subqueryJsonToImpl)
   );
-};
 
 // Infer the LiteralType for a raw SOQL literal value string.
 const inferLiteralType = (value: string): string => {

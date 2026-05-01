@@ -83,7 +83,7 @@ export const messages = {
   action_back_to_fields: 'Back to fields',
 
   // schema tree
-  label_schema_tree: 'Schema Explorer'
+  label_schema_tree: 'Schema Tree'
 } as const;
 
 export type MessageKey = keyof typeof messages;

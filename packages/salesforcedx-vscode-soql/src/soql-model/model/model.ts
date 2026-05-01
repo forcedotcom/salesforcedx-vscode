@@ -135,12 +135,10 @@ export type SelectExpression = SoqlModelObject & {
 
 export type SubquerySelection = SelectExpression & {
   kind: 'subquerySelection';
+  // The inner query, with select/from/where/orderBy/limit
   sobjectName: string;
-  fields: string[];
-  subqueries: SubquerySelection[];
-  where?: Where;
-  orderBy?: OrderBy;
-  limit?: Limit;
+  fields: string[];            // plain field names
+  subqueries: SubquerySelection[]; // nested child subqueries
 };
 
 export type FieldSelection = SelectExpression & {

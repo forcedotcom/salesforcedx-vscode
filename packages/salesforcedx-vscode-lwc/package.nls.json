@@ -17,5 +17,6 @@
   "lightning_lwc_test_start_watching_text": "SFDX: Start Watching Lightning Web Component Test",
   "lightning_lwc_test_stop_watching_all_tests_text": "SFDX: Stop Watching All Lightning Web Component Tests",
   "lightning_lwc_test_stop_watching_text": "SFDX: Stop Watching Lightning Web Component Test",
-  "lightning_lwc_test_view_name": "LWC Tests"
+  "lightning_lwc_test_view_name": "LWC Tests",
+  "lightning_generate_lwc_text": "SFDX: Create Lightning Web Component"
 }

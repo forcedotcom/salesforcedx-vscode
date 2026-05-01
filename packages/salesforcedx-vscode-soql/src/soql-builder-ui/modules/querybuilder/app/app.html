@@ -19,111 +19,120 @@
         is-query-valid={isQueryValid}
       ></querybuilder-header>
     </header>
-    <template if:true={showNoDefaultOrgNotification}>
-      <div class="info-notification">
-        <div class="info-notification__message">
-          {i18n.label_no_default_org}
-        </div>
-        <div class="info-notification__dismiss">
-          <button
-            class="text-center"
-            onclick={handleSetDefaultOrg}
-          >
-            {i18n.action_set_default_org}
-          </button>
-        </div>
-      </div>
-    </template>
-    <template if:true={showBlockedQueryBuilder}>
-      <div class="warning-notification">
-        <div class="warning-notification__message">
-          <template if:true={showUnsupportedNotification}>
-            <strong>{i18n.label_unsupported_query_title}</strong>
-            <p>{i18n.label_unsupported_query_run_info}</p>
-            <p>{i18n.label_unsupported_query_edit_info}</p>
-          </template>
-          <template if:true={showSyntaxErrorNotification}>
-            <strong>{i18n.label_syntax_error_title}</strong>
-            <p>{i18n.label_syntax_error_edit_info}</p>
-          </template>
-          <ol type="number">
-            <template for:each={notifications} for:item="notification"
-              ><li key={notification.index}>
-                {notification.item}
-              </li></template
-            >
-          </ol>
-        </div>
-        <div class="warning-notification__dismiss">
-          <button
-            class="btn--error text-center"
-            onclick={handleDismissNotifications}
-          >
-            {i18n.action_edit_query_anyway}
-          </button>
-        </div>
-      </div>
-    </template>
-    <template if:true={showQueryBuilderForm}>
-      <section class="querybuilder-from-bar">
-        <querybuilder-from
-          onfrom__object_selected={handleObjectChange}
-          sobjects={sObjects}
-          selected={query.sObject}
-          has-error={hasRecoverableFromError}
-          is-loading={isFromLoading}
-          class={theme}
-        ></querybuilder-from>
-      </section>
-      <article class="querybuilder-body">
-        <section class="schema-tree-panel">
-          <querybuilder-schema-tree
+    <article class="querybuilder-body">
+      <section class="querybuilder-form">
+        <template if:true={showNoDefaultOrgNotification}>
+          <div class="info-notification">
+            <div class="info-notification__message">
+              {i18n.label_no_default_org}
+            </div>
+            <div class="info-notification__dismiss">
+              <button
+                class="text-center"
+                onclick={handleSetDefaultOrg}
+              >
+                {i18n.action_set_default_org}
+              </button>
+            </div>
+          </div>
+        </template>
+        <template if:true={showQueryBuilderForm}>
+          <querybuilder-from
+            onfrom__object_selected={handleObjectChange}
+            sobjects={sObjects}
+            selected={query.sObject}
+            has-error={hasRecoverableFromError}
+            is-loading={isFromLoading}
             class={theme}
-            visible-nodes={treeNodes}
-            active-context-path={activeContextPath}
-            ontree__nodeselect={handleTreeNodeSelect}
-            ontree__fieldtoggle={handleTreeFieldToggle}
-            ontree__nodeexpand={handleTreeNodeExpand}
-            ontree__clearnode={handleTreeClearNode}
-          ></querybuilder-schema-tree>
-        </section>
-        <section class="detail-panel">
-          <querybuilder-detail-panel
-            class={theme}
-            context-label={activeContextLabel}
-            context-path={activeContextPath}
-            breadcrumbs={activeBreadcrumbs}
-            available-fields={activeAvailableFields}
-            selected-fields={activeSelectedFields}
-            has-fields-error={hasRecoverableFieldsError}
-            where-expr={activeContextData.where}
-            where-fields={activeWhereFields}
-            order-by-fields={activeWhereFields}
-            selected-order-by-fields={activeContextData.orderBy}
-            limit={activeContextData.limit}
-            has-limit-error={hasRecoverableLimitError}
+          ></querybuilder-from>
+
+          <querybuilder-fields
+            selected-fields={query.fields}
+            fields={fields}
+            relationships={query.relationships}
+            subqueries={query.subqueries}
+            sobject-metadata={sobjectMetadata}
+            onfields__selected={handleFieldSelected}
+            onfields__selectall={handleFieldSelectAll}
+            onfields__clearall={handleFieldClearAll}
+            onfields__loadrelationship={handleRelationshipLoadFields}
+            onfields__relationshipchanged={handleRelationshipFieldsChanged}
+            onfields__relationshipremoved={handleRelationshipRemove}
+            onfields__loadsubquery={handleLoadSubquery}
+            onfields__loadnested={handleLoadNested}
+            onfields__subquerychanged={handleSubqueryFieldsChanged}
+            onfields__subqueryremoved={handleSubqueryRemove}
+            onfields__subqueryclear={handleSubqueryClear}
+            has-error={hasRecoverableFieldsError}
             is-loading={isFieldsLoading}
-            sobject-metadata={activeMetadata}
-            ondetail__fieldschanged={handleDetailFieldsChanged}
-            ondetail__navigate={handleDetailNavigate}
-            ondetail__limitchanged={handleContextLimitChanged}
-            ondetail__whereselection={handleContextWhereSelection}
-            ondetail__andorselection={handleContextAndOrSelection}
-            ondetail__whereremoved={handleContextWhereRemoved}
-            ondetail__orderbyselected={handleContextOrderBySelected}
-            ondetail__orderbyremoved={handleContextOrderByRemoved}
-          ></querybuilder-detail-panel>
-        </section>
-      </article>
-    </template>
-    <section class="query-preview-panel">
-      <querybuilder-query-preview
-        class={theme}
-        soql-statement={query.originalSoqlStatement}
-        segments={querySegments}
-        active-context-path={activeContextPath}
-        onpreview__navigate={handlePreviewNavigate}
-      ></querybuilder-query-preview>
-    </section>
+            class={theme}
+          ></querybuilder-fields>
+          <querybuilder-where
+            where-expr={query.where}
+            where-fields={whereFields}
+            onwhere__group_selection={handleWhereSelection}
+            onwhere__andor_selection={handleAndOrSelection}
+            onwhere__condition_removed={handleRemoveWhereCondition}
+            onwhere__loadrelationship={handleWhereLoadRelationship}
+            is-loading={isFieldsLoading}
+            class={theme}
+            sobject-metadata={sobjectMetadata}
+          ></querybuilder-where>
+          <querybuilder-order-by
+            selected-order-by-fields={query.orderBy}
+            order-by-fields={whereFields}
+            sobject-metadata={sobjectMetadata}
+            onorderby__selected={handleOrderBySelected}
+            onorderby__removed={handleOrderByRemoved}
+            onorderby__loadrelationship={handleOrderByLoadRelationship}
+            has-error={hasRecoverableOrderByError}
+            is-loading={isFieldsLoading}
+            class={theme}
+          ></querybuilder-order-by>
+          <querybuilder-limit
+            limit={query.limit}
+            has-error={hasRecoverableLimitError}
+            onlimit__changed={handleLimitChanged}
+            class={theme}
+          ></querybuilder-limit>
+        </template>
+        <template if:true={showBlockedQueryBuilder}>
+          <div class="warning-notification">
+            <div class="warning-notification__message">
+              <template if:true={showUnsupportedNotification}>
+                <strong>{i18n.label_unsupported_query_title}</strong>
+                <p>{i18n.label_unsupported_query_run_info}</p>
+                <p>{i18n.label_unsupported_query_edit_info}</p>
+              </template>
+              <template if:true={showSyntaxErrorNotification}>
+                <strong>{i18n.label_syntax_error_title}</strong>
+                <p>{i18n.label_syntax_error_edit_info}</p>
+              </template>
+              <ol type="number">
+                <template for:each={notifications} for:item="notification"
+                  ><li key={notification.index}>
+                    {notification.item}
+                  </li></template
+                >
+              </ol>
+            </div>
+            <div class="warning-notification__dismiss">
+              <button
+                class="btn--error text-center"
+                onclick={handleDismissNotifications}
+              >
+                {i18n.action_edit_query_anyway}
+              </button>
+            </div>
+          </div>
+        </template>
+      </section>
+      <section class="query-preview">
+        <querybuilder-query-preview
+          class={theme}
+          soql-statement={query.originalSoqlStatement}
+        ></querybuilder-query-preview>
+      </section>
+    </article>
   </main>
 </template>

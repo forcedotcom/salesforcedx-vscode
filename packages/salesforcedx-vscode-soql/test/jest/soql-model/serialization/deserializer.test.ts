@@ -728,64 +728,6 @@ describe('deserialize should', () => {
     expectError('SELECT field1 FROM object1 GROUP BY', 'UNEXPECTEDEOF');
   });
 
-  it('parse subquery with WHERE clause', () => {
-    const actual = deserialize(
-      'SELECT Id, (SELECT Id FROM Contacts WHERE Name != null) FROM Account'
-    );
-    const subquery = (actual.select as any).selectExpressions.find(
-      (e: any) => e.kind === 'subquerySelection'
-    );
-    expect(subquery).toBeDefined();
-    expect(subquery.sobjectName).toEqual('Contacts');
-    expect(subquery.fields).toEqual(['Id']);
-    expect(subquery.where).toBeDefined();
-    expect(subquery.where.condition).toBeDefined();
-  });
-
-  it('parse subquery with ORDER BY and LIMIT', () => {
-    const actual = deserialize(
-      'SELECT Id, (SELECT Id, Name FROM Contacts ORDER BY Name ASC LIMIT 5) FROM Account'
-    );
-    const subquery = (actual.select as any).selectExpressions.find(
-      (e: any) => e.kind === 'subquerySelection'
-    );
-    expect(subquery).toBeDefined();
-    expect(subquery.fields).toEqual(['Id', 'Name']);
-    expect(subquery.orderBy).toBeDefined();
-    expect(subquery.orderBy.orderByExpressions).toHaveLength(1);
-    expect(subquery.orderBy.orderByExpressions[0].field.fieldName).toEqual('Name');
-    expect(subquery.orderBy.orderByExpressions[0].order).toEqual('ASC');
-    expect(subquery.limit).toBeDefined();
-    expect(subquery.limit.limit).toEqual(5);
-  });
-
-  it('round-trip subquery with WHERE, ORDER BY, and LIMIT', () => {
-    const soql = 'SELECT Id, (SELECT Id FROM Contacts WHERE Name != null ORDER BY Name ASC LIMIT 5) FROM Account';
-    const model = deserialize(soql);
-    const subquery = (model.select as any).selectExpressions.find(
-      (e: any) => e.kind === 'subquerySelection'
-    );
-    const serialized = subquery.toSoqlSyntax();
-    expect(serialized).toContain('SELECT Id FROM Contacts');
-    expect(serialized).toContain('WHERE');
-    expect(serialized).toContain('ORDER BY Name ASC');
-    expect(serialized).toContain('LIMIT 5');
-  });
-
-  it('parse subquery without clauses preserves backward compatibility', () => {
-    const actual = deserialize(
-      'SELECT Id, (SELECT Name FROM Contacts) FROM Account'
-    );
-    const subquery = (actual.select as any).selectExpressions.find(
-      (e: any) => e.kind === 'subquerySelection'
-    );
-    expect(subquery).toBeDefined();
-    expect(subquery.fields).toEqual(['Name']);
-    expect(subquery.where).toBeUndefined();
-    expect(subquery.orderBy).toBeUndefined();
-    expect(subquery.limit).toBeUndefined();
-  });
-
   const expectError = (query: string, expectedType: ErrorType): void => {
     const model = deserialize(query);
     if (model.errors?.length === 1) {

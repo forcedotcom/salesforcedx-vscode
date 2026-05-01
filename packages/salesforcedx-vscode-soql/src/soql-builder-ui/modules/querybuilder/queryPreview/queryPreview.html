@@ -6,16 +6,13 @@
 
  -->
 
-<template>
-  <div class="query-preview-container">
+<template
+  ><div class="query-preview-container">
     <div class="header">{i18n.label_soql_query}</div>
     <div class="query">
-      <pre><template if:true={hasSegments}><template for:each={renderedSegments} for:item="seg"><span
-              key={seg.id}
-              class={seg.cssClass}
-              data-seg-id={seg.id}
-              onclick={handleSegmentClick}
-            >{seg.text}</span></template></template><template if:false={hasSegments}>{soqlStatement}</template></pre>
+      <pre>
+          {soqlStatement}
+      </pre>
     </div>
   </div>
 </template>

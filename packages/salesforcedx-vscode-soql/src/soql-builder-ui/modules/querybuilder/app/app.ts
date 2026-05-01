@@ -25,16 +25,8 @@ import {
   recoverableLimitErrors
 } from '../error/errorModel';
 import { getBodyClass } from '../services/globals';
-import { ToolingModelJson, SubqueryJson } from '../services/model';
+import { ToolingModelJson } from '../services/model';
 import { lwcIndexableArray } from '../services/lwcUtils';
-import type { TreeNode } from '../schemaTree/schemaTree';
-import type { BreadcrumbItem } from '../detailPanel/detailPanel';
-import {
-  extractRelOptions,
-  extractChildRelOptions
-} from '../services/drillUtils';
-import { segmentSoql } from '../services/soqlSegmenter';
-import type { SoqlSegment } from '../services/soqlSegmenter';
 
 export default class App extends LightningElement {
   @track
@@ -54,317 +46,6 @@ export default class App extends LightningElement {
   // Cache of sObject name → field list for parent relationship drill-down
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _metadataCache: Map<string, any> = new Map();
-
-  @track public activeContextPath: string[] = [];
-  @track public activeRelPath: string[] = [];
-  @track private _expandedNodes: Set<string> = new Set(['root']);
-  @track private _metadataCacheVersion = 0;
-
-  public get treeNodes(): TreeNode[] {
-    // Reference tracked version to trigger re-render when new metadata loads
-    void this._metadataCacheVersion;
-    if (!this.query.sObject) return [];
-    return this._buildTreeNodes();
-  }
-
-  public get querySegments(): SoqlSegment[] {
-    return segmentSoql(this.query.originalSoqlStatement, this.query);
-  }
-
-  public get activeContextData() {
-    return this.modelService.getContextData(this.activeContextPath);
-  }
-
-  public get activeContextLabel(): string {
-    if (this.activeRelPath.length > 0) {
-      return this.activeRelPath[this.activeRelPath.length - 1];
-    }
-    if (this.activeContextPath.length === 0) return this.query.sObject;
-    return this.activeContextPath[this.activeContextPath.length - 1];
-  }
-
-  public get activeBreadcrumbs(): BreadcrumbItem[] {
-    const crumbs: BreadcrumbItem[] = [];
-    const allSegments: Array<{ label: string; contextPath: string[]; relPath: string[] }> = [];
-
-    // Root sObject is always the first crumb
-    allSegments.push({ label: this.query.sObject || 'Query', contextPath: [], relPath: [] });
-
-    // Subquery context segments
-    for (let i = 0; i < this.activeContextPath.length; i++) {
-      allSegments.push({
-        label: this.activeContextPath[i],
-        contextPath: this.activeContextPath.slice(0, i + 1),
-        relPath: []
-      });
-    }
-
-    // Relationship path segments
-    for (let i = 0; i < this.activeRelPath.length; i++) {
-      allSegments.push({
-        label: this.activeRelPath[i],
-        contextPath: [...this.activeContextPath],
-        relPath: this.activeRelPath.slice(0, i + 1)
-      });
-    }
-
-    for (let i = 0; i < allSegments.length; i++) {
-      const seg = allSegments[i];
-      crumbs.push({
-        id: `bc-${i}`,
-        index: i,
-        label: seg.label,
-        contextPath: seg.contextPath,
-        relPath: seg.relPath,
-        isLast: i === allSegments.length - 1
-      });
-    }
-    return crumbs;
-  }
-
-  public get activeSelectedFields(): string[] {
-    if (this.activeRelPath.length > 0) {
-      const topRelName = this.activeRelPath[0];
-      const rels = this._getContextRelationships();
-      const relData = rels.find(r => r.relationshipName === topRelName);
-      if (!relData) return [];
-      const dottedPrefix = this.activeRelPath.slice(1).join('.');
-      return relData.fields
-        .filter(f => dottedPrefix ? f.startsWith(`${dottedPrefix}.`) : !f.includes('.'))
-        .map(f => dottedPrefix ? f.slice(dottedPrefix.length + 1) : f);
-    }
-    return this.activeContextData.selectedFields;
-  }
-
-  public get activeAvailableFields(): string[] {
-    if (this.activeRelPath.length > 0) {
-      return this._getRelAvailableFields(this.activeRelPath);
-    }
-    if (this.activeContextPath.length === 0) return this.fields;
-    return this._getSubqueryAvailableFields(this.activeContextPath);
-  }
-
-  public get activeWhereFields(): string[] {
-    if (this.activeContextPath.length === 0) return this.whereFields;
-    return this._getSubqueryAvailableFields(this.activeContextPath);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public get activeMetadata(): any {
-    if (this.activeContextPath.length === 0) return this.sobjectMetadata;
-    const childSObject = this._resolveChildSObject(this.activeContextPath[this.activeContextPath.length - 1]);
-    if (!childSObject) return null;
-    return this._metadataCache.get(childSObject.toLowerCase()) || null;
-  }
-
-  /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-  private _resolveChildSObject(relationshipName: string): string | null {
-    for (const [, meta] of this._metadataCache) {
-      const cr = (meta?.childRelationships || []).find(
-        (c: any) => c.relationshipName === relationshipName
-      );
-      if (cr) return cr.childSObject as string;
-    }
-    return null;
-  }
-
-  private _resolveRelSObject(relPath: string[]): string | null {
-    // Walk the relationship chain from the root sObject's metadata
-    let currentMeta = this.sobjectMetadata;
-    for (const relName of relPath) {
-      if (!currentMeta || !currentMeta.fields) return null;
-      const refField = (currentMeta.fields as any[]).find(
-        (f: any) => f.type === 'reference' && f.relationshipName === relName
-      );
-      if (!refField || !refField.referenceTo?.[0]) return null;
-      const targetSObject: string = refField.referenceTo[0];
-      currentMeta = this._metadataCache.get(targetSObject.toLowerCase());
-      if (!currentMeta) {
-        this.toolingSDK.loadSObjectMetatada(targetSObject);
-        return null;
-      }
-    }
-    return currentMeta?.name ?? null;
-  }
-
-  private _getRelAvailableFields(relPath: string[]): string[] {
-    const sobjectName = this._resolveRelSObject(relPath);
-    if (!sobjectName) return [];
-    const cached = this._metadataCache.get(sobjectName.toLowerCase());
-    if (!cached) return [];
-    return cached.fields?.map((f: any) => f.name as string).sort() ?? [];
-  }
-
-  private _getSubqueryAvailableFields(path: string[]): string[] {
-    const relName = path[path.length - 1];
-    const childSObject = this._resolveChildSObject(relName);
-    if (!childSObject) return [];
-    const cached = this._metadataCache.get(childSObject.toLowerCase());
-    if (!cached) return [];
-    return cached.fields?.map((f: any) => f.name as string).sort() ?? [];
-  }
-  /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-
-  private _findSubquery(path: string[]): SubqueryJson | null {
-    let nodes: SubqueryJson[] = this.query.subqueries || [];
-    let node: SubqueryJson | undefined;
-    for (const segment of path) {
-      node = nodes.find(s => s.relationshipName === segment);
-      if (!node) return null;
-      nodes = node.subqueries || [];
-    }
-    return node ?? null;
-  }
-
-  private _fieldCountLabel(count: number): string {
-    if (count === 0) return '';
-    return ` (${count} field${count !== 1 ? 's' : ''})`;
-  }
-
-  private _buildTreeNodes(): TreeNode[] {
-    const nodes: TreeNode[] = [];
-    const rootId = 'root';
-    const rootExpanded = this._expandedNodes.has(rootId);
-    const isRootSelected = this.activeContextPath.length === 0;
-    const rootFieldCount = this.query.fields.length;
-
-    const rootHasContent = rootFieldCount > 0 ||
-      (this.query.relationships || []).length > 0 ||
-      (this.query.subqueries || []).length > 0;
-
-    nodes.push({
-      id: rootId,
-      label: `${this.query.sObject}${this._fieldCountLabel(rootFieldCount)}`,
-      type: 'root',
-      depth: 0,
-      isExpanded: rootExpanded,
-      isSelected: isRootSelected,
-      hasContent: rootHasContent,
-      contextPath: [],
-      hasChildren: true,
-      isLoading: this.isFieldsLoading
-    });
-
-    if (rootExpanded && this.sobjectMetadata) {
-      // Parent relationship nodes
-      const rels = extractRelOptions(this.sobjectMetadata);
-      for (const rel of rels) {
-        this._addParentRelNode(nodes, rel.relationshipName, [], [rel.relationshipName], 1);
-      }
-
-      // Child subquery nodes
-      const childRels = extractChildRelOptions(this.sobjectMetadata);
-      for (const child of childRels) {
-        this._addSubqueryNode(nodes, child.relationshipName, [child.relationshipName], 1);
-      }
-    }
-
-    return nodes;
-  }
-
-  /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-  private _addParentRelNode(nodes: TreeNode[], relName: string, contextPath: string[], relPath: string[], depth: number): void {
-    const nodeId = `rel.${[...contextPath, ...relPath].join('.')}`;
-    const isExpanded = this._expandedNodes.has(nodeId);
-    const isSelected = this._pathsEqual(this.activeContextPath, contextPath) &&
-      this._pathsEqual(this.activeRelPath, relPath);
-
-    let relFieldCount = 0;
-    const contextRels = contextPath.length === 0
-      ? (this.query.relationships || [])
-      : (this._findSubquery(contextPath)?.relationships || []);
-    const relData = contextRels.find(r => r.relationshipName === relPath[0]);
-    if (relData) {
-      const dottedPrefix = relPath.slice(1).join('.');
-      relFieldCount = relData.fields.filter(f => {
-        const fPrefix = f.includes('.') ? f.substring(0, f.lastIndexOf('.')) : '';
-        return fPrefix === dottedPrefix;
-      }).length;
-    }
-
-    const targetSObject = isExpanded ? this._resolveRelSObject(relPath) : null;
-    const targetCached = targetSObject ? this._metadataCache.has(targetSObject.toLowerCase()) : false;
-    const nodeIsLoading = isExpanded && !targetCached;
-
-    nodes.push({
-      id: nodeId,
-      label: `⬆ ${relName}${this._fieldCountLabel(relFieldCount)}`,
-      type: 'parentRel',
-      depth,
-      isExpanded,
-      isSelected,
-      isLoading: nodeIsLoading,
-      hasContent: relFieldCount > 0,
-      contextPath: [...contextPath],
-      relPath: [...relPath],
-      hasChildren: true
-    });
-
-    if (isExpanded) {
-      if (targetSObject) {
-        const cached = this._metadataCache.get(targetSObject.toLowerCase());
-        if (cached) {
-          const childRels = extractRelOptions(cached);
-          for (const childRel of childRels) {
-            this._addParentRelNode(nodes, childRel.relationshipName, contextPath, [...relPath, childRel.relationshipName], depth + 1);
-          }
-        }
-      }
-    }
-  }
-  /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-
-  private _addSubqueryNode(nodes: TreeNode[], relName: string, path: string[], depth: number): void {
-    const nodeId = `subquery.${path.join('.')}`;
-    const isExpanded = this._expandedNodes.has(nodeId);
-    const isSelected = this._pathsEqual(this.activeContextPath, path);
-    const sq = this._findSubquery(path);
-    const fieldCount = sq ? sq.fields.length : 0;
-    const sqHasContent = sq !== null && (
-      sq.fields.length > 0 ||
-      (sq.relationships || []).length > 0 ||
-      (sq.subqueries || []).length > 0
-    );
-
-    const childSObject = isExpanded ? this._resolveChildSObject(relName) : null;
-    const childCached = childSObject ? this._metadataCache.has(childSObject.toLowerCase()) : false;
-    const sqIsLoading = isExpanded && !childCached;
-
-    nodes.push({
-      id: nodeId,
-      label: `⬇ ${relName}${this._fieldCountLabel(fieldCount)}`,
-      type: 'childSubquery',
-      depth,
-      isExpanded,
-      isSelected,
-      isLoading: sqIsLoading,
-      hasContent: sqHasContent,
-      contextPath: [...path],
-      hasChildren: true
-    });
-
-    if (isExpanded) {
-      const cached = childSObject ? this._metadataCache.get(childSObject.toLowerCase()) : null;
-      if (cached) {
-        // Parent relationships for this child sObject
-        const rels = extractRelOptions(cached);
-        for (const rel of rels) {
-          this._addParentRelNode(nodes, rel.relationshipName, [...path], [rel.relationshipName], depth + 1);
-        }
-        // Child subqueries for this child sObject
-        const childRels = extractChildRelOptions(cached);
-        for (const child of childRels) {
-          this._addSubqueryNode(nodes, child.relationshipName, [...path, child.relationshipName], depth + 1);
-        }
-      } else if (childSObject) {
-        this.toolingSDK.loadSObjectMetatada(childSObject);
-      }
-    }
-  }
-
-  private _pathsEqual(a: string[], b: string[]): boolean {
-    return a.length === b.length && a.every((v, i) => v === b[i]);
-  }
 
   public get shouldBlockQueryBuilder(): boolean {
     return (
@@ -430,7 +111,6 @@ export default class App extends LightningElement {
       if (sobjectMetadata && sobjectMetadata.name) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this._metadataCache.set((sobjectMetadata.name as string).toLowerCase(), sobjectMetadata);
-        this._metadataCacheVersion++;
       }
       // Only update the primary fields list when this is the main sObject being loaded
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -579,6 +259,148 @@ export default class App extends LightningElement {
     this.modelService.setFields([]);
   }
 
+  /* ---- RELATIONSHIP HANDLERS ---- */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  public handleRelationshipLoadFields(e: CustomEvent): void {
+    const { referenceTo } = e.detail as { relationshipName: string; referenceTo: string[] };
+    const targetSObject = referenceTo[0];
+    if (!targetSObject) return;
+    this._loadIntoFields('setDrillMetadata', targetSObject, true);
+  }
+
+  public handleRelationshipFieldsChanged(e: CustomEvent): void {
+    const { relationshipName, fields } = e.detail as { relationshipName: string; fields: string[] };
+    this.modelService.setRelationshipFields(relationshipName, fields);
+  }
+
+  public handleRelationshipRemove(e: CustomEvent): void {
+    const { relationshipName } = e.detail as { relationshipName: string };
+    this.modelService.removeRelationship(relationshipName);
+  }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
+  /* ---- WHERE RELATIONSHIP DRILL ---- */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  public handleWhereLoadRelationship(e: CustomEvent): void {
+    const { index, referenceTo } = e.detail as { index: number; relationshipName: string; referenceTo: string[] };
+    const targetSObject = referenceTo[0];
+    if (!targetSObject) return;
+    const whereComponent = this.template.querySelector('querybuilder-where') as any;
+    if (!whereComponent) return;
+    const cached = this._metadataCache.get(targetSObject.toLowerCase());
+    if (cached) {
+      whereComponent.setModifierGroupRelMetadata(index, cached);
+      return;
+    }
+    this.toolingSDK.loadSObjectMetatada(targetSObject);
+    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
+      if (!metadata || !metadata.name) return;
+      if (metadata.name.toLowerCase() !== targetSObject.toLowerCase()) return;
+      this._metadataCache.set(targetSObject.toLowerCase(), metadata);
+      whereComponent.setModifierGroupRelMetadata(index, metadata);
+      sub.unsubscribe();
+    });
+  }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
+  /* ---- SUBQUERY HANDLERS (from fields component) ---- */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  public handleLoadSubquery(e: CustomEvent): void {
+    const { childSObject } = e.detail as { relationshipName: string; childSObject: string };
+    this._loadIntoFields('setSubqueryDrillMetadata', childSObject, true);
+  }
+
+  public handleLoadNested(e: CustomEvent): void {
+    const { parentRelationshipName, childRelationshipName } = e.detail as {
+      parentRelationshipName: string;
+      childRelationshipName: string;
+    };
+    // The parent subquery's sObject was loaded into the cache when we drilled into it.
+    // Find it by scanning the cache for a sObject whose childRelationships contains this relationshipName.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    let childSObject: string | undefined;
+    this._metadataCache.forEach((meta: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+      if (childSObject) return;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const found = (meta?.childRelationships || []).find(
+        (cr: any) => cr.relationshipName === childRelationshipName // eslint-disable-line @typescript-eslint/no-explicit-any
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (found) childSObject = found.childSObject;
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    void parentRelationshipName;
+    if (!childSObject) return;
+    this._loadIntoFields('setSubqueryDrillMetadata', childSObject, true);
+  }
+
+  public handleSubqueryClear(e: CustomEvent): void {
+    const { path } = e.detail as { path: string[] };
+    this.modelService.clearSubqueryFieldsAtPath(path);
+  }
+
+  public handleSubqueryRemove(e: CustomEvent): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const detail = e.detail as { path?: string[]; relationshipName?: string };
+    const path = detail.path;
+    if (path && path.length > 1) {
+      // Nested: remove the nested subquery entry
+      this.modelService.removeSubqueryAtPath(path);
+    } else {
+      const relationshipName = path ? path[0] : detail.relationshipName;
+      if (relationshipName) this.modelService.removeSubquery(relationshipName);
+    }
+  }
+
+  public handleSubqueryFieldsChanged(e: CustomEvent): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (e.detail.path) {
+      const detail = e.detail as { path: string[]; field?: string; fields?: string[] };
+      if (detail.field !== undefined) {
+        // Field addition: path + single field
+        this.modelService.addSubqueryFieldAtPath(detail.path, detail.field);
+      } else {
+        // Field removal: path + updated fields array
+        this.modelService.setSubqueryFieldsAtPath(detail.path, detail.fields || []);
+      }
+    } else {
+      // Legacy flat
+      const { relationshipName, fields } = e.detail as { relationshipName: string; fields: string[] };
+      this.modelService.setSubqueryFields(relationshipName, fields);
+    }
+  }
+
+  // Shared helper: load sObject into querybuilder-fields via a named method.
+  // passMetadata=true sends the full describe object; false sends only field names.
+  private _loadIntoFields(method: string, sobjectName: string, passMetadata: boolean, selector = 'querybuilder-fields'): void {
+    const component = this.template.querySelector(selector) as any;
+    if (!component) return;
+    const cached = this._metadataCache.get(sobjectName.toLowerCase());
+    if (cached) {
+      component[method](passMetadata ? cached : cached.fields?.map((f) => f.name).sort() ?? []);
+      return;
+    }
+    this.toolingSDK.loadSObjectMetatada(sobjectName);
+    const sub = this.toolingSDK.sobjectMetadata.subscribe((metadata: any) => {
+      if (!metadata || !metadata.name) return;
+      if (metadata.name.toLowerCase() !== sobjectName.toLowerCase()) return;
+      this._metadataCache.set(sobjectName.toLowerCase(), metadata);
+      component[method](passMetadata ? metadata : metadata.fields?.map((f) => f.name).sort() ?? []);
+      sub.unsubscribe();
+    });
+  }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
+  /* ---- ORDER BY HANDLERS ---- */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  public handleOrderByLoadRelationship(e: CustomEvent): void {
+    const { referenceTo } = e.detail as { relationshipName: string; referenceTo: string[] };
+    const targetSObject = referenceTo[0];
+    if (!targetSObject) return;
+    this._loadIntoFields('setDrillMetadata', targetSObject, true, 'querybuilder-order-by');
+  }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
   public handleOrderBySelected(e: CustomEvent): void {
     this.modelService.addUpdateOrderByField(e.detail);
   }
@@ -598,242 +420,6 @@ export default class App extends LightningElement {
   }
   public handleRemoveWhereCondition(e: CustomEvent): void {
     this.modelService.removeWhereFieldCondition(e.detail);
-  }
-
-  /* ---- TREE HANDLERS ---- */
-  /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
-  public handleTreeNodeSelect(e: CustomEvent): void {
-    const path = [...(e.detail.contextPath as string[])];
-    const relPath = [...(e.detail.relPath as string[] || [])];
-    this.activeContextPath = path;
-    this.activeRelPath = relPath;
-
-    // When selecting a child subquery, ensure its metadata is loaded
-    if (path.length > 0) {
-      this._ensureSubqueryMetadataLoaded(path);
-    }
-    // When selecting a parent rel, ensure its target sObject metadata is loaded
-    if (relPath.length > 0) {
-      this._resolveRelSObject(relPath);
-    }
-  }
-
-  private _ensureSubqueryMetadataLoaded(path: string[]): void {
-    for (let i = 0; i < path.length; i++) {
-      const relName = path[i];
-      let childSObject: string | undefined;
-      this._metadataCache.forEach((meta: any) => {
-        if (childSObject) return;
-        const cr = (meta?.childRelationships || []).find(
-          (c: any) => c.relationshipName === relName
-        );
-        if (cr) childSObject = cr.childSObject as string;
-      });
-      if (!childSObject) continue;
-      if (this._metadataCache.has(childSObject.toLowerCase())) continue;
-      this.toolingSDK.loadSObjectMetatada(childSObject);
-    }
-  }
-  /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
-
-  public handleTreeFieldToggle(e: CustomEvent): void {
-    const { contextPath, field, checked } = e.detail as { contextPath: string[]; field: string; checked: boolean };
-    if (contextPath.length === 0) {
-      // Root field toggle
-      const currentFields = [...this.query.fields];
-      if (checked) {
-        if (!currentFields.includes(field)) currentFields.push(field);
-      } else {
-        const idx = currentFields.indexOf(field);
-        if (idx >= 0) currentFields.splice(idx, 1);
-      }
-      this.modelService.setFields(currentFields);
-    } else {
-      // Subquery field toggle
-      const sq = this._findSubquery(contextPath);
-      const currentFields = sq ? [...sq.fields] : [];
-      if (checked) {
-        if (!currentFields.includes(field)) currentFields.push(field);
-      } else {
-        const idx = currentFields.indexOf(field);
-        if (idx >= 0) currentFields.splice(idx, 1);
-      }
-      this.modelService.setSubqueryFieldsAtPath(contextPath, currentFields);
-    }
-  }
-
-  public handleTreeNodeExpand(e: CustomEvent): void {
-    const { nodeId, expanded } = e.detail as { nodeId: string; contextPath: string[]; expanded: boolean };
-    const updated = new Set(this._expandedNodes);
-    if (expanded) {
-      updated.add(nodeId);
-    } else {
-      updated.delete(nodeId);
-    }
-    this._expandedNodes = updated;
-  }
-
-  public handleTreeClearNode(e: CustomEvent): void {
-    const { contextPath, relPath, type } = e.detail as {
-      contextPath: string[]; relPath: string[]; type: string
-    };
-
-    if (type === 'root') {
-      this.modelService.setFields([]);
-      // Clear all relationships
-      for (const rel of [...(this.query.relationships || [])]) {
-        this.modelService.removeRelationship(rel.relationshipName);
-      }
-      // Clear all subqueries
-      for (const sq of [...(this.query.subqueries || [])]) {
-        this.modelService.removeSubquery(sq.relationshipName);
-      }
-    } else if (type === 'parentRel') {
-      const topRelName = relPath[0];
-      if (contextPath.length === 0) {
-        this.modelService.removeRelationship(topRelName);
-      } else {
-        this.modelService.setContextRelationshipFields(contextPath, topRelName, []);
-      }
-    } else if (type === 'childSubquery') {
-      if (contextPath.length === 1) {
-        this.modelService.removeSubquery(contextPath[0]);
-      } else {
-        this.modelService.removeSubqueryAtPath(contextPath);
-      }
-    }
-  }
-
-  public handlePreviewNavigate(e: CustomEvent): void {
-    const { contextPath } = e.detail as { contextPath: string[] };
-    this.activeContextPath = [...contextPath];
-    this.activeRelPath = [];
-    if (contextPath.length > 0) {
-      this._ensureSubqueryMetadataLoaded(contextPath);
-    }
-    // Auto-expand tree nodes along the path
-    const updated = new Set(this._expandedNodes);
-    updated.add('root');
-    for (let i = 0; i < contextPath.length; i++) {
-      updated.add(`subquery.${contextPath.slice(0, i + 1).join('.')}`);
-    }
-    this._expandedNodes = updated;
-  }
-
-  public handleDetailNavigate(e: CustomEvent): void {
-    const { contextPath, relPath } = e.detail as { contextPath: string[]; relPath: string[] };
-    this.activeContextPath = [...contextPath];
-    this.activeRelPath = [...relPath];
-    if (contextPath.length > 0) {
-      this._ensureSubqueryMetadataLoaded(contextPath);
-    }
-    if (relPath.length > 0) {
-      this._resolveRelSObject(relPath);
-    }
-    // Auto-expand tree nodes along the path so the selected node is visible
-    if (contextPath.length === 0 && relPath.length === 0) {
-      // Root — ensure root is expanded
-      const updated = new Set(this._expandedNodes);
-      updated.add('root');
-      this._expandedNodes = updated;
-    }
-  }
-
-  public handleDetailFieldsChanged(e: CustomEvent): void {
-    const { fields } = e.detail as { fields: string[] };
-    if (this.activeRelPath.length > 0) {
-      const topRelName = this.activeRelPath[0];
-      const dottedPrefix = this.activeRelPath.slice(1).join('.');
-      // Preserve fields at other dotted levels, replace only fields at the current level
-      const existingRels = this._getContextRelationships();
-      const relData = existingRels.find(r => r.relationshipName === topRelName);
-      const existingFields = relData ? relData.fields : [];
-      const otherFields = existingFields.filter(f => {
-        const fPrefix = f.includes('.') ? f.substring(0, f.lastIndexOf('.')) : '';
-        return fPrefix !== dottedPrefix;
-      });
-      const newDottedFields = fields.map(f => dottedPrefix ? `${dottedPrefix}.${f}` : f);
-      this.modelService.setContextRelationshipFields(
-        this.activeContextPath, topRelName, [...otherFields, ...newDottedFields]
-      );
-    } else {
-      this.modelService.setContextFields(this.activeContextPath, fields);
-    }
-  }
-
-  private _getContextRelationships(): Array<{ relationshipName: string; fields: string[] }> {
-    if (this.activeContextPath.length === 0) {
-      return this.query.relationships || [];
-    }
-    const sq = this._findSubquery(this.activeContextPath);
-    return sq?.relationships || [];
-  }
-
-  /* ---- DETAIL PANEL CONTEXT HANDLERS ---- */
-  public handleContextWhereSelection(e: CustomEvent): void {
-    if (this.activeContextPath.length === 0) {
-      this.handleWhereSelection(e);
-    } else {
-      const ctx = this.modelService.getContextData(this.activeContextPath);
-      this.modelService.setContextWhere(this.activeContextPath, {
-        ...ctx.where,
-        conditions: [...ctx.where.conditions, e.detail.fieldCompareExpr]
-      });
-    }
-  }
-
-  public handleContextAndOrSelection(e: CustomEvent): void {
-    if (this.activeContextPath.length === 0) {
-      this.handleAndOrSelection(e);
-    } else {
-      const ctx = this.modelService.getContextData(this.activeContextPath);
-      this.modelService.setContextWhere(this.activeContextPath, {
-        ...ctx.where,
-        andOr: e.detail
-      });
-    }
-  }
-
-  public handleContextWhereRemoved(e: CustomEvent): void {
-    if (this.activeContextPath.length === 0) {
-      this.handleRemoveWhereCondition(e);
-    } else {
-      const ctx = this.modelService.getContextData(this.activeContextPath);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const filtered = ctx.where.conditions.filter(c => c.index !== e.detail.index);
-      this.modelService.setContextWhere(this.activeContextPath, {
-        ...ctx.where,
-        conditions: filtered
-      });
-    }
-  }
-
-  public handleContextOrderBySelected(e: CustomEvent): void {
-    if (this.activeContextPath.length === 0) {
-      this.handleOrderBySelected(e);
-    } else {
-      const ctx = this.modelService.getContextData(this.activeContextPath);
-      this.modelService.setContextOrderBy(this.activeContextPath, [...ctx.orderBy, e.detail]);
-    }
-  }
-
-  public handleContextOrderByRemoved(e: CustomEvent): void {
-    if (this.activeContextPath.length === 0) {
-      this.handleOrderByRemoved(e);
-    } else {
-      const ctx = this.modelService.getContextData(this.activeContextPath);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const filtered = ctx.orderBy.filter(ob => ob.field !== e.detail.field);
-      this.modelService.setContextOrderBy(this.activeContextPath, filtered);
-    }
-  }
-
-  public handleContextLimitChanged(e: CustomEvent): void {
-    if (this.activeContextPath.length === 0) {
-      this.handleLimitChanged(e);
-    } else {
-      this.modelService.setContextLimit(this.activeContextPath, e.detail.limit);
-    }
   }
 
   /* ---- MISC HANDLERS ---- */

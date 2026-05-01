@@ -12,6 +12,17 @@
  *
  */
 import { api, LightningElement, track } from 'lwc';
+import {
+  REL_PREFIX,
+  DrillLevel,
+  buildDrilledOptions,
+  applyDrillMetadata,
+  buildBreadcrumb,
+  buildQualifiedFieldName,
+  popDrillStack,
+  findReferenceTo,
+  stripTypeAnnotation
+} from '../services/drillUtils';
 import debounce from 'debounce';
 import { messages } from 'querybuilder/messages';
 import { ConditionOperator, LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
@@ -38,6 +49,7 @@ export default class WhereModifierGroup extends LightningElement {
   @api public index;
   @track public _currentFieldSelection;
   @track public _criteriaDisplayValue;
+  @track public _drillStack: DrillLevel[] = [];
   public sobjectTypeUtils: SObjectTypeUtils;
   public fieldEl: HTMLSelectElement;
   public operatorEl: HTMLSelectElement;
@@ -65,14 +77,66 @@ export default class WhereModifierGroup extends LightningElement {
     this.resetErrorFlagsAndMessages();
   }
 
+  // Base fields + → relationship entries, or drilled-in fields + deeper → entries
   public get computedAllFields(): string[] {
-    return this.allFields || [];
+    if (this._drillStack.length > 0) {
+      const currentMeta = this._drillStack[this._drillStack.length - 1].metadata;
+      return buildDrilledOptions(currentMeta, this._drillStack.length);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const relEntries: string[] = (this._sobjectMetadata?.fields || [])
+      .filter((f: any) => f.type === 'reference' && f.relationshipName && Array.isArray(f.referenceTo) && f.referenceTo.length)
+      .map((f: any) => `${REL_PREFIX}${f.relationshipName as string} (${(f.referenceTo as string[])[0]})`)
+      .sort();
+    return [...(this.allFields || []), ...relEntries];
+  }
+
+  public get relDrillBreadcrumb(): string {
+    return buildBreadcrumb(this._drillStack);
+  }
+
+  public get isDrilledIn(): boolean {
+    return this._drillStack.length > 0;
+  }
+
+  @api
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public setRelDrillMetadata(metadata: any): void {
+    if (this._drillStack.length === 0) return;
+    this._drillStack = applyDrillMetadata(this._drillStack, metadata);
+  }
+
+  public handleRelDrillBack(): void {
+    if (this._drillStack.length <= 1) {
+      this._drillStack = [];
+    } else {
+      this._drillStack = popDrillStack(this._drillStack);
+    }
   }
 
   public handleFieldOptionSelection(e: CustomEvent): void {
     const value: string = e.detail?.value;
     if (!value) return;
-    this._currentFieldSelection = value;
+
+    if (value.startsWith(REL_PREFIX)) {
+      const relName = stripTypeAnnotation(value.slice(REL_PREFIX.length));
+      const sourceMeta = this._drillStack.length > 0
+        ? this._drillStack[this._drillStack.length - 1].metadata
+        : this._sobjectMetadata;
+      const referenceTo = findReferenceTo(sourceMeta, relName);
+      if (!referenceTo) return;
+      this._drillStack = [...this._drillStack, { relationshipName: relName, referenceTo, metadata: null }];
+      this.dispatchEvent(new CustomEvent('where__loadrelationship', {
+        detail: { index: this.index, relationshipName: relName, referenceTo },
+        bubbles: true,
+        composed: true
+      }));
+      return;
+    }
+
+    // Plain field — build full dotted path from stack
+    this._currentFieldSelection = buildQualifiedFieldName(this._drillStack, value);
+    this._drillStack = [];
   }
 
   @api // this need to be public so parent can read value

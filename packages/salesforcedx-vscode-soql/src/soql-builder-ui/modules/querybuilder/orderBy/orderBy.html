@@ -19,9 +19,20 @@
       >
     </div>
     <div class="section_selection-container">
+      <template if:true={isDrilledIn}>
+        <div class="orderby-breadcrumb">
+          <span
+            role="button"
+            class="breadcrumb-back pointer"
+            onclick={handleBackOneLevel}
+            title={i18n.action_back_to_fields}
+          >&#8592;</span>
+          <span class="breadcrumb-label">{breadcrumbLabel}</span>
+        </div>
+      </template>
       <querybuilder-custom-select
         is-loading={isLoading}
-        all-options={orderByFields}
+        all-options={_displayFields}
         selected-options={currentFieldSelection}
         placeholder-text={placeholderText}
         onoption__selection={handleFieldSelection}

@@ -36,7 +36,13 @@ export const messages = {
     'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
   lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension',
   lwc_language_server_loading: 'Indexing LWC files. Hold tight, almost ready… $(sync~spin)',
-  lwc_language_server_loaded: 'Indexing complete $(check)'
+  lwc_language_server_loaded: 'Indexing complete $(check)',
+  lwc_component_name_prompt: 'Enter a name for the Lightning web component',
+  lwc_component_name_placeholder: 'myComponent',
+  lwc_component_name_empty_error: 'Name cannot be empty',
+  lwc_component_name_format_error: 'Name must start with a lowercase letter and contain only alphanumeric characters or underscores',
+  lwc_select_component_type: 'Select the component language',
+  lwc_output_dir_prompt: 'Select a directory to create the Lightning web component'
 } as const;
 
 export type MessageKey = keyof typeof messages;

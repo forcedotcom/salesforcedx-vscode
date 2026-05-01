@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Limit, OrderBy, SubquerySelection, SyntaxOptions, Where } from '../model';
+import { SubquerySelection, SyntaxOptions } from '../model';
 
 export class SubquerySelectionImpl implements SubquerySelection {
   public readonly kind = 'subquerySelection' as const;
@@ -13,10 +13,7 @@ export class SubquerySelectionImpl implements SubquerySelection {
   constructor(
     public sobjectName: string,
     public fields: string[],
-    public subqueries: SubquerySelection[] = [],
-    public where?: Where,
-    public orderBy?: OrderBy,
-    public limit?: Limit
+    public subqueries: SubquerySelection[] = []
   ) {}
 
   public toSoqlSyntax(options?: SyntaxOptions): string {
@@ -25,17 +22,6 @@ export class SubquerySelectionImpl implements SubquerySelection {
       ...this.subqueries.map(sq => sq.toSoqlSyntax(options))
     ];
 
-    let soql = `(SELECT ${allExpressions.join(', ')} FROM ${this.sobjectName}`;
-    if (this.where) {
-      soql += ` ${this.where.toSoqlSyntax(options)}`;
-    }
-    if (this.orderBy) {
-      soql += ` ${this.orderBy.toSoqlSyntax(options)}`;
-    }
-    if (this.limit) {
-      soql += ` ${this.limit.toSoqlSyntax(options)}`;
-    }
-    soql += ')';
-    return soql;
+    return `(SELECT ${allExpressions.join(', ')} FROM ${this.sobjectName})`;
   }
 }

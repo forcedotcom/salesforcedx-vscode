@@ -2,6 +2,16 @@
   <div class="modifier__group">
     <!-- FIELDS -->
     <div class="modifier__item">
+      <template if:true={isDrilledIn}>
+        <div class="rel-breadcrumb">
+          <span
+            role="button"
+            class="pointer rel-breadcrumb__back"
+            onclick={handleRelDrillBack}
+          >&#8592;</span>
+          <span class="rel-breadcrumb__label">{relDrillBreadcrumb}</span>
+        </div>
+      </template>
       <querybuilder-custom-select
         is-loading={isLoading}
         all-options={computedAllFields}

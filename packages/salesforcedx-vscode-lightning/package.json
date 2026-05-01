@@ -65,6 +65,7 @@
     "Programming Languages"
   ],
   "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-aura-language-server": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -75,7 +76,8 @@
     "applicationinsights": "1.0.7",
     "effect": "^3.20.0",
     "vscode-html-languageservice": "^5.5.1",
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^9.0.1",
+    "vscode-uri": "^3.1.0"
   },
   "description": "Provides code-editing features for Aura Components",
   "displayName": "Aura Components",
