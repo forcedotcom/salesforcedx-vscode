@@ -7,13 +7,14 @@
 
 import { buildAllServicesLayer as buildAllServicesLayerCore } from '@salesforce/effect-ext-utils';
 import type { ExtensionContext } from 'vscode';
+import { nls } from '../messages';
 
 /**
  * Factory for a Layer that provides all services from the SalesforceVSCodeServicesApi.
  * Pass the ExtensionContext to include a working ExtensionContextServiceLayer.
  */
 export const buildAllServicesLayer = (context: ExtensionContext) =>
-  buildAllServicesLayerCore(context, 'Salesforce CLI');
+  buildAllServicesLayerCore(context, nls.localize('channel_name'));
 
 /**
  * Layer that provides all services from the SalesforceVSCodeServicesApi.

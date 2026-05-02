@@ -7,9 +7,10 @@
 
 import { buildAllServicesLayer as buildAllServicesLayerCore } from '@salesforce/effect-ext-utils';
 import type { ExtensionContext } from 'vscode';
+import { nls } from '../messages';
 
 export const buildAllServicesLayer = (context: ExtensionContext) =>
-  buildAllServicesLayerCore(context, 'Lightning Web Components');
+  buildAllServicesLayerCore(context, nls.localize('channel_name'));
 
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
