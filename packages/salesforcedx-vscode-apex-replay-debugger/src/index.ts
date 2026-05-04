@@ -6,6 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
@@ -15,7 +16,8 @@ import {
   SEND_METRIC_LAUNCH_EVENT,
   breakpointUtil
 } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { ActivationTracker, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
@@ -42,9 +44,8 @@ import {
   LIVESHARE_DEBUGGER_TYPE
 } from './debuggerConstants';
 import { nls } from './messages';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
-
-let extContext: vscode.ExtensionContext;
+import { setAllServicesLayer } from './services/extensionProvider';
+import { getRuntime } from './services/runtime';
 
 export enum VSCodeWindowTypeEnum {
   Error = 1,
@@ -64,8 +65,8 @@ if (!salesforceApexExtension) {
   throw new Error('Salesforce Apex Extension not initialized');
 }
 
-const registerCommands = async (): Promise<vscode.Disposable> => {
-  const dialogStartingPathUri = await getDialogStartingPath(extContext);
+const registerCommands = async (extensionContext: vscode.ExtensionContext): Promise<vscode.Disposable> => {
+  const dialogStartingPathUri = await getDialogStartingPath(extensionContext);
   const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
     const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
       canSelectFiles: true,
@@ -74,7 +75,7 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
       defaultUri: dialogStartingPathUri
     });
     if (fileUris?.length === 1) {
-      updateLastOpened(extContext, fileUris[0].fsPath);
+      updateLastOpened(extensionContext, fileUris[0].fsPath);
       return fileUris[0].fsPath;
     }
   });
@@ -84,7 +85,7 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
       const resolved = editorUri ?? vscode.window.activeTextEditor?.document.uri;
 
       if (resolved) {
-        updateLastOpened(extContext, resolved.fsPath);
+        updateLastOpened(extensionContext, resolved.fsPath);
       }
       await launchFromLogFile(resolved?.fsPath);
     }
@@ -102,7 +103,7 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
   const launchFromLastLogFileCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.last.logfile',
     async () => {
-      const lastOpenedLog = extContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
+      const lastOpenedLog = extensionContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
       await launchFromLogFile(lastOpenedLog);
     }
   );
@@ -178,9 +179,14 @@ const registerDebugHandlers = (): vscode.Disposable => {
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
-  extContext = extensionContext;
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  const commands = await registerCommands();
+  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
+  await getRuntime().runPromise(activateEffect(extensionContext));
+};
+
+export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-replay-debugger')(function* (
+  extensionContext: vscode.ExtensionContext
+) {
+  const commands = yield* Effect.promise(() => registerCommands(extensionContext));
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
@@ -191,14 +197,16 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Activate Salesforce Core and Apex Extensions
   if (!salesforceCoreExtension.isActive) {
-    await salesforceCoreExtension.activate();
+    yield* Effect.promise(() => salesforceCoreExtension.activate());
   }
   if (!salesforceApexExtension.isActive) {
-    await salesforceApexExtension.activate();
+    yield* Effect.promise(() => salesforceApexExtension.activate());
   }
 
   // Workspace Context
-  await salesforceCoreExtension.exports.services.WorkspaceContext.getInstance().initialize(extensionContext);
+  yield* Effect.promise(() =>
+    salesforceCoreExtension.exports.services.WorkspaceContext.getInstance().initialize(extensionContext)
+  );
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand('sf.test.view.debugTests', async (test: { name: string }) => {
@@ -222,11 +230,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   );
 
   // Telemetry
-  const telemetryService = TelemetryService.getInstance();
-  await telemetryService.initializeService(extensionContext);
-  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
-  await activationTracker.markActivationStop();
-};
+  yield* Effect.promise(() => TelemetryService.getInstance().initializeService(extensionContext));
+});
 
 export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   if (!salesforceApexExtension.isActive) {

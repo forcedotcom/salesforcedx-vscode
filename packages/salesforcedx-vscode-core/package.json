@@ -212,10 +212,6 @@
     "menus": {
       "explorer/context": [
         {
-          "command": "sf.analytics.generate.template",
-          "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sf:project_opened"
-        },
-        {
           "command": "sf.rename.lightning.component",
           "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
@@ -230,32 +226,12 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.analytics.generate.template",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.config.list",
           "when": "sf:project_opened"
         },
         {
           "command": "sf.alias.list",
           "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.project.generate",
-          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.agent.generate.project",
-          "when": "false"
-        },
-        {
-          "command": "sf.nativemobile.generate.project",
-          "when": "false"
-        },
-        {
-          "command": "sf.project.generate.with.manifest",
-          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.rename.lightning.component",
@@ -273,32 +249,12 @@
         "title": "%open_documentation_text%"
       },
       {
-        "command": "sf.analytics.generate.template",
-        "title": "%analytics_generate_template_text%"
-      },
-      {
         "command": "sf.config.list",
         "title": "%config_list_text%"
       },
       {
         "command": "sf.alias.list",
         "title": "%alias_list_text%"
-      },
-      {
-        "command": "sf.project.generate",
-        "title": "%project_generate_text%"
-      },
-      {
-        "command": "sf.agent.generate.project",
-        "title": "%agent_generate_project_text%"
-      },
-      {
-        "command": "sf.nativemobile.generate.project",
-        "title": "%nativemobile_generate_project_text%"
-      },
-      {
-        "command": "sf.project.generate.with.manifest",
-        "title": "%project_generate_with_manifest_text%"
       },
       {
         "command": "sf.rename.lightning.component",

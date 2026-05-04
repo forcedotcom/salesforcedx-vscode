@@ -33,6 +33,7 @@ const copyTemplates = copy({
   resolveFrom: 'cwd',
   globbyOptions: { dot: true },
   assets: [
+    { from: [`${templatesBase}/analytics/**/*`], to: ['./dist/templates/analytics'] },
     { from: [`${templatesBase}/apexclass/**/*`], to: ['./dist/templates/apexclass'] },
     { from: [`${templatesBase}/apextrigger/**/*`], to: ['./dist/templates/apextrigger'] },
     { from: [`${templatesBase}/lightningapp/**/*`], to: ['./dist/templates/lightningapp'] },
@@ -40,6 +41,7 @@ const copyTemplates = copy({
     { from: [`${templatesBase}/lightningcomponent/aura/**/*`], to: ['./dist/templates/lightningcomponent/aura'] },
     { from: [`${templatesBase}/lightningevent/**/*`], to: ['./dist/templates/lightningevent'] },
     { from: [`${templatesBase}/lightninginterface/**/*`], to: ['./dist/templates/lightninginterface'] },
+    { from: [`${templatesBase}/project/**/*`], to: ['./dist/templates/project'] },
     { from: [`${templatesBase}/staticresource/**/*`], to: ['./dist/templates/staticresource'] },
     { from: [`${templatesBase}/visualforcepage/**/*`], to: ['./dist/templates/visualforcepage'] },
     { from: [`${templatesBase}/visualforcecomponent/**/*`], to: ['./dist/templates/visualforcecomponent'] }

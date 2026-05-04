@@ -5,17 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
-// SfTestOutlineProvider has a hidden dependency on @salesforce/salesforcedx-utils-vscode.extensionUri that needs to be mocked
-// and, crucially, the mock has to be done prior to the class import!
-// for our purposes, the return value has no bearing on what we're testing
+// iconPaths.ts calls vscode.extensions.getExtension at module scope, so mock before import
 const mockUri = URI.parse('https://salesforce.com');
-jest
-  .spyOn(extensionUris as unknown as { extensionUri: (extensionName: string) => URI }, 'extensionUri')
-  .mockReturnValue(mockUri);
+(vscode.extensions.getExtension as jest.Mock).mockReturnValue({ extensionUri: mockUri });
 
 import { SfTestOutlineProvider } from '../../../src/testSupport/testExplorer/testOutlineProvider';
 

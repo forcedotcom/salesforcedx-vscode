@@ -27,15 +27,9 @@ export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
-export { TimingUtils } from './helpers/timingUtils';
-export { ActivationTracker } from './helpers/activationTracker';
-export { extensionUris } from './helpers/extensionUris';
 export {
   createDirectory,
-  deleteFile,
-  ensureCurrentWorkingDirIsProjectPath,
   fileOrFolderExists,
-  isEmptyDirectory,
   isDirectory,
   isFile,
   readDirectory,
@@ -47,7 +41,6 @@ export {
 } from './helpers/fs';
 export { fileExtensionsMatch, getTestResultsFolder, projectPaths, TOOLS } from './helpers/paths';
 export { extractJson, getJsonCandidate, getMessageFromError, identifyJsonTypeInString } from './helpers/utils';
-export { isAlphaNumSpaceString, isIntegerInRange, isRecordIdFormat } from './helpers/validations';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
 export type { SharedAuthState } from './helpers/authUtils';
