@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getServicesApi } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
 import {
   ChannelService,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -31,10 +31,11 @@ import { SfCommandletExecutor } from './commands/util';
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
+import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { SalesforceProjectConfig } from './salesforceProject/salesforceProjectConfig';
-import { buildAllServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
@@ -54,7 +55,7 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   // Initialize services layer first so getRuntime() can use it.
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
 
   // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();

@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer as buildAllServicesLayerCore } from '@salesforce/effect-ext-utils';
-import type { ExtensionContext } from 'vscode';
-import { nls } from '../messages';
-
-export const buildAllServicesLayer = (context: ExtensionContext) =>
-  buildAllServicesLayerCore(context, nls.localize('channel_name'));
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 

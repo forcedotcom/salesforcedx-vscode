@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionPackageJsonSchema, type ExtensionPackageJson } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer,
+  ExtensionPackageJsonSchema,
+  type ExtensionPackageJson
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -22,12 +26,12 @@ import {
   createLanguageClient
 } from './languageUtils';
 import { nls } from './messages';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
 
 export const activate = async (context: vscode.ExtensionContext) => {
-  setAllServicesLayer(buildAllServicesLayer(context));
+  setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(context));
   return {
     getLineBreakpointInfo,

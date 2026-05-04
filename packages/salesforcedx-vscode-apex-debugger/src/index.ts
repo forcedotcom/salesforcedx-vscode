@@ -8,6 +8,7 @@
 // not going to change anything since this is going away
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
@@ -33,7 +34,7 @@ import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getActiveApexExtension } from './context/apexExtension';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context/isvContext';
 import { nls } from './messages';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { getActiveSalesforceCoreExtension, getTelemetryService } from './utils/coreExtensionUtils';
 
@@ -241,7 +242,7 @@ const registerDebugHandlers = (): vscode.Disposable => {
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(extensionContext));
   console.log('Apex Debugger Extension Activated');
 };

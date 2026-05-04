@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   isLWC,
   LWC_SERVER_READY_NOTIFICATION,
@@ -23,7 +23,7 @@ import { createLanguageClient } from './languageClient';
 import LwcLspStatusBarItem from './lwcLspStatusBarItem';
 import { nls } from './messages';
 import { activateMetaSupport } from './metasupport/metaSupport';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
@@ -34,7 +34,7 @@ const getTelemetryService = async () => {
 
 export const activate = async (extensionContext: ExtensionContext) => {
   // Initialize services layer first so ChannelService and other services are available throughout activation.
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(extensionContext));
 };
 

@@ -5,14 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { ApexActionController, createApexActionFromClass, validateOpenApiDocument } from './commands';
 import { MetadataOrchestrator } from './commands/metadataOrchestrator';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
+import { nls } from './messages';
 import { checkIfESRIsDecomposed } from './oasUtils';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { telemetryService } from './telemetry';
 
@@ -22,7 +24,7 @@ const metadataOrchestrator = new MetadataOrchestrator();
 export const apexActionController = new ApexActionController(metadataOrchestrator);
 
 export const activate = async (context: vscode.ExtensionContext) => {
-  setAllServicesLayer(buildAllServicesLayer(context));
+  setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(context));
   return {};
 };

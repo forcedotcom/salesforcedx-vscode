@@ -43,40 +43,32 @@ Per-extension layers (must build yourself):
 
 ## ExtensionContext Setup
 
-Factory function building services layer with ExtensionContext:
+Preferred: import `buildAllServicesLayer` from `@salesforce/effect-ext-utils`. It reads `displayName` from `package.json`, falling back to the second arg. `services/extensionProvider.ts` only needs the mutable `AllServicesLayer` + setter:
 
 ```typescript
-export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.unwrapEffect(
-    Effect.gen(function* () {
-      const extensionProvider = yield* ExtensionProviderService;
-      const api = yield* extensionProvider.getServicesApi;
-      const channelLayer = api.services.ChannelServiceLayer(
-        context.extension.packageJSON.displayName ?? 'My Extension'
-      );
-      const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
+// services/extensionProvider.ts
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 
-      return Layer.mergeAll(
-        Layer.succeedContext(api.services.prebuiltServicesDependencies),
-        ExtensionProviderServiceLive,
-        errorHandlerWithChannel,
-        api.services.ExtensionContextServiceLayer(context),
-        api.services.SdkLayerFor(context),
-        channelLayer
-      );
-    }).pipe(Effect.provide(ExtensionProviderServiceLive))
-  );
-```
-
-In `activate`:
-
-```typescript
-export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
-  const extensionScope = Effect.runSync(getExtensionScope());
-  setAllServicesLayer(buildAllServicesLayer(context));
-  await getRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
+export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
+  AllServicesLayer = layer;
 };
 ```
+
+In `activate` — pass the context and a localized fallback channel name:
+
+```typescript
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import { nls } from './messages';
+import { setAllServicesLayer } from './services/extensionProvider';
+
+export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
+  setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
+  await getRuntime().runPromise(activateEffect(context));
+};
+```
+
+Legacy inline pattern (still present in `metadata`, `org`, `org-browser`, `lightning`, `visualforce`, `soql`, `apex-log`, `apex-testing`): a local `buildAllServicesLayer` factory wraps `Layer.unwrapEffect(...)` in `services/extensionProvider.ts`. Migrate to the shared helper when touching these — drop the factory, import `buildAllServicesLayer` from `@salesforce/effect-ext-utils`, pass the fallback name at the call site.
 
 ## Runtime vs provide
 
@@ -261,51 +253,39 @@ Ref behavior (concise):
 ## Complete Example Pattern
 
 ```typescript
-// extensionProvider.ts
-import * as ManagedRuntime from 'effect/ManagedRuntime';
-
-export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.unwrapEffect(
-    Effect.gen(function* () {
-      const extensionProvider = yield* ExtensionProviderService;
-      const api = yield* extensionProvider.getServicesApi;
-      const channelLayer = api.services.ChannelServiceLayer(
-        context.extension.packageJSON.displayName ?? 'My Extension'
-      );
-      const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
-
-      return Layer.mergeAll(
-        Layer.succeedContext(api.services.prebuiltServicesDependencies),
-        ExtensionProviderServiceLive,
-        errorHandlerWithChannel,
-        api.services.ExtensionContextServiceLayer(context),
-        api.services.SdkLayerFor(context),
-        channelLayer
-      );
-    }).pipe(Effect.provide(ExtensionProviderServiceLive))
-  );
+// services/extensionProvider.ts
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;
 };
 
+// services/runtime.ts
+import * as ManagedRuntime from 'effect/ManagedRuntime';
+import { AllServicesLayer } from './extensionProvider';
+
 const createRuntime = () => ManagedRuntime.make(AllServicesLayer);
 let _runtime: ReturnType<typeof createRuntime> | undefined;
-export const getRuntime = () => {
-  _runtime ??= createRuntime();
-  return _runtime;
-};
+export const getRuntime = () => (_runtime ??= createRuntime());
 
 // index.ts
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import { nls } from './messages';
 import { myCommandEffect } from './commands/myCommand';
+import { AllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { getRuntime } from './services/runtime';
+
+export const activate = async (context: vscode.ExtensionContext) => {
+  setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
+  await getRuntime().runPromise(activateEffect(context));
+};
 
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (_context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
-
   yield* registerCommand('sf.my.command', myCommandEffect);
 
   yield* api.services.ChannelService.appendToChannel('Extension activation complete.');

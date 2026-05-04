@@ -6,6 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
@@ -43,7 +44,7 @@ import {
   LIVESHARE_DEBUGGER_TYPE
 } from './debuggerConstants';
 import { nls } from './messages';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 
 export enum VSCodeWindowTypeEnum {
@@ -178,7 +179,7 @@ const registerDebugHandlers = (): vscode.Disposable => {
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(extensionContext));
 };
 
