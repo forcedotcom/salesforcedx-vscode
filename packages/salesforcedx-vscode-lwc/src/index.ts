@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   isLWC,
   LWC_SERVER_READY_NOTIFICATION,
@@ -21,8 +21,9 @@ import { createLwcCommand } from './commands/createLwc';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import LwcLspStatusBarItem from './lwcLspStatusBarItem';
+import { nls } from './messages';
 import { activateMetaSupport } from './metasupport/metaSupport';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
@@ -33,7 +34,7 @@ const getTelemetryService = async () => {
 
 export const activate = async (extensionContext: ExtensionContext) => {
   // Initialize services layer first so ChannelService and other services are available throughout activation.
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(extensionContext));
 };
 
@@ -43,25 +44,25 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelSvc = yield* api.services.ChannelService;
 
-  yield* channelSvc.appendToChannel('Lightning Web Components extension activating...');
+  yield* channelSvc.appendToChannel(nls.localize('lwc_extension_activating'));
 
   if (process.env.ESBUILD_PLATFORM !== 'web') {
     yield* Effect.promise(() => getTelemetryService()).pipe(
       Effect.flatMap(telemetryService => Effect.promise(() => telemetryService.initializeService(extensionContext))),
-      Effect.catchAll(e => channelSvc.appendToChannel(`Failed to initialize telemetry service: ${String(e)}`))
+      Effect.catchAll(e => channelSvc.appendToChannel(nls.localize('lwc_telemetry_init_failed', String(e))))
     );
   }
 
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
-    yield* channelSvc.appendToChannel('LWC Language Server activationMode set to off, exiting...');
+    yield* channelSvc.appendToChannel(nls.localize('lwc_activation_mode_off'));
     return;
   }
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-    yield* channelSvc.appendToChannel('No workspace folders found, exiting extension');
+    yield* channelSvc.appendToChannel(nls.localize('lwc_no_workspace_folders'));
     return;
   }
 
@@ -81,9 +82,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    yield* channelSvc.appendToChannel(
-      `LWC LSP - autodetect did not find a valid project structure, exiting. WorkspaceType detected: ${workspaceType}`
-    );
+    yield* channelSvc.appendToChannel(nls.localize('lwc_autodetect_no_project', workspaceType));
     return;
   }
 
@@ -101,7 +100,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   }).pipe(
     Effect.tapError(error =>
       channelSvc.appendToChannel(
-        `Failed to start LWC Language Server: ${error instanceof Error ? error.message : String(error)}`
+        nls.localize('lwc_language_server_start_failed', error instanceof Error ? error.message : String(error))
       )
     )
   );
@@ -114,24 +113,27 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   client.onNotification(LWC_SERVER_READY_NOTIFICATION, () => {
     statusBarItem.ready();
     // Web E2E: language status is not always exposed in the status bar; tests wait on this log line.
-    getRuntime().runFork(channelSvc.appendToChannel('LWC Language Server: indexing complete'));
+    getRuntime().runFork(channelSvc.appendToChannel(nls.localize('lwc_language_server_indexing_complete')));
   });
 
-  yield* channelSvc.appendToChannel('Starting LWC Language Server...');
+  yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_starting'));
   // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
   registerWorkspaceReadFileHandler(client, channelAdapter);
 
   yield* Effect.tryPromise({ try: () => client.start(), catch: e => e }).pipe(
     Effect.tapError(startError =>
       channelSvc.appendToChannel(
-        `[LWC] Failed to start client: ${startError instanceof Error ? startError.message : String(startError)}`
+        nls.localize(
+          'lwc_language_server_client_start_failed',
+          startError instanceof Error ? startError.message : String(startError)
+        )
       )
     )
   );
 
   extensionContext.subscriptions.push(client);
-  yield* channelSvc.appendToChannel('LWC Language Server started successfully');
-  yield* channelSvc.appendToChannel('Check "LWC Language Server" output channel for server logs');
+  yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_started'));
+  yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_output_channel_hint'));
 
   const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
@@ -150,11 +152,11 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
           ? Effect.sync(() => testSupport.activateLwcTestSupport(extensionContext, workspaceType))
           : Effect.void
       ),
-      Effect.catchAll(e => channelSvc.appendToChannel(`Failed to load test support: ${String(e)}`))
+      Effect.catchAll(e => channelSvc.appendToChannel(nls.localize('lwc_test_support_load_failed', String(e))))
     );
   }
 
-  yield* channelSvc.appendToChannel('Lightning Web Components extension activation complete.');
+  yield* channelSvc.appendToChannel(nls.localize('lwc_extension_activation_complete'));
 });
 
 export const deactivate = async () => {

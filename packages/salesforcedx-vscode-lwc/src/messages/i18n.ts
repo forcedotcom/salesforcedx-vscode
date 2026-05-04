@@ -16,6 +16,7 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
+  channel_name: 'Lightning Web Components',
   lightning_lwc_test_navigate_to_test: 'SFDX: Navigate to Lightning Web Component Test',
   no_lwc_jest_found_text: 'LWC Jest is not installed. Run npm install in your project.',
   no_lwc_testrunner_found_text: 'LWC Test Runner is not installed. Install @salesforce/lwc-testrunner.',
@@ -42,7 +43,21 @@ export const messages = {
     'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
   lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension',
   lwc_language_server_loading: 'Indexing LWC files. Hold tight, almost ready… $(sync~spin)',
-  lwc_language_server_loaded: 'Indexing complete $(check)'
+  lwc_language_server_loaded: 'Indexing complete $(check)',
+  lwc_extension_activating: 'Lightning Web Components extension activating...',
+  lwc_extension_activation_complete: 'Lightning Web Components extension activation complete.',
+  lwc_telemetry_init_failed: 'Failed to initialize telemetry service: %s',
+  lwc_activation_mode_off: 'LWC Language Server activationMode set to off, exiting...',
+  lwc_no_workspace_folders: 'No workspace folders found, exiting extension',
+  lwc_autodetect_no_project:
+    'LWC LSP - autodetect did not find a valid project structure, exiting. WorkspaceType detected: %s',
+  lwc_language_server_start_failed: 'Failed to start LWC Language Server: %s',
+  lwc_language_server_indexing_complete: 'LWC Language Server: indexing complete',
+  lwc_language_server_starting: 'Starting LWC Language Server...',
+  lwc_language_server_client_start_failed: '[LWC] Failed to start client: %s',
+  lwc_language_server_started: 'LWC Language Server started successfully',
+  lwc_language_server_output_channel_hint: 'Check "LWC Language Server" output channel for server logs',
+  lwc_test_support_load_failed: 'Failed to load test support: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;
