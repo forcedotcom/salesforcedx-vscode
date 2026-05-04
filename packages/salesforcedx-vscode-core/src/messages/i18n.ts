@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { MISSING_LABEL_MSG } from '@salesforce/vscode-i18n';
 /**
  * Conventions:
  * _message: is for unformatted text that will be shown as-is to
@@ -17,14 +16,9 @@ import { MISSING_LABEL_MSG } from '@salesforce/vscode-i18n';
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
-  channel_starting_message: 'Starting ',
-  channel_end: 'Ended',
-  parameter_gatherer_enter_file_name: 'Enter desired filename',
-  parameter_gatherer_enter_dir_name: 'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_package_id: 'Enter the ID of the package to install',
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
-  parameter_gatherer_enter_project_name: 'Enter project name',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
   project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
@@ -33,57 +27,26 @@ export const messages = {
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   retrieve_this_source_text: 'SFDX: Retrieve This Source from Org',
   delete_source_text: 'SFDX: Delete from Project and Org',
-  analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
-  analytics_template_name_text: 'template name',
   apex_generate_class_text: 'SFDX: Create Apex Class',
   apex_generate_unit_test_class_text: 'SFDX: Create Apex Unit Test Class',
   project_generate_manifest: 'SFDX: Generate Manifest File',
   view_local_changes_text: 'SFDX: View Local Changes',
   view_remote_changes_text: 'SFDX: View Changes in Default Org',
-  warning_prompt_dir_overwrite:
-    'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
-  warning_prompt_overwrite_cancel: 'Cancel',
-  warning_prompt_overwrite_message: 'Are you sure you want to overwrite %s:%s?\n\n%s\n\n%s',
-  warning_prompt_overwrite: 'Overwrite',
-  warning_prompt_overwrite_all: 'Overwrite All',
-  warning_prompt_skip: 'Skip',
-  warning_prompt_skip_all: 'Skip All',
-  warning_prompt_other_existing: '%d other existing components',
-  warning_prompt_other_not_shown: '...%d other components not shown\n',
   config_list_text: 'SFDX: List All Config Variables',
+  config_list_column_name: 'Name',
+  config_list_column_value: 'Value',
+  config_list_column_location: 'Location',
+  config_list_table_title: 'List Config',
+  config_list_no_results: 'No results found',
   alias_list_text: 'SFDX: List All Aliases',
   package_install_text: 'SFDX: Install Package',
-  project_generate_text: 'SFDX: Create Project',
-  project_generate_open_dialog_create_label: 'Create Project',
-  project_generate_standard_template_display_text: 'Standard',
-  project_generate_empty_template_display_text: 'Empty',
-  project_generate_analytics_template_display_text: 'Analytics',
-  project_generate_react_b2e_template_display_text: 'React Internal App',
-  project_generate_react_b2x_template_display_text: 'React External App',
-  project_generate_agent_template_display_text: 'Agent',
-  project_generate_empty_template: 'Empty project template',
-  project_generate_standard_template: 'Standard project template',
-  project_generate_analytics_template: 'Analytics project template',
-  project_generate_react_b2e_template:
-    'For employees signing in with Salesforce credentials (B2E). Sample app: Property Management App.',
-  project_generate_react_b2x_template:
-    'For customers or partners signing in outside your org (B2C). Sample app: Property Rental App.',
-  project_generate_agent_template: 'Agent project template',
-  select_lwc_language_prompt: 'Select default Lightning Web Component language',
-  javascript_language_option: 'JavaScript',
-  javascript_language_description: 'Create LWC components using JavaScript',
-  typescript_language_option: 'TypeScript',
-  typescript_language_description: 'Create LWC components using TypeScript',
-
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
   telemetry_internal_user_message:
     "We're collecting information on the usage of our extensions and sending it to AppInsights to help us understand how our internal developers use them. We want to gather data on developer adoption to improve our products and services. Thanks for being a part of this process!",
   error_parsing_sfdx_project_file: "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
-  custom_output_directory: 'Choose a Custom Directory',
   lightning_generate_lwc_text: 'SFDX: Create Lightning Web Component',
-  error_overwrite_prompt: 'Error checking workspace for existing components',
 
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
@@ -406,7 +369,6 @@ export const messages = {
   WaveDataset: 'Wave Datasets',
   WaveLens: 'Wave Lenses',
   WaveRecipe: 'Wave Recipes',
-  WaveTemplateBundle: 'Wave Template Bundles',
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
@@ -431,11 +393,10 @@ export const messages = {
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
   functions_doc_url: 'https://developer.salesforce.com/tools/vscode/en/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
-  parameter_gatherer_file_name_max_length_validation_error_message: 'File name cannot exceed {0} characters',
+
   rename_not_supported: 'Rename is not supported for multiple components',
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',
-  missing_label: `${MISSING_LABEL_MSG}: %s`,
 
   // Metadata XML Support Messages
   metadata_xml_no_redhat_extension_found:
@@ -451,5 +412,3 @@ export const messages = {
 } as const;
 
 export type MessageKey = keyof typeof messages;
-
-export const isValidMessageKey = (key: string): key is MessageKey => key in messages;

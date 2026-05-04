@@ -12,13 +12,10 @@ import {
   CancelResponse,
   CliCommandExecutor,
   ContinueResponse,
-  isAlphaNumSpaceString,
-  isIntegerInRange,
   ParametersGatherer,
   ProgressNotification,
   SfCommandlet,
   SfCommandletExecutor,
-  TimingUtils,
   workspaceUtils,
   errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -31,6 +28,18 @@ import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreat
 import { checkDevHubConfigured } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
+
+const isAlphaNumSpaceString = (value: string | undefined): boolean =>
+  value !== undefined && /^\w+( *\w*)*$/.test(value);
+
+const isInteger = (value: string | undefined): boolean =>
+  value !== undefined && !/\D/.test(value) && Number.isSafeInteger(Number.parseInt(value, 10));
+
+const isIntegerInRange = (value: string | undefined, range: [number, number]): boolean =>
+  value !== undefined &&
+  isInteger(value) &&
+  Number.parseInt(value, 10) >= range[0] &&
+  Number.parseInt(value, 10) <= range[1];
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
@@ -54,7 +63,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   }
 
   public execute(response: ContinueResponse<AliasAndFileSelection>): void {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
@@ -77,9 +86,6 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
         const createParser = new OrgCreateResultParser(stdOut);
 
         if (createParser.createIsSuccessful()) {
-          // Set workspace org type to source-tracked for newly created scratch orgs
-          // Scratch orgs are always source-tracked, so set the context to true
-          await vscode.commands.executeCommand('setContext', 'sf:target_org_has_change_tracking', true);
           await updateConfigAndStateAggregators();
         } else {
           // remove when we drop CLI invocations

@@ -20,7 +20,6 @@ import {
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
 import { errorToString } from '../helpers/errorUtils';
-import { TimingUtils } from '../helpers/timingUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { AppInsights } from '../telemetry/reporters/appInsights';
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
@@ -270,7 +269,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
     if (convertedStartTime && convertedStartTime > 0) {
       // Valid start time provided - calculate elapsed time
-      startupTime = markEndTime ?? TimingUtils.getElapsedTime(convertedStartTime);
+      startupTime = markEndTime ?? globalThis.performance.now() - convertedStartTime;
     } else if (markEndTime) {
       // Only end time provided - use it directly
       startupTime = markEndTime;
@@ -326,7 +325,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         if (convertedStartTime || measurements) {
           aggregatedMeasurements = { ...measurements };
           if (convertedStartTime) {
-            aggregatedMeasurements.executionTime = TimingUtils.getElapsedTime(convertedStartTime);
+            aggregatedMeasurements.executionTime = globalThis.performance.now() - convertedStartTime;
           }
         }
         this.reporters.forEach(reporter => {

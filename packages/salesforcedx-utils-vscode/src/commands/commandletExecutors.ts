@@ -10,7 +10,6 @@ import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-serv
 import * as vscode from 'vscode';
 import type { Event } from 'vscode';
 import { CliCommandExecutor } from '../cli/commandExecutor';
-import { TimingUtils } from '../helpers/timingUtils';
 import { nls } from '../messages/messages';
 import { TelemetryService } from '../services/telemetry';
 import { SettingsService } from '../settings/settingsService';
@@ -62,7 +61,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   }
 
   public execute(response: ContinueResponse<T>): void {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
@@ -118,7 +117,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
   ): Promise<boolean>;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
     if (SettingsService.getEnableClearOutputBeforeEachCommand()) {

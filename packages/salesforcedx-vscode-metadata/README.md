@@ -4,9 +4,11 @@ This extension provides metadata operations for Salesforce development in VS Cod
 
 ## Features
 
+- Create Salesforce projects and projects with manifests
 - Deploy, retrieve, and diff source
 - Change tracking operations
 - Manifest generation and operations
+- Sample Analytics template generation
 - Generate Project Info report (`project-info.md`) with metadata type statistics and environment details
 
 ## Requirements

@@ -47,7 +47,8 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   emptyWorkspace: true,
   userSettings: {
-    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true,
+    'files.simpleDialog.enable': true
   }
 });
 
@@ -58,8 +59,6 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
 const playwrightDialogSettings = {
   // uses VS Code's file picker instead of the native OS file picker
   'files.simpleDialog.enable': true,
-  // keeps VS Code menus in the DOM for consistent interaction
-  'window.menuStyle': 'custom',
   // routes showWarningMessage({ modal: true }) through VS Code's DOM renderer (.monaco-dialog-box)
   // instead of Electron's native dialog.showMessageBox(), which Playwright cannot interact with
   'window.dialogStyle': 'custom'

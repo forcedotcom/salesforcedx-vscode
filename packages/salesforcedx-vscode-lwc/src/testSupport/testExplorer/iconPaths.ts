@@ -5,12 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { VSCODE_LWC_EXTENSION_NAME } from '../../constants';
 import { TestResult } from '../types';
 
-const extensionPath = extensionUris.extensionUri(VSCODE_LWC_EXTENSION_NAME);
+const getExtensionUri = (): URI => {
+  const ext = vscode.extensions.getExtension(VSCODE_LWC_EXTENSION_NAME);
+  if (!ext) {
+    throw new Error(`Unable to find extension ${VSCODE_LWC_EXTENSION_NAME}`);
+  }
+  return ext.extensionUri;
+};
+
+const extensionPath = getExtensionUri();
 const LIGHT_BLUE_BUTTON = Utils.joinPath(extensionPath, 'resources', 'light', 'testNotRun.svg');
 
 const LIGHT_RED_BUTTON = Utils.joinPath(extensionPath, 'resources', 'light', 'testFail.svg');

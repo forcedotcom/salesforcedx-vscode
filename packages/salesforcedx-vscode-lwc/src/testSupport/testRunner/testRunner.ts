@@ -4,11 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import * as Option from 'effect/Option';
 import { escapeStrForRegex } from 'jest-regex-util';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { getRuntime } from '../../services/runtime';
 import { telemetryService } from '../../telemetry';
 import { isTestCaseInfo, TestExecutionInfo } from '../types';
 import { workspace, workspaceService } from '../workspace';
@@ -113,12 +114,12 @@ export class TestRunner {
       if (jestExecutionInfo) {
         const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
         const cwd = workspaceFolder.uri.fsPath;
-        const lwcTestRunnerExecutable = await workspace.getLwcTestRunnerExecutable(cwd);
+        const result = await getRuntime().runPromise(workspace.getLwcTestRunnerExecutable(cwd));
         const cliArgs: string[] = workspace.getCliArgsFromJestArgs(jestArgs, this.testRunType);
-        if (lwcTestRunnerExecutable) {
+        if (Option.isSome(result)) {
           return {
             workspaceFolder,
-            command: lwcTestRunnerExecutable,
+            command: result.value,
             args: cliArgs,
             testResultFsPath: jestOutputFilePath
           };
@@ -159,7 +160,7 @@ export class TestRunner {
       const taskName = this.getTaskName();
       const sfTask = taskService.createTask(this.testRunId, taskName, workspaceFolder, command, args);
       if (this.logName) {
-        const startTime = TimingUtils.getCurrentTime();
+        const startTime = globalThis.performance.now();
         sfTask.onDidEnd(() => {
           telemetryService.sendCommandEvent(this.logName, startTime, {
             workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()

@@ -4,9 +4,10 @@ This extension provides core services for Salesforce development in VS Code.
 
 ## Features
 
-- Service provider functionality (Workspace, Connection, Project, Config, FS, Channel, Media)
+- Service provider functionality (Workspace, Connection, Project, Config, FS, Channel, Media, Prompt, Template)
 - Core utilities for Salesforce development
 - Integration with Salesforce CLI
+- Template generation through `@salesforce/templates`
 - Virtual FS provider (`src/virtualFsProvider`) — memfs, IndexedDB storage for web
 - Observability (`src/observability`) — OpenTelemetry spans, App Insights, O11y. See [observability README](src/observability/README.md)
 
