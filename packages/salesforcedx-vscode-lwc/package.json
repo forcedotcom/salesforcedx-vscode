@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-lwc",
+  "private": true,
   "displayName": "Lightning Web Components",
   "description": "Provides code-editing features for Lightning Web Components",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",

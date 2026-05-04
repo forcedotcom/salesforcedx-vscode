@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-expanded",
+  "private": true,
   "displayName": "Salesforce Extension Pack (Expanded)",
   "description": "Extensions for developing on the Salesforce Platform",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",

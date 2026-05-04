@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-oas",
+  "private": true,
   "displayName": "Apex OpenAPI Specification",
   "description": "Provides OpenAPI Specification generation for Apex REST and AuraEnabled classes",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",

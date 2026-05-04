@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-debugger",
+  "private": true,
   "displayName": "Apex Interactive Debugger",
   "description": "Provides debugging support for the Apex programming language",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",

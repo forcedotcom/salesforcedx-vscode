@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-log",
+  "private": true,
   "displayName": "Salesforce Apex Log",
   "description": "Execute anonymous Apex, retrieve Apex logs, and manage trace flags",
   "icon": "images/VSCodeBundle.png",

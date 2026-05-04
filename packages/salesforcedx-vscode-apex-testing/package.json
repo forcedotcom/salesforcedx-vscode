@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-testing",
+  "private": true,
   "displayName": "Apex Testing",
   "description": "Provides Apex test execution and management features",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",

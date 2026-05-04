@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-soql",
+  "private": true,
   "displayName": "SOQL",
   "description": "Provides code-editing features for SOQL",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",

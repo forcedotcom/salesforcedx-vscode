@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex",
+  "private": true,
   "displayName": "Apex",
   "description": "Provides code-editing features for the Apex programming language",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
