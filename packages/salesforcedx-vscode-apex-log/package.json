@@ -1,12 +1,13 @@
 {
   "name": "salesforcedx-vscode-apex-log",
+  "private": true,
   "displayName": "Salesforce Apex Log",
   "description": "Execute anonymous Apex, retrieve Apex logs, and manage trace flags",
   "icon": "images/VSCodeBundle.png",
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.9.0",
+  "version": "66.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -37,7 +38,7 @@
     "@salesforce/core": "^8.28.0",
     "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.27.4",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "66.10.0"
   },
   "scripts": {
     "vscode:bundle": "wireit",

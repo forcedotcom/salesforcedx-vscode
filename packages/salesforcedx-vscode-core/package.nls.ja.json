@@ -1,6 +1,5 @@
 {
   "alias_list_text": "SFDX: すべてのエイリアスを一覧表示",
-  "analytics_generate_template_text": "SFDX: サンプルの Analytics テンプレートを作成",
   "apex_generate_class_text": "SFDX: Apex クラスを作成",
   "config_list_text": "SFDX: すべての設定変数を一覧表示",
   "conflict_detect_open_file": "ファイルを開く",
@@ -16,8 +15,6 @@
   "project_deploy_start_default_org_text": "SFDX: デフォルトのスクラッチ組織へソースをプッシュ",
   "project_deploy_start_ignore_conflicts_default_org_text": "SFDX: Push Source to Default Org and Ignore Conflicts",
   "project_generate_manifest": "SFDX: Generate Manifest File",
-  "project_generate_text": "SFDX: プロジェクトを作成",
-  "project_generate_with_manifest_text": "SFDX: マニフェストファイルを使用してプロジェクトを作成",
   "project_retrieve_start_default_org_text": "SFDX: デフォルトのスクラッチ組織からソースをプル",
   "project_retrieve_start_ignore_conflicts_default_org_text": "SFDX: Pull Source from Default Org and Ignore Conflicts",
   "refresh_components_text": "SFDX: コンポーネントを更新",

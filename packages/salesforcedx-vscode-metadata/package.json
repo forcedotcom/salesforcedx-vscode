@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-metadata",
+  "private": true,
   "displayName": "Salesforce Metadata",
   "description": "Metadata operations for Salesforce development",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -14,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.9.0",
+  "version": "66.10.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -36,7 +37,7 @@
     "@salesforce/source-deploy-retrieve": "^12.32.5",
     "@salesforce/source-tracking": "^7.8.11",
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "66.10.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -368,6 +369,22 @@
           "when": "never"
         },
         {
+          "command": "sf.project.generate",
+          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
+        {
+          "command": "sf.agent.generate.project",
+          "when": "false"
+        },
+        {
+          "command": "sf.nativemobile.generate.project",
+          "when": "false"
+        },
+        {
+          "command": "sf.project.generate.with.manifest",
+          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
+        {
           "command": "sf.internal.refreshsobjects",
           "when": "sf:project_opened && sf:has_target_org"
         },
@@ -448,6 +465,10 @@
           "when": "isFileSystemResource && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
+          "command": "sf.analytics.generate.template",
+          "when": "sf:project_opened"
+        },
+        {
           "command": "sf.metadata.project.info",
           "when": "sf:project_opened"
         }
@@ -510,6 +531,10 @@
         {
           "command": "sf.metadata.source.diff",
           "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.analytics.generate.template",
+          "when": "explorerResourceIsFolder && resourcePath =~ /waveTemplates/ && sf:project_opened"
         }
       ],
       "view/item/context": [
@@ -549,6 +574,22 @@
           "light": "resources/light/go-to-file.svg",
           "dark": "resources/dark/go-to-file.svg"
         }
+      },
+      {
+        "command": "sf.project.generate",
+        "title": "%project_generate_text%"
+      },
+      {
+        "command": "sf.agent.generate.project",
+        "title": "%agent_generate_project_text%"
+      },
+      {
+        "command": "sf.nativemobile.generate.project",
+        "title": "%nativemobile_generate_project_text%"
+      },
+      {
+        "command": "sf.project.generate.with.manifest",
+        "title": "%project_generate_with_manifest_text%"
       },
       {
         "command": "sf.metadata.view.all.changes",
@@ -609,6 +650,10 @@
       {
         "command": "sf.metadata.project.generate.manifest",
         "title": "%project_generate_manifest_text%"
+      },
+      {
+        "command": "sf.analytics.generate.template",
+        "title": "%analytics_generate_template_text%"
       },
       {
         "command": "sf.metadata.source.diff",

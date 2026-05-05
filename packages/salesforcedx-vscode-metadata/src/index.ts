@@ -11,11 +11,13 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { analyticsGenerateTemplate } from './commands/analyticsGenerateTemplate';
 import { deleteSourcePathsCommand } from './commands/deleteSourcePath';
 import { deployManifestCommand } from './commands/deployManifest';
 import { deployActiveEditorCommand, deploySourcePathsCommand } from './commands/deploySourcePath';
 import { generateManifestCommand } from './commands/generateManifest';
 import { projectDeployStartCommand } from './commands/projectDeployStart';
+import { sfProjectGenerateCommand } from './commands/projectGenerate';
 import { projectInfoCommand } from './commands/projectInfo';
 import { refreshSObjectsCommand } from './commands/refreshSObjects';
 import { resetRemoteTrackingCommand } from './commands/resetRemoteTracking';
@@ -56,10 +58,22 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const projectGenerateCommands =
+    process.env.ESBUILD_PLATFORM === 'web'
+      ? []
+      : [
+          registerCommand('sf.project.generate', sfProjectGenerateCommand),
+          registerCommand('sf.project.generate.with.manifest', () => sfProjectGenerateCommand({ manifest: true })),
+          registerCommand('sf.agent.generate.project', () => sfProjectGenerateCommand({ projectTemplate: 'agent' })),
+          registerCommand('sf.nativemobile.generate.project', () =>
+            sfProjectGenerateCommand({ projectTemplate: 'nativemobile' })
+          )
+        ];
 
   yield* Effect.all(
     [
       svc.appendToChannel('Registering metadata commands'),
+      ...projectGenerateCommands,
       registerCommand('sf.metadata.delete.source', (sourceUri?: URI, uris?: URI[]) =>
         deleteSourcePathsCommand(sourceUri, uris)
       ),
@@ -71,6 +85,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       registerCommand('sf.metadata.project.deploy.start.ignore.conflicts', () => projectDeployStartCommand(true)),
       registerCommand('sf.metadata.project.generate.manifest', (sourceUri?: URI, uris?: URI[]) =>
         generateManifestCommand(sourceUri, uris)
+      ),
+      registerCommand('sf.analytics.generate.template', (outputDirParam?: URI) =>
+        analyticsGenerateTemplate(outputDirParam)
       ),
       registerCommand('sf.metadata.project.retrieve.start', () => projectRetrieveStartCommand(false)),
       registerCommand('sf.metadata.project.retrieve.start.ignore.conflicts', () => projectRetrieveStartCommand(true)),

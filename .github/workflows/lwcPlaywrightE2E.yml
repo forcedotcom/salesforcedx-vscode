@@ -2,6 +2,21 @@ name: LWC E2E (Playwright)
 
 on:
   workflow_dispatch:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave
+          empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave
+          empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
   push:
     branches-ignore: [main, develop]
     paths-ignore:
@@ -162,7 +177,7 @@ jobs:
           command: npx playwright install chromium --with-deps
           retry_wait_seconds: 60
 
-      - name: Run LWC LSP desktop tests (parallel)
+      - name: Run LWC Playwright desktop tests (parallel)
         if: steps.try-run.outcome == 'failure'
         id: parallel-run
         continue-on-error: true
