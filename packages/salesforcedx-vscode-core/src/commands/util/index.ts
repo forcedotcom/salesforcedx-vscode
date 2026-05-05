@@ -6,17 +6,9 @@
  */
 
 export type { CommandletExecutor } from './commandletExecutor';
-export { CompositePostconditionChecker } from './compositePostconditionChecker';
 export { EmptyPreChecker } from './emptyPreChecker';
 export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
-export {
-  MetadataTypeGatherer,
-  SelectFileName,
-  SelectOutputDir
-} from './parameterGatherers';
+export { SelectFileName, SelectOutputDir } from './parameterGatherers';
 export { SfCommandletExecutor } from './sfCommandletExecutor';
 export { PathStrategyFactory, type SourcePathStrategy } from './sourcePathStrategies';
-export {
-  LwcAuraDuplicateComponentCheckerForCreate,
-  LwcAuraDuplicateComponentCheckerForRename
-} from './lwcAuraDuplicateComponentCheckers';
+export { LwcAuraDuplicateComponentCheckerForRename } from './lwcAuraDuplicateComponentCheckers';

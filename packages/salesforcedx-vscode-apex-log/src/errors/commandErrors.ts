@@ -7,25 +7,24 @@
 
 import * as Schema from 'effect/Schema';
 
-export class LogGetNoLogsError extends Schema.TaggedError<LogGetNoLogsError>()(
-  'LogGetNoLogsError',
-  { message: Schema.String }
-) {}
+export class LogGetNoLogsError extends Schema.TaggedError<LogGetNoLogsError>()('LogGetNoLogsError', {
+  message: Schema.String
+}) {}
 
-export class OpenLogsFolderError extends Schema.TaggedError<OpenLogsFolderError>()(
-  'OpenLogsFolderError',
-  { message: Schema.String, cause: Schema.instanceOf(Error) }
-) {}
+export class OpenLogsFolderError extends Schema.TaggedError<OpenLogsFolderError>()('OpenLogsFolderError', {
+  message: Schema.String,
+  cause: Schema.instanceOf(Error)
+}) {}
 
-export class DebugLevelCreateError extends Schema.TaggedError<DebugLevelCreateError>()(
-  'DebugLevelCreateError',
-  { message: Schema.String, cause: Schema.optional(Schema.Unknown) }
-) {}
+export class DebugLevelCreateError extends Schema.TaggedError<DebugLevelCreateError>()('DebugLevelCreateError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
 
-export class DebugLevelDeleteError extends Schema.TaggedError<DebugLevelDeleteError>()(
-  'DebugLevelDeleteError',
-  { message: Schema.String, cause: Schema.optional(Schema.Unknown) }
-) {}
+export class DebugLevelDeleteError extends Schema.TaggedError<DebugLevelDeleteError>()('DebugLevelDeleteError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
 
 export class TraceFlagOrphanedDebugLevelError extends Schema.TaggedError<TraceFlagOrphanedDebugLevelError>()(
   'TraceFlagOrphanedDebugLevelError',

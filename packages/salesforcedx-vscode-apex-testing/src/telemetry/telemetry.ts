@@ -18,8 +18,8 @@ const logEvent = (eventName: string, attributes?: Record<string, string | number
       )
     )
     .catch(() => {
-    // Best effort - don't fail if telemetry fails
-  });
+      // Best effort - don't fail if telemetry fails
+    });
 };
 
 /**

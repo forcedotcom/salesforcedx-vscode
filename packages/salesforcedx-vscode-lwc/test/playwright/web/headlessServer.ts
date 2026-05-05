@@ -5,24 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
+import { createHeadlessServer, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
 
-import { createHeadlessServer, createTestWorkspace, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
-
-const main = async (): Promise<void> => {
-  const dir = await createTestWorkspace(undefined);
-  const bundleDir = path.join(dir, 'force-app', 'main', 'default', 'lwc', 'snippetsE2E');
-  await fs.mkdir(bundleDir, { recursive: true });
-  await fs.writeFile(path.join(bundleDir, 'snippetsE2E.html'), '', 'utf8');
-  await fs.writeFile(path.join(bundleDir, 'snippetsE2E.js'), '', 'utf8');
-
-  await createHeadlessServer({
+if (require.main === module) {
+  void createHeadlessServer({
     extensionName: 'Lightning Web Components',
     callerDirname: __dirname,
-    folderPath: dir
+    /** **SFDX: Create Lightning Web Component** is contributed by the Metadata extension. */
+    additionalExtensionDirs: ['salesforcedx-vscode-metadata']
   });
   setupSignalHandlers();
-};
-
-void main();
+}

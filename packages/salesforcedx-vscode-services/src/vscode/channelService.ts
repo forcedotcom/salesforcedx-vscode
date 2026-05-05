@@ -19,9 +19,7 @@ export class ChannelService extends Effect.Service<ChannelService>()('ChannelSer
       /** Get the OutputChannel for this ChannelService */
       getChannel: Effect.sync(() => channel),
       /** Clear the OutputChannel */
-      clearChannel: Effect.try(() => channel.clear()).pipe(
-        Effect.catchAll(() => Effect.void)
-      ),
+      clearChannel: Effect.try(() => channel.clear()).pipe(Effect.catchAll(() => Effect.void)),
       /** Append a message to this OutputChannel */
       appendToChannel: (message: string) =>
         Effect.try(() => channel.appendLine(message)).pipe(

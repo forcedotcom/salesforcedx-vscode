@@ -32,11 +32,7 @@ const nameFromFile = (
   return null;
 };
 
-const nameFromDirectory = (
-  file: string,
-  sfdxProject: boolean,
-  converter: (a: string, b: string) => string
-): string => {
+const nameFromDirectory = (file: string, sfdxProject: boolean, converter: (a: string, b: string) => string): string => {
   const filePath = path.parse(file);
   return sfdxProject ? converter('c', filePath.name) : converter(splitPath(filePath).pop() ?? '', filePath.name);
 };

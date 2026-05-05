@@ -64,8 +64,7 @@ export const noVscodeQuickpickDescriptionLiterals = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
     docs: {
-      description:
-        'Disallow string literals in showQuickPick item descriptions - use nls.localize() instead'
+      description: 'Disallow string literals in showQuickPick item descriptions - use nls.localize() instead'
     },
     schema: [],
     messages: {

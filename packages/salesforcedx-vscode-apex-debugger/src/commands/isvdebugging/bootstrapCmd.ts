@@ -30,11 +30,7 @@ import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instr
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
-import {
-  getChannelService,
-  getSfCommandlet,
-  getSfCommandletExecutorClass
-} from '../../utils/coreExtensionUtils';
+import { getChannelService, getSfCommandlet, getSfCommandletExecutorClass } from '../../utils/coreExtensionUtils';
 
 type InstalledPackageInfo = {
   id: string;

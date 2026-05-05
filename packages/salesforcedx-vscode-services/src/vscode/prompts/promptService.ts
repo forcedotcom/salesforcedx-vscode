@@ -94,23 +94,25 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
     };
 
     /** Prompt user to select output directory from available package directories, or choose a custom one. */
-    const promptForOutputDir = Effect.fn('PromptService.promptForOutputDir')(function* (params: {
-      readonly defaultUri: URI;
-      readonly pickerPlaceHolder?: string;
-    } & (
-      | {
-          /** Search all package directories for subdirectories with this name and offer them as candidates.
-           * Mutually exclusive with `description`. */
-          readonly folderName: string;
-          readonly description?: never;
-        }
-      | {
-          readonly folderName?: never;
-          /** Label shown beside the first (default) directory entry in the picker.
-           * Mutually exclusive with `folderName`. */
-          readonly description?: string;
-        }
-    )) {
+    const promptForOutputDir = Effect.fn('PromptService.promptForOutputDir')(function* (
+      params: {
+        readonly defaultUri: URI;
+        readonly pickerPlaceHolder?: string;
+      } & (
+        | {
+            /** Search all package directories for subdirectories with this name and offer them as candidates.
+             * Mutually exclusive with `description`. */
+            readonly folderName: string;
+            readonly description?: never;
+          }
+        | {
+            readonly folderName?: never;
+            /** Label shown beside the first (default) directory entry in the picker.
+             * Mutually exclusive with `folderName`. */
+            readonly description?: string;
+          }
+      )
+    ) {
       const CUSTOM_DIR_LABEL = `$(file-directory) ${nls.localize('choose_different_folder')}`;
 
       const workspaceUri = (yield* workspaceService.getWorkspaceInfoOrThrow()).uri;

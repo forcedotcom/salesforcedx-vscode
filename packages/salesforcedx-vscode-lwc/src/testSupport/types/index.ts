@@ -17,10 +17,9 @@ export type TestResultStatus = 'passed' | 'failed' | 'skipped' | 'unknown';
  * Test Result type contains the test result status.
  * For now, failure messages are stored in DiagnosticCollection instead of here.
  */
-export type TestResult = {
+type TestResult = {
   status: TestResultStatus;
 };
-
 
 /**
  * Confirms if the TestExecutionInfo kind is TestCaseInfo

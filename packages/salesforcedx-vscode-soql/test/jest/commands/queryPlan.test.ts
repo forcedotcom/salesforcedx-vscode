@@ -17,7 +17,7 @@ const rawNote = {
   tableEnumOrId: 'Account'
 };
 
-const rawPlan = (notes: typeof rawNote[]) => ({
+const rawPlan = (notes: (typeof rawNote)[]) => ({
   cardinality: 0,
   fields: ['Name'],
   leadingOperationType: 'TableScan',

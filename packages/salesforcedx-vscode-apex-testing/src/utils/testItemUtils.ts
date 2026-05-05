@@ -110,8 +110,7 @@ export const isPackage = (id: string): boolean => id.startsWith(TEST_ID_PREFIXES
 /**
  * Creates a namespace container ID. namespaceKey is LOCAL_NAMESPACE_KEY for no namespace, or the namespace prefix.
  */
-export const createNamespaceId = (namespaceKey: string): string =>
-  `${TEST_ID_PREFIXES.NAMESPACE}${namespaceKey}`;
+export const createNamespaceId = (namespaceKey: string): string => `${TEST_ID_PREFIXES.NAMESPACE}${namespaceKey}`;
 
 /**
  * Creates a package container ID. packageKey is UNPACKAGED_PACKAGE_KEY, '1gp', or a Package2Id.

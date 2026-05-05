@@ -21,9 +21,7 @@ const getRange = (lineNumber = 1, columnNumber = 1): vscode.Range => {
   return new vscode.Range(pos, pos);
 };
 
-const handleDuplicateDiagnostics = (
-  diagnosticMap: Map<URI, vscode.Diagnostic[]>
-): Map<URI, vscode.Diagnostic[]> =>
+const handleDuplicateDiagnostics = (diagnosticMap: Map<URI, vscode.Diagnostic[]>): Map<URI, vscode.Diagnostic[]> =>
   new Map(
     [...diagnosticMap.entries()].map(([uri, diagnostics]) => {
       const existingKeys = new Set(vscode.languages.getDiagnostics(uri).map(d => d.message));
@@ -48,8 +46,7 @@ const resolveFileUri = Effect.fn('deployDiagnostics.resolveFileUri')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fs = yield* api.services.FsService;
   const workspacePath = yield* fs.uriToPath(workspaceUri);
-  const isAbsolute =
-    filePath && (filePath.startsWith('/') || filePath.includes(workspacePath));
+  const isAbsolute = filePath && (filePath.startsWith('/') || filePath.includes(workspacePath));
   return isAbsolute ? yield* fs.toUri(filePath) : Utils.resolvePath(workspaceUri, filePath ?? '');
 });
 
@@ -70,8 +67,7 @@ export const applyDeployDiagnostics = Effect.fn('applyDeployDiagnostics')(functi
         const fileUri = yield* resolveFileUri(workspaceUri, fileResponse.filePath);
         const { lineNumber, columnNumber, error, problemType, type } = fileResponse;
         const range = getRange(lineNumber, columnNumber);
-        const severity =
-          problemType === 'Error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
+        const severity = problemType === 'Error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
         const vscDiagnostic: vscode.Diagnostic = {
           message: fixupError(error),
           range,
@@ -89,7 +85,10 @@ export const applyDeployDiagnostics = Effect.fn('applyDeployDiagnostics')(functi
   const diagnosticMap = new Map<URI, vscode.Diagnostic[]>(
     Object.values(byUri).map(pairs => {
       const [uri] = pairs![0];
-      return toEntry(uri, pairs!.map(([, d]) => d));
+      return toEntry(
+        uri,
+        pairs!.map(([, d]) => d)
+      );
     })
   );
 

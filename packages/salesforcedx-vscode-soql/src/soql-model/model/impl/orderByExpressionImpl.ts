@@ -12,7 +12,7 @@ export class OrderByExpressionImpl implements OrderByExpression {
     public field: Field,
     public order?: Order,
     public nullsOrder?: NullsOrder
-  ) { }
+  ) {}
 
   public toSoqlSyntax(options?: SyntaxOptions): string {
     let syntax: string = this.field.toSoqlSyntax(options);

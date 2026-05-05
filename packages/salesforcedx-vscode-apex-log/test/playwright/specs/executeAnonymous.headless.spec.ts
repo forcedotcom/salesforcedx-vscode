@@ -101,7 +101,12 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has
     // a real, non-empty Monaco selection. Failing fast here is much cheaper than waiting 30s
     // for the palette command lookup to time out.
-    await expect(page.locator('.statusbar-item').filter({ hasText: /\(\d+ selected\)/ }).first()).toBeVisible({
+    await expect(
+      page
+        .locator('.statusbar-item')
+        .filter({ hasText: /\(\d+ selected\)/ })
+        .first()
+    ).toBeVisible({
       timeout: 5000
     });
     // Pass `preserveSelection` so the shared helper skips the focus-click, palette-input

@@ -954,7 +954,9 @@ describe('ApexTestController', () => {
         uri: orgOnlyClassFileUri
       });
       (vscode.window.showTextDocument as jest.Mock).mockResolvedValue({});
-      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockReturnValueOnce(
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
         jest.requireActual('effect/Effect').succeed({
           getFileResponses: () => [{ filePath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' }]
         })
@@ -963,10 +965,9 @@ describe('ApexTestController', () => {
 
       await controller.retrieveOrgOnlyClass(classTestItem);
 
-      expect((extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve).toHaveBeenCalledWith(
-        [{ type: 'ApexClass', fullName: 'OrgOnlyClass' }],
-        { ignoreConflicts: true }
-      );
+      expect(
+        (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
+      ).toHaveBeenCalledWith([{ type: 'ApexClass', fullName: 'OrgOnlyClass' }], { ignoreConflicts: true });
       expect(vscode.workspace.openTextDocument).toHaveBeenCalledWith(
         expect.objectContaining({ fsPath: orgOnlyClassFileUri.fsPath })
       );
@@ -986,7 +987,9 @@ describe('ApexTestController', () => {
 
       await controller.retrieveOrgOnlyClass(classTestItem);
 
-      expect((extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve).not.toHaveBeenCalled();
+      expect(
+        (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -1045,9 +1048,9 @@ describe('ApexTestController', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      (
-        extensionProvider as unknown as { __setMockReadFileResult: (s: string) => void }
-      ).__setMockReadFileResult(JSON.stringify(testResult));
+      (extensionProvider as unknown as { __setMockReadFileResult: (s: string) => void }).__setMockReadFileResult(
+        JSON.stringify(testResult)
+      );
 
       (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockTestRun);
       (mockTestController.createTestItem as jest.Mock).mockReturnValue(mockTestItem);

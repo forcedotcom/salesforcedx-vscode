@@ -61,10 +61,7 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   );
 });
 
-const executeDataQuery = Effect.fn('executeDataQuery')(function* (
-  query: string,
-  queryApi: 'REST' | 'TOOLING'
-) {
+const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -78,7 +75,13 @@ const executeDataQuery = Effect.fn('executeDataQuery')(function* (
     const queryResult = yield* runSoqlQuery(query, queryApi === 'TOOLING');
     const truncated = queryResult.records.length > 0 && queryResult.totalSize > queryResult.records.length;
     const statusMessage = truncated
-      ? nls.localize('data_query_warning_limit', queryResult.totalSize - queryResult.records.length, queryResult.records.length, queryResult.totalSize, queryResult.records.length)
+      ? nls.localize(
+          'data_query_warning_limit',
+          queryResult.totalSize - queryResult.records.length,
+          queryResult.records.length,
+          queryResult.totalSize,
+          queryResult.records.length
+        )
       : nls.localize('data_query_complete', queryResult.totalSize);
     yield* Effect.all(
       [
@@ -160,17 +163,11 @@ const isRecord = (record: unknown): record is Record<string, unknown> =>
   Boolean(record) && typeof record === 'object' && !Array.isArray(record);
 
 /** Checks if a value is a Salesforce sub-query result (e.g. SELECT … FROM Contacts) */
-const isSubQueryResult = (
-  value: unknown
-): value is { totalSize: number; done: boolean; records: unknown[] } => {
+const isSubQueryResult = (value: unknown): value is { totalSize: number; done: boolean; records: unknown[] } => {
   if (!isRecord(value)) {
     return false;
   }
-  return (
-    typeof value.totalSize === 'number' &&
-    typeof value.done === 'boolean' &&
-    Array.isArray(value.records)
-  );
+  return typeof value.totalSize === 'number' && typeof value.done === 'boolean' && Array.isArray(value.records);
 };
 
 const RELATIONSHIP_FLATTEN_MAX_DEPTH = 10;
@@ -271,9 +268,9 @@ const flattenRecordWithSubQueryDepth = (
         continue;
       }
       if (value.records.length > 0) {
-        const expandedRows = value.records.filter(isRecord).flatMap(subRecord =>
-          flattenRecordWithSubQueryDepth(subRecord, depthRemaining - 1, pathPrefix)
-        );
+        const expandedRows = value.records
+          .filter(isRecord)
+          .flatMap(subRecord => flattenRecordWithSubQueryDepth(subRecord, depthRemaining - 1, pathPrefix));
         if (expandedRows.length > 0) {
           subQueryExpansions.push(expandedRows);
         }
@@ -327,11 +324,7 @@ const flattenRecord = (record: Record<string, unknown>): Record<string, unknown>
   flattenRecordWithSubQueryDepth(record, SUBQUERY_FLATTEN_MAX_DEPTH);
 
 /** Registers one dotted column path, recursing into nested relationship objects. */
-const addFieldPathForValue = (
-  pathPrefix: string,
-  val: unknown,
-  addField: (name: string) => void
-): void => {
+const addFieldPathForValue = (pathPrefix: string, val: unknown, addField: (name: string) => void): void => {
   if (isNestedRelationshipObject(val)) {
     collectRelationshipFieldPaths(pathPrefix, val, addField, RELATIONSHIP_FLATTEN_MAX_DEPTH);
   } else {
@@ -495,13 +488,9 @@ export const convertToCSV = (records: QueryResult['records']): string => {
   const { flattenedFields } = model;
   const subPrefixes = getSubQueryKeyPrefixesFromRecords(recs);
   const parentFields = flattenedFields.filter(f => !subPrefixes.some(p => f.startsWith(p)));
-  const rows = recs.flatMap(record =>
-    fillParentColumnsForCsvChunk(flattenRecord(record), parentFields)
-  );
+  const rows = recs.flatMap(record => fillParentColumnsForCsvChunk(flattenRecord(record), parentFields));
   const header = flattenedFields.map(field => escapeCSVField(field)).join(',');
-  const lines = rows.map(row =>
-    flattenedFields.map(field => escapeCSVField(formatFieldValue(row[field]))).join(',')
-  );
+  const lines = rows.map(row => flattenedFields.map(field => escapeCSVField(formatFieldValue(row[field]))).join(','));
   return [header, ...lines].join('\n');
 };
 

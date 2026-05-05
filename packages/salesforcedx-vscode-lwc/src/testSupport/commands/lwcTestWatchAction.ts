@@ -27,7 +27,7 @@ const lwcTestStartWatching = async (data: { testExecutionInfo: TestExecutionInfo
  * It will terminate the test watch task matched by the test URI.
  * @param data provided by test watch commands
  */
-const lwcTestStopWatching = async (data: { testExecutionInfo: TestExecutionInfo }) => {
+const lwcTestStopWatching = (data: { testExecutionInfo: TestExecutionInfo }) => {
   const { testExecutionInfo } = data;
   testWatcher.stopWatchingTest(testExecutionInfo);
 };

@@ -166,5 +166,4 @@ describe('ConfigUtil', () => {
       expect(result).toBeUndefined();
     });
   });
-
 });

@@ -60,7 +60,7 @@
       "output": []
     },
     "test": {
-      "command": "jest --coverage",
+      "command": "jest",
       "dependencies": [
         "compile"
       ],

@@ -43,9 +43,7 @@ const expandTreeRowByTwistie = async (
   workbench: Awaited<ReturnType<typeof getWorkbench>>,
   rowLabel: string
 ): Promise<void> => {
-  const row = await workbench.findElement(
-    By.css(`.monaco-list-row[role="treeitem"][aria-label*="${rowLabel}"]`)
-  );
+  const row = await workbench.findElement(By.css(`.monaco-list-row[role="treeitem"][aria-label*="${rowLabel}"]`));
   const twistie = await row.findElement(By.css('.monaco-tl-twistie'));
   const twistieClass = await twistie.getAttribute('class');
   if (twistieClass?.includes('collapsed')) {
@@ -123,7 +121,9 @@ export const findTestItemByName = async (testName: string): Promise<TestTreeItem
 };
 
 /** Opens the Test Results tab, maximizes panel, and returns the xterm output text */
-export const getTestResultsTabText = async (sectionName?: 'Apex Testing' | 'Lightning Web Components'): Promise<string> => {
+export const getTestResultsTabText = async (
+  sectionName?: 'Apex Testing' | 'Lightning Web Components'
+): Promise<string> => {
   // Dismiss notifications to prevent click interception on maximize button
   try {
     await dismissAllNotifications();
@@ -149,7 +149,9 @@ export const getTestResultsTabText = async (sectionName?: 'Apex Testing' | 'Ligh
         );
 
         // Scroll the row into view first
-        await getWorkbench().getDriver().executeScript('arguments[0].scrollIntoView({block: "center"});', testResultsRow);
+        await getWorkbench()
+          .getDriver()
+          .executeScript('arguments[0].scrollIntoView({block: "center"});', testResultsRow);
         await pause(Duration.milliseconds(300));
 
         // Click the row first to ensure it's focused
@@ -160,9 +162,7 @@ export const getTestResultsTabText = async (sectionName?: 'Apex Testing' | 'Ligh
         await getWorkbench().getDriver().actions().move({ origin: testResultsRow }).perform();
         await pause(Duration.milliseconds(500));
 
-        const showOutputButton = await testResultsRow.findElement(
-          By.css('a[aria-label="Show Result Output"]')
-        );
+        const showOutputButton = await testResultsRow.findElement(By.css('a[aria-label="Show Result Output"]'));
 
         // Try to click using JavaScript executor
         await getWorkbench().getDriver().executeScript('arguments[0].click();', showOutputButton);
@@ -173,7 +173,10 @@ export const getTestResultsTabText = async (sectionName?: 'Apex Testing' | 'Ligh
         clickSuccess = true;
         console.log(`getTestResultsTabText - Successfully clicked Show Result Output for section: ${sectionName}`);
       } catch (error) {
-        console.log(`getTestResultsTabText - Attempt ${attempt}/3 failed to click Show Result Output for section: ${sectionName}:`, error);
+        console.log(
+          `getTestResultsTabText - Attempt ${attempt}/3 failed to click Show Result Output for section: ${sectionName}:`,
+          error
+        );
         if (attempt < 3) {
           await pause(Duration.milliseconds(500));
         }

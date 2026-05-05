@@ -36,13 +36,6 @@ export const messages = {
   source_tracking_status_bar_view_changes: 'View Changes',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
   source_tracking_status_bar_refreshing: 'Refreshing source tracking...',
-  lwc_component_name_empty_error: 'Component name cannot be empty',
-  lwc_component_name_format_error:
-    'Component name must start with a lowercase letter and contain only alphanumeric characters and underscores',
-  lwc_component_name_prompt: 'Enter Lightning Web Component name',
-  lwc_component_name_placeholder: 'e.g. myComponent',
-  lwc_output_dir_prompt: 'Select output directory',
-  lwc_select_component_type: 'Select component type',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',

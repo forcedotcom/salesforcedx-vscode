@@ -17,7 +17,7 @@ export class SelectExprsImpl implements SelectExprs {
     let syntax = 'SELECT ';
     let first = true;
     if (this.selectExpressions.length > 0) {
-      this.selectExpressions.forEach((selectExpression) => {
+      this.selectExpressions.forEach(selectExpression => {
         if (!first) {
           syntax += ', ';
         }

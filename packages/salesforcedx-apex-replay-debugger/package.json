@@ -62,7 +62,7 @@
       "output": []
     },
     "test": {
-      "command": "jest --coverage --forceExit",
+      "command": "jest --forceExit",
       "dependencies": [
         "test:compile"
       ],
@@ -90,11 +90,5 @@
       ],
       "output": []
     }
-  },
-  "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
   }
 }

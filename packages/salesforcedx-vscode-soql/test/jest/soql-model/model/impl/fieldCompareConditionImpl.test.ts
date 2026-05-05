@@ -12,7 +12,12 @@ import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 
 describe('FieldCompareConditionImpl should', () => {
   it('store field, operator, and value', () => {
-    const expected = { kind: 'fieldCompare', field: { kind: 'fieldRef', fieldName: 'field' }, operator: '=', compareValue: { kind: 'literal', value: "'abc'" } };
+    const expected = {
+      kind: 'fieldCompare',
+      field: { kind: 'fieldRef', fieldName: 'field' },
+      operator: '=',
+      compareValue: { kind: 'literal', value: "'abc'" }
+    };
     const actual = new FieldCompareConditionImpl(
       new FieldRefImpl('field'),
       ConditionOperator.Equals,

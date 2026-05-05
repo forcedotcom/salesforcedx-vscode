@@ -14,17 +14,20 @@ const findColumnStarts = (line: string): number[] => {
     if (sepPos === -1) return undefined;
     // Skip past all consecutive spaces to find the start of the next column
     const afterSep = sepPos + 2;
-    const nextNonSpace = line.slice(afterSep).split('').findIndex((char) => char !== ' ');
+    const nextNonSpace = line
+      .slice(afterSep)
+      .split('')
+      .findIndex(char => char !== ' ');
     const nextColStart = nextNonSpace === -1 ? line.length : afterSep + nextNonSpace;
     // Only return if there's actual content after the spaces (not just trailing spaces)
     return nextColStart < line.length && line[nextColStart] !== ' ' ? nextColStart : undefined;
   };
-  
+
   const buildStarts = (currentPos: number, acc: number[]): number[] => {
     const nextStart = findNextStart(currentPos);
     return nextStart === undefined ? acc : buildStarts(nextStart, [...acc, nextStart]);
   };
-  
+
   return buildStarts(0, [0]);
 };
 

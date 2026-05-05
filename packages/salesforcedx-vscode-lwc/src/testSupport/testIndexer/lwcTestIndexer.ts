@@ -8,13 +8,16 @@ import { Indexer } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { parse } from 'jest-editor-support';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import {
-  LwcJestTestResults,
-  RawTestResult,
-  TestCaseInfo,
-  TestFileInfo,
-  TestResultStatus
-} from '../types';
+
+/**
+ * On macOS, /var/folders is a system symlink to /private/var/folders.
+ * Jest resolves paths via realpathSync so its output uses /private/var/...
+ * while vscode.workspace.findFiles returns the symlink path /var/...
+ * Normalize Jest paths by stripping the /private prefix so map lookups match.
+ */
+const normalizeJestFsPath = (fsPath: string): string =>
+  process.platform === 'darwin' ? fsPath.replace(/^\/private\//, '/') : fsPath;
+import { LwcJestTestResults, RawTestResult, TestCaseInfo, TestFileInfo, TestResultStatus } from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
 import {
   extractPositionFromFailureMessage,
@@ -111,7 +114,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     return await this.indexAllTestFiles();
   }
 
-  public async indexTestCases(testUri: URI) {
+  public indexTestCases(testUri: URI): TestCaseInfo[] {
     // parse
     const { fsPath: testFsPath } = testUri;
     const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);
@@ -123,7 +126,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
    * It lazily parses test information, until expanding the test file or providing code lens
    * @param testUri uri of test file
    */
-  public async findTestInfoFromLwcJestTestFile(testUri: URI): Promise<TestCaseInfo[]> {
+  public findTestInfoFromLwcJestTestFile(testUri: URI): TestCaseInfo[] {
     // parse
     const { fsPath: testFsPath } = testUri;
     const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);
@@ -241,7 +244,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   public updateTestResults(testResults: LwcJestTestResults) {
     testResults.testResults.forEach(testResult => {
       const { name, status: testFileStatus, assertionResults } = testResult;
-      const testFsPath = URI.file(name).fsPath;
+      const testFsPath = normalizeJestFsPath(URI.file(name).fsPath);
       const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);
       const testFileResultStatus: TestResultStatus =
         testFileStatus === 'passed' ? 'passed' : testFileStatus === 'failed' ? 'failed' : 'unknown';

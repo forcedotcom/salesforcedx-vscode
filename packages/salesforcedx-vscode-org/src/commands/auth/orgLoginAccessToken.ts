@@ -7,11 +7,7 @@
 
 import { AuthInfo, type AuthSideEffects } from '@salesforce/core';
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import {
-  ContinueResponse,
-  LibraryCommandletExecutor,
-  SfCommandlet
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, LibraryCommandletExecutor, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';

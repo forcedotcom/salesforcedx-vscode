@@ -77,9 +77,7 @@ export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConf
   if (!servicesExtension) {
     return undefined;
   }
-  const servicesApi = servicesExtension.isActive
-    ? servicesExtension.exports
-    : await servicesExtension.activate();
+  const servicesApi = servicesExtension.isActive ? servicesExtension.exports : await servicesExtension.activate();
 
   let excludes: string[];
   try {

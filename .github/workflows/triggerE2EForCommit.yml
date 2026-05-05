@@ -68,29 +68,9 @@ jobs:
       runId: ${{ inputs.runId }}
 
   # ⚡ LWC Features
-  lwc-lsp:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'lwcLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
-
-  lwc-run-tests:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'runLwcTests.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
-
-  lwc-debug-tests:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'debugLwcTests.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # lwc-lsp: migrated to Playwright in lwcPlaywrightE2E.yml (lwcLspIndexing, lwcLspGoToDefinitionJs, lwcLspGoToDefinitionHtml, lwcLspAutocompletion)
+  # lwc-run-tests: migrated to Playwright in lwcPlaywrightE2E.yml (e2e-desktop-run-tests via lwcRunTests.desktop.spec.ts)
+  # lwc-debug-tests: migrated to Playwright in lwcPlaywrightE2E.yml (e2e-desktop-debug-tests via lwcDebugTests.desktop.spec.ts)
 
   # 🔥 Aura Features
   aura-lsp:

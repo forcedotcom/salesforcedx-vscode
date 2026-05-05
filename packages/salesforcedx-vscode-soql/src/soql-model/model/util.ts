@@ -54,10 +54,7 @@ const isUnmodeledSyntax = (model: Record<string, any>): boolean => 'unmodeledSyn
  * @param model
  * @param collector
  */
-const getUnmodeledSyntax = (
-  model: Record<string, any>,
-  collector?: UnmodeledSyntaxImpl[]
-): UnmodeledSyntaxImpl[] => {
+const getUnmodeledSyntax = (model: Record<string, any>, collector?: UnmodeledSyntaxImpl[]): UnmodeledSyntaxImpl[] => {
   collector = collector || [];
   if ('unmodeledSyntax' in model) {
     collector.push(model as UnmodeledSyntaxImpl);

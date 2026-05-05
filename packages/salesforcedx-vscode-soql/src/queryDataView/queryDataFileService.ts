@@ -82,45 +82,47 @@ const writeQueryResultsAndNotify = Effect.fn('queryDataFileService.writeQueryRes
   return fileUri;
 });
 
-const saveQueryResultsViaMemfsPrompts = Effect.fn('queryDataFileService.saveQueryResultsViaMemfsPrompts')(function* (params: {
-  queryText: string;
-  queryData: QueryResult<JsonMap>;
-  dataProvider: DataProvider;
-  document: vscode.TextDocument;
-}) {
-  const { queryText, queryData, dataProvider, document } = params;
-  const api = yield* getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+const saveQueryResultsViaMemfsPrompts = Effect.fn('queryDataFileService.saveQueryResultsViaMemfsPrompts')(
+  function* (params: {
+    queryText: string;
+    queryData: QueryResult<JsonMap>;
+    dataProvider: DataProvider;
+    document: vscode.TextDocument;
+  }) {
+    const { queryText, queryData, dataProvider, document } = params;
+    const api = yield* getServicesApi;
+    const promptService = yield* api.services.PromptService;
+    const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
-  const defaultStem = getExportFileStemFromDocument(document, dataProvider.fileExtension);
+    const defaultStem = getExportFileStemFromDocument(document, dataProvider.fileExtension);
 
-  const rawName = yield* Effect.promise(() =>
-    vscode.window.showInputBox({
-      prompt: nls.localize('soql_export_results_file_name_prompt'),
-      value: defaultStem,
-      validateInput: (v: string) => validateExportResultsFileNameInput(v, dataProvider.fileExtension)
-    })
-  ).pipe(
-    Effect.map(n => n?.trim()),
-    Effect.flatMap(raw => promptService.considerUndefinedAsCancellation(raw))
-  );
+    const rawName = yield* Effect.promise(() =>
+      vscode.window.showInputBox({
+        prompt: nls.localize('soql_export_results_file_name_prompt'),
+        value: defaultStem,
+        validateInput: (v: string) => validateExportResultsFileNameInput(v, dataProvider.fileExtension)
+      })
+    ).pipe(
+      Effect.map(n => n?.trim()),
+      Effect.flatMap(raw => promptService.considerUndefinedAsCancellation(raw))
+    );
 
-  const fileNameBase = normalizeExportResultsFileBaseName(rawName, dataProvider.fileExtension);
+    const fileNameBase = normalizeExportResultsFileBaseName(rawName, dataProvider.fileExtension);
 
-  const outputDir = yield* promptService.promptForOutputDir({
-    defaultUri: Utils.joinPath(workspaceInfo.uri, 'scripts', 'soql'),
-    description: nls.localize('soql_output_dir_default_description'),
-    pickerPlaceHolder: nls.localize('soql_output_dir_prompt')
-  });
+    const outputDir = yield* promptService.promptForOutputDir({
+      defaultUri: Utils.joinPath(workspaceInfo.uri, 'scripts', 'soql'),
+      description: nls.localize('soql_output_dir_default_description'),
+      pickerPlaceHolder: nls.localize('soql_output_dir_prompt')
+    });
 
-  const fileUri = Utils.joinPath(outputDir, `${fileNameBase}.${dataProvider.fileExtension}`);
+    const fileUri = Utils.joinPath(outputDir, `${fileNameBase}.${dataProvider.fileExtension}`);
 
-  yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [fileUri] });
+    yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [fileUri] });
 
-  const fileContentString = dataProvider.getFileContent(queryText, queryData.records);
-  return yield* writeQueryResultsAndNotify({ fileUri, fileContentString });
-});
+    const fileContentString = dataProvider.getFileContent(queryText, queryData.records);
+    return yield* writeQueryResultsAndNotify({ fileUri, fileContentString });
+  }
+);
 
 export class QueryDataFileService {
   private dataProvider: DataProvider;

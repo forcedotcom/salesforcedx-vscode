@@ -114,7 +114,8 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 
 const configureExceptionBreakpoint = async (): Promise<void> => {
   const salesforceApexExtension = await getActiveApexExtension();
-  const exceptionBreakpointInfos = (await salesforceApexExtension.exports.getExceptionBreakpointInfo()) as ExceptionBreakpointItem[];
+  const exceptionBreakpointInfos =
+    (await salesforceApexExtension.exports.getExceptionBreakpointInfo()) as ExceptionBreakpointItem[];
   console.log('Retrieved exception breakpoint info from language server');
   let enabledExceptionBreakpointTyperefs: string[] = [];
   if (vscode.debug.activeDebugSession) {

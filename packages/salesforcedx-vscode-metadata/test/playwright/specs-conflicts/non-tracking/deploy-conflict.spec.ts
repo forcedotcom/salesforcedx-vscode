@@ -23,10 +23,7 @@ import { ConflictTreePage } from '../pages/conflictTreePage';
 import { DiffEditorPage } from '../pages/diffEditorPage';
 
 test.describe('Deploy Conflict Detection (Non-Source Tracking)', () => {
-  test('detects conflict, views diff, then overrides and deploys', async ({
-    page,
-    helperProject
-  }) => {
+  test('detects conflict, views diff, then overrides and deploys', async ({ page, helperProject }) => {
     const className = `NTDeploy${Date.now().toString(36).slice(-6).toUpperCase()}`;
 
     await test.step('1. Create and deploy baseline', async () => {
@@ -77,7 +74,9 @@ test.describe('Deploy Conflict Detection (Non-Source Tracking)', () => {
       await saveScreenshot(page, 'non-tracking-deploy-8-override-clicked.png');
 
       const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-      await expect(deployingNotification, 'Deploy should complete after override').not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
+      await expect(deployingNotification, 'Deploy should complete after override').not.toBeVisible({
+        timeout: DEPLOY_TIMEOUT
+      });
       await saveScreenshot(page, 'non-tracking-deploy-9-deployed.png');
     });
 

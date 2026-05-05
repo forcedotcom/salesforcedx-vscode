@@ -109,7 +109,7 @@ class QuickLaunch {
         };
       }
 
-      const testResult = testMethod ? tests.find(test => test.methodName === testMethod) ?? tests[0] : tests[0];
+      const testResult = testMethod ? (tests.find(test => test.methodName === testMethod) ?? tests[0]) : tests[0];
       if (!testResult?.apexLogId) {
         return {
           success: false,

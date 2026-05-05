@@ -54,6 +54,8 @@ describe('ApexTestingDiscoveryFsProvider', () => {
     expect(() => provider.createDirectory(dir)).toThrow();
     expect(() => provider.writeFile(file, new TextEncoder().encode('x'), { create: true, overwrite: true })).toThrow();
     expect(() => provider.delete(file, { recursive: true })).toThrow();
-    expect(() => provider.rename(file, URI.parse('apex-testing:/discovery/org123/next.json'), { overwrite: true })).toThrow();
+    expect(() =>
+      provider.rename(file, URI.parse('apex-testing:/discovery/org123/next.json'), { overwrite: true })
+    ).toThrow();
   });
 });

@@ -7,8 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 
-const itemRegex = (fileName: string) =>
-  new RegExp(`${fileName.replaceAll('.', '\\.')}(?![-.\\w])`);
+const itemRegex = (fileName: string) => new RegExp(`${fileName.replaceAll('.', '\\.')}(?![-.\\w])`);
 
 export class ConflictTreePage {
   constructor(private readonly page: Page) {}

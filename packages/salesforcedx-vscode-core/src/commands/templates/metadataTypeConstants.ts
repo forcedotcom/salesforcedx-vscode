@@ -4,14 +4,5 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-export const AURA_DIRECTORY = 'aura';
-export const AURA_APP_EXTENSION = '.app';
-export const AURA_COMPONENT_EXTENSION = '.cmp';
-export const AURA_EVENT_EXTENSION = '.evt';
-export const AURA_INTERFACE_EXTENSION = '.intf';
-export const AURA_TYPE = 'auradefinitionbundle';
-
-export const LWC_TYPE = 'lightningcomponentbundle';
-
 export const ANALYTICS_TEMPLATE_TYPE = 'wavetemplatebundle';
 export const ANALYTICS_TEMPLATE_DIRECTORY = 'waveTemplates';

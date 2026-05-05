@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.8.0",
+  "version": "66.9.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -125,7 +125,7 @@
       ]
     },
     "test": {
-      "command": "jest --coverage",
+      "command": "jest",
       "dependencies": [
         "test:compile"
       ],
@@ -210,13 +210,16 @@
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
         "../playwright-vscode-ext:compile"
       ],

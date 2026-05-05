@@ -65,9 +65,7 @@ export class WorkspaceContext extends BaseWorkspaceContext {
           .then(entries => entries.map(([name]) => name))) {
           const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
           if (
-            await vscode.workspace.fs
-              .stat(URI.file(modulesDir))
-              .then(stat => stat.type === vscode.FileType.Directory)
+            await vscode.workspace.fs.stat(URI.file(modulesDir)).then(stat => stat.type === vscode.FileType.Directory)
           ) {
             roots.lwc.push(...(await findLwcNamespaceRoots(modulesDir, this.fileSystemAccessor, 2)));
           }
@@ -78,9 +76,7 @@ export class WorkspaceContext extends BaseWorkspaceContext {
         for (const ws of this.workspaceRoots) {
           const modulesDir = path.join(ws, 'modules');
           if (
-            await vscode.workspace.fs
-              .stat(URI.file(modulesDir))
-              .then(stat => stat.type === vscode.FileType.Directory)
+            await vscode.workspace.fs.stat(URI.file(modulesDir)).then(stat => stat.type === vscode.FileType.Directory)
           ) {
             roots.lwc.push(...(await findLwcNamespaceRoots(path.join(ws, 'modules'), this.fileSystemAccessor, 2)));
           }

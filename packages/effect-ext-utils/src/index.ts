@@ -12,10 +12,7 @@ export {
   getServicesApi
 } from './extensionProvider';
 
-export {
-  ExtensionPackageJsonSchema,
-  type ExtensionPackageJson
-} from './extensionPackageJson';
+export { ExtensionPackageJsonSchema, type ExtensionPackageJson } from './extensionPackageJson';
 export { closeExtensionScope, getExtensionScope } from './extensionScope';
 export type { SalesforceVSCodeServicesApi } from './extensionProvider';
 

@@ -10,7 +10,16 @@
       "Bash(WIREIT_CACHE=none npm run *)",
       "Bash(sf org:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:code.visualstudio.com)"
+      "WebFetch(domain:code.visualstudio.com)",
+      "Bash(npx tsc:*)",
+      "Bash(python3 *)",
+      "Read(//private/tmp/test-lwc-jest/**)",
+      "Bash(./node_modules/.bin/lwc-jest -- --json --outputFile /tmp/test-result2.json --testLocationInResults --runTestsByPath force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js)",
+      "Bash(echo \"Exit: $?\")",
+      "Read(//tmp/**)",
+      "Bash(./node_modules/.bin/lwc-jest -- --json --outputFile /tmp/test-result3.json --testLocationInResults --runTestsByPath /private/tmp/test-lwc-jest/force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js)",
+      "Bash(npx playwright *)",
+      "Bash(VSCODE_DESKTOP=1 npx playwright *)"
     ],
     "autoApprove": [
       "PostToolUse",

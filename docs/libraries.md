@@ -23,7 +23,8 @@ Related: `@salesforce/apex` (LWC module resolver; repo not in metadata). `@sales
    - Alternative: `npm link` if you're comfortable with it; copy is simpler and avoids symlink quirks.
 
 1. **Bundle** — Run `npm run vscode:bundle`. See [Build](./Build.md) for bundling details.
-   - **Wireit cache:** Wireit does not watch `node_modules` for changes. After copying a library, use `WIREIT_CACHE=none` so the bundle runs with your changes instead of a cached result:
+   - **Wireit cache:** Wireit only watches `node_modules` paths listed in `wireit.files`. `salesforcedx-vscode-services` tracks `node_modules/@salesforce/templates/lib/**`; for other copied libraries, use `WIREIT_CACHE=none` so the bundle runs with your changes instead of a cached result:
+
      ```bash
      WIREIT_CACHE=none npm run vscode:bundle
      ```

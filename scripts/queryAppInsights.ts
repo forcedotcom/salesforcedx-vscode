@@ -64,8 +64,7 @@ const queryAppInsights = async (kqlQuery: string): Promise<QueryResult> => {
       let errorMsg = `HTTP ${response.status}: ${response.statusText}`;
       try {
         const errorData = (await response.json()) as AppInsightsQueryResponse;
-        errorMsg =
-          errorData.error?.message || errorData.error?.innererror?.message || errorMsg;
+        errorMsg = errorData.error?.message || errorData.error?.innererror?.message || errorMsg;
       } catch {
         // If response body is not JSON, use the status text
       }

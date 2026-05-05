@@ -211,10 +211,14 @@ const setupServerForTest = async (
 ): Promise<void> => {
   // `onInitialize` schedules a delayed init via setTimeout(0). Tests drive delayed init
   // explicitly, so drain that scheduled callback with a temporary no-op to avoid races.
-  const originalPerformDelayedInitialization = (testServer as any).performDelayedInitialization.bind(testServer);
-  (testServer as any).performDelayedInitialization = async () => {};
+  type PerformDelayedInit = () => Promise<void>;
+  const delayedInitMutable = testServer as unknown as { performDelayedInitialization: PerformDelayedInit };
+  const originalPerformDelayedInitialization: PerformDelayedInit = delayedInitMutable.performDelayedInitialization.bind(
+    testServer
+  ) as PerformDelayedInit;
+  delayedInitMutable.performDelayedInitialization = async (): Promise<void> => {};
   await new Promise(resolve => setTimeout(resolve, 0));
-  (testServer as any).performDelayedInitialization = originalPerformDelayedInitialization;
+  delayedInitMutable.performDelayedInitialization = originalPerformDelayedInitialization;
 
   // Reset delayed initialization flag to ensure fresh initialization
   testServer.isDelayedInitializationComplete = false;
@@ -877,7 +881,9 @@ describe('lwcServerNode', () => {
             (await provider.getFileContent(baseTsconfigPath)) ??
             (await server.fileSystemAccessor.getFileContent(baseTsconfigPath));
           if (tsConfigContent) {
-            const tsConfig = JSON.parse(tsConfigContent);
+            const tsConfig = JSON.parse(tsConfigContent) as {
+              compilerOptions?: { paths?: Record<string, unknown> };
+            };
             const pathMappingLength = Object.keys(tsConfig.compilerOptions?.paths ?? {}).length;
             // Discovery via findFiles: 11 components on disk (no test_component)
             if (pathMappingLength >= 11) {

@@ -23,9 +23,7 @@ export class ConflictTreeItem extends vscode.TreeItem {
   constructor(inputs: ConflictTreeItemInputs) {
     const label = inputs.kind === 'conflict' ? inputs.pair.fileName : inputs.label;
     const collapsibleState =
-      inputs.kind === 'group'
-        ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.None;
+      inputs.kind === 'group' ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
     super(label, collapsibleState);
 

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  detectWorkspaceHelper,
   WorkspaceType,
   LspFileSystemAccessor,
   normalizePath,
@@ -13,6 +12,7 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { getSfdxPackageDirsPattern } from './baseIndexer';
+import { detectWorkspaceHelper } from './detectWorkspaceHelper';
 import { fromMeta, declarationsFromCustomLabels, getDeclaration } from './typing';
 
 const basenameRegex = new RegExp(/(?<name>[\w-_]+)\.[^/]+$/);

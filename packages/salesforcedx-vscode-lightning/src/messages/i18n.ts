@@ -18,7 +18,16 @@
 export const messages = {
   client_name: 'Aura Language Server',
   aura_language_server_loading: 'Indexing Aura files. Hold tight, almost ready… $(sync~spin)',
-  aura_language_server_loaded: 'Indexing complete $(check)'
+  aura_language_server_loaded: 'Indexing complete $(check)',
+  aura_component_name_prompt: 'Enter Aura component name',
+  aura_component_name_empty_error: 'Name cannot be empty',
+  aura_component_name_format_error:
+    'Name must start with a letter and contain only alphanumeric characters and underscores',
+  aura_output_dir_prompt: 'Select output directory',
+  aura_generate_app_success: 'Aura app created successfully',
+  aura_generate_component_success: 'Aura component created successfully',
+  aura_generate_event_success: 'Aura event created successfully',
+  aura_generate_interface_success: 'Aura interface created successfully'
 } as const;
 
 export type MessageKey = keyof typeof messages;

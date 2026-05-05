@@ -101,7 +101,8 @@
     "ovsx": "0.10.7",
     "path-browserify": "^1.0.1",
     "playwright": "^1.49.0",
-    "prettier": "3.6.2",
+    "prettier": "3.8.3",
+    "pretty-quick": "4.2.2",
     "process": "0.11.10",
     "querystring-es3": "0.2.1",
     "readable-stream": "^4.7.0",
@@ -132,12 +133,10 @@
     "lint": "wireit",
     "test": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
-    "coverage:report": "shx mkdir -p ./test-results && npm run coverage:merge && nyc report --reporter=html --report-dir=./test-results/coverage-report --temp-dir=coverage",
-    "coverage:merge": "node scripts/mergeCoverageJson.mjs",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
-    "capture:results": "shx mkdir -p ./test-results && npm run junit:report && npm run coverage:report",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
+    "check:format:staged": "wireit",
     "check:knip": "wireit",
     "check:branch": "wireit",
     "precommit": "wireit",
@@ -381,6 +380,9 @@
       ],
       "output": []
     },
+    "check:format:staged": {
+      "command": "pretty-quick --staged --check"
+    },
     "check:branch": {
       "command": "node scripts/check-branch.js"
     },
@@ -389,6 +391,7 @@
         "check:branch",
         "compile",
         "lint",
+        "check:format:staged",
         "check:peer-deps",
         "check:package-lock",
         "check:lock-sync",

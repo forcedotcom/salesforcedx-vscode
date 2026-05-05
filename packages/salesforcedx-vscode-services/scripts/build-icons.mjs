@@ -26,19 +26,13 @@ async function build() {
   });
 
   const infoPath = path.join(ICONS_FONT, 'info.json');
-  const infoData = fs.existsSync(infoPath)
-    ? JSON.parse(fs.readFileSync(infoPath, 'utf8'))
-    : {};
+  const infoData = fs.existsSync(infoPath) ? JSON.parse(fs.readFileSync(infoPath, 'utf8')) : {};
 
   const manifestPath = path.join(ICONS_SRC, 'icons.json');
-  const manifest = fs.existsSync(manifestPath)
-    ? JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
-    : {};
+  const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : {};
 
   const icons = {};
-  const entries = Object.entries(infoData).sort(([a], [b]) =>
-    a.localeCompare(b)
-  );
+  const entries = Object.entries(infoData).sort(([a], [b]) => a.localeCompare(b));
   for (const [svgName, meta] of entries) {
     const { id, description } = manifest[svgName] ?? {
       id: `sf-org-${svgName}`,
