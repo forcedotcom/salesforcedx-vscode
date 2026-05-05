@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-04-23T03:00:33.680Z
+Generated on: 2026-05-03T13:38:48.937Z
 Total metadata types: 1562
 -->
 <xsd:schema
@@ -27019,11 +27019,11 @@ Total metadata types: 1562
  </xsd:complexType>
  <xsd:complexType name="EmailAuthorizationSettings">
   <xsd:annotation>
-   <xsd:documentation>Represents your org’s email authorization settings. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:documentation>Represents your org’s email authorization settings. This type extends the MetadataForSettings metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailauthorizationsettings.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
-   <xsd:extension base="Metadata">
+   <xsd:extension base="MetadataForSettings">
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableSubstituteFromAddress" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
@@ -42180,7 +42180,7 @@ Total metadata types: 1562
      </xsd:element>
      <xsd:element name="invocationTargetType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Invocable action type used by invocation operations. Values are: apex api createCatalogItemRequest flow generatePromptResponse externalService quickAction slack standardInvocableAction</xsd:documentation>
+       <xsd:documentation>Required. Invocable action type used by invocation operations. Values are: api apex auraEnabled createCatalogItemRequest executeIntegrationProcedure externalService flow generatePromptResponse mcpTool namedQuery quickAction retriever runExpressionSet slack standardInvocableAction stub</xsd:documentation>
        <xsd:appinfo>Type: PlannerFunctionInvocableTargetType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
