@@ -21,10 +21,7 @@ export default class Limit extends LightningElement {
   public handleLimitChange(e: Event): void {
     e.preventDefault();
     const limit = e.target.value;
-    const sObjectSelected = new CustomEvent('limit__changed', {
-      detail: { limit }
-    });
-    this.dispatchEvent(sObjectSelected);
+    this.dispatchEvent(new CustomEvent('limit__changed', { detail: { limit } }));
   }
   /* eslint-enable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access */
 }
