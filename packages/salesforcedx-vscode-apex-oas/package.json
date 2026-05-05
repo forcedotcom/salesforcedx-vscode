@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-oas",
+  "private": true,
   "displayName": "Apex OpenAPI Specification",
   "description": "Provides OpenAPI Specification generation for Apex REST and AuraEnabled classes",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -50,8 +51,8 @@
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
     "openapi-types": "12.1.3",
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-apex": "66.10.0",
+    "salesforcedx-vscode-core": "66.10.0",
     "vscode-languageserver-protocol": "3.17.5"
   },
   "extensionDependencies": [

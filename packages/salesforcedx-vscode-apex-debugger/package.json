@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-debugger",
+  "private": true,
   "displayName": "Apex Interactive Debugger",
   "description": "Provides debugging support for the Apex programming language",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -39,8 +40,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-apex": "66.10.0",
+    "salesforcedx-vscode-core": "66.10.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",

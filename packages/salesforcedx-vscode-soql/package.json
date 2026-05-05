@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-soql",
+  "private": true,
   "displayName": "SOQL",
   "description": "Provides code-editing features for SOQL",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -70,7 +71,7 @@
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
     "rxjs": "^7.8.2",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "66.10.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"

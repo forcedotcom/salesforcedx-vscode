@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-org",
+  "private": true,
   "displayName": "Salesforce Org Management",
   "description": "Provides org and authorization management commands for Salesforce Development",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",

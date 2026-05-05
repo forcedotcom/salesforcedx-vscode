@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-services",
+  "private": true,
   "displayName": "Salesforce Services",
   "description": "a shared services extension for other extensions to use",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",

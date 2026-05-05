@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-testing",
+  "private": true,
   "displayName": "Apex Testing",
   "description": "Provides Apex test execution and management features",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -36,7 +37,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "66.10.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
