@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-
 export const getJsonCandidate = (str: string): string | null => {
   const firstCurly = str.indexOf('{');
   const lastCurly = str.lastIndexOf('}');
@@ -89,7 +88,6 @@ export const extractJson = <T = any>(str: string): T => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   return JSON.parse(jsonCandidate) as T; // Cast to generic type
 };
-
 
 export const stripAnsiInJson = (str: string, hasJson: boolean): string => (str && hasJson ? stripAnsi(str) : str);
 

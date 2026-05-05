@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { dirname, join } from 'node:path';
+import { dirname } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
@@ -95,22 +95,6 @@ export const createDirectory = async (dirPath: string): Promise<void> => {
 };
 
 /**
- * Deletes a file
- * @param filePath The path to the file
- */
-export const deleteFile = async (
-  filePath: string,
-  options: { recursive?: boolean; useTrash?: boolean } = {}
-): Promise<void> => {
-  try {
-    const uri = URI.file(filePath);
-    await vscode.workspace.fs.delete(uri, options);
-  } catch (error) {
-    throw new Error(`Failed to delete file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
-  }
-};
-
-/**
  * Reads a directory's contents
  * @param dirPath The path to the directory
  * @returns Array of file/directory names
@@ -155,22 +139,6 @@ export const safeDelete = async (
 };
 
 /**
- * Ensures the current working directory is set to the project path
- * @param rootWorkspacePath The path to the root workspace
- */
-export const ensureCurrentWorkingDirIsProjectPath = async (rootWorkspacePath: string): Promise<void> => {
-  if (rootWorkspacePath && process.cwd() !== rootWorkspacePath) {
-    try {
-      const uri = URI.file(rootWorkspacePath);
-      await vscode.workspace.fs.stat(uri);
-      process.chdir(rootWorkspacePath);
-    } catch {
-      // Path doesn't exist, do nothing
-    }
-  }
-};
-
-/**
  * Renames or moves a file or directory
  * @param oldPath The current path of the file or directory
  * @param newPath The new path for the file or directory
@@ -184,30 +152,5 @@ export const rename = async (oldPath: string, newPath: string): Promise<void> =>
     throw new Error(
       `Failed to rename ${oldPath} to ${newPath}: ${error instanceof Error ? error.message : String(error)}`
     );
-  }
-};
-
-/**
- * Checks if a directory is empty or contains only empty subdirectories (async, uses fs utils)
- */
-export const isEmptyDirectory = async (dirPath: string): Promise<boolean> => {
-  try {
-    const items = await readDirectory(dirPath);
-    if (items.length === 0) {
-      return true;
-    }
-    for (const item of items) {
-      const itemPath = join(dirPath, item);
-      if (!(await isFile(itemPath))) {
-        return false; // Found a file, directory is not empty
-      }
-      if ((await isDirectory(itemPath)) && !(await isEmptyDirectory(itemPath))) {
-        return false; // Found a non-empty subdirectory
-      }
-    }
-    return true;
-  } catch {
-    // If we can't read the directory, assume it's not empty
-    return false;
   }
 };

@@ -14,10 +14,8 @@ import {
   BaseWorkspaceContext,
   NormalizedPath,
   WorkspaceType,
-  normalizePath,
   LWC_SERVER_READY_NOTIFICATION
 } from '@salesforce/salesforcedx-lightning-lsp-common';
-import * as path from 'node:path';
 import { basename, dirname, parse } from 'node:path';
 import {
   getLanguageService,
@@ -49,6 +47,7 @@ import {
   FileEvent
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI, Utils } from 'vscode-uri';
 import { AuraDataProvider } from './auraDataProvider';
 import ComponentIndexer from './componentIndexer';
 import { TYPESCRIPT_SUPPORT_SETTING } from './constants';
@@ -438,44 +437,43 @@ export abstract class BaseServer {
   // this can be removed.
   public async onDidChangeWatchedFiles(changeEvent: DidChangeWatchedFilesParams): Promise<void> {
     if (this.context.type === 'SFDX') {
+      const { changes } = changeEvent;
+
+      const lwcRootCreated = isLWCRootDirectoryCreated(this.context, changes);
+      const lwcDeleted = await containsDeletedLwcWatchedDirectory(this.context, changes);
+
+      const newBundleJsPaths: string[] = [];
+      if (!lwcRootCreated && !lwcDeleted) {
+        for (const event of changes) {
+          const insideLwcWatchedDirectory = await isLWCWatchedDirectory(this.context, event.uri);
+          if (event.type === FileChangeType.Created && insideLwcWatchedDirectory) {
+            const filePath = toResolvedPath(event.uri);
+            const { dir, name: fileName, ext } = parse(filePath);
+            const folderName = basename(dir);
+            const parentFolder = basename(dirname(dir));
+            if (/.*(.ts|.js)$/.test(ext) && folderName === fileName && parentFolder === 'lwc') {
+              newBundleJsPaths.push(filePath);
+            }
+          }
+        }
+      }
+
+      const shouldRefreshComponentIndex = lwcRootCreated || lwcDeleted || newBundleJsPaths.length > 0;
+
       try {
         const hasTsEnabled = await this.isTsSupportEnabled();
         if (hasTsEnabled) {
-          const { changes } = changeEvent;
-          if (isLWCRootDirectoryCreated(this.context, changes)) {
-            // LWC directory created
+          if (lwcRootCreated) {
             this.context.updateNamespaceRootTypeCache();
             if (this.componentIndexer) {
               await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
             }
-          } else {
-            const hasDeleteEvent = await containsDeletedLwcWatchedDirectory(this.context, changes);
-            if (hasDeleteEvent) {
-              // We need to scan the file system for deletion events as the change event does not include
-              // information about the files that were deleted.
-              if (this.componentIndexer) {
-                await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
-              }
-            } else {
-              const filePaths = [];
-              for (const event of changes) {
-                const insideLwcWatchedDirectory = await isLWCWatchedDirectory(this.context, event.uri);
-                if (event.type === FileChangeType.Created && insideLwcWatchedDirectory) {
-                  // File creation
-                  const filePath = toResolvedPath(event.uri);
-                  const { dir, name: fileName, ext } = parse(filePath);
-                  const folderName = basename(dir);
-                  const parentFolder = basename(dirname(dir));
-                  // Only update path mapping for newly created lwc modules
-                  if (/.*(.ts|.js)$/.test(ext) && folderName === fileName && parentFolder === 'lwc') {
-                    filePaths.push(filePath);
-                  }
-                }
-              }
-              if (filePaths.length > 0 && this.componentIndexer) {
-                await this.componentIndexer.insertSfdxTsConfigPath(filePaths);
-              }
+          } else if (lwcDeleted) {
+            if (this.componentIndexer) {
+              await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
             }
+          } else if (newBundleJsPaths.length > 0 && this.componentIndexer) {
+            await this.componentIndexer.insertSfdxTsConfigPath(newBundleJsPaths);
           }
         }
       } catch (e) {
@@ -485,21 +483,30 @@ export abstract class BaseServer {
         });
       }
 
+      if (shouldRefreshComponentIndex && this.componentIndexer) {
+        await this.componentIndexer.init();
+      }
+
       if (this.typingIndexerData) {
-        const { changes } = changeEvent;
         const hasMetaChange = changes.some(
           e =>
             e.uri.endsWith('.resource-meta.xml') ||
             e.uri.endsWith('.asset-meta.xml') ||
             e.uri.endsWith('.messageChannel-meta.xml')
         );
-        const hasLabelChange = changes.some(e => e.uri.endsWith('CustomLabels.labels-meta.xml'));
+        const hasLabelChange = changes.some(e => e.uri.toLowerCase().endsWith('customlabels.labels-meta.xml'));
+        // Internal / tooling flows may update CustomLabels in the same batch as a new bundle without a separate
+        // watched-file event ordering guarantee; refreshing typings when a new LWC bundle meta is created keeps
+        // `.sfdx/typings/lwc/customlabels.d.ts` aligned without requiring a VS Code reload.
+        const hasNewLwcBundleMetaCreated = changes.some(
+          e => e.type === FileChangeType.Created && e.uri.includes('/lwc/') && e.uri.endsWith('.js-meta.xml')
+        );
         try {
           if (hasMetaChange) {
             await createNewMetaTypings(this.typingIndexerData);
             await deleteStaleMetaTypings(this.typingIndexerData);
           }
-          if (hasLabelChange) {
+          if (hasLabelChange || hasNewLwcBundleMetaCreated) {
             await saveCustomLabelTypings(this.typingIndexerData);
           }
         } catch (e) {
@@ -754,11 +761,12 @@ export abstract class BaseServer {
 
       // For SFDX workspaces, wait for sfdx-project.json to be loaded before initializing component indexer
       if (this.workspaceType === 'SFDX') {
-        const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
-        const sfdxExists = await this.fileSystemAccessor.fileExists(sfdxProjectPath);
+        const folder0 = this.workspaceFolders[0];
+        const sfdxProjectUri = folder0 ? Utils.joinPath(URI.parse(folder0.uri), 'sfdx-project.json').toString() : '';
+        const sfdxExists = sfdxProjectUri ? await this.fileSystemAccessor.fileExists(sfdxProjectUri) : false;
         if (!sfdxExists) {
           Logger.info(
-            `[LWC] performDelayedInitialization: SFDX workspace but sfdx-project.json not found at ${sfdxProjectPath}, exiting early`
+            `[LWC] performDelayedInitialization: SFDX workspace but sfdx-project.json not found at ${sfdxProjectUri}, exiting early`
           );
           return;
         }
@@ -767,7 +775,8 @@ export abstract class BaseServer {
       this.componentIndexer = new ComponentIndexer({
         workspaceRoot: this.workspaceRoots[0],
         fileSystemAccessor: this.fileSystemAccessor,
-        workspaceType: this.workspaceType
+        workspaceType: this.workspaceType,
+        workspaceFolderUri: this.workspaceFolders[0]?.uri
       });
 
       await this.componentIndexer.init();

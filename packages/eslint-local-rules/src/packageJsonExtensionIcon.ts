@@ -33,8 +33,7 @@ export const packageJsonExtensionIcon: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description:
-        'Published VS Code extensions (salesforcedx-vscode*) must have an icon; icon paths must exist'
+      description: 'Published VS Code extensions (salesforcedx-vscode*) must have an icon; icon paths must exist'
     },
     schema: [],
     messages: {

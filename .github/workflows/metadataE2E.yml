@@ -189,7 +189,10 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        os: [ macos-latest, windows-latest ]
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            test_runner_prefix: 'xvfb-run -a '
       fail-fast: false
 
     env:
@@ -198,6 +201,7 @@ jobs:
       NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
+      E2E_FROM_VSIX: 1
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -236,8 +240,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -320,8 +323,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -333,8 +335,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
 
       - name: Copy span files to test-results
         if: always()
@@ -476,7 +477,10 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        os: [ macos-latest, windows-latest ]
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            test_runner_prefix: 'xvfb-run -a '
       fail-fast: false
 
     env:
@@ -484,6 +488,7 @@ jobs:
       NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
+      E2E_FROM_VSIX: 1
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -518,8 +523,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
-        run: |
-          npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -534,7 +538,11 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        run: npx playwright install chromium --with-deps
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
 
       - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'
@@ -569,8 +577,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-        run: |
-          npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
 
       - name: Retry failed conflicts tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -581,8 +588,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: |
-          npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
 
       - name: Copy span files to test-results
         if: always()

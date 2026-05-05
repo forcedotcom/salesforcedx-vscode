@@ -1,4 +1,4 @@
 module.exports = {
-    extends: ['../../eslint.config.mjs'],
-    ignorePatterns: ['test/**', '**/test-workspaces/**', '**/jest/**', '**/lib/**', '**/out/**'],
+  extends: ['../../eslint.config.mjs'],
+  ignorePatterns: ['test/**', '**/test-workspaces/**', '**/jest/**', '**/lib/**', '**/out/**']
 };

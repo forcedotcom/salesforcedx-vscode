@@ -41,6 +41,8 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
       yield* applyDeployDiagnostics(failedWithPaths);
     }
     yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-    return yield* new DeployCompletedWithErrorsError({ userMessage: nls.localize('deploy_completed_with_errors_message') });
+    return yield* new DeployCompletedWithErrorsError({
+      userMessage: nls.localize('deploy_completed_with_errors_message')
+    });
   }
 });

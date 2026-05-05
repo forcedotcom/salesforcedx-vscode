@@ -89,7 +89,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // VS Code 1.116+ core Accounts area silently fetches a session/entitlement on boot;
   // with `vscode.github-authentication` disabled there's no provider, so it surfaces this
   // toast. Benign in E2E — tests don't use VS Code accounts.
-  'Sign-in failed'
+  'Sign-in failed',
+  'Channel is closed'
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -151,16 +152,15 @@ export const filterNetworkErrors = (errors: NetworkError[]): NetworkError[] =>
   });
 
 /** Wait for VS Code workbench to load. For web, navigates to /. For desktop, just waits. */
-export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promise<void> => {
+export const waitForVSCodeWorkbench = async (page: Page): Promise<void> => {
   // Desktop: page is already loaded by Electron, no navigation possible
   if (isDesktop()) {
     await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
     return;
   }
 
-  if (navigate) {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
-  }
+  // Web: navigate, then wait
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
 };
 

@@ -367,7 +367,9 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       });
       const channelService = yield* ChannelService;
       const truncated = conflicts.length > 30;
-      const conflictDetails = conflicts.slice(0, 30).map(c => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`);
+      const conflictDetails = conflicts
+        .slice(0, 30)
+        .map(c => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`);
       yield* channelService.appendToChannel(
         [
           'Conflicts detected',

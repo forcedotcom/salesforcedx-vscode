@@ -16,13 +16,13 @@ fs.copyFileSync(join(require.resolve('lwc'), '..', 'types.d.ts'), join(destDir, 
 const modules = findNodeModules();
 // copy @salesforce typings from node_modules
 for (const mod of modules) {
-    const salesforce = join(mod, '@salesforce');
-    if (fs.existsSync(salesforce)) {
-        for (const pkg of fs.readdirSync(salesforce)) {
-            const inputFile = join(salesforce, pkg, 'dist', 'types', 'index.d.ts');
-            if (fs.existsSync(inputFile)) {
-                fs.copyFileSync(inputFile, join(destDir, pkg + '.d.ts'));
-            }
-        }
+  const salesforce = join(mod, '@salesforce');
+  if (fs.existsSync(salesforce)) {
+    for (const pkg of fs.readdirSync(salesforce)) {
+      const inputFile = join(salesforce, pkg, 'dist', 'types', 'index.d.ts');
+      if (fs.existsSync(inputFile)) {
+        fs.copyFileSync(inputFile, join(destDir, pkg + '.d.ts'));
+      }
     }
+  }
 }

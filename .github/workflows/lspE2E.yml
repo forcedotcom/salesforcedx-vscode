@@ -8,11 +8,6 @@ on:
         required: false
         default: true
         type: boolean
-      lwcLsp:
-        description: 'LWC LSP'
-        required: false
-        default: true
-        type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
@@ -27,11 +22,6 @@ on:
     inputs:
       auraLsp:
         description: 'Aura LSP'
-        required: false
-        default: true
-        type: boolean
-      lwcLsp:
-        description: 'LWC LSP'
         required: false
         default: true
         type: boolean
@@ -55,13 +45,5 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  lwcLSP:
-    if: ${{ inputs.lwcLsp }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'lwcLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
+  # lwcLSP: migrated to Playwright in lwcPlaywrightE2E.yml
   # visualforceLSP: migrated to Playwright in visualforceE2E.yml

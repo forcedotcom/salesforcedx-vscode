@@ -14,7 +14,7 @@ import { withPreparationProgress } from '../../../src/utils/withPreparationProgr
 import { ConflictsDetectedError } from '../../../src/conflict/conflictErrors';
 
 // Minimal branded NonEmptyComponentSet for testing
-const makeCS = (size = 1) => ({ size } as unknown as NonEmptyComponentSet);
+const makeCS = (size = 1) => ({ size }) as unknown as NonEmptyComponentSet;
 
 const mockUserCancellationError = UserCancellationError;
 
@@ -51,9 +51,7 @@ const setupWithProgress = () => {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (vscode.window.withProgress as jest.Mock).mockImplementation((_options: unknown, task: any) =>
-    task(progress, token)
-  );
+  (vscode.window.withProgress as jest.Mock).mockImplementation((_options: unknown, task: any) => task(progress, token));
 
   const cancel = () => cancellationListeners.forEach(l => l());
   return { progress, token, cancel };
@@ -101,9 +99,7 @@ describe('withPreparationProgress', () => {
     const cs = makeCS();
     const detectConflictsFn = jest.fn(() => Effect.void);
 
-    await runWithServices(
-      Effect.succeed(cs).pipe(withPreparationProgress('deploy', detectConflictsFn))
-    );
+    await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('deploy', detectConflictsFn)));
 
     expect(detectConflictsFn).toHaveBeenCalledWith(cs);
   });
@@ -122,9 +118,7 @@ describe('withPreparationProgress', () => {
       if (message) calls.push(message);
     });
 
-    await runWithServices(
-      Effect.succeed(cs).pipe(withPreparationProgress('deploy', detectConflictsFn))
-    );
+    await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('deploy', detectConflictsFn)));
 
     const detectIdx = calls.indexOf('detect');
     const messageIdx = calls.findIndex(c => c.includes('conflict'));
@@ -144,9 +138,7 @@ describe('withPreparationProgress', () => {
   it('propagates prepare failures', async () => {
     setupWithProgress();
     const error = new Error('build failed');
-    const exit = await runWithServicesExit(
-      Effect.fail(error).pipe(withPreparationProgress('deploy'))
-    );
+    const exit = await runWithServicesExit(Effect.fail(error).pipe(withPreparationProgress('deploy')));
 
     expect(exit._tag).toBe('Failure');
   });

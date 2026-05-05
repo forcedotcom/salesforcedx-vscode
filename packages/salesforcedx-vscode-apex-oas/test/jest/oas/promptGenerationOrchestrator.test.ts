@@ -7,7 +7,10 @@
 import type { GenerationStrategy } from '../../../src/oas/generationStrategy/generationStrategy';
 import { URI } from 'vscode-uri';
 import GenerationInteractionLogger from '../../../src/oas/generationInteractionLogger';
-import { GenerationStrategyType, initializeAndBid } from '../../../src/oas/generationStrategy/generationStrategyFactory';
+import {
+  GenerationStrategyType,
+  initializeAndBid
+} from '../../../src/oas/generationStrategy/generationStrategyFactory';
 import { BID_RULES, PromptGenerationOrchestrator } from '../../../src/oas/promptGenerationOrchestrator';
 import {
   ApexClassOASEligibleResponse,
@@ -30,7 +33,7 @@ jest.mock('../../../src/oas/generationInteractionLogger', () => {
     default: {
       getInstance() {
         return mockInstance;
-      },
+      }
     }
   };
 });
@@ -297,9 +300,7 @@ describe('PromptGenerationOrchestrator', () => {
       const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
         ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }]
       ]);
-      const strategies = new Map<GenerationStrategyType, GenerationStrategy>([
-        ['ApexRest', mockStrategy]
-      ]);
+      const strategies = new Map<GenerationStrategyType, GenerationStrategy>([['ApexRest', mockStrategy]]);
 
       (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
 

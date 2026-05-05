@@ -19,12 +19,9 @@ export class CommandEventDispatcher implements vscode.Disposable {
   private readonly commandDisposable: vscode.Disposable;
 
   private constructor() {
-    this.commandDisposable = vscode.commands.registerCommand(
-      SF_SOBJECT_REFRESH_COMPLETE_COMMAND,
-      (event: unknown) => {
-        this.emitter.fire(event);
-      }
-    );
+    this.commandDisposable = vscode.commands.registerCommand(SF_SOBJECT_REFRESH_COMPLETE_COMMAND, (event: unknown) => {
+      this.emitter.fire(event);
+    });
   }
 
   public static getInstance(): CommandEventDispatcher {

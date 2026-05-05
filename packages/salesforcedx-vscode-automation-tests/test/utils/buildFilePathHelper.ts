@@ -6,4 +6,5 @@
  */
 import * as path from 'node:path';
 
-export const getFolderPath = (projectPath: string, folder: string): string => path.join(projectPath, 'force-app', 'main', 'default', folder);
+export const getFolderPath = (projectPath: string, folder: string): string =>
+  path.join(projectPath, 'force-app', 'main', 'default', folder);

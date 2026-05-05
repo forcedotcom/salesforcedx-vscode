@@ -5,10 +5,5 @@
     "outDir": "out",
     "resolveJsonModule": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/sobjects/resources/*.json",
-    "package.json",
-    "package.nls.json"
-  ]
+  "include": ["src/**/*.ts", "src/sobjects/resources/*.json", "package.json", "package.nls.json"]
 }

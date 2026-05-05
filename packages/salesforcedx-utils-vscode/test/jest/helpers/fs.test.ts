@@ -11,18 +11,15 @@ import {
   writeFile,
   fileOrFolderExists,
   createDirectory,
-  deleteFile,
   readDirectory,
   stat,
   safeDelete,
-  ensureCurrentWorkingDirIsProjectPath,
   isDirectory,
   isFile,
   rename
 } from '../../../src/helpers/fs';
 
 jest.mock('vscode');
-const vscodeMocked = jest.mocked(vscode);
 describe('file system utilities', () => {
   const mockUri = { fsPath: '/test/path' };
   const mockError = new Error('Test error');
@@ -141,26 +138,6 @@ describe('file system utilities', () => {
     });
   });
 
-  describe('rename', () => {
-    it('should rename file successfully', async () => {
-      (vscode.workspace.fs.rename as jest.Mock).mockResolvedValue(undefined);
-
-      await rename('/old/path/file.txt', '/new/path/file.txt');
-      expect(vscode.workspace.fs.rename).toHaveBeenCalledWith(
-        { fsPath: '/old/path/file.txt' },
-        { fsPath: '/new/path/file.txt' }
-      );
-    });
-
-    it('should throw error when rename fails', async () => {
-      (vscode.workspace.fs.rename as jest.Mock).mockRejectedValue(mockError);
-
-      await expect(rename('/old/path/file.txt', '/new/path/file.txt')).rejects.toThrow(
-        'Failed to rename /old/path/file.txt to /new/path/file.txt: Test error'
-      );
-    });
-  });
-
   describe('createDirectory', () => {
     it('should create directory if it does not exist', async () => {
       (vscode.workspace.fs.createDirectory as jest.Mock).mockResolvedValue(undefined);
@@ -198,35 +175,23 @@ describe('file system utilities', () => {
     });
   });
 
-  describe('deleteFile', () => {
-    it('should delete file successfully', async () => {
-      (vscode.workspace.fs.delete as jest.Mock).mockResolvedValue(undefined);
+  describe('rename', () => {
+    it('should rename file successfully', async () => {
+      (vscode.workspace.fs.rename as jest.Mock).mockResolvedValue(undefined);
 
-      await deleteFile('/test/path');
-      expect(vscode.workspace.fs.delete).toHaveBeenCalledWith(mockUri, {});
+      await rename('/old/path/file.txt', '/new/path/file.txt');
+      expect(vscode.workspace.fs.rename).toHaveBeenCalledWith(
+        { fsPath: '/old/path/file.txt' },
+        { fsPath: '/new/path/file.txt' }
+      );
     });
 
-    it('should throw error when deletion fails', async () => {
-      (vscode.workspace.fs.delete as jest.Mock).mockRejectedValue(mockError);
+    it('should throw error when rename fails', async () => {
+      (vscode.workspace.fs.rename as jest.Mock).mockRejectedValue(mockError);
 
-      await expect(deleteFile('/test/path')).rejects.toThrow('Failed to delete file /test/path: Test error');
-    });
-  });
-
-  describe('safeDelete', () => {
-    it('should delete file if it exists', async () => {
-      (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.File });
-      (vscode.workspace.fs.delete as jest.Mock).mockResolvedValue(undefined);
-
-      await safeDelete('/test/path');
-      expect(vscode.workspace.fs.delete).toHaveBeenCalledWith(mockUri, undefined);
-    });
-
-    it('should do nothing if file does not exist', async () => {
-      (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(mockError);
-
-      await safeDelete('/test/path');
-      expect(vscode.workspace.fs.delete).not.toHaveBeenCalled();
+      await expect(rename('/old/path/file.txt', '/new/path/file.txt')).rejects.toThrow(
+        'Failed to rename /old/path/file.txt to /new/path/file.txt: Test error'
+      );
     });
   });
 
@@ -264,44 +229,21 @@ describe('file system utilities', () => {
       await expect(stat('/test/path')).rejects.toThrow('Failed to get file stats for /test/path: Test error');
     });
   });
-});
 
-describe('ensureCurrentWorkingDirIsProjectPath', () => {
-  let fsExistsSpy: jest.SpyInstance;
-  let processCwdSpy: jest.SpyInstance;
-  let processChDirSpy: jest.SpyInstance;
-  const dummyProjectPath = 'a/project/path';
-  const dummyDefaultPath = '/';
+  describe('safeDelete', () => {
+    it('should delete file if it exists', async () => {
+      (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.File });
+      (vscode.workspace.fs.delete as jest.Mock).mockResolvedValue(undefined);
 
-  beforeEach(() => {
-    fsExistsSpy = jest.spyOn(vscodeMocked.workspace.fs, 'stat');
-    processCwdSpy = jest.spyOn(process, 'cwd');
-    processChDirSpy = jest.spyOn(process, 'chdir').mockImplementation(jest.fn());
-  });
+      await safeDelete('/test/path');
+      expect(vscode.workspace.fs.delete).toHaveBeenCalledWith(mockUri, undefined);
+    });
 
-  it('should change the processes current working directory to the project directory', async () => {
-    processCwdSpy.mockReturnValue(dummyDefaultPath);
-    fsExistsSpy.mockResolvedValue({ type: 2 });
+    it('should do nothing if file does not exist', async () => {
+      (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(mockError);
 
-    await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
-
-    expect(processChDirSpy).toHaveBeenCalledWith(dummyProjectPath);
-  });
-
-  it('should not change the processes current working directory when already in the project directory', async () => {
-    processCwdSpy.mockReturnValue(dummyProjectPath);
-
-    await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
-
-    expect(processChDirSpy).not.toHaveBeenCalled();
-  });
-
-  it('should not change the processes current working directory when the project path does not exist', async () => {
-    processCwdSpy.mockReturnValue(dummyDefaultPath);
-    fsExistsSpy.mockRejectedValue(new Error('File not found'));
-
-    await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
-
-    expect(processChDirSpy).not.toHaveBeenCalled();
+      await safeDelete('/test/path');
+      expect(vscode.workspace.fs.delete).not.toHaveBeenCalled();
+    });
   });
 });

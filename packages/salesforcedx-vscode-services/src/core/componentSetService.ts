@@ -11,7 +11,7 @@ import type { SfProject } from '@salesforce/core/project';
 import {
   ComponentSet,
   type ComponentSet as ComponentSetType,
-  type FileResponseSuccess,
+  type FileResponseSuccess
 } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
@@ -23,7 +23,13 @@ import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { FailedToResolveSfProjectError, ProjectService } from './projectService';
-import { isSDRFailure, isSDRSuccess, makeFileResponseFailure, toComponentStatusChangeType, toRequestStatus } from './sdrGuards';
+import {
+  isSDRFailure,
+  isSDRSuccess,
+  makeFileResponseFailure,
+  toComponentStatusChangeType,
+  toRequestStatus
+} from './sdrGuards';
 import { unknownToErrorCause } from './shared';
 
 /** A ComponentSet that is guaranteed to be non-empty */

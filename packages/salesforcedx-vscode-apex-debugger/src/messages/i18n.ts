@@ -16,6 +16,7 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
+  channel_name: 'Apex Interactive Debugger',
   config_name_text: 'Launch Apex Debugger',
   select_exception_text: 'Select an exception',
   select_break_option_text: 'Select break option',

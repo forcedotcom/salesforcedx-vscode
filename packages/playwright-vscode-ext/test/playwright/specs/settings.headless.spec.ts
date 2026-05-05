@@ -8,11 +8,7 @@
 import { expect } from '@playwright/test';
 import { openSettingsUI, upsertSettings } from '../../../src/pages/settings';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
-import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  ensureSecondarySideBarHidden
-} from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs, ensureSecondarySideBarHidden } from '../../../src/utils/helpers';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
@@ -99,9 +95,7 @@ test.describe.serial('Settings', () => {
       const allDotsId = `searchResultModel_${settingKey.replaceAll('.', '_')}`;
       const firstDotId = `searchResultModel_${settingKey.replace('.', '_')}`;
       const dataIdSelector =
-        allDotsId === firstDotId
-          ? `[data-id="${allDotsId}"]`
-          : `[data-id="${allDotsId}"], [data-id="${firstDotId}"]`;
+        allDotsId === firstDotId ? `[data-id="${allDotsId}"]` : `[data-id="${allDotsId}"], [data-id="${firstDotId}"]`;
       const row = page.locator(dataIdSelector).last();
       await row.waitFor({ state: 'visible', timeout: 15_000 });
       const minimapCheckbox = row.getByRole('checkbox').first();

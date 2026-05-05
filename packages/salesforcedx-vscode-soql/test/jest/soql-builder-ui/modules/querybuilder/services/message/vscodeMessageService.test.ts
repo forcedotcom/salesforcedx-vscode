@@ -68,9 +68,7 @@ describe('VscodeMessageService', () => {
     const messageEvent = new MessageEvent(messageType, postMessagePayload());
     window.dispatchEvent(messageEvent);
     expect(listener).toHaveBeenCalled();
-    expect(listener.mock.calls[0][0].payload.sObject).toEqual(
-      accountQuery.sObject
-    );
+    expect(listener.mock.calls[0][0].payload.sObject).toEqual(accountQuery.sObject);
   });
 
   it('filters out malformed SOQL event messages', () => {

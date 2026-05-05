@@ -33,9 +33,7 @@ export class Node {
     return this.children[0];
   }
   public get lastChild(): Node {
-    return this.children.length
-      ? this.children[this.children.length - 1]
-      : void 0;
+    return this.children.length ? this.children[this.children.length - 1] : void 0;
   }
 
   public findNodeBefore(offset: number): Node {

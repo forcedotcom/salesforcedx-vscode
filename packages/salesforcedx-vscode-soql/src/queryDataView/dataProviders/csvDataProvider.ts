@@ -22,5 +22,4 @@ export class CsvDataProvider implements DataProvider {
   public getFileName(): string {
     return `${this.documentName}.${this.fileExtension}`;
   }
-
 }

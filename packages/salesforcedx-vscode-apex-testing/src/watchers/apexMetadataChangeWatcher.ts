@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import type { MetadataChangeEventType } from 'salesforcedx-vscode-services';
 import { IS_TEST_REG_EXP } from '../constants';
@@ -34,12 +35,19 @@ export const setupApexMetadataChangeWatcher = Effect.fn('apex-testing.watchApexM
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const notificationService = yield* api.services.MetadataChangeNotificationService;
 
+  // once any event passes filterApexTests, skip file reads for the rest of the burst
+  const willRefresh = yield* Ref.make(false);
+
   yield* Stream.fromPubSub(notificationService.pubsub).pipe(
+    // once one event passes filterApexTests, drop everything until refresh completes
+    Stream.filterEffect(() => Effect.map(Ref.get(willRefresh), v => !v)),
     Stream.filter(e => APEX_METADATA_TYPES.has(e.metadataType)),
     Stream.filter(e => APEX_CHANGE_TYPES.has(e.changeType)),
-    // let's filter out any local files that changed but are not apex tests
-    Stream.filterEffect(filterApexTests),
+    Stream.filterEffect(e =>
+      filterApexTests(e).pipe(Effect.tap(pass => (pass ? Ref.set(willRefresh, true) : Effect.void)))
+    ),
     Stream.debounce(Duration.millis(1000)),
+    Stream.tap(() => Ref.set(willRefresh, false)),
     Stream.runForEach(() => Effect.promise(() => testController.discoverTests()))
   );
 });

@@ -27,4 +27,3 @@ export class ApexTestingDecorationProvider implements vscode.FileDecorationProvi
     };
   }
 }
-

@@ -5,5 +5,9 @@
   "activation_mode_description": "Aura および LWC 言語サーバ (LSP) をいつ有効化するかを設定します。(再起動が必要)",
   "activation_mode_always_on": "Lighning LSP を VS Code のワークスペース設定に関わらず常に有効化します。",
   "activation_mode_autodetect": "Lighning LSP を有効な VS Code のワークスペースを検知したときに限り有効化します。",
-  "activation_mode_off": "Lighning LSP を有効化しません。"
+  "activation_mode_off": "Lighning LSP を有効化しません。",
+  "lightning_generate_app_text": "SFDX: Aura アプリを作成",
+  "lightning_generate_aura_component_text": "SFDX: Aura コンポーネントを作成",
+  "lightning_generate_event_text": "SFDX: Aura イベントを作成",
+  "lightning_generate_interface_text": "SFDX: Aura インターフェースを作成"
 }

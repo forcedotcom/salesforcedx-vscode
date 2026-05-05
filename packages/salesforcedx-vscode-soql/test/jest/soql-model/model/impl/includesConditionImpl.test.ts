@@ -16,19 +16,22 @@ describe('IncludesConditionImpl should', () => {
       kind: 'includes',
       field: { kind: 'fieldRef', fieldName: 'field' },
       operator: 'INCLUDES',
-      values: [{ kind: 'literal', value: "'abc'" }, { kind: 'literal', value: "'def'" }]
+      values: [
+        { kind: 'literal', type: 'STRING', value: "'abc'" },
+        { kind: 'literal', type: 'STRING', value: "'def'" }
+      ]
     };
     const actual = new IncludesConditionImpl(new FieldRefImpl('field'), ConditionOperator.Includes, [
-      new LiteralImpl("'abc'"),
-      new LiteralImpl("'def'")
+      new LiteralImpl('STRING', "'abc'"),
+      new LiteralImpl('STRING', "'def'")
     ]);
     expect(actual).toEqual(expected);
   });
   it('return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()', () => {
     const expected = "field INCLUDES ( 'abc', 'def' )";
     const actual = new IncludesConditionImpl(new FieldRefImpl('field'), ConditionOperator.Includes, [
-      new LiteralImpl("'abc'"),
-      new LiteralImpl("'def'")
+      new LiteralImpl('STRING', "'abc'"),
+      new LiteralImpl('STRING', "'def'")
     ]).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

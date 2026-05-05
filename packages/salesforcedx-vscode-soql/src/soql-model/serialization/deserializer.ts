@@ -298,19 +298,19 @@ class ErrorIdentifier {
 
     return knownErrorMatch
       ? {
-        type: knownErrorMatch.type,
-        message: knownErrorMatch.message,
-        lineNumber: error.getLineNumber(),
-        charInLine: error.getCharacterPositionInLine(),
-        grammarRule: this.getGrammarRule(error)
-      }
+          type: knownErrorMatch.type,
+          message: knownErrorMatch.message,
+          lineNumber: error.getLineNumber(),
+          charInLine: error.getCharacterPositionInLine(),
+          grammarRule: this.getGrammarRule(error)
+        }
       : {
-        type: 'UNKNOWN',
-        message: error.getMessage(),
-        lineNumber: error.getLineNumber(),
-        charInLine: error.getCharacterPositionInLine(),
-        grammarRule: this.getGrammarRule(error)
-      };
+          type: 'UNKNOWN',
+          message: error.getMessage(),
+          lineNumber: error.getLineNumber(),
+          charInLine: error.getCharacterPositionInLine(),
+          grammarRule: this.getGrammarRule(error)
+        };
   }
 
   protected findExceptionsAndErrorNodes(context: ParseTree): void {
@@ -700,23 +700,23 @@ class QueryListener implements SoqlParserListener {
       ctx = ctx.soqlCommonLiterals();
     }
     if (ctx instanceof Parser.SoqlDateLiteralContext) {
-      return new LiteralImpl(ctx.text);
+      return new LiteralImpl('DATE', ctx.text);
     } else if (ctx instanceof Parser.SoqlDateTimeLiteralContext) {
-      return new LiteralImpl(ctx.text);
+      return new LiteralImpl('DATE', ctx.text);
     } else if (ctx instanceof Parser.SoqlTimeLiteralContext) {
-      return new LiteralImpl(ctx.text);
+      return new LiteralImpl('DATE', ctx.text);
     } else if (ctx instanceof Parser.SoqlDateFormulaLiteralContext) {
-      return new LiteralImpl(ctx.text);
+      return new LiteralImpl('DATE', ctx.text);
     } else if (ctx instanceof Parser.SoqlNumberLiteralContext) {
-      return new LiteralImpl(ctx.text);
+      return new LiteralImpl('NUMBER', ctx.text);
     } else if (ctx instanceof Parser.SoqlNullLiteralContext) {
-      return new LiteralImpl(ctx.text);
+      return new LiteralImpl('NULL', ctx.text);
     } else if (ctx instanceof Parser.SoqlBooleanLiteralContext) {
-      return new LiteralImpl(ctx.text);
+      return new LiteralImpl('BOOLEAN', ctx.text);
     } else if (ctx instanceof Parser.SoqlMultiCurrencyContext) {
-      return new LiteralImpl(ctx.text);
+      return new LiteralImpl('CURRENCY', ctx.text);
     }
-    return new LiteralImpl(ctx.text);
+    return new LiteralImpl('STRING', ctx.text);
   }
 
   protected exprsToCondition(ctx: Parser.SoqlWhereExprsContext): Condition {

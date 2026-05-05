@@ -318,12 +318,7 @@ describe('payloadBuilder', () => {
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
 
-      const result = await buildTestPayload(
-        mockTestService,
-        [class1, class2],
-        ['Class1', 'Class2'],
-        false
-      );
+      const result = await buildTestPayload(mockTestService, [class1, class2], ['Class1', 'Class2'], false);
 
       expect(result.hasSuite).toBe(false);
       expect(result.hasClass).toBe(false);

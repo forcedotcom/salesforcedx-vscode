@@ -68,6 +68,12 @@ export class HashableUri extends URI {
 
   /** Strip HashableUri subclass back to a plain URI for RPC serialization (e.g. vscode.diff) */
   public toUri(): URI {
-    return URI.from({ scheme: this.scheme, authority: this.authority, path: this.path, query: this.query, fragment: this.fragment });
+    return URI.from({
+      scheme: this.scheme,
+      authority: this.authority,
+      path: this.path,
+      query: this.query,
+      fragment: this.fragment
+    });
   }
 }

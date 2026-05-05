@@ -200,16 +200,11 @@ export type CompareValue = SoqlModelObject & {
   kind: 'literal' | 'unmodeled';
 };
 
-export type LiteralType =
-  | 'BOOLEAN'
-  | 'CURRENCY'
-  | 'DATE'
-  | 'NULL'
-  | 'NUMBER'
-  | 'STRING';
+export type LiteralType = 'BOOLEAN' | 'CURRENCY' | 'DATE' | 'NULL' | 'NUMBER' | 'STRING';
 
 export type Literal = CompareValue & {
   kind: 'literal';
+  type: LiteralType;
   value: string;
 };
 

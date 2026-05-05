@@ -5,7 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Bind, From, GroupBy, HeaderComments, Limit, Offset, OrderBy, Query, RecordTrackingType, Select, SyntaxOptions, Update, Where, With } from '../model';
+import {
+  Bind,
+  From,
+  GroupBy,
+  HeaderComments,
+  Limit,
+  Offset,
+  OrderBy,
+  Query,
+  RecordTrackingType,
+  Select,
+  SyntaxOptions,
+  Update,
+  Where,
+  With
+} from '../model';
 
 export class QueryImpl implements Query {
   public headerComments?: HeaderComments;

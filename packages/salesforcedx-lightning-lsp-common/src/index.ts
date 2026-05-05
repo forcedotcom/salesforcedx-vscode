@@ -26,17 +26,12 @@ export {
 export type { SfdxTsConfig, TsConfigPaths, NormalizedPath } from './utils';
 
 // Re-export from base-context
-export {
-  BaseWorkspaceContext,
-  AURA_EXTENSIONS,
-  getModulesDirs,
-  updateForceIgnoreFile
-} from './baseContext';
+export { BaseWorkspaceContext, AURA_EXTENSIONS, getModulesDirs, updateForceIgnoreFile } from './baseContext';
 export type { BaseWorkspaceContextOptions, Indexer } from './baseContext';
 
 // Re-export from shared
 export { isLWC, getSfdxProjectFile, detectWorkspaceHelper } from './shared';
-export type { WorkspaceType } from './shared';
+export type { WorkspaceType, WorkspaceFileSystem } from './shared';
 
 // Re-export from indexer
 export { getHover } from './indexer/tagInfo';

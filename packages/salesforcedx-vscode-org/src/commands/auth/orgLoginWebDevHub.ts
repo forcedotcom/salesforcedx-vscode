@@ -14,7 +14,6 @@ import {
   SfCommandlet,
   SfCommandletExecutor,
   CliCommandExecutor,
-  TimingUtils,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -28,7 +27,9 @@ class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
 
   public build(data: AuthDevHubParams): Command {
-    const command = new SfCommandBuilder().withDescription(getVerificationCodeDescription(nls.localize('org_login_web_authorize_dev_hub_text')));
+    const command = new SfCommandBuilder().withDescription(
+      getVerificationCodeDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
+    );
 
     command
       .withArg(ORG_LOGIN_WEB)
@@ -39,7 +40,7 @@ class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   }
 
   public execute(response: ContinueResponse<AuthDevHubParams>): void {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {

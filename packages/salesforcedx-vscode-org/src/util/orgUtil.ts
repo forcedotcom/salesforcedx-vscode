@@ -105,7 +105,6 @@ export const getAuthFieldsFor = async (username: string): Promise<AuthFields> =>
 };
 
 export const updateConfigAndStateAggregators = async (): Promise<void> => {
-
   // Force the ConfigAggregatorProvider to reload its stored
   // ConfigAggregators so that this config file change is accounted
   // for and the ConfigAggregators are updated with the latest info.

@@ -15,13 +15,18 @@ describe('NestedConditionImpl should', () => {
   it('store condition', () => {
     const expected = {
       kind: 'nested',
-      condition: { kind: 'fieldCompare', field: { kind: 'fieldRef', fieldName: 'field' }, operator: '=', compareValue: { kind: 'literal', value: "'abc'" } }
+      condition: {
+        kind: 'fieldCompare',
+        field: { kind: 'fieldRef', fieldName: 'field' },
+        operator: '=',
+        compareValue: { kind: 'literal', type: 'STRING', value: "'abc'" }
+      }
     };
     const actual = new NestedConditionImpl(
       new FieldCompareConditionImpl(
         new FieldRefImpl('field'),
         ConditionOperator.Equals,
-        new LiteralImpl("'abc'")
+        new LiteralImpl('STRING', "'abc'")
       )
     );
     expect(actual).toEqual(expected);
@@ -32,7 +37,7 @@ describe('NestedConditionImpl should', () => {
       new FieldCompareConditionImpl(
         new FieldRefImpl('field'),
         ConditionOperator.Equals,
-        new LiteralImpl("'abc'")
+        new LiteralImpl('STRING', "'abc'")
       )
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);

@@ -27,8 +27,9 @@ Full documentation: https://github.com/google/wireit
 - Agents should not run these (they won't exit)
   - any script with --watch
   - any `service:true` if you're an Agent, it won't exit
-- wireit can't follow stuff that doesn't show up as changes that break the cache
+- wireit can't follow stuff outside `files`
   - manually changing code in node_modules then running compile or bundle
+  - exception: `salesforcedx-vscode-services` `vscode:bundle` tracks `node_modules/@salesforce/templates/lib/**`
   - npm link'd packages (ex: symlinks to node libraries locally modified)
 
 ## Extra Arguments (passing CLI flags through wireit)

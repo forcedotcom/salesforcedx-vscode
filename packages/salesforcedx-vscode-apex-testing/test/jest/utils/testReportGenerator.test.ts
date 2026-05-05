@@ -1049,18 +1049,14 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      await getApexTestingRuntime().runPromise(
-        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
-      );
+      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime'));
 
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockShowInformationMessage).toHaveBeenCalledWith(
         expect.stringContaining('test-result-test-run-123.md'),
         'Open Report'
       );
-      expect(mockAppendToChannel).toHaveBeenCalledWith(
-        expect.stringContaining('test-result-test-run-123.md')
-      );
+      expect(mockAppendToChannel).toHaveBeenCalledWith(expect.stringContaining('test-result-test-run-123.md'));
     });
 
     it('should open markdown preview when user selects Open Report', async () => {
@@ -1069,9 +1065,7 @@ describe('testReportGenerator', () => {
 
       mockShowInformationMessage.mockResolvedValueOnce('Open Report');
 
-      await getApexTestingRuntime().runPromise(
-        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
-      );
+      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime'));
       // Allow daemon fiber to complete
       await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -1079,27 +1073,21 @@ describe('testReportGenerator', () => {
       // Refresh should be called before showing preview
       expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.preview.refresh');
       expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.showPreview', expect.any(Object));
-      expect(mockAppendToChannel).toHaveBeenCalledWith(
-        expect.stringContaining('test-result-test-run-123.md')
-      );
+      expect(mockAppendToChannel).toHaveBeenCalledWith(expect.stringContaining('test-result-test-run-123.md'));
     });
 
     it('should write text report and notify without opening by default', async () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      await getApexTestingRuntime().runPromise(
-        writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime')
-      );
+      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime'));
 
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockShowInformationMessage).toHaveBeenCalledWith(
         expect.stringContaining('test-result-test-run-123.txt'),
         'Open Report'
       );
-      expect(mockAppendToChannel).toHaveBeenCalledWith(
-        expect.stringContaining('test-result-test-run-123.txt')
-      );
+      expect(mockAppendToChannel).toHaveBeenCalledWith(expect.stringContaining('test-result-test-run-123.txt'));
     });
 
     it('should open text report when user selects Open Report', async () => {
@@ -1108,31 +1096,23 @@ describe('testReportGenerator', () => {
 
       mockShowInformationMessage.mockResolvedValueOnce('Open Report');
 
-      await getApexTestingRuntime().runPromise(
-        writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime')
-      );
+      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime'));
       // Allow daemon fiber to complete
       await new Promise(resolve => setTimeout(resolve, 50));
 
       expect(mockWriteFile).toHaveBeenCalled();
       expect(mockShowTextDocument).toHaveBeenCalled();
-      expect(mockAppendToChannel).toHaveBeenCalledWith(
-        expect.stringContaining('test-result-test-run-123.txt')
-      );
+      expect(mockAppendToChannel).toHaveBeenCalledWith(expect.stringContaining('test-result-test-run-123.txt'));
     });
 
     it('should write report path and markdown tip to output channel for markdown format', async () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      await getApexTestingRuntime().runPromise(
-        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
-      );
+      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime'));
 
       // Should write report path to output channel
-      expect(mockAppendToChannel).toHaveBeenCalledWith(
-        expect.stringContaining('test-result-test-run-123.md')
-      );
+      expect(mockAppendToChannel).toHaveBeenCalledWith(expect.stringContaining('test-result-test-run-123.md'));
       // Should also write markdown preview tip for markdown format
       expect(mockAppendToChannel).toHaveBeenCalledWith(
         expect.stringContaining('Tip: For the best experience viewing the markdown file')
@@ -1143,9 +1123,7 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      await getApexTestingRuntime().runPromise(
-        writeAndOpenTestReport(result, outputDir, 'markdown')
-      );
+      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'markdown'));
 
       expect(mockWriteFile).toHaveBeenCalled();
       const writeCall = mockWriteFile.mock.calls[0];
@@ -1163,9 +1141,7 @@ describe('testReportGenerator', () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      await getApexTestingRuntime().runPromise(
-        writeAndOpenTestReport(result, outputDir, 'markdown')
-      );
+      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'markdown'));
 
       expect(mockStat).not.toHaveBeenCalled();
       const writeCall = mockWriteFile.mock.calls[0];

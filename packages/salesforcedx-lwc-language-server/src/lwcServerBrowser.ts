@@ -36,7 +36,8 @@ export default class Server extends BaseServer {
     this.componentIndexer = new ComponentIndexer({
       workspaceRoot: this.workspaceRoots[0],
       fileSystemAccessor: this.fileSystemAccessor,
-      workspaceType: this.workspaceType
+      workspaceType: this.workspaceType,
+      workspaceFolderUri: this.workspaceFolders[0]?.uri
     });
     await this.componentIndexer.init();
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });

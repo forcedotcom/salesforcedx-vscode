@@ -19,7 +19,6 @@ import {
   projectPaths,
   readFile,
   safeDelete,
-  TimingUtils,
   writeFile,
   fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -30,11 +29,7 @@ import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instr
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
-import {
-  getChannelService,
-  getSfCommandlet,
-  getSfCommandletExecutorClass
-} from '../../utils/coreExtensionUtils';
+import { getChannelService, getSfCommandlet, getSfCommandletExecutorClass } from '../../utils/coreExtensionUtils';
 
 type InstalledPackageInfo = {
   id: string;
@@ -404,7 +399,7 @@ export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ): Promise<string> {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     // do not inherit global env because we are setting our own auth
     const execution = new CliCommandExecutor(command, options, false).execute(cancellationToken);
 

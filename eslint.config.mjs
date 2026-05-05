@@ -586,6 +586,8 @@ export default [
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
+      'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
     ],
     rules: {
@@ -721,6 +723,12 @@ export default [
       '@typescript-eslint/prefer-optional-chain': 'off',
       'prefer-arrow/prefer-arrow-functions': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    files: ['scripts/validateActions.ts'],
+    rules: {
+      'no-restricted-imports': 'off'
     }
   },
   // ESLint plugin rules for eslint-local-rules package only

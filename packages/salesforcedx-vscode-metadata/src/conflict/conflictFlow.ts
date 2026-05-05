@@ -85,7 +85,5 @@ export const handleConflictWithRetry = Effect.fn('handleConflictWithRetry')(func
   });
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return result === 'continue'
-    ? yield* options.retryOperation
-    : yield* new api.services.UserCancellationError();
+  return result === 'continue' ? yield* options.retryOperation : yield* new api.services.UserCancellationError();
 });

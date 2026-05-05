@@ -11,11 +11,9 @@ import {
   CliCommandExecutor,
   ContinueResponse,
   EmptyParametersGatherer,
-  isSFContainerMode,
   ProgressNotification,
   SfCommandlet,
   SfCommandletExecutor,
-  TimingUtils,
   notificationService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -29,6 +27,8 @@ import {
   OrgOpenSuccessResult
 } from '../parsers/orgOpenContainerResultParser';
 import { telemetryService } from '../telemetry';
+
+const isSFContainerMode = (): boolean => (process.env.SF_CONTAINER_MODE ? true : false);
 
 class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
   public build(_data: {}): Command {
@@ -51,7 +51,7 @@ class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
   }
 
   public execute(response: ContinueResponse<string>): void {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {

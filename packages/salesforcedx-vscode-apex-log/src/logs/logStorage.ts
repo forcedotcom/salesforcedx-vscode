@@ -28,9 +28,7 @@ export const getDebugLogsDir = Effect.fn('LogStorage.getDebugLogsDir')(function*
 export const getExecAnonLogIds = Effect.fn('LogStorage.getExecAnonLogIds')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const dirUri = yield* getLogsDirUri();
-  const entries = yield* api.services.FsService.readDirectory(dirUri).pipe(
-    Effect.catchAll(() => Effect.succeed([]))
-  );
+  const entries = yield* api.services.FsService.readDirectory(dirUri).pipe(Effect.catchAll(() => Effect.succeed([])));
   const idResults = yield* Effect.all(
     entries.map(entryUri =>
       Effect.gen(function* () {
@@ -65,32 +63,37 @@ export const saveAndOpenLog = Effect.fn('LogStorage.saveAndOpenLog')(function* (
 type ResultWithExecutedAt = ExecuteAnonymousResult & { executedAt: string; logId?: string };
 
 /** Save execute-anonymous to a folder: result.json, script.apex, debug.log (raw Apex log format). Returns logUri for caller to open on demand. */
-export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(
-  function* (code: string, result: ExecuteAnonymousResult, logBody: string, logId?: string) {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const dirUri = yield* getLogsDirUri();
-    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-').slice(0, 19);
-    const folderName = logId ? `${EXEC_ANON_FOLDER_PREFIX}${timestamp}-${logId}` : `${EXEC_ANON_FOLDER_PREFIX}${timestamp}`;
-    const runDirUri = Utils.joinPath(dirUri, folderName);
-    yield* api.services.FsService.createDirectory(runDirUri);
+export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(function* (
+  code: string,
+  result: ExecuteAnonymousResult,
+  logBody: string,
+  logId?: string
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const dirUri = yield* getLogsDirUri();
+  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-').slice(0, 19);
+  const folderName = logId
+    ? `${EXEC_ANON_FOLDER_PREFIX}${timestamp}-${logId}`
+    : `${EXEC_ANON_FOLDER_PREFIX}${timestamp}`;
+  const runDirUri = Utils.joinPath(dirUri, folderName);
+  yield* api.services.FsService.createDirectory(runDirUri);
 
-    const resultWithExecutedAt: ResultWithExecutedAt = {
-      ...result,
-      executedAt: new Date().toISOString(),
-      ...(logId !== undefined && { logId })
-    };
-    yield* Effect.all(
-      [
-        api.services.FsService.writeFile(
-          Utils.joinPath(runDirUri, 'result.json'),
-          JSON.stringify(resultWithExecutedAt, undefined, 2)
-        ),
-        api.services.FsService.writeFile(Utils.joinPath(runDirUri, 'script.apex'), code),
-        api.services.FsService.writeFile(Utils.joinPath(runDirUri, 'debug.log'), logBody)
-      ],
-      { concurrency: 'unbounded' }
-    );
+  const resultWithExecutedAt: ResultWithExecutedAt = {
+    ...result,
+    executedAt: new Date().toISOString(),
+    ...(logId !== undefined && { logId })
+  };
+  yield* Effect.all(
+    [
+      api.services.FsService.writeFile(
+        Utils.joinPath(runDirUri, 'result.json'),
+        JSON.stringify(resultWithExecutedAt, undefined, 2)
+      ),
+      api.services.FsService.writeFile(Utils.joinPath(runDirUri, 'script.apex'), code),
+      api.services.FsService.writeFile(Utils.joinPath(runDirUri, 'debug.log'), logBody)
+    ],
+    { concurrency: 'unbounded' }
+  );
 
-    return Utils.joinPath(runDirUri, 'debug.log');
-  }
-);
+  return Utils.joinPath(runDirUri, 'debug.log');
+});

@@ -12,7 +12,12 @@ export type MessageEntry = { text: string; namePos: number; nameEnd: number };
 type MessagesMap = Record<string, MessageEntry>;
 
 type TsLike = {
-  createSourceFile: (path: string, content: string, target: number, setParentNodes: boolean) => { statements: Iterable<unknown> };
+  createSourceFile: (
+    path: string,
+    content: string,
+    target: number,
+    setParentNodes: boolean
+  ) => { statements: Iterable<unknown> };
   SyntaxKind: Record<string, number>;
 };
 
@@ -37,7 +42,8 @@ const findI18nPath = (packageRoot: string): string | undefined => {
   if (found) return found;
   const srcDir = path.join(packageRoot, 'src');
   if (!fs.existsSync(srcDir)) return undefined;
-  const match = fs.readdirSync(srcDir, { withFileTypes: true, recursive: true })
+  const match = fs
+    .readdirSync(srcDir, { withFileTypes: true, recursive: true })
     .find(e => e.name === 'i18n.ts' && !e.isDirectory() && path.basename(e.parentPath) === 'messages');
   return match ? path.join(match.parentPath, match.name) : undefined;
 };
@@ -47,10 +53,7 @@ type PropNode = {
   initializer?: unknown;
 };
 
-const extractMessagesFromObjectLiteral = (
-  ts: TsLike,
-  node: { properties?: PropNode[] }
-): MessagesMap => {
+const extractMessagesFromObjectLiteral = (ts: TsLike, node: { properties?: PropNode[] }): MessagesMap => {
   const entries: Array<[string, MessageEntry]> = [];
   for (const prop of node.properties ?? []) {
     const name = prop.name as { text?: string; kind?: number; pos?: number; end?: number } | undefined;
@@ -66,11 +69,10 @@ const extractMessagesFromObjectLiteral = (
       init.kind === sk.StringLiteral || init.kind === sk.NoSubstitutionTemplateLiteral
         ? (init as { text: string }).text
         : init.kind === sk.TemplateExpression
-          ? ((init as { head: { text: string }; templateSpans: Array<{ literal: { text: string } }> }).head
-              .text +
+          ? (init as { head: { text: string }; templateSpans: Array<{ literal: { text: string } }> }).head.text +
             (init as { templateSpans: Array<{ literal: { text: string } }> }).templateSpans
               .map(s => s.literal.text)
-              .join(''))
+              .join('')
           : undefined;
     if (text !== undefined) {
       entries.push([key, { text, namePos: nameStart, nameEnd: name.end ?? 0 }]);
@@ -103,15 +105,9 @@ const extractMessagesFromSource = (ts: TsLike, sourceFile: { statements: Iterabl
 
 export type MessagesResult = { i18nPath: string; entries: MessagesMap };
 
-const cache = new Map<
-  string,
-  { result: MessagesResult; mtimeMs: number }
->();
+const cache = new Map<string, { result: MessagesResult; mtimeMs: number }>();
 
-export const getMessagesForFile = (
-  ts: TsLike,
-  sourceFilePath: string
-): MessagesResult | undefined => {
+export const getMessagesForFile = (ts: TsLike, sourceFilePath: string): MessagesResult | undefined => {
   const packageRoot = findPackageRoot(sourceFilePath);
   if (!packageRoot) return undefined;
   const i18nPath = findI18nPath(packageRoot);

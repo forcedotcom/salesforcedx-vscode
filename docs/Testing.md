@@ -29,7 +29,9 @@ This repo uses `jest` for testing and it's probably the best place to start. [Do
 
 ### coverage
 
-We compute test coverage locally but don't send it anywhere, nor is there a requirement to do so
+We don't compute test coverage or send it anywhere, nor is there a requirement to do so.
+
+Use ex: `npm run test -w packages/salesforcedx-vscode-soql -- --coverage` to see it for any package
 
 ## End to End Testing
 

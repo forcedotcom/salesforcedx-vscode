@@ -161,7 +161,6 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
   })
 }) {}
 
-
 const getDeployMessage = (components: ComponentSet): string => {
   const byType = Map.groupBy(components.getSourceComponents().toArray(), c =>
     !c.isMarkedForDelete() || c.getDestructiveChangesType() === undefined ? 'deploy' : 'delete'

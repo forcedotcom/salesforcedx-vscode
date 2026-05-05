@@ -13,7 +13,7 @@ export class FieldCompareConditionImpl implements FieldCompareCondition {
     public field: Field,
     public operator: ConditionOperator,
     public compareValue: CompareValue
-  ) { }
+  ) {}
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return `${this.field.toSoqlSyntax(options)} ${this.operator} ${this.compareValue.toSoqlSyntax(options)}`;
   }

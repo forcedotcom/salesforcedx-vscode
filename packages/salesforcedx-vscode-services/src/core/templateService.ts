@@ -24,6 +24,16 @@ import { ProjectService } from './projectService';
 /** Re-export for consumers that don't depend on @salesforce/templates */
 export { TemplateType, type CreateOutput } from '@salesforce/templates';
 
+/**
+ * Project options where `ns` and `loginurl` may be omitted by callers; the
+ * service fills defaults (no namespace, production login URL) before invoking
+ * @salesforce/templates which requires both as strings.
+ */
+type ProjectCreateOptions = Omit<SfTemplates.ProjectOptions, 'ns' | 'loginurl'> & {
+  readonly ns?: string;
+  readonly loginurl?: string;
+};
+
 /** Maps TemplateType to its options type for type-safe create params */
 export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
   T extends SfTemplates.TemplateType.AnalyticsTemplate
@@ -43,7 +53,7 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
                 : T extends SfTemplates.TemplateType.LightningTest
                   ? SfTemplates.LightningTestOptions
                   : T extends SfTemplates.TemplateType.Project
-                    ? SfTemplates.ProjectOptions
+                    ? ProjectCreateOptions
                     : T extends SfTemplates.TemplateType.VisualforceComponent
                       ? SfTemplates.VisualforceComponentOptions
                       : T extends SfTemplates.TemplateType.VisualforcePage
@@ -86,7 +96,9 @@ const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
   const ext = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
   const extensionUri = ext?.extensionUri;
   if (!extensionUri) {
-    return yield* new TemplatesRootPathNotAvailableError({ message: nls.localize('template_service_extension_context_not_available') });
+    return yield* new TemplatesRootPathNotAvailableError({
+      message: nls.localize('template_service_extension_context_not_available')
+    });
   }
   return extensionUri;
 });
@@ -127,7 +139,11 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
         },
         catch: e =>
           new TemplatesManifestLoadError({
-            message: nls.localize('template_service_file_copy_failed', relativePath, e instanceof Error ? e.message : String(e)),
+            message: nls.localize(
+              'template_service_file_copy_failed',
+              relativePath,
+              e instanceof Error ? e.message : String(e)
+            ),
             cause: e
           })
       }).pipe(
@@ -148,7 +164,12 @@ const getApiVersionFromProject = Effect.fn('TemplateService.getApiVersionFromPro
   const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
   return yield* Effect.fromNullable(sourceApiVersion).pipe(
     Effect.map(String),
-    Effect.orElseFail(() => new MissingProjectSourceApiVersionError({ message: nls.localize('template_service_source_api_version_not_defined') }))
+    Effect.orElseFail(
+      () =>
+        new MissingProjectSourceApiVersionError({
+          message: nls.localize('template_service_source_api_version_not_defined')
+        })
+    )
   );
 });
 
@@ -167,8 +188,42 @@ const getTemplatesRoot = Effect.fn('TemplateService.getTemplatesRoot')(function*
 });
 
 const resolveApiVersion = Effect.fn('TemplateService.resolveApiVersion')(function* () {
-  return yield* getApiVersionFromProject().pipe(Effect.orElse(() => getApiVersionFromConnection()));
+  return Option.getOrUndefined(
+    yield* getApiVersionFromProject().pipe(
+      Effect.orElse(() => getApiVersionFromConnection()),
+      Effect.option
+    )
+  );
 });
+
+const resolveOptionsWithApiVersion = Effect.fn('TemplateService.resolveOptionsWithApiVersion')(function* (
+  params: CreateParams<SfTemplates.TemplateType>
+) {
+  const apiversion = params.options.apiversion ?? (yield* resolveApiVersion());
+  return apiversion ? { ...params.options, apiversion } : params.options;
+});
+
+/** @salesforce/templates requires ns/loginurl as strings; fill defaults so callers can omit them. */
+const PROJECT_OPTION_DEFAULTS = {
+  ns: '',
+  loginurl: 'https://login.salesforce.com'
+} as const;
+
+const isProjectParams = (
+  params: CreateParams<SfTemplates.TemplateType>
+): params is CreateParams<SfTemplates.TemplateType.Project> => params.templateType === SfTemplates.TemplateType.Project;
+
+const withProjectDefaults = (params: CreateParams<SfTemplates.TemplateType>): CreateParams<SfTemplates.TemplateType> =>
+  isProjectParams(params)
+    ? {
+        ...params,
+        options: {
+          ...params.options,
+          ns: params.options.ns ?? PROJECT_OPTION_DEFAULTS.ns,
+          loginurl: params.options.loginurl ?? PROJECT_OPTION_DEFAULTS.loginurl
+        }
+      }
+    : params;
 
 /**
  * Service that wraps @salesforce/templates TemplateService for creating templates.
@@ -194,11 +249,8 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
         templatesRootPath,
         fs: nodeFs
       });
-      const resolvedApiVersion = Option.fromNullable(params.options.apiversion ?? (yield* resolveApiVersion()));
-      const optionsWithApiVersion = Option.match(resolvedApiVersion, {
-        onNone: () => params.options,
-        onSome: apiversion => ({ ...params.options, apiversion })
-      });
+      const paramsWithDefaults = withProjectDefaults(params);
+      const optionsWithApiVersion = yield* resolveOptionsWithApiVersion(paramsWithDefaults);
       const templateOptions = params.outputdir
         ? {
             ...optionsWithApiVersion,

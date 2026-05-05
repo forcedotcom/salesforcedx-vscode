@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-testing",
+  "private": true,
   "displayName": "Apex Testing",
   "description": "Provides Apex test execution and management features",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -14,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.8.0",
+  "version": "66.10.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,7 +36,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*"
+    "@salesforce/playwright-vscode-ext": "*",
+    "salesforcedx-vscode-services": "66.10.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -68,7 +70,8 @@
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../effect-ext-utils:compile"
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -114,7 +117,7 @@
       ]
     },
     "test": {
-      "command": "jest --coverage",
+      "command": "jest",
       "dependencies": [
         "test:compile"
       ],
@@ -211,15 +214,18 @@
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-metadata:vscode:bundle",
-        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-metadata:vscode:package",
+        "../salesforcedx-vscode-apex-log:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [

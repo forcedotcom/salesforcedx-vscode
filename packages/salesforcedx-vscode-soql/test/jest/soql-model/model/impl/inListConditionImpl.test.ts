@@ -16,19 +16,22 @@ describe('InListConditionImpl should', () => {
       kind: 'inList',
       field: { kind: 'fieldRef', fieldName: 'field' },
       operator: 'NOT IN',
-      values: [{ kind: 'literal', value: "'abc'" }, { kind: 'literal', value: "'def'" }]
+      values: [
+        { kind: 'literal', type: 'STRING', value: "'abc'" },
+        { kind: 'literal', type: 'STRING', value: "'def'" }
+      ]
     };
     const actual = new InListConditionImpl(new FieldRefImpl('field'), ConditionOperator.NotIn, [
-      new LiteralImpl("'abc'"),
-      new LiteralImpl("'def'")
+      new LiteralImpl('STRING', "'abc'"),
+      new LiteralImpl('STRING', "'def'")
     ]);
     expect(actual).toEqual(expected);
   });
   it('return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()', () => {
     const expected = "field NOT IN ( 'abc', 'def' )";
     const actual = new InListConditionImpl(new FieldRefImpl('field'), ConditionOperator.NotIn, [
-      new LiteralImpl("'abc'"),
-      new LiteralImpl("'def'")
+      new LiteralImpl('STRING', "'abc'"),
+      new LiteralImpl('STRING', "'def'")
     ]).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

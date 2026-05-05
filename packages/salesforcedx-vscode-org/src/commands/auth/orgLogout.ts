@@ -77,19 +77,21 @@ const getAliasesForUsername = Effect.fn('OrgLogout.getAliasesForUsername')(funct
   return yield* api.services.AliasService.getAliasesFromUsername(username);
 });
 
-const checkIsCurrentTargetOrg = Effect.fn('OrgLogout.checkIsCurrentTargetOrg')(
-  function* (username: string, aliases: readonly string[]) {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
-  }
-);
+const checkIsCurrentTargetOrg = Effect.fn('OrgLogout.checkIsCurrentTargetOrg')(function* (
+  username: string,
+  aliases: readonly string[]
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
+});
 
-const checkIsCurrentTargetDevHub = Effect.fn('OrgLogout.checkIsCurrentTargetDevHub')(
-  function* (username: string, aliases: readonly string[]) {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* api.services.ConfigService.isCurrentTargetDevHub(username, aliases);
-  }
-);
+const checkIsCurrentTargetDevHub = Effect.fn('OrgLogout.checkIsCurrentTargetDevHub')(function* (
+  username: string,
+  aliases: readonly string[]
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.ConfigService.isCurrentTargetDevHub(username, aliases);
+});
 
 const removeOrgAliases = Effect.fn('OrgLogout.removeOrgAliases')(function* (username: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

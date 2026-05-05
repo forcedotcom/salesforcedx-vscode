@@ -9,13 +9,13 @@ import { LiteralImpl } from '../../../../../src/soql-model/model/impl/literalImp
 
 describe('LiteralImpl should', () => {
   it('store the literal type and value', () => {
-    const expected = { kind: 'literal', value: 'TRUE' };
-    const actual = new LiteralImpl('TRUE');
+    const expected = { kind: 'literal', type: 'BOOLEAN', value: 'TRUE' };
+    const actual = new LiteralImpl('BOOLEAN', 'TRUE');
     expect(actual).toEqual(expected);
   });
   it('return the value of the literal for toSoqlSyntax()', () => {
     const expected = 'TRUE';
-    const actual = new LiteralImpl('TRUE').toSoqlSyntax();
+    const actual = new LiteralImpl('BOOLEAN', 'TRUE').toSoqlSyntax();
     expect(actual).toEqual(expected);
   });
 });
