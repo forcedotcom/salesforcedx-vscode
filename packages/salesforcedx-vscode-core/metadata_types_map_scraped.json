@@ -26794,7 +26794,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. Invocable action type used by invocation operations. Values are: apex api createCatalogItemRequest flow generatePromptResponse externalService quickAction slack standardInvocableAction",
+        "Description": "Required. Invocable action type used by invocation operations. Values are: api apex auraEnabled createCatalogItemRequest executeIntegrationProcedure externalService flow generatePromptResponse mcpTool namedQuery quickAction retriever runExpressionSet slack standardInvocableAction stub",
         "Field Name": "invocationTargetType",
         "Field Type": "PlannerFunctionInvocableTargetType (enumeration of type string)"
       },
@@ -43294,9 +43294,9 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents your org’s email authorization settings. This type extends the Metadata metadata type and inherits its fullName field.",
+    "short_description": "Represents your org’s email authorization settings. This type extends the MetadataForSettings metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailauthorizationsettings.htm",
-    "parent": "Metadata"
+    "parent": "MetadataForSettings"
   },
   "EmailIntegrationSettings": {
     "fields": [
