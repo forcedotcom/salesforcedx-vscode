@@ -35,6 +35,7 @@ import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
+import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { TerminalService } from './terminal/terminalService';
@@ -75,6 +76,7 @@ export type SalesforceVSCodeServicesApi = {
       | ConnectionService
       | EditorService
       | ErrorHandlerService
+      | ExecuteAnonymousService
       | FileChangePubSub
       | FsService
       | MediaService
@@ -92,6 +94,7 @@ export type SalesforceVSCodeServicesApi = {
       | SourceTrackingService
       | TemplateService
       | TerminalService
+      | TraceFlagService
       | TransmogrifierService
       | WorkspaceService
     >;
@@ -229,9 +232,9 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       { concurrency: 'unbounded' }
     );
   }
-  // watch default org changes to update VS Code context variables and other services
   yield* Effect.all(
     [
+      Effect.fork(annotateExtensionPackType),
       // watch default org changes to update VS Code context variables and other services
       Effect.forkIn(watchDefaultOrgContext(), scope),
       // watch the config files for changes, which various services use to invalidate caches
@@ -256,6 +259,9 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   // their commands on startup — must be blocking (not forked) so the context key is set before
   // VS Code evaluates `when` clauses for command palette visibility
   yield* ProjectService.isSalesforceProject();
+  // set sf:internal_dev context so internal commands are visible in explorer menus when enabled
+  const internalDev = yield* SettingsService.getInternalDev();
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
 });
 
 /**

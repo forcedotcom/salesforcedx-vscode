@@ -499,10 +499,7 @@ export abstract class BaseServer {
         // watched-file event ordering guarantee; refreshing typings when a new LWC bundle meta is created keeps
         // `.sfdx/typings/lwc/customlabels.d.ts` aligned without requiring a VS Code reload.
         const hasNewLwcBundleMetaCreated = changes.some(
-          e =>
-            e.type === FileChangeType.Created &&
-            e.uri.includes('/lwc/') &&
-            e.uri.endsWith('.js-meta.xml')
+          e => e.type === FileChangeType.Created && e.uri.includes('/lwc/') && e.uri.endsWith('.js-meta.xml')
         );
         try {
           if (hasMetaChange) {

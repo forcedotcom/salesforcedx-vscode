@@ -16,12 +16,12 @@ describe('FieldCompareConditionImpl should', () => {
       kind: 'fieldCompare',
       field: { kind: 'fieldRef', fieldName: 'field' },
       operator: '=',
-      compareValue: { kind: 'literal', value: "'abc'" }
+      compareValue: { kind: 'literal', type: 'STRING', value: "'abc'" }
     };
     const actual = new FieldCompareConditionImpl(
       new FieldRefImpl('field'),
       ConditionOperator.Equals,
-      new LiteralImpl("'abc'")
+      new LiteralImpl('STRING', "'abc'")
     );
     expect(actual).toEqual(expected);
   });
@@ -30,7 +30,7 @@ describe('FieldCompareConditionImpl should', () => {
     const actual = new FieldCompareConditionImpl(
       new FieldRefImpl('field'),
       ConditionOperator.Equals,
-      new LiteralImpl("'abc'")
+      new LiteralImpl('STRING', "'abc'")
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

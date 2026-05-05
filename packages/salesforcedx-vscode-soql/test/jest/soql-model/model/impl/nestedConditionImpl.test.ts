@@ -19,18 +19,26 @@ describe('NestedConditionImpl should', () => {
         kind: 'fieldCompare',
         field: { kind: 'fieldRef', fieldName: 'field' },
         operator: '=',
-        compareValue: { kind: 'literal', value: "'abc'" }
+        compareValue: { kind: 'literal', type: 'STRING', value: "'abc'" }
       }
     };
     const actual = new NestedConditionImpl(
-      new FieldCompareConditionImpl(new FieldRefImpl('field'), ConditionOperator.Equals, new LiteralImpl("'abc'"))
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.Equals,
+        new LiteralImpl('STRING', "'abc'")
+      )
     );
     expect(actual).toEqual(expected);
   });
   it('return nested condition in parentheses for toSoqlSyntax()', () => {
     const expected = "( field = 'abc' )";
     const actual = new NestedConditionImpl(
-      new FieldCompareConditionImpl(new FieldRefImpl('field'), ConditionOperator.Equals, new LiteralImpl("'abc'"))
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.Equals,
+        new LiteralImpl('STRING', "'abc'")
+      )
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

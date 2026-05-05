@@ -1,12 +1,13 @@
 {
   "name": "salesforcedx-vscode-apex-log",
+  "private": true,
   "displayName": "Salesforce Apex Log",
   "description": "Execute anonymous Apex, retrieve Apex logs, and manage trace flags",
   "icon": "images/VSCodeBundle.png",
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.9.0",
+  "version": "66.10.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -37,7 +38,7 @@
     "@salesforce/core": "^8.28.0",
     "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.27.4",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "66.10.1"
   },
   "scripts": {
     "vscode:bundle": "wireit",
@@ -213,14 +214,17 @@
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-metadata:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [

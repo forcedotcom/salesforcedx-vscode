@@ -2,6 +2,21 @@ name: LWC E2E (Playwright)
 
 on:
   workflow_dispatch:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave
+          empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for desktop Playwright E2E (e.g. 1.116.0). Leave
+          empty to use repo variable PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
   push:
     branches-ignore: [main, develop]
     paths-ignore:
@@ -25,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' && inputs.vscode_version != '' && inputs.vscode_version || vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -59,7 +74,7 @@ jobs:
       - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
         with:
-          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
 
       - name: Run LWC Playwright web tests (parallel)
         if: steps.try-run.outcome == 'failure'
@@ -106,11 +121,15 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            test_runner_prefix: 'xvfb-run -a '
       fail-fast: false
     env:
       VSCODE_DESKTOP: 1
-      PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+      E2E_FROM_VSIX: 1
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' && inputs.vscode_version != '' && inputs.vscode_version || vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -142,13 +161,12 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
         with:
-          vscode-version: ${{ vars.PLAYWRIGHT_VSCODE_VERSION }}
+          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
@@ -164,16 +182,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
 
       - name: Copy span files to test-results
         if: always()

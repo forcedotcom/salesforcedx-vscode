@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-oas",
+  "private": true,
   "displayName": "Apex OpenAPI Specification",
   "description": "Provides OpenAPI Specification generation for Apex REST and AuraEnabled classes",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -14,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.9.0",
+  "version": "66.10.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -30,8 +31,10 @@
     "workspaceContains:sfdx-project.json"
   ],
   "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
+    "effect": "^3.20.0",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@stoplight/spectral-core": "1.21.0",
     "@stoplight/spectral-functions": "1.10.1",
@@ -48,13 +51,14 @@
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
     "openapi-types": "12.1.3",
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-apex": "66.10.1",
+    "salesforcedx-vscode-core": "66.10.1",
     "vscode-languageserver-protocol": "3.17.5"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-services",
     "salesforce.salesforcedx-einstein-gpt"
   ],
   "scripts": {
@@ -73,6 +77,7 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../effect-ext-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
@@ -103,7 +108,8 @@
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
-        "compile"
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",

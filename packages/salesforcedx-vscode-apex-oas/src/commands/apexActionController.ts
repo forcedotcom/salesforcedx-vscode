@@ -9,7 +9,6 @@ import type { OASGenerationCommandMeasure, OASGenerationCommandProperties } from
 import {
   getOrgApiVersion,
   notificationService,
-  TimingUtils,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
@@ -55,7 +54,7 @@ export class ApexActionController {
     let name: string = 'Should Never Be Empty';
     let overwrite = true;
     this.gil.clear();
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     let props: OASGenerationCommandProperties = {
       isClass: `${isClass}`,
       overwrite: 'false',
@@ -122,9 +121,9 @@ export class ApexActionController {
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
 
           // Step 7: Use the strategy to generate the OAS
-          const generationStartTime = TimingUtils.getCurrentTime();
+          const generationStartTime = globalThis.performance.now();
           const openApiDocument = await strategy.generateOAS();
-          const generationHrDuration = TimingUtils.getCurrentTime() - generationStartTime;
+          const generationHrDuration = globalThis.performance.now() - generationStartTime;
           this.gil.addPostGenDoc(openApiDocument);
           this.gil.addGenerationStrategy(this.getBidRule() ?? 'MANUAL');
           this.gil.addOutputTokenLimit(strategy!.outputTokenLimit);

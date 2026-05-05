@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-replay-debugger",
+  "private": true,
   "displayName": "Apex Replay Debugger",
   "description": "Replay Apex execution from Apex Debug Log",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -14,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.9.0",
+  "version": "66.10.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,17 +35,17 @@
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.20.0",
-    "salesforcedx-vscode-apex-log": "*",
+    "salesforcedx-vscode-apex-log": "66.10.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@playwright/test": "*",
     "@salesforce/core": "^8.28.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*",
-    "salesforcedx-vscode-metadata": "*",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-apex": "66.10.1",
+    "salesforcedx-vscode-core": "66.10.1",
+    "salesforcedx-vscode-metadata": "66.10.1",
+    "salesforcedx-vscode-services": "66.10.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -168,18 +169,21 @@
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-core:vscode:bundle",
-        "../salesforcedx-vscode-apex:vscode:bundle",
-        "../salesforcedx-vscode-apex-log:vscode:bundle",
-        "../salesforcedx-vscode-apex-testing:vscode:bundle",
-        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-apex:vscode:package",
+        "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-apex-testing:vscode:package",
+        "../salesforcedx-vscode-metadata:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [

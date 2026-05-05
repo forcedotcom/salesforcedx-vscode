@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-services",
+  "private": true,
   "displayName": "Salesforce Services",
   "description": "a shared services extension for other extensions to use",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -14,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.9.0",
+  "version": "66.10.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -126,7 +127,9 @@
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
-        "out/**"
+        "out/**",
+        "node_modules/@salesforce/templates/lib/**",
+        "../../node_modules/@salesforce/templates/lib/**"
       ],
       "output": [
         "dist"

@@ -18,6 +18,7 @@
 
 export const messages = {
   active_text_editor_not_apex: 'The active text editor is not an Apex Class file',
+  channel_name: 'Apex OpenAPI Specification',
   apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
   artifact_failed: 'Failed to save the artifact: %s',
   cannot_gather_context: 'An error occurred while gathering context for the Apex class.',

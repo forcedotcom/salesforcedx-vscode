@@ -13,8 +13,7 @@ import {
   EmptyParametersGatherer,
   notificationService,
   ParametersGatherer,
-  ProgressNotification,
-  TimingUtils
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -80,7 +79,7 @@ class StopActiveDebuggerSessionExecutor {
   }
 
   public async execute(response: ContinueResponse<{}>): Promise<void> {
-    const startTime = TimingUtils.getCurrentTime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const channelService = await getChannelService();
