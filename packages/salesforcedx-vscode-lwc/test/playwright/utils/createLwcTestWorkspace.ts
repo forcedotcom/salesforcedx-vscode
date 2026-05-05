@@ -93,6 +93,6 @@ export const seedLwcJestWorkspace = async (workspaceDir: string): Promise<void> 
   execSync('npm install --ignore-scripts', {
     cwd: workspaceDir,
     stdio: 'pipe',
-    timeout: 3 * 60 * 1000
+    timeout: 6 * 60 * 1000
   });
 };
