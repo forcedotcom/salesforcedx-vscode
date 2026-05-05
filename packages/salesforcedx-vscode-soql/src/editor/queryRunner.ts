@@ -21,7 +21,10 @@ type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
 export const runQuery =
   (conn: Connection) =>
-  async (queryText: string, options: { showErrors?: boolean; maxRows?: number } = {}): Promise<QueryResult> => {
+  async (
+    queryText: string,
+    options: { showErrors?: boolean; maxRows?: number } = { showErrors: true }
+  ): Promise<QueryResult> => {
     const { maxRows } = options;
     const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
 
