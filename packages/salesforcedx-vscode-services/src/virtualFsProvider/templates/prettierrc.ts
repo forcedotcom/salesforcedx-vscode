@@ -9,6 +9,16 @@ export const prettierrc = [
   '	"trailingComma": "es5",',
   '	"tabWidth": 4,',
   '	"semi": false,',
-  '	"singleQuote": true',
+  '	"singleQuote": true,',
+  '	"overrides": [',
+  '		{',
+  '			"files": "**/lwc/**/*.html",',
+  '			"options": { "parser": "lwc" }',
+  '		},',
+  '		{',
+  '			"files": "*.{cmp,page,component}",',
+  '			"options": { "parser": "html" }',
+  '		}',
+  '	]',
   '}'
 ];
