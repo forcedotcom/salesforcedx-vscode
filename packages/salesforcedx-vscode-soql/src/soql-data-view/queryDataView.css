@@ -77,3 +77,36 @@ header {
   position: relative;
   top: 2px;
 }
+
+#total-records-size-row {
+  margin: 1em 0;
+}
+
+.info-tooltip {
+  position: relative;
+  cursor: default;
+  font-size: 1rem;
+  margin-left: 0.4rem;
+  color: var(--vscode-descriptionForeground, var(--soql-color-medium-grey));
+}
+
+.info-tooltip__text {
+  visibility: hidden;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 1.4rem;
+  width: 22rem;
+  background: var(--vscode-editorHoverWidget-background, #fff);
+  color: var(--vscode-editorHoverWidget-foreground, #000);
+  border: 1px solid var(--vscode-editorHoverWidget-border, #ccc);
+  border-radius: 3px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  white-space: normal;
+  z-index: 10;
+}
+
+.info-tooltip:hover .info-tooltip__text {
+  visibility: visible;
+}
