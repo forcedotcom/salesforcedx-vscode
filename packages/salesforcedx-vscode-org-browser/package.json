@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-org-browser",
+  "private": true,
   "displayName": "Salesforce Org Browser",
   "description": "View and retrieve metadata from your Salesforce org",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -36,7 +37,7 @@
     "@salesforce/core": "^8.28.0",
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "66.10.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"

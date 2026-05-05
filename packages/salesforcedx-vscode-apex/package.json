@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex",
+  "private": true,
   "displayName": "Apex",
   "description": "Provides code-editing features for the Apex programming language",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -39,7 +40,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.28.0",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-core": "66.10.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",

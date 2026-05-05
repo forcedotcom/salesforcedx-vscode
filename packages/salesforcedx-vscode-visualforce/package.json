@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-visualforce",
+  "private": true,
   "displayName": "Visualforce",
   "description": "Provides syntax highlighting for the Visualforce framework",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -39,7 +40,7 @@
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/salesforcedx-visualforce-language-server": "*",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "66.10.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
