@@ -90,8 +90,7 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // with `vscode.github-authentication` disabled there's no provider, so it surfaces this
   // toast. Benign in E2E — tests don't use VS Code accounts.
   'Sign-in failed',
-  'Channel is closed',
-  '__errorMarker' // VS Code extension host structured error wrapper used by internal logging (non-critical)
+  'Channel is closed'
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [

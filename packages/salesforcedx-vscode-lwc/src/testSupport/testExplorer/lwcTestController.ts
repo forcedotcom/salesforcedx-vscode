@@ -19,6 +19,7 @@ import {
   TestFileInfo,
   TestResultStatus
 } from '../types';
+import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import { workspace } from '../workspace';
 import { appendLine, appendRunHeader, appendTestResultsOutput, TestItemLookup } from './testResultsOutput';
 
@@ -34,15 +35,6 @@ const getFileLabel = (testUri: URI): string => {
 };
 
 const createFileId = (testUri: URI): string => `file:${testUri.toString()}`;
-
-/**
- * On macOS, /var/folders is a fixed system symlink to /private/var/folders.
- * vscode.workspace.findFiles returns the symlink path (/var/...) while Jest
- * resolves its rootDir via realpathSync and emits /private/var/... in results.
- * Strip the /private prefix so both sides use the same URI.
- */
-const normalizeJestFsPath = (fsPath: string): string =>
-  process.platform === 'darwin' ? fsPath.replace(/^\/private\//, '/') : fsPath;
 
 const createCaseId = (testUri: URI, testName: string, ancestorTitles: string[] | undefined): string => {
   const suffix = ancestorTitles && ancestorTitles.length > 0 ? `${ancestorTitles.join(' > ')} > ${testName}` : testName;

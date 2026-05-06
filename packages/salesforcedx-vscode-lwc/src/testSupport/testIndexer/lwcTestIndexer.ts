@@ -9,16 +9,9 @@ import { parse } from 'jest-editor-support';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
-/**
- * On macOS, /var/folders is a system symlink to /private/var/folders.
- * Jest resolves paths via realpathSync so its output uses /private/var/...
- * while vscode.workspace.findFiles returns the symlink path /var/...
- * Normalize Jest paths by stripping the /private prefix so map lookups match.
- */
-const normalizeJestFsPath = (fsPath: string): string =>
-  process.platform === 'darwin' ? fsPath.replace(/^\/private\//, '/') : fsPath;
 import { LwcJestTestResults, RawTestResult, TestCaseInfo, TestFileInfo, TestResultStatus } from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
+import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import {
   extractPositionFromFailureMessage,
   IExtendedParseResults,
