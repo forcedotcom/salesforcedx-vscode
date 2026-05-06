@@ -116,13 +116,36 @@ jobs:
       status: Not Implemented
 
   # Set repo variable CBW_TRIGGER_ENABLED=false to disable dispatch to code-builder-web.
-  # Default (unset): trigger CBW release after publish. Use when publishing without CBW promotion.
+  # Default (unset): dispatch after publish. Use when publishing without CBW promotion.
+  # Uses repository_dispatch (not workflow_call) because GitHub Actions blocks
+  # public repos from calling reusable workflows in private repos.
   trigger-cbw-release:
     needs: [publish, prepare-environment-from-main]
     if: needs.publish.result == 'success' && vars.CBW_TRIGGER_ENABLED != 'false'
-    uses: forcedotcom/code-builder-web/.github/workflows/release-on-extension-publish.yml@main
-    with:
-      extensions: ${{ needs.publish.outputs.extensions }}
-      version: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
-      release-type: ${{ needs.prepare-environment-from-main.outputs.CBW_RELEASE_TYPE }}
-    secrets: inherit
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate dispatch token
+        id: dispatch-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.CBW_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CBW_DISPATCH_APP_PRIVATE_KEY }}
+          owner: forcedotcom
+          repositories: code-builder-web
+      - name: Trigger Code Builder Web release
+        env:
+          GH_TOKEN: ${{ steps.dispatch-token.outputs.token }}
+          VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
+          RELEASE_TYPE: ${{ needs.prepare-environment-from-main.outputs.CBW_RELEASE_TYPE }}
+          EXTENSIONS: ${{ needs.publish.outputs.extensions }}
+        run: |
+          echo "Dispatching extension-publish event to code-builder-web with version $VERSION (release-type: $RELEASE_TYPE, extensions: $EXTENSIONS)"
+          gh api repos/forcedotcom/code-builder-web/dispatches \
+            --method POST \
+            -f event_type=extension-publish \
+            -f "client_payload[version]=$VERSION" \
+            -f "client_payload[source]=publishVSCode" \
+            -f "client_payload[release_type]=$RELEASE_TYPE" \
+            -f "client_payload[extensions]=$EXTENSIONS"
+          echo "Dispatch sent successfully"
