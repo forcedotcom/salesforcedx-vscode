@@ -6,6 +6,7 @@
     "packages/salesforcedx-visualforce-markup-language-server/src/beautify/**",
     "packages/*/**/__tests__/fixtures/**",
     ".github/actions/*/lib/**",
+    "scripts/validation-utils.js",
     "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/model.ts",
     "packages/salesforcedx-vscode-soql/src/soql-model/model/model.ts"
   ],
