@@ -62,6 +62,11 @@ const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unkno
   ];
 };
 
+export const isInternalUser = (uiKindString: string | undefined): string | undefined => {
+  if (uiKindString !== 'Desktop') return undefined;
+  return (os?.hostname?.() ?? '').endsWith('internal.salesforce.com') ? 'true' : 'false';
+};
+
 const getPermanentAttributes = () => {
   const { machineId, sessionId, uiKind } = env ?? {};
   const uiKindString = uiKind ? UIKind[uiKind] : undefined;
@@ -70,6 +75,7 @@ const getPermanentAttributes = () => {
     ['common.vscodesessionid', sessionId],
     ['common.vscodeuikind', uiKindString],
     ['common.vscodeversion', version],
+    ['common.isInternal', isInternalUser(uiKindString)],
     // things that only make sense on desktop
     ...((uiKindString === 'Desktop'
       ? [
