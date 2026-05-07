@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { detectConflictsFromTracking } from '../conflict/conflictDetection';
 import { getConflictStateRef } from '../conflict/conflictTreeProvider';
-import { conflictTreeProvider, ensureConflictView } from '../conflict/conflictView';
+import { CONFLICTS_VIEW_ID, conflictTreeProvider, ensureConflictView } from '../conflict/conflictView';
 import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
@@ -99,6 +99,7 @@ const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(func
     emptyLabel: nls.localize('conflict_detect_no_conflicts')
   }));
   conflictTreeProvider.fireChange();
+  yield* Effect.sync(() => void vscode.commands.executeCommand(`${CONFLICTS_VIEW_ID}.focus`));
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const msg = nls.localize('deploy_source_conflicts_detected', [...pairs].map(p => p.fileName).join(', '));
