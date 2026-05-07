@@ -50,6 +50,12 @@ export class SourceTrackingConflictError extends Schema.TaggedError<SourceTracki
 ) {}
 const toSourceTrackingError = (error: unknown) => new SourceTrackingError({ cause: unknownToErrorCause(error).cause });
 
+// Minimum ms between consecutive rereads of the same tracking source.
+// Prevents redundant filesystem/network work when multiple callers fire in a burst
+// (e.g. status bar poll + deploy-on-save within the same few seconds).
+const LOCAL_REREAD_TTL_MS = 2000;
+const REMOTE_REREAD_TTL_MS = 15_000;
+
 const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
 type ResolvedChangeResult = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
 const isResolvedChangeResult = (c: ChangeResult): c is ResolvedChangeResult => Schema.is(ResolvedChangeResultSchema)(c);
@@ -74,6 +80,11 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     const localSemaphore = yield* Effect.makeSemaphore(1);
     const remoteSemaphore = yield* Effect.makeSemaphore(1);
 
+    // TTL timestamps — reset to 0 whenever the org changes so the first call after
+    // an org switch always performs a real reread.
+    const lastRereadLocalAtRef = yield* Ref.make(0);
+    const lastRereadRemoteAtRef = yield* Ref.make(0);
+
     // Lazy singleton for SourceTracking instance with org ID validation
     const trackingRef = yield* Ref.make<Option.Option<{ tracking: SourceTracking; orgId: string }>>(Option.none());
 
@@ -94,9 +105,12 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
         return yield* new SourceTrackingNotEnabledError({ message: 'Source tracking is not enabled' });
       }
 
-      // Cache it with current org ID
+      // Cache it with current org ID, and reset reread timestamps so the first
+      // call after an org switch always performs a real reread.
       if (currentOrgId) {
         yield* Ref.set(trackingRef, Option.some({ tracking, orgId: currentOrgId }));
+        yield* Ref.set(lastRereadLocalAtRef, 0);
+        yield* Ref.set(lastRereadRemoteAtRef, 0);
       }
       return tracking;
     });
@@ -151,19 +165,39 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       return ref.tracksSource === true;
     });
 
-    /** Helper: Re-read local tracking with error handling */
+    /** Helper: Re-read local tracking, skipping if a reread completed within LOCAL_REREAD_TTL_MS */
     const rereadLocal = (tracking: SourceTracking) =>
-      Effect.tryPromise({
-        try: () => tracking.reReadLocalTrackingCache(),
-        catch: toSourceTrackingError
-      }).pipe(Effect.withSpan('STL.ReReadLocalTrackingCache'));
+      Ref.get(lastRereadLocalAtRef).pipe(
+        Effect.flatMap(last =>
+          Date.now() - last < LOCAL_REREAD_TTL_MS
+            ? Effect.void
+            : Ref.set(lastRereadLocalAtRef, Date.now()).pipe(
+                Effect.andThen(
+                  Effect.tryPromise({
+                    try: () => tracking.reReadLocalTrackingCache(),
+                    catch: toSourceTrackingError
+                  }).pipe(Effect.withSpan('STL.ReReadLocalTrackingCache'))
+                )
+              )
+        )
+      );
 
-    /** Helper: Re-read remote tracking with error handling */
+    /** Helper: Re-read remote tracking, skipping if a reread completed within REMOTE_REREAD_TTL_MS */
     const rereadRemote = (tracking: SourceTracking) =>
-      Effect.tryPromise({
-        try: () => tracking.reReadRemoteTracking(),
-        catch: toSourceTrackingError
-      }).pipe(Effect.withSpan('STL.ReReadRemoteTracking'));
+      Ref.get(lastRereadRemoteAtRef).pipe(
+        Effect.flatMap(last =>
+          Date.now() - last < REMOTE_REREAD_TTL_MS
+            ? Effect.void
+            : Ref.set(lastRereadRemoteAtRef, Date.now()).pipe(
+                Effect.andThen(
+                  Effect.tryPromise({
+                    try: () => tracking.reReadRemoteTracking(),
+                    catch: toSourceTrackingError
+                  }).pipe(Effect.withSpan('STL.ReReadRemoteTracking'))
+                )
+              )
+        )
+      );
 
     /** Helper: Re-read both local and remote tracking with error handling */
     const rereadBoth = (tracking: SourceTracking) =>
