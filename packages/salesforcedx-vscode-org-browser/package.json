@@ -34,9 +34,9 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.28.0",
+    "@salesforce/core": "^8.29.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.32.5",
+    "@salesforce/source-deploy-retrieve": "^12.35.3",
     "salesforcedx-vscode-services": "66.10.1"
   },
   "extensionDependencies": [
