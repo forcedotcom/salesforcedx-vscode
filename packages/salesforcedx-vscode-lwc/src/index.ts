@@ -25,6 +25,7 @@ import { nls } from './messages';
 import { activateMetaSupport } from './metasupport/metaSupport';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
+import { telemetryService } from './telemetry';
 import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
 export const activate = async (extensionContext: ExtensionContext) => {
@@ -147,12 +148,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   yield* channelSvc.appendToChannel(nls.localize('lwc_extension_activation_complete'));
 });
 
-export const deactivate = async () => {
+export const deactivate = () => {
   log('Lightning Web Components Extension Deactivated');
-  if (process.env.ESBUILD_PLATFORM !== 'web') {
-    const { telemetryService } = await import('./telemetry/index.js');
-    telemetryService.sendEventData('extensionDeactivated');
-  }
+  telemetryService.sendEventData('extensionDeactivated');
 };
 
 const getActivationMode = (): string => {
