@@ -26,6 +26,7 @@ import { getOrgApexClassProvider } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
+  createMethodId,
   createNamespaceId,
   createSuiteClassId,
   createSuiteId,
@@ -75,6 +76,8 @@ export class ApexTestController {
   private suiteItems: Map<string, vscode.TestItem> = new Map();
   private classItems: Map<string, vscode.TestItem> = new Map();
   private methodItems: Map<string, vscode.TestItem> = new Map();
+  private classToParentItem: Map<string, vscode.TestItem> = new Map();
+  private hasRestoredResults = false;
   private suiteParentItem: vscode.TestItem | undefined;
   private lastProcessedResultFile: URI | null = null;
   private connection: Connection | undefined;
@@ -116,6 +119,7 @@ export class ApexTestController {
 
   public async refresh(): Promise<void> {
     this.clearTestItems();
+    this.hasRestoredResults = true; // Suppress restoration — user intentionally cleared
     await this.discoverTests();
   }
 
@@ -183,6 +187,12 @@ export class ApexTestController {
       if (discoveryResult.classes.length > 0) {
         await this.populateTestItemsFromOrg(discoveryResult.classes);
       }
+
+      // Restore previous test results on initial load (not on manual refresh)
+      if (!this.hasRestoredResults) {
+        this.hasRestoredResults = true;
+        await this.restorePreviousResults();
+      }
     } catch (error) {
       console.debug('Failed to discover tests:', error);
       const friendlyMessage = toUserFriendlyApexTestError(error);
@@ -245,6 +255,341 @@ export class ApexTestController {
     return bodyByFullName;
   }
 
+  private static readonly RESULT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+  private async restorePreviousResults(): Promise<void> {
+    try {
+      if (!settings.retrieveRestorePreviousResults()) {
+        return;
+      }
+
+      const resultDir = await getTestResultsFolder();
+      const entries = await getApexTestingRuntime().runPromise(
+        Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          return yield* api.services.FsService.readDirectory(resultDir);
+        })
+      );
+
+      // Find all test-result JSON files, sorted oldest-first (last applied wins)
+      const resultUris = entries
+        .filter(uri => uri.path.includes('test-result') && uri.path.endsWith('.json'))
+        .toSorted((a, b) => a.path.localeCompare(b.path));
+
+      if (resultUris.length === 0) {
+        return;
+      }
+
+      // Filter to files within the age threshold
+      const now = Date.now();
+      const recentUris: URI[] = [];
+      for (const uri of resultUris) {
+        const stat = await vscode.workspace.fs.stat(uri);
+        if (now - stat.mtime <= ApexTestController.RESULT_MAX_AGE_MS) {
+          recentUris.push(uri);
+        }
+      }
+
+      if (recentUris.length === 0) {
+        return;
+      }
+
+      // Apply oldest-first so most recent result for each method wins
+      for (const uri of recentUris) {
+        await this.updateTestResults(uri);
+      }
+
+      // Mark all restored results as stale and notify the user
+      this.controller.invalidateTestResults();
+
+      const lastStat = await vscode.workspace.fs.stat(recentUris.at(-1)!);
+      const runDate = new Date(lastStat.mtime).toLocaleString();
+
+      const disableAction = nls.localize('apex_test_results_restored_disable_action');
+      void notificationService
+        .showInformationMessage(
+          nls.localize('apex_test_results_restored_message', String(recentUris.length), runDate),
+          disableAction
+        )
+        .then(selection => {
+          if (selection === disableAction) {
+            void settings.disableRestorePreviousResults();
+          }
+        });
+    } catch {
+      // Non-fatal: if restoration fails, the tree is still valid without results
+    }
+  }
+
+  /**
+   * Incrementally updates the test tree based on deployed metadata changes.
+   * Unlike discoverTests/refresh, this preserves existing test results for unchanged classes.
+   */
+  public async incrementalUpdate(changes: Map<string, string>, includesSuiteChange: boolean): Promise<void> {
+    try {
+      await this.ensureInitialized();
+      console.debug('[Apex Testing] incrementalUpdate called with changes:', [...changes.entries()]);
+
+      // Handle deletions immediately (no API call needed)
+      for (const [fullName, changeType] of changes) {
+        if (changeType === 'deleted') {
+          this.removeClassFromTree(fullName);
+        }
+      }
+
+      // If any created/changed entries remain, call discovery API and apply diff
+      const nonDeleteChanges = new Map([...changes].filter(([_, changeType]) => changeType !== 'deleted'));
+
+      if (nonDeleteChanges.size > 0) {
+        const discoveryResult = await getApexTestingRuntime().runPromise(discoverTests());
+        console.debug(
+          '[Apex Testing] Discovery returned classes:',
+          discoveryResult.classes.map(c => `${c.name}(${c.testMethods?.length ?? 0} methods)`)
+        );
+        await this.persistDiscoveredClasses(discoveryResult.classes);
+        await this.applyIncrementalDiff(discoveryResult.classes, nonDeleteChanges);
+      }
+
+      if (includesSuiteChange) {
+        this.clearAllSuiteChildren();
+      }
+    } catch (error) {
+      console.error('[Apex Testing] Incremental update failed:', error);
+    }
+  }
+
+  private removeClassFromTree(fullClassName: string): void {
+    const classItem = this.classItems.get(fullClassName);
+    if (!classItem) {
+      return;
+    }
+
+    // Remove method items
+    classItem.children.forEach(methodItem => {
+      this.methodItems.delete(methodItem.id);
+    });
+
+    // Remove class from parent
+    const parentItem = this.classToParentItem.get(fullClassName);
+    if (parentItem) {
+      parentItem.children.delete(classItem.id);
+      // Clean up empty parent nodes
+      if (parentItem.children.size === 0) {
+        this.removeEmptyAncestors(parentItem);
+      }
+    }
+
+    this.classItems.delete(fullClassName);
+    this.classToParentItem.delete(fullClassName);
+  }
+
+  private removeEmptyAncestors(item: vscode.TestItem): void {
+    // Walk up the tree removing empty nodes (package → namespace)
+    // TestItems don't have a parent reference, so we search controller.items
+    this.controller.items.forEach(namespaceItem => {
+      namespaceItem.children.forEach(packageItem => {
+        if (packageItem.id === item.id && packageItem.children.size === 0) {
+          namespaceItem.children.delete(packageItem.id);
+        }
+      });
+      if (namespaceItem.children.size === 0) {
+        this.controller.items.delete(namespaceItem.id);
+      }
+    });
+  }
+
+  private async applyIncrementalDiff(
+    discoveredClasses: ToolingTestClass[],
+    changes: Map<string, string>
+  ): Promise<void> {
+    const apexClasses = discoveredClasses.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
+    const discoveryMap = new Map<string, ToolingTestClass>();
+    for (const cls of apexClasses) {
+      discoveryMap.set(getFullClassName(cls), cls);
+    }
+
+    const classNameToUri = await buildClassToUriIndex(apexClasses.map(cls => cls.name));
+    const orgInfo = await getDefaultOrgInfo();
+    const orgKey = resolveDiscoveryOrgKey(orgInfo);
+
+    for (const [fullName, changeType] of changes) {
+      const discoveredClass = discoveryMap.get(fullName);
+      const existingClassItem = this.classItems.get(fullName);
+      console.debug(
+        `[Apex Testing] applyIncrementalDiff: ${fullName} changeType=${changeType} inDiscovery=${!!discoveredClass} inTree=${!!existingClassItem} discoveredMethods=${discoveredClass?.testMethods?.map(m => m.name).join(',') ?? 'N/A'}`
+      );
+
+      if (changeType === 'created' || (!existingClassItem && discoveredClass)) {
+        // New class: add to tree
+        if (discoveredClass) {
+          await this.addClassToTree(discoveredClass, classNameToUri, orgKey);
+        }
+      } else if (changeType === 'changed' && existingClassItem && discoveredClass) {
+        // Invalidate existing results before diffing (so new methods aren't marked stale)
+        this.controller.invalidateTestResults(existingClassItem);
+        await this.diffClassMethods(fullName, existingClassItem, discoveredClass, classNameToUri);
+      } else if (existingClassItem && !discoveredClass) {
+        // Class no longer in discovery (e.g. @isTest removed) — remove it
+        this.removeClassFromTree(fullName);
+      }
+    }
+  }
+
+  private async addClassToTree(cls: ToolingTestClass, classNameToUri: Map<string, URI>, orgKey: string): Promise<void> {
+    const [connection, orgInfo] = await Promise.all([this.getConnection(), getDefaultOrgInfo()]);
+    const classIds = cls.id ? [cls.id] : [];
+    const classIdToPackage = await resolvePackage2Members(
+      connection,
+      classIds,
+      buildClassIdToNamespace([cls]),
+      orgInfo
+    );
+
+    const structure = buildNamespacePackageStructure([cls], classIdToPackage);
+    const createClassAndMethods = createClassAndMethodsFactory({
+      controller: this.controller,
+      classItems: this.classItems,
+      methodItems: this.methodItems,
+      classNameToUri,
+      orgKey,
+      orgOnlyTag: this.orgOnlyTag,
+      inWorkspaceTag: this.inWorkspaceTag
+    });
+
+    for (const [nsKey, pkMap] of structure) {
+      for (const [_pkgKey, classEntriesList] of pkMap) {
+        for (const { fullClassName: fcn, entries } of classEntriesList) {
+          // Find or create namespace node
+          let namespaceItem: vscode.TestItem | undefined;
+          this.controller.items.forEach(item => {
+            if (item.id === createNamespaceId(nsKey)) {
+              namespaceItem = item;
+            }
+          });
+          if (!namespaceItem) {
+            namespaceItem = this.controller.createTestItem(
+              createNamespaceId(nsKey),
+              getNamespaceDisplayLabel(nsKey),
+              undefined
+            );
+            this.controller.items.add(namespaceItem);
+          }
+
+          // Find or create package node
+          const classEntry = classEntriesList[0];
+          const info = classEntry.entries[0].id ? classIdToPackage.get(classEntry.entries[0].id) : undefined;
+          const packageLabel = info?.packageName ?? _pkgKey;
+          const pkgNodeId = `${nsKey}/${_pkgKey}`;
+          let packageItem: vscode.TestItem | undefined;
+          namespaceItem.children.forEach(item => {
+            if (item.id === pkgNodeId || item.label === packageLabel) {
+              packageItem = item;
+            }
+          });
+          if (!packageItem) {
+            packageItem = this.controller.createTestItem(pkgNodeId, packageLabel, undefined);
+            namespaceItem.children.add(packageItem);
+          }
+
+          const classItem = createClassAndMethods(fcn, entries);
+          packageItem.children.add(classItem);
+          this.classToParentItem.set(fcn, packageItem);
+        }
+      }
+    }
+  }
+
+  private async diffClassMethods(
+    fullClassName: string,
+    classItem: vscode.TestItem,
+    discoveredClass: ToolingTestClass,
+    classNameToUri: Map<string, URI>
+  ): Promise<void> {
+    // Tooling API is authoritative for which methods are test methods (@isTest)
+    const discoveredMethodNames = new Set((discoveredClass.testMethods ?? []).map(m => m.name));
+
+    const localUri = classNameToUri.get(discoveredClass.name);
+    const uri = localUri ?? classItem.uri;
+    const isOrgOnly = !localUri;
+
+    // Use LSP for positions (accurate after deploy), fall back to Tooling API positions
+    const methodPositions = new Map<string, { line: number; column: number }>();
+    if (localUri) {
+      const symbolLocations = await getMethodLocationsFromSymbols(localUri, [...discoveredMethodNames]);
+      if (symbolLocations) {
+        for (const [name, location] of symbolLocations) {
+          methodPositions.set(name, { line: location.range.start.line, column: location.range.start.character });
+        }
+      }
+    }
+    for (const method of discoveredClass.testMethods ?? []) {
+      if (!methodPositions.has(method.name)) {
+        methodPositions.set(method.name, {
+          line: Math.max(0, (method.line ?? 1) - 1),
+          column: Math.max(0, (method.column ?? 1) - 1)
+        });
+      }
+    }
+
+    const existingMethodsByName = new Map<string, vscode.TestItem>();
+    classItem.children.forEach(child => {
+      if (isMethod(child.id)) {
+        existingMethodsByName.set(child.label, child);
+      }
+    });
+
+    // Remove methods no longer in discovery
+    for (const [methodName, methodItem] of existingMethodsByName) {
+      if (!discoveredMethodNames.has(methodName)) {
+        this.methodItems.delete(methodItem.id);
+        existingMethodsByName.delete(methodName);
+      }
+    }
+
+    // Sort method names by resolved position
+    const sortedMethodNames = [...discoveredMethodNames].toSorted((a, b) => {
+      const posA = methodPositions.get(a);
+      const posB = methodPositions.get(b);
+      return (posA?.line ?? 0) - (posB?.line ?? 0);
+    });
+
+    // Build ordered children list
+    const orderedChildren: vscode.TestItem[] = [];
+    for (const methodName of sortedMethodNames) {
+      const existing = existingMethodsByName.get(methodName);
+      if (existing) {
+        const pos = methodPositions.get(methodName);
+        if (pos) {
+          const position = new vscode.Position(pos.line, pos.column);
+          existing.range = new vscode.Range(position, position);
+        }
+        orderedChildren.push(existing);
+      } else {
+        const methodId = createMethodId(fullClassName, methodName);
+        const pos = methodPositions.get(methodName) ?? { line: 0, column: 0 };
+        const position = new vscode.Position(pos.line, pos.column);
+        const range = new vscode.Range(position, position);
+        const methodItem = this.controller.createTestItem(methodId, methodName, uri);
+        methodItem.range = range;
+        if (isOrgOnly && this.orgOnlyTag) {
+          methodItem.tags = [this.orgOnlyTag];
+        } else if (this.inWorkspaceTag) {
+          methodItem.tags = [this.inWorkspaceTag];
+        }
+        this.methodItems.set(methodId, methodItem);
+        orderedChildren.push(methodItem);
+      }
+    }
+
+    // Replace all children in source order
+    classItem.children.replace(orderedChildren);
+
+    // Update class tags if workspace presence changed (URI is readonly on TestItem)
+    if (localUri && this.inWorkspaceTag && !classItem.tags?.includes(this.inWorkspaceTag)) {
+      classItem.tags = [this.inWorkspaceTag];
+    }
+  }
+
   public async onResultFileCreate(apexTestDir: URI, testResultUri: URI): Promise<void> {
     const testRunId = await readTestRunIdFile(apexTestDir);
 
@@ -268,6 +613,8 @@ export class ApexTestController {
     this.suiteItems.clear();
     this.classItems.clear();
     this.methodItems.clear();
+    this.classToParentItem.clear();
+    this.hasRestoredResults = false;
     this.suiteParentItem = undefined;
     this.suiteToClasses.clear();
     // Clear cached connection and testService so they're re-fetched for the new org
@@ -339,6 +686,7 @@ export class ApexTestController {
         for (const { fullClassName, entries } of classEntriesList) {
           try {
             packageItem.children.add(createClassAndMethods(fullClassName, entries));
+            this.classToParentItem.set(fullClassName, packageItem);
             processed++;
             if (processed % BATCH_SIZE === 0) {
               await new Promise<void>(resolve => {

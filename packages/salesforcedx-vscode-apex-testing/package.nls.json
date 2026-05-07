@@ -39,6 +39,7 @@
   "apex_test_successful_execution_message": "%s successfully ran",
   "apex_test_failed_execution_message": "%s failed to run",
   "apex_disable_warnings_for_missing_coverage": "Disable UI warning when Apex test coverage is missing.",
+  "apex_restore_previous_results_description": "Restore test results from the most recent test run when the test explorer loads.",
   "apex_testing_walkthrough_open_command": "SFDX: Open Apex Test Explorer Walkthrough",
   "apex_testing_walkthrough_category": "Apex Testing",
   "apex_testing_walkthrough_title": "Apex Test Explorer",

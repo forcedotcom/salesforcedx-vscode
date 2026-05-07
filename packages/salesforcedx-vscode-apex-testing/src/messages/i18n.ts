@@ -107,7 +107,10 @@ export const messages = {
   colorizer_coverage_apply_failed_message: 'Code coverage could not be applied. %s',
   apex_test_suite_name_input_prompt: 'Enter desired Apex test suite name:',
   apex_test_aggregate_failed_message: '%s test(s) failed',
-  apex_test_failed_no_details_message: 'Test failed'
+  apex_test_failed_no_details_message: 'Test failed',
+  apex_test_results_restored_message:
+    'Test results restored from %s previous run(s), most recent: %s. Re-enable via setting: salesforcedx-vscode-apex-testing.restore-previous-results',
+  apex_test_results_restored_disable_action: "Don't Restore Again"
 } as const;
 
 export type MessageKey = keyof typeof messages;

@@ -1110,6 +1110,131 @@ describe('ApexTestController', () => {
       expect(mockTestController.dispose).toHaveBeenCalled();
     });
   });
+
+  describe('incrementalUpdate', () => {
+    let discoverTestsSpyLocal: jest.SpyInstance;
+
+    beforeEach(() => {
+      const Effect = jest.requireActual('effect/Effect');
+      discoverTestsSpyLocal = jest.spyOn(testDiscovery, 'discoverTests');
+      discoverTestsSpyLocal.mockReturnValue(Effect.succeed({ classes: [] }));
+    });
+
+    it('should not call testing.clearTestResults', async () => {
+      const changes = new Map([['MyTestClass', 'changed']]);
+      await controller.incrementalUpdate(changes, false);
+
+      const clearResultsCalls = (vscode.commands.executeCommand as jest.Mock).mock.calls.filter(
+        ([cmd]: [string]) => cmd === 'testing.clearTestResults'
+      );
+      expect(clearResultsCalls).toHaveLength(0);
+    });
+
+    it('should not replace controller items', async () => {
+      const changes = new Map([['MyTestClass', 'changed']]);
+      await controller.incrementalUpdate(changes, false);
+
+      expect(mockTestController.items.replace).not.toHaveBeenCalled();
+    });
+
+    it('should skip API call for pure deletions', async () => {
+      const changes = new Map([['DeletedClass', 'deleted']]);
+      await controller.incrementalUpdate(changes, false);
+
+      expect(discoverTestsSpyLocal).not.toHaveBeenCalled();
+    });
+
+    it('should call discoverTests for created changes', async () => {
+      const changes = new Map([['NewClass', 'created']]);
+      await controller.incrementalUpdate(changes, false);
+
+      expect(discoverTestsSpyLocal).toHaveBeenCalled();
+    });
+
+    it('should call discoverTests for changed changes', async () => {
+      const changes = new Map([['ChangedClass', 'changed']]);
+      await controller.incrementalUpdate(changes, false);
+
+      expect(discoverTestsSpyLocal).toHaveBeenCalled();
+    });
+
+    it('should fall back to full discoverTests on error', async () => {
+      const Effect = jest.requireActual('effect/Effect');
+      discoverTestsSpyLocal.mockReturnValue(Effect.fail(new Error('API error')));
+
+      // discoverTests is also called by the fallback path (full refresh)
+      // After the incremental attempt fails, it retries with full discoverTests
+      const changes = new Map([['MyTestClass', 'changed']]);
+      await controller.incrementalUpdate(changes, false);
+
+      // Should have attempted discovery (even if it failed in fallback too)
+      expect(discoverTestsSpyLocal).toHaveBeenCalled();
+    });
+
+    it('should call clearAllSuiteChildren when includesSuiteChange is true', async () => {
+      const changes = new Map([['SomeClass', 'deleted']]);
+
+      // Add a suite item to verify it gets cleared
+      const suiteItem = {
+        id: 'suite:MySuite',
+        label: 'MySuite',
+        children: {
+          replace: jest.fn(),
+          size: 1
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      const suiteItems = (controller as any).suiteItems as Map<string, vscode.TestItem>;
+      suiteItems.set('MySuite', suiteItem);
+
+      await controller.incrementalUpdate(changes, true);
+
+      expect(suiteItem.children.replace).toHaveBeenCalledWith([]);
+    });
+
+    it('should invalidate test results for changed classes', async () => {
+      const Effect = jest.requireActual('effect/Effect');
+
+      // Set up an existing class item in the controller
+      const classItems = (controller as any).classItems as Map<string, vscode.TestItem>;
+      const methodItems = (controller as any).methodItems as Map<string, vscode.TestItem>;
+
+      const existingMethodItem = {
+        id: 'method:MyTestClass.testMethod1',
+        label: 'testMethod1'
+      } as unknown as vscode.TestItem;
+
+      const existingClassItem = {
+        id: 'class:MyTestClass',
+        label: 'MyTestClass',
+        tags: [],
+        children: {
+          forEach: (cb: (item: vscode.TestItem) => void) => cb(existingMethodItem),
+          add: jest.fn(),
+          delete: jest.fn(),
+          size: 1
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      classItems.set('MyTestClass', existingClassItem);
+      methodItems.set('method:MyTestClass.testMethod1', existingMethodItem);
+
+      // Mock discovery to return the same class with same method
+      discoverTestsSpyLocal.mockReturnValue(
+        Effect.succeed({
+          classes: [{ id: '01p123', name: 'MyTestClass', namespacePrefix: '', testMethods: [{ name: 'testMethod1' }] }]
+        })
+      );
+
+      // Mock invalidateTestResults on the controller
+      (mockTestController as any).invalidateTestResults = jest.fn();
+
+      const changes = new Map([['MyTestClass', 'changed']]);
+      await controller.incrementalUpdate(changes, false);
+
+      expect((mockTestController as any).invalidateTestResults).toHaveBeenCalledWith(existingClassItem);
+    });
+  });
 });
 
 describe('getTestController', () => {

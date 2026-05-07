@@ -496,6 +496,11 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_disable_warnings_for_missing_coverage%"
+        },
+        "salesforcedx-vscode-apex-testing.restore-previous-results": {
+          "type": "boolean",
+          "default": true,
+          "description": "%apex_restore_previous_results_description%"
         }
       }
     }
