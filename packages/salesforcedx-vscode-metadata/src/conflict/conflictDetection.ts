@@ -8,6 +8,7 @@
 import type { DiffFilePair } from '../shared/diff/diffTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import type { ChangeResult } from '@salesforce/source-tracking';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -20,9 +21,11 @@ import { filesAreNotIdentical, matchUrisToComponents, retrieveToCacheDirectory }
  * filter to componentSet when provided (type+fullName), retrieve remote content,
  * return DiffFilePair[] for files that differ.
  * When componentSet is omitted (e.g. status bar "show all"), uses all conflicts.
+ * When prefetchedConflicts is provided, skips the getConflicts() call (avoids a double rereadBoth).
  */
 export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTracking')(function* (
-  componentSet?: ComponentSet
+  componentSet?: ComponentSet,
+  prefetchedConflicts?: ChangeResult[]
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [sourceTrackingService, componentSetService, HashableUri] = yield* Effect.all(
@@ -30,7 +33,11 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
     { concurrency: 'unbounded' }
   );
 
-  const uris = yield* sourceTrackingService.getConflicts().pipe(
+  const conflictsEffect = prefetchedConflicts
+    ? Effect.succeed(prefetchedConflicts)
+    : sourceTrackingService.getConflicts();
+
+  const uris = yield* conflictsEffect.pipe(
     Stream.fromIterableEffect,
     Stream.filter(
       c =>

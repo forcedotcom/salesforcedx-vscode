@@ -6,6 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import type { ChangeResult } from '@salesforce/source-tracking';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -76,7 +77,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
     );
     const relevant = conflicts.filter(c => c.type && c.name && deployedMembers.has(`${c.type}:${c.name}`));
     if (relevant.length > 0) {
-      return yield* handleDeployConflict(componentSet);
+      return yield* handleDeployConflict(componentSet, conflicts);
     }
   }
 
@@ -84,9 +85,12 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
 });
 
 /** Handle deploy conflicts: populate conflict view scoped to the deployed component set */
-const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(function* (componentSet?: ComponentSet) {
+const handleDeployConflict = Effect.fn('deployOnSave:handleDeployConflict')(function* (
+  componentSet?: ComponentSet,
+  prefetchedConflicts?: ChangeResult[]
+) {
   yield* ensureConflictView();
-  const pairs = yield* detectConflictsFromTracking(componentSet);
+  const pairs = yield* detectConflictsFromTracking(componentSet, prefetchedConflicts);
   const mode: 'conflicts' | 'diffs' = 'conflicts';
   yield* SubscriptionRef.update(getConflictStateRef(), () => ({
     title: `${pairs.length} file difference${pairs.length === 1 ? '' : 's'}`,
