@@ -160,11 +160,14 @@ export class TestRunner {
       const taskName = this.getTaskName();
       const sfTask = taskService.createTask(this.testRunId, taskName, workspaceFolder, command, args);
       if (this.logName) {
+        const logName = this.logName;
         const startTime = globalThis.performance.now();
         sfTask.onDidEnd(() => {
-          telemetryService.sendCommandEvent(this.logName, startTime, {
-            workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
-          });
+          telemetryService.sendEventData(
+            logName,
+            { workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry() },
+            { executionTime: globalThis.performance.now() - startTime }
+          );
         });
       }
       return sfTask.execute();

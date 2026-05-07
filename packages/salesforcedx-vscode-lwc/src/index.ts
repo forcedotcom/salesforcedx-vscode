@@ -27,11 +27,6 @@ import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
-const getTelemetryService = async () => {
-  const telemetryModule = await import('./telemetry/index.js');
-  return telemetryModule.telemetryService;
-};
-
 export const activate = async (extensionContext: ExtensionContext) => {
   // Initialize services layer first so ChannelService and other services are available throughout activation.
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
@@ -45,13 +40,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   const channelSvc = yield* api.services.ChannelService;
 
   yield* channelSvc.appendToChannel(nls.localize('lwc_extension_activating'));
-
-  if (process.env.ESBUILD_PLATFORM !== 'web') {
-    yield* Effect.promise(() => getTelemetryService()).pipe(
-      Effect.flatMap(telemetryService => Effect.promise(() => telemetryService.initializeService(extensionContext))),
-      Effect.catchAll(e => channelSvc.appendToChannel(nls.localize('lwc_telemetry_init_failed', String(e))))
-    );
-  }
 
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
@@ -162,8 +150,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
 export const deactivate = async () => {
   log('Lightning Web Components Extension Deactivated');
   if (process.env.ESBUILD_PLATFORM !== 'web') {
-    const telemetryService = await getTelemetryService();
-    telemetryService.sendExtensionDeactivationEvent();
+    const { telemetryService } = await import('./telemetry/index.js');
+    telemetryService.sendEventData('extensionDeactivated');
   }
 };
 

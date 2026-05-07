@@ -46,7 +46,6 @@ export const messages = {
   lwc_language_server_loaded: 'Indexing complete $(check)',
   lwc_extension_activating: 'Lightning Web Components extension activating...',
   lwc_extension_activation_complete: 'Lightning Web Components extension activation complete.',
-  lwc_telemetry_init_failed: 'Failed to initialize telemetry service: %s',
   lwc_activation_mode_off: 'LWC Language Server activationMode set to off, exiting...',
   lwc_no_workspace_folders: 'No workspace folders found, exiting extension',
   lwc_autodetect_no_project:
