@@ -11,8 +11,14 @@ import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import { isTelemetryExtensionConfigurationEnabled } from './appInsights';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
 import { FileSpanExporterWeb } from './fileSpanExporterWeb';
-import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled } from './localTracing';
+import {
+  getConsoleTracesEnabled,
+  getFileTracesEnabled,
+  getLocalTracesEnabled,
+  getOtlpFileTracesEnabled
+} from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
+import { OtlpFileSpanExporterWeb } from './otlpFileSpanExporterWeb';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
 export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
@@ -37,6 +43,7 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
       ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
-      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new FileSpanExporterWeb(extensionName))] : [])
+      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new FileSpanExporterWeb(extensionName))] : []),
+      ...(getOtlpFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterWeb())] : [])
     ]
   }));

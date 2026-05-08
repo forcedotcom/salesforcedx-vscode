@@ -22,6 +22,10 @@ export const getConsoleTracesEnabled = (): boolean =>
 export const getFileTracesEnabled = (): boolean =>
   getOptionalBooleanConfiguration(SALESFORCE_DX_SECTION)('enableFileTraces');
 
+/** Export all spans in OTLP JSON format to ~/.sf/vscode-spans/ for Grafana import (support troubleshooting). */
+export const getOtlpFileTracesEnabled = (): boolean =>
+  getOptionalBooleanConfiguration(SALESFORCE_DX_SECTION)('enableOtlpFileTraces');
+
 const getOptionalBooleanConfiguration =
   (section: string) =>
   (configName: string): boolean => {

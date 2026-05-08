@@ -14,8 +14,14 @@ import { Global } from '@salesforce/core/global';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
 import { FileSpanExporterNode } from './fileSpanExporterNode';
-import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled } from './localTracing';
+import {
+  getConsoleTracesEnabled,
+  getFileTracesEnabled,
+  getLocalTracesEnabled,
+  getOtlpFileTracesEnabled
+} from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
+import { OtlpFileSpanExporterNode } from './otlpFileSpanExporterNode';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
 
@@ -56,6 +62,7 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
       ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
-      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new FileSpanExporterNode(extensionName))] : [])
+      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new FileSpanExporterNode(extensionName))] : []),
+      ...(getOtlpFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterNode())] : [])
     ]
   }));

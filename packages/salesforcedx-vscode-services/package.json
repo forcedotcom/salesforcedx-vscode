@@ -331,6 +331,11 @@
           "type": "boolean",
           "default": false,
           "description": "%configuration.otelFile.description%"
+        },
+        "salesforcedx-vscode-salesforcedx.enableOtlpFileTraces": {
+          "type": "boolean",
+          "default": false,
+          "description": "%configuration.otelOtlpFile.description%"
         }
       }
     },
