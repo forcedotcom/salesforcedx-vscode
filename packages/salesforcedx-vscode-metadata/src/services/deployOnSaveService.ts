@@ -21,7 +21,6 @@ import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { DeployCompletedWithErrorsError } from '../shared/deploy/deployErrors';
-import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 
 const ENQUEUE_DELAY_MS = 1000;
 
@@ -81,9 +80,15 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
     }
   }
 
-  return yield* deployComponentSet({ componentSet }).pipe(
-    withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text')))
-  );
+  const result = yield* deployComponentSet({ componentSet });
+  const showNotification = vscode.workspace
+    .getConfiguration('salesforcedx-vscode-metadata')
+    .get<boolean>('deployOnSave.showSuccessNotification', false);
+  if (showNotification)
+    void vscode.window.showInformationMessage(
+      nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text'))
+    );
+  return result;
 });
 
 /** Handle deploy conflicts: populate conflict view scoped to the deployed component set */

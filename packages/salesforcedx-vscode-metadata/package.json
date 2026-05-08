@@ -355,6 +355,11 @@
           "type": "boolean",
           "default": false,
           "description": "%show_success_notification_description%"
+        },
+        "salesforcedx-vscode-metadata.deployOnSave.showSuccessNotification": {
+          "type": "boolean",
+          "default": false,
+          "description": "%deploy_on_save_show_success_notification_description%"
         }
       }
     },
