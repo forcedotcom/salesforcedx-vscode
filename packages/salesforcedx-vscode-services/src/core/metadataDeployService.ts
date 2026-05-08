@@ -6,7 +6,6 @@
  */
 
 import { ComponentSet, type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
-import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Match from 'effect/Match';
@@ -115,10 +114,11 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
                 cancellable: true
               },
               async (_, token) => {
-                token.onCancellationRequested(async () => {
-                  await deployOperation.cancel();
-                  await Effect.runPromise(Fiber.interrupt(deployFiber));
-                });
+                // Only send the cancel request to the server — do NOT interrupt the fiber.
+                // pollStatus() will resolve with Canceled/Canceling if the server honored it,
+                // or Succeeded if the deploy completed before the cancel arrived. Either way
+                // we get the real outcome and can update source tracking correctly.
+                token.onCancellationRequested(() => void deployOperation.cancel());
                 return await deployOperation.pollStatus();
               }
             );
@@ -135,14 +135,21 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       );
 
       const deployOutcome = yield* Effect.matchCauseEffect(Fiber.join(deployFiber), {
-        onFailure: cause =>
-          Cause.isInterruptedOnly(cause)
-            ? Effect.fail<UserCancellationError | MetadataDeployError>(new UserCancellationError())
-            : Effect.failCause(cause),
+        onFailure: cause => Effect.failCause(cause),
         onSuccess: outcome => Effect.succeed(outcome)
       });
 
       yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
+
+      // If the server honored the cancel, surface it as UserCancellationError so the
+      // command pipeline silently swallows it (same UX as if cancel arrived in time).
+      if (
+        deployOutcome.response?.status === RequestStatus.Canceled ||
+        deployOutcome.response?.status === RequestStatus.Canceling
+      ) {
+        return yield* Effect.fail(new UserCancellationError());
+      }
+
       if (
         deployOutcome.response?.status === RequestStatus.Succeeded ||
         deployOutcome.response?.status === RequestStatus.SucceededPartial
