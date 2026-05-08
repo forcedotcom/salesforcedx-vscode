@@ -42,6 +42,7 @@ export const messages = {
   deploy_select_file_or_directory: 'You can run SFDX: Deploy This Source to Org only on a source file or directory.',
   deploy_select_manifest: 'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
 
+  deploy_on_save_text: 'Deploy on save',
   deploy_on_save_error_no_target_org:
     'Error running deploy on save: No default org is set. Run "SFDX: Authorize an Org", then deploy the changes that you just saved.',
   deploy_on_save_error_generic: 'Deploy on save failed: %s',
