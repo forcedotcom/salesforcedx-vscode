@@ -315,6 +315,18 @@
     "lwcServer.js"
   ],
   "contributes": {
+    "taskDefinitions": [
+      {
+        "type": "sfLwcTest",
+        "required": [],
+        "properties": {
+          "sfTaskId": {
+            "type": "string",
+            "description": "Internal ID used to correlate VS Code task lifecycle events to LWC test runs."
+          }
+        }
+      }
+    ],
     "snippets": [
       {
         "language": "javascript",
@@ -366,10 +378,6 @@
           "when": "false"
         },
         {
-          "command": "sf.lightning.lwc.test.file.run",
-          "when": "false"
-        },
-        {
           "command": "sf.lightning.lwc.test.file.debug",
           "when": "false"
         },
@@ -415,14 +423,6 @@
       {
         "command": "sf.internal.lightning.generate.lwc",
         "title": "%lightning_generate_lwc_text%"
-      },
-      {
-        "command": "sf.lightning.lwc.test.file.run",
-        "title": "%lightning_lwc_test_file_run_text%",
-        "icon": {
-          "light": "resources/light/play-button.svg",
-          "dark": "resources/dark/play-button.svg"
-        }
       },
       {
         "command": "sf.lightning.lwc.test.file.debug",

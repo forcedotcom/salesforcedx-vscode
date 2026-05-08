@@ -19,6 +19,7 @@ import {
   TestFileInfo,
   TestResultStatus
 } from '../types';
+import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import { workspace } from '../workspace';
 import { appendLine, appendRunHeader, appendTestResultsOutput, TestItemLookup } from './testResultsOutput';
 
@@ -121,10 +122,59 @@ class LwcTestController {
         void this.populateFiles();
       }),
       lwcTestIndexer.onDidUpdateTestResultsIndex(() => {
-        // Out-of-band jest results (e.g. watch mode) drive a tree refresh via onDidUpdateTestIndex above;
-        // inline run/debug results are written by runTests via the current TestRun.
+        // Out-of-band results written by command-palette / code-lens / toolbar runs via executeAsSfTask.
+        // Apply the indexer's latest per-file results so the Test Explorer shows pass/fail icons.
+        void this.applyIndexerResults();
       })
     );
+  };
+
+  /**
+   * Apply results stored in the indexer (e.g. from out-of-band runs via command palette /
+   * code-lens / toolbar) to the VS Code Test Explorer so pass/fail icons update.
+   */
+  private applyIndexerResults = async (): Promise<void> => {
+    try {
+      const allFiles = await lwcTestIndexer.findAllTestFileInfo();
+      const run = this.controller.createTestRun(new vscode.TestRunRequest(), 'out-of-band results', false);
+      try {
+        for (const fileInfo of allFiles) {
+          const fileId = createFileId(fileInfo.testUri);
+          const fileItem = this.fileItems.get(fileId);
+          if (!fileItem) {
+            continue;
+          }
+          const fileStatus = fileInfo.testResult?.status;
+          const testCases = fileInfo.testCasesInfo ?? [];
+          for (const testCase of testCases) {
+            const caseId = createCaseId(testCase.testUri, testCase.testName, testCase.ancestorTitles);
+            const caseItem = this.caseItems.get(caseId);
+            if (caseItem) {
+              const caseStatus = testCase.testResult?.status;
+              if (caseStatus === 'passed') {
+                run.passed(caseItem);
+              } else if (caseStatus === 'failed') {
+                run.failed(caseItem, new vscode.TestMessage(nls.localize('lwc_test_failed_message')));
+              } else if (caseStatus === 'skipped') {
+                run.skipped(caseItem);
+              }
+            }
+          }
+          if (fileStatus === 'passed') {
+            run.passed(fileItem);
+          } else if (fileStatus === 'failed') {
+            run.failed(
+              fileItem,
+              new vscode.TestMessage(nls.localize('lwc_one_or_more_tests_failed_in_this_file_message'))
+            );
+          }
+        }
+      } finally {
+        run.end();
+      }
+    } catch (error) {
+      console.error('LWC applyIndexerResults failed:', error);
+    }
   };
 
   private populateFiles = async (): Promise<void> => {
@@ -202,9 +252,7 @@ class LwcTestController {
     return items;
   };
 
-  private gatherTargets = async (
-    request: vscode.TestRunRequest
-  ): Promise<{ item: vscode.TestItem; exec: TestExecutionInfo }[]> => {
+  private gatherTargets = (request: vscode.TestRunRequest): { item: vscode.TestItem; exec: TestExecutionInfo }[] => {
     const rootItems = request.include && request.include.length > 0 ? [...request.include] : this.topLevelItems();
     const excluded = new Set((request.exclude ?? []).map(item => item.id));
     const result: { item: vscode.TestItem; exec: TestExecutionInfo }[] = [];
@@ -212,7 +260,7 @@ class LwcTestController {
       if (excluded.has(item.id)) {
         continue;
       }
-      const exec = await this.toTestExecutionInfo(item);
+      const exec = this.toTestExecutionInfo(item);
       if (exec) {
         result.push({ item, exec });
       }
@@ -220,7 +268,7 @@ class LwcTestController {
     return result;
   };
 
-  private toTestExecutionInfo = async (item: vscode.TestItem): Promise<TestExecutionInfo | undefined> => {
+  private toTestExecutionInfo = (item: vscode.TestItem): TestExecutionInfo | undefined => {
     const kind = getItemKind(item.id);
     if (!item.uri) {
       return undefined;
@@ -262,7 +310,7 @@ class LwcTestController {
   ): Promise<void> => {
     const run = this.controller.createTestRun(request);
     try {
-      const targets = await this.gatherTargets(request);
+      const targets = this.gatherTargets(request);
       const isImplicitRunAll = !request.include || request.include.length === 0;
 
       if (targets.length === 0 && !isImplicitRunAll) {
@@ -374,15 +422,16 @@ class LwcTestController {
 
   /** Contract used by the output module to resolve TestItems for a Jest result. */
   private readonly testItemLookup: TestItemLookup = {
-    findFileItem: testUri => this.fileItems.get(createFileId(testUri)),
-    findCaseItem: (testUri, title, ancestorTitles) =>
-      this.caseItems.get(createCaseId(testUri, title, ancestorTitles))
+    findFileItem: testUri => this.fileItems.get(createFileId(URI.file(normalizeJestFsPath(testUri.fsPath)))),
+    findCaseItem: (testUri, title, ancestorTitles) => this.caseItems.get(createCaseId(testUri, title, ancestorTitles))
   };
 
   /** Walk the Jest JSON output and attribute results to matching TestItems. */
   private applyResults = (run: vscode.TestRun, results: LwcJestTestResults): void => {
     for (const fileResult of results.testResults) {
-      const testUri = URI.file(fileResult.name);
+      // normalizeJestFsPath strips /private prefix on macOS so the URI matches
+      // what vscode.workspace.findFiles returns (symlink path, not realpath).
+      const testUri = URI.file(normalizeJestFsPath(fileResult.name));
       const fileId = createFileId(testUri);
       const fileItem = this.fileItems.get(fileId);
       for (const assertion of fileResult.assertionResults) {

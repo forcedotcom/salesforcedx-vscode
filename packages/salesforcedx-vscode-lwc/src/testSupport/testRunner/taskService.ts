@@ -142,9 +142,6 @@ class TaskService {
     }
     const taskShellExecution = new vscode.ShellExecution(cmd, args, taskShellExecutionOptions);
     const task = new vscode.Task(taskDefinition, taskScope, taskName, taskSource, taskShellExecution);
-    // Results are surfaced in VS Code's native Test Results tab (see lwcTestController),
-    // so we suppress the task terminal from stealing focus. The underlying terminal
-    // still exists and can be opened manually from the Terminal dropdown if needed.
     task.presentationOptions = {
       reveal: vscode.TaskRevealKind.Never,
       focus: false,
