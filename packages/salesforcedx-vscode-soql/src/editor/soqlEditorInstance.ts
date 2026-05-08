@@ -229,6 +229,7 @@ export class SOQLEditorInstance {
         const runQueryDone = () => this.runQueryDone();
         const { document } = this;
         const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
+        const maxRows = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit');
         return Effect.gen(function* () {
           const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
           if (!isOrgSet) {
@@ -247,7 +248,7 @@ export class SOQLEditorInstance {
                 location: vscode.ProgressLocation.Notification,
                 title: nls.localize('progress_running_query')
               },
-              () => runQuery(conn)(queryText)
+              () => runQuery(conn)(queryText, { maxRows })
             )
           );
           yield* Effect.promise(() => openQueryDataView(queryData));
