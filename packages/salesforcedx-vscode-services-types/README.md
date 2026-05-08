@@ -20,53 +20,87 @@ Import the type definitions in your VS Code extension to get type safety when co
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as vscode from 'vscode';
 
-// Get the Salesforce Services extension API with proper typing
-const extension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
-const api: SalesforceVSCodeServicesApi | undefined = extension?.exports;
+const ext = vscode.extensions.getExtension<SalesforceVSCodeServicesApi>(
+  'salesforce.salesforcedx-vscode-services'
+);
+const api = ext?.exports;
 
 if (api) {
-  // Access services with full type support
-  const { ConnectionService, ProjectService, ChannelService } = api.services;
-
-  // Use the services in your extension
-  // All methods and properties are fully typed
+  // Promise-based — no Effect dependency needed
+  const connection = await api.getConnection();
+  const orgInfo = await api.getTargetOrgInfo();
+  const project = await api.getSfProject();
 }
 ```
 
-### Example: Using Services in Your Extension
+### Plain API (Recommended)
+
+The API exposes Promise-based methods directly on the exports object. No framework dependencies required:
 
 ```typescript
-import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import type { SalesforceVSCodeServicesApi, DefaultOrgInfo } from '@salesforce/vscode-services';
 import * as vscode from 'vscode';
 
 export const activate = async (context: vscode.ExtensionContext) => {
-  const sfServices = vscode.extensions.getExtension<SalesforceVSCodeServicesApi>(
+  const ext = vscode.extensions.getExtension<SalesforceVSCodeServicesApi>(
     'salesforce.salesforcedx-vscode-services'
   );
+  if (!ext?.exports) throw new Error('Salesforce Services extension not available');
+  const api = ext.exports;
 
-  if (!sfServices?.exports) {
-    throw new Error('Salesforce Services extension not available');
-  }
+  // Org auth
+  const conn = await api.getConnection();
+  const orgInfo = await api.getTargetOrgInfo();
 
-  const { services } = sfServices.exports;
+  // React to org changes
+  const disposable = api.onDidChangeTargetOrg((info: DefaultOrgInfo) => {
+    console.log('Target org changed:', info.username);
+  });
+  context.subscriptions.push(disposable);
 
-  // Now you have access to all services with full type safety
-  // services.ConnectionService
-  // services.ProjectService
-  // services.ChannelService
-  // services.WorkspaceService
-  // ... and more
+  // Workspace & project
+  const isSf = await api.isSalesforceProject();
+  const workspace = await api.getWorkspaceInfo();
+
+  // Settings, config, aliases
+  const apiVersion = await api.getApiVersion();
+  const devHub = await api.getTargetDevHub();
+  const aliases = await api.getAllAliases();
+
+  // File system
+  const content = await api.readFile('/path/to/file');
+  const files = await api.findFiles('**/*.cls');
+
+  // Metadata operations
+  const types = await api.describe();
+  const items = await api.listMetadata('ApexClass');
+
+  // Source tracking
+  const hasTracking = await api.hasTracking();
+  const conflicts = await api.getConflicts();
 };
+```
+
+### Effect-based API (Advanced)
+
+For extensions using Effect-TS, the full `services` property is also available:
+
+```typescript
+const { services } = ext.exports;
+// services.ConnectionService, services.ProjectService, services.TargetOrgRef, etc.
+// Requires `effect` as a dependency
 ```
 
 ## What's Included
 
 This package exports:
 
-- **`SalesforceVSCodeServicesApi`** - The complete type definition for the extension's public API
-  - Includes type definitions for all service classes
-  - Provides access to service tags and implementations
-  - Fully typed method signatures and return types
+- **`SalesforceVSCodeServicesApi`** — The complete type definition for the extension's public API
+- **`PlainServicesApi`** — The Promise-based facade type (subset of `SalesforceVSCodeServicesApi`)
+- **`DefaultOrgInfo`** — Plain TypeScript type for target org metadata (orgId, username, userId, etc.)
+- **`WorkspaceInfo`** — Plain TypeScript type for workspace state (uri, fsPath, isEmpty, etc.)
+- **`DefaultOrgInfoSchema`** — Effect Schema for org info (only needed if using Effect)
+- **`ICONS` / `IconId`** — Well-known icon IDs for VS Code UI strings
 
 **All internal implementation details are protected.** The package uses Node.js `exports` field to restrict imports to only the main entry point. You cannot directly import internal types or constants.
 

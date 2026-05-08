@@ -19,6 +19,7 @@ const generateEntry = (): void => {
 
 // This file is auto-generated. Do not edit manually.
 export type { SalesforceVSCodeServicesApi } from '../../salesforcedx-vscode-services/out/src/index';
+export type { DefaultOrgInfo, PlainServicesApi, WorkspaceInfo } from '../../salesforcedx-vscode-services/out/src/plainApi';
 export { DefaultOrgInfoSchema } from '../../salesforcedx-vscode-services/out/src/core/schemas/defaultOrgInfo';
 export { ICONS, type IconId } from './icons';
 `;

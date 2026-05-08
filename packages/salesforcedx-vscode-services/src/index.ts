@@ -38,6 +38,7 @@ import { TransmogrifierService } from './core/transmogrifierService';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
+import { createPlainServicesApi, type PlainServicesApi } from './plainApi';
 import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -64,7 +65,7 @@ import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherLayer } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
-export type SalesforceVSCodeServicesApi = {
+export type SalesforceVSCodeServicesApi = PlainServicesApi & {
   services: {
     /** contains most of the dependencies prebuilt in the services extension */
     prebuiltServicesDependencies: Context.Context<
@@ -352,8 +353,11 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   console.log('Salesforce Services extension is now active!');
 
+  const plainApi = createPlainServicesApi(builtContext, extensionScope);
+
   // Return API for other extensions to consume
   return {
+    ...plainApi,
     services: {
       prebuiltServicesDependencies: builtContext,
       ApexLogService,
@@ -461,3 +465,4 @@ export { type TraceFlagService } from './core/traceFlagService';
 export { type WorkspaceService } from './vscode/workspaceService';
 export type { UserCancellationError } from './vscode/prompts/promptService';
 export type { TerminalService, TerminalServiceError } from './terminal/terminalService';
+export type { DefaultOrgInfo, PlainServicesApi, WorkspaceInfo } from './plainApi';

@@ -24,11 +24,69 @@ This extension is part of the Salesforce Extensions for VS Code package.
 
 This extension provides services used by other Salesforce extensions and is not directly user-facing.
 
-## Usage Example: Consuming Services from Other Extensions
+## Consuming the API
+
+There are two ways to consume this extension's API:
+
+1. **Plain API (recommended for most consumers)** — Promise-based, no framework dependencies
+2. **Effect-based API** — full power of Effect-TS for extensions already using Effect
+
+### Plain API (No Effect Dependencies)
+
+The simplest way to consume services. No need to add `effect` as a dependency or learn Effect-TS patterns.
+
+```typescript
+import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import * as vscode from 'vscode';
+
+export const activate = async (context: vscode.ExtensionContext) => {
+  const ext = vscode.extensions.getExtension<SalesforceVSCodeServicesApi>(
+    'salesforce.salesforcedx-vscode-services'
+  );
+  const api = ext?.exports;
+  if (!api) throw new Error('Salesforce Services extension not available');
+
+  // Connection / Org Auth
+  const connection = await api.getConnection();
+  const orgInfo = await api.getTargetOrgInfo();
+  // orgInfo.orgId, orgInfo.username, orgInfo.userId, orgInfo.tracksSource, etc.
+
+  // React to org changes
+  const disposable = api.onDidChangeTargetOrg(info => {
+    console.log('Org changed:', info.username);
+  });
+  context.subscriptions.push(disposable);
+
+  // Workspace & Project
+  const workspace = await api.getWorkspaceInfo();
+  const isSf = await api.isSalesforceProject();
+
+  // Settings
+  const apiVersion = await api.getApiVersion();
+
+  // File System
+  const content = await api.readFile('/path/to/file.cls');
+  const exists = await api.fileOrFolderExists('/path/to/dir');
+
+  // Metadata Operations
+  const types = await api.describe();
+  const result = await api.deploy(componentSet);
+
+  // Source Tracking
+  const hasTracking = await api.hasTracking();
+  const conflicts = await api.getConflicts();
+};
+```
+
+All methods reject with a standard `Error` when something goes wrong. Tagged Effect errors are converted to descriptive messages (e.g., `"NoTargetOrgConfiguredError: No target org configured"`).
+
+### Effect-based API (Advanced)
+
+For extensions already using Effect-TS that want full access to services, layers, and reactive primitives.
 
 **Important**: Do not directly import from `salesforcedx-vscode-services`. Instead, access services through the extension API.
 
-### Step 1: Create an Extension Provider
+#### Step 1: Create an Extension Provider
 
 Create a file `src/services/extensionProvider.ts` in your extension:
 
@@ -88,7 +146,7 @@ export const AllServicesLayer = Layer.unwrapEffect(
 );
 ```
 
-### Step 2: Use Services in Your Effect Programs
+#### Step 2: Use Services in Your Effect Programs
 
 ```ts
 import * as Effect from 'effect/Effect';
