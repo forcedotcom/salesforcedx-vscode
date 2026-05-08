@@ -472,10 +472,6 @@
         {
           "command": "sf.lightning.lwc.test.stopWatchingAllTests",
           "when": "sf:project_opened || sf:internal_dev"
-        },
-        {
-          "command": "sf.metadata.lightning.generate.lwc",
-          "when": "sf:project_opened"
         }
       ]
     },
