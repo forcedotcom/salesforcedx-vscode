@@ -7,6 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { getNotificationMode, showTransientStatusBarMessage } from './notificationMode';
 
 const SECTION = 'salesforcedx-vscode-metadata';
 const KEY = 'showSuccessNotification';
@@ -17,6 +18,10 @@ export const withConfigurableSuccessNotification =
   <A, E, R>(effect: Effect.Effect<A, E, R>) =>
     Effect.tap(effect, () =>
       Effect.sync(() => {
+        if (getNotificationMode() === 'statusBar') {
+          showTransientStatusBarMessage(message);
+          return;
+        }
         const show = vscode.workspace.getConfiguration(SECTION).get<boolean>(KEY, false);
         if (show) void vscode.window.showInformationMessage(message);
       })

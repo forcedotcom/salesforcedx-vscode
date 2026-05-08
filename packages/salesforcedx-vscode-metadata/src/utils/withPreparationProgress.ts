@@ -13,6 +13,7 @@ import * as Runtime from 'effect/Runtime';
 import type { NonEmptyComponentSet, UserCancellationError } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { getNotificationMode } from './notificationMode';
 
 type OperationType = 'deploy' | 'retrieve' | 'delete';
 
@@ -85,10 +86,11 @@ export const withPreparationProgress =
         const raceWithCancel = <A, E2, R2>(effect: Effect.Effect<A, E2, R2>) =>
           Effect.raceFirst(effect, Deferred.await(cancelDeferred));
 
+        const inStatusBarMode = getNotificationMode() === 'statusBar';
         return yield* Effect.async<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
           void vscode.window.withProgress(
             {
-              location: vscode.ProgressLocation.Notification,
+              location: inStatusBarMode ? vscode.ProgressLocation.Window : vscode.ProgressLocation.Notification,
               cancellable: true
             },
             async (progress, token) => {

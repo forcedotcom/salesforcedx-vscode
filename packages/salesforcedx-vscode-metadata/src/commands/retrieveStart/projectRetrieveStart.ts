@@ -7,11 +7,11 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
 import { detectConflicts, handleConflictWithRetry } from '../../conflict/conflictFlow';
 import { nls } from '../../messages';
 import { formatRetrieveOutput } from '../../shared/retrieve/formatRetrieveOutput';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
+import { showInfoNotification } from '../../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../../utils/withPreparationProgress';
 
@@ -87,8 +87,6 @@ export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
       )
     ),
     Effect.catchTag('EmptyComponentSetError', () =>
-      Effect.sync(() => {
-        void vscode.window.showInformationMessage(nls.localize('no_remote_changes_to_retrieve'));
-      })
+      Effect.sync(() => showInfoNotification(nls.localize('no_remote_changes_to_retrieve')))
     )
   );

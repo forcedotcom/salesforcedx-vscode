@@ -85,7 +85,10 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     );
 
     /** Deploy metadata to the default org */
-    const deploy = Effect.fn('MetadataDeployService.deploy')(function* (components: ComponentSet) {
+    const deploy = Effect.fn('MetadataDeployService.deploy')(function* (
+      components: ComponentSet,
+      options?: { progressLocation?: vscode.ProgressLocation }
+    ) {
       yield* Effect.all(
         [
           workspaceService.getWorkspaceInfoOrThrow(),
@@ -104,9 +107,10 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
               usernameOrConnection: connection
             });
 
+            const progressLocation = options?.progressLocation ?? vscode.ProgressLocation.Notification;
             const deployResult = await vscode.window.withProgress(
               {
-                location: vscode.ProgressLocation.Notification,
+                location: progressLocation,
                 title: getDeployMessage(components),
                 cancellable: true
               },

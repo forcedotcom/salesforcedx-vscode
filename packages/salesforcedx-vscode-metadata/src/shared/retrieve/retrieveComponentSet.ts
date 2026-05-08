@@ -8,8 +8,10 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, FileResponse } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { maybeStoreRetrieveResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
+import { getNotificationMode } from '../../utils/notificationMode';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
 import { retrieveHasErrors, RetrieveCompletedWithErrorsError } from './retrieveOutcome';
 
@@ -26,7 +28,12 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
   const componentCount = componentSet.size;
   yield* channelService.appendToChannel(`Retrieving ${componentCount} component${componentCount === 1 ? '' : 's'}...`);
 
-  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, { ignoreConflicts });
+  const progressLocation =
+    getNotificationMode() === 'statusBar' ? vscode.ProgressLocation.Window : vscode.ProgressLocation.Notification;
+  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, {
+    ignoreConflicts,
+    progressLocation
+  });
 
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(result, fileResponsesFromDelete));
 

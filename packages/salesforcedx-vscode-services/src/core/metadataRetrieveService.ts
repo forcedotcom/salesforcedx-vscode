@@ -41,6 +41,7 @@ type PerformRetrieveOperationInput = {
   connection: Connection;
   registryAccess: RegistryAccess;
   title: string;
+  progressLocation?: vscode.ProgressLocation;
 } & (
   | {
       merge: true;
@@ -131,9 +132,10 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
             registry: input.registryAccess
           });
 
+          const progressLocation = input.progressLocation ?? vscode.ProgressLocation.Notification;
           const retrieveResult = await vscode.window.withProgress(
             {
-              location: vscode.ProgressLocation.Notification,
+              location: progressLocation,
               title: input.title,
               cancellable: true
             },
@@ -207,7 +209,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      */
     const retrieveComponentSet = Effect.fn('MetadataRetrieveService.retrieveComponentSet')(function* (
       components: ComponentSet,
-      options?: SourceTrackingOptions
+      options?: SourceTrackingOptions & { progressLocation?: vscode.ProgressLocation }
     ) {
       yield* Effect.annotateCurrentSpan({ components: components.size });
       const registryAccess = yield* metadataRegistryService.getRegistryAccess();
@@ -233,6 +235,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         connection,
         registryAccess,
         title,
+        progressLocation: options?.progressLocation,
         merge: true,
         project
       });
@@ -242,7 +245,11 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      * Sets project directory and API versions on the ComponentSet before retrieving.
      */
     const retrieveComponentSetToDirectory = Effect.fn('MetadataRetrieveService.retrieveComponentSetToDirectory')(
-      function* (components: NonEmptyComponentSet, outputPath: URI) {
+      function* (
+        components: NonEmptyComponentSet,
+        outputPath: URI,
+        options?: { progressLocation?: vscode.ProgressLocation }
+      ) {
         const registryAccess = yield* metadataRegistryService.getRegistryAccess();
         const [connection, project, configAggregator] = yield* Effect.all(
           [
@@ -266,6 +273,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           connection,
           registryAccess,
           title: `Retrieving ${components.size} component${components.size === 1 ? '' : 's'} for diff`,
+          progressLocation: options?.progressLocation,
           merge: false,
           outputPath
         });

@@ -14,8 +14,10 @@ import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
+import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
+import { getNotificationMode } from '../../utils/notificationMode';
 import { MissingDefaultOrgError } from './diffErrors';
 import { createDiffFilePair, type DiffFilePair } from './diffTypes';
 
@@ -50,7 +52,15 @@ export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(fu
 
   yield* api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
 
-  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(componentSet, cacheDirUri);
+  const progressLocation =
+    getNotificationMode() === 'statusBar' ? vscode.ProgressLocation.Window : vscode.ProgressLocation.Notification;
+  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(
+    componentSet,
+    cacheDirUri,
+    {
+      progressLocation
+    }
+  );
 
   return result;
 });

@@ -8,8 +8,10 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import * as vscode from 'vscode';
 import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
+import { getNotificationMode } from '../../utils/notificationMode';
 import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
 import { DeployCompletedWithErrorsError } from './deployErrors';
 import { formatDeployOutput } from './formatDeployOutput';
@@ -26,7 +28,9 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel('Starting metadata deployment...');
 
-  const result = yield* api.services.MetadataDeployService.deploy(componentSet);
+  const progressLocation =
+    getNotificationMode() === 'statusBar' ? vscode.ProgressLocation.Window : vscode.ProgressLocation.Notification;
+  const result = yield* api.services.MetadataDeployService.deploy(componentSet, { progressLocation });
 
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 

@@ -21,6 +21,7 @@ import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { DeployCompletedWithErrorsError } from '../shared/deploy/deployErrors';
+import { showInfoNotification } from '../utils/notificationMode';
 
 const ENQUEUE_DELAY_MS = 1000;
 
@@ -85,9 +86,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
     .getConfiguration('salesforcedx-vscode-metadata')
     .get<boolean>('deployOnSave.showSuccessNotification', false);
   if (showNotification)
-    void vscode.window.showInformationMessage(
-      nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text'))
-    );
+    showInfoNotification(nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text')));
   return result;
 });
 

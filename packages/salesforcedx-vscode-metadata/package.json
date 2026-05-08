@@ -351,6 +351,19 @@
           "minimum": 0,
           "description": "%source_tracking_polling_interval_description%"
         },
+        "salesforcedx-vscode-metadata.notificationMode": {
+          "type": "string",
+          "enum": [
+            "notification",
+            "statusBar"
+          ],
+          "enumDescriptions": [
+            "%notification_mode_notification_description%",
+            "%notification_mode_status_bar_description%"
+          ],
+          "default": "notification",
+          "description": "%notification_mode_description%"
+        },
         "salesforcedx-vscode-metadata.showSuccessNotification": {
           "type": "boolean",
           "default": false,

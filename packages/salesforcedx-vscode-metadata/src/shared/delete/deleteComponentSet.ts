@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { getNotificationMode } from '../../utils/notificationMode';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';
 import { DeleteSourceFailedError } from './deleteErrors';
 
@@ -29,7 +30,9 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
-  const result = yield* api.services.MetadataDeployService.deploy(deleteSet);
+  const progressLocation =
+    getNotificationMode() === 'statusBar' ? vscode.ProgressLocation.Window : vscode.ProgressLocation.Notification;
+  const result = yield* api.services.MetadataDeployService.deploy(deleteSet, { progressLocation });
 
   const { isSDRFailure } = componentSetService;
 

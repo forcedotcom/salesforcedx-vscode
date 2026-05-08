@@ -7,10 +7,10 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { showInfoNotification } from '../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
@@ -42,8 +42,6 @@ export const projectDeployStartCommand = (ignoreConflicts = false) =>
       )
     ),
     Effect.catchTag('EmptyComponentSetError', () =>
-      Effect.sync(() => {
-        void vscode.window.showInformationMessage(nls.localize('no_local_changes_to_deploy'));
-      })
+      Effect.sync(() => showInfoNotification(nls.localize('no_local_changes_to_deploy')))
     )
   );
