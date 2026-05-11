@@ -242,6 +242,10 @@ export class LanguageClientManager {
           `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
         );
       }
+      // Dispose the old client to fully deregister providers, watchers, and middleware
+      // that would otherwise attempt to use the closed channel.
+      await alc.dispose();
+
       if (selectedOption === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
         await this.removeApexDB();
       }
@@ -255,8 +259,6 @@ export class LanguageClientManager {
       this.restartTimeout = setTimeout(() => {
         void (async () => {
           try {
-            // Dispose of the old output channel before restarting the client
-            alc.outputChannel?.dispose();
             await this.createLanguageClient(extensionContext, statusBarInstance);
           } catch (error) {
             // Log any errors that occur during client creation
