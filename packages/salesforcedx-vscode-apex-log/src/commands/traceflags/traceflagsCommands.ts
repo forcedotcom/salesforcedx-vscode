@@ -52,9 +52,17 @@ export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.c
     const ctx = yield* requireOrgContext({ requireUserId: true });
     if (Option.isNone(ctx)) return;
     const { api, orgId, userId } = ctx.value;
-    const minutes = yield* readDefaultDurationMinutes();
     const traceFlagService = yield* api.services.TraceFlagService;
-    yield* traceFlagService.ensureTraceFlag(userId!, Duration.minutes(minutes));
+    const debugLevels = yield* traceFlagService.getDebugLevels();
+    const pickedLevel = yield* Effect.promise(() => pickDebugLevel(debugLevels));
+    if (!pickedLevel) return;
+    const minutes = yield* readDefaultDurationMinutes();
+    yield* traceFlagService.ensureTraceFlag(
+      userId!,
+      Duration.minutes(minutes),
+      'DEVELOPER_LOG',
+      pickedLevel.debugLevelId
+    );
     yield* refreshTraceFlagsView(orgId);
   }
 );
