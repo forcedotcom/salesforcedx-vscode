@@ -355,10 +355,10 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
               expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
                 ? expirationDate
                 : calculateExpirationDate(new Date(), duration);
-            yield* updateTraceFlag(traceFlag.id, {
-              debugLevelId: existingDebugLevelId ?? traceFlag.debugLevelId,
-              expirationDate: validExpiration
-            });
+            if (existingDebugLevelId && existingDebugLevelId !== traceFlag.debugLevelId) {
+              yield* changeTraceFlagDebugLevel(traceFlag.id, existingDebugLevelId);
+            }
+            yield* updateTraceFlag(traceFlag.id, { expirationDate: validExpiration });
             return { created: false, traceFlagId: traceFlag.id };
           })
       });
