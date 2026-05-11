@@ -1,11 +1,18 @@
-# 66.10.1 - May 7, 2026
+# 66.11.0 - May 13, 2026
 
-## Fixed
+## Added
 
-#### salesforcedx-vscode-apex-testing
+#### salesforcedx-vscode-services
 
-- We fixed a performance issue where deploying a large number of files caused the Apex Testing view to refresh slowly. ([PR #7272](https://github.com/forcedotcom/salesforcedx-vscode/pull/7272))
+- Add common.isInternal span attribute for internal user detection - W-22350677 ([PR #7286](https://github.com/forcedotcom/salesforcedx-vscode/pull/7286))
 
 #### salesforcedx-vscode-soql
 
-- We fixed a bug where Filter values were becoming blank when reopening a query in SOQL Builder UI. ([PR #7283](https://github.com/forcedotcom/salesforcedx-vscode/pull/7283))
+- Add a Max Rows input to SOQL Builder UI to allow max rows retrieved to be defined by the user - W-22199672 ([PR #7261](https://github.com/forcedotcom/salesforcedx-vscode/pull/7261))
+
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- Remove duplicate registration of SFDX: Create Lightning Web Component command - W-22399742 ([PR #7302](https://github.com/forcedotcom/salesforcedx-vscode/pull/7302))
+
