@@ -69,6 +69,7 @@ export class LanguageClientManager {
   private statusBarItem: ApexLSPStatusBarItem | undefined;
   private isRestarting: boolean = false;
   private restartTimeout: NodeJS.Timeout | undefined;
+  private outputChannel: vscode.OutputChannel | undefined;
 
   private readonly RESTART_OPTIONS = {
     cleanAndRestart: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
@@ -108,6 +109,11 @@ export class LanguageClientManager {
 
   public setStatus(status: ClientStatus, message: string): void {
     this.status = new LanguageClientStatus(status, message);
+  }
+
+  public disposeOutputChannel(): void {
+    this.outputChannel?.dispose();
+    this.outputChannel = undefined;
   }
 
   public async getLineBreakpointInfo(): Promise<LineBreakpointInfo[]> {
@@ -304,7 +310,11 @@ export class LanguageClientManager {
     const telemetryService = getTelemetryService();
     try {
       const langClientStartTime = globalThis.performance.now();
-      this.setClientInstance(await languageServer.createLanguageServer(extensionContext));
+
+      // Create or reuse the output channel to avoid duplicates on restart
+      this.outputChannel ??= vscode.window.createOutputChannel(nls.localize('client_name'));
+
+      this.setClientInstance(await languageServer.createLanguageServer(extensionContext, this.outputChannel));
 
       const languageClient = this.getClientInstance();
 
