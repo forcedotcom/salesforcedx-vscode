@@ -25,13 +25,14 @@ import { appendLine, appendRunHeader, appendTestResultsOutput, TestItemLookup } 
 
 const TEST_CONTROLLER_ID = 'sf.lwc.testController';
 
-const TEST_FILE_EXT = '.test.js';
+// Matches .test.js and .test.ts suffixes
+const TEST_FILE_SUFFIX_RE = /\.test\.[jt]s$/;
 
 type ItemKind = 'file' | 'case';
 
 const getFileLabel = (testUri: URI): string => {
   const base = Utils.basename(testUri);
-  return base.endsWith(TEST_FILE_EXT) ? base.slice(0, -TEST_FILE_EXT.length) : base;
+  return base.replace(TEST_FILE_SUFFIX_RE, '');
 };
 
 const createFileId = (testUri: URI): string => `file:${testUri.toString()}`;
@@ -68,8 +69,6 @@ class LwcTestController {
     this.setupRefreshHandler();
     this.setupIndexerListeners();
   }
-
-  public getController = (): vscode.TestController => this.controller;
 
   public dispose = (): void => {
     while (this.disposables.length > 0) {
@@ -501,6 +500,7 @@ const waitForResultFile = async (filePath: string, token: vscode.CancellationTok
       await delay(500);
     }
   }
+  void vscode.window.showWarningMessage(nls.localize('lwc_test_result_file_timeout_message'));
 };
 
 const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));

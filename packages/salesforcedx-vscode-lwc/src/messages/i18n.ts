@@ -32,6 +32,8 @@ export const messages = {
   default_task_name: 'LWC Test',
   lwc_one_or_more_tests_failed_in_this_file_message: 'One or more tests failed in this file.',
   no_test_results_produced_message: 'No test results produced.',
+  lwc_test_result_file_timeout_message:
+    'Timed out waiting for LWC test results. The debug session may still be running.',
   lwc_test_failed_message: 'Test failed',
   task_windows_command_prompt_messaging: 'Default shell for running tasks is set to cmd.exe',
   lwc_component_name_empty_error: 'Component name cannot be empty',
