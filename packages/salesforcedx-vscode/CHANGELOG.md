@@ -8,11 +8,11 @@
 
 #### salesforcedx-vscode-soql
 
-- Add a Max Rows input to SOQL Builder UI to allow max rows retrieved to be defined by the user - W-22199672 ([PR #7261](https://github.com/forcedotcom/salesforcedx-vscode/pull/7261))
+- We added a setting to allow users to set the maximum number of rows to display when running a SOQL query in the builder view. ([PR #7261](https://github.com/forcedotcom/salesforcedx-vscode/pull/7261), [Discussion #5373](https://github.com/forcedotcom/salesforcedx-vscode/discussions/5373))
 
 ## Fixed
 
 #### salesforcedx-vscode-lwc
 
-- Remove duplicate registration of SFDX: Create Lightning Web Component command - W-22399742 ([PR #7302](https://github.com/forcedotcom/salesforcedx-vscode/pull/7302))
+- We fixed an issue where the **SFDX: Create Lightning Web Component** command was appearing twice in the command palette. ([PR #7302](https://github.com/forcedotcom/salesforcedx-vscode/pull/7302))
 
