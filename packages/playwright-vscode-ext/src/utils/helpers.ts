@@ -91,7 +91,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // toast. Benign in E2E — tests don't use VS Code accounts.
   'Sign-in failed',
   'Channel is closed',
-  'GenOpAgentConfig' // VS Code 1.119+ registry warning for unreleased agent config type (non-critical)
+  'GenOpAgentConfig', // VS Code 1.119+ registry warning for unreleased agent config type (non-critical)
+  'DEP0005' // Node.js Buffer() deprecation warning from transitive dependencies (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
