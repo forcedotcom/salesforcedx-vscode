@@ -27,7 +27,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { waitForTraceFlagStatusBar } from '../helpers';
+import { removeAllDebugLevels, waitForTraceFlagStatusBar } from '../helpers';
 
 test('Log retrieval: get logs, open folder', async ({ page }) => {
   test.setTimeout(180_000);
@@ -39,6 +39,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
   await test.step('setup minimal org auth', async () => {
     await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
+    await removeAllDebugLevels(page);
   });
 
   await test.step('turn on trace flag (SOAP execAnon no longer creates trace; logGet needs ApexLog records)', async () => {

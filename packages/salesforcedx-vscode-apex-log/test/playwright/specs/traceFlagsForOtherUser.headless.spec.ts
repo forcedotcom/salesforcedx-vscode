@@ -24,6 +24,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+import { removeAllDebugLevels } from '../helpers';
 
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
 const findInEditor = async (page: Page, query: string): Promise<void> => {
@@ -60,6 +61,10 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
     await ensureSecondarySideBarHidden(page);
   });
 
+  await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
+    await removeAllDebugLevels(page);
+  });
+
   await test.step('open trace flags', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsOpen'], 30_000);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsOpen']);
@@ -88,21 +93,6 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
       (el as HTMLElement).click();
     });
     await saveScreenshot(page, 'trace-other-user.user-selected.png');
-
-    const debugLevelPicker = page.locator(QUICK_INPUT_WIDGET);
-    await debugLevelPicker.waitFor({ state: 'visible', timeout: 10_000 });
-    await waitForQuickInputFirstOption(page);
-
-    const debugLevelRow = page
-      .locator(QUICK_INPUT_LIST_ROW)
-      .filter({ hasText: /SFDC_DevConsole|Developer Console|Apex=/i })
-      .first();
-    await expect(debugLevelRow).toBeVisible({ timeout: 15_000 });
-    await debugLevelRow.evaluate(el => {
-      el.scrollIntoView({ block: 'center', behavior: 'instant' });
-      (el as HTMLElement).click();
-    });
-    await saveScreenshot(page, 'trace-other-user.debug-level-selected.png');
   });
 
   await test.step('verify trace flag appears in virtual doc under USER_DEBUG for Integration User', async () => {

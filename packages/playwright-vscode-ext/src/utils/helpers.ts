@@ -90,7 +90,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // with `vscode.github-authentication` disabled there's no provider, so it surfaces this
   // toast. Benign in E2E — tests don't use VS Code accounts.
   'Sign-in failed',
-  'Channel is closed'
+  'Channel is closed',
+  'GenOpAgentConfig' // VS Code 1.119+ registry warning for unreleased agent config type (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [

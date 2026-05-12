@@ -24,7 +24,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { waitForTraceFlagStatusBar } from '../helpers';
+import { removeAllDebugLevels, waitForTraceFlagStatusBar } from '../helpers';
 
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
 const findInEditor = async (page: Page, query: string): Promise<void> => {
@@ -61,6 +61,10 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await setupMinimalOrgAndAuth(page);
     await closeSettingsTab(page);
     await ensureSecondarySideBarHidden(page);
+  });
+
+  await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
+    await removeAllDebugLevels(page);
   });
 
   await test.step('cleanup stale trace flags from prior runs', async () => {
@@ -113,8 +117,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await page.keyboard.press('Enter');
 
     await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await page.keyboard.press('Control+a');
-    await page.keyboard.type(debugLevelDeveloperName);
+    await quickInput.locator('input.input').fill(debugLevelDeveloperName);
     await page.keyboard.press('Enter');
 
     await selectFirstQuickInputOption(page, { optionVisibleTimeout: 10_000 });
@@ -127,6 +130,11 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
     await waitForTraceFlagStatusBar(page, /No Tracing/);
     await saveScreenshot(page, 'trace-flags.cleanup.png');
+  });
+
+  await test.step('cleanup: delete created debug level', async () => {
+    await removeAllDebugLevels(page);
+    await saveScreenshot(page, 'debug-level.cleanup.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
