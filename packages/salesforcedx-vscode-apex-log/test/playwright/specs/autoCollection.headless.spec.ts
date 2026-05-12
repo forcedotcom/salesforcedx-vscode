@@ -12,6 +12,7 @@ import {
   closeSettingsTab,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  removeAllDebugLevels,
   saveScreenshot,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
@@ -23,7 +24,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { removeAllDebugLevels, waitForTraceFlagStatusBar } from '../helpers';
+import { waitForTraceFlagStatusBar } from '../helpers';
 
 test.describe.configure({ mode: 'serial', timeout: 180_000 });
 

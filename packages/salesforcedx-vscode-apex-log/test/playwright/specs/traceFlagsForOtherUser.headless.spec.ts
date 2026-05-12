@@ -17,6 +17,7 @@ import {
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
+  removeAllDebugLevels,
   validateNoCriticalErrors,
   verifyCommandExists,
   waitForQuickInputFirstOption
@@ -24,7 +25,6 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { removeAllDebugLevels } from '../helpers';
 
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
 const findInEditor = async (page: Page, query: string): Promise<void> => {

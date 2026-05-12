@@ -14,6 +14,7 @@ import {
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
+  removeAllDebugLevels,
   saveScreenshot,
   selectFirstQuickInputOption,
   setupConsoleMonitoring,
@@ -27,7 +28,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { removeAllDebugLevels, waitForTraceFlagStatusBar } from '../helpers';
+import { waitForTraceFlagStatusBar } from '../helpers';
 
 test('Log retrieval: get logs, open folder', async ({ page }) => {
   test.setTimeout(180_000);

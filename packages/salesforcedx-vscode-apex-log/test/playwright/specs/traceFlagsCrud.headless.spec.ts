@@ -13,6 +13,7 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  removeAllDebugLevels,
   saveScreenshot,
   selectFirstQuickInputOption,
   setupConsoleMonitoring,
@@ -24,7 +25,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { removeAllDebugLevels, waitForTraceFlagStatusBar } from '../helpers';
+import { waitForTraceFlagStatusBar } from '../helpers';
 
 /** Open find dialog via command palette, search for query, assert positive match count, close. */
 const findInEditor = async (page: Page, query: string): Promise<void> => {

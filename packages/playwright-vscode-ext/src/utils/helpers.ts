@@ -475,6 +475,42 @@ export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' &&
 /** Returns true if running on Windows desktop (Electron) */
 export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
 
+/**
+ * Opens traceFlags.json and removes all debug levels via their Remove code lenses.
+ * With no debug levels present, createTraceFlagForCurrentUser will auto-create
+ * ReplayDebuggerLevels instead of showing the debug level picker.
+ * Safe to call when no debug levels exist — the step is a no-op in that case.
+ */
+export const removeAllDebugLevels = async (page: Page): Promise<void> => {
+  const removeLinks = page.locator('.codelens-decoration a').filter({ hasText: /^Remove$/ });
+
+  await expect(async () => {
+    await executeCommandWithCommandPalette(page, 'SFDX: Open Trace Flags');
+    await expect(page.locator('.tab').filter({ hasText: /traceFlags\.json/ })).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.codelens-decoration a').filter({ hasText: /Create Debug level/ })).toBeVisible({
+      timeout: 10_000
+    });
+
+    const debugLevelsLine = page
+      .locator('.view-line')
+      .filter({ hasText: /"debugLevels"/ })
+      .first();
+    await expect(debugLevelsLine).toBeVisible({ timeout: 5000 });
+    const debugLevelsBounds = await debugLevelsLine.boundingBox();
+    if (!debugLevelsBounds) return;
+
+    const links = await removeLinks.all();
+    for (const link of links) {
+      const bounds = await link.boundingBox();
+      if (bounds && bounds.y > debugLevelsBounds.y) {
+        await link.click();
+        await expect(removeLinks).not.toHaveCount(links.length, { timeout: 10_000 });
+        throw new Error('removed one debug level, checking for more');
+      }
+    }
+  }).toPass({ timeout: 60_000 });
+};
+
 /** Validate no critical console or network errors occurred during test execution */
 export const validateNoCriticalErrors = async (
   test: { step: (name: string, fn: () => Promise<void>) => Promise<void> },

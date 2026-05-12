@@ -22,6 +22,7 @@ export {
   isMacDesktop,
   isWindowsDesktop,
   validateNoCriticalErrors,
+  removeAllDebugLevels,
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
   closeWorkspaceToEmptyWindow,
