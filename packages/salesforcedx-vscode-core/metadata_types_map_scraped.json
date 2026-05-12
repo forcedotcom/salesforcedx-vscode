@@ -1019,27 +1019,47 @@
   "DataSrcDataModelFieldMap": {
     "fields": [
       {
-        "Description": "Required. Indicates the name of the entity.",
+        "Description": "Indicates whether a filter is applied to a DLO-to-DMO field mapping (true) or not (false). Available in API version 60.0 and later.",
+        "Field Name": "filterApplied",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Required when filterApplied is true. The comparison operator used when filtering the DLO-to-DMO field mapping. Available in API version 60.0 and later.",
+        "Field Name": "filterOperationType",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required when filterApplied is true. The value used for filtering the DLO-to-DMO field mapping. Available in API version 60.0 and later.",
+        "Field Name": "filterValue",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. A user-friendly name for DataSrcDataModelFieldMap, which is defined when the DataSrcDataModelFieldMap is created.",
         "Field Name": "masterLabel",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Indicates the developer name of data source fields.",
+        "Description": "Required. The developer name of the DLO field.",
         "Field Name": "sourceField",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Indicates the developer name of data mapping object fields.",
+        "Description": "Required. The developer name of the DMO field.",
         "Field Name": "targetField",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Indicates the version number of the entity.",
+        "Description": "The version number of the field mapping template. Available in API version 61.0 and later.",
+        "Field Name": "templateVersion",
+        "Field Type": "int"
+      },
+      {
+        "Description": "Required. The version number of the DataSrcDataModelFieldMap.",
         "Field Name": "versionNumber",
         "Field Type": "double"
       }
     ],
-    "short_description": "Represents the entity that is used for storing the design time bundle level mappings for the data source fields and data model fields.",
+    "short_description": "Represents the mappings between source data lake object (DLO) fields and target data model object (DMO) fields.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datasrcdatamodelfieldmap.htm",
     "parent": "Metadata"
   },
@@ -6805,7 +6825,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Indicates whether the variable is injected into the prompt sent to the Agentforce model. If true, the variable appears in the Included Fields section of the UI. The default variables Id, EndUserId, and EndUserLanguage always appear in the Included Fields section of the UI, regardless of their value of includeInPrompt. We recommend that you don't change the value of includeInPrompt for these default variables, as changing the value can prevent your agent from accessing important session data. Available in API version 63.0 and later.",
+        "Description": "Indicates whether the variable is injected into the prompt sent to the Agentforce model. If true, the variable appears in the Included Fields section of the UI. The default variables Id, EndUserId, and EndUserLanguage always appear in the Included Fields section of the UI, regardless of their value of includeInPrompt. We recommend that you don't change the value of includeInPrompt for these default variables, as changing the value can prevent your agent from accessing important session data.Note Available in API version 63.0 and later.",
         "Field Name": "includeInPrompt",
         "Field Type": "boolean"
       },
@@ -25297,7 +25317,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Specifies what causes the flow to run. If you exclude this field, the flow has no trigger and starts only when a user or app launches the flow. Possible values are: Activation—The flow starts when an activation is published. This value is available in API version 63.0 and later. AutomationEvent—The flow starts when an automation event such as an SMS subscription occurs. This value is available in API version 62.0 and later. Capability—When capabilityTypes is set, the flow starts when the capability is run. This value is available in API version 60.0 and later. DataCloudDataChange— The flow starts when data model object (DMO) or calculated insight object (CIO) conditions are met. This value is available in API version 59.0 and later. DataGraphDataChange— The flow starts when conditions are met in the specified data graph field. This value is available in API version 63.0 and later. EventDrivenJourney—Reserved for internal use. ExternalSystemChange—The flow starts when a relevant change is detected in an external system. This value is available in API version 63.0 and later. PlatformEvent—The flow starts when a platform event message is received. This value is available in API version 49.0 and later. RecordAfterSave—The flow starts after a record is saved. This value is available in API version 49.0 and later. RecordBeforeDelete—Deleting a record triggers an autolaunched flow before the record is deleted from the database. This value is available in API version 50.0 and later. RecordBeforeSave—Creating and/or updating a record triggers an autolaunched flow to make more updates to that record before it’s saved to the database. This value is available in API version 48.0 and later. Scheduled—The flow starts at the scheduled time. This value is available in API version 47.0 and later. ScheduledJourney— The flow starts only at the scheduled time and frequency. This value is available in API version 49.0 and later. Segment— At the scheduled time, the flow send emails to individuals included in the chosen segment. This value is available in API version 56.0 and later. Available only when processType is AutoLaunchedFlow or PromptFlow. This field is available in API version 47.0 and later.",
+        "Description": "Specifies what causes the flow to run. If you exclude this field, the flow has no trigger and starts only when a user or app launches the flow. Possible values are: Activation—The flow starts when an activation is published. This value is available in API version 63.0 and later. AutomationEvent—The flow starts when an automation event such as an SMS subscription occurs. This value is available in API version 62.0 and later. Capability—When capabilityTypes is set, the flow starts when the capability is run. This value is available in API version 60.0 and later. DataCloudDataChange— The flow starts when data model object (DMO) or calculated insight object (CIO) conditions are met. This value is available in API version 59.0 and later. DataGraphDataChange— The flow starts when conditions are met in the specified data graph field. This value is available in API version 63.0 and later. EventDrivenJourney—Reserved for internal use. ExternalSystemChange—The flow starts when a relevant change is detected in an external system. This value is available in API version 63.0 and later. IndivRelatedRecord—The flow starts when an object or an object with fields related to an individual is created or updated. This value is available in API version 66.0 and later. PlatformEvent—The flow starts when a platform event message is received. This value is available in API version 49.0 and later. RecordAfterSave—The flow starts after a record is saved. This value is available in API version 49.0 and later. RecordBeforeDelete—Deleting a record triggers an autolaunched flow before the record is deleted from the database. This value is available in API version 50.0 and later. RecordBeforeSave—Creating and/or updating a record triggers an autolaunched flow to make more updates to that record before it’s saved to the database. This value is available in API version 48.0 and later. Scheduled—The flow starts at the scheduled time. This value is available in API version 47.0 and later. ScheduledJourney— The flow starts only at the scheduled time and frequency. This value is available in API version 49.0 and later. Segment— At the scheduled time, the flow send emails to individuals included in the chosen segment. This value is available in API version 56.0 and later. Available only when processType is AutoLaunchedFlow or PromptFlow. This field is available in API version 47.0 and later.",
         "Field Name": "triggerType",
         "Field Type": "FlowTriggerType (enumeration of type string)"
       },
@@ -43064,6 +43084,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether Sync Email as Salesforce Activity is turned on (true) or not (false).Available in API version 63.0 and later.",
+        "Field Name": "syncEmailToCoreActivity",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether internal events sync between the connected account and Salesforce (true) or not (false). Events are internal when all attendees are part of the internal domain.Available in API version 53.0 and later.",
         "Field Name": "syncInternalEvents",
         "Field Type": "boolean"
@@ -48012,6 +48037,11 @@
         "Description": "Required. Source from which the actual ordered quantity of a product in a sales agreement is calculated. Valid values are: DataProcessingEngine—Available in API version 63.0 and later. Manual: Default Orders OrdersThroughContracts",
         "Field Name": "actualsCalculationMode",
         "Field Type": "ActualsCalculationMode(enumeration of type string)"
+      },
+      {
+        "Description": "Indicates whether predefined status validations are overridden (true) or not (false) when the Override Predefined Status Validations feature is enabled. The default value is false. Available in API version 65.0 and later.",
+        "Field Name": "arePredfndStatusValOveride",
+        "Field Type": "boolean"
       },
       {
         "Description": "Required. Number of decimal places applied to values in sales agreements. Available in API version 62.0 and later.",
