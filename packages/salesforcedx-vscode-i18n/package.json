@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-i18n",
-  "version": "66.7.0",
+  "version": "66.7.1",
   "versionedIndependently": true,
   "description": "Internationalization (i18n) library for Salesforce VS Code extensions",
   "author": "Salesforce",
