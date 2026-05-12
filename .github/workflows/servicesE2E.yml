@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       vscode_version:
-        description: 'VS Code version for E2E (e.g. 1.116.0). Empty uses repo variable
+        description: 'VS Code version for E2E (e.g. 1.119.0). Empty uses repo variable
           PLAYWRIGHT_VSCODE_VERSION.'
         required: false
         type: string
@@ -12,7 +12,7 @@ on:
   workflow_call:
     inputs:
       vscode_version:
-        description: 'VS Code version for E2E (e.g. 1.116.0). Empty uses repo variable
+        description: 'VS Code version for E2E (e.g. 1.119.0). Empty uses repo variable
           PLAYWRIGHT_VSCODE_VERSION.'
         required: false
         type: string
