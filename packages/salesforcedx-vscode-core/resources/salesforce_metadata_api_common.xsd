@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-05-03T13:38:48.937Z
+Generated on: 2026-05-10T13:38:58.375Z
 Total metadata types: 1562
 -->
 <xsd:schema
@@ -16844,7 +16844,7 @@ Total metadata types: 1562
      </xsd:element>
      <xsd:element name="includeInPrompt" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the variable is injected into the prompt sent to the Agentforce model. If true, the variable appears in the Included Fields section of the UI. The default variables Id, EndUserId, and EndUserLanguage always appear in the Included Fields section of the UI, regardless of their value of includeInPrompt. We recommend that you don&apos;t change the value of includeInPrompt for these default variables, as changing the value can prevent your agent from accessing important session data. Available in API version 63.0 and later.</xsd:documentation>
+       <xsd:documentation>Indicates whether the variable is injected into the prompt sent to the Agentforce model. If true, the variable appears in the Included Fields section of the UI. The default variables Id, EndUserId, and EndUserLanguage always appear in the Included Fields section of the UI, regardless of their value of includeInPrompt. We recommend that you don&apos;t change the value of includeInPrompt for these default variables, as changing the value can prevent your agent from accessing important session data.Note Available in API version 63.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -23484,33 +23484,57 @@ Total metadata types: 1562
  </xsd:complexType>
  <xsd:complexType name="DataSrcDataModelFieldMap">
   <xsd:annotation>
-   <xsd:documentation>Represents the entity that is used for storing the design time bundle level mappings for the data source fields and data model fields.</xsd:documentation>
+   <xsd:documentation>Represents the mappings between source data lake object (DLO) fields and target data model object (DMO) fields.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datasrcdatamodelfieldmap.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="filterApplied" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether a filter is applied to a DLO-to-DMO field mapping (true) or not (false). Available in API version 60.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="filterOperationType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required when filterApplied is true. The comparison operator used when filtering the DLO-to-DMO field mapping. Available in API version 60.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="filterValue" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required when filterApplied is true. The value used for filtering the DLO-to-DMO field mapping. Available in API version 60.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Indicates the name of the entity.</xsd:documentation>
+       <xsd:documentation>Required. A user-friendly name for DataSrcDataModelFieldMap, which is defined when the DataSrcDataModelFieldMap is created.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="sourceField" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Indicates the developer name of data source fields.</xsd:documentation>
+       <xsd:documentation>Required. The developer name of the DLO field.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="targetField" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Indicates the developer name of data mapping object fields.</xsd:documentation>
+       <xsd:documentation>Required. The developer name of the DMO field.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="templateVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+      <xsd:annotation>
+       <xsd:documentation>The version number of the field mapping template. Available in API version 61.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: int</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="versionNumber" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
-       <xsd:documentation>Required. Indicates the version number of the entity.</xsd:documentation>
+       <xsd:documentation>Required. The version number of the DataSrcDataModelFieldMap.</xsd:documentation>
        <xsd:appinfo>Type: double</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -26653,6 +26677,12 @@ Total metadata types: 1562
      <xsd:element name="sensitiveEmailFilter" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the setting to prevent sensitive emails from being shared is on (true) or not (false).Available in API version 54.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="syncEmailToCoreActivity" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Sync Email as Salesforce Activity is turned on (true) or not (false).Available in API version 63.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -40005,7 +40035,7 @@ Total metadata types: 1562
      </xsd:element>
      <xsd:element name="triggerType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Specifies what causes the flow to run. If you exclude this field, the flow has no trigger and starts only when a user or app launches the flow. Possible values are: Activation—The flow starts when an activation is published. This value is available in API version 63.0 and later. AutomationEvent—The flow starts when an automation event such as an SMS subscription occurs. This value is available in API version 62.0 and later. Capability—When capabilityTypes is set, the flow starts when the capability is run. This value is available in API version 60.0 and later. DataCloudDataChange— The flow starts when data model object (DMO) or calculated insight object (CIO) conditions are met. This value is available in API version 59.0 and later. DataGraphDataChange— The flow starts when conditions are met in the specified data graph field. This value is available in API version 63.0 and later. EventDrivenJourney—Reserved for internal use. ExternalSystemChange—The flow starts when a relevant change is detected in an external system. This value is available in API version 63.0 and later. PlatformEvent—The flow starts when a platform event message is received. This value is available in API version 49.0 and later. RecordAfterSave—The flow starts after a record is saved. This value is available in API version 49.0 and later. RecordBeforeDelete—Deleting a record triggers an autolaunched flow before the record is deleted from the database. This value is available in API version 50.0 and later. RecordBeforeSave—Creating and/or updating a record triggers an autolaunched flow to make more updates to that record before it’s saved to the database. This value is available in API version 48.0 and later. Scheduled—The flow starts at the scheduled time. This value is available in API version 47.0 and later. ScheduledJourney— The flow starts only at the scheduled time and frequency. This value is available in API version 49.0 and later. Segment— At the scheduled time, the flow send emails to individuals included in the chosen segment. This value is available in API version 56.0 and later. Available only when processType is AutoLaunchedFlow or PromptFlow. This field is available in API version 47.0 and later.</xsd:documentation>
+       <xsd:documentation>Specifies what causes the flow to run. If you exclude this field, the flow has no trigger and starts only when a user or app launches the flow. Possible values are: Activation—The flow starts when an activation is published. This value is available in API version 63.0 and later. AutomationEvent—The flow starts when an automation event such as an SMS subscription occurs. This value is available in API version 62.0 and later. Capability—When capabilityTypes is set, the flow starts when the capability is run. This value is available in API version 60.0 and later. DataCloudDataChange— The flow starts when data model object (DMO) or calculated insight object (CIO) conditions are met. This value is available in API version 59.0 and later. DataGraphDataChange— The flow starts when conditions are met in the specified data graph field. This value is available in API version 63.0 and later. EventDrivenJourney—Reserved for internal use. ExternalSystemChange—The flow starts when a relevant change is detected in an external system. This value is available in API version 63.0 and later. IndivRelatedRecord—The flow starts when an object or an object with fields related to an individual is created or updated. This value is available in API version 66.0 and later. PlatformEvent—The flow starts when a platform event message is received. This value is available in API version 49.0 and later. RecordAfterSave—The flow starts after a record is saved. This value is available in API version 49.0 and later. RecordBeforeDelete—Deleting a record triggers an autolaunched flow before the record is deleted from the database. This value is available in API version 50.0 and later. RecordBeforeSave—Creating and/or updating a record triggers an autolaunched flow to make more updates to that record before it’s saved to the database. This value is available in API version 48.0 and later. Scheduled—The flow starts at the scheduled time. This value is available in API version 47.0 and later. ScheduledJourney— The flow starts only at the scheduled time and frequency. This value is available in API version 49.0 and later. Segment— At the scheduled time, the flow send emails to individuals included in the chosen segment. This value is available in API version 56.0 and later. Available only when processType is AutoLaunchedFlow or PromptFlow. This field is available in API version 47.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: FlowTriggerType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -63402,6 +63432,12 @@ Total metadata types: 1562
       <xsd:annotation>
        <xsd:documentation>Required. Source from which the actual ordered quantity of a product in a sales agreement is calculated. Valid values are: DataProcessingEngine—Available in API version 63.0 and later. Manual: Default Orders OrdersThroughContracts</xsd:documentation>
        <xsd:appinfo>Type: ActualsCalculationMode(enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="arePredfndStatusValOveride" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether predefined status validations are overridden (true) or not (false) when the Override Predefined Status Validations feature is enabled. The default value is false. Available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="decimalScale" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
