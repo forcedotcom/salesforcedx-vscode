@@ -6,11 +6,7 @@
  */
 
 import type { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';
-import {
-  getOrgApiVersion,
-  notificationService,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+import { getOrgApiVersion, notificationService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';

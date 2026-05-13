@@ -180,7 +180,8 @@ describe('Language Client Manager', () => {
       // Setup mocks
       mockExtensionContext = {} as vscode.ExtensionContext;
       mockClient = {
-        stop: jest.fn().mockResolvedValue(undefined)
+        stop: jest.fn().mockResolvedValue(undefined),
+        dispose: jest.fn()
       } as unknown as ApexLanguageClient;
 
       // Create a proper mock for the status bar with the restarting method
