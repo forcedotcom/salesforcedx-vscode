@@ -52,7 +52,7 @@ After: `- We added a **Max Rows** input to SOQL Builder UI so you can limit the 
 Use PR commits, title, body, and labels to decide. When uncertain, check the diff: `gh pr diff <number> --name-only` to see which files changed.
 
 Under-the-cover entries get a single consolidated line:
-`- Under the cover changes ([PR #NNNN](...))` or group multiple: `- Under the cover changes ([PR #NNNN](...), [PR #MMMM](...))`.
+`- We made some changes under the hood. ([PR #NNNN](...))` or group multiple: `- We made some changes under the hood. ([PR #NNNN](...), [PR #MMMM](...))`.
 
 ### 3. Deduplicate multi-package entries
 
