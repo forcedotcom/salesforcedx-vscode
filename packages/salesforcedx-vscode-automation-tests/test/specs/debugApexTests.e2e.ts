@@ -29,7 +29,7 @@ import {
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
-import { expandTestExplorerNamespaceAndPackage, findTestItemByName, verifyTestItems } from '../utils/apexTestsHelper';
+import { expandTestExplorerNamespaceAndPackage, findTestItemByName, verifyTestItems } from '../utils/testsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 

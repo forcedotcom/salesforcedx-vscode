@@ -13,9 +13,7 @@ import {
   lwcTestDebugActiveTextEditorTest,
   lwcTestFileDebug
 } from './lwcTestDebugAction';
-import { lwcTestNavigateToTest } from './lwcTestNavigateToTest';
-import { lwcTestRefreshTestExplorer } from './lwcTestRefreshTestExplorer';
-import { lwcTestCaseRun, lwcTestFileRun, lwcTestRunActiveTextEditorTest, lwcTestRunAllTests } from './lwcTestRunAction';
+import { lwcTestCaseRun, lwcTestFileRun, lwcTestRunActiveTextEditorTest } from './lwcTestRunAction';
 import {
   lwcTestStartWatchingCurrentFile,
   lwcTestStopWatchingAllTests,
@@ -27,15 +25,6 @@ import {
  * @param extensionContext extension context
  */
 export const registerCommands = (extensionContext: ExtensionContext): Disposable => {
-  const lwcTestRunAllTestsCmd = commands.registerCommand('sf.lightning.lwc.test.runAllTests', lwcTestRunAllTests);
-  const lwcTestRefreshTestExplorerCmd = commands.registerCommand(
-    'sf.lightning.lwc.test.refreshTestExplorer',
-    lwcTestRefreshTestExplorer
-  );
-  const lwcTestNavigateToTestCmd = commands.registerCommand(
-    'sf.lightning.lwc.test.navigateToTest',
-    lwcTestNavigateToTest
-  );
   const lwcTestFileRunCmd = commands.registerCommand('sf.lightning.lwc.test.file.run', lwcTestFileRun);
   const lwcTestFileDebugCmd = commands.registerCommand('sf.lightning.lwc.test.file.debug', lwcTestFileDebug);
   const lwcTestCaseRunCmd = commands.registerCommand('sf.lightning.lwc.test.case.run', lwcTestCaseRun);
@@ -63,12 +52,9 @@ export const registerCommands = (extensionContext: ExtensionContext): Disposable
   const startDebugSessionDisposable = vscode.debug.onDidStartDebugSession(handleDidStartDebugSession);
   const stopDebugSessionDisposable = vscode.debug.onDidTerminateDebugSession(handleDidTerminateDebugSession);
   const disposables = Disposable.from(
-    lwcTestRefreshTestExplorerCmd,
-    lwcTestNavigateToTestCmd,
     lwcTestEditorTitleStartWatchingCmd,
     lwcTestEditorTitleStopWatchingCmd,
     lwcTestStopWatchingAllTestsCmd,
-    lwcTestRunAllTestsCmd,
     lwcTestFileRunCmd,
     lwcTestFileDebugCmd,
     lwcTestCaseRunCmd,

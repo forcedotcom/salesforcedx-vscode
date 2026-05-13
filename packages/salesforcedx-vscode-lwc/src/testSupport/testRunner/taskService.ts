@@ -142,7 +142,14 @@ class TaskService {
     }
     const taskShellExecution = new vscode.ShellExecution(cmd, args, taskShellExecutionOptions);
     const task = new vscode.Task(taskDefinition, taskScope, taskName, taskSource, taskShellExecution);
-    task.presentationOptions.clear = true;
+    task.presentationOptions = {
+      reveal: vscode.TaskRevealKind.Never,
+      focus: false,
+      echo: false,
+      panel: vscode.TaskPanelKind.Shared,
+      clear: true,
+      showReuseMessage: false
+    };
 
     const sfTask = new SfTask(task);
     this.createdTasks.set(taskId, sfTask);

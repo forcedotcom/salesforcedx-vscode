@@ -18,7 +18,7 @@ Classes that exist only in the org (not on disk) still appear; they open in a re
 
 - Expand to the class, then use **Run Test** on the class row (runs all `@IsTest` methods in that class).
 - Or right-click the class → run/debug.
-- The Testing toolbar **Run** button uses the **default** run profile. With nothing specific selected, that profile runs **in-workspace** tests only (classes that map to files in your workspace). To run the entire org, open the run profile dropdown (chevron next to **Run**) and pick the secondary profile **Run All Tests in Org**—use that intentionally on large orgs.
+- The Testing toolbar **Run** button uses the **default** run profile. With nothing specific selected, that profile runs **in-workspace** tests only (classes that map to files in your workspace). To run the entire org, open the run profile dropdown (chevron next to **Run**) and pick the secondary profile **SFDX: Run All Apex Tests in Org**—use that intentionally on large orgs.
 
 ## Run a specific test from a test class
 
@@ -47,7 +47,7 @@ Use the **filter** box on the Testing view:
 
 Combine as needed for your VS Code version’s filter rules.
 
-When a filter narrows what you see, VS Code may pass only the **visible** tests in the run request for the default profile’s toolbar **Run**, so that subset runs instead of every in-workspace test. The secondary profile **Run All Tests in Org** (dropdown) always runs the full org regardless of filter.
+When a filter narrows what you see, VS Code may pass only the **visible** tests in the run request for the default profile’s toolbar **Run**, so that subset runs instead of every in-workspace test. The secondary profile **SFDX: Run All Apex Tests in Org** (dropdown) always runs the full org regardless of filter.
 
 ## See results in the Test Results tab
 

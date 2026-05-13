@@ -7,7 +7,11 @@
 
 import { createDesktopTest, createTestWorkspace } from '@salesforce/playwright-vscode-ext';
 
-import { seedLwcHeadlessWorkspaceSupplement, seedSnippetsE2eEmptyBundle } from '../utils/createLwcTestWorkspace';
+import {
+  seedLwcHeadlessWorkspaceSupplement,
+  seedLwcJestWorkspace,
+  seedSnippetsE2eEmptyBundle
+} from '../utils/createLwcTestWorkspace';
 
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
@@ -18,6 +22,23 @@ export const desktopTest = createDesktopTest({
     const dir = await createTestWorkspace(undefined);
     await seedLwcHeadlessWorkspaceSupplement(dir);
     await seedSnippetsE2eEmptyBundle(dir);
+    await use(dir);
+  }
+});
+
+/**
+ * Desktop fixture with `@salesforce/sfdx-lwc-jest` pre-installed in the workspace.
+ * Use for specs that run or debug LWC Jest tests (requires Node on the host).
+ */
+export const desktopJestTest = createDesktopTest({
+  fixturesDir: __dirname,
+  disableOtherExtensions: false,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata']
+}).extend({
+  workspaceDir: async ({}, use) => {
+    const dir = await createTestWorkspace(undefined);
+    await seedLwcHeadlessWorkspaceSupplement(dir);
+    await seedLwcJestWorkspace(dir);
     await use(dir);
   }
 });
