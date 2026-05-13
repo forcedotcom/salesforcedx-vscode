@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-services
 
-- Add common.isInternal span attribute for internal user detection - W-22350677 ([PR #7286](https://github.com/forcedotcom/salesforcedx-vscode/pull/7286))
+- Under the cover changes ([PR #7286](https://github.com/forcedotcom/salesforcedx-vscode/pull/7286))
 
 #### salesforcedx-vscode-soql
 
@@ -15,4 +15,3 @@
 #### salesforcedx-vscode-lwc
 
 - We fixed an issue where the **SFDX: Create Lightning Web Component** command was appearing twice in the command palette. ([PR #7302](https://github.com/forcedotcom/salesforcedx-vscode/pull/7302))
-
