@@ -4,9 +4,6 @@
 .vscode-web/**
 .wireit/**
 node_modules
-# Include jest-editor-support and vscode-html-languageservice which are external dependencies needed at runtime
-!node_modules/jest-editor-support/**
-!node_modules/vscode-html-languageservice/**
 # ignore unused jsforce code
 node_modules/jsforce/test/**
 node_modules/jsforce/build/**
