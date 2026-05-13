@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-services
 
-- Under the cover changes ([PR #7286](https://github.com/forcedotcom/salesforcedx-vscode/pull/7286))
+- We made some changes under the hood. ([PR #7286](https://github.com/forcedotcom/salesforcedx-vscode/pull/7286))
 
 #### salesforcedx-vscode-soql
 
