@@ -110,6 +110,7 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
 
 export const deactivate = async () => {
   await languageClientManager.getClientInstance()?.stop(30_000);
+  languageClientManager.disposeOutputChannel();
   getTelemetryService().sendExtensionDeactivationEvent();
 };
 
