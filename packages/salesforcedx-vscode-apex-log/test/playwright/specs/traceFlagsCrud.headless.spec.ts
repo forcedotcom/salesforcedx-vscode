@@ -9,6 +9,7 @@ import { expect, type Page } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   closeSettingsTab,
+  CODELENS_ITEM,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -71,7 +72,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
   await test.step('cleanup stale trace flags from prior runs', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsOpen'], 30_000);
     const removeLink = page
-      .locator('.codelens-decoration a')
+      .locator(CODELENS_ITEM)
       .filter({ hasText: /^Remove$/ })
       .first();
     await expect(async () => {
@@ -100,7 +101,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await openTraceFlagsAndExpectContent(page, '"DEVELOPER_LOG"');
     await expect(
       page
-        .locator('.codelens-decoration a')
+        .locator(CODELENS_ITEM)
         .filter({ hasText: /^Remove$/ })
         .first()
     ).toBeVisible({

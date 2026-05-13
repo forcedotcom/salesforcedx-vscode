@@ -8,6 +8,7 @@
 import { expect, type Page } from '@playwright/test';
 import {
   closeSettingsTab,
+  CODELENS_ITEM,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -106,7 +107,7 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await findInEditor(page, 'Integration User');
-    const removeLens = page.locator('.codelens-decoration a').filter({ hasText: /^Remove$/ });
+    const removeLens = page.locator(CODELENS_ITEM).filter({ hasText: /^Remove$/ });
     await expect(removeLens.first()).toBeVisible({ timeout: 15_000 });
     await removeLens.first().click();
     await openTraceFlagsAndExpectContent(page, '"USER_DEBUG"');

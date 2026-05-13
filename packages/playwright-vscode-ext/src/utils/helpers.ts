@@ -9,6 +9,7 @@ import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { upsertSettings } from '../pages/settings';
 import {
+  CODELENS_ITEM,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   SETTINGS_SEARCH_INPUT,
@@ -483,32 +484,25 @@ export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1
  * Safe to call when no debug levels exist — the step is a no-op in that case.
  */
 export const removeAllDebugLevels = async (page: Page): Promise<void> => {
-  const removeLinks = page.locator('.codelens-decoration a').filter({ hasText: /^Remove$/ });
+  const removeLinks = page.locator(CODELENS_ITEM).filter({ hasText: /^Remove$/ });
 
   await expect(async () => {
     await executeCommandWithCommandPalette(page, 'SFDX: Open Trace Flags');
     await expect(page.locator('.tab').filter({ hasText: /traceFlags\.json/ })).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('.codelens-decoration a').filter({ hasText: /Create Debug level/ })).toBeVisible({
+    // Wait for code lenses to render (attached is sufficient — they may be off-screen in web).
+    await expect(page.locator(CODELENS_ITEM).filter({ hasText: /Create Debug level/ })).toBeAttached({
       timeout: 10_000
     });
 
-    const debugLevelsLine = page
-      .locator('.view-line')
-      .filter({ hasText: /"debugLevels"/ })
-      .first();
-    await expect(debugLevelsLine).toBeVisible({ timeout: 5000 });
-    const debugLevelsBounds = await debugLevelsLine.boundingBox();
-    if (!debugLevelsBounds) return;
-
-    const links = await removeLinks.all();
-    for (const link of links) {
-      const bounds = await link.boundingBox();
-      if (bounds && bounds.y > debugLevelsBounds.y) {
-        await link.click();
-        await expect(removeLinks).not.toHaveCount(links.length, { timeout: 10_000 });
-        throw new Error('removed one debug level, checking for more');
-      }
-    }
+    // This is only called when no trace flags are active, so all Remove lenses belong to
+    // debug levels — click the first one and re-iterate until none remain.
+    const link = removeLinks.first();
+    if (!(await link.isVisible({ timeout: 1000 }).catch(() => false))) return;
+    await link.scrollIntoViewIfNeeded();
+    const count = await removeLinks.count();
+    await link.click();
+    await expect(removeLinks).not.toHaveCount(count, { timeout: 10_000 });
+    throw new Error('removed one debug level, checking for more');
   }).toPass({ timeout: 60_000 });
 };
 
