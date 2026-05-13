@@ -99,33 +99,15 @@ describe('Run LWC Tests', () => {
   it('Verify LWC LSP finished indexing in status bar', async () => {
     logTestStart(testSetup, 'Verify LWC LSP finished indexing in status bar');
 
-    // Increase retries and add delays for CI environment where indexing takes longer
-    const maxRetries = process.env.CI ? 10 : 5;
-    // 10 seconds for CI, 5 seconds for local
-    // eslint-disable-next-line unicorn/numeric-separators-style
-    const retryDelayMs = process.env.CI ? 10000 : 5000;
-
     await retryOperation(
       async () => {
         await openFile(path.join(lwcFolderPath, 'lwc1', 'lwc1.html'));
 
         const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
         await statusBar.click();
-        const statusText = await statusBar.getAttribute('aria-label');
-
-        // More lenient check: Accept either "Indexing complete" or if status shows it's ready
-        // (not actively showing "Indexing..." which indicates work in progress)
-        expect(statusText).to.satisfy(
-          (text: string) => text.includes('Indexing complete') || !text.includes('Indexing'),
-          `Expected LWC language server to finish indexing, but got status: "${statusText}"`
-        );
-
-        // Add delay before retry to give LSP time to make progress
-        if (!statusText.includes('Indexing complete') && !statusText.includes('Indexing')) {
-          await pause(Duration.milliseconds(retryDelayMs));
-        }
+        expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
       },
-      maxRetries,
+      5,
       'LWC language status did not reach indexing complete'
     );
   });
