@@ -41,6 +41,8 @@ export const messages = {
   run_tests_workspace_default_title: 'Run In-Workspace Tests',
   run_tests_title: 'Run All Tests in Org',
   debug_tests_title: 'Debug Tests',
+  run_stale_workspace_tests_title: 'Re-run Stale In-Workspace Tests',
+  run_stale_org_tests_title: 'Re-run Stale Org Tests',
   test_view_name: 'Apex Tests',
   apex_test_suites_parent_text: 'Apex Test Suites',
   apex_testing_vfs_org_badge_text: 'ORG',

@@ -287,7 +287,7 @@ describe('ApexTestController', () => {
   describe('constructor', () => {
     it('should create a test controller', () => {
       expect(vscode.tests.createTestController).toHaveBeenCalled();
-      expect(mockTestController.createRunProfile).toHaveBeenCalledTimes(3);
+      expect(mockTestController.createRunProfile).toHaveBeenCalledTimes(5);
     });
 
     it('should register workspace-first run as default and org-wide run as secondary (no profile tags)', () => {
