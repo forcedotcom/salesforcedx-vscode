@@ -331,39 +331,27 @@ export class ApexTestController {
       // Only mark pre-session methods as stale
       this.applyStaleTags(staleMethodIds);
 
-      // Invalidate stale methods, their parent classes, and ancestor nodes
-      const invalidatedClasses = new Set<string>();
+      // Invalidate stale methods and classes where ALL methods are stale
+      const affectedClasses = new Set<string>();
       for (const methodId of staleMethodIds) {
         const methodItem = this.methodItems.get(methodId);
         if (methodItem) {
           this.controller.invalidateTestResults(methodItem);
-          invalidatedClasses.add(methodId.split('.')[0]);
+          affectedClasses.add(methodId.split('.')[0]);
         }
       }
-      const invalidatedParents = new Set<string>();
-      for (const className of invalidatedClasses) {
-        const classItem = this.classItems.get(className);
-        if (classItem) {
-          this.controller.invalidateTestResults(classItem);
-        }
-        const parentItem = this.classToParentItem.get(className);
-        if (parentItem && !invalidatedParents.has(parentItem.id)) {
-          invalidatedParents.add(parentItem.id);
-          this.controller.invalidateTestResults(parentItem);
-        }
-      }
-      // Invalidate namespace items that contain invalidated package nodes
-      this.controller.items.forEach(namespaceItem => {
-        let hasInvalidatedChild = false;
-        namespaceItem.children.forEach(child => {
-          if (invalidatedParents.has(child.id)) {
-            hasInvalidatedChild = true;
+      for (const className of affectedClasses) {
+        const classPrefix = `${className}.`;
+        const allMethodsStale = [...this.methodItems.entries()]
+          .filter(([id]) => id.startsWith(classPrefix))
+          .every(([id]) => staleMethodIds.has(id));
+        if (allMethodsStale) {
+          const classItem = this.classItems.get(className);
+          if (classItem) {
+            this.controller.invalidateTestResults(classItem);
           }
-        });
-        if (hasInvalidatedChild) {
-          this.controller.invalidateTestResults(namespaceItem);
         }
-      });
+      }
 
       // Get stat for most recent result (used for notification only)
       const lastStat = await vscode.workspace.fs.stat(recentUris.at(-1)!);
