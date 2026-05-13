@@ -8,7 +8,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-type MessageEntry = { text: string; namePos: number; nameEnd: number };
+export type MessageEntry = { text: string; namePos: number; nameEnd: number };
 type MessagesMap = Record<string, MessageEntry>;
 
 type TsLike = {

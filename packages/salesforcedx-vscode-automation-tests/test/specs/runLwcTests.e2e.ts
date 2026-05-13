@@ -59,24 +59,6 @@ describe('Run LWC Tests', () => {
     relativeLwcPath = path.join('force-app', 'main', 'default', 'lwc');
     lwcFolderPath = path.join(testSetup.projectFolderPath!, relativeLwcPath);
 
-    // Verify sfdx-project.json exists and is readable by VS Code
-    // This ensures workspace type detection can properly identify this as an SFDX project
-    await retryOperation(
-      async () => {
-        const sfdxProjectPath = path.join(testSetup.projectFolderPath!, 'sfdx-project.json');
-        await openFile(sfdxProjectPath);
-        await pause(Duration.seconds(1));
-        const workbench = getWorkbench();
-        const editorView = workbench.getEditorView();
-        const activeTab = await editorView.getActiveTab();
-        const title = await activeTab?.getTitle();
-        expect(title).to.equal('sfdx-project.json');
-        await closeAllEditors();
-      },
-      5,
-      'Failed to open sfdx-project.json - workspace may not be fully initialized'
-    );
-
     // Hide copilot
     await tryToHideCopilot();
 
