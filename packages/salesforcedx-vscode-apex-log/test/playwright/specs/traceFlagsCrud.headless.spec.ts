@@ -9,10 +9,12 @@ import { expect, type Page } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   closeSettingsTab,
+  CODELENS_ITEM,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  removeAllDebugLevels,
   saveScreenshot,
   selectFirstQuickInputOption,
   setupConsoleMonitoring,
@@ -63,10 +65,14 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await ensureSecondarySideBarHidden(page);
   });
 
+  await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
+    await removeAllDebugLevels(page);
+  });
+
   await test.step('cleanup stale trace flags from prior runs', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsOpen'], 30_000);
     const removeLink = page
-      .locator('.codelens-decoration a')
+      .locator(CODELENS_ITEM)
       .filter({ hasText: /^Remove$/ })
       .first();
     await expect(async () => {
@@ -95,7 +101,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await openTraceFlagsAndExpectContent(page, '"DEVELOPER_LOG"');
     await expect(
       page
-        .locator('.codelens-decoration a')
+        .locator(CODELENS_ITEM)
         .filter({ hasText: /^Remove$/ })
         .first()
     ).toBeVisible({
@@ -113,8 +119,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await page.keyboard.press('Enter');
 
     await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await page.keyboard.press('Control+a');
-    await page.keyboard.type(debugLevelDeveloperName);
+    await quickInput.locator('input.input').fill(debugLevelDeveloperName);
     await page.keyboard.press('Enter');
 
     await selectFirstQuickInputOption(page, { optionVisibleTimeout: 10_000 });
@@ -127,6 +132,11 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
     await waitForTraceFlagStatusBar(page, /No Tracing/);
     await saveScreenshot(page, 'trace-flags.cleanup.png');
+  });
+
+  await test.step('cleanup: delete created debug level', async () => {
+    await removeAllDebugLevels(page);
+    await saveScreenshot(page, 'debug-level.cleanup.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

@@ -8,15 +8,6 @@
 import { expect, Page } from '@playwright/test';
 import { APEX_TRACE_FLAG_STATUS_BAR } from '@salesforce/playwright-vscode-ext';
 
-/**
- * Wait for trace flag status bar to show expected text.
- * Uses polling with extended timeout to handle slow Salesforce org API operations.
- *
- * @param page - Playwright page
- * @param expectedTextPattern - Regex pattern to match in status bar (e.g., /Tracing until/, /No Tracing/)
- * @param timeout - Total timeout in ms (default: 90000)
- * @param pollInterval - Check interval in ms (default: 2000)
- */
 export const waitForTraceFlagStatusBar = async (
   page: Page,
   expectedTextPattern: RegExp,
