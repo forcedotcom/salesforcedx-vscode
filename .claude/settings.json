@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('sources',['?']\\)[:3]\\)\")",
+      "Bash(git commit -m ' *)",
+      "Bash(python3 -c ' *)"
+    ]
+  }
+}

@@ -1,11 +1,17 @@
-# 66.10.1 - May 7, 2026
+# 66.11.0 - May 13, 2026
 
-## Fixed
+## Added
 
-#### salesforcedx-vscode-apex-testing
+#### salesforcedx-vscode-services
 
-- We fixed a performance issue where deploying a large number of files caused the Apex Testing view to refresh slowly. ([PR #7272](https://github.com/forcedotcom/salesforcedx-vscode/pull/7272))
+- We made some changes under the hood. ([PR #7286](https://github.com/forcedotcom/salesforcedx-vscode/pull/7286))
 
 #### salesforcedx-vscode-soql
 
-- We fixed a bug where Filter values were becoming blank when reopening a query in SOQL Builder UI. ([PR #7283](https://github.com/forcedotcom/salesforcedx-vscode/pull/7283))
+- We added a setting to allow users to set the maximum number of rows to display when running a SOQL query in the builder view. ([PR #7261](https://github.com/forcedotcom/salesforcedx-vscode/pull/7261), [Discussion #5373](https://github.com/forcedotcom/salesforcedx-vscode/discussions/5373))
+
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- We fixed an issue where the **SFDX: Create Lightning Web Component** command was appearing twice in the command palette. ([PR #7302](https://github.com/forcedotcom/salesforcedx-vscode/pull/7302))
