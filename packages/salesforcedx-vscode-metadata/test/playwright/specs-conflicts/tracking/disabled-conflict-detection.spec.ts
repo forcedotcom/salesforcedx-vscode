@@ -56,8 +56,8 @@ test.describe('Disabled Conflict Detection', () => {
       await page.waitForTimeout(10_000);
 
       // Status bar should be hidden when conflict detection is disabled
-      const statusBarText = await statusBarPage.getText();
-      expect(statusBarText).toBeNull();
+      const isVisible = await statusBarPage.statusBarItem.isVisible();
+      expect(isVisible).toBe(false);
 
       await saveScreenshot(page, 'disabled-cd-5-no-status-bar.png');
     });
