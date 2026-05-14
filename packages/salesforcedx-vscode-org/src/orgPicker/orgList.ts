@@ -266,7 +266,9 @@ type OrgTypeFromInfo = 'Scratch' | 'Sandbox' | 'Org';
 const getOrgTypeFromInfo = (orgInfo: typeof DefaultOrgInfoSchema.Type): OrgTypeFromInfo =>
   orgInfo.isScratch ? 'Scratch' : orgInfo.isSandbox ? 'Sandbox' : 'Org';
 
-const getStatusBarContent = Effect.fn('updateTargetOrgDisplay')(function* (orgInfo: typeof DefaultOrgInfoSchema.Type) {
+const getStatusBarContent = Effect.fn('updateTargetOrgDisplay', { root: true })(function* (
+  orgInfo: typeof DefaultOrgInfoSchema.Type
+) {
   const { username, aliases, isScratch } = orgInfo;
   if (!username) {
     return {

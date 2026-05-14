@@ -31,7 +31,7 @@ const isAfterTraceFlagStart =
     return userStart === undefined || st >= userStart;
   };
 
-const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs')(function* (
+const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', { root: true })(function* (
   knownIdsRef: Ref.Ref<Set<string>>,
   collectorRef: SubscriptionRef.SubscriptionRef<LogCollectorState>
 ) {
