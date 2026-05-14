@@ -79,6 +79,7 @@ export class ApexTestController {
   private methodItems: Map<string, vscode.TestItem> = new Map();
   private classToParentItem: Map<string, vscode.TestItem> = new Map();
   private hasRestoredResults = false;
+  private isRestoringResults = false;
   private suiteParentItem: vscode.TestItem | undefined;
   private lastProcessedResultFile: URI | null = null;
   private connection: Connection | undefined;
@@ -135,8 +136,9 @@ export class ApexTestController {
     try {
       const resultDir = await getTestResultsFolder();
       await vscode.workspace.fs.delete(resultDir, { recursive: true });
-    } catch {
-      // Non-fatal: result folder may not exist yet
+    } catch (error) {
+      // Non-fatal: result folder may not exist yet, or deletion may fail
+      console.debug('Failed to delete test results folder:', error);
     }
   }
 
@@ -275,6 +277,12 @@ export class ApexTestController {
   private static readonly RESULT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
   private async restorePreviousResults(): Promise<void> {
+    // Prevent concurrent restoration attempts
+    if (this.isRestoringResults) {
+      return;
+    }
+
+    this.isRestoringResults = true;
     try {
       if (!settings.retrieveRestorePreviousResults()) {
         return;
@@ -369,8 +377,11 @@ export class ApexTestController {
             void settings.disableRestorePreviousResults();
           }
         });
-    } catch {
+    } catch (error) {
       // Non-fatal: if restoration fails, the tree is still valid without results
+      console.debug('Failed to restore previous test results:', error);
+    } finally {
+      this.isRestoringResults = false;
     }
   }
 
@@ -1453,6 +1464,17 @@ export class ApexTestController {
     const testRunId = result.summary?.testRunId;
     const resultFileName = testRunId ? `test-result-${testRunId}.json` : TEST_RESULT_JSON_FILE;
     this.lastProcessedResultFile = Utils.joinPath(outputDir, resultFileName);
+
+    // Claim the file we just wrote so the testResultsFileWatcher's onResultFileCreate -> updateTestResults path
+    // treats it as already-processed and skips creating a second, disconnected TestRun for these same results.
+    // Without this, that second run is constructed with a fresh vscode.TestRunRequest() (line ~900), which
+    // detaches it from the shared Run-All request. As a consequence, when "Test: Run All Tests" kicks off both
+    // Apex and LWC controllers and Apex finishes second, the shared (LWC + Apex) group gets evicted to
+    // "older results" and only the fresh Apex-only run remains as "current".
+    const writtenResultFilename = result.summary?.testRunId
+      ? `test-result-${result.summary.testRunId}.json`
+      : TEST_RESULT_JSON_FILE;
+    this.lastProcessedResultFile = Utils.joinPath(outputDir, writtenResultFilename);
 
     // Generate and open test report
     const reportStartTime = Date.now();
