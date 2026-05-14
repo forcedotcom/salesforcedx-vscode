@@ -378,6 +378,18 @@
         "icon": "$(cloud-upload)"
       },
       {
+        "command": "sfdxOrgBrowser.openLocalComponent",
+        "title": "%orgBrowser.command.openLocalComponent%",
+        "category": "Org Browser",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "sfdxOrgBrowser.createComponent",
+        "title": "%orgBrowser.command.createComponent%",
+        "category": "Org Browser",
+        "icon": "$(add)"
+      },
+      {
         "command": "sfdxOrgBrowser.showAllTypes",
         "title": "%orgBrowser.command.showAllTypes%",
         "category": "Org Browser",
@@ -460,6 +472,16 @@
         {
           "command": "sfdxOrgBrowser.deployLocalChange",
           "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^changedComponent_localOnly/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdxOrgBrowser.openLocalComponent",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /_local/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdxOrgBrowser.createComponent",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /_creatable$/",
           "group": "inline"
         }
       ]

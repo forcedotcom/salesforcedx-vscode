@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { CreateCommandMap } from '../commands/createComponent';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
@@ -23,6 +24,7 @@ const orgComponentCounts = new Map<string, number>();
 type TypeFilterState = {
   showAllTypes: boolean;
   typeFilter: ReadonlySet<string> | undefined;
+  creatableTypes: CreateCommandMap;
 };
 
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserTreeItem> {
@@ -32,6 +34,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   private showAllTypes = false;
   private typeFilter: ReadonlySet<string> | undefined;
+  private creatableTypes: CreateCommandMap = new Map();
 
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
   public fireChangeEvent(node?: OrgBrowserTreeItem): void {
@@ -62,6 +65,10 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     this._onDidChangeTreeData.fire();
   }
 
+  public setCreatableTypes(types: CreateCommandMap): void {
+    this.creatableTypes = types;
+  }
+
   // eslint-disable-next-line class-methods-use-this
   public getTreeItem(element: OrgBrowserTreeItem): vscode.TreeItem {
     return element;
@@ -69,7 +76,11 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   public async getChildren(element?: OrgBrowserTreeItem): Promise<OrgBrowserTreeItem[]> {
     return await getOrgBrowserRuntime().runPromise(
-      getChildrenOfTreeItem(element, { showAllTypes: this.showAllTypes, typeFilter: this.typeFilter })
+      getChildrenOfTreeItem(element, {
+        showAllTypes: this.showAllTypes,
+        typeFilter: this.typeFilter,
+        creatableTypes: this.creatableTypes
+      })
     );
   }
 }
@@ -125,7 +136,9 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
         { concurrency: 'unbounded' }
       );
       const types = filterState.typeFilter ? baseTypes.filter(t => filterState.typeFilter!.has(t.xmlName)) : baseTypes;
-      const typeNodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
+      const typeNodes = types
+        .toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1))
+        .map(mdapiDescribeToOrgBrowserNode(filterState.creatableTypes));
 
       const localCountsByType = Array.from(projectComponentSet).reduce((acc, comp) => {
         const typeName = comp.type.name;
@@ -248,7 +261,8 @@ const enrichComponentWithSyncState = (
       componentName: c.fullName,
       label: c.fullName,
       filePresent,
-      syncState
+      syncState,
+      localPath: filePaths[0]
     });
   });
 
@@ -273,7 +287,8 @@ const enrichFolderItemWithSyncState = (
       componentName: c.fullName,
       label: c.fullName,
       filePresent,
-      syncState
+      syncState,
+      localPath: filePaths[0]
     });
   });
 
@@ -288,12 +303,14 @@ const listMetadataToFolder =
       label: c.fullName
     });
 
-const mdapiDescribeToOrgBrowserNode = (t: MetadataDescribeResultItem): OrgBrowserTreeItem =>
-  new OrgBrowserTreeItem({
-    kind: isFolderType(t.xmlName) ? 'folderType' : 'type',
-    xmlName: t.xmlName,
-    label: t.xmlName
-  });
+const mdapiDescribeToOrgBrowserNode =
+  (creatableTypes: CreateCommandMap) =>
+  (t: MetadataDescribeResultItem): OrgBrowserTreeItem => {
+    const kind = isFolderType(t.xmlName) ? 'folderType' : 'type';
+    const node = new OrgBrowserTreeItem({ kind, xmlName: t.xmlName, label: t.xmlName });
+    if (creatableTypes.has(t.xmlName)) node.contextValue = `${kind}_creatable`;
+    return node;
+  };
 
 /** applies to all listMetadata calls */
 const globalMetadataFilter = (i: MetadataListResultItem): boolean => hasFullName(i) && isSupportedManageableState(i);

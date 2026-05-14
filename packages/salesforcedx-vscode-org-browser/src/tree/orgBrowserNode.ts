@@ -39,11 +39,15 @@ type OrgBrowserTreeItemInputs = {
   /** Source tracking sync state (takes precedence over filePresent when available) */
   syncState?: SyncState;
   namespace?: string;
+  /** Primary local file path for navigation (first file from ComponentSet lookup) */
+  localPath?: string;
 };
 
 // Types that have folders
 const FOLDER_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
 export const isFolderType = (xmlName: string): boolean => FOLDER_TYPES.has(xmlName);
+
+export const SINGLE_FILE_ADAPTER = 'matchingContentFile';
 
 export class OrgBrowserTreeItem extends vscode.TreeItem {
   public readonly kind: OrgBrowserTreeItemKind;
@@ -54,6 +58,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
   public readonly componentName?: string;
   public readonly namespace?: string;
   public readonly syncState?: SyncState;
+  public readonly localPath?: string;
 
   constructor(inputs: OrgBrowserTreeItemInputs) {
     const collapsibleKinds: OrgBrowserTreeItemKind[] = [
@@ -76,6 +81,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
     this.folderName = inputs.folderName;
     this.componentName = inputs.componentName;
     this.syncState = inputs.syncState;
+    this.localPath = inputs.localPath;
 
     if (inputs.syncState) {
       this.iconPath = getSyncIcon(inputs.syncState);
@@ -84,7 +90,8 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
       this.iconPath = getIconPath(inputs.filePresent);
     }
 
-    this.contextValue = inputs.syncState ? `${inputs.kind}_${inputs.syncState}` : inputs.kind;
+    const baseContextValue = inputs.syncState ? `${inputs.kind}_${inputs.syncState}` : inputs.kind;
+    this.contextValue = inputs.localPath ? `${baseContextValue}_local` : baseContextValue;
 
     this.id = calculateId(inputs);
   }

@@ -13,6 +13,8 @@
   "orgBrowser.command.showTypesWithContent": "Show Types With Content",
   "orgBrowser.command.filterTypes": "Filter Metadata Types",
   "orgBrowser.command.clearFilter": "Clear Metadata Type Filter",
+  "orgBrowser.command.openLocalComponent": "Open Local File",
+  "orgBrowser.command.createComponent": "New Component",
   "org_browser_walkthrough_open_command": "Open Org Browser Walkthrough",
   "org_browser_walkthrough_title": "Org Browser",
   "org_browser_walkthrough_description": "Browse and retrieve your org's metadata types and components using the Org Browser.",

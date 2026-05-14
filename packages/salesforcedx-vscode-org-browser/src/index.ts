@@ -14,6 +14,8 @@ import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { URI, Utils } from 'vscode-uri';
+import { resolveAvailableCreateCommands } from './commands/createComponent';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import {
@@ -24,7 +26,7 @@ import {
 } from './services/extensionProvider';
 import { SourceTrackingCacheService } from './services/sourceTrackingCacheService';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
-import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
+import { SINGLE_FILE_ADAPTER, OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -53,6 +55,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   });
 
   const treeProvider = new MetadataTypeTreeProvider();
+  const creatableTypes = yield* Effect.promise(resolveAvailableCreateCommands);
+  treeProvider.setCreatableTypes(creatableTypes);
   // Register the tree provider for both the standalone and Explorer views
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
   vscode.window.registerTreeDataProvider(`${TREE_VIEW_ID}Explorer`, treeProvider);
@@ -90,6 +94,26 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           );
           yield* SourceTrackingCacheService.invalidate;
           yield* Effect.promise(() => treeProvider.refreshType());
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.openLocalComponent`, (node: OrgBrowserTreeItem) =>
+        Effect.gen(function* () {
+          if (!node.localPath) return;
+          const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+          const registry = yield* servicesApi.services.MetadataRegistryService.getRegistryAccess();
+          const adapter = registry.getTypeByName(node.xmlName)?.strategies?.adapter;
+          if (adapter && adapter !== SINGLE_FILE_ADAPTER) {
+            const folderUri = Utils.dirname(URI.file(node.localPath));
+            yield* Effect.promise(() => vscode.commands.executeCommand('revealInExplorer', folderUri));
+          } else {
+            yield* Effect.promise(() => vscode.window.showTextDocument(URI.file(node.localPath!)));
+          }
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.createComponent`, (node: OrgBrowserTreeItem) =>
+        Effect.promise(async () => {
+          const entry = creatableTypes.get(node.xmlName);
+          if (entry) await vscode.commands.executeCommand(entry.commandId);
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.showAllTypes`, () =>
