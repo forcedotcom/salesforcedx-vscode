@@ -13,6 +13,7 @@ import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { isConflictDetectionEnabled } from '../conflict/conflictDetectionSettings';
 import { nls } from '../messages';
 import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
@@ -26,6 +27,13 @@ const refresh = Effect.fn('statusBarRefresh')(
     const hasTracking = yield* sourceTrackingService.hasTracking();
 
     if (!hasTracking) {
+      statusBarItem.hide();
+      return;
+    }
+
+    // Check if conflict detection is disabled
+    const conflictDetectionEnabled = yield* isConflictDetectionEnabled();
+    if (!conflictDetectionEnabled) {
       statusBarItem.hide();
       return;
     }
@@ -105,6 +113,14 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
       Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollingIntervalSeconds())))
     )
   );
+
+  // Watch conflict detection setting changes to trigger immediate refresh
+  const conflictDetectionSettingStream = Stream.fromPubSub(settingsChangePubSub).pipe(
+    Stream.filter(event =>
+      event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.disableConflictDetection')
+    ),
+    Stream.as('conflictDetectionSettingChange')
+  );
   const orgChangeStream = targetOrgRef.changes.pipe(
     Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),
     Stream.tap(orgInfo =>
@@ -151,7 +167,12 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   );
 
   yield* Effect.fork(
-    Stream.mergeAll({ concurrency: 'unbounded' })([orgChangeStream, fileChangeStream, operationCompleteStream]).pipe(
+    Stream.mergeAll({ concurrency: 'unbounded' })([
+      orgChangeStream,
+      fileChangeStream,
+      operationCompleteStream,
+      conflictDetectionSettingStream
+    ]).pipe(
       Stream.debounce(Duration.millis(500)),
       Stream.runForEach(() => refresh(statusBarItem))
     )

@@ -351,6 +351,11 @@
           "minimum": 0,
           "description": "%source_tracking_polling_interval_description%"
         },
+        "salesforcedx-vscode-metadata.sourceTracking.disableConflictDetection": {
+          "type": "boolean",
+          "default": false,
+          "description": "%source_tracking_disable_conflict_detection_description%"
+        },
         "salesforcedx-vscode-metadata.showSuccessNotification": {
           "type": "boolean",
           "default": false,
