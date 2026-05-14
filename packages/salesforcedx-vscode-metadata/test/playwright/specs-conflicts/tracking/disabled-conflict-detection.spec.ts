@@ -55,9 +55,10 @@ test.describe('Disabled Conflict Detection', () => {
       // Wait a reasonable time for setting to take effect
       await page.waitForTimeout(2000);
 
-      // Status bar should show disabled state
-      const statusBarText = await statusBarPage.getText();
-      expect(statusBarText).toContain('Conflict Detection Disabled');
+      // Status bar should show disabled state - use a direct locator since the page object
+      // expects the arrow-down/arrow-up pattern which won't match disabled state
+      const disabledStatusBar = page.getByRole('button', { name: /Conflict Detection Disabled/ });
+      await expect(disabledStatusBar).toBeVisible({ timeout: 15_000 });
 
       await saveScreenshot(page, 'disabled-cd-5-disabled-state.png');
     });
