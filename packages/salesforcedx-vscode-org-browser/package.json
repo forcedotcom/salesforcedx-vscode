@@ -304,6 +304,10 @@
       {
         "view": "sfdxOrgBrowser",
         "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type."
+      },
+      {
+        "view": "sfdxOrgBrowserExplorer",
+        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type."
       }
     ],
     "viewsContainers": {
@@ -321,6 +325,14 @@
           "id": "sfdxOrgBrowser",
           "name": "%orgBrowser.view.name%",
           "when": "sf:has_target_org"
+        }
+      ],
+      "explorer": [
+        {
+          "id": "sfdxOrgBrowserExplorer",
+          "name": "%orgBrowser.view.explorerName%",
+          "when": "sf:has_target_org",
+          "visibility": "collapsed"
         }
       ]
     },
@@ -352,19 +364,75 @@
         "title": "%orgBrowser.command.collapseAll%",
         "category": "Org Browser",
         "icon": "$(collapse-all)"
+      },
+      {
+        "command": "sfdxOrgBrowser.pullRemoteChange",
+        "title": "%orgBrowser.command.pullRemoteChange%",
+        "category": "Org Browser",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "sfdxOrgBrowser.deployLocalChange",
+        "title": "%orgBrowser.command.deployLocalChange%",
+        "category": "Org Browser",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "sfdxOrgBrowser.showAllTypes",
+        "title": "%orgBrowser.command.showAllTypes%",
+        "category": "Org Browser",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "sfdxOrgBrowser.showTypesWithContent",
+        "title": "%orgBrowser.command.showTypesWithContent%",
+        "category": "Org Browser",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "sfdxOrgBrowser.filterTypes",
+        "title": "%orgBrowser.command.filterTypes%",
+        "category": "Org Browser",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "sfdxOrgBrowser.clearFilter",
+        "title": "%orgBrowser.command.clearFilter%",
+        "category": "Org Browser",
+        "icon": "$(filter-filled)"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "sfdxOrgBrowser.refreshType",
-          "when": "view == sfdxOrgBrowser",
+          "when": "view =~ /^sfdxOrgBrowser/",
           "group": "navigation@0"
         },
         {
           "command": "sfdxOrgBrowser.collapseAll",
-          "when": "view == sfdxOrgBrowser",
+          "when": "view =~ /^sfdxOrgBrowser/",
           "group": "navigation@1"
+        },
+        {
+          "command": "sfdxOrgBrowser.showAllTypes",
+          "when": "view =~ /^sfdxOrgBrowser/ && !sf:orgBrowser.showAllTypes",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.showTypesWithContent",
+          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.showAllTypes",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterTypes",
+          "when": "view =~ /^sfdxOrgBrowser/ && !sf:orgBrowser.filterActive",
+          "group": "navigation@3"
+        },
+        {
+          "command": "sfdxOrgBrowser.clearFilter",
+          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.filterActive",
+          "group": "navigation@3"
         }
       ],
       "commandPalette": [
@@ -376,12 +444,22 @@
       "view/item/context": [
         {
           "command": "sfdxOrgBrowser.refreshType",
-          "when": "view == sfdxOrgBrowser && (viewItem == type || viewItem == customObject || viewItem == folderType || viewItem == folder)",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^(type|customObject|folderType|folder|changesRoot|changesGroup)/",
           "group": "inline"
         },
         {
           "command": "sfdxOrgBrowser.retrieveMetadata",
-          "when": "view == sfdxOrgBrowser && (viewItem == type || viewItem == customObject || viewItem == component)",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^(type|customObject|component)/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdxOrgBrowser.pullRemoteChange",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^changedComponent_(remoteOnly|remoteDeleted)/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdxOrgBrowser.deployLocalChange",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^changedComponent_localOnly/",
           "group": "inline"
         }
       ]

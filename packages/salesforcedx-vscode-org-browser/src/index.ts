@@ -22,6 +22,7 @@ import {
   getOrgBrowserRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
+import { SourceTrackingCacheService } from './services/sourceTrackingCacheService';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
@@ -33,6 +34,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
 
 export const deactivate = async (): Promise<void> =>
   Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
+
+const invalidateTrackingCache = () => getOrgBrowserRuntime().runPromise(SourceTrackingCacheService.invalidate);
 
 // export for testing
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
@@ -50,8 +53,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   });
 
   const treeProvider = new MetadataTypeTreeProvider();
-  // Register the tree provider
+  // Register the tree provider for both the standalone and Explorer views
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
+  vscode.window.registerTreeDataProvider(`${TREE_VIEW_ID}Explorer`, treeProvider);
 
   const registerCommand = api.services.registerCommandWithRuntime(getOrgBrowserRuntime());
 
@@ -75,6 +79,70 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       ),
       registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem) =>
         retrieveEffect(node, treeProvider)
+      ),
+      registerCommand(`${TREE_VIEW_ID}.pullRemoteChange`, (node: OrgBrowserTreeItem) =>
+        Effect.gen(function* () {
+          if (!node.xmlName || !node.componentName) return;
+          const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+          yield* servicesApi.services.MetadataRetrieveService.retrieve(
+            [{ type: node.xmlName, fullName: node.componentName }],
+            { ignoreConflicts: false }
+          );
+          yield* SourceTrackingCacheService.invalidate;
+          yield* Effect.promise(() => treeProvider.refreshType());
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.showAllTypes`, () =>
+        Effect.promise(async () => {
+          treeProvider.toggleShowAllTypes();
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showAllTypes', true);
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.showTypesWithContent`, () =>
+        Effect.promise(async () => {
+          treeProvider.toggleShowAllTypes();
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showAllTypes', false);
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.filterTypes`, () =>
+        Effect.promise(async () => {
+          const input = await vscode.window.showInputBox({
+            prompt: 'Enter comma-separated metadata type names',
+            placeHolder: 'e.g. ApexClass,CustomObject,Layout'
+          });
+          if (input === undefined) return;
+          const types = input
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+          if (types.length === 0) return;
+          treeProvider.setTypeFilter(new Set(types));
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', true);
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.clearFilter`, () =>
+        Effect.promise(async () => {
+          treeProvider.clearTypeFilter();
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', false);
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.deployLocalChange`, (node: OrgBrowserTreeItem) =>
+        Effect.gen(function* () {
+          if (!node.xmlName || !node.componentName) return;
+          const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+          const componentSet = yield* servicesApi.services.ComponentSetService.getComponentSetFromProjectDirectories();
+          const deployComponents = Array.from(componentSet).filter(
+            comp => comp.type.name === node.xmlName && comp.fullName === node.componentName
+          );
+          if (deployComponents.length === 0) return;
+          // eslint-disable-next-line import/no-extraneous-dependencies
+          const { ComponentSet: CS } = yield* Effect.promise(() => import('@salesforce/source-deploy-retrieve'));
+          const deploySet = new CS();
+          deployComponents.forEach(comp => deploySet.add(comp));
+          yield* servicesApi.services.MetadataDeployService.deploy(deploySet);
+          yield* SourceTrackingCacheService.invalidate;
+          yield* Effect.promise(() => treeProvider.refreshType());
+        })
       )
     ],
     { concurrency: 'unbounded' }
@@ -84,10 +152,36 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
       Stream.changes,
-      // we do want a change to "no org" to trigger the refresh so it shows the empty state.
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
+      Stream.tap(() => Effect.promise(invalidateTrackingCache)),
       Stream.runForEach(() => Effect.promise(() => treeProvider.refreshType()))
+    )
+  );
+
+  // Invalidate tracking cache and re-render when metadata operations complete
+  const activeOpRef = yield* api.services.ActiveMetadataOperationRef();
+  yield* Effect.forkDaemon(
+    activeOpRef.changes.pipe(
+      Stream.filter(count => count === 0),
+      Stream.debounce(Duration.millis(500)),
+      Stream.tap(() => Effect.promise(invalidateTrackingCache)),
+      Stream.runForEach(() => Effect.promise(() => treeProvider.refreshType()))
+    )
+  );
+
+  // Invalidate tracking cache on file changes (debounced) — runs through getOrgBrowserRuntime
+  // so the same SourceTrackingCacheService Ref is invalidated that getChildren reads from
+  const fileChangePubSub = yield* api.services.FileChangePubSub;
+  yield* Effect.forkDaemon(
+    Stream.fromPubSub(fileChangePubSub).pipe(
+      Stream.debounce(Duration.seconds(2)),
+      Stream.runForEach(() =>
+        Effect.promise(async () => {
+          await invalidateTrackingCache();
+          treeProvider.fireChangeEvent();
+        })
+      )
     )
   );
 
@@ -111,7 +205,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 });
 
 export const deactivateEffect = Effect.fn(`deactivation:${EXTENSION_NAME}`)(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const svc = yield* api.services.ChannelService;
-  yield* svc.appendToChannel('Salesforce Org Browser extension is now deactivated!');
+  const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channelSvc = yield* servicesApi.services.ChannelService;
+  yield* channelSvc.appendToChannel('Salesforce Org Browser extension is now deactivated!');
 });

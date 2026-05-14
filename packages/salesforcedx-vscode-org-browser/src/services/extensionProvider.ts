@@ -17,6 +17,7 @@ import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
 import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
+import { SourceTrackingCacheService } from './sourceTrackingCacheService';
 
 const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
@@ -51,7 +52,8 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.SdkLayerFor(context),
         channelLayer,
         errorHandlerWithChannel,
-        OrgBrowserRetrieveService.Default
+        OrgBrowserRetrieveService.Default,
+        SourceTrackingCacheService.Default
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );

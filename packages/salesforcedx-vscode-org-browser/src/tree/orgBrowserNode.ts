@@ -6,6 +6,8 @@
  */
 import * as vscode from 'vscode';
 
+export type SyncState = 'synced' | 'localOnly' | 'remoteOnly' | 'conflict' | 'remoteDeleted' | 'notPresent' | 'unknown';
+
 type OrgBrowserTreeItemKind =
   /** a normal metadata type */
   | 'type'
@@ -16,7 +18,13 @@ type OrgBrowserTreeItemKind =
   /** a component that can be retrieved, the lowest level of the tree */
   | 'component'
   /** a custom object (so that its fields can be displayed and retrieved*/
-  | 'customObject';
+  | 'customObject'
+  /** virtual root node for pending source tracking changes */
+  | 'changesRoot'
+  /** group node under changesRoot (local, remote, conflicts) */
+  | 'changesGroup'
+  /** a changed component in the pending changes section */
+  | 'changedComponent';
 
 type OrgBrowserTreeItemInputs = {
   kind: OrgBrowserTreeItemKind;
@@ -28,6 +36,8 @@ type OrgBrowserTreeItemInputs = {
   label: string;
   /** Whether the file is present in the local workspace */
   filePresent?: boolean;
+  /** Source tracking sync state (takes precedence over filePresent when available) */
+  syncState?: SyncState;
   namespace?: string;
 };
 
@@ -43,31 +53,79 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
   /** the name of the component that you could use to retrieve the node.  One of the [xmlName] */
   public readonly componentName?: string;
   public readonly namespace?: string;
+  public readonly syncState?: SyncState;
 
   constructor(inputs: OrgBrowserTreeItemInputs) {
+    const collapsibleKinds: OrgBrowserTreeItemKind[] = [
+      'type',
+      'folderType',
+      'folder',
+      'customObject',
+      'changesRoot',
+      'changesGroup'
+    ];
     super(
       inputs.label,
-      inputs.kind === 'component' ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed
+      collapsibleKinds.includes(inputs.kind)
+        ? vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.None
     );
     this.namespace = inputs.namespace;
     this.kind = inputs.kind;
     this.xmlName = inputs.xmlName;
     this.folderName = inputs.folderName;
     this.componentName = inputs.componentName;
+    this.syncState = inputs.syncState;
 
-    // not defined intentionally results in no icon.
-    if (inputs.filePresent !== undefined) {
+    if (inputs.syncState) {
+      this.iconPath = getSyncIcon(inputs.syncState);
+      this.description = getSyncDescription(inputs.syncState);
+    } else if (inputs.filePresent !== undefined) {
       this.iconPath = getIconPath(inputs.filePresent);
     }
 
-    // Set context value for menu contributions
-    this.contextValue = inputs.kind;
+    this.contextValue = inputs.syncState ? `${inputs.kind}_${inputs.syncState}` : inputs.kind;
 
     this.id = calculateId(inputs);
   }
 }
+
 export const getIconPath = (filePresent: boolean): vscode.ThemeIcon =>
   filePresent ? new vscode.ThemeIcon('pass-filled') : new vscode.ThemeIcon('circle-large-outline');
+
+const getSyncIcon = (state: SyncState): vscode.ThemeIcon => {
+  switch (state) {
+    case 'synced':
+      return new vscode.ThemeIcon('pass-filled', new vscode.ThemeColor('charts.green'));
+    case 'localOnly':
+      return new vscode.ThemeIcon('arrow-up', new vscode.ThemeColor('charts.yellow'));
+    case 'remoteOnly':
+      return new vscode.ThemeIcon('arrow-down', new vscode.ThemeColor('charts.blue'));
+    case 'conflict':
+      return new vscode.ThemeIcon('warning', new vscode.ThemeColor('list.warningForeground'));
+    case 'remoteDeleted':
+      return new vscode.ThemeIcon('trash', new vscode.ThemeColor('list.errorForeground'));
+    case 'notPresent':
+      return new vscode.ThemeIcon('circle-large-outline');
+    case 'unknown':
+      return new vscode.ThemeIcon('circle-large-outline');
+  }
+};
+
+const getSyncDescription = (state: SyncState): string | undefined => {
+  switch (state) {
+    case 'localOnly':
+      return 'modified locally';
+    case 'remoteOnly':
+      return 'modified in org';
+    case 'conflict':
+      return 'conflict';
+    case 'remoteDeleted':
+      return 'deleted in org';
+    default:
+      return undefined;
+  }
+};
 
 const calculateId = (inputs: OrgBrowserTreeItemInputs): string => {
   // top-level types

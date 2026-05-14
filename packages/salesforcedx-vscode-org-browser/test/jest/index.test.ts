@@ -69,6 +69,8 @@ import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import { createMockOutputChannel } from 'salesforcedx-vscode-services/test/jest/testUtils';
 import { OrgBrowserRetrieveService } from '../../src/services/orgBrowserMetadataRetrieveService';
+import { SourceTrackingCacheService } from '../../src/services/sourceTrackingCacheService';
+import { FileChangePubSub } from 'salesforcedx-vscode-services/src/vscode/fileChangePubSub';
 import type { Connection } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import { URI } from 'vscode-uri';
@@ -215,6 +217,15 @@ const MockOrgBrowserRetrieveServiceLayer =
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   OrgBrowserRetrieveService.Default as any as Layer.Layer<OrgBrowserRetrieveService>;
 
+// 15. Mock FileChangePubSub layer (needed by activateEffect file-change stream)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MockFileChangePubSubLayer = FileChangePubSub.Default as any as Layer.Layer<FileChangePubSub>;
+
+// 16. Mock SourceTrackingCacheService layer (needed by activateEffect)
+const MockSourceTrackingCacheServiceLayer =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  SourceTrackingCacheService.Default as any as Layer.Layer<SourceTrackingCacheService>;
+
 // 14. ExtensionProviderService mock
 const mockServicesApi = {
   services: {
@@ -270,7 +281,9 @@ describe.skip('Extension', () => {
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,
             MockSourceTrackingServiceLayer,
-            MockOrgBrowserRetrieveServiceLayer
+            MockOrgBrowserRetrieveServiceLayer,
+            MockFileChangePubSubLayer,
+            MockSourceTrackingCacheServiceLayer
           )
         )
       )
