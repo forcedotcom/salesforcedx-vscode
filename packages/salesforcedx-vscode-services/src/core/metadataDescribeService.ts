@@ -177,6 +177,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         Effect.withSpan('listMetadata (API call)'),
         Effect.map(ensureArray),
         Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
+        Effect.map(arr => arr.filter((item, i, a) => i === 0 || item.fullName !== a[i - 1].fullName)),
         Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
         Effect.mapError(e => {
           const { cause } = unknownToErrorCause(e);
