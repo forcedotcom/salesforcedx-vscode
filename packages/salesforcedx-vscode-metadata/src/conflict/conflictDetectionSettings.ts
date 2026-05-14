@@ -22,13 +22,7 @@ import * as vscode from 'vscode';
  */
 export const isConflictDetectionEnabled = Effect.fn('isConflictDetectionEnabled')(function* () {
   const config = vscode.workspace.getConfiguration('salesforcedx-vscode-metadata');
-  const enabled = config.get<boolean>('sourceTracking.enableConflictDetection', true);
-
-  yield* Effect.annotateCurrentSpan({
-    'conflictDetection.enabled': enabled
-  });
-
-  return enabled;
+  return config.get<boolean>('sourceTracking.enableConflictDetection', true);
 });
 
 /**
