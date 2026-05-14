@@ -79,11 +79,19 @@ const runAllTests = async (page: Page): Promise<void> => {
   await expect(page.getByText(/passed|Passed/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
 };
 
-const getFilterInput = (panel: Locator): Locator => panel.locator('input[placeholder*="Filter"]');
+const focusFilterInput = async (page: Page, panel: Locator): Promise<Locator> => {
+  const filterInput = panel.locator('input[placeholder*="Filter"]');
+  if (await filterInput.isVisible().catch(() => false)) {
+    await filterInput.click();
+    return filterInput;
+  }
+  await executeCommandWithCommandPalette(page, 'Testing: Focus on Filter Text');
+  await filterInput.waitFor({ state: 'visible', timeout: 10_000 });
+  return filterInput;
+};
 
 const verifyStaleTagInAutocomplete = async (page: Page, panel: Locator): Promise<void> => {
-  const filterInput = getFilterInput(panel);
-  await filterInput.click();
+  const filterInput = await focusFilterInput(page, panel);
   await filterInput.fill('@');
   await page.waitForTimeout(500);
   const staleOption = page.getByText('sf.apex.testController:stale');
@@ -144,8 +152,7 @@ test.describe('Stale Test Results', () => {
 
     await test.step('verify filtering by @stale shows test items', async () => {
       const panel = page.locator(TEST_EXPLORER_PANEL);
-      const filterInput = getFilterInput(panel);
-      await filterInput.click();
+      const filterInput = await focusFilterInput(page, panel);
       await filterInput.fill('@sf.apex.testController:stale');
       await page.waitForTimeout(1000);
       await saveScreenshot(page, 'stale.step.filtered-by-stale.png');
@@ -220,10 +227,7 @@ test.describe('Stale Test Results', () => {
       await page.waitForTimeout(3000);
       await saveScreenshot(page, 'clear.step.after-refresh.png');
       const panel = page.locator(TEST_EXPLORER_PANEL);
-      // After clear + refresh, the tree should have items but no pass/fail results
-      // The @stale tag should NOT appear since there are no result files to restore
-      const filterInput = getFilterInput(panel);
-      await filterInput.click();
+      const filterInput = await focusFilterInput(page, panel);
       await filterInput.fill('@');
       await page.waitForTimeout(500);
       const staleOption = page.getByText('sf.apex.testController:stale');
