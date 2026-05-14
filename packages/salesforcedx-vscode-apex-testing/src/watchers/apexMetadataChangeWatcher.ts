@@ -18,9 +18,10 @@ import { getTestController } from '../views/testController';
 const APEX_METADATA_TYPES = new Set(['ApexClass', 'ApexTestSuite']);
 const APEX_CHANGE_TYPES = new Set<string>(['created', 'changed', 'deleted']);
 
-const filterApexTests = Effect.fn('isApexTestFileOrNotPresentLocally', { root: true })(function* (
-  e: MetadataChangeEventType
-) {
+const filterApexTests = Effect.fn('isApexTestFileOrNotPresentLocally', {
+  root: true,
+  attributes: { telemetryIgnore: true }
+})(function* (e: MetadataChangeEventType) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = yield* api.services.FsService;
   // we can't read files we don't have anymore
