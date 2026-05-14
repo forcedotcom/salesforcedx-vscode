@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -22,14 +22,13 @@ import * as vscode from 'vscode';
  */
 export const isConflictDetectionEnabled = Effect.fn('isConflictDetectionEnabled')(function* () {
   const config = vscode.workspace.getConfiguration('salesforcedx-vscode-metadata');
-  const isDisabled = config.get<boolean>('sourceTracking.disableConflictDetection', false);
+  const enabled = config.get<boolean>('sourceTracking.enableConflictDetection', true);
 
   yield* Effect.annotateCurrentSpan({
-    'conflictDetection.disabled': isDisabled,
-    'conflictDetection.enabled': !isDisabled
+    'conflictDetection.enabled': enabled
   });
 
-  return !isDisabled;
+  return enabled;
 });
 
 /**
@@ -37,5 +36,5 @@ export const isConflictDetectionEnabled = Effect.fn('isConflictDetectionEnabled'
  */
 export const isConflictDetectionEnabledSync = (): boolean => {
   const config = vscode.workspace.getConfiguration('salesforcedx-vscode-metadata');
-  return !config.get<boolean>('sourceTracking.disableConflictDetection', false);
+  return config.get<boolean>('sourceTracking.enableConflictDetection', true);
 };

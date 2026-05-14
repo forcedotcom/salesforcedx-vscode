@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -86,8 +86,8 @@ describe('detectConflicts', () => {
 
   describe('when conflict detection is disabled via setting', () => {
     beforeEach(() => {
-      // Set the disable flag to true
-      mockGet.mockReturnValue(true);
+      // Set the enable flag to false (disabled)
+      mockGet.mockReturnValue(false);
     });
 
     it('should skip conflict detection for tracking orgs', async () => {
@@ -130,7 +130,7 @@ describe('detectConflicts', () => {
   describe('when conflict detection is enabled (default)', () => {
     beforeEach(() => {
       // Default setting: conflict detection enabled
-      mockGet.mockReturnValue(false);
+      mockGet.mockReturnValue(true);
     });
 
     it('should run conflict detection for tracking orgs', async () => {

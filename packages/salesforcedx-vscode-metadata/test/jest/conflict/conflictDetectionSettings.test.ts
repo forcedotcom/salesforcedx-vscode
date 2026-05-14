@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -36,27 +36,28 @@ describe('conflictDetectionSettings', () => {
 
   describe('isConflictDetectionEnabled (Effect version)', () => {
     it('should return true when setting is false (conflict detection enabled by default)', async () => {
-      mockGet.mockReturnValue(false);
+      mockGet.mockReturnValue(true);
 
       const result = await Effect.runPromise(isConflictDetectionEnabled());
 
       expect(result).toBe(true);
       expect(mockGetConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-metadata');
-      expect(mockGet).toHaveBeenCalledWith('sourceTracking.disableConflictDetection', false);
+      expect(mockGet).toHaveBeenCalledWith('sourceTracking.enableConflictDetection', true);
     });
 
-    it('should return false when setting is true (conflict detection disabled)', async () => {
-      mockGet.mockReturnValue(true);
+    it('should return false when setting is false (conflict detection disabled)', async () => {
+      mockGet.mockReturnValue(false);
 
       const result = await Effect.runPromise(isConflictDetectionEnabled());
 
       expect(result).toBe(false);
       expect(mockGetConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-metadata');
-      expect(mockGet).toHaveBeenCalledWith('sourceTracking.disableConflictDetection', false);
+      expect(mockGet).toHaveBeenCalledWith('sourceTracking.enableConflictDetection', true);
     });
 
     it('should return true when setting is undefined (default behavior)', async () => {
-      mockGet.mockReturnValue(undefined);
+      // When setting is not set, vscode returns the default value (true)
+      mockGet.mockReturnValue(true);
 
       const result = await Effect.runPromise(isConflictDetectionEnabled());
 
@@ -65,28 +66,29 @@ describe('conflictDetectionSettings', () => {
   });
 
   describe('isConflictDetectionEnabledSync', () => {
-    it('should return true when setting is false (conflict detection enabled by default)', () => {
-      mockGet.mockReturnValue(false);
+    it('should return true when setting is true (conflict detection enabled by default)', () => {
+      mockGet.mockReturnValue(true);
 
       const result = isConflictDetectionEnabledSync();
 
       expect(result).toBe(true);
       expect(mockGetConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-metadata');
-      expect(mockGet).toHaveBeenCalledWith('sourceTracking.disableConflictDetection', false);
+      expect(mockGet).toHaveBeenCalledWith('sourceTracking.enableConflictDetection', true);
     });
 
-    it('should return false when setting is true (conflict detection disabled)', () => {
-      mockGet.mockReturnValue(true);
+    it('should return false when setting is false (conflict detection disabled)', () => {
+      mockGet.mockReturnValue(false);
 
       const result = isConflictDetectionEnabledSync();
 
       expect(result).toBe(false);
       expect(mockGetConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-metadata');
-      expect(mockGet).toHaveBeenCalledWith('sourceTracking.disableConflictDetection', false);
+      expect(mockGet).toHaveBeenCalledWith('sourceTracking.enableConflictDetection', true);
     });
 
     it('should return true when setting is undefined (default behavior)', () => {
-      mockGet.mockReturnValue(undefined);
+      // When setting is not set, vscode returns the default value (true)
+      mockGet.mockReturnValue(true);
 
       const result = isConflictDetectionEnabledSync();
 

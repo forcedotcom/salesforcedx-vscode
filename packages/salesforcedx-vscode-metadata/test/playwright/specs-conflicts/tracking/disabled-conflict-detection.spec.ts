@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -23,11 +23,11 @@ test.describe('Disabled Conflict Detection', () => {
   test('should skip conflict detection when setting is enabled', async ({ page, helperProject, statusBarPage }) => {
     const className = `DisabledCD${Date.now().toString(36).slice(-6).toUpperCase()}`;
 
-    await test.step('0. Enable the disableConflictDetection setting', async () => {
+    await test.step('0. Disable conflict detection via setting', async () => {
       await upsertSettings(page, {
-        'salesforcedx-vscode-metadata.sourceTracking.disableConflictDetection': 'true'
+        'salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection': 'false'
       });
-      await saveScreenshot(page, 'disabled-cd-0-setting-enabled.png');
+      await saveScreenshot(page, 'disabled-cd-0-setting-disabled.png');
     });
 
     await test.step('1. Create and deploy baseline', async () => {
@@ -51,15 +51,15 @@ test.describe('Disabled Conflict Detection', () => {
       await saveScreenshot(page, 'disabled-cd-4-local-modified.png');
     });
 
-    await test.step('4. Verify status bar does NOT show conflicts', async () => {
-      // Wait a reasonable time for status bar to potentially detect conflicts
-      await page.waitForTimeout(10_000);
+    await test.step('4. Verify status bar shows disabled state', async () => {
+      // Wait a reasonable time for setting to take effect
+      await page.waitForTimeout(2000);
 
-      // Status bar should be hidden when conflict detection is disabled
-      const isVisible = await statusBarPage.statusBarItem.isVisible();
-      expect(isVisible).toBe(false);
+      // Status bar should show disabled state
+      const statusBarText = await statusBarPage.getText();
+      expect(statusBarText).toContain('Conflict Detection Disabled');
 
-      await saveScreenshot(page, 'disabled-cd-5-no-status-bar.png');
+      await saveScreenshot(page, 'disabled-cd-5-disabled-state.png');
     });
 
     await test.step('5. Deploy without conflict detection', async () => {
@@ -79,9 +79,9 @@ test.describe('Disabled Conflict Detection', () => {
     await test.step('6. Re-enable conflict detection and verify it works', async () => {
       // Re-enable conflict detection
       await upsertSettings(page, {
-        'salesforcedx-vscode-metadata.sourceTracking.disableConflictDetection': 'false'
+        'salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection': 'true'
       });
-      await saveScreenshot(page, 'disabled-cd-7-setting-disabled.png');
+      await saveScreenshot(page, 'disabled-cd-7-setting-enabled.png');
 
       // Make another remote change
       await helperProject(className, `public class ${className} { /* remote v3 */ }`);
@@ -110,7 +110,7 @@ test.describe('Disabled Conflict Detection', () => {
 
     await test.step('Setup: disable conflict detection', async () => {
       await upsertSettings(page, {
-        'salesforcedx-vscode-metadata.sourceTracking.disableConflictDetection': 'true'
+        'salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection': 'false'
       });
     });
 
