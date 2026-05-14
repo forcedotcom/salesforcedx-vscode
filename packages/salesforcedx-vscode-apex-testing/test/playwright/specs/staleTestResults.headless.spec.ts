@@ -79,19 +79,16 @@ const runAllTests = async (page: Page): Promise<void> => {
   await expect(page.getByText(/passed|Passed/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
 };
 
-const focusFilterInput = async (page: Page, panel: Locator): Promise<Locator> => {
-  const filterInput = panel.locator('input[placeholder*="Filter"]');
-  if (await filterInput.isVisible().catch(() => false)) {
-    await filterInput.click();
-    return filterInput;
-  }
-  await executeCommandWithCommandPalette(page, 'Testing: Focus on Filter Text');
+const focusFilterInput = async (page: Page): Promise<Locator> => {
+  // The filter input is in the view header above the tree, not inside [id="workbench.view.extension.test"]
+  const filterInput = page.locator('input[placeholder*="Filter"][placeholder*="@tag"]');
   await filterInput.waitFor({ state: 'visible', timeout: 10_000 });
+  await filterInput.click();
   return filterInput;
 };
 
-const verifyStaleTagInAutocomplete = async (page: Page, panel: Locator): Promise<void> => {
-  const filterInput = await focusFilterInput(page, panel);
+const verifyStaleTagInAutocomplete = async (page: Page): Promise<void> => {
+  const filterInput = await focusFilterInput(page);
   await filterInput.fill('@');
   await page.waitForTimeout(500);
   const staleOption = page.getByText('sf.apex.testController:stale');
@@ -144,15 +141,15 @@ test.describe('Stale Test Results', () => {
     });
 
     await test.step('verify stale tag appears in filter autocomplete', async () => {
-      const panel = await openTestExplorerAndDiscover(page);
+      await openTestExplorerAndDiscover(page);
       await saveScreenshot(page, 'stale.step.after-rediscovery.png');
-      await verifyStaleTagInAutocomplete(page, panel);
+      await verifyStaleTagInAutocomplete(page);
       await saveScreenshot(page, 'stale.step.stale-tag-visible.png');
     });
 
     await test.step('verify filtering by @stale shows test items', async () => {
       const panel = page.locator(TEST_EXPLORER_PANEL);
-      const filterInput = await focusFilterInput(page, panel);
+      const filterInput = await focusFilterInput(page);
       await filterInput.fill('@sf.apex.testController:stale');
       await page.waitForTimeout(1000);
       await saveScreenshot(page, 'stale.step.filtered-by-stale.png');
@@ -226,8 +223,7 @@ test.describe('Stale Test Results', () => {
       await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
       await page.waitForTimeout(3000);
       await saveScreenshot(page, 'clear.step.after-refresh.png');
-      const panel = page.locator(TEST_EXPLORER_PANEL);
-      const filterInput = await focusFilterInput(page, panel);
+      const filterInput = await focusFilterInput(page);
       await filterInput.fill('@');
       await page.waitForTimeout(500);
       const staleOption = page.getByText('sf.apex.testController:stale');
