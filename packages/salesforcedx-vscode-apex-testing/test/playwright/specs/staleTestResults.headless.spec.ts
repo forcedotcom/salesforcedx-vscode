@@ -9,6 +9,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 
 import {
   createAndDeployApexTestClass,
+  EDITOR,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   saveScreenshot,
@@ -79,22 +80,31 @@ const runAllTests = async (page: Page): Promise<void> => {
   await expect(page.getByText(/passed|Passed/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
 };
 
-const focusFilterInput = async (page: Page): Promise<Locator> => {
-  // The filter input is in the view header above the tree, not inside [id="workbench.view.extension.test"]
-  const filterInput = page.locator('input[placeholder*="Filter"][placeholder*="@tag"]');
-  await filterInput.waitFor({ state: 'visible', timeout: 10_000 });
-  await filterInput.click();
-  return filterInput;
+const focusAndTypeInFilter = async (page: Page, text: string): Promise<void> => {
+  // Desktop uses a Monaco editor (data-uri="testing:filter"), web uses a plain input
+  const monacoFilter = page.locator(`${EDITOR}[data-uri="testing:filter"]`);
+  const inputFilter = page.locator('input[placeholder*="Filter"][placeholder*="@tag"]');
+  if (await monacoFilter.isVisible().catch(() => false)) {
+    await monacoFilter.click();
+  } else {
+    await inputFilter.waitFor({ state: 'visible', timeout: 10_000 });
+    await inputFilter.click();
+  }
+  await page.keyboard.press('ControlOrMeta+a');
+  await (text ? page.keyboard.type(text) : page.keyboard.press('Delete'));
+};
+
+const clearFilter = async (page: Page): Promise<void> => {
+  await focusAndTypeInFilter(page, '');
+  await page.keyboard.press('Escape');
 };
 
 const verifyStaleTagInAutocomplete = async (page: Page): Promise<void> => {
-  const filterInput = await focusFilterInput(page);
-  await filterInput.fill('@');
+  await focusAndTypeInFilter(page, '@');
   await page.waitForTimeout(500);
   const staleOption = page.getByText('sf.apex.testController:stale');
   await expect(staleOption).toBeVisible({ timeout: 5000 });
-  await filterInput.fill('');
-  await page.keyboard.press('Escape');
+  await clearFilter(page);
 };
 
 test.describe('Stale Test Results', () => {
@@ -149,14 +159,12 @@ test.describe('Stale Test Results', () => {
 
     await test.step('verify filtering by @stale shows test items', async () => {
       const panel = page.locator(TEST_EXPLORER_PANEL);
-      const filterInput = await focusFilterInput(page);
-      await filterInput.fill('@sf.apex.testController:stale');
+      await focusAndTypeInFilter(page, '@sf.apex.testController:stale');
       await page.waitForTimeout(1000);
       await saveScreenshot(page, 'stale.step.filtered-by-stale.png');
       const testClassItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(testClassName, 'i') });
       await expect(testClassItem.first()).toBeVisible({ timeout: 10_000 });
-      await filterInput.fill('');
-      await page.keyboard.press('Escape');
+      await clearFilter(page);
     });
 
     await test.step('run a single test and verify stale tag is removed', async () => {
@@ -223,13 +231,11 @@ test.describe('Stale Test Results', () => {
       await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
       await page.waitForTimeout(3000);
       await saveScreenshot(page, 'clear.step.after-refresh.png');
-      const filterInput = await focusFilterInput(page);
-      await filterInput.fill('@');
+      await focusAndTypeInFilter(page, '@');
       await page.waitForTimeout(500);
       const staleOption = page.getByText('sf.apex.testController:stale');
       await expect(staleOption).not.toBeVisible({ timeout: 3000 });
-      await filterInput.fill('');
-      await page.keyboard.press('Escape');
+      await clearFilter(page);
       await saveScreenshot(page, 'clear.step.no-stale-after-clear.png');
     });
 
