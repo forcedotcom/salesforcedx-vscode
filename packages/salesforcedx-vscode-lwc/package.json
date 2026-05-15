@@ -33,7 +33,6 @@
     "@salesforce/salesforcedx-lwc-language-server": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
-    "applicationinsights": "1.0.7",
     "effect": "^3.20.0",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
@@ -298,7 +297,6 @@
         "lwcServer.js"
       ],
       "dependencies": {
-        "applicationinsights": "1.0.7",
         "jest-editor-support": "31.1.2",
         "vscode-html-languageservice": "^5.5.1"
       },

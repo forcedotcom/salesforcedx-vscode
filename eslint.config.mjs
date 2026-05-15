@@ -775,7 +775,7 @@ export default [
   },
   {
     files: ['packages/*/.vscodeignore'],
-    ignores: ['packages/salesforcedx-vscode-lwc/.vscodeignore'],
+    ignores: [],
     plugins: {
       local: localPlugin
     },
