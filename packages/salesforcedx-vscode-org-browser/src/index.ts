@@ -27,13 +27,48 @@ import {
 } from './services/extensionProvider';
 import { OrgBrowserRetrieveService } from './services/orgBrowserMetadataRetrieveService';
 import { SourceTrackingCacheService } from './services/sourceTrackingCacheService';
-import { MetadataTypeTreeProvider, VIEW_MODES, type TypeViewMode } from './tree/metadataTypeTreeProvider';
+import { FILTER_TAGS, MetadataTypeTreeProvider, VIEW_MODES, type TypeViewMode } from './tree/metadataTypeTreeProvider';
+import { SINGLE_FILE_ADAPTER, OrgBrowserTreeItem, type SyncState } from './tree/orgBrowserNode';
 
 const viewModeSet: ReadonlySet<string> = new Set(VIEW_MODES);
 const isValidViewMode = (v: string): v is TypeViewMode => viewModeSet.has(v);
-import { SINGLE_FILE_ADAPTER, OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
 const extractPathOnClient = (xml: string): string | undefined => /<pathOnClient>([^<]+)<\/pathOnClient>/.exec(xml)?.[1];
+
+const parseFilterInput = (
+  value: string,
+  cachedTypeNames: string[]
+): { types: string[]; componentPattern: string | undefined; states: SyncState[] | undefined } => {
+  const tags: string[] = [];
+  const nonTagParts: string[] = [];
+  value.split(/\s+/).forEach(token => {
+    if (token.startsWith('@')) {
+      tags.push(token.toLowerCase());
+    } else if (token.length > 0) {
+      nonTagParts.push(token);
+    }
+  });
+
+  const states = tags.length > 0 ? tags.flatMap(tag => [...(FILTER_TAGS.get(tag) ?? [])]) : undefined;
+
+  const textPart = nonTagParts.join(' ');
+  const colonIdx = textPart.indexOf(':');
+  if (colonIdx > 0) {
+    const typePart = textPart.substring(0, colonIdx).trim();
+    const resolvedType = cachedTypeNames.find(t => t.toLowerCase() === typePart.toLowerCase()) ?? typePart;
+    const namePart = textPart.substring(colonIdx + 1).trim();
+    return { types: [resolvedType], componentPattern: namePart || undefined, states };
+  }
+  if (textPart.length >= 3) {
+    const lower = textPart.toLowerCase();
+    return {
+      types: cachedTypeNames.filter(t => t.toLowerCase().includes(lower)),
+      componentPattern: undefined,
+      states
+    };
+  }
+  return { types: [], componentPattern: undefined, states };
+};
 
 const closePreviewTabs = async (): Promise<void> => {
   const tabsToClose: vscode.Tab[] = [];
@@ -92,8 +127,13 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   }
   const savedFilter = context.workspaceState.get<string[]>('orgBrowser.typeFilter');
   const savedComponentFilter = context.workspaceState.get<string>('orgBrowser.componentFilter');
+  const savedStateFilter = context.workspaceState.get<SyncState[]>('orgBrowser.stateFilter');
+  const savedStateSet = savedStateFilter && savedStateFilter.length > 0 ? new Set(savedStateFilter) : undefined;
   if (savedFilter && savedFilter.length > 0) {
-    treeProvider.setTypeFilter(new Set(savedFilter), savedComponentFilter);
+    treeProvider.setTypeFilter(new Set(savedFilter), savedComponentFilter, savedStateSet);
+    yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', true));
+  } else if (savedStateSet) {
+    treeProvider.setStateFilter(savedStateSet);
     yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', true));
   }
 
@@ -253,9 +293,12 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
             new Promise<void>(resolve => {
               const previousFilter = treeProvider.getTypeFilter();
               const previousComponent = treeProvider.getComponentFilter();
+              const previousStates = treeProvider.getStateFilter();
+              const savedFilterText = context.workspaceState.get<string>('orgBrowser.filterText') ?? '';
               const quickPick = vscode.window.createQuickPick();
-              quickPick.placeholder = 'e.g. ApexClass or Layout:Account';
+              quickPick.placeholder = 'e.g. ApexClass, Layout:Account, or @deleted (empty to clear)';
               quickPick.matchOnDescription = true;
+              quickPick.value = savedFilterText;
               // eslint-disable-next-line functional/no-let
               let debounceTimer: ReturnType<typeof setTimeout> | undefined;
               // eslint-disable-next-line functional/no-let
@@ -263,56 +306,90 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
               // eslint-disable-next-line functional/no-let
               let cachedTypeNames: string[] = [];
 
-              treeProvider
-                .getChildren(undefined)
-                .then(roots => {
-                  cachedTypeNames = roots.filter(n => n.kind === 'type' || n.kind === 'folderType').map(n => n.xmlName);
-                  quickPick.items = cachedTypeNames.map(t => ({ label: t }));
+              // Load type names respecting view mode but not text/state filters
+              getOrgBrowserRuntime()
+                .runPromise(
+                  Effect.gen(function* () {
+                    const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+                    const viewMode = treeProvider.getViewMode();
+                    const types =
+                      viewMode === 'allTypes'
+                        ? yield* servicesApi.services.MetadataDescribeService.describe()
+                        : yield* servicesApi.services.MetadataDescribeService.describeTypesWithContent();
+                    return types.map(t => t.xmlName).toSorted();
+                  })
+                )
+                .then(names => {
+                  cachedTypeNames = names;
+                  if (!savedFilterText) {
+                    quickPick.items = cachedTypeNames.map(t => ({ label: t }));
+                  }
                 })
                 .catch(() => undefined);
 
+              const tagSuggestions = [...FILTER_TAGS.keys()].map(tag => ({
+                label: tag,
+                description: 'filter tag'
+              }));
+
               quickPick.onDidChangeValue(value => {
                 if (debounceTimer) clearTimeout(debounceTimer);
+                if (cachedTypeNames.length === 0) return;
                 debounceTimer = setTimeout(() => {
-                  const colonIdx = value.indexOf(':');
-                  if (colonIdx > 0) {
+                  if (value.includes('@')) {
+                    const lastToken = value.split(/\s+/).pop() ?? '';
+                    if (lastToken.startsWith('@') && !FILTER_TAGS.has(lastToken.toLowerCase())) {
+                      const lower = lastToken.toLowerCase();
+                      quickPick.items = tagSuggestions.filter(s => s.label.startsWith(lower));
+                    }
+                  }
+
+                  const parsed = parseFilterInput(value, cachedTypeNames);
+                  const parsedStates = parsed.states && parsed.states.length > 0 ? new Set(parsed.states) : undefined;
+
+                  if (parsed.types.length > 0 || parsedStates) {
+                    treeProvider.setTypeFilter(
+                      new Set(parsed.types.length > 0 ? parsed.types : cachedTypeNames),
+                      parsed.componentPattern,
+                      parsedStates
+                    );
+                  } else if (!value.includes('@')) {
+                    if (value.length === 0) {
+                      treeProvider.clearTypeFilter();
+                      quickPick.items = cachedTypeNames.map(t => ({ label: t }));
+                    } else if (previousFilter) {
+                      treeProvider.setTypeFilter(previousFilter, previousComponent, previousStates);
+                    } else {
+                      treeProvider.clearTypeFilter();
+                    }
+                  }
+
+                  if (!value.includes('@') && !value.includes(':') && value.length > 0) {
+                    if (value.length >= 3) {
+                      const lower = value.toLowerCase();
+                      quickPick.items = cachedTypeNames
+                        .filter(t => t.toLowerCase().includes(lower))
+                        .map(t => ({ label: t }));
+                    } else {
+                      quickPick.items = cachedTypeNames.map(t => ({ label: t }));
+                    }
+                  } else if (value.includes(':') && !value.includes('@')) {
+                    const colonIdx = value.indexOf(':');
                     const typePart = value.substring(0, colonIdx).trim();
-                    const resolvedType =
-                      cachedTypeNames.find(t => t.toLowerCase() === typePart.toLowerCase()) ?? typePart;
-                    const namePart = value
-                      .substring(colonIdx + 1)
-                      .trim()
-                      .toLowerCase();
-                    treeProvider.setTypeFilter(new Set([resolvedType]), namePart || undefined);
                     const typeNode = new OrgBrowserTreeItem({
                       kind: 'type',
-                      xmlName: resolvedType,
-                      label: resolvedType
+                      xmlName: parsed.types[0] ?? typePart,
+                      label: parsed.types[0] ?? typePart
                     });
                     treeProvider
                       .getChildren(typeNode)
                       .then(children => {
-                        const filtered = namePart
-                          ? children.filter(c => c.componentName?.toLowerCase().includes(namePart))
-                          : children;
-                        quickPick.items = filtered.map(c => ({
+                        quickPick.items = children.map(c => ({
                           label: `${typePart}:${c.componentName ?? String(c.label)}`,
                           description: c.componentName ?? ''
                         }));
                       })
                       .catch(() => undefined);
-                  } else if (value.length >= 3) {
-                    const lower = value.toLowerCase();
-                    const matching = cachedTypeNames.filter(t => t.toLowerCase().includes(lower));
-                    quickPick.items = matching.map(t => ({ label: t }));
-                    treeProvider.setTypeFilter(new Set(matching));
-                  } else {
-                    quickPick.items = cachedTypeNames.map(t => ({ label: t }));
-                    if (previousFilter) {
-                      treeProvider.setTypeFilter(previousFilter, previousComponent);
-                    } else {
-                      treeProvider.clearTypeFilter();
-                    }
                   }
                 }, 150);
               });
@@ -320,38 +397,39 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
               const commitFilter = (value: string): void => {
                 accepted = true;
                 quickPick.dispose();
+                void context.workspaceState.update('orgBrowser.filterText', value || undefined);
                 if (value.length === 0) {
                   treeProvider.clearTypeFilter();
                   void vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', false);
                   void context.workspaceState.update('orgBrowser.typeFilter', undefined);
                   void context.workspaceState.update('orgBrowser.componentFilter', undefined);
+                  void context.workspaceState.update('orgBrowser.stateFilter', undefined);
                 } else {
+                  const parsed = parseFilterInput(value, cachedTypeNames);
+                  const parsedStates = parsed.states && parsed.states.length > 0 ? new Set(parsed.states) : undefined;
+                  const types = parsed.types.length > 0 ? parsed.types : parsedStates ? cachedTypeNames : [];
+                  treeProvider.setTypeFilter(new Set(types), parsed.componentPattern, parsedStates);
                   void vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', true);
-                  const colonIdx = value.indexOf(':');
-                  if (colonIdx > 0) {
-                    const typePart = value.substring(0, colonIdx).trim();
-                    const resolvedType =
-                      cachedTypeNames.find(t => t.toLowerCase() === typePart.toLowerCase()) ?? typePart;
-                    const namePart = value.substring(colonIdx + 1).trim();
-                    treeProvider.setTypeFilter(new Set([resolvedType]), namePart || undefined);
-                    void context.workspaceState.update('orgBrowser.typeFilter', [resolvedType]);
-                    void context.workspaceState.update('orgBrowser.componentFilter', namePart || undefined);
-                  } else {
-                    const lower = value.toLowerCase();
-                    const types = cachedTypeNames.filter(t => t.toLowerCase().includes(lower));
-                    treeProvider.setTypeFilter(new Set(types));
-                    void context.workspaceState.update('orgBrowser.typeFilter', types);
-                    void context.workspaceState.update('orgBrowser.componentFilter', undefined);
-                  }
+                  void context.workspaceState.update('orgBrowser.typeFilter', types);
+                  void context.workspaceState.update('orgBrowser.componentFilter', parsed.componentPattern);
+                  void context.workspaceState.update(
+                    'orgBrowser.stateFilter',
+                    parsedStates ? [...parsedStates] : undefined
+                  );
                 }
                 resolve();
               };
 
               quickPick.onDidAccept(() => {
+                const typed = quickPick.value;
+                if (typed.length === 0) {
+                  commitFilter('');
+                  return;
+                }
                 const selected = quickPick.selectedItems[0];
-                const value = selected?.label ?? quickPick.value;
-                // If a type was selected without ':', transition to component search
-                if (selected && !value.includes(':')) {
+                const value = selected?.label ?? typed;
+                // If a type was selected (not a tag) without ':', transition to component search
+                if (selected && !value.includes(':') && !value.startsWith('@')) {
                   quickPick.value = `${value}:`;
                   return;
                 }
@@ -360,7 +438,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
               quickPick.onDidHide(() => {
                 if (!accepted) {
                   if (previousFilter) {
-                    treeProvider.setTypeFilter(previousFilter, previousComponent);
+                    treeProvider.setTypeFilter(previousFilter, previousComponent, previousStates);
                   } else {
                     treeProvider.clearTypeFilter();
                   }
@@ -369,16 +447,12 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
                 resolve();
               });
               quickPick.show();
+              if (savedFilterText) quickPick.value = savedFilterText;
             })
         )
       ),
       registerCommand(`${TREE_VIEW_ID}.clearFilter`, () =>
-        Effect.promise(async () => {
-          treeProvider.clearTypeFilter();
-          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', false);
-          await context.workspaceState.update('orgBrowser.typeFilter', undefined);
-          await context.workspaceState.update('orgBrowser.componentFilter', undefined);
-        })
+        Effect.promise(() => vscode.commands.executeCommand(`${TREE_VIEW_ID}.filterTypes`))
       ),
       registerCommand(`${TREE_VIEW_ID}.deployLocalChange`, (node: OrgBrowserTreeItem) =>
         Effect.gen(function* () {

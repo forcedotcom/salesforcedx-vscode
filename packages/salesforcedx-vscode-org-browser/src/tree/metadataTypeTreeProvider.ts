@@ -31,10 +31,28 @@ const VIEW_MODE_CYCLE: Record<TypeViewMode, TypeViewMode> = {
   allTypes: 'withContent'
 };
 
+export const FILTER_TAGS: ReadonlyMap<string, readonly SyncState[]> = new Map([
+  ['@added', ['localAdded', 'remoteAdded']],
+  ['@new', ['localAdded', 'remoteAdded']],
+  ['@created', ['localAdded', 'remoteAdded']],
+  ['@modified', ['localModified', 'remoteModified']],
+  ['@changed', ['localModified', 'remoteModified']],
+  ['@updated', ['localModified', 'remoteModified']],
+  ['@deleted', ['localDeleted', 'remoteDeleted']],
+  ['@removed', ['localDeleted', 'remoteDeleted']],
+  ['@conflict', ['conflict']],
+  ['@conflicts', ['conflict']],
+  ['@local', ['localAdded', 'localModified', 'localDeleted']],
+  ['@remote', ['remoteAdded', 'remoteModified', 'remoteDeleted']],
+  ['@org', ['remoteAdded', 'remoteModified', 'remoteDeleted']],
+  ['@synced', ['synced']]
+]);
+
 type TypeFilterState = {
   viewMode: TypeViewMode;
   typeFilter: ReadonlySet<string> | undefined;
   componentFilter: string | undefined;
+  stateFilter: ReadonlySet<SyncState> | undefined;
   creatableTypes: CreateCommandMap;
 };
 
@@ -46,6 +64,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private viewMode: TypeViewMode = 'withContent';
   private typeFilter: ReadonlySet<string> | undefined;
   private componentFilter: string | undefined;
+  private stateFilter: ReadonlySet<SyncState> | undefined;
   private creatableTypes: CreateCommandMap = new Map();
 
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
@@ -67,20 +86,31 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return this.viewMode;
   }
 
-  public setTypeFilter(filter: ReadonlySet<string>, componentPattern?: string): void {
+  public setTypeFilter(filter: ReadonlySet<string>, componentPattern?: string, states?: ReadonlySet<SyncState>): void {
     this.typeFilter = filter;
     this.componentFilter = componentPattern;
+    this.stateFilter = states;
+    this._onDidChangeTreeData.fire();
+  }
+
+  public setStateFilter(states: ReadonlySet<SyncState> | undefined): void {
+    this.stateFilter = states;
     this._onDidChangeTreeData.fire();
   }
 
   public clearTypeFilter(): void {
     this.typeFilter = undefined;
     this.componentFilter = undefined;
+    this.stateFilter = undefined;
     this._onDidChangeTreeData.fire();
   }
 
   public getComponentFilter(): string | undefined {
     return this.componentFilter;
+  }
+
+  public getStateFilter(): ReadonlySet<SyncState> | undefined {
+    return this.stateFilter;
   }
 
   public getViewMode(): TypeViewMode {
@@ -111,6 +141,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
         viewMode: this.viewMode,
         typeFilter: this.typeFilter,
         componentFilter: this.componentFilter,
+        stateFilter: this.stateFilter,
         creatableTypes: this.creatableTypes
       })
     );
@@ -124,9 +155,12 @@ const applyChildFilters = (nodes: OrgBrowserTreeItem[], filterState: TypeFilterS
       : filterState.viewMode === 'orgOnly'
         ? nodes.filter(n => !n.localPath)
         : nodes;
-  return filterState.componentFilter
+  const afterComponent = filterState.componentFilter
     ? afterViewMode.filter(n => n.componentName?.toLowerCase().includes(filterState.componentFilter!.toLowerCase()))
     : afterViewMode;
+  return filterState.stateFilter
+    ? afterComponent.filter(n => n.syncState && filterState.stateFilter!.has(n.syncState))
+    : afterComponent;
 };
 
 const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBrowserTreeItem) {
@@ -190,9 +224,14 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
         filterState.viewMode === 'localOnly'
           ? describeTypes.filter(t => localCountsByType.has(t.xmlName))
           : describeTypes;
-      const types = filterState.typeFilter
+      const afterTypeFilter = filterState.typeFilter
         ? afterViewFilter.filter(t => filterState.typeFilter!.has(t.xmlName))
         : afterViewFilter;
+      const types = filterState.stateFilter
+        ? afterTypeFilter.filter(t =>
+            allChanges.some(row => row.type === t.xmlName && filterState.stateFilter!.has(rowToSyncState(row)))
+          )
+        : afterTypeFilter;
       const typeNodes = types
         .toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1))
         .map(mdapiDescribeToOrgBrowserNode(filterState.creatableTypes));
