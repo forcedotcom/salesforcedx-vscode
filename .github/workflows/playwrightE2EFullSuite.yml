@@ -81,8 +81,8 @@ jobs:
     with:
       vscode_version: ${{ inputs.vscode_version }}
 
-  snippets:
-    uses: ./.github/workflows/snippetsE2E.yml
+  lwc:
+    uses: ./.github/workflows/lwcPlaywrightE2E.yml
     secrets: inherit
     with:
       vscode_version: ${{ inputs.vscode_version }}
