@@ -21,12 +21,13 @@ import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
 /** Cached org-side component counts, populated when a type is expanded (listMetadata results) */
 const orgComponentCounts = new Map<string, number>();
 
-export type TypeViewMode = 'localOnly' | 'withContent' | 'allTypes';
-export const VIEW_MODES: readonly TypeViewMode[] = ['localOnly', 'withContent', 'allTypes'] as const;
+export type TypeViewMode = 'withContent' | 'localOnly' | 'orgOnly' | 'allTypes';
+export const VIEW_MODES: readonly TypeViewMode[] = ['withContent', 'localOnly', 'orgOnly', 'allTypes'] as const;
 
 const VIEW_MODE_CYCLE: Record<TypeViewMode, TypeViewMode> = {
   withContent: 'localOnly',
-  localOnly: 'allTypes',
+  localOnly: 'orgOnly',
+  orgOnly: 'allTypes',
   allTypes: 'withContent'
 };
 
@@ -236,7 +237,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       const registry = yield* api.services.MetadataRegistryService.getRegistryAccess();
       const adapter = registry.getTypeByName(element.xmlName)?.strategies?.adapter;
-      const isPreviewableType = adapter === SINGLE_FILE_ADAPTER || element.xmlName === 'ContentAsset';
+      const isPreviewableType = !adapter || adapter === SINGLE_FILE_ADAPTER || element.xmlName === 'ContentAsset';
       return yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
         Effect.flatMap(components => {
           const filtered = components.filter(globalMetadataFilter);
@@ -248,7 +249,11 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
             Stream.runCollect,
             Effect.map(chunk => {
               const all = Array.from(chunk);
-              return filterState.viewMode === 'localOnly' ? all.filter(n => n.localPath) : all;
+              return filterState.viewMode === 'localOnly'
+                ? all.filter(n => n.localPath)
+                : filterState.viewMode === 'orgOnly'
+                  ? all.filter(n => !n.localPath)
+                  : all;
             })
           );
         })
@@ -270,7 +275,11 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
             Stream.runCollect,
             Effect.map(chunk => {
               const all = Array.from(chunk);
-              return filterState.viewMode === 'localOnly' ? all.filter(n => n.localPath) : all;
+              return filterState.viewMode === 'localOnly'
+                ? all.filter(n => n.localPath)
+                : filterState.viewMode === 'orgOnly'
+                  ? all.filter(n => !n.localPath)
+                  : all;
             })
           )
         )
@@ -433,6 +442,7 @@ const buildChangesGroupNodes = (trackingCache: SourceTrackingCacheService) =>
               label: `Conflicts (${conflictChanges.length})`
             });
             node.iconPath = new vscode.ThemeIcon('warning', new vscode.ThemeColor('list.warningForeground'));
+            node.contextValue = 'changesGroup_conflicts';
             return node;
           })()
         : undefined,
@@ -444,6 +454,7 @@ const buildChangesGroupNodes = (trackingCache: SourceTrackingCacheService) =>
               label: `Remote Changes (${remoteChanges.length})`
             });
             node.iconPath = new vscode.ThemeIcon('arrow-down', new vscode.ThemeColor('charts.blue'));
+            node.contextValue = 'changesGroup_remote';
             return node;
           })()
         : undefined,
@@ -455,6 +466,7 @@ const buildChangesGroupNodes = (trackingCache: SourceTrackingCacheService) =>
               label: `Local Changes (${localChanges.length})`
             });
             node.iconPath = new vscode.ThemeIcon('arrow-up', new vscode.ThemeColor('charts.yellow'));
+            node.contextValue = 'changesGroup_local';
             return node;
           })()
         : undefined

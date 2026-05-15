@@ -408,6 +408,12 @@
         "icon": "$(eye)"
       },
       {
+        "command": "sfdxOrgBrowser.viewModeOrgOnly",
+        "title": "%orgBrowser.command.viewModeOrgOnly%",
+        "category": "Org Browser",
+        "icon": "$(cloud)"
+      },
+      {
         "command": "sfdxOrgBrowser.viewModeAllTypes",
         "title": "%orgBrowser.command.viewModeAllTypes%",
         "category": "Org Browser",
@@ -424,6 +430,24 @@
         "title": "%orgBrowser.command.clearFilter%",
         "category": "Org Browser",
         "icon": "$(filter-filled)"
+      },
+      {
+        "command": "sfdxOrgBrowser.retrieveAllFiltered",
+        "title": "%orgBrowser.command.retrieveAllFiltered%",
+        "category": "Org Browser",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "sfdxOrgBrowser.pullAllRemoteChanges",
+        "title": "%orgBrowser.command.pullAllRemoteChanges%",
+        "category": "Org Browser",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "sfdxOrgBrowser.deployAllLocalChanges",
+        "title": "%orgBrowser.command.deployAllLocalChanges%",
+        "category": "Org Browser",
+        "icon": "$(cloud-upload)"
       }
     ],
     "menus": {
@@ -457,6 +481,16 @@
           "command": "sfdxOrgBrowser.viewModeLocalOnly",
           "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.viewMode == localOnly",
           "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.viewModeOrgOnly",
+          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.viewMode == orgOnly",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.retrieveAllFiltered",
+          "when": "view =~ /^sfdxOrgBrowser/",
+          "group": "navigation@4"
         },
         {
           "command": "sfdxOrgBrowser.filterTypes",
@@ -509,6 +543,16 @@
         {
           "command": "sfdxOrgBrowser.createComponent",
           "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /_creatable$/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdxOrgBrowser.pullAllRemoteChanges",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem == changesGroup_remote",
+          "group": "inline"
+        },
+        {
+          "command": "sfdxOrgBrowser.deployAllLocalChanges",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem == changesGroup_local",
           "group": "inline"
         }
       ]

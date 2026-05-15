@@ -25,6 +25,7 @@ import {
   getOrgBrowserRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
+import { OrgBrowserRetrieveService } from './services/orgBrowserMetadataRetrieveService';
 import { SourceTrackingCacheService } from './services/sourceTrackingCacheService';
 import { MetadataTypeTreeProvider, VIEW_MODES, type TypeViewMode } from './tree/metadataTypeTreeProvider';
 
@@ -156,39 +157,33 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       ),
       registerCommand(`${TREE_VIEW_ID}.previewOrgComponent`, (node: OrgBrowserTreeItem) =>
         Effect.gen(function* () {
-          if (!node.componentName) return;
+          if (!node?.componentName) return;
           const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
-          // eslint-disable-next-line import/no-extraneous-dependencies
-          const { ComponentSet: CS } = yield* Effect.promise(() => import('@salesforce/source-deploy-retrieve'));
-          const cs = new CS([{ fullName: node.componentName, type: node.xmlName }]);
-          const nonEmpty = yield* servicesApi.services.ComponentSetService.ensureNonEmptyComponentSet(cs);
+          const members = [{ type: node.xmlName, fullName: node.componentName }];
+          const zipFiles = yield* servicesApi.services.MetadataRetrieveService.retrieveMemberContent(members);
+          if (zipFiles.size === 0) return;
 
-          const workspaceInfo = yield* servicesApi.services.WorkspaceService.getWorkspaceInfoOrThrow();
-          const orgRef = yield* SubscriptionRef.get(yield* servicesApi.services.TargetOrgRef());
-          const cacheDir = Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgRef.orgId ?? 'default', 'preview');
-          yield* servicesApi.services.FsService.safeDelete(cacheDir, { recursive: true });
-          const result = yield* servicesApi.services.MetadataRetrieveService.retrieveComponentSetToDirectory(
-            nonEmpty,
-            cacheDir
+          const registry = yield* servicesApi.services.MetadataRegistryService.getRegistryAccess();
+          const typeInfo = registry.getTypeByName(node.xmlName);
+          const suffix = typeInfo?.suffix;
+
+          // Find the main content file in the zip (not -meta.xml, not package.xml)
+          const zipEntries = [...zipFiles.entries()].filter(
+            ([name]) => name.startsWith('unpackaged/') && !name.endsWith('package.xml')
           );
+          const contentEntry = zipEntries.find(
+            ([name]) => suffix && name.endsWith(`.${suffix}`) && !name.endsWith('-meta.xml')
+          );
+          const metaEntry = zipEntries.find(([name]) => name.endsWith('-meta.xml'));
+          const mainEntry = contentEntry ?? metaEntry ?? zipEntries[0];
+          if (!mainEntry) return;
 
-          const retrievedFiles = result.components.getComponentFilenamesByNameAndType({
-            fullName: node.componentName,
-            type: node.xmlName
-          });
-          if (retrievedFiles.length === 0) return;
-
-          const filePath = retrievedFiles[0];
-          const fileData = yield* Effect.promise(() => vscode.workspace.fs.readFile(URI.file(filePath)));
-
-          const defaultFileName = filePath.split('/').pop() ?? node.componentName;
+          const [mainZipPath, fileData] = mainEntry;
+          const defaultFileName = mainZipPath.split('/').pop() ?? node.componentName;
+          const metaXmlData = metaEntry ? metaEntry[1] : undefined;
           const fileName =
-            node.xmlName === 'ContentAsset'
-              ? yield* Effect.promise(() => vscode.workspace.fs.readFile(URI.file(`${filePath}-meta.xml`))).pipe(
-                  Effect.map(metaData => extractPathOnClient(Buffer.from(metaData).toString('utf8'))),
-                  Effect.catchAll(() => Effect.succeed(undefined)),
-                  Effect.map(name => name ?? defaultFileName)
-                )
+            node.xmlName === 'ContentAsset' && metaXmlData
+              ? (extractPathOnClient(Buffer.from(metaXmlData).toString('utf8')) ?? defaultFileName)
               : defaultFileName;
 
           const previewUri = URI.from({
@@ -213,6 +208,13 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.viewModeWithContent`, () =>
+        Effect.promise(async () => {
+          const mode = treeProvider.cycleViewMode();
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', mode);
+          await context.workspaceState.update('orgBrowser.viewMode', mode);
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.viewModeOrgOnly`, () =>
         Effect.promise(async () => {
           const mode = treeProvider.cycleViewMode();
           await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', mode);
@@ -263,6 +265,62 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           const { ComponentSet: CS } = yield* Effect.promise(() => import('@salesforce/source-deploy-retrieve'));
           const deploySet = new CS();
           deployComponents.forEach(comp => deploySet.add(comp));
+          yield* servicesApi.services.MetadataDeployService.deploy(deploySet);
+          yield* SourceTrackingCacheService.invalidate;
+          yield* Effect.promise(() => treeProvider.refreshType());
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.retrieveAllFiltered`, () =>
+        Effect.gen(function* () {
+          const rootNodes = yield* Effect.promise(() => treeProvider.getChildren(undefined));
+          const typeNodes = rootNodes.filter(n => n.kind === 'type' || n.kind === 'folderType');
+          const allMembers: { type: string; fullName: string }[] = [];
+          yield* Effect.all(
+            typeNodes.map(typeNode =>
+              Effect.promise(() => treeProvider.getChildren(typeNode)).pipe(
+                Effect.map(children =>
+                  children
+                    .filter((c): c is OrgBrowserTreeItem & { componentName: string } => Boolean(c.componentName))
+                    .forEach(c => allMembers.push({ type: typeNode.xmlName, fullName: c.componentName }))
+                )
+              )
+            ),
+            { concurrency: 'unbounded' }
+          );
+          if (allMembers.length === 0) return;
+          yield* OrgBrowserRetrieveService.retrieve(allMembers, false);
+          yield* SourceTrackingCacheService.invalidate;
+          yield* Effect.promise(() => treeProvider.refreshType());
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.pullAllRemoteChanges`, () =>
+        Effect.gen(function* () {
+          const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+          const trackingCache = yield* SourceTrackingCacheService;
+          const allChanges = yield* trackingCache.getAllChanges();
+          const remoteChanges = allChanges.filter(r => !r.conflict && r.origin === 'remote');
+          if (remoteChanges.length === 0) return;
+          const members = remoteChanges.map(r => ({ type: r.type, fullName: r.fullName }));
+          yield* servicesApi.services.MetadataRetrieveService.retrieve(members, { ignoreConflicts: false });
+          yield* SourceTrackingCacheService.invalidate;
+          yield* Effect.promise(() => treeProvider.refreshType());
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.deployAllLocalChanges`, () =>
+        Effect.gen(function* () {
+          const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+          const trackingCache = yield* SourceTrackingCacheService;
+          const allChanges = yield* trackingCache.getAllChanges();
+          const localChanges = allChanges.filter(r => !r.conflict && r.origin === 'local');
+          if (localChanges.length === 0) return;
+          const componentSet = yield* servicesApi.services.ComponentSetService.getComponentSetFromProjectDirectories();
+          // eslint-disable-next-line import/no-extraneous-dependencies
+          const { ComponentSet: CS } = yield* Effect.promise(() => import('@salesforce/source-deploy-retrieve'));
+          const deploySet = new CS();
+          Array.from(componentSet)
+            .filter(comp => localChanges.some(r => r.type === comp.type.name && r.fullName === comp.fullName))
+            .forEach(comp => deploySet.add(comp));
+          if (deploySet.size === 0) return;
           yield* servicesApi.services.MetadataDeployService.deploy(deploySet);
           yield* SourceTrackingCacheService.invalidate;
           yield* Effect.promise(() => treeProvider.refreshType());

@@ -24,7 +24,7 @@ import { uriToPath } from '../vscode/paths';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
-import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
+import { FailedToBuildComponentSetError, setComponentSetProperties } from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
@@ -241,7 +241,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      * Sets project directory and API versions on the ComponentSet before retrieving.
      */
     const retrieveComponentSetToDirectory = Effect.fn('MetadataRetrieveService.retrieveComponentSetToDirectory')(
-      function* (components: NonEmptyComponentSet, outputPath: URI) {
+      function* (components: ComponentSet, outputPath: URI) {
         const registryAccess = yield* metadataRegistryService.getRegistryAccess();
         const [connection, project, configAggregator] = yield* Effect.all(
           [
@@ -271,10 +271,56 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       }
     );
 
+    const retrieveMemberContent = Effect.fn('MetadataRetrieveService.retrieveMemberContent')(function* (
+      members: MetadataMember[]
+    ) {
+      const registryAccess = yield* metadataRegistryService.getRegistryAccess();
+      const componentSet = yield* buildComponentSet(members);
+      const [connection, project, configAggregator] = yield* Effect.all(
+        [
+          connectionService.getConnection(),
+          projectService.getSfProject(),
+          configService.getConfigAggregator(),
+          workspaceService.getWorkspaceInfoOrThrow()
+        ],
+        { concurrency: 'unbounded' }
+      );
+      yield* setComponentSetProperties({ componentSet, configAggregator, project });
+      const title = `Previewing ${members.map(m => `${m.type}: ${m.fullName}`).join(', ')}`;
+      const tempDir = URI.file(`${project.getPath()}/.sf/preview-temp`);
+      const result = yield* performRetrieveOperation({
+        componentSet,
+        connection,
+        registryAccess,
+        title,
+        merge: false,
+        outputPath: tempDir
+      });
+
+      if (!result.response?.zipFile) return new Map<string, Uint8Array>();
+      const zipBuf = Buffer.from(result.response.zipFile, 'base64');
+      return yield* Effect.tryPromise({
+        try: async (): Promise<Map<string, Uint8Array>> => {
+          // eslint-disable-next-line import/no-extraneous-dependencies -- jszip is a transitive dep via SDR
+          const { default: JSZip } = await import('jszip');
+          const zip = await JSZip.loadAsync(zipBuf);
+          const files = new Map<string, Uint8Array>();
+          await Promise.all(
+            Object.entries(zip.files)
+              .filter(([, f]) => !f.dir)
+              .map(async ([name, f]) => files.set(name, await f.async('uint8array')))
+          );
+          return files;
+        },
+        catch: (): Map<string, Uint8Array> => new Map()
+      });
+    });
+
     return {
       retrieve,
       retrieveComponentSet,
       retrieveComponentSetToDirectory,
+      retrieveMemberContent,
       buildComponentSet,
       buildComponentSetFromSource
     };
