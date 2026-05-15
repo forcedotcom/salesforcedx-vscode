@@ -19,7 +19,7 @@ import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separat
 import { buildCombinedHoverText } from './hover';
 
 /** Refresh the status bar's data using data from tracking service */
-const refresh = Effect.fn('statusBarRefresh')(
+const refresh = Effect.fn('statusBarRefresh', { root: true, attributes: { telemetryIgnore: true } })(
   function* (statusBarItem: vscode.StatusBarItem) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const sourceTrackingService = yield* api.services.SourceTrackingService;
