@@ -35,7 +35,27 @@ import { SINGLE_FILE_ADAPTER, OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
 const extractPathOnClient = (xml: string): string | undefined => /<pathOnClient>([^<]+)<\/pathOnClient>/.exec(xml)?.[1];
 
+const closePreviewTabs = async (): Promise<void> => {
+  const tabsToClose: vscode.Tab[] = [];
+  // eslint-disable-next-line functional/no-loop-statements
+  for (const group of vscode.window.tabGroups.all) {
+    // eslint-disable-next-line functional/no-loop-statements
+    for (const tab of group.tabs) {
+      const uri =
+        (tab.input instanceof vscode.TabInputText && tab.input.uri) ||
+        (tab.input instanceof vscode.TabInputCustom && tab.input.uri);
+      if (uri && uri.scheme === ASSET_PREVIEW_SCHEME) {
+        tabsToClose.push(tab);
+      }
+    }
+  }
+  if (tabsToClose.length > 0) {
+    await vscode.window.tabGroups.close(tabsToClose, true);
+  }
+};
+
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
+  await closePreviewTabs();
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
   await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
@@ -71,8 +91,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', savedViewMode));
   }
   const savedFilter = context.workspaceState.get<string[]>('orgBrowser.typeFilter');
+  const savedComponentFilter = context.workspaceState.get<string>('orgBrowser.componentFilter');
   if (savedFilter && savedFilter.length > 0) {
-    treeProvider.setTypeFilter(new Set(savedFilter));
+    treeProvider.setTypeFilter(new Set(savedFilter), savedComponentFilter);
     yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', true));
   }
 
@@ -227,27 +248,136 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.filterTypes`, () =>
-        Effect.promise(async () => {
-          const input = await vscode.window.showInputBox({
-            prompt: 'Enter comma-separated metadata type names',
-            placeHolder: 'e.g. ApexClass,CustomObject,Layout'
-          });
-          if (input === undefined) return;
-          const types = input
-            .split(',')
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
-          if (types.length === 0) return;
-          treeProvider.setTypeFilter(new Set(types));
-          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', true);
-          await context.workspaceState.update('orgBrowser.typeFilter', types);
-        })
+        Effect.promise(
+          () =>
+            new Promise<void>(resolve => {
+              const previousFilter = treeProvider.getTypeFilter();
+              const previousComponent = treeProvider.getComponentFilter();
+              const quickPick = vscode.window.createQuickPick();
+              quickPick.placeholder = 'e.g. ApexClass or Layout:Account';
+              quickPick.matchOnDescription = true;
+              // eslint-disable-next-line functional/no-let
+              let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+              // eslint-disable-next-line functional/no-let
+              let accepted = false;
+              // eslint-disable-next-line functional/no-let
+              let cachedTypeNames: string[] = [];
+
+              treeProvider
+                .getChildren(undefined)
+                .then(roots => {
+                  cachedTypeNames = roots.filter(n => n.kind === 'type' || n.kind === 'folderType').map(n => n.xmlName);
+                  quickPick.items = cachedTypeNames.map(t => ({ label: t }));
+                })
+                .catch(() => undefined);
+
+              quickPick.onDidChangeValue(value => {
+                if (debounceTimer) clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                  const colonIdx = value.indexOf(':');
+                  if (colonIdx > 0) {
+                    const typePart = value.substring(0, colonIdx).trim();
+                    const resolvedType =
+                      cachedTypeNames.find(t => t.toLowerCase() === typePart.toLowerCase()) ?? typePart;
+                    const namePart = value
+                      .substring(colonIdx + 1)
+                      .trim()
+                      .toLowerCase();
+                    treeProvider.setTypeFilter(new Set([resolvedType]), namePart || undefined);
+                    const typeNode = new OrgBrowserTreeItem({
+                      kind: 'type',
+                      xmlName: resolvedType,
+                      label: resolvedType
+                    });
+                    treeProvider
+                      .getChildren(typeNode)
+                      .then(children => {
+                        const filtered = namePart
+                          ? children.filter(c => c.componentName?.toLowerCase().includes(namePart))
+                          : children;
+                        quickPick.items = filtered.map(c => ({
+                          label: `${typePart}:${c.componentName ?? String(c.label)}`,
+                          description: c.componentName ?? ''
+                        }));
+                      })
+                      .catch(() => undefined);
+                  } else if (value.length >= 3) {
+                    const lower = value.toLowerCase();
+                    const matching = cachedTypeNames.filter(t => t.toLowerCase().includes(lower));
+                    quickPick.items = matching.map(t => ({ label: t }));
+                    treeProvider.setTypeFilter(new Set(matching));
+                  } else {
+                    quickPick.items = cachedTypeNames.map(t => ({ label: t }));
+                    if (previousFilter) {
+                      treeProvider.setTypeFilter(previousFilter, previousComponent);
+                    } else {
+                      treeProvider.clearTypeFilter();
+                    }
+                  }
+                }, 150);
+              });
+
+              const commitFilter = (value: string): void => {
+                accepted = true;
+                quickPick.dispose();
+                if (value.length === 0) {
+                  treeProvider.clearTypeFilter();
+                  void vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', false);
+                  void context.workspaceState.update('orgBrowser.typeFilter', undefined);
+                  void context.workspaceState.update('orgBrowser.componentFilter', undefined);
+                } else {
+                  void vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', true);
+                  const colonIdx = value.indexOf(':');
+                  if (colonIdx > 0) {
+                    const typePart = value.substring(0, colonIdx).trim();
+                    const resolvedType =
+                      cachedTypeNames.find(t => t.toLowerCase() === typePart.toLowerCase()) ?? typePart;
+                    const namePart = value.substring(colonIdx + 1).trim();
+                    treeProvider.setTypeFilter(new Set([resolvedType]), namePart || undefined);
+                    void context.workspaceState.update('orgBrowser.typeFilter', [resolvedType]);
+                    void context.workspaceState.update('orgBrowser.componentFilter', namePart || undefined);
+                  } else {
+                    const lower = value.toLowerCase();
+                    const types = cachedTypeNames.filter(t => t.toLowerCase().includes(lower));
+                    treeProvider.setTypeFilter(new Set(types));
+                    void context.workspaceState.update('orgBrowser.typeFilter', types);
+                    void context.workspaceState.update('orgBrowser.componentFilter', undefined);
+                  }
+                }
+                resolve();
+              };
+
+              quickPick.onDidAccept(() => {
+                const selected = quickPick.selectedItems[0];
+                const value = selected?.label ?? quickPick.value;
+                // If a type was selected without ':', transition to component search
+                if (selected && !value.includes(':')) {
+                  quickPick.value = `${value}:`;
+                  return;
+                }
+                commitFilter(value);
+              });
+              quickPick.onDidHide(() => {
+                if (!accepted) {
+                  if (previousFilter) {
+                    treeProvider.setTypeFilter(previousFilter, previousComponent);
+                  } else {
+                    treeProvider.clearTypeFilter();
+                  }
+                }
+                quickPick.dispose();
+                resolve();
+              });
+              quickPick.show();
+            })
+        )
       ),
       registerCommand(`${TREE_VIEW_ID}.clearFilter`, () =>
         Effect.promise(async () => {
           treeProvider.clearTypeFilter();
           await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', false);
           await context.workspaceState.update('orgBrowser.typeFilter', undefined);
+          await context.workspaceState.update('orgBrowser.componentFilter', undefined);
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.deployLocalChange`, (node: OrgBrowserTreeItem) =>

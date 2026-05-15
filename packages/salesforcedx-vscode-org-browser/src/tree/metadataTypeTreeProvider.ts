@@ -34,6 +34,7 @@ const VIEW_MODE_CYCLE: Record<TypeViewMode, TypeViewMode> = {
 type TypeFilterState = {
   viewMode: TypeViewMode;
   typeFilter: ReadonlySet<string> | undefined;
+  componentFilter: string | undefined;
   creatableTypes: CreateCommandMap;
 };
 
@@ -44,6 +45,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   private viewMode: TypeViewMode = 'withContent';
   private typeFilter: ReadonlySet<string> | undefined;
+  private componentFilter: string | undefined;
   private creatableTypes: CreateCommandMap = new Map();
 
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
@@ -65,14 +67,20 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return this.viewMode;
   }
 
-  public setTypeFilter(filter: ReadonlySet<string>): void {
+  public setTypeFilter(filter: ReadonlySet<string>, componentPattern?: string): void {
     this.typeFilter = filter;
+    this.componentFilter = componentPattern;
     this._onDidChangeTreeData.fire();
   }
 
   public clearTypeFilter(): void {
     this.typeFilter = undefined;
+    this.componentFilter = undefined;
     this._onDidChangeTreeData.fire();
+  }
+
+  public getComponentFilter(): string | undefined {
+    return this.componentFilter;
   }
 
   public getViewMode(): TypeViewMode {
@@ -102,11 +110,24 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
       getChildrenOfTreeItem(element, {
         viewMode: this.viewMode,
         typeFilter: this.typeFilter,
+        componentFilter: this.componentFilter,
         creatableTypes: this.creatableTypes
       })
     );
   }
 }
+
+const applyChildFilters = (nodes: OrgBrowserTreeItem[], filterState: TypeFilterState): OrgBrowserTreeItem[] => {
+  const afterViewMode =
+    filterState.viewMode === 'localOnly'
+      ? nodes.filter(n => n.localPath)
+      : filterState.viewMode === 'orgOnly'
+        ? nodes.filter(n => !n.localPath)
+        : nodes;
+  return filterState.componentFilter
+    ? afterViewMode.filter(n => n.componentName?.toLowerCase().includes(filterState.componentFilter!.toLowerCase()))
+    : afterViewMode;
+};
 
 const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBrowserTreeItem) {
   const svcProvider = yield* ExtensionProviderService;
@@ -247,14 +268,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
               enrichComponentWithSyncState(trackingCache, projectComponentSet, element, c, isPreviewableType)
             ),
             Stream.runCollect,
-            Effect.map(chunk => {
-              const all = Array.from(chunk);
-              return filterState.viewMode === 'localOnly'
-                ? all.filter(n => n.localPath)
-                : filterState.viewMode === 'orgOnly'
-                  ? all.filter(n => !n.localPath)
-                  : all;
-            })
+            Effect.map(chunk => applyChildFilters(Array.from(chunk), filterState))
           );
         })
       );
@@ -273,14 +287,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.mapEffect(c => enrichFolderItemWithSyncState(trackingCache, projectComponentSet, element, c)),
             Stream.runCollect,
-            Effect.map(chunk => {
-              const all = Array.from(chunk);
-              return filterState.viewMode === 'localOnly'
-                ? all.filter(n => n.localPath)
-                : filterState.viewMode === 'orgOnly'
-                  ? all.filter(n => !n.localPath)
-                  : all;
-            })
+            Effect.map(chunk => applyChildFilters(Array.from(chunk), filterState))
           )
         )
       );
