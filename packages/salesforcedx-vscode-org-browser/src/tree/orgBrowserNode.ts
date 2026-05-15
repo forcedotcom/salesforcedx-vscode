@@ -6,7 +6,19 @@
  */
 import * as vscode from 'vscode';
 
-export type SyncState = 'synced' | 'localOnly' | 'remoteOnly' | 'conflict' | 'remoteDeleted' | 'notPresent' | 'unknown';
+export type SyncState =
+  | 'synced'
+  | 'localOnly'
+  | 'localAdded'
+  | 'localModified'
+  | 'localDeleted'
+  | 'remoteOnly'
+  | 'remoteAdded'
+  | 'remoteModified'
+  | 'remoteDeleted'
+  | 'conflict'
+  | 'notPresent'
+  | 'unknown';
 
 type OrgBrowserTreeItemKind =
   /** a normal metadata type */
@@ -108,9 +120,17 @@ const getSyncIcon = (state: SyncState): vscode.ThemeIcon => {
     case 'synced':
       return new vscode.ThemeIcon('pass-filled', new vscode.ThemeColor('charts.green'));
     case 'localOnly':
+    case 'localModified':
       return new vscode.ThemeIcon('arrow-up', new vscode.ThemeColor('charts.yellow'));
+    case 'localAdded':
+      return new vscode.ThemeIcon('diff-added', new vscode.ThemeColor('charts.green'));
+    case 'localDeleted':
+      return new vscode.ThemeIcon('trash', new vscode.ThemeColor('charts.yellow'));
     case 'remoteOnly':
+    case 'remoteModified':
       return new vscode.ThemeIcon('arrow-down', new vscode.ThemeColor('charts.blue'));
+    case 'remoteAdded':
+      return new vscode.ThemeIcon('diff-added', new vscode.ThemeColor('charts.blue'));
     case 'conflict':
       return new vscode.ThemeIcon('warning', new vscode.ThemeColor('list.warningForeground'));
     case 'remoteDeleted':
@@ -125,9 +145,17 @@ const getSyncIcon = (state: SyncState): vscode.ThemeIcon => {
 const getSyncDescription = (state: SyncState): string | undefined => {
   switch (state) {
     case 'localOnly':
+    case 'localModified':
       return 'modified locally';
+    case 'localAdded':
+      return 'added locally';
+    case 'localDeleted':
+      return 'deleted locally';
     case 'remoteOnly':
+    case 'remoteModified':
       return 'modified in org';
+    case 'remoteAdded':
+      return 'added in org';
     case 'conflict':
       return 'conflict';
     case 'remoteDeleted':

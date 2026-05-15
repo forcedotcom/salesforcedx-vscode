@@ -354,10 +354,7 @@
       {
         "command": "sfdxOrgBrowser.retrieveMetadata",
         "title": "%orgBrowser.command.retrieveMetadata%",
-        "icon": {
-          "dark": "resources/dark/retrieve.svg",
-          "light": "resources/light/retrieve.svg"
-        }
+        "icon": "$(cloud-download)"
       },
       {
         "command": "sfdxOrgBrowser.collapseAll",
@@ -517,22 +514,22 @@
         },
         {
           "command": "sfdxOrgBrowser.retrieveMetadata",
-          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^(type|customObject|component)/",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^(type|customObject|component)/ && viewItem != component_localAdded_local",
           "group": "inline"
         },
         {
           "command": "sfdxOrgBrowser.pullRemoteChange",
-          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^changedComponent_(remoteOnly|remoteDeleted)/",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^changedComponent_remote/",
           "group": "inline"
         },
         {
           "command": "sfdxOrgBrowser.deployLocalChange",
-          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /^changedComponent_localOnly/",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /local(Added|Modified|Deleted)/",
           "group": "inline"
         },
         {
           "command": "sfdxOrgBrowser.openLocalComponent",
-          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /_local/",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /_local/ && !(viewItem =~ /localDeleted/)",
           "group": "inline"
         },
         {

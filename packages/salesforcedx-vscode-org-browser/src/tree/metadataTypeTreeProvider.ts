@@ -396,9 +396,14 @@ const computeChangeCountsForType = (
 
 const rowToSyncState = (row: StatusOutputRow): SyncState => {
   if (row.conflict) return 'conflict';
-  if (row.origin === 'remote' && row.state === 'delete') return 'remoteDeleted';
-  if (row.origin === 'remote') return 'remoteOnly';
-  return 'localOnly';
+  if (row.origin === 'remote') {
+    if (row.state === 'delete') return 'remoteDeleted';
+    if (row.state === 'add') return 'remoteAdded';
+    return 'remoteModified';
+  }
+  if (row.state === 'delete') return 'localDeleted';
+  if (row.state === 'add') return 'localAdded';
+  return 'localModified';
 };
 
 const buildChangesRootNode = (trackingCache: SourceTrackingCacheService) =>
