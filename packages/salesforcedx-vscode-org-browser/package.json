@@ -384,6 +384,12 @@
         "icon": "$(go-to-file)"
       },
       {
+        "command": "sfdxOrgBrowser.previewOrgComponent",
+        "title": "%orgBrowser.command.previewOrgComponent%",
+        "category": "Org Browser",
+        "icon": "$(open-preview)"
+      },
+      {
         "command": "sfdxOrgBrowser.createComponent",
         "title": "%orgBrowser.command.createComponent%",
         "category": "Org Browser",
@@ -493,6 +499,11 @@
         {
           "command": "sfdxOrgBrowser.openLocalComponent",
           "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /_local/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdxOrgBrowser.previewOrgComponent",
+          "when": "view =~ /^sfdxOrgBrowser/ && viewItem =~ /_previewable/",
           "group": "inline"
         },
         {

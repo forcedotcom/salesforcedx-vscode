@@ -15,7 +15,7 @@ import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { SourceTrackingCacheService } from '../services/sourceTrackingCacheService';
 import { createCustomFieldNode } from './customField';
-import { isFolderType, OrgBrowserTreeItem, type SyncState } from './orgBrowserNode';
+import { isFolderType, OrgBrowserTreeItem, SINGLE_FILE_ADAPTER, type SyncState } from './orgBrowserNode';
 import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
 
 /** Cached org-side component counts, populated when a type is expanded (listMetadata results) */
@@ -234,12 +234,17 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
     }
     if (element.kind === 'type') {
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+      const registry = yield* api.services.MetadataRegistryService.getRegistryAccess();
+      const adapter = registry.getTypeByName(element.xmlName)?.strategies?.adapter;
+      const isPreviewableType = adapter === SINGLE_FILE_ADAPTER || element.xmlName === 'ContentAsset';
       return yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
         Effect.flatMap(components => {
           const filtered = components.filter(globalMetadataFilter);
           orgComponentCounts.set(element.xmlName, filtered.length);
           return Stream.fromIterable(filtered).pipe(
-            Stream.mapEffect(c => enrichComponentWithSyncState(trackingCache, projectComponentSet, element, c)),
+            Stream.mapEffect(c =>
+              enrichComponentWithSyncState(trackingCache, projectComponentSet, element, c, isPreviewableType)
+            ),
             Stream.runCollect,
             Effect.map(chunk => {
               const all = Array.from(chunk);
@@ -280,7 +285,8 @@ const enrichComponentWithSyncState = (
   trackingCache: SourceTrackingCacheService,
   projectComponentSet: ComponentSet,
   element: OrgBrowserTreeItem,
-  c: MetadataListResultItem
+  c: MetadataListResultItem,
+  isPreviewableType = false
 ) =>
   Effect.gen(function* () {
     const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
@@ -297,7 +303,8 @@ const enrichComponentWithSyncState = (
       label: c.fullName,
       filePresent,
       syncState,
-      localPath: filePaths[0]
+      localPath: filePaths[0],
+      previewable: isPreviewableType && !filePresent
     });
   });
 

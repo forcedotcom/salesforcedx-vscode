@@ -15,6 +15,7 @@
   "orgBrowser.command.filterTypes": "Filter Metadata Types",
   "orgBrowser.command.clearFilter": "Clear Metadata Type Filter",
   "orgBrowser.command.openLocalComponent": "Open Local File",
+  "orgBrowser.command.previewOrgComponent": "Preview from Org",
   "orgBrowser.command.createComponent": "New Component",
   "org_browser_walkthrough_open_command": "Open Org Browser Walkthrough",
   "org_browser_walkthrough_title": "Org Browser",

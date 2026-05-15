@@ -154,6 +154,51 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           }
         })
       ),
+      registerCommand(`${TREE_VIEW_ID}.previewOrgComponent`, (node: OrgBrowserTreeItem) =>
+        Effect.gen(function* () {
+          if (!node.componentName) return;
+          const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+          // eslint-disable-next-line import/no-extraneous-dependencies
+          const { ComponentSet: CS } = yield* Effect.promise(() => import('@salesforce/source-deploy-retrieve'));
+          const cs = new CS([{ fullName: node.componentName, type: node.xmlName }]);
+          const nonEmpty = yield* servicesApi.services.ComponentSetService.ensureNonEmptyComponentSet(cs);
+
+          const workspaceInfo = yield* servicesApi.services.WorkspaceService.getWorkspaceInfoOrThrow();
+          const orgRef = yield* SubscriptionRef.get(yield* servicesApi.services.TargetOrgRef());
+          const cacheDir = Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgRef.orgId ?? 'default', 'preview');
+          yield* servicesApi.services.FsService.safeDelete(cacheDir, { recursive: true });
+          const result = yield* servicesApi.services.MetadataRetrieveService.retrieveComponentSetToDirectory(
+            nonEmpty,
+            cacheDir
+          );
+
+          const retrievedFiles = result.components.getComponentFilenamesByNameAndType({
+            fullName: node.componentName,
+            type: node.xmlName
+          });
+          if (retrievedFiles.length === 0) return;
+
+          const filePath = retrievedFiles[0];
+          const fileData = yield* Effect.promise(() => vscode.workspace.fs.readFile(URI.file(filePath)));
+
+          const defaultFileName = filePath.split('/').pop() ?? node.componentName;
+          const fileName =
+            node.xmlName === 'ContentAsset'
+              ? yield* Effect.promise(() => vscode.workspace.fs.readFile(URI.file(`${filePath}-meta.xml`))).pipe(
+                  Effect.map(metaData => extractPathOnClient(Buffer.from(metaData).toString('utf8'))),
+                  Effect.catchAll(() => Effect.succeed(undefined)),
+                  Effect.map(name => name ?? defaultFileName)
+                )
+              : defaultFileName;
+
+          const previewUri = URI.from({
+            scheme: ASSET_PREVIEW_SCHEME,
+            path: `/${node.xmlName}/${node.componentName}/${fileName}`
+          });
+          assetPreviewFs.writeFileInternal(previewUri, fileData);
+          yield* Effect.promise(() => vscode.commands.executeCommand('vscode.open', previewUri));
+        })
+      ),
       registerCommand(`${TREE_VIEW_ID}.createComponent`, (node: OrgBrowserTreeItem) =>
         Effect.promise(async () => {
           const entry = creatableTypes.get(node.xmlName);

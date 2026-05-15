@@ -41,6 +41,8 @@ type OrgBrowserTreeItemInputs = {
   namespace?: string;
   /** Primary local file path for navigation (first file from ComponentSet lookup) */
   localPath?: string;
+  /** Whether the component can be previewed from the org (non-local, simple file type) */
+  previewable?: boolean;
 };
 
 // Types that have folders
@@ -91,7 +93,8 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
     }
 
     const baseContextValue = inputs.syncState ? `${inputs.kind}_${inputs.syncState}` : inputs.kind;
-    this.contextValue = inputs.localPath ? `${baseContextValue}_local` : baseContextValue;
+    const withLocal = inputs.localPath ? `${baseContextValue}_local` : baseContextValue;
+    this.contextValue = inputs.previewable && !inputs.localPath ? `${withLocal}_previewable` : withLocal;
 
     this.id = calculateId(inputs);
   }
