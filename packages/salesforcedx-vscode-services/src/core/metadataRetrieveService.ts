@@ -11,7 +11,8 @@ import {
   type MetadataMember,
   MetadataApiRetrieve,
   ComponentSet,
-  type RegistryAccess
+  type RegistryAccess,
+  ZipTreeContainer
 } from '@salesforce/source-deploy-retrieve';
 
 import * as Cause from 'effect/Cause';
@@ -301,19 +302,30 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       const zipBuf = Buffer.from(result.response.zipFile, 'base64');
       return yield* Effect.tryPromise({
         try: async (): Promise<Map<string, Uint8Array>> => {
-          // eslint-disable-next-line import/no-extraneous-dependencies -- jszip is a transitive dep via SDR
-          const { default: JSZip } = await import('jszip');
-          const zip = await JSZip.loadAsync(zipBuf);
+          const tree = await ZipTreeContainer.create(zipBuf);
+          const resolved = ComponentSet.fromSource({
+            fsPaths: ['unpackaged'],
+            tree,
+            registry: registryAccess
+          });
           const files = new Map<string, Uint8Array>();
-          await Promise.all(
-            Object.entries(zip.files)
-              .filter(([, f]) => !f.dir)
-              .map(async ([name, f]) => files.set(name, await f.async('uint8array')))
-          );
+          // eslint-disable-next-line functional/no-loop-statements
+          for (const sc of resolved.getSourceComponents()) {
+            if (sc.content) {
+              const name = sc.content.replace(/^unpackaged\//, '');
+
+              files.set(name, new Uint8Array(await tree.readFile(sc.content)));
+            }
+            if (sc.xml) {
+              const name = sc.xml.replace(/^unpackaged\//, '');
+
+              files.set(name, new Uint8Array(await tree.readFile(sc.xml)));
+            }
+          }
           return files;
         },
-        catch: (): Map<string, Uint8Array> => new Map()
-      });
+        catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
+      }).pipe(Effect.catchAll(() => Effect.succeed(new Map<string, Uint8Array>())));
     });
 
     return {

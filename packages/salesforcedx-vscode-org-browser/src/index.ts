@@ -167,10 +167,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           const typeInfo = registry.getTypeByName(node.xmlName);
           const suffix = typeInfo?.suffix;
 
-          // Find the main content file in the zip (not -meta.xml, not package.xml)
-          const zipEntries = [...zipFiles.entries()].filter(
-            ([name]) => name.startsWith('unpackaged/') && !name.endsWith('package.xml')
-          );
+          // Find the main content file (not package.xml)
+          const zipEntries = [...zipFiles.entries()].filter(([name]) => !name.endsWith('package.xml'));
           const contentEntry = zipEntries.find(
             ([name]) => suffix && name.endsWith(`.${suffix}`) && !name.endsWith('-meta.xml')
           );
