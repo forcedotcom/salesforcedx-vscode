@@ -271,30 +271,42 @@
             ]
           },
           {
+            "id": "pending-changes",
+            "title": "%org_browser_walkthrough_pending_changes_title%",
+            "description": "%org_browser_walkthrough_pending_changes_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser.png",
+              "altText": "%org_browser_walkthrough_pending_changes_alt%"
+            }
+          },
+          {
+            "id": "filter-and-view-modes",
+            "title": "%org_browser_walkthrough_filter_title%",
+            "description": "%org_browser_walkthrough_filter_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser-browse.png",
+              "altText": "%org_browser_walkthrough_filter_alt%"
+            },
+            "completionEvents": [
+              "onCommand:sf.org-browser.filterTypes"
+            ]
+          },
+          {
+            "id": "sync-actions",
+            "title": "%org_browser_walkthrough_sync_title%",
+            "description": "%org_browser_walkthrough_sync_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser-file-opened.png",
+              "altText": "%org_browser_walkthrough_sync_alt%"
+            }
+          },
+          {
             "id": "custom-object-fields",
             "title": "%org_browser_walkthrough_custom_object_title%",
             "description": "%org_browser_walkthrough_custom_object_description%",
             "media": {
               "image": "images/walkthrough/org-browser-browse.png",
               "altText": "%org_browser_walkthrough_custom_object_alt%"
-            }
-          },
-          {
-            "id": "retrieve-type",
-            "title": "%org_browser_walkthrough_retrieve_type_title%",
-            "description": "%org_browser_walkthrough_retrieve_type_description%",
-            "media": {
-              "image": "images/walkthrough/org-browser.png",
-              "altText": "%org_browser_walkthrough_retrieve_type_alt%"
-            }
-          },
-          {
-            "id": "retrieve-single",
-            "title": "%org_browser_walkthrough_retrieve_single_title%",
-            "description": "%org_browser_walkthrough_retrieve_single_description%",
-            "media": {
-              "image": "images/walkthrough/org-browser-file-opened.png",
-              "altText": "%org_browser_walkthrough_retrieve_single_alt%"
             }
           }
         ]
@@ -303,11 +315,11 @@
     "viewsWelcome": [
       {
         "view": "sfdxOrgBrowser",
-        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type."
+        "contents": "Loading metadata from your org...\n\nThe Org Browser shows your org and local project together with live sync status. Conflicts, remote changes, and local changes are surfaced automatically.\n\nUse view modes to focus on what matters, filter by type or state, and retrieve, deploy, or preview — all without leaving the editor."
       },
       {
         "view": "sfdxOrgBrowserExplorer",
-        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type."
+        "contents": "Loading metadata from your org...\n\nThe Org Browser shows your org and local project together with live sync status. Conflicts, remote changes, and local changes are surfaced automatically.\n\nUse view modes to focus on what matters, filter by type or state, and retrieve, deploy, or preview — all without leaving the editor."
       }
     ],
     "viewsContainers": {
