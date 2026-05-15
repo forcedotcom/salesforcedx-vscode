@@ -14,7 +14,7 @@
   "orgBrowser.command.viewModeOrgOnly": "Org-Only Types (click to show all types)",
   "orgBrowser.command.viewModeAllTypes": "All Types (click to show types with content)",
   "orgBrowser.command.filterTypes": "Filter Metadata Types",
-  "orgBrowser.command.clearFilter": "Clear Metadata Type Filter",
+  "orgBrowser.command.clearFilter": "Edit Metadata Type Filter (clear to remove)",
   "orgBrowser.command.retrieveAllFiltered": "Retrieve All Filtered Types",
   "orgBrowser.command.pullAllRemoteChanges": "Pull All Remote Changes",
   "orgBrowser.command.deployAllLocalChanges": "Deploy All Local Changes",
