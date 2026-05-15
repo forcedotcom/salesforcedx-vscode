@@ -21,8 +21,17 @@ import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
 /** Cached org-side component counts, populated when a type is expanded (listMetadata results) */
 const orgComponentCounts = new Map<string, number>();
 
+export type TypeViewMode = 'localOnly' | 'withContent' | 'allTypes';
+export const VIEW_MODES: readonly TypeViewMode[] = ['localOnly', 'withContent', 'allTypes'] as const;
+
+const VIEW_MODE_CYCLE: Record<TypeViewMode, TypeViewMode> = {
+  withContent: 'localOnly',
+  localOnly: 'allTypes',
+  allTypes: 'withContent'
+};
+
 type TypeFilterState = {
-  showAllTypes: boolean;
+  viewMode: TypeViewMode;
   typeFilter: ReadonlySet<string> | undefined;
   creatableTypes: CreateCommandMap;
 };
@@ -32,7 +41,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserTreeItem | undefined | void> =
     this._onDidChangeTreeData.event;
 
-  private showAllTypes = false;
+  private viewMode: TypeViewMode = 'withContent';
   private typeFilter: ReadonlySet<string> | undefined;
   private creatableTypes: CreateCommandMap = new Map();
 
@@ -49,10 +58,10 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     this._onDidChangeTreeData.fire(node);
   }
 
-  public toggleShowAllTypes(): boolean {
-    this.showAllTypes = !this.showAllTypes;
+  public cycleViewMode(): TypeViewMode {
+    this.viewMode = VIEW_MODE_CYCLE[this.viewMode];
     this._onDidChangeTreeData.fire();
-    return this.showAllTypes;
+    return this.viewMode;
   }
 
   public setTypeFilter(filter: ReadonlySet<string>): void {
@@ -63,6 +72,19 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   public clearTypeFilter(): void {
     this.typeFilter = undefined;
     this._onDidChangeTreeData.fire();
+  }
+
+  public getViewMode(): TypeViewMode {
+    return this.viewMode;
+  }
+
+  public setViewMode(mode: TypeViewMode): void {
+    this.viewMode = mode;
+    this._onDidChangeTreeData.fire();
+  }
+
+  public getTypeFilter(): ReadonlySet<string> | undefined {
+    return this.typeFilter;
   }
 
   public setCreatableTypes(types: CreateCommandMap): void {
@@ -77,7 +99,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   public async getChildren(element?: OrgBrowserTreeItem): Promise<OrgBrowserTreeItem[]> {
     return await getOrgBrowserRuntime().runPromise(
       getChildrenOfTreeItem(element, {
-        showAllTypes: this.showAllTypes,
+        viewMode: this.viewMode,
         typeFilter: this.typeFilter,
         creatableTypes: this.creatableTypes
       })
@@ -125,9 +147,9 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
       return yield* Effect.succeed([]);
     }
     if (!element) {
-      const [baseTypes, allChanges, projectComponentSet] = yield* Effect.all(
+      const [describeTypes, allChanges, projectComponentSet] = yield* Effect.all(
         [
-          filterState.showAllTypes
+          filterState.viewMode === 'allTypes'
             ? metadataDescribeService.describe()
             : metadataDescribeService.describeTypesWithContent(),
           trackingCache.getAllChanges(),
@@ -135,16 +157,23 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
         ],
         { concurrency: 'unbounded' }
       );
-      const types = filterState.typeFilter ? baseTypes.filter(t => filterState.typeFilter!.has(t.xmlName)) : baseTypes;
-      const typeNodes = types
-        .toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1))
-        .map(mdapiDescribeToOrgBrowserNode(filterState.creatableTypes));
 
       const localCountsByType = Array.from(projectComponentSet).reduce((acc, comp) => {
         const typeName = comp.type.name;
         acc.set(typeName, (acc.get(typeName) ?? 0) + 1);
         return acc;
       }, new Map<string, number>());
+
+      const afterViewFilter =
+        filterState.viewMode === 'localOnly'
+          ? describeTypes.filter(t => localCountsByType.has(t.xmlName))
+          : describeTypes;
+      const types = filterState.typeFilter
+        ? afterViewFilter.filter(t => filterState.typeFilter!.has(t.xmlName))
+        : afterViewFilter;
+      const typeNodes = types
+        .toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1))
+        .map(mdapiDescribeToOrgBrowserNode(filterState.creatableTypes));
 
       // Build description combining content counts and change deltas
       typeNodes.forEach(node => {
@@ -212,7 +241,10 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
           return Stream.fromIterable(filtered).pipe(
             Stream.mapEffect(c => enrichComponentWithSyncState(trackingCache, projectComponentSet, element, c)),
             Stream.runCollect,
-            Effect.map(chunk => Array.from(chunk))
+            Effect.map(chunk => {
+              const all = Array.from(chunk);
+              return filterState.viewMode === 'localOnly' ? all.filter(n => n.localPath) : all;
+            })
           );
         })
       );
@@ -231,7 +263,10 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.mapEffect(c => enrichFolderItemWithSyncState(trackingCache, projectComponentSet, element, c)),
             Stream.runCollect,
-            Effect.map(chunk => Array.from(chunk))
+            Effect.map(chunk => {
+              const all = Array.from(chunk);
+              return filterState.viewMode === 'localOnly' ? all.filter(n => n.localPath) : all;
+            })
           )
         )
       );

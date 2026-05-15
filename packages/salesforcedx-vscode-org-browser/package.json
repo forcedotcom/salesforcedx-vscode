@@ -390,16 +390,22 @@
         "icon": "$(add)"
       },
       {
-        "command": "sfdxOrgBrowser.showAllTypes",
-        "title": "%orgBrowser.command.showAllTypes%",
+        "command": "sfdxOrgBrowser.viewModeLocalOnly",
+        "title": "%orgBrowser.command.viewModeLocalOnly%",
+        "category": "Org Browser",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "sfdxOrgBrowser.viewModeWithContent",
+        "title": "%orgBrowser.command.viewModeWithContent%",
         "category": "Org Browser",
         "icon": "$(eye)"
       },
       {
-        "command": "sfdxOrgBrowser.showTypesWithContent",
-        "title": "%orgBrowser.command.showTypesWithContent%",
+        "command": "sfdxOrgBrowser.viewModeAllTypes",
+        "title": "%orgBrowser.command.viewModeAllTypes%",
         "category": "Org Browser",
-        "icon": "$(eye-closed)"
+        "icon": "$(list-flat)"
       },
       {
         "command": "sfdxOrgBrowser.filterTypes",
@@ -427,13 +433,23 @@
           "group": "navigation@1"
         },
         {
-          "command": "sfdxOrgBrowser.showAllTypes",
-          "when": "view =~ /^sfdxOrgBrowser/ && !sf:orgBrowser.showAllTypes",
+          "command": "sfdxOrgBrowser.viewModeWithContent",
+          "when": "view =~ /^sfdxOrgBrowser/ && !sf:orgBrowser.viewMode",
           "group": "navigation@2"
         },
         {
-          "command": "sfdxOrgBrowser.showTypesWithContent",
-          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.showAllTypes",
+          "command": "sfdxOrgBrowser.viewModeWithContent",
+          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.viewMode == withContent",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.viewModeAllTypes",
+          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.viewMode == allTypes",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.viewModeLocalOnly",
+          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.viewMode == localOnly",
           "group": "navigation@2"
         },
         {

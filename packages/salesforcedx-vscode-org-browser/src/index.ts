@@ -18,6 +18,7 @@ import { URI, Utils } from 'vscode-uri';
 import { resolveAvailableCreateCommands } from './commands/createComponent';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
+import { AssetPreviewFs, ASSET_PREVIEW_SCHEME } from './services/assetPreviewFs';
 import {
   AllServicesLayer,
   buildAllServicesLayer,
@@ -25,8 +26,13 @@ import {
   setAllServicesLayer
 } from './services/extensionProvider';
 import { SourceTrackingCacheService } from './services/sourceTrackingCacheService';
-import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
+import { MetadataTypeTreeProvider, VIEW_MODES, type TypeViewMode } from './tree/metadataTypeTreeProvider';
+
+const viewModeSet: ReadonlySet<string> = new Set(VIEW_MODES);
+const isValidViewMode = (v: string): v is TypeViewMode => viewModeSet.has(v);
 import { SINGLE_FILE_ADAPTER, OrgBrowserTreeItem } from './tree/orgBrowserNode';
+
+const extractPathOnClient = (xml: string): string | undefined => /<pathOnClient>([^<]+)<\/pathOnClient>/.exec(xml)?.[1];
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -57,6 +63,26 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const treeProvider = new MetadataTypeTreeProvider();
   const creatableTypes = yield* Effect.promise(resolveAvailableCreateCommands);
   treeProvider.setCreatableTypes(creatableTypes);
+
+  const savedViewMode = context.workspaceState.get<string>('orgBrowser.viewMode');
+  if (savedViewMode && isValidViewMode(savedViewMode)) {
+    treeProvider.setViewMode(savedViewMode);
+    yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', savedViewMode));
+  }
+  const savedFilter = context.workspaceState.get<string[]>('orgBrowser.typeFilter');
+  if (savedFilter && savedFilter.length > 0) {
+    treeProvider.setTypeFilter(new Set(savedFilter));
+    yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', true));
+  }
+
+  const assetPreviewFs = new AssetPreviewFs();
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider(ASSET_PREVIEW_SCHEME, assetPreviewFs, {
+      isCaseSensitive: true,
+      isReadonly: true
+    })
+  );
+
   // Register the tree provider for both the standalone and Explorer views
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
   vscode.window.registerTreeDataProvider(`${TREE_VIEW_ID}Explorer`, treeProvider);
@@ -105,8 +131,26 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           if (adapter && adapter !== SINGLE_FILE_ADAPTER) {
             const folderUri = Utils.dirname(URI.file(node.localPath));
             yield* Effect.promise(() => vscode.commands.executeCommand('revealInExplorer', folderUri));
+          } else if (node.xmlName === 'ContentAsset') {
+            yield* Effect.promise(async () => {
+              const assetUri = URI.file(node.localPath!);
+              const metaUri = URI.file(`${node.localPath!}-meta.xml`);
+              const [assetData, metaData] = await Promise.all([
+                vscode.workspace.fs.readFile(assetUri),
+                vscode.workspace.fs.readFile(metaUri)
+              ]);
+              const originalName = extractPathOnClient(Buffer.from(metaData).toString('utf8'));
+              if (originalName) {
+                const previewUri = URI.from({
+                  scheme: ASSET_PREVIEW_SCHEME,
+                  path: `/${node.componentName ?? 'asset'}/${originalName}`
+                });
+                assetPreviewFs.writeFileInternal(previewUri, assetData);
+                await vscode.commands.executeCommand('vscode.open', previewUri);
+              }
+            });
           } else {
-            yield* Effect.promise(() => vscode.window.showTextDocument(URI.file(node.localPath!)));
+            yield* Effect.promise(() => vscode.commands.executeCommand('vscode.open', URI.file(node.localPath!)));
           }
         })
       ),
@@ -116,16 +160,25 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           if (entry) await vscode.commands.executeCommand(entry.commandId);
         })
       ),
-      registerCommand(`${TREE_VIEW_ID}.showAllTypes`, () =>
+      registerCommand(`${TREE_VIEW_ID}.viewModeLocalOnly`, () =>
         Effect.promise(async () => {
-          treeProvider.toggleShowAllTypes();
-          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showAllTypes', true);
+          const mode = treeProvider.cycleViewMode();
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', mode);
+          await context.workspaceState.update('orgBrowser.viewMode', mode);
         })
       ),
-      registerCommand(`${TREE_VIEW_ID}.showTypesWithContent`, () =>
+      registerCommand(`${TREE_VIEW_ID}.viewModeWithContent`, () =>
         Effect.promise(async () => {
-          treeProvider.toggleShowAllTypes();
-          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showAllTypes', false);
+          const mode = treeProvider.cycleViewMode();
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', mode);
+          await context.workspaceState.update('orgBrowser.viewMode', mode);
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.viewModeAllTypes`, () =>
+        Effect.promise(async () => {
+          const mode = treeProvider.cycleViewMode();
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', mode);
+          await context.workspaceState.update('orgBrowser.viewMode', mode);
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.filterTypes`, () =>
@@ -142,12 +195,14 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           if (types.length === 0) return;
           treeProvider.setTypeFilter(new Set(types));
           await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', true);
+          await context.workspaceState.update('orgBrowser.typeFilter', types);
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.clearFilter`, () =>
         Effect.promise(async () => {
           treeProvider.clearTypeFilter();
           await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.filterActive', false);
+          await context.workspaceState.update('orgBrowser.typeFilter', undefined);
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.deployLocalChange`, (node: OrgBrowserTreeItem) =>
@@ -178,6 +233,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       Stream.changes,
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
+      Stream.tap(() => Effect.sync(() => assetPreviewFs.clear())),
       Stream.tap(() => Effect.promise(invalidateTrackingCache)),
       Stream.runForEach(() => Effect.promise(() => treeProvider.refreshType()))
     )
