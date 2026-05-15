@@ -136,7 +136,8 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   }
 
   public async getChildren(element?: OrgBrowserTreeItem): Promise<OrgBrowserTreeItem[]> {
-    return await getOrgBrowserRuntime().runPromise(
+    const prevOrgCount = element ? orgComponentCounts.get(element.xmlName) : undefined;
+    const children = await getOrgBrowserRuntime().runPromise(
       getChildrenOfTreeItem(element, {
         viewMode: this.viewMode,
         typeFilter: this.typeFilter,
@@ -145,6 +146,11 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
         creatableTypes: this.creatableTypes
       })
     );
+    const newOrgCount = element ? orgComponentCounts.get(element.xmlName) : undefined;
+    if (element && newOrgCount !== undefined && newOrgCount !== prevOrgCount) {
+      this._onDidChangeTreeData.fire();
+    }
+    return children;
   }
 }
 
