@@ -52,7 +52,10 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
 
 /** Deploy queued files using MetadataDeployService */
 
-const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (uris: readonly URI[]) {
+const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
+  root: true,
+  attributes: { telemetryIgnore: true }
+})(function* (uris: readonly URI[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, componentSetService, sourceTrackingService] = yield* Effect.all(
     [api.services.ChannelService, api.services.ComponentSetService, api.services.SourceTrackingService],

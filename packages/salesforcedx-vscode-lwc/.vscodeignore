@@ -3,6 +3,7 @@
 .vscode-test-web/**
 .vscode-web/**
 .wireit/**
+node_modules
 # ignore unused jsforce code
 node_modules/jsforce/test/**
 node_modules/jsforce/build/**
