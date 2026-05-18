@@ -350,10 +350,18 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           }),
         onSome: traceFlag =>
           Effect.gen(function* () {
-            const expirationDate = traceFlag.expirationDate;
+            if (traceFlag.expirationDate < new Date()) {
+              yield* deleteTraceFlag(traceFlag.id);
+              const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
+              const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
+              if (!traceFlagId) {
+                return yield* new TraceFlagCreateError({ message: 'Create returned no ID' });
+              }
+              return { created: true, traceFlagId };
+            }
             const validExpiration =
-              expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
-                ? expirationDate
+              traceFlag.expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
+                ? traceFlag.expirationDate
                 : calculateExpirationDate(new Date(), duration);
             if (existingDebugLevelId && existingDebugLevelId !== traceFlag.debugLevelId) {
               yield* changeTraceFlagDebugLevel(traceFlag.id, existingDebugLevelId);
