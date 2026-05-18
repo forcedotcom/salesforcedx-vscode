@@ -14,5 +14,5 @@
 
 ## Under the Hood
 
-- We made some under the hood changes. ([PR #7299](https://github.com/forcedotcom/salesforcedx-vscode/pull/7299), [PR #7317](https://github.com/forcedotcom/salesforcedx-vscode/pull/7317), [PR #7322](https://github.com/forcedotcom/salesforcedx-vscode/pull/7322))
+- We made some under the hood changes. ([PR #7299](https://github.com/forcedotcom/salesforcedx-vscode/pull/7299), [PR #7322](https://github.com/forcedotcom/salesforcedx-vscode/pull/7322))
 
