@@ -22,7 +22,6 @@ export {
   isMacDesktop,
   isWindowsDesktop,
   validateNoCriticalErrors,
-  removeAllDebugLevels,
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
   closeWorkspaceToEmptyWindow,
@@ -55,8 +54,7 @@ export {
   APEX_TRACE_FLAG_STATUS_BAR,
   NOTIFICATION_LIST_ITEM,
   SETTINGS_SEARCH_INPUT,
-  CONTEXT_MENU,
-  CODELENS_ITEM
+  CONTEXT_MENU
 } from './utils/locators';
 
 export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from './constants';
