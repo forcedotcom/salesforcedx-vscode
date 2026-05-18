@@ -80,6 +80,7 @@ export class ApexTestController {
   private classToParentItem: Map<string, vscode.TestItem> = new Map();
   private hasRestoredResults = false;
   private isRestoringResults = false;
+  private discoveryInProgress: Promise<void> | undefined;
   private suiteParentItem: vscode.TestItem | undefined;
   private lastProcessedResultFile: URI | null = null;
   private connection: Connection | undefined;
@@ -124,6 +125,11 @@ export class ApexTestController {
   }
 
   public async refresh(): Promise<void> {
+    if (this.discoveryInProgress) {
+      await this.discoveryInProgress;
+      return;
+    }
+    this.invalidateConnection();
     this.clearTestItems();
     this.hasRestoredResults = false;
     await this.discoverTests();
@@ -188,6 +194,19 @@ export class ApexTestController {
   }
 
   public async discoverTests(): Promise<void> {
+    if (this.discoveryInProgress) {
+      await this.discoveryInProgress;
+      return;
+    }
+    this.discoveryInProgress = this.doDiscoverTests();
+    try {
+      await this.discoveryInProgress;
+    } finally {
+      this.discoveryInProgress = undefined;
+    }
+  }
+
+  private async doDiscoverTests(): Promise<void> {
     try {
       // Initialize connection and testService
       await this.ensureInitialized();
@@ -831,10 +850,11 @@ export class ApexTestController {
     this.classToParentItem.clear();
     this.suiteParentItem = undefined;
     this.suiteToClasses.clear();
-    // Clear cached connection and testService so they're re-fetched for the new org
+  }
+
+  private invalidateConnection(): void {
     this.connection = undefined;
     this.testService = undefined;
-    // Clear org class body cache since we're switching orgs
     getOrgApexClassProvider().clearAllCache();
   }
 
