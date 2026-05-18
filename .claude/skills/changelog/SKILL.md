@@ -51,8 +51,8 @@ After: `- We added a **Max Rows** input to SOQL Builder UI so you can limit the 
 
 Use PR commits, title, body, and labels to decide. When uncertain, check the diff: `gh pr diff <number> --name-only` to see which files changed.
 
-Under-the-cover entries get a single consolidated line:
-`- We made some changes under the hood. ([PR #NNNN](...))` or group multiple: `- We made some changes under the hood. ([PR #NNNN](...), [PR #MMMM](...))`.
+Under-the-cover entries go under a dedicated `## Under the Hood` section (no package sub-headers needed). Consolidate all under-the-cover PRs into one or a few lines:
+`- We made some under the hood changes. ([PR #NNNN](...), [PR #MMMM](...))`.
 
 ### 3. Deduplicate multi-package entries
 
@@ -71,6 +71,7 @@ The automation lists the same PR under every package it touched. Consolidate to 
 - `## Added` — new features, new commands, new UI
 - `## Fixed` — bug fixes
 - `## Changed` — behavior changes to existing features (add section if needed)
+- `## Under the Hood` — internal changes not visible to users (CI, telemetry, refactoring, dep bumps). No package sub-headers needed.
 - Remove empty package sections (header with no entries)
 
 ## Example transformation
@@ -98,9 +99,9 @@ The automation lists the same PR under every package it touched. Consolidate to 
 
 - When creating an Apex class or LWC component, the output directory picker now lists only package directories that contain the relevant folder. ([PR #7225](...))
 
-#### salesforcedx-vscode-services
+## Under the Hood
 
-- Under the cover changes ([PR #7154](...))
+- We made some under the hood changes. ([PR #7154](...))
 ```
 
 ## Commit and push
