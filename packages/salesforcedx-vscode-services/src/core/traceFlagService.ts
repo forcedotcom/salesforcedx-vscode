@@ -169,7 +169,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       const conn = yield* connectionService.getConnection();
       const query = `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName
         FROM TraceFlag
-        WHERE LogType='${logType}' AND TracedEntityId='${userId}'`;
+        WHERE LogType='${logType}' AND TracedEntityId='${userId}' AND DebugLevel.DeveloperName='${REPLAY_DEBUGGER_LEVELS}'`;
       const result = yield* Effect.tryPromise({
         try: () => conn.tooling.query<ToolingTraceFlagRecord>(query),
         catch: error => {
@@ -355,10 +355,10 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
               expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
                 ? expirationDate
                 : calculateExpirationDate(new Date(), duration);
-            if (existingDebugLevelId && existingDebugLevelId !== traceFlag.debugLevelId) {
-              yield* changeTraceFlagDebugLevel(traceFlag.id, existingDebugLevelId);
-            }
-            yield* updateTraceFlag(traceFlag.id, { expirationDate: validExpiration });
+            yield* updateTraceFlag(traceFlag.id, {
+              debugLevelId: traceFlag.debugLevelId,
+              expirationDate: validExpiration
+            });
             return { created: false, traceFlagId: traceFlag.id };
           })
       });

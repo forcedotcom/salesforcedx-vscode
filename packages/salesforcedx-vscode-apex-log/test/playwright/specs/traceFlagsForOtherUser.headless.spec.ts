@@ -8,7 +8,6 @@
 import { expect, type Page } from '@playwright/test';
 import {
   closeSettingsTab,
-  CODELENS_ITEM,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -18,7 +17,6 @@ import {
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
-  removeAllDebugLevels,
   validateNoCriticalErrors,
   verifyCommandExists,
   waitForQuickInputFirstOption
@@ -62,10 +60,6 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
     await ensureSecondarySideBarHidden(page);
   });
 
-  await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
-    await removeAllDebugLevels(page);
-  });
-
   await test.step('open trace flags', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsOpen'], 30_000);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsOpen']);
@@ -94,6 +88,21 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
       (el as HTMLElement).click();
     });
     await saveScreenshot(page, 'trace-other-user.user-selected.png');
+
+    const debugLevelPicker = page.locator(QUICK_INPUT_WIDGET);
+    await debugLevelPicker.waitFor({ state: 'visible', timeout: 10_000 });
+    await waitForQuickInputFirstOption(page);
+
+    const debugLevelRow = page
+      .locator(QUICK_INPUT_LIST_ROW)
+      .filter({ hasText: /SFDC_DevConsole|Developer Console|Apex=/i })
+      .first();
+    await expect(debugLevelRow).toBeVisible({ timeout: 15_000 });
+    await debugLevelRow.evaluate(el => {
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
+      (el as HTMLElement).click();
+    });
+    await saveScreenshot(page, 'trace-other-user.debug-level-selected.png');
   });
 
   await test.step('verify trace flag appears in virtual doc under USER_DEBUG for Integration User', async () => {
@@ -107,7 +116,7 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await findInEditor(page, 'Integration User');
-    const removeLens = page.locator(CODELENS_ITEM).filter({ hasText: /^Remove$/ });
+    const removeLens = page.locator('.codelens-decoration a').filter({ hasText: /^Remove$/ });
     await expect(removeLens.first()).toBeVisible({ timeout: 15_000 });
     await removeLens.first().click();
     await openTraceFlagsAndExpectContent(page, '"USER_DEBUG"');
