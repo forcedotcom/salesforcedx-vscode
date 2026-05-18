@@ -7,6 +7,7 @@
 
 /* Node fs/path: desktop fixture + headless server bootstrap only — not used from browser-driven web spec steps. */
 
+import { execSync } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
@@ -53,4 +54,45 @@ export const seedSnippetsE2eEmptyBundle = async (workspaceDir: string): Promise<
     fs.writeFile(path.join(bundleDir, 'snippetsE2E.html'), '', 'utf8'),
     fs.writeFile(path.join(bundleDir, 'snippetsE2E.js'), '', 'utf8')
   ]);
+};
+
+const JEST_PACKAGE_JSON = JSON.stringify(
+  {
+    name: 'salesforce-app',
+    private: true,
+    version: '1.0.0',
+    scripts: {
+      test: 'npm run test:unit',
+      'test:unit': 'sfdx-lwc-jest',
+      'test:unit:watch': 'sfdx-lwc-jest --watch'
+    },
+    devDependencies: {
+      '@salesforce/sfdx-lwc-jest': '^7.0.2'
+    }
+  },
+  null,
+  2
+);
+
+const JEST_CONFIG_JS = `const { jestConfig } = require('@salesforce/sfdx-lwc-jest/config');
+module.exports = { ...jestConfig, modulePathIgnorePatterns: ['<rootDir>/.localdevserver'] };
+`;
+
+/**
+ * Seeds `package.json`, `jest.config.js`, and runs `npm install` (without scripts) so the LWC Jest
+ * test runner is available in the workspace. Used by run/debug LWC test desktop specs.
+ *
+ * This installs `@salesforce/sfdx-lwc-jest` directly from the registry and may take 30–90 s on a
+ * clean machine — call it at fixture setup time, not inside a test step.
+ */
+export const seedLwcJestWorkspace = async (workspaceDir: string): Promise<void> => {
+  await Promise.all([
+    fs.writeFile(path.join(workspaceDir, 'package.json'), JEST_PACKAGE_JSON, 'utf8'),
+    fs.writeFile(path.join(workspaceDir, 'jest.config.js'), JEST_CONFIG_JS, 'utf8')
+  ]);
+  execSync('npm install --ignore-scripts', {
+    cwd: workspaceDir,
+    stdio: 'pipe',
+    timeout: 6 * 60 * 1000
+  });
 };

@@ -17,13 +17,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const nodeBuild = await build({
   ...nodeConfig,
   loader: { '.node': 'file' },
-  external: [
-    ...nodeConfig.external,
-    'applicationinsights',
-    '@babel/preset-typescript/package.json',
-    'jest-editor-support',
-    '@babel/core'
-  ],
+  external: [...nodeConfig.external, '@babel/preset-typescript/package.json', 'jest-editor-support', '@babel/core'],
   entryPoints: ['./src/index.ts'],
   outdir: 'dist',
   metafile: true
@@ -48,7 +42,6 @@ await build({
   loader: { '.node': 'file', '.json': 'json' },
   external: [
     'vscode',
-    'applicationinsights',
     '@salesforce/lightning-lsp-common',
     '@babel/preset-typescript/package.json',
     'jest-editor-support',
@@ -73,7 +66,6 @@ await build({
   loader: { '.json': 'json' },
   external: [
     'vscode',
-    'applicationinsights',
     '@salesforce/lightning-lsp-common',
     '@babel/preset-typescript/package.json',
     'jest-editor-support'

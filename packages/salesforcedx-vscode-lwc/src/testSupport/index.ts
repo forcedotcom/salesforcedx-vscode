@@ -8,7 +8,7 @@ import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
 import { ExtensionContext } from 'vscode';
 import { registerLwcTestCodeLensProvider } from './codeLens/lwcTestCodeLensProvider';
 import { registerCommands } from './commands';
-import { registerLwcTestExplorerTreeView } from './testExplorer/testOutlineProvider';
+import { registerLwcTestController } from './testExplorer/lwcTestController';
 import { lwcTestIndexer } from './testIndexer';
 import { taskService } from './testRunner/taskService';
 import { testResultsWatcher } from './testRunner/testResultsWatcher';
@@ -26,7 +26,7 @@ export const activateLwcTestSupport = (extensionContext: ExtensionContext, works
   workspaceService.register(extensionContext, workspaceType);
   registerCommands(extensionContext);
   registerLwcTestCodeLensProvider(extensionContext);
-  registerLwcTestExplorerTreeView(extensionContext);
+  registerLwcTestController(extensionContext);
   startWatchingEditorFocusChange(extensionContext);
   taskService.registerTaskService(extensionContext);
   testResultsWatcher.register(extensionContext);
