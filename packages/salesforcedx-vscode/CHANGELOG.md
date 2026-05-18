@@ -1,17 +1,18 @@
-# 66.11.0 - May 13, 2026
+# 66.12.1 - May 20, 2026
 
 ## Added
 
-#### salesforcedx-vscode-services
+#### salesforcedx-vscode-metadata
 
-- We made some changes under the hood. ([PR #7286](https://github.com/forcedotcom/salesforcedx-vscode/pull/7286))
-
-#### salesforcedx-vscode-soql
-
-- We added a setting to allow users to set the maximum number of rows to display when running a SOQL query in the builder view. ([PR #7261](https://github.com/forcedotcom/salesforcedx-vscode/pull/7261), [Discussion #5373](https://github.com/forcedotcom/salesforcedx-vscode/discussions/5373))
+- You can now disable automatic source tracking conflict detection via the **Source Tracking: Disable Conflict Detection** setting for improved startup performance. ([PR #7323](https://github.com/forcedotcom/salesforcedx-vscode/pull/7323))
 
 ## Fixed
 
-#### salesforcedx-vscode-lwc
+#### salesforcedx-vscode-apex
 
-- We fixed an issue where the **SFDX: Create Lightning Web Component** command was appearing twice in the command palette. ([PR #7302](https://github.com/forcedotcom/salesforcedx-vscode/pull/7302))
+- We fixed an unhandled "Channel has been closed" exception that could occur during Apex Language Server restart. ([PR #7314](https://github.com/forcedotcom/salesforcedx-vscode/pull/7314))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #7299](https://github.com/forcedotcom/salesforcedx-vscode/pull/7299), [PR #7322](https://github.com/forcedotcom/salesforcedx-vscode/pull/7322))
+
