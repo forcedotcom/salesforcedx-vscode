@@ -1,0 +1,16 @@
+name: npm-install-with-retries
+description: "wraps npm ci with retries/timeout to handle network failures"
+inputs:
+  ignore-scripts:
+    default: 'false'
+    description: "Skip pre/post install scripts"
+runs:
+  using: composite
+  steps:
+    - name: Set npm fetch timeout
+      shell: bash
+      run: npm config set fetch-timeout 600000
+    - name: npm ci
+      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      with:
+        command: npm ci ${{ inputs.ignore-scripts == 'true' && '--ignore-scripts' || '' }} 

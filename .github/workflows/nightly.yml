@@ -1,0 +1,94 @@
+name: Nightly Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to release from'
+        required: false
+        default: 'main'
+        type: string
+      extensions:
+        description: 'VS Code extensions to release'
+        required: false
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - all
+          - changed
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+  schedule:
+    # Nightly pre-release build at 4 AM UTC for main branch
+    - cron: '0 4 * * *'
+
+concurrency:
+  group: nightly-${{ github.workflow }}-${{ github.event.inputs.branch || 'main' }}
+  cancel-in-progress: false
+
+# Add explicit permissions for security
+permissions:
+  contents: write # Needed for version bumps and releases
+  packages: write # Needed for publishing to registries
+  actions: read
+
+jobs:
+  get-extensions:
+    runs-on: ubuntu-latest
+    outputs:
+      extensions: ${{ steps.extensions.outputs.extensions }}
+      target-branch: ${{ steps.determine-branch.outputs.branch }}
+    steps:
+      - name: Determine target branch
+        id: determine-branch
+        env:
+          TARGET_BRANCH_INPUT: ${{ github.event.inputs.branch || 'main' }}
+        run: |
+          TARGET_BRANCH="$TARGET_BRANCH_INPUT"
+          echo "branch=$TARGET_BRANCH" >> $GITHUB_OUTPUT
+          echo "Building from branch: $TARGET_BRANCH"
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          submodules: false
+          ref: ${{ steps.determine-branch.outputs.branch }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        uses: ./.github/actions/npm-install-with-retries
+
+      - name: Get extensions
+        id: extensions
+        run: |
+          npx tsx .github/scripts/index.ts ext-package-selector
+
+  release-extensions:
+    needs: get-extensions
+    if: >-
+      (github.event.inputs.extensions != 'none' && github.event.inputs.extensions != '') ||
+      (github.event_name == 'schedule') ||
+      (needs.get-extensions.outputs.extensions != '')
+    uses: ./.github/workflows/nightly-extensions.yml
+    with:
+      branch: ${{ needs.get-extensions.outputs.target-branch }}
+      registries: 'all'
+      dry-run: ${{ github.event.inputs.dry-run || 'false' }}
+      pre-release: 'true'
+      version-bump: 'auto'
+      extensions: ${{ github.event.inputs.extensions || (github.event_name == 'schedule' && 'changed') || 'none' }}
+      available-extensions: ${{ needs.get-extensions.outputs.extensions }}
+    secrets: inherit

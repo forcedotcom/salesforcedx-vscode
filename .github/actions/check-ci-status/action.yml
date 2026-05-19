@@ -1,0 +1,100 @@
+name: Check CI Status
+description: >
+  Verifies that CI checks passed for a given commit SHA before promotion.
+  Fails if any required check did not succeed.
+
+inputs:
+  commit-sha:
+    description: 'Commit SHA to check CI status for'
+    required: true
+  token:
+    description: 'GitHub token with repo read access'
+    required: true
+  required-checks:
+    description: >
+      Comma-separated list of check names that must have succeeded.
+      If empty, all non-skipped check-runs must have conclusion "success".
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Verify CI checks passed
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        COMMIT_SHA: ${{ inputs.commit-sha }}
+        REQUIRED_CHECKS: ${{ inputs.required-checks }}
+        REPO: ${{ github.repository }}
+      run: |
+        echo "Checking CI status for commit $COMMIT_SHA in $REPO..."
+
+        # Fetch all check-runs for the commit (paginate up to 100)
+        CHECK_RUNS=$(gh api \
+          "repos/$REPO/commits/$COMMIT_SHA/check-runs" \
+          --paginate \
+          --jq '.check_runs[] | {name: .name, status: .status, conclusion: .conclusion}' \
+          2>&1)
+
+        if [ -z "$CHECK_RUNS" ]; then
+          echo "No check-runs found for commit $COMMIT_SHA"
+          echo "Cannot verify CI status — failing to prevent untested promotion"
+          exit 1
+        fi
+
+        echo "Check-runs found:"
+        echo "$CHECK_RUNS" | jq -r '"  \(.name): status=\(.status) conclusion=\(.conclusion)"'
+
+        FAILED=0
+
+        if [ -n "$REQUIRED_CHECKS" ]; then
+          # Only validate the specified checks
+          IFS=',' read -ra CHECKS <<< "$REQUIRED_CHECKS"
+          for CHECK in "${CHECKS[@]}"; do
+            CHECK=$(echo "$CHECK" | xargs)  # trim whitespace
+            CONCLUSION=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" \
+              'select(.name == $name) | .conclusion' | head -1)
+            if [ "$CONCLUSION" != "success" ]; then
+              echo "FAIL: required check '$CHECK' has conclusion '$CONCLUSION' (expected 'success')"
+              FAILED=1
+            else
+              echo "PASS: required check '$CHECK' succeeded"
+            fi
+          done
+        else
+          # Validate all non-skipped check-runs
+          while IFS= read -r RUN; do
+            NAME=$(echo "$RUN" | jq -r '.name')
+            STATUS=$(echo "$RUN" | jq -r '.status')
+            CONCLUSION=$(echo "$RUN" | jq -r '.conclusion')
+
+            # Skip queued/in-progress (treat as not-yet-run, which is a failure)
+            if [ "$STATUS" != "completed" ]; then
+              echo "FAIL: check '$NAME' is not completed (status=$STATUS)"
+              FAILED=1
+              continue
+            fi
+
+            # Allow skipped checks (neutral conclusion)
+            if [ "$CONCLUSION" = "skipped" ] || [ "$CONCLUSION" = "neutral" ]; then
+              echo "SKIP: check '$NAME' was skipped — ignoring"
+              continue
+            fi
+
+            if [ "$CONCLUSION" != "success" ]; then
+              echo "FAIL: check '$NAME' has conclusion '$CONCLUSION'"
+              FAILED=1
+            fi
+          done < <(echo "$CHECK_RUNS" | jq -c '.')
+        fi
+
+        if [ "$FAILED" -eq 1 ]; then
+          echo ""
+          echo "CI quality gate FAILED for commit $COMMIT_SHA"
+          echo "Promotion blocked. Fix failing checks before retrying."
+          exit 1
+        fi
+
+        echo ""
+        echo "CI quality gate PASSED for commit $COMMIT_SHA"

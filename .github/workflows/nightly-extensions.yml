@@ -1,0 +1,754 @@
+name: Nightly VS Code Extension Release
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: 'Branch to release from'
+        required: false
+        default: 'main'
+        type: string
+      extensions:
+        description: 'Extensions to release'
+        required: false
+        default: 'apex-lsp-vscode-extension'
+        type: string
+      registries:
+        description: 'Registries to publish to (all, vsce, ovsx)'
+        required: false
+        default: 'all'
+        type: string
+      available-extensions:
+        description: 'Available VS Code extensions'
+        required: false
+        type: string
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing)'
+        required: false
+        default: 'false'
+        type: string
+      pre-release:
+        description: 'Publish as pre-release version'
+        required: false
+        default: 'true'
+        type: string
+
+      version-bump:
+        description: 'Version bump type (auto, patch, minor, major)'
+        required: false
+        default: 'auto'
+        type: string
+  workflow_dispatch:
+    inputs:
+      extensions:
+        description: 'Extensions to release'
+        required: false
+        default: 'apex-lsp-vscode-extension'
+        type: choice
+        options:
+          - all
+          - apex-lsp-vscode-extension
+      registries:
+        description: 'Registries to publish to'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - vsce
+          - ovsx
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing)'
+        required: false
+        default: 'false'
+        type: string
+      pre-release:
+        description: 'Publish as pre-release version'
+        required: false
+        default: 'true'
+        type: string
+
+# Add explicit permissions for security
+permissions:
+  contents: write # Needed for version bumps and releases
+  packages: write # Needed for publishing to registries
+  actions: read
+
+jobs:
+  determine-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      selected-extensions: ${{ steps.changes.outputs.selected-extensions }}
+      version-bumps: ${{ steps.changes.outputs.version-bumps }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        uses: ./.github/actions/npm-install-with-retries
+
+      - name: Determine changes and version bumps
+        id: changes
+        env:
+          IS_NIGHTLY: 'true'
+          VERSION_BUMP: 'auto'
+          PRE_RELEASE: 'true'
+          IS_PROMOTION: 'false'
+          SELECTED_EXTENSIONS: ${{ inputs.extensions }}
+        run: |
+          npx tsx .github/scripts/index.ts ext-change-detector
+
+  display-release-plan:
+    needs: [determine-changes]
+    runs-on: ubuntu-latest
+    if: needs.determine-changes.outputs.selected-extensions != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        uses: ./.github/actions/npm-install-with-retries
+
+      - name: Display Extension Release Plan
+        env:
+          BRANCH: ${{ inputs.branch || github.ref_name }}
+          BUILD_TYPE: ${{ github.event_name }}
+          IS_NIGHTLY: 'true'
+          VERSION_BUMP: ${{ needs.determine-changes.outputs.version-bumps }}
+          REGISTRIES: ${{ inputs.registries }}
+          PRE_RELEASE: 'true'
+          SELECTED_EXTENSIONS: ${{ needs.determine-changes.outputs.selected-extensions }}
+        run: |
+          npx tsx .github/scripts/index.ts ext-release-plan
+
+  bump-versions:
+    needs: [determine-changes]
+    runs-on: ubuntu-latest
+    if: needs.determine-changes.outputs.selected-extensions != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        uses: ./.github/actions/npm-install-with-retries
+
+      - name: Bump versions and tag for selected extensions
+        env:
+          VERSION_BUMP: ${{ needs.determine-changes.outputs.version-bumps }}
+          SELECTED_EXTENSIONS: ${{ needs.determine-changes.outputs.selected-extensions }}
+          PRE_RELEASE: ${{ inputs.pre-release || github.event.inputs.pre-release || 'false' }}
+          IS_NIGHTLY: 'true'
+          IS_PROMOTION: 'false'
+        run: |
+          npx tsx .github/scripts/index.ts ext-version-bumper
+
+      - name: Validate GitHub authentication
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+        run: |
+          # Validate that required tokens are present
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "❌ Error: GITHUB_TOKEN is not set"
+            exit 1
+          fi
+
+          # Test GitHub CLI authentication
+          if ! gh auth status >/dev/null 2>&1; then
+            echo "❌ Error: GitHub CLI authentication failed"
+            exit 1
+          fi
+
+          echo "✅ GitHub authentication validated"
+
+      # If the branch push succeeds but tag push fails, do NOT re-run this job.
+      # Manually push the missing tags: git push origin --tags
+      - name: Commit version bumps with tags
+        env:
+          # Ensure GitHub CLI has proper authentication
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          DRY_RUN: ${{ inputs.dry-run || github.event.inputs.dry-run || 'false' }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "🔄 DRY RUN: Would commit and push version bumps..."
+            echo "📋 DRY RUN: Changes that would be committed:"
+            git status --porcelain
+            echo "📋 DRY RUN: Tags that would be pushed:"
+            git tag --list | tail -10 || echo "No tags found"
+            echo "✅ DRY RUN: Would commit version bumps and push tags"
+          else
+            echo "🔄 Committing version bumps..."
+
+            # Configure git for the action
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+
+            # Configure git to use the PAT for authentication
+            git remote set-url origin https://x-access-token:${{ secrets.IDEE_GH_TOKEN }}@github.com/${{ github.repository }}.git
+
+            # Add all changes
+            # Note: git add . respects .gitignore, so ignored files won't be added
+            # This is intentional - Wireit output files in test fixtures should remain ignored
+            git add .
+
+            if git diff --staged --quiet; then
+              # Nothing to stage — check whether the bump was already committed to remote
+              # (idempotent rerun: version bumper ran, committed, pushed, then a later step failed)
+              git fetch origin ${{ inputs.branch || github.ref_name }}
+              REMOTE_MSG=$(git log -1 --format='%s' origin/${{ inputs.branch || github.ref_name }})
+              if echo "$REMOTE_MSG" | grep -q "chore: bump versions for release"; then
+                echo "⏭️ Version bump already committed to remote — skipping commit (idempotent rerun)"
+              else
+                echo "❌ Error: No staged changes and no prior bump commit found on remote. Version bumper may have failed silently."
+                exit 1
+              fi
+            else
+              # Create commit with version bump message
+              git commit -m "chore: bump versions for release [skip ci]"
+
+              # Push version bumps — retry once with rebase on non-fast-forward
+              echo "Pushing version bumps to ${{ inputs.branch || github.ref_name }}..."
+              if ! git push origin HEAD:${{ inputs.branch || github.ref_name }}; then
+                echo "⚠️ Push failed, attempting fetch+rebase and retry..."
+                git fetch origin
+                git rebase origin/${{ inputs.branch || github.ref_name }}
+                if ! git push origin HEAD:${{ inputs.branch || github.ref_name }}; then
+                  echo "❌ Error: Push failed after rebase. Check branch protection rules."
+                  exit 1
+                fi
+              fi
+            fi
+
+            # Push all tags — tolerate already-existing tags (do not fail the job)
+            echo "Pushing tags..."
+            if ! git push origin --tags; then
+              echo "⚠️ Warning: Some tags may already exist on remote. Continuing."
+            fi
+
+            echo "✅ Version bumps and tags pushed successfully"
+          fi
+
+  calculate-artifact-name:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.calc.outputs.artifact-name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Calculate artifact name
+        id: calc
+        uses: ./.github/actions/calculate-artifact-name
+        with:
+          artifact-name: vsix-packages
+          dry-run: ${{ inputs.dry-run || github.event.inputs.dry-run || 'false' }}
+
+  package:
+    needs: [bump-versions, calculate-artifact-name, determine-changes]
+    uses: ./.github/workflows/package.yml
+    with:
+      branch: ${{ inputs.branch || github.ref_name }}
+      artifact-name: ${{ needs.calculate-artifact-name.outputs.artifact-name }}
+      dry-run: ${{ inputs.dry-run || github.event.inputs.dry-run || 'false' }}
+      pre-release: ${{ inputs.pre-release || github.event.inputs.pre-release || 'false' }}
+
+  determine-publish-matrix:
+    needs: [determine-changes, calculate-artifact-name]
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        uses: ./.github/actions/npm-install-with-retries
+
+      - name: Determine publish matrix
+        id: matrix
+        env:
+          REGISTRIES: ${{ inputs.registries }}
+          SELECTED_EXTENSIONS: ${{ needs.determine-changes.outputs.selected-extensions }}
+          IS_NIGHTLY: 'true'
+        run: |
+          # Skip marketplace publishing for nightly builds
+          if [ "$IS_NIGHTLY" = "true" ]; then
+            echo "Nightly build detected - skipping marketplace publishing"
+            echo 'matrix=[]' >> $GITHUB_OUTPUT
+          else
+            npx tsx .github/scripts/index.ts ext-publish-matrix
+          fi
+
+  publish:
+    needs:
+      [
+        bump-versions,
+        package,
+        calculate-artifact-name,
+        determine-publish-matrix,
+      ]
+    runs-on: ubuntu-latest
+    if: needs.determine-publish-matrix.outputs.matrix != '[]'
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.determine-publish-matrix.outputs.matrix) }}
+    steps:
+      - name: Audit release attempt
+        shell: bash
+        run: |
+          # Create audit log entry for release attempt
+          AUDIT_LOG="/tmp/release_audit.log"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          ACTOR="${{ github.actor }}"
+          REPO="${{ github.repository }}"
+          RUN_ID="${{ github.run_id }}"
+          WORKFLOW="${{ github.workflow }}"
+          BRANCH="${{ inputs.branch || github.ref_name }}"
+
+          # Log audit information
+          echo "[$TIMESTAMP] RELEASE_ATTEMPT: actor=$ACTOR, repo=$REPO, run_id=$RUN_ID, workflow=$WORKFLOW, branch=$BRANCH, registry=${{ matrix.registry }}, marketplace=${{ matrix.marketplace }}, dry_run=${{ inputs.dry-run || github.event.inputs.dry-run || 'false' }}" >> "$AUDIT_LOG"
+
+          # Also log to GitHub Actions output for visibility
+          echo "🔍 AUDIT: Release attempt logged - $TIMESTAMP"
+          echo "  Actor: $ACTOR"
+          echo "  Repository: $REPO"
+          echo "  Run ID: $RUN_ID"
+          echo "  Workflow: $WORKFLOW"
+          echo "  Branch: $BRANCH"
+          echo "  Registry: ${{ matrix.registry }}"
+          echo "  Marketplace: ${{ matrix.marketplace }}"
+          echo "  Dry-run: ${{ inputs.dry-run || github.event.inputs.dry-run || 'false' }}"
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Download VSIX artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.calculate-artifact-name.outputs.artifact-name }}
+          path: ./vsix-artifacts
+
+      - name: List downloaded artifacts
+        run: |
+          echo "=== DEBUG: Downloaded Artifacts ==="
+          echo "Artifact name: ${{ needs.calculate-artifact-name.outputs.artifact-name }}"
+          echo "Download path: ./vsix-artifacts"
+          echo ""
+
+          if [ -d "./vsix-artifacts" ]; then
+            echo "Directory exists. Contents:"
+            ls -la ./vsix-artifacts/
+            echo ""
+            
+            echo "VSIX files found:"
+            find ./vsix-artifacts -name "*.vsix" -exec ls -la {} \;
+            echo ""
+            
+            echo "Total VSIX files: $(find ./vsix-artifacts -name "*.vsix" | wc -l)"
+          else
+            echo "❌ Directory ./vsix-artifacts does not exist!"
+          fi
+          echo "=== END DEBUG ==="
+
+      - name: Find VSIX file for publishing
+        id: find_vsix
+        run: |
+          ARTIFACTS_DIR="./vsix-artifacts"
+          VSIX_PATTERN="${{ matrix.vsix_pattern }}"
+          # Apex: universal VSIX only (exclude legacy *-web-* platform VSIX if present)
+          if [[ "$VSIX_PATTERN" == *apex-language-server-extension* ]]; then
+            VSIX_FILE=$(find "$ARTIFACTS_DIR" -type f -name 'apex-language-server-extension-*.vsix' ! -name '*-web-*' | head -1)
+          else
+            VSIX_FILE=$(find "$ARTIFACTS_DIR" -name "$VSIX_PATTERN" | head -1)
+          fi
+
+          if [ -z "$VSIX_FILE" ]; then
+            echo "❌ No VSIX file found matching pattern: $VSIX_PATTERN"
+            echo "Searching in: $ARTIFACTS_DIR"
+            echo "Available files:"
+            find "$ARTIFACTS_DIR" -name "*.vsix" -exec ls -la {} \;
+            exit 1
+          fi
+
+          echo "vsix_file=$VSIX_FILE" >> $GITHUB_OUTPUT
+          echo "Found VSIX file: $VSIX_FILE"
+
+      - name: Publish to ${{ matrix.marketplace }}
+        uses: ./.github/actions/publish-vsix
+        env:
+          # Pass tokens as environment variables for better security
+          VSCE_PERSONAL_ACCESS_TOKEN: ${{ matrix.registry == 'vsce' && secrets.VSCE_PERSONAL_ACCESS_TOKEN || '' }}
+          OVSX_PAT: ${{ matrix.registry == 'ovsx' && secrets.IDEE_OVSX_PAT || '' }}
+        with:
+          vsix-path: ${{ steps.find_vsix.outputs.vsix_file }}
+          publish-tool: ${{ matrix.registry }}
+          pre-release: ${{ inputs.pre-release || github.event.inputs.pre-release || 'false' }}
+          dry-run: ${{ inputs.dry-run || github.event.inputs.dry-run || 'false' }}
+
+      - name: Audit release result
+        shell: bash
+        if: inputs.dry-run != 'true' && github.event.inputs.dry-run != 'true'
+        run: |
+          # Log the result of the release attempt
+          AUDIT_LOG="/tmp/release_audit.log"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          ACTOR="${{ github.actor }}"
+          REPO="${{ github.repository }}"
+          RUN_ID="${{ github.run_id }}"
+          BRANCH="${{ inputs.branch || github.ref_name }}"
+
+          if [ $? -eq 0 ]; then
+            echo "[$TIMESTAMP] RELEASE_SUCCESS: actor=$ACTOR, repo=$REPO, run_id=$RUN_ID, branch=$BRANCH, registry=${{ matrix.registry }}, marketplace=${{ matrix.marketplace }}" >> "$AUDIT_LOG"
+            echo "✅ AUDIT: Release successful - $TIMESTAMP"
+          else
+            echo "[$TIMESTAMP] RELEASE_FAILURE: actor=$ACTOR, repo=$REPO, run_id=$RUN_ID, branch=$BRANCH, registry=${{ matrix.registry }}, marketplace=${{ matrix.marketplace }}" >> "$AUDIT_LOG"
+            echo "❌ AUDIT: Release failed - $TIMESTAMP"
+          fi
+
+  create-github-releases:
+    name: Create GitHub Releases
+    needs: [package, determine-changes, calculate-artifact-name]
+    runs-on: ubuntu-latest
+    if: needs.package.result == 'success' && needs.determine-changes.outputs.selected-extensions != '' && github.event_name != 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        uses: ./.github/actions/npm-install-with-retries
+
+      - name: Download VSIX artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.calculate-artifact-name.outputs.artifact-name }}
+          path: ./vsix-artifacts
+
+      - name: Create GitHub releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SELECTED_EXTENSIONS: ${{ needs.determine-changes.outputs.selected-extensions }}
+          IS_NIGHTLY: 'true'
+          PRE_RELEASE: 'true'
+          VERSION_BUMP: ${{ needs.determine-changes.outputs.version-bumps }}
+          DRY_RUN: ${{ inputs.dry-run || github.event.inputs.dry-run || 'false' }}
+          BRANCH: ${{ inputs.branch || github.ref_name }}
+          VSIX_ARTIFACTS_PATH: ./vsix-artifacts
+        run: |
+          npx tsx .github/scripts/index.ts ext-github-releases
+
+  publish-to-cbweb-marketplace:
+    name: Publish to CBWeb Internal Marketplace
+    needs: [package, create-github-releases, calculate-artifact-name]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    if: needs.package.result == 'success'
+    steps:
+      - name: Download VSIX artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.calculate-artifact-name.outputs.artifact-name }}
+          path: ./vsix-artifacts
+
+      - name: Find web-target VSIX for CBWeb
+        id: find-web-vsix
+        run: |
+          VSIX_FILE=$(find ./vsix-artifacts -type f -name "*-web-*.vsix" | head -1)
+          if [ -z "$VSIX_FILE" ]; then
+            echo "::error::No web-target VSIX found in artifacts (expected *-web-*.vsix from package workflow)"
+            exit 1
+          fi
+
+          FILE_SIZE=$(stat -c%s "$VSIX_FILE" 2>/dev/null || stat -f%z "$VSIX_FILE" 2>/dev/null || echo "unknown")
+          echo "Found web VSIX: $VSIX_FILE (${FILE_SIZE} bytes)"
+          echo "vsix_file=$VSIX_FILE" >> $GITHUB_OUTPUT
+
+      - name: Publish web VSIX to CBWeb internal marketplace
+        if: inputs.dry-run != 'true' && github.event.inputs.dry-run != 'true'
+        run: |
+          echo "Publishing $VSIX_FILE to CBWeb marketplace..."
+
+          HTTP_CODE=$(curl -s -o response.json -w '%{http_code}' \
+            --retry 2 --retry-delay 5 \
+            -X POST "${MARKETPLACE_URL}/api/internal/publish" \
+            -H "Authorization: Bearer ${MARKETPLACE_DEPLOY_TOKEN}" \
+            -F "vsix=@${VSIX_FILE}")
+
+          echo "HTTP response code: $HTTP_CODE"
+          cat response.json
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "Successfully published to CBWeb marketplace"
+          else
+            echo "::warning::Failed to publish to CBWeb marketplace (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+        env:
+          VSIX_FILE: ${{ steps.find-web-vsix.outputs.vsix_file }}
+          MARKETPLACE_URL: ${{ vars.MARKETPLACE_URL }}
+          MARKETPLACE_DEPLOY_TOKEN: ${{ secrets.MARKETPLACE_DEPLOY_TOKEN }}
+
+      - name: Dry-run summary
+        if: inputs.dry-run == 'true' || github.event.inputs.dry-run == 'true'
+        run: |
+          echo "🔄 DRY RUN: Would publish ${{ steps.find-web-vsix.outputs.vsix_file }} to CBWeb marketplace"
+
+  slack-notify:
+    name: Slack Notification
+    needs:
+      [determine-changes, bump-versions, package, publish]
+    runs-on: ubuntu-latest
+    if: always() && needs.publish.result == 'success' && (inputs.dry-run != 'true' && github.event.inputs.dry-run != 'true')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Get Extension Details
+        id: extension-details
+        run: |
+          # Get selected extensions and their details
+          SELECTED_EXTENSIONS="${{ needs.determine-changes.outputs.selected-extensions }}"
+          VERSION_BUMP="${{ needs.determine-changes.outputs.version-bumps }}"
+          PRE_RELEASE="true"
+
+          # Initialize arrays for extension details
+          EXTENSION_NAMES=""
+          EXTENSION_VERSIONS=""
+          EXTENSION_DISPLAY_NAMES=""
+
+          IFS=',' read -ra EXTENSIONS <<< "$SELECTED_EXTENSIONS"
+          for ext in "${EXTENSIONS[@]}"; do
+            if [ -n "$ext" ] && [ -f "packages/$ext/package.json" ]; then
+              # Get package details
+              PACKAGE_NAME=$(node -p "require('./packages/$ext/package.json').name")
+              PACKAGE_VERSION=$(node -p "require('./packages/$ext/package.json').version")
+              DISPLAY_NAME=$(node -p "require('./packages/$ext/package.json').displayName || require('./packages/$ext/package.json').name")
+              
+              # Add to arrays
+              if [ -z "$EXTENSION_NAMES" ]; then
+                EXTENSION_NAMES="$PACKAGE_NAME"
+                EXTENSION_VERSIONS="$PACKAGE_VERSION"
+                EXTENSION_DISPLAY_NAMES="$DISPLAY_NAME"
+              else
+                EXTENSION_NAMES="$EXTENSION_NAMES, $PACKAGE_NAME"
+                EXTENSION_VERSIONS="$EXTENSION_VERSIONS, $PACKAGE_VERSION"
+                EXTENSION_DISPLAY_NAMES="$EXTENSION_DISPLAY_NAMES, $DISPLAY_NAME"
+              fi
+            fi
+          done
+
+          echo "extension_names=$EXTENSION_NAMES" >> $GITHUB_OUTPUT
+          echo "extension_versions=$EXTENSION_VERSIONS" >> $GITHUB_OUTPUT
+          echo "extension_display_names=$EXTENSION_DISPLAY_NAMES" >> $GITHUB_OUTPUT
+          echo "version_bump=$VERSION_BUMP" >> $GITHUB_OUTPUT
+          echo "pre_release=$PRE_RELEASE" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          payload: |
+            {
+              "text": "🎉 Apex Language Support Extensions Released Successfully!",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🎉 Apex Language Support Extensions Released Successfully!"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ inputs.branch || github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Extensions:*\n${{ steps.extension-details.outputs.extension_display_names }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Versions:*\n${{ steps.extension-details.outputs.extension_versions }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Release Type:*\n${{ steps.extension-details.outputs.pre_release == 'true' && 'Pre-release' || 'Stable' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Version Bump:*\n${{ steps.extension-details.outputs.version_bump }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Workflow Run:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
+
+  slack-notify-failure:
+    name: Slack Failure Notification
+    needs:
+      [determine-changes, bump-versions, package, publish]
+    runs-on: ubuntu-latest
+    if: always() && needs.publish.result == 'failure' && (inputs.dry-run != 'true' && github.event.inputs.dry-run != 'true')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Get Extension Details
+        id: extension-details
+        run: |
+          # Get selected extensions and their details
+          SELECTED_EXTENSIONS="${{ needs.determine-changes.outputs.selected-extensions }}"
+          VERSION_BUMP="${{ needs.determine-changes.outputs.version-bumps }}"
+          PRE_RELEASE="true"
+
+          # Initialize arrays for extension details
+          EXTENSION_NAMES=""
+          EXTENSION_VERSIONS=""
+          EXTENSION_DISPLAY_NAMES=""
+
+          IFS=',' read -ra EXTENSIONS <<< "$SELECTED_EXTENSIONS"
+          for ext in "${EXTENSIONS[@]}"; do
+            if [ -n "$ext" ] && [ -f "packages/$ext/package.json" ]; then
+              # Get package details
+              PACKAGE_NAME=$(node -p "require('./packages/$ext/package.json').name")
+              PACKAGE_VERSION=$(node -p "require('./packages/$ext/package.json').version")
+              DISPLAY_NAME=$(node -p "require('./packages/$ext/package.json').displayName || require('./packages/$ext/package.json').name")
+              
+              # Add to arrays
+              if [ -z "$EXTENSION_NAMES" ]; then
+                EXTENSION_NAMES="$PACKAGE_NAME"
+                EXTENSION_VERSIONS="$PACKAGE_VERSION"
+                EXTENSION_DISPLAY_NAMES="$DISPLAY_NAME"
+              else
+                EXTENSION_NAMES="$EXTENSION_NAMES, $PACKAGE_NAME"
+                EXTENSION_VERSIONS="$EXTENSION_VERSIONS, $PACKAGE_VERSION"
+                EXTENSION_DISPLAY_NAMES="$EXTENSION_DISPLAY_NAMES, $DISPLAY_NAME"
+              fi
+            fi
+          done
+
+          echo "extension_names=$EXTENSION_NAMES" >> $GITHUB_OUTPUT
+          echo "extension_versions=$EXTENSION_VERSIONS" >> $GITHUB_OUTPUT
+          echo "extension_display_names=$EXTENSION_DISPLAY_NAMES" >> $GITHUB_OUTPUT
+          echo "version_bump=$VERSION_BUMP" >> $GITHUB_OUTPUT
+          echo "pre_release=$PRE_RELEASE" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          payload: |
+            {
+              "text": "❌ VS Code Extension Release Failed!",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "❌ VS Code Extension Release Failed!"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ inputs.branch || github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Extensions:*\n${{ steps.extension-details.outputs.extension_display_names }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Versions:*\n${{ steps.extension-details.outputs.extension_versions }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Release Type:*\n${{ steps.extension-details.outputs.pre_release == 'true' && 'Pre-release' || 'Stable' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Version Bump:*\n${{ steps.extension-details.outputs.version_bump }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Workflow Run:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Please check the workflow logs for detailed error information."
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}

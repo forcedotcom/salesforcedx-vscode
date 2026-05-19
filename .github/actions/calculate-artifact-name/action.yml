@@ -1,0 +1,34 @@
+name: 'Calculate Artifact Name'
+description: 'Calculate artifact name with run number and mode suffix'
+
+inputs:
+  artifact-name:
+    description: 'Base artifact name or pre-calculated name'
+    required: true
+  dry-run:
+    description: 'Whether this is a dry-run mode'
+    required: false
+    default: 'false'
+  run-number:
+    description: 'GitHub run number (defaults to github.run_number)'
+    required: false
+    default: '${{ github.run_number }}'
+
+outputs:
+  artifact-name:
+    description: 'The calculated artifact name'
+    value: ${{ steps.calc.outputs.artifact-name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Calculate artifact name
+      id: calc
+      shell: bash
+      run: |
+        # Only treat as already set if artifact-name ends with -dry-run or -release
+        if [[ "${{ inputs.artifact-name }}" =~ -dry-run$ ]] || [[ "${{ inputs.artifact-name }}" =~ -release$ ]]; then
+          echo "artifact-name=${{ inputs.artifact-name }}" >> $GITHUB_OUTPUT
+        else
+          echo "artifact-name=${{ format('{0}-{1}-{2}', inputs.artifact-name, inputs.run-number, inputs.dry-run == 'true' && 'dry-run' || 'release') }}" >> $GITHUB_OUTPUT
+        fi 

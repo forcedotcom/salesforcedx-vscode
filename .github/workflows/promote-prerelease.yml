@@ -1,0 +1,176 @@
+name: Promote Nightly to Pre-release
+
+on:
+  schedule:
+    # Wednesdays at 7 AM UTC
+    - cron: '0 7 * * 3'
+  workflow_dispatch:
+    inputs:
+      min-tag-age-days:
+        description: 'Minimum nightly age in days before eligible for promotion (default: 7)'
+        required: false
+        default: '7'
+        type: string
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing or tagging)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+concurrency:
+  group: promote-prerelease
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  find-nightly-candidate:
+    runs-on: ubuntu-latest
+    outputs:
+      commit-sha: ${{ steps.find.outputs.commit-sha }}
+      nightly-tag: ${{ steps.find.outputs.nightly-tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        uses: ./.github/actions/npm-install-with-retries
+
+      - name: Find eligible nightly
+        id: find
+        env:
+          MIN_TAG_AGE_DAYS: ${{ inputs.min-tag-age-days || '7' }}
+        run: |
+          npx tsx .github/scripts/index.ts ext-nightly-finder
+
+      - name: Fail if no candidate found
+        if: steps.find.outputs.nightly-tag == ''
+        run: |
+          echo "No eligible nightly candidate found. Nothing to promote this week."
+          exit 1
+
+  quality-gate:
+    needs: find-nightly-candidate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Check CI status for candidate commit
+        uses: ./.github/actions/check-ci-status
+        with:
+          commit-sha: ${{ needs.find-nightly-candidate.outputs.commit-sha }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+  publish:
+    needs: [find-nightly-candidate, quality-gate]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - registry: vsce
+            publish-tool: vsce
+          - registry: ovsx
+            publish-tool: ovsx
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        uses: ./.github/actions/npm-install-with-retries
+
+      - name: Download VSIX from nightly GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          NIGHTLY_TAG: ${{ needs.find-nightly-candidate.outputs.nightly-tag }}
+        run: |
+          mkdir -p ./vsix-artifacts
+          echo "Downloading VSIX from release: $NIGHTLY_TAG"
+          gh release download "$NIGHTLY_TAG" \
+            --pattern "*.vsix" \
+            --dir ./vsix-artifacts \
+            --repo "${{ github.repository }}"
+
+          VSIX_FILE=$(find ./vsix-artifacts -type f -name 'apex-language-server-extension-*.vsix' ! -name '*-web-*' | head -1)
+          if [ -z "$VSIX_FILE" ]; then
+            echo "No VSIX found in release $NIGHTLY_TAG"
+            exit 1
+          fi
+          echo "Found VSIX: $VSIX_FILE"
+          echo "VSIX_PATH=$VSIX_FILE" >> $GITHUB_ENV
+
+      - name: Publish to ${{ matrix.registry }}
+        uses: ./.github/actions/publish-vsix
+        with:
+          vsix-path: ${{ env.VSIX_PATH }}
+          publish-tool: ${{ matrix.publish-tool }}
+          pre-release: 'true'
+          dry-run: ${{ inputs.dry-run || 'false' }}
+        env:
+          VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
+          OVSX_PAT: ${{ secrets.IDEE_OVSX_PAT }}
+
+  tag-promoted:
+    needs: [find-nightly-candidate, publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Create marketplace-prerelease tracking tag
+        env:
+          NIGHTLY_TAG: ${{ needs.find-nightly-candidate.outputs.nightly-tag }}
+          DRY_RUN: ${{ inputs.dry-run || 'false' }}
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+        run: |
+          # Extract version from the nightly tag (format: ...-v<semver>-nightly.*)
+          VERSION=$(echo "$NIGHTLY_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+          if [ -z "$VERSION" ]; then
+            echo "Could not extract version from tag: $NIGHTLY_TAG"
+            exit 1
+          fi
+
+          TRACKING_TAG="marketplace-prerelease-apex-lsp-vscode-extension-v${VERSION}"
+          COMMIT_SHA="${{ needs.find-nightly-candidate.outputs.commit-sha }}"
+
+          echo "Creating tracking tag: $TRACKING_TAG → $COMMIT_SHA"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "DRY RUN: Would create and push tag $TRACKING_TAG"
+          else
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+            git fetch --tags origin
+            if git tag --list "$TRACKING_TAG" | grep -q .; then
+              echo "⏭️ Tracking tag $TRACKING_TAG already exists — skipping (idempotent rerun)"
+            else
+              git tag "$TRACKING_TAG" "$COMMIT_SHA"
+              git push origin "$TRACKING_TAG"
+              echo "Tracking tag pushed: $TRACKING_TAG"
+            fi
+          fi
