@@ -103,6 +103,15 @@ export const getAuthFieldsFor = async (username: string): Promise<AuthFields> =>
 
   return authInfo.getFields();
 };
+const refreshConnection = Effect.fn('updateConfigAndStateAggregators', {
+  root: true,
+  attributes: { telemetryIgnore: true }
+})(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ConfigService.invalidateConfigAggregator();
+  yield* api.services.ConnectionService.invalidateCachedConnections();
+  yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
+});
 
 export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // Force the ConfigAggregatorProvider to reload its stored
@@ -115,12 +124,7 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // including the default one used by AuthInfo.listAllAuthorizations().
   await StateAggregator.clearInstanceAsync();
 
-  await getOrgRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      yield* api.services.ConnectionService.invalidateCachedConnections();
-    })
-  );
+  await getOrgRuntime().runPromise(refreshConnection());
 
   // Trigger Apex Test Controller to discover tests after org auth/set-default. Delay so config
   // and TargetOrgRef can propagate before refresh runs.
