@@ -16,8 +16,7 @@ export const ensureTraceFlagsForCurrentUser = (): Promise<boolean> =>
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const traceFlagService = yield* api.services.TraceFlagService;
       const userId = yield* traceFlagService.getUserId();
-      const debugLevelId = yield* traceFlagService.getOrCreateDebugLevel();
-      yield* traceFlagService.ensureTraceFlag(userId, undefined, undefined, debugLevelId);
+      yield* traceFlagService.ensureTraceFlag(userId);
       return true;
     }).pipe(
       Effect.tapError(e => Effect.logError('ensureTraceFlagsForCurrentUser failed', e)),

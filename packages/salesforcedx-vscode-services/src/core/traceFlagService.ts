@@ -336,12 +336,12 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       logType: TraceFlagLogType = 'DEVELOPER_LOG',
       existingDebugLevelId?: string
     ) {
+      const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
       const existing = yield* getTraceFlagForUser(userId, logType);
 
       return yield* Option.match(existing, {
         onNone: () =>
           Effect.gen(function* () {
-            const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
             const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
             if (!traceFlagId) {
               return yield* new TraceFlagCreateError({ message: 'Create returned no ID' });
@@ -352,7 +352,6 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           Effect.gen(function* () {
             if (traceFlag.expirationDate < new Date()) {
               yield* deleteTraceFlag(traceFlag.id);
-              const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
               const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
               if (!traceFlagId) {
                 return yield* new TraceFlagCreateError({ message: 'Create returned no ID' });
@@ -363,8 +362,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
               traceFlag.expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
                 ? traceFlag.expirationDate
                 : calculateExpirationDate(new Date(), duration);
-            if (existingDebugLevelId && existingDebugLevelId !== traceFlag.debugLevelId) {
-              yield* changeTraceFlagDebugLevel(traceFlag.id, existingDebugLevelId);
+            if (debugLevelId !== traceFlag.debugLevelId) {
+              yield* changeTraceFlagDebugLevel(traceFlag.id, debugLevelId);
             }
             yield* updateTraceFlag(traceFlag.id, { expirationDate: validExpiration });
             return { created: false, traceFlagId: traceFlag.id };
