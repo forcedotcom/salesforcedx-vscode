@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.12.1",
+  "version": "66.12.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -40,7 +40,7 @@
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/salesforcedx-visualforce-language-server": "*",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
-    "salesforcedx-vscode-services": "66.12.1"
+    "salesforcedx-vscode-services": "66.12.2"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
