@@ -128,7 +128,7 @@ export const messages = {
   conflict_detect_no_conflicts: 'No conflicts',
   conflict_detect_no_differences: 'No differences',
   conflict_detection_enabled_description:
-    "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
+    'When enabled, the system will check for conflicts before deploying/retrieving.',
 
   // Preparation phase progress
   preparing_deployment: 'Preparing deployment...',
