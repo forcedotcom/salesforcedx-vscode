@@ -34,7 +34,7 @@
   "conflicts_view_welcome_message": "Files will appear when you\n\n\u2022 run the Diff Source Against Org command on a folder \n\u2022 deploy or retrieve source that has conflicts.",
   "conflict_detect_diff_command_title": "Compare Files",
   "conflict_detect_open_file": "Open File",
-  "conflict_detection_enabled_description": "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
+  "conflict_detection_enabled_description": "When enabled, the system will check for conflicts before deploying/retrieving.",
   "source_tracking_polling_interval_description": "Interval in seconds to poll for remote source tracking changes. Set to 0 to disable polling.",
   "source_tracking_enable_conflict_detection_description": "When disabled, skips automatic conflict detection for source tracking orgs. This improves performance but you won't see conflict warnings in the status bar or before deploy/retrieve operations.",
   "show_success_notification_description": "Show an information notification on successful deploy, retrieve, or delete.",
