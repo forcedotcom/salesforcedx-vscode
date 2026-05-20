@@ -78,10 +78,10 @@ jobs:
     uses: ./.github/workflows/nightly-extensions.yml
     with:
       branch: ${{ needs.get-extensions.outputs.target-branch }}
-      registries: 'all'
+      registries: all
       dry-run: ${{ github.event.inputs.dry-run && 'true' || 'false' }}
-      pre-release: 'true'
-      version-bump: 'auto'
+      pre-release: true
+      version-bump: auto
       extensions: ${{ github.event.inputs.extensions || (github.event_name == 'schedule' && 'changed') || 'none' }}
       available-extensions: ${{ needs.get-extensions.outputs.extensions }}
     secrets: inherit
