@@ -6,7 +6,7 @@ on:
       branch:
         description: 'Branch to release from'
         required: false
-        default: 'main'
+        default: 'develop'
         type: string
       extensions:
         description: 'VS Code extensions to release (none/all/changed or comma-separated list: salesforcedx-vscode-apex,salesforcedx-vscode-core)'
@@ -20,11 +20,11 @@ on:
         type: boolean
 
   schedule:
-    # Nightly pre-release build at 4 AM UTC for main branch
+    # Nightly pre-release build at 4 AM UTC for develop branch
     - cron: '0 4 * * *'
 
 concurrency:
-  group: nightly-${{ github.workflow }}-${{ github.event.inputs.branch || 'main' }}
+  group: nightly-${{ github.workflow }}-${{ github.event.inputs.branch || 'develop' }}
   cancel-in-progress: false
 
 # Add explicit permissions for security
@@ -43,7 +43,7 @@ jobs:
       - name: Determine target branch
         id: determine-branch
         env:
-          TARGET_BRANCH_INPUT: ${{ github.event.inputs.branch || 'main' }}
+          TARGET_BRANCH_INPUT: ${{ github.event.inputs.branch || 'develop' }}
         run: |
           TARGET_BRANCH="$TARGET_BRANCH_INPUT"
           echo "branch=$TARGET_BRANCH" >> $GITHUB_OUTPUT
