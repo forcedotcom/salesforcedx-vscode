@@ -80,14 +80,9 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/npm-install-with-retries
 
-      # Universal + web-target VSIXs are defined in packages/apex-lsp-vscode-extension (Wireit: package + package-web).
+      # Package all VS Code extensions
       - name: Package packages
-        run: |
-          if [ "${{ inputs.pre-release }}" = "true" ]; then
-            npm run package:packages:prerelease
-          else
-            npm run package:packages
-          fi
+        run: npm run vscode:package
 
       - name: Generate MD5 checksums
         id: md5-checksums
