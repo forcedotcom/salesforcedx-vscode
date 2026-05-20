@@ -9,14 +9,10 @@ on:
         default: 'main'
         type: string
       extensions:
-        description: 'VS Code extensions to release'
+        description: 'VS Code extensions to release (none/all/changed or comma-separated list: salesforcedx-vscode-apex,salesforcedx-vscode-core)'
         required: false
         default: 'none'
-        type: choice
-        options:
-          - none
-          - all
-          - changed
+        type: string
       dry-run:
         description: 'Run in dry-run mode (no actual publishing)'
         required: false

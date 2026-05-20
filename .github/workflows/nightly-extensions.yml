@@ -41,13 +41,10 @@ on:
   workflow_dispatch:
     inputs:
       extensions:
-        description: 'Extensions to release'
+        description: 'Extensions to release (none/all/changed or comma-separated list)'
         required: false
-        default: 'apex-lsp-vscode-extension'
-        type: choice
-        options:
-          - all
-          - apex-lsp-vscode-extension
+        default: 'all'
+        type: string
       registries:
         description: 'Registries to publish to'
         required: false

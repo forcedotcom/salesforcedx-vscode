@@ -291,6 +291,15 @@ gh workflow run nightly.yml
 # Build specific extension
 gh workflow run nightly.yml -f extensions=salesforcedx-vscode-apex
 
+# Build multiple specific extensions (comma-separated)
+gh workflow run nightly.yml -f extensions="salesforcedx-vscode-apex,salesforcedx-vscode-core,salesforcedx-vscode-lwc"
+
+# Build all extensions
+gh workflow run nightly.yml -f extensions=all
+
+# Build only changed extensions
+gh workflow run nightly.yml -f extensions=changed
+
 # Dry-run mode
 gh workflow run nightly.yml -f dry-run=true -f extensions=changed
 ```
