@@ -14,11 +14,8 @@ on:
       dry-run:
         description: 'Run in dry-run mode (no actual publishing or tagging)'
         required: false
-        default: 'false'
-        type: choice
-        options:
-          - 'false'
-          - 'true'
+        default: false
+        type: boolean
 
 concurrency:
   group: promote-prerelease

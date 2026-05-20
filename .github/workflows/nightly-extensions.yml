@@ -25,13 +25,13 @@ on:
       dry-run:
         description: 'Run in dry-run mode (no actual publishing)'
         required: false
-        default: 'false'
-        type: string
+        default: false
+        type: boolean
       pre-release:
         description: 'Publish as pre-release version'
         required: false
-        default: 'true'
-        type: string
+        default: true
+        type: boolean
 
       version-bump:
         description: 'Version bump type (auto, patch, minor, major)'
@@ -57,13 +57,13 @@ on:
       dry-run:
         description: 'Run in dry-run mode (no actual publishing)'
         required: false
-        default: 'false'
-        type: string
+        default: false
+        type: boolean
       pre-release:
         description: 'Publish as pre-release version'
         required: false
-        default: 'true'
-        type: string
+        default: true
+        type: boolean
 
 # Add explicit permissions for security
 permissions:
