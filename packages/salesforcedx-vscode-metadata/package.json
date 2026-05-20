@@ -351,33 +351,158 @@
           "minimum": 0,
           "description": "%source_tracking_polling_interval_description%"
         },
-        "salesforcedx-vscode-metadata.notificationMode": {
-          "type": "string",
-          "enum": [
-            "notification",
-            "statusBar"
-          ],
-          "enumDescriptions": [
-            "%notification_mode_notification_description%",
-            "%notification_mode_status_bar_description%"
-          ],
-          "default": "notification",
-          "description": "%notification_mode_description%"
-        },
-        "salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection": {
-          "type": "boolean",
-          "default": true,
-          "description": "%source_tracking_enable_conflict_detection_description%"
-        },
-        "salesforcedx-vscode-metadata.showSuccessNotification": {
-          "type": "boolean",
-          "default": false,
-          "description": "%show_success_notification_description%"
-        },
-        "salesforcedx-vscode-metadata.deployOnSave.showSuccessNotification": {
-          "type": "boolean",
-          "default": false,
-          "description": "%deploy_on_save_show_success_notification_description%"
+        "salesforcedx-vscode-metadata.notifications": {
+          "type": "object",
+          "description": "%notifications_description%",
+          "properties": {
+            "SFDX: Deploy This Source to Org": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "default": "toast",
+              "description": "%notifications_deploy_this_source_description%"
+            },
+            "SFDX: Retrieve This Source from Org": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "default": "toast",
+              "description": "%notifications_retrieve_this_source_description%"
+            },
+            "SFDX: Push Source to Default Org": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "default": "toast",
+              "description": "%notifications_push_source_description%"
+            },
+            "SFDX: Pull Source from Default Org": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "default": "toast",
+              "description": "%notifications_pull_source_description%"
+            },
+            "SFDX: Deploy Source in Manifest to Org": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "default": "toast",
+              "description": "%notifications_deploy_source_in_manifest_description%"
+            },
+            "SFDX: Retrieve Source in Manifest from Org": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "default": "toast",
+              "description": "%notifications_retrieve_source_in_manifest_description%"
+            },
+            "SFDX: Delete from Project and Org": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "default": "toast",
+              "description": "%notifications_delete_from_project_and_org_description%"
+            },
+            "SFDX: Diff Source Against Org": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "default": "toast",
+              "description": "%notifications_diff_source_description%"
+            },
+            "Deploy on Save": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "default": "toast",
+              "description": "%notifications_deploy_on_save_description%"
+            }
+          },
+          "additionalProperties": false,
+          "default": {
+            "SFDX: Deploy This Source to Org": "toast",
+            "SFDX: Retrieve This Source from Org": "toast",
+            "SFDX: Push Source to Default Org": "toast",
+            "SFDX: Pull Source from Default Org": "toast",
+            "SFDX: Deploy Source in Manifest to Org": "toast",
+            "SFDX: Retrieve Source in Manifest from Org": "toast",
+            "SFDX: Delete from Project and Org": "toast",
+            "SFDX: Diff Source Against Org": "toast",
+            "Deploy on Save": "toast"
+          }
         }
       }
     },

@@ -10,16 +10,18 @@ import * as Effect from 'effect/Effect';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
-import { showInfoNotification } from '../utils/notificationMode';
+import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
+
+const COMMAND: CommandKey = 'SFDX: Push Source to Default Org';
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* api.services.MetadataDeployService.getComponentSetForDeploy().pipe(
     Effect.flatMap((yield* api.services.ComponentSetService).ensureNonEmptyComponentSet),
-    withPreparationProgress('deploy', ignoreConflicts ? undefined : cs => detectConflicts(cs, 'deploy')),
-    Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
+    withPreparationProgress('deploy', ignoreConflicts ? undefined : cs => detectConflicts(cs, 'deploy'), COMMAND),
+    Effect.flatMap(cs => deployComponentSet({ componentSet: cs, command: COMMAND }))
   );
 });
 
@@ -34,6 +36,7 @@ export const projectDeployStartCommand = (ignoreConflicts = false) =>
       })
     ),
     withConfigurableSuccessNotification(
+      COMMAND,
       nls.localize(
         'command_succeeded_text',
         ignoreConflicts
@@ -42,6 +45,6 @@ export const projectDeployStartCommand = (ignoreConflicts = false) =>
       )
     ),
     Effect.catchTag('EmptyComponentSetError', () =>
-      Effect.sync(() => showInfoNotification(nls.localize('no_local_changes_to_deploy')))
+      Effect.sync(() => showSuccessNotification(COMMAND, nls.localize('no_local_changes_to_deploy')))
     )
   );

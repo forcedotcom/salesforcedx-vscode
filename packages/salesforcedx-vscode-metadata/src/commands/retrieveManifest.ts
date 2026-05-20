@@ -11,9 +11,12 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
+import { type CommandKey } from '../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 import { ManifestSelectionRequiredError } from './manifestErrors';
+
+const COMMAND: CommandKey = 'SFDX: Retrieve Source in Manifest from Org';
 
 /** Retrieve from the default org using a manifest file */
 export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
@@ -25,10 +28,10 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
     const componentSet = yield* Effect.succeed(resolved).pipe(
       Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
       Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
-      withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'))
+      withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'), COMMAND)
     );
 
-    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
+    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true, command: COMMAND });
   },
   Effect.catchTag(
     'NoActiveEditorError',
@@ -38,8 +41,11 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
     handleConflictWithRetry({
       pairs: err.pairs,
       operationType: err.operationType,
-      retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
+      retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true, command: COMMAND })
     })
   ),
-  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text')))
+  withConfigurableSuccessNotification(
+    COMMAND,
+    nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text'))
+  )
 );

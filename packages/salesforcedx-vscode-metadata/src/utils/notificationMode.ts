@@ -7,13 +7,23 @@
 
 import * as vscode from 'vscode';
 
-const SECTION = 'salesforcedx-vscode-metadata';
-const KEY = 'notificationMode';
+const SECTION = 'salesforcedx-vscode-metadata.notifications';
 
-export type NotificationMode = 'notification' | 'statusBar';
+export type CommandNotificationMode = 'off' | 'statusBar' | 'toast';
 
-export const getNotificationMode = (): NotificationMode =>
-  vscode.workspace.getConfiguration(SECTION).get<NotificationMode>(KEY, 'notification');
+export type CommandKey =
+  | 'SFDX: Deploy This Source to Org'
+  | 'SFDX: Retrieve This Source from Org'
+  | 'SFDX: Push Source to Default Org'
+  | 'SFDX: Pull Source from Default Org'
+  | 'SFDX: Deploy Source in Manifest to Org'
+  | 'SFDX: Retrieve Source in Manifest from Org'
+  | 'SFDX: Delete from Project and Org'
+  | 'SFDX: Diff Source Against Org'
+  | 'Deploy on Save';
+
+const getCommandNotificationMode = (command: CommandKey): CommandNotificationMode =>
+  vscode.workspace.getConfiguration(SECTION).get<CommandNotificationMode>(command, 'toast');
 
 /** Mutable state for the transient status bar item, boxed in a const object to satisfy functional/no-let. */
 const transientState: { item: vscode.StatusBarItem | undefined; timeout: ReturnType<typeof setTimeout> | undefined } = {
@@ -34,7 +44,7 @@ const getTransientStatusBar = (): vscode.StatusBarItem => {
 };
 
 /** Show a message in the status bar for 5 seconds, then clear it. */
-export const showTransientStatusBarMessage = (message: string): void => {
+const showTransientStatusBarMessage = (message: string): void => {
   const item = getTransientStatusBar();
   item.text = `$(check) ${message}`;
   item.show();
@@ -45,13 +55,20 @@ export const showTransientStatusBarMessage = (message: string): void => {
 };
 
 /**
- * Show an information message as a toast or status bar message depending on
- * the current notificationMode setting.
+ * Show a success info message for a command, routing to toast or status bar based on
+ * the command's notification mode. Does nothing when mode is 'off'.
  */
-export const showInfoNotification = (message: string): void => {
-  if (getNotificationMode() === 'statusBar') {
+export const showSuccessNotification = (command: CommandKey, message: string): void => {
+  const mode = getCommandNotificationMode(command);
+  if (mode === 'statusBar') {
     showTransientStatusBarMessage(message);
-  } else {
+  } else if (mode === 'toast') {
     void vscode.window.showInformationMessage(message);
   }
 };
+
+/** Returns the ProgressLocation to use for a command's progress notification. */
+export const getProgressLocation = (command: CommandKey): vscode.ProgressLocation =>
+  getCommandNotificationMode(command) === 'toast'
+    ? vscode.ProgressLocation.Notification
+    : vscode.ProgressLocation.Window;

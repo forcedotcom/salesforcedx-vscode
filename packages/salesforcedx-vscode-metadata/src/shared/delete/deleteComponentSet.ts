@@ -10,15 +10,16 @@ import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { getNotificationMode } from '../../utils/notificationMode';
+import { type CommandKey, getProgressLocation } from '../../utils/notificationMode';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';
 import { DeleteSourceFailedError } from './deleteErrors';
 
 /** Delete a ComponentSet, handling cancellation, and local file deletion */
 export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
+  command?: CommandKey;
 }) {
-  const { componentSet } = options;
+  const { componentSet, command } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, componentSetService] = yield* Effect.all(
     [api.services.ChannelService, api.services.ComponentSetService],
@@ -30,8 +31,7 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
-  const progressLocation =
-    getNotificationMode() === 'statusBar' ? vscode.ProgressLocation.Window : vscode.ProgressLocation.Notification;
+  const progressLocation = command ? getProgressLocation(command) : vscode.ProgressLocation.Notification;
   const result = yield* api.services.MetadataDeployService.deploy(deleteSet, { progressLocation });
 
   const { isSDRFailure } = componentSetService;

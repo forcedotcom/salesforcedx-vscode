@@ -13,7 +13,7 @@ import * as Runtime from 'effect/Runtime';
 import type { NonEmptyComponentSet, UserCancellationError } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { getNotificationMode } from './notificationMode';
+import { type CommandKey, getProgressLocation } from './notificationMode';
 
 type OperationType = 'deploy' | 'retrieve' | 'delete';
 
@@ -75,7 +75,8 @@ export const withPreparationProgress =
   // can still catchTag('ConflictsDetectedError', ...) and the runtime requirement is explicit.
   <ConflictsE = never, ConflictsR = never>(
       operationType: OperationType,
-      detectConflictsFn?: (cs: NonEmptyComponentSet) => Effect.Effect<void, ConflictsE, ConflictsR>
+      detectConflictsFn?: (cs: NonEmptyComponentSet) => Effect.Effect<void, ConflictsE, ConflictsR>,
+      command?: CommandKey
     ) =>
     <E, R>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
       Effect.gen(function* () {
@@ -86,11 +87,11 @@ export const withPreparationProgress =
         const raceWithCancel = <A, E2, R2>(effect: Effect.Effect<A, E2, R2>) =>
           Effect.raceFirst(effect, Deferred.await(cancelDeferred));
 
-        const inStatusBarMode = getNotificationMode() === 'statusBar';
+        const progressLocation = command ? getProgressLocation(command) : vscode.ProgressLocation.Notification;
         return yield* Effect.async<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
           void vscode.window.withProgress(
             {
-              location: inStatusBarMode ? vscode.ProgressLocation.Window : vscode.ProgressLocation.Notification,
+              location: progressLocation,
               cancellable: true
             },
             async (progress, token) => {

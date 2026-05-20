@@ -11,9 +11,11 @@ import { detectConflicts, handleConflictWithRetry } from '../../conflict/conflic
 import { nls } from '../../messages';
 import { formatRetrieveOutput } from '../../shared/retrieve/formatRetrieveOutput';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
-import { showInfoNotification } from '../../utils/notificationMode';
+import { type CommandKey, showSuccessNotification } from '../../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../../utils/withPreparationProgress';
+
+const COMMAND: CommandKey = 'SFDX: Pull Source from Default Org';
 
 /**
  * Apply remote deletes and retrieve non-deletes. Skips retrieve when only deletes exist.
@@ -29,7 +31,8 @@ const applyAndRetrieve = Effect.fn('projectRetrieve.applyAndRetrieve')(function*
     ? retrieveComponentSet({
         componentSet: componentSetFromNonDeletes,
         ignoreConflicts: true,
-        fileResponsesFromDelete
+        fileResponsesFromDelete,
+        command: COMMAND
       })
     : channelService.appendToChannel(yield* formatRetrieveOutput(undefined, fileResponsesFromDelete));
 });
@@ -62,7 +65,7 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
       Effect.tap(cs =>
         channelService.appendToChannel(`Found ${cs.size} remote change${cs.size === 1 ? '' : 's'} to retrieve`)
       ),
-      withPreparationProgress('retrieve', ignoreConflicts ? undefined : cs => detectConflicts(cs, 'retrieve'))
+      withPreparationProgress('retrieve', ignoreConflicts ? undefined : cs => detectConflicts(cs, 'retrieve'), COMMAND)
     );
     yield* applyAndRetrieve();
   },
@@ -79,6 +82,7 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
 export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
   retrieveEffect(ignoreConflicts).pipe(
     withConfigurableSuccessNotification(
+      COMMAND,
       nls.localize(
         'command_succeeded_text',
         ignoreConflicts
@@ -87,6 +91,6 @@ export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
       )
     ),
     Effect.catchTag('EmptyComponentSetError', () =>
-      Effect.sync(() => showInfoNotification(nls.localize('no_remote_changes_to_retrieve')))
+      Effect.sync(() => showSuccessNotification(COMMAND, nls.localize('no_remote_changes_to_retrieve')))
     )
   );

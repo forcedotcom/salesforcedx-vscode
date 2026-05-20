@@ -12,8 +12,11 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { type CommandKey } from '../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
+
+const COMMAND: CommandKey = 'SFDX: Deploy This Source to Org';
 
 // shared logic for both the editor command and the uri command
 const deployUris = Effect.fn('deploySourcePath.deployUris')(
@@ -24,15 +27,15 @@ const deployUris = Effect.fn('deploySourcePath.deployUris')(
     return yield* Effect.succeed(Array.from(uris)).pipe(
       Effect.flatMap(componentSetService.getComponentSetFromUris),
       Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-      withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy')),
-      Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
+      withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy'), COMMAND),
+      Effect.flatMap(cs => deployComponentSet({ componentSet: cs, command: COMMAND }))
     );
   },
   Effect.catchTag('ConflictsDetectedError', err =>
     handleConflictWithRetry({
       pairs: err.pairs,
       operationType: err.operationType,
-      retryOperation: deployComponentSet({ componentSet: err.componentSet })
+      retryOperation: deployComponentSet({ componentSet: err.componentSet, command: COMMAND })
     })
   )
 );
@@ -43,7 +46,10 @@ export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiv
     const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
     return yield* deployUris(new Set([activeEditorUri]));
   },
-  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))),
+  withConfigurableSuccessNotification(
+    COMMAND,
+    nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))
+  ),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
       Effect.as(undefined)
@@ -69,5 +75,8 @@ export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySource
     const urisSet = new Set([sourceUri, ...uris]);
     return yield* deployUris(urisSet);
   },
-  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text')))
+  withConfigurableSuccessNotification(
+    COMMAND,
+    nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))
+  )
 );

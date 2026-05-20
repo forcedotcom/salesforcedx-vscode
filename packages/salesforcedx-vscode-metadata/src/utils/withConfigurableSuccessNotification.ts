@@ -6,23 +6,10 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
-import { getNotificationMode, showTransientStatusBarMessage } from './notificationMode';
+import { type CommandKey, showSuccessNotification } from './notificationMode';
 
-const SECTION = 'salesforcedx-vscode-metadata';
-const KEY = 'showSuccessNotification';
-
-/** put this Tap on an Effect's pipe to optionally show a success toast based on the value of the config.*/
+/** Tap on an Effect's pipe to show a success notification based on the command's notification mode. */
 export const withConfigurableSuccessNotification =
-  (message: string) =>
+  (command: CommandKey, message: string) =>
   <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-    Effect.tap(effect, () =>
-      Effect.sync(() => {
-        if (getNotificationMode() === 'statusBar') {
-          showTransientStatusBarMessage(message);
-          return;
-        }
-        const show = vscode.workspace.getConfiguration(SECTION).get<boolean>(KEY, false);
-        if (show) void vscode.window.showInformationMessage(message);
-      })
-    );
+    Effect.tap(effect, () => Effect.sync(() => showSuccessNotification(command, message)));
