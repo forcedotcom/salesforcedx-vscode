@@ -8,10 +8,6 @@
 
 ## Fixed
 
-#### salesforcedx-vscode-metadata
-
-- We updated the **Detect Conflicts for Deploy and Retrieve** setting description for clarity. ([PR #7334](https://github.com/forcedotcom/salesforcedx-vscode/pull/7334))
-
 #### salesforcedx-vscode-apex
 
 - We fixed an unhandled "Channel has been closed" exception that could occur during Apex Language Server restart. ([PR #7314](https://github.com/forcedotcom/salesforcedx-vscode/pull/7314))
