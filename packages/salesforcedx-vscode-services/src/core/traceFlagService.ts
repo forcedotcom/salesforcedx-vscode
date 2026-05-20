@@ -366,7 +366,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
             if (debugLevelId !== traceFlag.debugLevelId) {
               yield* changeTraceFlagDebugLevel(traceFlag.id, debugLevelId);
             }
-            yield* updateTraceFlag(traceFlag.id, { expirationDate: validExpiration });
+            if (validExpiration.getTime() !== traceFlag.expirationDate.getTime()) {
+              yield* updateTraceFlag(traceFlag.id, { expirationDate: validExpiration });
+            }
             return { created: false, traceFlagId: traceFlag.id };
           })
       });
