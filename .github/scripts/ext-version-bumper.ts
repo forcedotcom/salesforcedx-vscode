@@ -7,7 +7,7 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 interface PackageJson {
@@ -241,14 +241,14 @@ function bumpVersions(options: VersionBumpOptions): void {
       `🔄 Bumping ${ext} from ${packageDetails.version} to ${newVersion}`,
     );
 
-    // Update package.json version
+    // Update package.json version directly (avoid npm install issues in monorepo)
     const originalDir = process.cwd();
     try {
-      process.chdir(join(originalDir, 'packages', ext));
-      execSync(`npm version "${newVersion}" --no-git-tag-version`, {
-        stdio: 'inherit',
-      });
-      process.chdir(originalDir);
+      const packageJsonPath = join(originalDir, 'packages', ext, 'package.json');
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+      packageJson.version = newVersion;
+      writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n', 'utf-8');
+      console.log(`✅ Updated ${ext}/package.json to version ${newVersion}`);
 
       // Create git tag for this extension
       const isNightlyBuild = isNightly === 'true';
