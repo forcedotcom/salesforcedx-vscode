@@ -13,12 +13,13 @@ import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { isConflictDetectionEnabled } from '../conflict/conflictDetectionSettings';
 import { nls } from '../messages';
 import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
 
 /** Refresh the status bar's data using data from tracking service */
-const refresh = Effect.fn('statusBarRefresh')(
+const refresh = Effect.fn('statusBarRefresh', { root: true, attributes: { telemetryIgnore: true } })(
   function* (statusBarItem: vscode.StatusBarItem) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const sourceTrackingService = yield* api.services.SourceTrackingService;
@@ -27,6 +28,14 @@ const refresh = Effect.fn('statusBarRefresh')(
 
     if (!hasTracking) {
       statusBarItem.hide();
+      return;
+    }
+
+    // Check if conflict detection is disabled
+    const conflictDetectionEnabled = yield* isConflictDetectionEnabled();
+    if (!conflictDetectionEnabled) {
+      // Show disabled state without calling expensive getStatus()
+      showDisabledState(statusBarItem);
       return;
     }
 
@@ -40,6 +49,17 @@ const refresh = Effect.fn('statusBarRefresh')(
 const showRefreshingState = (statusBarItem: vscode.StatusBarItem): void => {
   statusBarItem.text = '$(sync~spin) Refreshing';
   statusBarItem.tooltip = new vscode.MarkdownString(nls.localize('source_tracking_status_bar_refreshing'));
+  statusBarItem.command = undefined;
+  statusBarItem.backgroundColor = undefined;
+  statusBarItem.show();
+};
+
+/** Show disabled state when conflict detection is turned off */
+const showDisabledState = (statusBarItem: vscode.StatusBarItem): void => {
+  statusBarItem.text = '$(circle-slash) Conflict Detection Disabled';
+  statusBarItem.tooltip = new vscode.MarkdownString(
+    nls.localize('source_tracking_conflict_detection_disabled_tooltip')
+  );
   statusBarItem.command = undefined;
   statusBarItem.backgroundColor = undefined;
   statusBarItem.show();
@@ -105,6 +125,14 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
       Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollingIntervalSeconds())))
     )
   );
+
+  // Watch conflict detection setting changes to trigger immediate refresh
+  const conflictDetectionSettingStream = Stream.fromPubSub(settingsChangePubSub).pipe(
+    Stream.filter(event =>
+      event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection')
+    ),
+    Stream.as('conflictDetectionSettingChange')
+  );
   const orgChangeStream = targetOrgRef.changes.pipe(
     Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),
     Stream.tap(orgInfo =>
@@ -151,7 +179,12 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   );
 
   yield* Effect.fork(
-    Stream.mergeAll({ concurrency: 'unbounded' })([orgChangeStream, fileChangeStream, operationCompleteStream]).pipe(
+    Stream.mergeAll({ concurrency: 'unbounded' })([
+      orgChangeStream,
+      fileChangeStream,
+      operationCompleteStream,
+      conflictDetectionSettingStream
+    ]).pipe(
       Stream.debounce(Duration.millis(500)),
       Stream.runForEach(() => refresh(statusBarItem))
     )

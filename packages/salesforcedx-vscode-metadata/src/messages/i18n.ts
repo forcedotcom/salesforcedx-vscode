@@ -36,6 +36,8 @@ export const messages = {
   source_tracking_status_bar_view_changes: 'View Changes',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
   source_tracking_status_bar_refreshing: 'Refreshing source tracking...',
+  source_tracking_conflict_detection_disabled_tooltip:
+    'Conflict detection is disabled. Local and remote change tracking is not active. Enable it in settings: `salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection`',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',
@@ -126,7 +128,7 @@ export const messages = {
   conflict_detect_no_conflicts: 'No conflicts',
   conflict_detect_no_differences: 'No differences',
   conflict_detection_enabled_description:
-    "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
+    'When enabled, the system will check for conflicts before deploying/retrieving.',
 
   // Preparation phase progress
   preparing_deployment: 'Preparing deployment...',
