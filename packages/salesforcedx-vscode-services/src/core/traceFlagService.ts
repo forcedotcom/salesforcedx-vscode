@@ -169,7 +169,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       const conn = yield* connectionService.getConnection();
       const query = `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName
         FROM TraceFlag
-        WHERE LogType='${logType}' AND TracedEntityId='${userId}'`;
+        WHERE LogType='${logType}' AND TracedEntityId='${userId}'
+        ORDER BY ExpirationDate DESC LIMIT 1`;
       const result = yield* Effect.tryPromise({
         try: () => conn.tooling.query<ToolingTraceFlagRecord>(query),
         catch: error => {
