@@ -1,21 +1,16 @@
-# 66.12.2 - May 21, 2026
-
-## Added
-
-#### salesforcedx-vscode-metadata
-
-- You can now disable automatic source tracking conflict detection via the **Source Tracking: Disable Conflict Detection** setting for improved startup performance. ([PR #7323](https://github.com/forcedotcom/salesforcedx-vscode/pull/7323))
+# 66.12.3 - May 22, 2026
 
 ## Fixed
 
 #### salesforcedx-vscode-lwc
 
-- We fixed an issue where LWC HTML completions, hover, and diagnostics were not working because required modules were missing from the packaged extension. ([PR #7331](https://github.com/forcedotcom/salesforcedx-vscode/pull/7331))
+- Fix bundle ([PR #7336](https://github.com/forcedotcom/salesforcedx-vscode/pull/7336))
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-vscode-metadata
 
-- We fixed an unhandled "Channel has been closed" exception that could occur during Apex Language Server restart. ([PR #7314](https://github.com/forcedotcom/salesforcedx-vscode/pull/7314))
+- Update text ([PR #7334](https://github.com/forcedotcom/salesforcedx-vscode/pull/7334))
 
-## Under the Hood
+#### salesforcedx-vscode-org
 
-- We made some under the hood changes. ([PR #7293](https://github.com/forcedotcom/salesforcedx-vscode/pull/7293), [PR #7299](https://github.com/forcedotcom/salesforcedx-vscode/pull/7299), [PR #7322](https://github.com/forcedotcom/salesforcedx-vscode/pull/7322), [PR #7325](https://github.com/forcedotcom/salesforcedx-vscode/pull/7325))
+- Refresh TargetOrgRef on org switch so status bar updates - W-22544367 ([PR #7328](https://github.com/forcedotcom/salesforcedx-vscode/pull/7328))
+
