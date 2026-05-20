@@ -20,7 +20,7 @@ const effectSecretScannerWorkaroundPlugin = () => ({
   setup(build) {
     build.onLoad({ filter: /effect.*internal.*(redacted|secret)\.js$/ }, async args => {
       const contents = await fs.promises.readFile(args.path, 'utf8');
-      return { contents: contents.replaceAll('redactedRegistry', '$rReg'), loader: 'js' };
+      return { contents: contents.replaceAll('.redactedRegistry', '.$rReg'), loader: 'js' };
     });
   }
 });
