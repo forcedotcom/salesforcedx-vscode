@@ -80,6 +80,10 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/npm-install-with-retries
 
+      # Compile all packages first to ensure dependencies are built
+      - name: Compile packages
+        run: npm run compile
+
       # Package all VS Code extensions
       - name: Package packages
         run: npm run vscode:package
