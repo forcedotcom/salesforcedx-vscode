@@ -6,7 +6,9 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { AllServicesLayer } from './extensionProvider';
 
 /** Promise bridge for imperative code. Ensures trace flags exist for the current target org user with the ReplayDebuggerLevels debug level. */
@@ -16,7 +18,9 @@ export const ensureTraceFlagsForCurrentUser = (): Promise<boolean> =>
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const traceFlagService = yield* api.services.TraceFlagService;
       const userId = yield* traceFlagService.getUserId();
-      yield* traceFlagService.ensureTraceFlag(userId);
+      const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-log');
+      const durationMinutes = config.get<number>('traceFlagsDefaultDurationMinutes', 30);
+      yield* traceFlagService.ensureTraceFlag(userId, Duration.minutes(durationMinutes));
       return true;
     }).pipe(
       Effect.tapError(e => Effect.logError('ensureTraceFlagsForCurrentUser failed', e)),
