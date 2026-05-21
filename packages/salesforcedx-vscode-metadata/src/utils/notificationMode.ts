@@ -7,7 +7,9 @@
 
 import * as vscode from 'vscode';
 
-const SECTION = 'salesforcedx-vscode-metadata.notifications';
+const SECTION = 'salesforcedx-vscode-metadata.commandLevelNotifications';
+const EXTENSION_SECTION = 'salesforcedx-vscode-metadata';
+const EXTENSION_KEY = 'extensionLevelNotifications';
 const GLOBAL_SECTION = 'salesforcedx-vscode-services';
 const GLOBAL_KEY = 'notifications';
 const STATUS_BAR_ID = 'sf-metadata-notifications';
@@ -29,6 +31,10 @@ export type CommandKey =
 const getCommandNotificationMode = (command: CommandKey): CommandNotificationMode => {
   const commandLevel = vscode.workspace.getConfiguration(SECTION).get<CommandNotificationMode>(command);
   if (commandLevel !== undefined) return commandLevel;
+  const extensionLevel = vscode.workspace
+    .getConfiguration(EXTENSION_SECTION)
+    .get<CommandNotificationMode>(EXTENSION_KEY);
+  if (extensionLevel !== undefined) return extensionLevel;
   return vscode.workspace.getConfiguration(GLOBAL_SECTION).get<CommandNotificationMode>(GLOBAL_KEY, 'toast');
 };
 

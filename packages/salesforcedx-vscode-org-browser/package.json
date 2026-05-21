@@ -389,9 +389,23 @@
       "type": "object",
       "title": "%configuration_title%",
       "properties": {
-        "salesforcedx-vscode-org-browser.notifications": {
+        "salesforcedx-vscode-org-browser.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "off",
+            "statusBar",
+            "toast"
+          ],
+          "enumDescriptions": [
+            "%notifications_off_description%",
+            "%notifications_status_bar_description%",
+            "%notifications_toast_description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-org-browser.commandLevelNotifications": {
           "type": "object",
-          "description": "%notifications_description%",
+          "description": "%command_level_notifications_description%",
           "properties": {
             "Retrieve Metadata": {
               "type": "string",

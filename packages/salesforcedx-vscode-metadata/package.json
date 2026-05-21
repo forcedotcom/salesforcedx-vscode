@@ -351,9 +351,23 @@
           "minimum": 0,
           "description": "%source_tracking_polling_interval_description%"
         },
-        "salesforcedx-vscode-metadata.notifications": {
+        "salesforcedx-vscode-metadata.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "off",
+            "statusBar",
+            "toast"
+          ],
+          "enumDescriptions": [
+            "%notifications_off_description%",
+            "%notifications_status_bar_description%",
+            "%notifications_toast_description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-metadata.commandLevelNotifications": {
           "type": "object",
-          "description": "%notifications_description%",
+          "description": "%command_level_notifications_description%",
           "properties": {
             "SFDX: Deploy This Source to Org": {
               "type": "string",
