@@ -389,7 +389,7 @@
       "type": "object",
       "title": "%configuration_title%",
       "properties": {
-        "salesforcedx-vscode-services.notifications.orgBrowser": {
+        "salesforcedx-vscode-org-browser.notifications": {
           "type": "object",
           "description": "%notifications_description%",
           "properties": {

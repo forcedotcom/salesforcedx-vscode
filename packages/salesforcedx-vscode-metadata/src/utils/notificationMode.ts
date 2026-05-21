@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 
-const SECTION = 'salesforcedx-vscode-services.notifications.metadata';
+const SECTION = 'salesforcedx-vscode-metadata.notifications';
 const STATUS_BAR_ID = 'sf-metadata-notifications';
 const STATUS_BAR_NAME = 'Salesforce: Metadata Notifications';
 

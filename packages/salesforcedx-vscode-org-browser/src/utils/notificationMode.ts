@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 
-const SECTION = 'salesforcedx-vscode-services.notifications.orgBrowser';
+const SECTION = 'salesforcedx-vscode-org-browser.notifications';
 const STATUS_BAR_ID = 'sf-org-browser-notifications';
 const STATUS_BAR_NAME = 'Salesforce: Org Browser Notifications';
 
