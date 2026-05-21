@@ -8,6 +8,8 @@
 import * as vscode from 'vscode';
 
 const SECTION = 'salesforcedx-vscode-metadata.notifications';
+const GLOBAL_SECTION = 'salesforcedx-vscode-services';
+const GLOBAL_KEY = 'notifications';
 const STATUS_BAR_ID = 'sf-metadata-notifications';
 const STATUS_BAR_NAME = 'Salesforce: Metadata Notifications';
 
@@ -24,8 +26,11 @@ export type CommandKey =
   | 'SFDX: Diff Source Against Org'
   | 'Deploy on Save';
 
-const getCommandNotificationMode = (command: CommandKey): CommandNotificationMode =>
-  vscode.workspace.getConfiguration(SECTION).get<CommandNotificationMode>(command, 'toast');
+const getCommandNotificationMode = (command: CommandKey): CommandNotificationMode => {
+  const commandLevel = vscode.workspace.getConfiguration(SECTION).get<CommandNotificationMode>(command);
+  if (commandLevel !== undefined) return commandLevel;
+  return vscode.workspace.getConfiguration(GLOBAL_SECTION).get<CommandNotificationMode>(GLOBAL_KEY, 'toast');
+};
 
 /** Mutable state for the transient status bar item. */
 const transientState: { item: vscode.StatusBarItem | undefined; timeout: ReturnType<typeof setTimeout> | undefined } = {

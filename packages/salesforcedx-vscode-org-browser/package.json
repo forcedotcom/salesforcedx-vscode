@@ -405,14 +405,10 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_retrieve_metadata_description%"
             }
           },
-          "additionalProperties": false,
-          "default": {
-            "Retrieve Metadata": "toast"
-          }
+          "additionalProperties": false
         }
       }
     }

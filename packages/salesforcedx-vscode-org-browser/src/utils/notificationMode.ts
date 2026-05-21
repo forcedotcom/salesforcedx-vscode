@@ -8,6 +8,8 @@
 import * as vscode from 'vscode';
 
 const SECTION = 'salesforcedx-vscode-org-browser.notifications';
+const GLOBAL_SECTION = 'salesforcedx-vscode-services';
+const GLOBAL_KEY = 'notifications';
 const STATUS_BAR_ID = 'sf-org-browser-notifications';
 const STATUS_BAR_NAME = 'Salesforce: Org Browser Notifications';
 
@@ -15,8 +17,11 @@ export type CommandNotificationMode = 'off' | 'statusBar' | 'toast';
 
 export type CommandKey = 'Retrieve Metadata';
 
-const getCommandNotificationMode = (command: CommandKey): CommandNotificationMode =>
-  vscode.workspace.getConfiguration(SECTION).get<CommandNotificationMode>(command, 'toast');
+const getCommandNotificationMode = (command: CommandKey): CommandNotificationMode => {
+  const commandLevel = vscode.workspace.getConfiguration(SECTION).get<CommandNotificationMode>(command);
+  if (commandLevel !== undefined) return commandLevel;
+  return vscode.workspace.getConfiguration(GLOBAL_SECTION).get<CommandNotificationMode>(GLOBAL_KEY, 'toast');
+};
 
 const transientState: { item: vscode.StatusBarItem | undefined; timeout: ReturnType<typeof setTimeout> | undefined } = {
   item: undefined,

@@ -331,6 +331,21 @@
           "type": "boolean",
           "default": false,
           "description": "%configuration.otelFile.description%"
+        },
+        "salesforcedx-vscode-services.notifications": {
+          "type": "string",
+          "enum": [
+            "off",
+            "statusBar",
+            "toast"
+          ],
+          "enumDescriptions": [
+            "%notifications.off.description%",
+            "%notifications.statusBar.description%",
+            "%notifications.toast.description%"
+          ],
+          "default": "toast",
+          "description": "%notifications.description%"
         }
       }
     },

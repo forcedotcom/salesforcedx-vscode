@@ -367,7 +367,6 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_deploy_this_source_description%"
             },
             "SFDX: Retrieve This Source from Org": {
@@ -382,7 +381,6 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_retrieve_this_source_description%"
             },
             "SFDX: Push Source to Default Org": {
@@ -397,7 +395,6 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_push_source_description%"
             },
             "SFDX: Pull Source from Default Org": {
@@ -412,7 +409,6 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_pull_source_description%"
             },
             "SFDX: Deploy Source in Manifest to Org": {
@@ -427,7 +423,6 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_deploy_source_in_manifest_description%"
             },
             "SFDX: Retrieve Source in Manifest from Org": {
@@ -442,7 +437,6 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_retrieve_source_in_manifest_description%"
             },
             "SFDX: Delete from Project and Org": {
@@ -457,7 +451,6 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_delete_from_project_and_org_description%"
             },
             "SFDX: Diff Source Against Org": {
@@ -472,7 +465,6 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_diff_source_description%"
             },
             "Deploy on Save": {
@@ -487,22 +479,10 @@
                 "%notifications_status_bar_description%",
                 "%notifications_toast_description%"
               ],
-              "default": "toast",
               "description": "%notifications_deploy_on_save_description%"
             }
           },
-          "additionalProperties": false,
-          "default": {
-            "SFDX: Deploy This Source to Org": "toast",
-            "SFDX: Retrieve This Source from Org": "toast",
-            "SFDX: Push Source to Default Org": "toast",
-            "SFDX: Pull Source from Default Org": "toast",
-            "SFDX: Deploy Source in Manifest to Org": "toast",
-            "SFDX: Retrieve Source in Manifest from Org": "toast",
-            "SFDX: Delete from Project and Org": "toast",
-            "SFDX: Diff Source Against Org": "toast",
-            "Deploy on Save": "toast"
-          }
+          "additionalProperties": false
         }
       }
     },
