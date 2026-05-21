@@ -17,6 +17,7 @@ import {
   openFileByName,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
+  removeAllDebugLevels,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -101,6 +102,10 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
     await expect(codelens.first()).toBeVisible({ timeout: 90000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
+  });
+
+  await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
+    await removeAllDebugLevels(page);
   });
 
   await test.step('create trace flag for current user', async () => {

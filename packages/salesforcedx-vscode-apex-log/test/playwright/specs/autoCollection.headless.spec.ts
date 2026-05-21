@@ -12,6 +12,7 @@ import {
   closeSettingsTab,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  removeAllDebugLevels,
   saveScreenshot,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
@@ -52,6 +53,8 @@ test('Auto-collection: poll interval setting, trace flag triggers collector, dis
       await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
       await waitForTraceFlagStatusBar(page, /No Tracing/, 60_000);
     }
+
+    await removeAllDebugLevels(page);
   });
 
   await test.step('set logPollIntervalSeconds to 10', async () => {
