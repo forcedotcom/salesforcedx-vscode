@@ -7,7 +7,9 @@
 
 import * as vscode from 'vscode';
 
-const SECTION = 'salesforcedx-vscode-metadata.notifications';
+const SECTION = 'salesforcedx-vscode-services.notifications.metadata';
+const STATUS_BAR_ID = 'sf-metadata-notifications';
+const STATUS_BAR_NAME = 'Salesforce: Metadata Notifications';
 
 export type CommandNotificationMode = 'off' | 'statusBar' | 'toast';
 
@@ -25,7 +27,7 @@ export type CommandKey =
 const getCommandNotificationMode = (command: CommandKey): CommandNotificationMode =>
   vscode.workspace.getConfiguration(SECTION).get<CommandNotificationMode>(command, 'toast');
 
-/** Mutable state for the transient status bar item, boxed in a const object to satisfy functional/no-let. */
+/** Mutable state for the transient status bar item. */
 const transientState: { item: vscode.StatusBarItem | undefined; timeout: ReturnType<typeof setTimeout> | undefined } = {
   item: undefined,
   timeout: undefined
@@ -33,12 +35,8 @@ const transientState: { item: vscode.StatusBarItem | undefined; timeout: ReturnT
 
 const getTransientStatusBar = (): vscode.StatusBarItem => {
   if (!transientState.item) {
-    transientState.item = vscode.window.createStatusBarItem(
-      'sf-metadata-notifications',
-      vscode.StatusBarAlignment.Left,
-      44
-    );
-    transientState.item.name = 'Salesforce: Metadata Notifications';
+    transientState.item = vscode.window.createStatusBarItem(STATUS_BAR_ID, vscode.StatusBarAlignment.Left, 44);
+    transientState.item.name = STATUS_BAR_NAME;
   }
   return transientState.item;
 };

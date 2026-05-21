@@ -351,7 +351,7 @@
           "minimum": 0,
           "description": "%source_tracking_polling_interval_description%"
         },
-        "salesforcedx-vscode-metadata.notifications": {
+        "salesforcedx-vscode-services.notifications.metadata": {
           "type": "object",
           "description": "%notifications_description%",
           "properties": {
