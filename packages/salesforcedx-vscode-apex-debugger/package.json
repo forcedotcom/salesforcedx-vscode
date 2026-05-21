@@ -48,6 +48,7 @@
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "vscode:bundle:build": "wireit",
     "vscode:prepublish": "npm prune --production",

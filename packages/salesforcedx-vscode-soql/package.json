@@ -77,6 +77,7 @@
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
