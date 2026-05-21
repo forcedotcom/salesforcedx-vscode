@@ -94,9 +94,10 @@ export const messages = {
   apex_test_failed_execution_message: '%s failed to run',
   apex_class_source_hidden:
     "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
-  test_explorer_local_namespace_label: 'Local Namespace',
+  test_explorer_local_namespace_label: '(Local Namespace)',
   test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
   test_explorer_1gp_package_label: '%s (1GP)',
+  test_explorer_managed_package_label: '%s (Managed Package)',
   colorizer_no_code_coverage_current_file:
     'No code coverage information was found for file %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_no_code_coverage_on_project:

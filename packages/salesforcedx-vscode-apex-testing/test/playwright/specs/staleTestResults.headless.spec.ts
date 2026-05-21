@@ -24,7 +24,7 @@ import { TEST_RUN_TIMEOUT } from '../contants';
 
 const TEST_EXPLORER_PANEL = '[id="workbench.view.extension.test"]';
 const TEST_EXPLORER_TREE_ITEM = '[role="treeitem"]';
-const LOCAL_NAMESPACE_LABEL = 'Local Namespace';
+const LOCAL_NAMESPACE_LABEL = '(Local Namespace)';
 const UNPACKAGED_METADATA_LABEL = '(Unpackaged Metadata)';
 
 const expandTreeRow = async (panel: Locator, rowLabel: string): Promise<void> => {
