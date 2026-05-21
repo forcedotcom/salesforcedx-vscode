@@ -86,7 +86,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npm i -g @salesforce/cli
+          command: npm i -g @salesforce/cli@latest-rc
           retry_wait_seconds: 30
 
       - name: Clone dreamhouse
@@ -248,7 +248,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npm i -g @salesforce/cli
+          command: npm i -g @salesforce/cli@latest-rc
           retry_wait_seconds: 30
 
       - name: Auth to dev hub (global)
@@ -405,7 +405,7 @@ jobs:
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
         run: |
-          npm i -g @salesforce/cli
+          npm i -g @salesforce/cli@latest-rc
 
       - name: Auth to dev hub (global)
         if: steps.try-run.outcome == 'failure'
@@ -528,7 +528,7 @@ jobs:
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
         run: |
-          npm i -g @salesforce/cli
+          npm i -g @salesforce/cli@latest-rc
 
       - name: Auth to dev hub (global)
         if: steps.try-run.outcome == 'failure'
