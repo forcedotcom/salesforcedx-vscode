@@ -14,6 +14,7 @@ import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { nls } from '../messages';
 import { getDetectConflictsForDeployAndRetrieve } from '../settings/deployOnSaveSettings';
 import { detectConflictsFromTracking } from './conflictDetection';
+import { isConflictDetectionEnabled } from './conflictDetectionSettings';
 import { detectConflictsFromTimestamps } from './conflictDetectionTimestamp';
 import { ConflictsDetectedError } from './conflictErrors';
 import { getConflictStateRef } from './conflictTreeProvider';
@@ -31,6 +32,13 @@ export const detectConflicts = Effect.fn('detectConflicts')(function* (
   componentSet: NonEmptyComponentSet,
   operationType: 'deploy' | 'retrieve' | 'delete'
 ) {
+  // Check if conflict detection is disabled via settings
+  const conflictDetectionEnabled = yield* isConflictDetectionEnabled();
+  if (!conflictDetectionEnabled) {
+    // Skip all conflict detection when disabled
+    return;
+  }
+
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 

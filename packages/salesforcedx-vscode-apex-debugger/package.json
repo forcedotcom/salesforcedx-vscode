@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.10.1",
+  "version": "66.12.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -40,8 +40,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "salesforcedx-vscode-apex": "66.10.1",
-    "salesforcedx-vscode-core": "66.10.1"
+    "salesforcedx-vscode-apex": "66.12.3",
+    "salesforcedx-vscode-core": "66.12.3"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",
