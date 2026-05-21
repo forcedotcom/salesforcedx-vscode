@@ -52,5 +52,5 @@ export const createNonTrackingOrg = async (alias: string = NON_TRACKING_ORG_ALIA
     }
   );
 
-  return extractAuthFields(createStdout);
+  return extractAuthFields(createStdout, alias);
 };

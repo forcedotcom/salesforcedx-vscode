@@ -20,8 +20,12 @@ export const tryUseExistingOrg = async (orgAlias: string): Promise<OrgAuthResult
       (await execAsync(`sf org display -o ${orgAlias} --json`, { env })).stdout
     ) as OrgDisplayResult;
 
+    const tokenResponse = JSON.parse(
+      (await execAsync(`sf org auth show-access-token -o ${orgAlias} --json`, { env })).stdout
+    ) as { result: { accessToken: string } };
+
     return {
-      accessToken: displayResponse.result.accessToken,
+      accessToken: tokenResponse.result.accessToken,
       instanceUrl: displayResponse.result.instanceUrl,
       instanceApiVersion: displayResponse.result.apiVersion
     };
@@ -31,18 +35,22 @@ export const tryUseExistingOrg = async (orgAlias: string): Promise<OrgAuthResult
 };
 
 /** Validate and return auth fields from scratch org creation response */
-export const extractAuthFields = (createStdout: string): OrgAuthResult => {
+export const extractAuthFields = async (createStdout: string, orgAlias: string): Promise<OrgAuthResult> => {
   const createResponse = JSON.parse(createStdout) as { result: { authFields: AuthFields } };
   const authFields = createResponse?.result?.authFields;
 
-  if (!authFields.instanceUrl || !authFields.accessToken || !authFields.instanceApiVersion) {
+  if (!authFields.instanceUrl || !authFields.instanceApiVersion) {
     throw new Error(
-      'Scratch org creation did not return required credentials (authFields.instanceUrl, authFields.accessToken, authFields.instanceApiVersion).'
+      'Scratch org creation did not return required credentials (authFields.instanceUrl, authFields.instanceApiVersion).'
     );
   }
 
+  const tokenResponse = JSON.parse(
+    (await execAsync(`sf org auth show-access-token -o ${orgAlias} --json`, { env })).stdout
+  ) as { result: { accessToken: string } };
+
   return {
-    accessToken: authFields.accessToken,
+    accessToken: tokenResponse.result.accessToken,
     instanceUrl: authFields.instanceUrl,
     instanceApiVersion: authFields.instanceApiVersion
   };

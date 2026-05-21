@@ -51,5 +51,5 @@ export const createMinimalOrg = async (): Promise<OrgAuthResult> => {
     }
   );
 
-  return extractAuthFields(createStdout);
+  return extractAuthFields(createStdout, MINIMAL_ORG_ALIAS);
 };
