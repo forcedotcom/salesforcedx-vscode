@@ -132,10 +132,12 @@ jobs:
         run: |
           npx tsx .github/scripts/index.ts ext-release-plan
 
-  bump-versions:
-    needs: [determine-changes]
+  bump-and-package:
+    needs: [determine-changes, calculate-artifact-name]
     runs-on: ubuntu-latest
     if: needs.determine-changes.outputs.selected-extensions != ''
+    outputs:
+      artifact-name: ${{ steps.calc-artifact-name.outputs.artifact-name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -160,6 +162,136 @@ jobs:
           IS_PROMOTION: 'false'
         run: |
           npx tsx .github/scripts/index.ts ext-version-bumper
+
+      # Compile all packages first to ensure dependencies are built
+      - name: Compile packages
+        run: npm run compile
+
+      # Package all VS Code extensions
+      - name: Package packages
+        run: npm run vscode:package
+
+      - name: Generate MD5 checksums
+        id: md5-checksums
+        run: |
+          echo "Generating MD5 checksums for VSIX files..."
+
+          # Universal + web-target VSIX under packages/
+          VSIX_FILES=$(find packages -name "*.vsix" -type f)
+
+          if [ -z "$VSIX_FILES" ]; then
+            echo "No VSIX files found to generate checksums for"
+            echo "checksums_generated=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Create checksums directory structure
+          CHECKSUMS_FILE="checksums.md5"
+          CHECKSUMS_JSON_FILE="checksums.json"
+          > "$CHECKSUMS_FILE"  # Create/clear checksums file
+          > "$CHECKSUMS_JSON_FILE"  # Create/clear JSON file
+          echo "[" > "$CHECKSUMS_JSON_FILE"
+
+          FIRST=true
+          # Generate MD5 checksums for each VSIX file
+          while IFS= read -r vsix_file; do
+            if [ -f "$vsix_file" ]; then
+              # Generate MD5 checksum
+              MD5_HASH=$(md5sum "$vsix_file" | cut -d' ' -f1)
+
+              # Get relative path for display
+              RELATIVE_PATH=$(echo "$vsix_file" | sed 's|^packages/||')
+
+              # Get file size
+              FILE_SIZE=$(stat -c%s "$vsix_file" 2>/dev/null || stat -f%z "$vsix_file" 2>/dev/null || echo "0")
+
+              # Create individual .md5 file alongside VSIX file
+              MD5_FILE="${vsix_file}.md5"
+              echo "$MD5_HASH  $(basename "$vsix_file")" > "$MD5_FILE"
+
+              # Add to combined checksums file
+              echo "$MD5_HASH  $RELATIVE_PATH" >> "$CHECKSUMS_FILE"
+
+              # Add to JSON file for workflow summary
+              if [ "$FIRST" = true ]; then
+                FIRST=false
+              else
+                echo "," >> "$CHECKSUMS_JSON_FILE"
+              fi
+              echo "  {\"file\":\"$RELATIVE_PATH\",\"md5\":\"$MD5_HASH\",\"size\":\"$FILE_SIZE\"}" >> "$CHECKSUMS_JSON_FILE"
+
+              echo "Generated MD5 for: $RELATIVE_PATH"
+              echo "  MD5: $MD5_HASH"
+              echo "  Size: $FILE_SIZE bytes"
+            fi
+          done <<< "$VSIX_FILES"
+
+          echo "]" >> "$CHECKSUMS_JSON_FILE"
+
+          # Move combined checksums files to packages root for artifact upload
+          mv "$CHECKSUMS_FILE" "packages/checksums.md5"
+          mv "$CHECKSUMS_JSON_FILE" "packages/checksums.json"
+
+          echo "checksums_generated=true" >> $GITHUB_OUTPUT
+          echo "checksums_file=packages/checksums.json" >> $GITHUB_OUTPUT
+
+      - name: Calculate artifact name
+        id: calc-artifact-name
+        uses: ./.github/actions/calculate-artifact-name
+        with:
+          artifact-name: ${{ needs.calculate-artifact-name.outputs.artifact-name }}
+          dry-run: ${{ inputs.dry-run }}
+
+      - name: Upload VSIX artifacts
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.calc-artifact-name.outputs.artifact-name }}
+          path: |
+            packages/**/*.vsix
+            packages/**/*.vsix.md5
+            packages/checksums.md5
+            packages/checksums.json
+          retention-days: 5
+
+      - name: List VSIX files
+        run: |
+          echo "VSIX files created:"
+          find packages -name "*.vsix" -exec ls -la {} \;
+
+      - name: Add MD5 checksums to workflow summary
+        if: steps.md5-checksums.outputs.checksums_generated == 'true'
+        run: |
+          echo "## MD5 Checksums" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "MD5 checksums for all VSIX extension files:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Extension | MD5 Checksum | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------------|------|" >> $GITHUB_STEP_SUMMARY
+
+          # Read checksums from JSON file and format table
+          CHECKSUMS_FILE="${{ steps.md5-checksums.outputs.checksums_file }}"
+
+          if [ -f "$CHECKSUMS_FILE" ]; then
+            # Use node to parse JSON and format table
+            node -e "
+              const fs = require('fs');
+              const checksums = JSON.parse(fs.readFileSync('$CHECKSUMS_FILE', 'utf8'));
+              checksums.forEach(item => {
+                const file = item.file || 'unknown';
+                const md5 = item.md5 || 'unknown';
+                const size = item.size || '0';
+                const sizeFormatted = size !== '0' && size !== 'unknown' ? (parseInt(size) / 1024).toFixed(2) + ' KB' : 'unknown';
+                console.log(\`|\${file} |\` + md5 + \` |\${sizeFormatted}|\`);
+              });
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| No checksums available | - | - |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Individual \`.md5\` files are available alongside each VSIX file in the artifacts." >> $GITHUB_STEP_SUMMARY
+          echo "A combined \`checksums.md5\` file and \`checksums.json\` file are also included in the artifacts." >> $GITHUB_STEP_SUMMARY
 
       - name: Validate GitHub authentication
         env:
@@ -261,15 +393,6 @@ jobs:
           artifact-name: vsix-packages
           dry-run: ${{ inputs.dry-run || github.event.inputs.dry-run || 'false' }}
 
-  package:
-    needs: [bump-versions, calculate-artifact-name, determine-changes]
-    uses: ./.github/workflows/package.yml
-    with:
-      branch: ${{ inputs.branch || github.ref_name }}
-      artifact-name: ${{ needs.calculate-artifact-name.outputs.artifact-name }}
-      dry-run: ${{ inputs.dry-run || github.event.inputs.dry-run || 'false' }}
-      pre-release: ${{ inputs.pre-release || github.event.inputs.pre-release || 'false' }}
-
   determine-publish-matrix:
     needs: [determine-changes, calculate-artifact-name]
     runs-on: ubuntu-latest
@@ -305,8 +428,7 @@ jobs:
   publish:
     needs:
       [
-        bump-versions,
-        package,
+        bump-and-package,
         calculate-artifact-name,
         determine-publish-matrix,
       ]
@@ -433,9 +555,9 @@ jobs:
 
   create-github-releases:
     name: Create GitHub Releases
-    needs: [package, determine-changes, calculate-artifact-name]
+    needs: [bump-and-package, determine-changes, calculate-artifact-name]
     runs-on: ubuntu-latest
-    if: needs.package.result == 'success' && needs.determine-changes.outputs.selected-extensions != '' && github.event_name != 'pull_request'
+    if: needs.bump-and-package.result == 'success' && needs.determine-changes.outputs.selected-extensions != '' && github.event_name != 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -473,10 +595,10 @@ jobs:
 
   publish-to-cbweb-marketplace:
     name: Publish to CBWeb Internal Marketplace
-    needs: [package, create-github-releases, calculate-artifact-name]
+    needs: [bump-and-package, create-github-releases, calculate-artifact-name]
     runs-on: ubuntu-latest
     continue-on-error: true
-    if: needs.package.result == 'success'
+    if: needs.bump-and-package.result == 'success'
     steps:
       - name: Download VSIX artifacts
         uses: actions/download-artifact@v8
@@ -532,7 +654,7 @@ jobs:
   slack-notify:
     name: Slack Notification
     needs:
-      [determine-changes, bump-versions, package, publish]
+      [determine-changes, bump-and-package, publish]
     runs-on: ubuntu-latest
     if: always() && needs.publish.result == 'success' && (inputs.dry-run != 'true' && github.event.inputs.dry-run != 'true')
     steps:
@@ -639,7 +761,7 @@ jobs:
   slack-notify-failure:
     name: Slack Failure Notification
     needs:
-      [determine-changes, bump-versions, package, publish]
+      [determine-changes, bump-and-package, publish]
     runs-on: ubuntu-latest
     if: always() && needs.publish.result == 'failure' && (inputs.dry-run != 'true' && github.event.inputs.dry-run != 'true')
     steps:
