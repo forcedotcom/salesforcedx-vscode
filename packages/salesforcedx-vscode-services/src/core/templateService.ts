@@ -29,7 +29,7 @@ export { TemplateType, type CreateOutput } from '@salesforce/templates';
 /**
  * Project options where `ns` and `loginurl` may be omitted by callers; the
  * service fills defaults (no namespace, production login URL) before invoking
- * @salesforce/templates which requires both as strings.
+ * @salesforce/templates which requires both as strings
  */
 type ProjectCreateOptions = Omit<SfTemplates.ProjectOptions, 'ns' | 'loginurl'> & {
   readonly ns?: string;
