@@ -489,16 +489,18 @@ jobs:
         run: |
           VSIX_FILE=$(find ./vsix-artifacts -type f -name "*-web-*.vsix" | head -1)
           if [ -z "$VSIX_FILE" ]; then
-            echo "::error::No web-target VSIX found in artifacts (expected *-web-*.vsix from package workflow)"
-            exit 1
+            echo "::notice::No web-target VSIX found in artifacts - skipping CBWeb publish (this repo may not produce web builds)"
+            echo "has_web_vsix=false" >> $GITHUB_OUTPUT
+            exit 0
           fi
 
           FILE_SIZE=$(stat -c%s "$VSIX_FILE" 2>/dev/null || stat -f%z "$VSIX_FILE" 2>/dev/null || echo "unknown")
           echo "Found web VSIX: $VSIX_FILE (${FILE_SIZE} bytes)"
+          echo "has_web_vsix=true" >> $GITHUB_OUTPUT
           echo "vsix_file=$VSIX_FILE" >> $GITHUB_OUTPUT
 
       - name: Publish web VSIX to CBWeb internal marketplace
-        if: inputs.dry-run != 'true' && github.event.inputs.dry-run != 'true'
+        if: steps.find-web-vsix.outputs.has_web_vsix == 'true' && inputs.dry-run != 'true' && github.event.inputs.dry-run != 'true'
         run: |
           echo "Publishing $VSIX_FILE to CBWeb marketplace..."
 
