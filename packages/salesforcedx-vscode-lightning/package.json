@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "66.12.2"
+    "salesforcedx-vscode-services": "66.13.0"
   },
   "scripts": {
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
