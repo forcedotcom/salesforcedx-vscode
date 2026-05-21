@@ -10,7 +10,6 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { DebugLevelItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { DebugLevelCreateError, DebugLevelDeleteError } from '../../errors/commandErrors';
 import { nls } from '../../messages';
@@ -47,33 +46,15 @@ export const openTraceFlagsCommand = Effect.fn('ApexLog.Command.openTraceFlags')
   yield* api.services.FsService.showTextDocument(uri);
 });
 
-/**
- * Shows the debug level picker if levels exist; returns the chosen ID, undefined (user cancelled),
- * or null (no levels — caller should omit debugLevelId to trigger getOrCreateDebugLevel fallback).
- */
-const pickDebugLevelId = async (debugLevels: DebugLevelItem[]): Promise<string | null | undefined> => {
-  if (debugLevels.length === 0) return null;
-  const picked = await pickDebugLevel(debugLevels);
-  return picked?.debugLevelId ?? undefined;
-};
-
 /** Create/extends trace flag for current user using defaultDurationMinutes from config, refreshes virtual doc. */
 export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.createTraceFlagForCurrentUser')(
   function* () {
     const ctx = yield* requireOrgContext({ requireUserId: true });
     if (Option.isNone(ctx)) return;
     const { api, orgId, userId } = ctx.value;
-    const traceFlagService = yield* api.services.TraceFlagService;
-    const debugLevels = yield* traceFlagService.getDebugLevels();
-    const debugLevelId = yield* Effect.promise(() => pickDebugLevelId(debugLevels));
-    if (debugLevelId === undefined) return;
     const minutes = yield* readDefaultDurationMinutes();
-    yield* traceFlagService.ensureTraceFlag(
-      userId!,
-      Duration.minutes(minutes),
-      'DEVELOPER_LOG',
-      debugLevelId ?? undefined
-    );
+    const traceFlagService = yield* api.services.TraceFlagService;
+    yield* traceFlagService.ensureTraceFlag(userId!, Duration.minutes(minutes));
     yield* refreshTraceFlagsView(orgId);
   }
 );
@@ -104,14 +85,14 @@ export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTr
   if (!picked) return;
   const traceFlagService = yield* api.services.TraceFlagService;
   const debugLevels = yield* traceFlagService.getDebugLevels();
-  const debugLevelId = yield* Effect.promise(() => pickDebugLevelId(debugLevels));
-  if (debugLevelId === undefined) return;
+  const pickedLevel = yield* Effect.promise(() => pickDebugLevel(debugLevels));
+  if (!pickedLevel) return;
   const minutes = yield* readDefaultDurationMinutes();
   yield* traceFlagService.ensureTraceFlag(
     picked.userId,
     Duration.minutes(minutes),
     'USER_DEBUG',
-    debugLevelId ?? undefined
+    pickedLevel.debugLevelId
   );
   yield* refreshTraceFlagsView(orgId);
 });

@@ -35,8 +35,8 @@ const browserBuild = await build({
 
 // Bundle the LWC language server for Node.js (desktop VS Code)
 // Single entry server.js; define ESBUILD_PLATFORM so only ServerNode is included (ServerBrowser tree-shaken)
-// Note: vscode-html-languageservice must be external because it uses dynamic requires
-// that esbuild cannot resolve (e.g., './parser/htmlScanner')
+// vscode-html-languageservice is bundled (not external) by preferring the ESM version which uses
+// static imports instead of the UMD version's dynamic requires (e.g., './parser/htmlScanner')
 await build({
   ...nodeConfig,
   loader: { '.node': 'file', '.json': 'json' },
@@ -44,16 +44,39 @@ await build({
     'vscode',
     '@salesforce/lightning-lsp-common',
     '@babel/preset-typescript/package.json',
-    'jest-editor-support',
-    '@babel/core',
-    'vscode-html-languageservice'
+    'jest-editor-support'
   ],
   entryPoints: ['../salesforcedx-lwc-language-server/out/src/server.js'],
   outfile: './dist/lwcServer.js',
   bundle: true,
   platform: 'node',
   target: 'node18',
-  define: { 'process.env.ESBUILD_PLATFORM': '"node"' }
+  define: { 'process.env.ESBUILD_PLATFORM': '"node"' },
+  // Allow dynamic import for @babel/core's config file loader (works fine at runtime on Node)
+  supported: { 'dynamic-import': true },
+  logOverride: { ...nodeConfig.logOverride, 'unsupported-dynamic-import': 'silent' },
+  mainFields: ['module', 'main'],
+  plugins: [
+    {
+      name: 'resolve-vscode-html-languageservice-dynamic-requires',
+      setup(build) {
+        build.onResolve({ filter: /^\.\.\/parser\/htmlScanner$/ }, args => {
+          if (args.importer.includes('vscode-html-languageservice')) {
+            return {
+              path: resolve(__dirname, '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js')
+            };
+          }
+        });
+        build.onResolve({ filter: /^\.\/parser\/htmlScanner$/ }, args => {
+          if (args.importer.includes('vscode-html-languageservice')) {
+            return {
+              path: resolve(__dirname, '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js')
+            };
+          }
+        });
+      }
+    }
+  ]
 });
 
 // Bundle the LWC language server for browser/web worker (VS Code for the Web)
