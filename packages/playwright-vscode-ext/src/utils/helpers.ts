@@ -9,6 +9,7 @@ import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { upsertSettings } from '../pages/settings';
 import {
+  CODELENS_ITEM,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   SETTINGS_SEARCH_INPUT,
@@ -90,7 +91,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // with `vscode.github-authentication` disabled there's no provider, so it surfaces this
   // toast. Benign in E2E — tests don't use VS Code accounts.
   'Sign-in failed',
-  'Channel is closed'
+  'Channel is closed',
+  'GenOpAgentConfig', // VS Code 1.119+ registry warning for unreleased agent config type (non-critical)
+  'DEP0005' // Node.js Buffer() deprecation warning from transitive dependencies (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -473,6 +476,35 @@ export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' &&
 
 /** Returns true if running on Windows desktop (Electron) */
 export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
+
+/**
+ * Opens traceFlags.json and removes all debug levels via their Remove code lenses.
+ * With no debug levels present, createTraceFlagForCurrentUser will auto-create
+ * ReplayDebuggerLevels instead of showing the debug level picker.
+ * Safe to call when no debug levels exist — the step is a no-op in that case.
+ */
+export const removeAllDebugLevels = async (page: Page): Promise<void> => {
+  const removeLinks = page.locator(CODELENS_ITEM).filter({ hasText: /^Remove$/ });
+
+  await expect(async () => {
+    await executeCommandWithCommandPalette(page, 'SFDX: Open Trace Flags');
+    await expect(page.locator('.tab').filter({ hasText: /traceFlags\.json/ })).toBeVisible({ timeout: 10_000 });
+    // Wait for code lenses to render (attached is sufficient — they may be off-screen in web).
+    await expect(page.locator(CODELENS_ITEM).filter({ hasText: /Create Debug level/ })).toBeAttached({
+      timeout: 10_000
+    });
+
+    // This is only called when no trace flags are active, so all Remove lenses belong to
+    // debug levels — click the first one and re-iterate until none remain.
+    const link = removeLinks.first();
+    if (!(await link.isVisible({ timeout: 1000 }).catch(() => false))) return;
+    await link.scrollIntoViewIfNeeded();
+    const count = await removeLinks.count();
+    await link.click();
+    await expect(removeLinks).not.toHaveCount(count, { timeout: 10_000 });
+    throw new Error('removed one debug level, checking for more');
+  }).toPass({ timeout: 60_000 });
+};
 
 /** Validate no critical console or network errors occurred during test execution */
 export const validateNoCriticalErrors = async (
