@@ -5,5 +5,43 @@
       "Bash(git commit -m ' *)",
       "Bash(python3 -c ' *)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-no-verify.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/mark-edit.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/verify-on-edit.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/verify-stop.sh"
+          }
+        ]
+      }
+    ]
   }
 }
