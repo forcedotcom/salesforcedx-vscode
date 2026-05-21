@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-aura-language-server",
   "displayName": "Aura Language Server",
-  "version": "64.16.1",
+  "version": "64.17.0",
   "description": "Language server for Aura components.",
   "publisher": "salesforce",
   "engines": {

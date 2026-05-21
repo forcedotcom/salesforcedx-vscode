@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-lwc-language-server",
   "displayName": "LWC Language Server",
-  "version": "64.16.1",
+  "version": "64.17.0",
   "description": "Language server for Lightning Web Components.",
   "publisher": "salesforce",
   "engines": {
