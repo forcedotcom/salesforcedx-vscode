@@ -43,6 +43,10 @@ ref: https://github.com/google/wireit?tab=readme-ov-file#extra-arguments
 
 top level `compile`, `lint`, `test` should run all of that in the various packages. When creating new packages, update these.
 
+## Errors
+
+If you see "Unknown error thrown: Error: Did not expect..." or "Internal error!" from wireit — another process was running the same scripts. Re-run the command yourself to confirm it passes. DO NOT CLEAR `.wireit` to solve this.
+
 ## Notes
 
 each package will have its own `.wireit` cache, and there's also one at the top level.
