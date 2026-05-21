@@ -182,7 +182,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     /** Retrieve one or more metadata components from the default org. */
     const retrieve = Effect.fn('MetadataRetrieveService.retrieve')(function* (
       members: MetadataMember[],
-      options?: SourceTrackingOptions
+      options?: SourceTrackingOptions & { progressLocation?: vscode.ProgressLocation }
     ) {
       const [connection, project, registryAccess, componentSet, hasTracking] = yield* Effect.all(
         [
@@ -201,7 +201,15 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       }
 
       const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
-      return yield* performRetrieveOperation({ componentSet, connection, registryAccess, title, merge: true, project });
+      return yield* performRetrieveOperation({
+        componentSet,
+        connection,
+        registryAccess,
+        title,
+        progressLocation: options?.progressLocation,
+        merge: true,
+        project
+      });
     }, withActiveMetadataOperationPipeline);
 
     /** Retrieve metadata using a ComponentSet directly.

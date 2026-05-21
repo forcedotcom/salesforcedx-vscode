@@ -8,5 +8,7 @@
 export const messages = {
   confirm_overwrite: 'Overwrite local files for %s %s?',
   yes_button: 'Yes',
-  no_button: 'No'
+  no_button: 'No',
+  retrieve_metadata_text: 'Retrieve Metadata',
+  command_succeeded_text: '%s succeeded.'
 } as const;

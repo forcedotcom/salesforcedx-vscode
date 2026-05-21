@@ -13,6 +13,9 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
+import { type CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+
+const COMMAND: CommandKey = 'Retrieve Metadata';
 
 export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(function* (
   node: OrgBrowserTreeItem,
@@ -31,7 +34,9 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
   yield* confirmOverwrite(projectComponentSet, members);
 
   // Run the retrieve operation
-  const result = yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1);
+  const result = yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1, {
+    progressLocation: getProgressLocation(COMMAND)
+  });
 
   // Handle post-retrieve UI updates
   yield* Effect.promise(async () => {
@@ -42,6 +47,8 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
       await treeProvider.refreshType(node);
     }
   });
+
+  showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('retrieve_metadata_text')));
 
   return result;
 });

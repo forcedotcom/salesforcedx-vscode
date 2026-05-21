@@ -20,5 +20,11 @@
   "org_browser_walkthrough_retrieve_type_alt": "ApexClass type row with Retrieve Metadata tooltip visible",
   "org_browser_walkthrough_retrieve_single_title": "Retrieve a Single Component",
   "org_browser_walkthrough_retrieve_single_description": "Hover over any **individual component** to reveal its retrieve icon. Click it to download just that file.\n\nThe retrieved file opens automatically in the editor. A checkmark indicates the component now exists in your local project.",
-  "org_browser_walkthrough_retrieve_single_alt": "FileUtilities.cls open in editor with checkmark on component in Org Browser"
+  "org_browser_walkthrough_retrieve_single_alt": "FileUtilities.cls open in editor with checkmark on component in Org Browser",
+  "configuration_title": "Salesforce Org Browser Configuration",
+  "notifications_description": "Notification style for each Org Browser command. Warnings and failures are always shown as toasts regardless of this setting.",
+  "notifications_off_description": "No success notifications. Progress spinner shown in the status bar.",
+  "notifications_status_bar_description": "Show progress spinner and success message in the status bar.",
+  "notifications_toast_description": "Show progress and success as toast notifications.",
+  "notifications_retrieve_metadata_description": "Notification style for Retrieve Metadata."
 }
