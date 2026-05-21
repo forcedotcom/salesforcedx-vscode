@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { type Attributes, type HrTime, SpanStatusCode } from '@opentelemetry/api';
+import { type Attributes, type HrTime } from '@opentelemetry/api';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 
 /** Check if a span is a top-level span (has no parent) */
@@ -41,19 +41,6 @@ export const getExtensionNameAndVersionAttributes = (
   return { 'common.extname': String(extensionName), 'common.extversion': String(extensionVersion) };
 };
 
-/** Serialize span to flat JSON line for file export (AI-optimized). */
-export const serializeSpanForFile = (span: ReadableSpan): string =>
-  JSON.stringify({
-    name: span.name,
-    traceId: span.spanContext().traceId,
-    spanId: span.spanContext().spanId,
-    parentSpanId: span.parentSpanContext?.spanId ?? '',
-    durationMs: spanDuration(span),
-    status: span.status?.code === SpanStatusCode.ERROR ? 'ERROR' : 'OK',
-    startTime: new Date(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000).toISOString(),
-    attributes: convertAttributes(span.attributes)
-  });
-
 /** Convert HrTime [seconds, nanoseconds] to nanosecond-precision string */
 const hrTimeToNano = (hrTime: HrTime): string => (BigInt(hrTime[0]) * 1_000_000_000n + BigInt(hrTime[1])).toString();
 
@@ -66,11 +53,12 @@ export const serializeSpanOtlp = (span: ReadableSpan, env?: { hostname?: string;
   if (env?.processId) resourceAttrs['processId'] = env.processId;
 
   return JSON.stringify({
+    kind: 'span',
     traceId: span.spanContext().traceId,
     spanId: span.spanContext().spanId,
     parentSpanId: span.parentSpanContext?.spanId ?? '',
     name: span.name,
-    kind: span.kind + 1,
+    spanKind: span.kind + 1,
     startTimeUnixNano: hrTimeToNano(span.startTime),
     endTimeUnixNano: hrTimeToNano(span.endTime),
     attributes: span.attributes,

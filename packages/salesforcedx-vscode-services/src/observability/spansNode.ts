@@ -8,22 +8,22 @@ import type { SdkLayerConfig } from './sdkLayerConfig';
 import { AzureMonitorTraceExporter } from '@azure/monitor-opentelemetry-exporter';
 import { NodeSdk } from '@effect/opentelemetry';
 import type { ExportResult } from '@opentelemetry/core';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { ConsoleSpanExporter, type ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
+import * as Layer from 'effect/Layer';
+import * as Logger from 'effect/Logger';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
-import { FileSpanExporterNode } from './fileSpanExporterNode';
-import {
-  getConsoleTracesEnabled,
-  getFileTracesEnabled,
-  getLocalTracesEnabled,
-  getOtlpFileTracesEnabled
-} from './localTracing';
+import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled, getLogLevel } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
+import { OtlpFileLogExporterNode } from './otlpFileLogExporterNode';
 import { OtlpFileSpanExporterNode } from './otlpFileSpanExporterNode';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
+import { TraceContextLogProcessor } from './traceContextLogProcessor';
 
 class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
   public override async export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): Promise<void> {
@@ -62,7 +62,14 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
       ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
-      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new FileSpanExporterNode(extensionName))] : []),
-      ...(getOtlpFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterNode())] : [])
+      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterNode())] : [])
+    ],
+    logRecordProcessor: [
+      ...(getLocalTracesEnabled()
+        ? [new TraceContextLogProcessor(new SimpleLogRecordProcessor(new OTLPLogExporter()))]
+        : []),
+      ...(getFileTracesEnabled()
+        ? [new TraceContextLogProcessor(new SimpleLogRecordProcessor(new OtlpFileLogExporterNode()))]
+        : [])
     ]
-  }));
+  })).pipe(Layer.merge(Logger.minimumLogLevel(getLogLevel())));

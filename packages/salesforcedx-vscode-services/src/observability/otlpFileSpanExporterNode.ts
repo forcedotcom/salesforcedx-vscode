@@ -18,11 +18,11 @@ const SPANS_DIR = join(Global.SF_DIR, 'vscode-spans');
 // eslint-disable-next-line functional/no-let -- lazily initialized shared path
 let sharedFilePath: string | undefined;
 
-const getFilePath = (): string => {
+export const getOtlpFilePath = (): string => {
   if (!sharedFilePath) {
     mkdirSync(SPANS_DIR, { recursive: true });
     const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
-    sharedFilePath = join(SPANS_DIR, `otlp-${timestamp}.jsonl`);
+    sharedFilePath = join(SPANS_DIR, `${timestamp}.jsonl`);
   }
   return sharedFilePath;
 };
@@ -31,7 +31,6 @@ const getFilePath = (): string => {
 export class OtlpFileSpanExporterNode implements SpanExporter {
   private readonly env = { hostname: hostname(), processId: String(process.pid) };
 
-  // eslint-disable-next-line class-methods-use-this -- SpanExporter interface
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
     if (spans.length === 0) {
       resultCallback({ code: ExportResultCode.SUCCESS });
@@ -42,7 +41,7 @@ export class OtlpFileSpanExporterNode implements SpanExporter {
       // eslint-disable-next-line functional/no-try-statements -- sync fs op, no Effect in exporter
       try {
         const lines = spans.map(span => serializeSpanOtlp(span, this.env)).join('\n');
-        appendFileSync(getFilePath(), `${lines}\n`);
+        appendFileSync(getOtlpFilePath(), `${lines}\n`);
         return { code: ExportResultCode.SUCCESS };
       } catch (error) {
         return { code: ExportResultCode.FAILED, error };

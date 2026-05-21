@@ -33,6 +33,7 @@
     "@effect/platform": "^0.94.5",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/core": "2.0.1",
+    "@opentelemetry/exporter-logs-otlp-http": "0.203.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.214.0",
     "@opentelemetry/resources": "2.2.0",
     "@opentelemetry/sdk-logs": "0.203.0",
@@ -330,12 +331,19 @@
         "salesforcedx-vscode-salesforcedx.enableFileTraces": {
           "type": "boolean",
           "default": false,
-          "description": "%configuration.otelFile.description%"
-        },
-        "salesforcedx-vscode-salesforcedx.enableOtlpFileTraces": {
-          "type": "boolean",
-          "default": false,
           "description": "%configuration.otelOtlpFile.description%"
+        },
+        "salesforcedx-vscode-salesforcedx.logLevel": {
+          "type": "string",
+          "default": "error",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warning",
+            "error"
+          ],
+          "description": "%configuration.logLevel.description%"
         }
       }
     },

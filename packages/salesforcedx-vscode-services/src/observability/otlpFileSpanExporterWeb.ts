@@ -35,9 +35,7 @@ export class OtlpFileSpanExporterWeb implements SpanExporter {
       )
       .catch(error => {
         if (!serverUnreachable.logged) {
-          console.warn(
-            'Span file server unreachable at localhost:3003 — enableOtlpFileTraces needs spans:server running'
-          );
+          console.warn('Span file server unreachable at localhost:3003 — enableFileTraces needs spans:server running');
           serverUnreachable.logged = true;
         }
         resultCallback({ code: ExportResultCode.FAILED, error });
