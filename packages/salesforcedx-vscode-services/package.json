@@ -55,7 +55,6 @@
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
     "@types/node": "^20.0.0",
-    "jsforce": "^3.9.4",
     "svgtofont": "^3.5.0"
   },
   "scripts": {
