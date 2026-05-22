@@ -63,6 +63,28 @@ describe('AppInsights', () => {
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock.mock.calls[0][0]).toMatchSnapshot();
     });
+
+    it('should include orgEdition in event properties when available', () => {
+      getInstanceMock.mockReturnValue({
+        devHubId: '',
+        orgId: dummyOrgId,
+        orgShape: 'Production',
+        orgEdition: 'Enterprise Edition'
+      });
+
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId, 'test-webUser', false);
+      (appInsights as any).userOptIn = true;
+      (appInsights as any).appInsightsClient = {
+        trackException: trackExceptionMock,
+        trackEvent: trackEventMock
+      };
+
+      appInsights.sendTelemetryEvent('Test Event', {}, {});
+
+      const eventProps = trackEventMock.mock.calls[0][0].properties;
+      expect(eventProps.orgEdition).toBe('Enterprise Edition');
+      expect(eventProps.orgId).toBe(dummyOrgId);
+    });
   });
 
   describe('dispose', () => {

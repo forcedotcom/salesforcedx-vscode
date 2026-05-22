@@ -39,7 +39,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.28.0",
+    "@salesforce/core": "^8.31.0",
     "salesforcedx-vscode-core": "66.12.3"
   },
   "extensionDependencies": [

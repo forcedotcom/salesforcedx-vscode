@@ -40,11 +40,12 @@ describe('workspaceContext', () => {
       onOrgChange: jest.fn(),
       orgShape: undefined as OrgShape | undefined,
       devHubId: undefined as string | undefined,
+      orgEdition: undefined as string | undefined,
       username: 'mock-username',
       alias: 'mock-alias',
       orgId: 'mock-org-id',
       getConnection: jest.fn().mockResolvedValue({
-        getAuthInfoFields: jest.fn().mockReturnValue({ orgId: '000' })
+        getAuthInfoFields: jest.fn().mockReturnValue({ orgId: '000', orgEdition: 'Developer Edition' })
       })
     };
 
@@ -94,6 +95,30 @@ describe('workspaceContext', () => {
       expect(mockWorkspaceContextUtil.orgShape).toBe('Scratch');
       expect(getDevHubIdFromScratchOrgMock).toHaveBeenCalledWith(mockOrgUserInfo.username);
       expect(mockWorkspaceContextUtil.devHubId).toBe('test-dev-hub-id');
+    });
+
+    it('should set orgEdition from auth fields when orgShape is not Undefined', async () => {
+      getOrgShapeMock.mockResolvedValue('Production');
+      mockWorkspaceContextUtil.getConnection.mockResolvedValue({
+        getAuthInfoFields: jest.fn().mockReturnValue({ orgId: '000', orgEdition: 'Developer Edition' })
+      });
+      const workspaceContext = WorkspaceContext.getInstance();
+
+      await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
+
+      expect(mockWorkspaceContextUtil.orgEdition).toBe('Developer Edition');
+    });
+
+    it('should not set orgEdition if getConnection fails', async () => {
+      mockWorkspaceContextUtil.orgEdition = undefined;
+      getOrgShapeMock.mockResolvedValue('Production');
+      mockWorkspaceContextUtil.getConnection.mockRejectedValue(new Error('connection failed'));
+      const workspaceContext = WorkspaceContext.getInstance();
+
+      await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
+
+      expect(mockWorkspaceContextUtil.orgShape).toBe('Production');
+      expect(mockWorkspaceContextUtil.orgEdition).toBeUndefined();
     });
   });
 

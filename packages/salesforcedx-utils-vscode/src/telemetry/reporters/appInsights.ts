@@ -254,6 +254,6 @@ export class AppInsights
 
 const getBaseProps = (): Record<string, string> => {
   const context = WorkspaceContextUtil.getInstance();
-  const { orgId = '', orgShape = '', devHubId = '' } = context;
-  return orgId ? { orgId, orgShape, devHubId } : {};
+  const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = context;
+  return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
 };
