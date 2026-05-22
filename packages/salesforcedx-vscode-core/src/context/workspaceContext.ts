@@ -73,6 +73,12 @@ export class WorkspaceContext {
       if (orgShape !== 'Undefined') {
         WorkspaceContextUtil.getInstance().orgShape = orgShape;
         WorkspaceContextUtil.getInstance().devHubId = undefined;
+        try {
+          const connection = await WorkspaceContextUtil.getInstance().getConnection();
+          WorkspaceContextUtil.getInstance().orgEdition = connection.getAuthInfoFields().orgEdition;
+        } catch {
+          /* best effort — orgEdition may not yet be populated */
+        }
       }
       if (orgShape === 'Scratch') {
         const devHubId = await getDevHubIdFromScratchOrg(username);

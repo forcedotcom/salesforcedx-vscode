@@ -47,3 +47,9 @@ export const SETTINGS_SEARCH_INPUT = [
 
 /** VS Code context menu container */
 export const CONTEXT_MENU = '.monaco-menu';
+
+/**
+ * Code lens interactive element — desktop (Electron) renders as `<a>` inside
+ * `.codelens-decoration`; web (Chromium) renders as `<button>` directly.
+ */
+export const CODELENS_ITEM = '.codelens-decoration a, .codelens-decoration button';
