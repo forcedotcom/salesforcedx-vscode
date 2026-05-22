@@ -26,7 +26,7 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
       Stream.changes,
       Stream.tap(orgId => channelService.appendToChannel(`Discovering tests for org: ${orgId}`)),
       Stream.runForEach(() =>
-        Effect.promise(() => testController.discoverTests()).pipe(
+        Effect.promise(() => testController.refresh()).pipe(
           Effect.catchAll(error => {
             console.debug('[Apex Testing] Test discovery setup failed:', error);
             return Effect.void;

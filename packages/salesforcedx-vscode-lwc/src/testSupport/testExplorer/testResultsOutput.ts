@@ -45,18 +45,12 @@ const CIRCLE = `${ANSI.yellow}○${ANSI.reset}`;
  */
 export type TestItemLookup = {
   findFileItem: (testUri: URI) => vscode.TestItem | undefined;
-  findCaseItem: (
-    testUri: URI,
-    title: string,
-    ancestorTitles: string[] | undefined
-  ) => vscode.TestItem | undefined;
+  findCaseItem: (testUri: URI, title: string, ancestorTitles: string[] | undefined) => vscode.TestItem | undefined;
 };
 
 /** Bold cyan profile title between dim horizontal rules — written once at the start of each test run. */
 export const appendRunHeader = (run: vscode.TestRun, isDebug: boolean): void => {
-  const title = isDebug
-    ? nls.localize('lwc_test_debug_profile_title')
-    : nls.localize('lwc_test_run_profile_title');
+  const title = isDebug ? nls.localize('lwc_test_debug_profile_title') : nls.localize('lwc_test_run_profile_title');
   run.appendOutput(toCrlf(SEPARATOR));
   run.appendOutput(toCrlf(`  ${ANSI.bold}${ANSI.cyan}${title}${ANSI.reset}`));
   run.appendOutput(toCrlf(SEPARATOR));
@@ -77,8 +71,7 @@ export const appendTestResultsOutput = (
     const testUri = URI.file(fileResult.name);
     const relPath = toRelativePath(fileResult.name);
     const fileDurationMs = Math.max(0, fileResult.endTime - fileResult.startTime);
-    const durationSuffix =
-      fileDurationMs > 0 ? ` ${ANSI.gray}(${formatDuration(fileDurationMs)})${ANSI.reset}` : '';
+    const durationSuffix = fileDurationMs > 0 ? ` ${ANSI.gray}(${formatDuration(fileDurationMs)})${ANSI.reset}` : '';
     run.appendOutput(toCrlf(`${fileBadge(fileResult)}  ${formatPrettyPath(relPath)}${durationSuffix}`));
 
     const fileItem = lookup.findFileItem(testUri);
@@ -171,13 +164,7 @@ const formatPrettyPath = (relPath: string): string => {
   return `${ANSI.dim}${dir}${ANSI.reset}${ANSI.bold}${file}${ANSI.reset}`;
 };
 
-const formatSummaryLine = (
-  label: string,
-  passed: number,
-  failed: number,
-  total: number,
-  pending: number
-): string => {
+const formatSummaryLine = (label: string, passed: number, failed: number, total: number, pending: number): string => {
   const parts: string[] = [];
   if (failed > 0) {
     parts.push(`${ANSI.red}${ANSI.bold}${failed} failed${ANSI.reset}`);

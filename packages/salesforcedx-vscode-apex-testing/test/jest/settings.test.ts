@@ -11,7 +11,8 @@ import {
   retrieveTestCodeCoverage,
   retrieveTestRunConcise,
   retrieveTestSortOrder,
-  retrieveCoverageThreshold
+  retrieveCoverageThreshold,
+  retrieveRestorePreviousResults
 } from '../../src/settings';
 
 const APEX_TESTING_CONFIGURATION_NAME = 'salesforcedx-vscode-apex-testing';
@@ -96,5 +97,17 @@ describe('settings Unit Tests.', () => {
     expect(result).toBe(75);
     expect(getConfigurationMock).toHaveBeenCalledWith(APEX_TESTING_CONFIGURATION_NAME);
     expect(getFn).toHaveBeenCalledWith('testCoverageThresholdPercent', 75);
+  });
+
+  it('Should be able to get retrieveRestorePreviousResults setting.', () => {
+    getConfigurationMock.mockReturnValue({
+      get: getFn.mockReturnValue(true)
+    } as any);
+
+    const result = retrieveRestorePreviousResults();
+
+    expect(result).toBe(true);
+    expect(getConfigurationMock).toHaveBeenCalledWith(APEX_TESTING_CONFIGURATION_NAME);
+    expect(getFn).toHaveBeenCalledWith('restore-previous-results', true);
   });
 });

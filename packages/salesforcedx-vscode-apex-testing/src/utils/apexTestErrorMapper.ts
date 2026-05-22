@@ -38,7 +38,7 @@ const ORG_RESOURCE_PATTERNS = ['requested resource does not exist', '404', 'not 
 const ORG_UNREACHABLE_PATTERNS = ['http response contains html content', 'status code: 420', 'status code 420'];
 
 const getMessageFromObject = (obj: object): string | undefined => {
-  const m = Object.getOwnPropertyDescriptor(obj, 'message')?.value;
+  const m: unknown = Object.getOwnPropertyDescriptor(obj, 'message')?.value;
   return typeof m === 'string' ? m : undefined;
 };
 
@@ -55,17 +55,17 @@ const getRawMessage = (error: unknown): string => {
       return msg;
     }
     // Salesforce API often returns { body: [{ errorCode, message }] }
-    const body = Object.getOwnPropertyDescriptor(error, 'body')?.value;
+    const body: unknown = Object.getOwnPropertyDescriptor(error, 'body')?.value;
     if (Array.isArray(body) && body.length > 0) {
-      const first = body[0];
-      if (first && typeof first === 'object') {
+      const first: unknown = body[0];
+      if (first !== null && typeof first === 'object') {
         const firstMsg = getMessageFromObject(first);
         if (firstMsg !== undefined) {
           return firstMsg;
         }
       }
     }
-    if (body && typeof body === 'object' && !Array.isArray(body)) {
+    if (body !== null && typeof body === 'object' && !Array.isArray(body)) {
       const bodyMsg = getMessageFromObject(body);
       if (bodyMsg !== undefined) {
         return bodyMsg;

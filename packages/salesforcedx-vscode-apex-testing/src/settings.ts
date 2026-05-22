@@ -30,3 +30,12 @@ export const retrievePerformanceThreshold = (): number =>
 
 export const retrieveCoverageThreshold = (): number =>
   vscode.workspace.getConfiguration(APEX_TESTING_CONFIGURATION_NAME).get<number>('testCoverageThresholdPercent', 75);
+
+export const retrieveRestorePreviousResults = (): boolean =>
+  vscode.workspace.getConfiguration(APEX_TESTING_CONFIGURATION_NAME).get<boolean>('restore-previous-results', true);
+
+export const disableRestorePreviousResults = async (): Promise<void> => {
+  await vscode.workspace
+    .getConfiguration(APEX_TESTING_CONFIGURATION_NAME)
+    .update('restore-previous-results', false, vscode.ConfigurationTarget.Workspace);
+};

@@ -30,8 +30,8 @@ type CommandletExecutor<T> = {
 
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
   // eslint-disable-next-line class-methods-use-this
-  public async gather(): Promise<Response<{}>> {
-    return { type: 'CONTINUE', data: {} };
+  public gather(): Promise<Response<{}>> {
+    return Promise.resolve({ type: 'CONTINUE', data: {} });
   }
 }
 

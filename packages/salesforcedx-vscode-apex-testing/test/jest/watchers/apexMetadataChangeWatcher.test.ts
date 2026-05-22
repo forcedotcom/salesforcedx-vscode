@@ -42,8 +42,8 @@ const makeEvent = (
  */
 const setupHarness = Effect.fn('setupHarness')(function* (readFileResponses: Map<string, string> = new Map()) {
   const pubsub = yield* PubSub.unbounded<MetadataChangeEventType>({ replay: 16 });
-  const discoverTests = jest.fn(() => Promise.resolve());
-  const testController = { discoverTests } as unknown as Parameters<typeof setupApexMetadataChangeWatcher>[0];
+  const incrementalUpdate = jest.fn<Promise<void>, [Map<string, string>, boolean]>(() => Promise.resolve());
+  const testController = { incrementalUpdate } as unknown as Parameters<typeof setupApexMetadataChangeWatcher>[0];
 
   const readFileFn = jest.fn((uri: unknown) => Effect.succeed(readFileResponses.get(String(uri)) ?? NON_TEST_CONTENT));
 
@@ -63,7 +63,7 @@ const setupHarness = Effect.fn('setupHarness')(function* (readFileResponses: Map
   );
   yield* Effect.forkScoped(provided);
 
-  return { pubsub, discoverTests, readFileFn };
+  return { pubsub, incrementalUpdate, readFileFn };
 });
 
 const advance = TestClock.adjust(DEBOUNCE_PLUS_MARGIN);
@@ -72,37 +72,41 @@ const runTest = <A>(effect: Effect.Effect<A, unknown, Scope.Scope>) =>
   Effect.runPromise(effect.pipe(Effect.scoped, Effect.provide(TestContext.TestContext)));
 
 describe('setupApexMetadataChangeWatcher', () => {
-  it('calls discoverTests after debounce when an apex test event arrives', () =>
+  it('calls incrementalUpdate with changes map after debounce when an apex test event arrives', () =>
     runTest(
       Effect.gen(function* () {
         const responses = new Map([[URI.file('/tmp/MyClass.cls').toString(), APEX_TEST_CONTENT]]);
-        const { pubsub, discoverTests } = yield* setupHarness(responses);
+        const { pubsub, incrementalUpdate } = yield* setupHarness(responses);
 
         yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexClass' }));
-        expect(discoverTests).not.toHaveBeenCalled();
+        expect(incrementalUpdate).not.toHaveBeenCalled();
 
         yield* advance;
 
-        expect(discoverTests).toHaveBeenCalledTimes(1);
+        expect(incrementalUpdate).toHaveBeenCalledTimes(1);
+        const [changes, hasSuite] = incrementalUpdate.mock.calls[0];
+        expect(changes).toBeInstanceOf(Map);
+        expect(changes.get('MyClass')).toBe('changed');
+        expect(hasSuite).toBe(false);
       })
     ));
 
-  it('does not call discoverTests for non-apex metadata types', () =>
+  it('does not call incrementalUpdate for non-apex metadata types', () =>
     runTest(
       Effect.gen(function* () {
-        const { pubsub, discoverTests } = yield* setupHarness();
+        const { pubsub, incrementalUpdate } = yield* setupHarness();
 
         yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'LightningComponentBundle' }));
         yield* advance;
 
-        expect(discoverTests).not.toHaveBeenCalled();
+        expect(incrementalUpdate).not.toHaveBeenCalled();
       })
     ));
 
-  it('does not call discoverTests for non-apex change types', () =>
+  it('does not call incrementalUpdate for non-apex change types', () =>
     runTest(
       Effect.gen(function* () {
-        const { pubsub, discoverTests } = yield* setupHarness();
+        const { pubsub, incrementalUpdate } = yield* setupHarness();
 
         yield* PubSub.publish(
           pubsub,
@@ -110,79 +114,136 @@ describe('setupApexMetadataChangeWatcher', () => {
         );
         yield* advance;
 
-        expect(discoverTests).not.toHaveBeenCalled();
+        expect(incrementalUpdate).not.toHaveBeenCalled();
       })
     ));
 
-  it('does not read files for deleted events but still triggers discoverTests', () =>
+  it('does not read files for deleted events but still triggers incrementalUpdate', () =>
     runTest(
       Effect.gen(function* () {
-        const { pubsub, readFileFn, discoverTests } = yield* setupHarness();
+        const { pubsub, readFileFn, incrementalUpdate } = yield* setupHarness();
 
-        yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexClass', changeType: 'deleted' }));
+        yield* PubSub.publish(
+          pubsub,
+          makeEvent({ metadataType: 'ApexClass', changeType: 'deleted', fullName: 'DeletedClass' })
+        );
         yield* advance;
 
         expect(readFileFn).not.toHaveBeenCalled();
-        expect(discoverTests).toHaveBeenCalledTimes(1);
+        expect(incrementalUpdate).toHaveBeenCalledTimes(1);
+        const [changes] = incrementalUpdate.mock.calls[0];
+        expect(changes.get('DeletedClass')).toBe('deleted');
       })
     ));
 
-  it('does not read files for ApexTestSuite events but still triggers discoverTests', () =>
+  it('does not read files for ApexTestSuite events and passes hasSuite=true', () =>
     runTest(
       Effect.gen(function* () {
-        const { pubsub, readFileFn, discoverTests } = yield* setupHarness();
+        const { pubsub, readFileFn, incrementalUpdate } = yield* setupHarness();
 
-        yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexTestSuite' }));
+        yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexTestSuite', fullName: 'MySuite' }));
         yield* advance;
 
         expect(readFileFn).not.toHaveBeenCalled();
-        expect(discoverTests).toHaveBeenCalledTimes(1);
+        expect(incrementalUpdate).toHaveBeenCalledTimes(1);
+        const [changes, hasSuite] = incrementalUpdate.mock.calls[0];
+        expect(changes.get('MySuite')).toBe('changed');
+        expect(hasSuite).toBe(true);
       })
     ));
 
-  it('skips file reads after first passing event in a burst', () =>
+  it('skips file reads after first passing event in a burst but accumulates all names', () =>
     runTest(
       Effect.gen(function* () {
         const testUri = URI.file('/tmp/TestClass.cls');
         const nonTestUri = URI.file('/tmp/Helper.cls');
         const responses = new Map([[testUri.toString(), APEX_TEST_CONTENT]]);
-        const { pubsub, readFileFn, discoverTests } = yield* setupHarness(responses);
+        const { pubsub, readFileFn, incrementalUpdate } = yield* setupHarness(responses);
 
-        yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexClass', fileUri: Option.some(testUri) }));
-        yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexClass', fileUri: Option.some(nonTestUri) }));
+        yield* PubSub.publish(
+          pubsub,
+          makeEvent({ metadataType: 'ApexClass', fileUri: Option.some(testUri), fullName: 'TestClass' })
+        );
+        yield* PubSub.publish(
+          pubsub,
+          makeEvent({ metadataType: 'ApexClass', fileUri: Option.some(nonTestUri), fullName: 'Helper' })
+        );
         yield* advance;
 
         expect(readFileFn).toHaveBeenCalledTimes(1);
-        expect(discoverTests).toHaveBeenCalledTimes(1);
+        expect(incrementalUpdate).toHaveBeenCalledTimes(1);
+        const [changes] = incrementalUpdate.mock.calls[0];
+        expect(changes.get('TestClass')).toBe('changed');
+        expect(changes.get('Helper')).toBe('changed');
       })
     ));
 
-  it('resets the willRefresh ref after refresh so subsequent bursts are processed', () =>
+  it('resets state after update so subsequent bursts are processed', () =>
     runTest(
       Effect.gen(function* () {
         const testUri = URI.file('/tmp/TestClass.cls');
         const responses = new Map([[testUri.toString(), APEX_TEST_CONTENT]]);
-        const { pubsub, discoverTests } = yield* setupHarness(responses);
+        const { pubsub, incrementalUpdate } = yield* setupHarness(responses);
 
-        yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexClass', fileUri: Option.some(testUri) }));
+        yield* PubSub.publish(
+          pubsub,
+          makeEvent({ metadataType: 'ApexClass', fileUri: Option.some(testUri), fullName: 'TestClass' })
+        );
         yield* advance;
-        expect(discoverTests).toHaveBeenCalledTimes(1);
+        expect(incrementalUpdate).toHaveBeenCalledTimes(1);
 
-        yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexClass', fileUri: Option.some(testUri) }));
+        yield* PubSub.publish(
+          pubsub,
+          makeEvent({ metadataType: 'ApexClass', fileUri: Option.some(testUri), fullName: 'TestClass' })
+        );
         yield* advance;
-        expect(discoverTests).toHaveBeenCalledTimes(2);
+        expect(incrementalUpdate).toHaveBeenCalledTimes(2);
       })
     ));
 
-  it('does not call discoverTests when no events pass the apex test filter', () =>
+  it('does not call incrementalUpdate when no events pass the apex test filter', () =>
     runTest(
       Effect.gen(function* () {
-        const { pubsub, discoverTests } = yield* setupHarness();
+        const { pubsub, incrementalUpdate } = yield* setupHarness();
 
         yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexClass' }));
         yield* advance;
 
-        expect(discoverTests).not.toHaveBeenCalled();
+        expect(incrementalUpdate).not.toHaveBeenCalled();
+      })
+    ));
+
+  it('accumulates multiple class names with their respective change types', () =>
+    runTest(
+      Effect.gen(function* () {
+        const testUri = URI.file('/tmp/TestClass.cls');
+        const responses = new Map([[testUri.toString(), APEX_TEST_CONTENT]]);
+        const { pubsub, incrementalUpdate } = yield* setupHarness(responses);
+
+        yield* PubSub.publish(
+          pubsub,
+          makeEvent({
+            metadataType: 'ApexClass',
+            fileUri: Option.some(testUri),
+            fullName: 'TestClass',
+            changeType: 'changed'
+          })
+        );
+        yield* PubSub.publish(
+          pubsub,
+          makeEvent({ metadataType: 'ApexClass', fullName: 'NewClass', changeType: 'created' })
+        );
+        yield* PubSub.publish(
+          pubsub,
+          makeEvent({ metadataType: 'ApexClass', fullName: 'OldClass', changeType: 'deleted' })
+        );
+        yield* advance;
+
+        expect(incrementalUpdate).toHaveBeenCalledTimes(1);
+        const [changes] = incrementalUpdate.mock.calls[0];
+        expect(changes.get('TestClass')).toBe('changed');
+        expect(changes.get('NewClass')).toBe('created');
+        expect(changes.get('OldClass')).toBe('deleted');
       })
     ));
 });

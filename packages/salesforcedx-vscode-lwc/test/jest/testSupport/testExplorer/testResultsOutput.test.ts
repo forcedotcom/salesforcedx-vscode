@@ -67,11 +67,7 @@ describe('testResultsOutput.fileBadge', () => {
     const badge = fileBadge(
       makeFileResult({
         status: 'skipped' as unknown as LwcJestTestFileResult['status'],
-        assertionResults: [
-          { status: 'skipped' } as never,
-          { status: 'pending' } as never,
-          { status: 'todo' } as never
-        ]
+        assertionResults: [{ status: 'skipped' } as never, { status: 'pending' } as never, { status: 'todo' } as never]
       })
     );
     expect(badge).toContain(' PASS ');
