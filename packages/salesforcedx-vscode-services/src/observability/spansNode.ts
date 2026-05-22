@@ -6,9 +6,9 @@
  */
 import type { SdkLayerConfig } from './sdkLayerConfig';
 import { AzureMonitorTraceExporter } from '@azure/monitor-opentelemetry-exporter';
-import { NodeSdk } from '@effect/opentelemetry';
+import { NodeSdk, OtlpLogger, OtlpSerialization } from '@effect/opentelemetry';
+import { FetchHttpClient } from '@effect/platform';
 import type { ExportResult } from '@opentelemetry/core';
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { ConsoleSpanExporter, type ReadableSpan } from '@opentelemetry/sdk-trace-base';
@@ -23,7 +23,6 @@ import { OtlpFileLogExporterNode } from './otlpFileLogExporterNode';
 import { OtlpFileSpanExporterNode } from './otlpFileSpanExporterNode';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
-import { TraceContextLogProcessor } from './traceContextLogProcessor';
 
 class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
   public override async export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): Promise<void> {
@@ -65,11 +64,22 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
       ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterNode())] : [])
     ],
     logRecordProcessor: [
-      ...(getLocalTracesEnabled()
-        ? [new TraceContextLogProcessor(new SimpleLogRecordProcessor(new OTLPLogExporter()))]
-        : []),
       ...(getFileTracesEnabled()
-        ? [new TraceContextLogProcessor(new SimpleLogRecordProcessor(new OtlpFileLogExporterNode()))]
+        ? [new SimpleLogRecordProcessor(new OtlpFileLogExporterNode())]
         : [])
     ]
-  })).pipe(Layer.merge(Logger.minimumLogLevel(getLogLevel())));
+  })).pipe(
+    Layer.merge(Logger.minimumLogLevel(getLogLevel())),
+    Layer.merge(
+      getLocalTracesEnabled()
+        ? OtlpLogger.layer({
+            // OTLPTraceExporter reads OTEL_EXPORTER_OTLP_ENDPOINT internally; OtlpLogger does not, so we resolve it here
+            url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'http://localhost:4318'}/v1/logs`,
+            resource: { serviceName: extensionName, serviceVersion: extensionVersion }
+          }).pipe(
+            Layer.provide(FetchHttpClient.layer),
+            Layer.provide(OtlpSerialization.layerJson)
+          )
+        : Layer.empty
+    )
+  );
