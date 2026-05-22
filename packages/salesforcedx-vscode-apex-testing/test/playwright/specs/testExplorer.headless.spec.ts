@@ -26,7 +26,7 @@ const TEST_EXPLORER_PANEL = '[id="workbench.view.extension.test"]';
 const TEST_EXPLORER_TREE_ITEM = '[role="treeitem"]';
 const TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]';
 // Labels for namespace/package grouping (must match apex-testing nls)
-const LOCAL_NAMESPACE_LABEL = 'Local Namespace';
+const LOCAL_NAMESPACE_LABEL = '(Local Namespace)';
 const UNPACKAGED_METADATA_LABEL = '(Unpackaged Metadata)';
 
 /**
