@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.31.0",
-    "salesforcedx-vscode-core": "66.12.3"
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",

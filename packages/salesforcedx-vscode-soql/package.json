@@ -70,7 +70,7 @@
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
     "rxjs": "^7.8.2",
-    "salesforcedx-vscode-services": "66.12.3"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
