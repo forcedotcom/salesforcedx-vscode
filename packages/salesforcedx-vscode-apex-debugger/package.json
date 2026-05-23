@@ -28,7 +28,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.28.0",
+    "@salesforce/core": "^8.31.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
@@ -40,8 +40,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "salesforcedx-vscode-apex": "66.12.3",
-    "salesforcedx-vscode-core": "66.12.3"
+    "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",

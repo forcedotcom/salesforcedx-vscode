@@ -469,7 +469,7 @@ describe('testItemUtils', () => {
       const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
       const classItem = createMockTestItem('class:MyClass', 'MyClass', [methodItem]);
       const packageItem = createMockTestItem('package:local:unpackaged', '(Unpackaged Metadata)', [classItem]);
-      const namespaceItem = createMockTestItem('namespace:local', 'Local Namespace', [packageItem]);
+      const namespaceItem = createMockTestItem('namespace:local', '(Local Namespace)', [packageItem]);
       const request = {
         include: [namespaceItem]
       } as unknown as vscode.TestRunRequest;
