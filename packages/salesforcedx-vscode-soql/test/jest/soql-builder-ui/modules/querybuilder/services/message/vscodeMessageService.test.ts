@@ -1,9 +1,3 @@
-/* eslint-disable camelcase */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /*
  *  Copyright (c) 2020, salesforce.com, inc.
  *  All rights reserved.
@@ -13,49 +7,36 @@
  */
 
 import { getWindow } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
-import { VscodeMessageService } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/vscodeMessageService';
+import { makeVscodeMessageService } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/vscodeMessageService';
 import { MessageType } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 
 describe('VscodeMessageService', () => {
   let vsCodeApi;
   let listener;
   let vscodeMessageService;
-  let window;
+  const window = getWindow();
   const messageType = 'message';
-  const accountQuery = {
-    sObject: 'Account',
-    fields: []
-  };
-  const postMessagePayload = (type?: string, payload?: string) => {
-    return {
-      data: {
-        type: type || MessageType.TEXT_SOQL_CHANGED,
-        payload: payload || accountQuery
-      }
-    };
-  };
+  const accountQuery = { sObject: 'Account', fields: [] };
+
+  const postMessagePayload = (type?: string, payload?: unknown) => ({
+    data: {
+      type: type || MessageType.TEXT_SOQL_CHANGED,
+      payload: payload || accountQuery
+    }
+  });
 
   beforeEach(() => {
-    // @ts-ignore
-    // eslint-disable-next-line no-undef
-    window = getWindow();
-    // @ts-ignore
-    // eslint-disable-next-line no-undef
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,no-undef
     vsCodeApi = acquireVsCodeApi();
     listener = jest.fn();
-    vscodeMessageService = new VscodeMessageService();
-    vscodeMessageService.messagesToUI.subscribe(listener);
+    vscodeMessageService = makeVscodeMessageService();
+    vscodeMessageService.onMessage(listener);
   });
 
   it('calls postMessage with activated type immediately when created', () => {
-    expect(vsCodeApi).toBeTruthy();
     jest.spyOn(vsCodeApi, 'postMessage');
-    // eslint-disable-next-line no-new
-    new VscodeMessageService();
-    expect(vsCodeApi.postMessage).toHaveBeenCalled();
-    expect(vsCodeApi.postMessage).toHaveBeenCalledWith({
-      type: MessageType.UI_ACTIVATED
-    });
+    makeVscodeMessageService();
+    expect(vsCodeApi.postMessage).toHaveBeenCalledWith({ type: MessageType.UI_ACTIVATED });
   });
 
   it('sets and gets state', () => {
@@ -68,15 +49,12 @@ describe('VscodeMessageService', () => {
     const messageEvent = new MessageEvent(messageType, postMessagePayload());
     window.dispatchEvent(messageEvent);
     expect(listener).toHaveBeenCalled();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(listener.mock.calls[0][0].payload.sObject).toEqual(accountQuery.sObject);
   });
 
   it('filters out malformed SOQL event messages', () => {
-    const messageEvent = new MessageEvent(messageType, {
-      data: {
-        no_type_specified: 'xyz'
-      }
-    });
+    const messageEvent = new MessageEvent(messageType, { data: { no_type_specified: 'xyz' } });
     window.dispatchEvent(messageEvent);
     expect(listener).toHaveBeenCalledTimes(0);
   });

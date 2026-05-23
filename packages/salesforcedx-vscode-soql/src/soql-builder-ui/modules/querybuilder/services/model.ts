@@ -6,7 +6,6 @@
  *
  */
 import { AndOr, ConditionOperator, UiOperatorValue } from '@salesforce/soql-model/model/model';
-import { List, Map } from 'immutable';
 import { JsonMap } from '@salesforce/ts-types';
 import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
 
@@ -21,22 +20,6 @@ export enum ModelProps {
 
 export const SELECT_COUNT = 'COUNT()';
 
-// This is to satisfy TS and stay dry
-export type IMap = Map<string, string | List<string>>;
-
-// Private immutable interface
-export type ToolingModel = IMap & {
-  headerComments?: string;
-  sObject: string;
-  fields: List<string>;
-  orderBy: List<Map>;
-  limit: string;
-  where: List<Map>;
-  errors: List<Map>;
-  unsupported: List<Map>;
-  originalSoqlStatement: string;
-}
-
 // Public interface for accessing modelService.query
 export type ToolingModelJson = JsonMap & {
   headerComments?: string;
@@ -44,7 +27,7 @@ export type ToolingModelJson = JsonMap & {
   fields: string[];
   orderBy: JsonMap[];
   limit: string;
-  where: { conditions: JsonMap; andOr: AndOr };
+  where: { conditions: JsonMap[]; andOr: AndOr | undefined };
   errors: JsonMap[];
   unsupported: JsonMap[];
   originalSoqlStatement: string;
@@ -123,8 +106,8 @@ export const operatorOptions: OperatorOption[] = [
     displayValue: 'like',
     modelValue: ConditionOperator.Like,
     predicate: (condition: JsonMap): boolean => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const value = condition.compareValue.value;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (condition.compareValue as any)?.value;
       return (
         condition.operator === ConditionOperator.Like &&
         !(isLikeStart(value) || isLikeEnds(value) || isLikeContains(value))
@@ -136,8 +119,8 @@ export const operatorOptions: OperatorOption[] = [
     displayValue: 'starts with',
     modelValue: ConditionOperator.Like,
     predicate: (condition: JsonMap): boolean => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const value = condition.compareValue.value;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (condition.compareValue as any)?.value;
       return condition.operator === ConditionOperator.Like && isLikeStart(value);
     }
   },
@@ -146,8 +129,8 @@ export const operatorOptions: OperatorOption[] = [
     displayValue: 'ends with',
     modelValue: ConditionOperator.Like,
     predicate: (condition: JsonMap): boolean => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const value = condition.compareValue.value;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (condition.compareValue as any)?.value;
       return condition.operator === ConditionOperator.Like && isLikeEnds(value);
     }
   },
@@ -156,8 +139,8 @@ export const operatorOptions: OperatorOption[] = [
     displayValue: 'contains',
     modelValue: ConditionOperator.Like,
     predicate: (condition: JsonMap): boolean => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const value = condition.compareValue.value;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (condition.compareValue as any)?.value;
       return condition.operator === ConditionOperator.Like && isLikeContains(value);
     }
   }

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  *  Copyright (c) 2020, salesforce.com, inc.
  *  All rights reserved.
@@ -8,63 +6,45 @@
  *
  */
 
+import { Layer } from 'effect';
 import { JsonMap } from '@salesforce/ts-types';
-import { fromEvent, Observable } from 'rxjs';
-import { filter, pluck } from 'rxjs/operators';
-import { getWindow, getVscode } from '../globals';
-import { IMessageService } from './iMessageService';
+import { getVscode } from '../globals';
+import { MessageService, IMessageService } from './iMessageService';
 import { SoqlEditorEvent, MessageType } from './soqlEditorEvent';
 
-export class VscodeMessageService implements IMessageService {
-  public messagesToUI: Observable<SoqlEditorEvent>;
+export const makeVscodeMessageService = (): IMessageService => {
+  const vscode = getVscode() as { postMessage(msg: unknown): void; getState(): unknown; setState(s: unknown): void };
+  const listeners: Array<(event: SoqlEditorEvent) => void> = [];
 
-  protected vscode;
+  window.addEventListener('message', (e: MessageEvent) => {
+    const data = e.data as SoqlEditorEvent;
+    if (data?.type !== undefined) {
+      listeners.map(l => l(data));
+    }
+  });
 
-  public constructor() {
-    this.vscode = getVscode();
-    const source = fromEvent(getWindow(), 'message');
-    this.messagesToUI = source.pipe(
-      this.onlyDataProperty(),
-      this.onlyIfValidEditorEvent()
-    );
-    this.sendActivatedMessage();
-  }
+  vscode.postMessage({ type: MessageType.UI_ACTIVATED });
 
-  public sendActivatedMessage(): void {
-    this.vscode.postMessage({ type: MessageType.UI_ACTIVATED });
-  }
+  const onMessage = (listener: (event: SoqlEditorEvent) => void): void => {
+    listeners.push(listener);
+  };
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  public async sendMessage(event: SoqlEditorEvent): Promise<void> {
-    this.vscode.postMessage(event);
-  }
+  const sendMessage = (event: SoqlEditorEvent): void => {
+    vscode.postMessage(event);
+  };
 
-  public sendTelemetry(telemetry: JSON): void {
-    this.vscode.postMessage({
-      type: MessageType.UI_TELEMETRY,
-      payload: telemetry
-    });
-  }
+  const setState = (state: JsonMap): void => {
+    vscode.setState(state);
+  };
 
-  public getState(): unknown {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const state = this.vscode.getState();
-    return state;
-  }
+  const getState = (): JsonMap => {
+    return vscode.getState() as JsonMap;
+  };
 
-  public setState(state: JsonMap): void {
-    this.vscode.setState(state);
-  }
+  return { onMessage, sendMessage, setState, getState };
+};
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  private onlyDataProperty() {
-    return pluck('data');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  private onlyIfValidEditorEvent() {
-    return filter((event: SoqlEditorEvent) => {
-      return event.type !== undefined;
-    });
-  }
-}
+export const VscodeMessageServiceLive: Layer.Layer<MessageService> = Layer.sync(
+  MessageService,
+  () => makeVscodeMessageService()
+);

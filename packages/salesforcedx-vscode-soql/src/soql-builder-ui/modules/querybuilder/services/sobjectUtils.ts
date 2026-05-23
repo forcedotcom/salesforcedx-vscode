@@ -7,36 +7,28 @@
  */
 
 import { SObjectFieldType } from '@salesforce/soql-model/model/model';
+import { SObjectMetadata } from './message/soqlEditorEvent';
 
-type SObjectField = {
+type NormalizedField = {
   name: string;
   type: SObjectFieldType;
   picklistValues: string[];
   nillable: boolean;
 }
 
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 export class SObjectTypeUtils {
-  protected fieldMap: { [key: string]: SObjectField };
+  protected fieldMap: { [key: string]: NormalizedField };
   protected typeMap: { [key: string]: SObjectFieldType };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public constructor(protected sobjectMetadata: any) {
+  public constructor(protected sobjectMetadata: SObjectMetadata | undefined) {
     this.fieldMap = {};
-    if (
-      sobjectMetadata &&
-      sobjectMetadata.fields &&
-      Array.isArray(sobjectMetadata.fields)
-    ) {
-      sobjectMetadata.fields.forEach((field) => {
+    if (sobjectMetadata?.fields) {
+      sobjectMetadata.fields.forEach(field => {
         this.fieldMap[field.name.toLowerCase()] = {
           name: field.name,
-          type: field.type,
+          type: field.type as SObjectFieldType,
           picklistValues:
             field.picklistValues && Array.isArray(field.picklistValues)
-              ? field.picklistValues.map((picklistValue) => picklistValue.value)
+              ? (field.picklistValues as Array<{ value: string }>).map(pv => pv.value)
               : [],
           nillable: field.nillable
         };

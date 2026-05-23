@@ -6,13 +6,18 @@
  *
  */
 
-import { Observable } from 'rxjs';
+import { Context } from 'effect';
 import { JsonMap } from '@salesforce/ts-types';
 import { SoqlEditorEvent } from './soqlEditorEvent';
 
 export type IMessageService = {
-  messagesToUI: Observable<SoqlEditorEvent>;
+  onMessage(listener: (event: SoqlEditorEvent) => void): void;
   sendMessage(message: SoqlEditorEvent): void;
   setState(state: JsonMap): void;
   getState(): JsonMap;
-}
+};
+
+export class MessageService extends Context.Tag('MessageService')<
+  MessageService,
+  IMessageService
+>() {}

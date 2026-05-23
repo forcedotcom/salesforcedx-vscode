@@ -81,12 +81,19 @@ const buildWebConfig = async () => {
       });
       const orgDisplayResponse = JSON.parse(stdout);
       const orgData = orgDisplayResponse.result;
-      const ORG_DISPLAY_KEYS = ['instanceUrl', 'accessToken', 'apiVersion'];
+      const ORG_DISPLAY_KEYS = ['instanceUrl', 'apiVersion'];
 
-      if (ORG_DISPLAY_KEYS.every(k => orgData[k])) {
-        ORG_DISPLAY_KEYS.forEach(key => {
+      const { stdout: tokenStdout } = await execAsync(
+        `sf org auth show-access-token -o ${process.env.ESBUILD_WEB_ORG_ALIAS} --json`,
+        { env: { ...process.env, NO_COLOR: '1' } }
+      );
+      orgData.accessToken = JSON.parse(tokenStdout).result.accessToken;
+
+      const ALL_KEYS = [...ORG_DISPLAY_KEYS, 'accessToken'];
+      if (ALL_KEYS.every(k => orgData[k])) {
+        ALL_KEYS.forEach(key => {
           const fullKey = Object.keys(pkg.contributes?.configuration?.properties ?? {})
-            .filter(k => ORG_DISPLAY_KEYS.includes(k.split('.')[1]))
+            .filter(k => ALL_KEYS.includes(k.split('.')[1]))
             .find(k => k.endsWith(`.${key}`));
           if (fullKey) configMap[fullKey] = orgData[key];
         });

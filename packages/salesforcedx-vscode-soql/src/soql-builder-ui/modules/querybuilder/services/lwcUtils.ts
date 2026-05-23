@@ -3,10 +3,7 @@ type IndexableArrayItem<T> = {
   item: T;
 };
 
-type IndexableArray<T> = Array<IndexableArrayItem<T>>;
+export type IndexableArray<T> = Array<IndexableArrayItem<T>>;
 
-export const lwcIndexableArray = <T>(arr: unknown[]): IndexableArray<T> => {
-  return arr.map((item: T, index: number): IndexableArrayItem<T> => {
-    return { index, item };
-  });
-};
+export const lwcIndexableArray = <T>(arr: T[]): IndexableArray<T> =>
+  arr.map((item, index) => ({ index, item }));

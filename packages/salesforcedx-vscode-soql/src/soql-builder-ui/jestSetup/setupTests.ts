@@ -3,6 +3,17 @@
 // @ts-ignore
 globalThis.global = globalThis;
 
+// effect requires TextEncoder/TextDecoder (not available in older jsdom)
+import { TextEncoder, TextDecoder } from 'util';
+if (typeof globalThis.TextEncoder === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  globalThis.TextEncoder = TextEncoder;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  globalThis.TextDecoder = TextDecoder;
+}
+
 // Mock localStorage for jest environment
 class LocalStorageMock {
   private store: Record<string, string> = {};

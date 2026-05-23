@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult, DescribeSObjectResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
@@ -75,24 +76,6 @@ type SoqlEditorEvent =
       type: 'set_default_org';
       payload: never;
     };
-
-// TODO: This should be shared with soql-builder-ui
-type MessageType =
-  | 'ui_activated'
-  | 'ui_soql_changed'
-  | 'ui_telemetry'
-  | 'sobject_metadata_request'
-  | 'sobject_metadata_response'
-  | 'sobjects_request'
-  | 'sobjects_response'
-  | 'text_soql_changed'
-  | 'run_query'
-  | 'connection_changed'
-  | 'run_query_done'
-  | 'no_default_org'
-  | 'get_query_plan'
-  | 'get_query_plan_done'
-  | 'set_default_org';
 
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
