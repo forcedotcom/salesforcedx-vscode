@@ -47,9 +47,10 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "66.12.3"
+    "salesforcedx-vscode-services": "*"
   },
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "compile": "wireit",
     "lint": "wireit",

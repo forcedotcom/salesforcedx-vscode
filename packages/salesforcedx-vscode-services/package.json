@@ -58,6 +58,7 @@
     "svgtofont": "^3.5.0"
   },
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "build:icons": "wireit",
     "vscode:bundle": "wireit",
     "vscode:package": "wireit",

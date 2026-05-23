@@ -40,14 +40,15 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "salesforcedx-vscode-apex": "66.12.3",
-    "salesforcedx-vscode-core": "66.12.3"
+    "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "vscode:bundle:build": "wireit",
     "vscode:prepublish": "npm prune --production",
