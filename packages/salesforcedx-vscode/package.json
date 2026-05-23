@@ -22,6 +22,7 @@
     "vscode": "^1.90.0"
   },
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"

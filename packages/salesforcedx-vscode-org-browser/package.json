@@ -37,12 +37,13 @@
     "@salesforce/core": "^8.31.0",
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "salesforcedx-vscode-services": "66.12.3"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",

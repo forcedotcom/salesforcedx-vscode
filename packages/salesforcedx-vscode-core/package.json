@@ -74,6 +74,7 @@
     }
   },
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "vscode:prepublish": "npm prune --production",
     "vscode:package:legacy": "wireit",
