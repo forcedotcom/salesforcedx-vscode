@@ -20174,13 +20174,18 @@
         "Field Type": "string"
       },
       {
+        "Description": "Specifies the execution mode for the expression set definition.Valid values are: Cloud Local",
+        "Field Name": "executionMode",
+        "Field Type": "ExpsSetExecutionMode (enumeration of type string)"
+      },
+      {
         "Description": "Specifies the scale of the inputs that an expression set processes. The scale determines where the expression set is executed. Valid values are: High Low Available in API version 61.0 and later.",
         "Field Name": "executionScale",
         "Field Type": "ExpsSetExecutionScale (enumeration of type string)"
       },
       {
-        "Description": "The interface source type designed by the consuming cloud that's making a customized expression set builder available to its users. Valid values are: Constraint (Available in API version 62.0 and later). DiscoveryProcedure (Available in API version 61.0 and later). EventOrchestration (Available in API version 61.0 and later). ItServiceManagement (Available in API version 65.0 and later). PricingProcedure QualificationProcedure RatingDiscoveryProcedure (Available in API version 61.0 and later). Sample Available in API version 59.0 and later.",
-        "Field Name": "interfaceSourceType",
+        "Description": "The interface source type designed by the consuming cloud that's making a customized expression set builder available to its users. Valid values are: Bre Constraint (Available in API version 62.0 and later). DiscoveryProcedure (Available in API version 61.0 and later). EventOrchestration (Available in API version 61.0 and later). GpaCalculationProcedure (Available in API version 67.0 and later). IntelligentDecisionStudio (Available in API version 67.0 and later). ItServiceManagement (Available in API version 65.0 and later). PricingProcedure QualificationProcedure RatingDiscoveryProcedure (Available in API version 61.0 and later). RatingProcedure (Available in API version 67.0 and later). Sample Available in API version 59.0 and later.",
+        "Field Name": "interfaceSource​Type",
         "Field Type": "ExpsSetInterfaceSourceType (enumeration of type string)"
       },
       {
@@ -20189,19 +20194,24 @@
         "Field Type": "string"
       },
       {
-        "Description": "The process type that uses the expression set rule. Valid values are: Bre GpaCalculation InsuranceClaimProcessing—Available in API version 65.0 and later. ItServiceManagement—Available in API version 65.0 and later. PlanCostCalculation RatingDiscovery StudentInformationSystem—Available in API version 65.0 and later. StudentSuccess When Business Rules Engine is enabled for a Salesforce instance, the default value is 'Bre’. Other process types are available to you depending on your industry solution and permission sets.",
+        "Description": "The process type that uses the expression set rule. Valid values are: Bre GpaCalculation InsuranceClaimProcessing—Available in API version 65.0 and later. ItServiceManagement—Available in API version 65.0 and later. PlanCostCalculation RatingDiscovery StudentInformationSystem—Available in API version 65.0 and later. StudentSuccess When Business Rules Engine is enabled for a Salesforce instance, the default value is Bre. Other process types are available to you depending on your industry solution and permission sets.",
         "Field Name": "processType",
         "Field Type": "ExpsSetProcessType (enumeration of type string)"
       },
       {
         "Description": "Indicates whether the initial value of expression set variables and context tags is null or a default value. Valid values are: Default Off Available in API version 64.0 and later.",
-        "Field Name": "resourceInitializationType",
+        "Field Name": "resource​InitializationType",
         "Field Type": "ResourceInitializationType (enumeration of type string)"
       },
       {
         "Description": "Defines whether an expression set is a template or not.",
         "Field Name": "template",
         "Field Type": "boolean"
+      },
+      {
+        "Description": "The type of the expression set definition.Valid values are: Custom Standard",
+        "Field Name": "type",
+        "Field Type": "ExpsSetType (enumeration of type string)"
       },
       {
         "Description": "The subtype of the industry that's using the expression set definition. If no value is specified, the field defaults to null.",
@@ -20237,13 +20247,23 @@
       },
       {
         "Description": "The full name of an expression set definition.",
-        "Field Name": "expressionSetDefinition",
+        "Field Name": "expressionSet​Definition",
         "Field Type": "string"
+      },
+      {
+        "Description": "The interface source type designed by the consuming cloud that's making a customized expression set builder available to its users. Valid values are: Bre Constraint DiscoveryProcedure EventOrchestration GpaCalculationProcedure IntelligentDecisionStudio ItServiceManagement PricingProcedure QualificationProcedure RatingDiscoveryProcedure RatingProcedure Sample Available in API version 67.0 and later.",
+        "Field Name": "interface​SourceType",
+        "Field Type": "ExpsSetInterfaceSourceType (enumeration of type string)"
       },
       {
         "Description": "Required. The UI label of an expression set definition.",
         "Field Name": "label",
         "Field Type": "string"
+      },
+      {
+        "Description": "The process type that uses the expression set rule. Available in API version 67.0 and later.",
+        "Field Name": "processType",
+        "Field Type": "ExpsSetProcessType (enumeration of type string)"
       },
       {
         "Description": "The rank of the Expression Set Definition Version. When more than one enabled version matches an expression set call, and the start date time to end date time spans overlap, the version with the highest rank is chosen. Available in API version 62.0 and later.",
@@ -20252,7 +20272,7 @@
       },
       {
         "Description": "Indicates whether the decision explanation is exposed to external users (true) or not (false). The default value is false. Available in API version 56.0 and later.",
-        "Field Name": "shouldShowExplExternally",
+        "Field Name": "shouldShow​ExplExternally",
         "Field Type": "boolean"
       },
       {
@@ -20261,7 +20281,7 @@
         "Field Type": "dateTime"
       },
       {
-        "Description": "Required. The status of an expression set definition. Possible values are: Active Draft Inactive InvalidDraft Obsolete",
+        "Description": "Required. The status of an expression set definition. Valid values are: Active Draft Inactive InvalidDraft Obsolete",
         "Field Name": "status",
         "Field Type": "ExpsSetStatus (enumeration of type string)"
       },
@@ -20293,7 +20313,7 @@
   "ExpressionSet​​Step": {
     "fields": [
       {
-        "Description": "Specifies the type of action this step executes.Valid values are: AiAcceleratorSubscriberChurnPrediction ApexAction ApexListAction (Available in API version 64.0 and later.) AssetDiscovery AssignBadgeToMember AssignParameterValues AssignmentElement AssignmentRuleCustomUser (Available in API version 65.0 and later.) AssignmentRuleCustomQueue (Available in API version 65.0 and later.) AteprlRecordCreator (Available in API version 65.0 and later.) BaseRate BindingObjectRateAdjustmentResolution (Available in API version 64.0 and later.) BindingObjectRateCardEntryResolution (Available in API version 64.0 and later.) BreAggregator BreAggregatorAssignment BreakdownLineMapping (Available in API version 64.0 and later.) CalculateQuantity (Available in API version 64.0 and later.) ChangeMemberTier CheckMemberBadgeAssignment CommercePricing (Available in API version 62.0 and later.) CommitmentAdjustment (Available in API version 65.0 and later.) ComplianceCheck ComplianceControlLog (Available in API version 62.0 and later.) Constraint (Available in API version 64.0 and later.) CreditPoints Crud DebitPoints DerivedPricing DiscountDistributionService DiscoverySettings (Available in API version 64.0 and later.) DynamicRulesExecutor (Available in API version 65.0 and later.) EvaluateCategoryDisqualification (Available in API version 62.0 and later.) EvaluateCategoryQualification (Available in API version 62.0 and later.) FormulaBasedRating (Available in API version 62.0 and later.) FormulaBasedPricing GetCustomerPromotionAttrValue (Available in API version 64.0 and later.) GetMemberAttributesValues GetMemberPointBalance GetMemberPromotions GetMemberTier GetOutputsFromDecisionMatrix GetOutputsFromDecisionTable GroupingAndAggregateRating (Available in API version 62.0 and later.) IncreaseUsageForCumulativePromotion IntegrationOrchestration IssueExtendedReward (Available in API version 64.0 and later.) IssueVoucher ManualRatingDiscount (Available in API version 62.0 and later.) MapProduct MinimumPrice (Available in API version 62.0 and later.) MultiRecipientProductQualification (Available in API version 64.0 and later.) NegotiatedBaseRate (Available in API version 64.0 and later.) NegotiatedRateCardEntryResolution (Available in API version 64.0 and later.) NegotiatedTierAdjustment (Available in API version 64.0 and later.) NegotiatedVolumeAdjustment (Available in API version 64.0 and later.) PriceGuidance (Available in API version 64.0 and later.) PriceRevision (Available in API version 65.0 and later.) PricingPropagation (Available in API version 65.0 and later.) PricingSettings PromotionsDiscount PromotionExecution (Available in API version 65.0 and later.) RateAdjustmentByAttributeResolution (Available in API version 62.0 and later.) RateAdjustmentByTierResolution (Available in API version 62.0 and later.) RateAdjustmentMatrix (Available in API version 62.0 and later.) RateAssignment (Available in API version 62.0 and later.) RateCardEntryResolution (Available in API version 62.0 and later.) RateCardResolution (Available in API version 62.0 and later.) RatingAttributeDiscount RatingBreakdownLineMapping (Available in API version 65.0 and later.) RatingRoundingValues (Available in API version 62.0 and later.) RatingSetting RatingTierDiscount RatingVolumeDiscount RecordAction RoundingValues RuleFetch RunFlow RunProgramProcess SampleCustomElementWithExpressionAndListFilter StopPricing StopRating (Available in API version 62.0 and later.) TermGpaCalculation (Available in API version 64.0 and later.) TermGpaReporting (Available in API version 64.0 and later.) TestCustomElement UpdateCurrentValueForMemberAttribute UpdateCustomerPromotionAttrValue (Available in API version 64.0 and later.) UpdatePointBalance UpdateUsageForCumulativePromotion UpsertRecord (Available in API version 64.0 and later.) VolumeTierDiscount",
+        "Description": "Specifies the type of action this step executes.Valid values are: AiAcceleratorSubscriberChurnPrediction ApexAction ApexListAction (Available in API version 64.0 and later.) AssetDiscovery AssignBadgeToMember AssignParameterValues AssignmentElement AssignmentRuleCustomQueue (Available in API version 65.0 and later.) AssignmentRuleCustomUser (Available in API version 65.0 and later.) AteprlRecordCreator (Available in API version 65.0 and later.) AttributeAdjustmentMatrix AttributeDiscount AutomatedClaimsProcessingValidation BaseRate BindingObjectRateAdjustmentResolution (Available in API version 64.0 and later.) BindingObjectRateCardEntryResolution (Available in API version 64.0 and later.) BreAggregator BreAggregatorAssignment BreakdownLineMapping (Available in API version 64.0 and later.) BundleDiscount CalculateQuantity (Available in API version 64.0 and later.) ChangeMemberTier CheckMemberBadgeAssignment CommercePricing (Available in API version 62.0 and later.) CommitmentAdjustment (Available in API version 65.0 and later.) ComplianceCheck ComplianceControlLog (Available in API version 62.0 and later.) Constraint (Available in API version 64.0 and later.) CreditPoints Crud DebitPoints DerivedPricing DiscountDistributionService DiscoverySettings (Available in API version 64.0 and later.) DynamicRulesExecutor (Available in API version 65.0 and later.) EvaluateCategoryDisqualification (Available in API version 62.0 and later.) EvaluateCategoryQualification (Available in API version 62.0 and later.) EvaluateDisqualification EvaluateQualification FormulaBasedPricing FormulaBasedRating (Available in API version 62.0 and later.) GetCustomerPromotionAttrValue (Available in API version 64.0 and later.) GetMemberAttributesValues GetMemberPartnerLinkageStatus GetMemberPointBalance GetMemberPromotions GetMemberTier GetOutputsFromDecisionMatrix GetOutputsFromDecisionTable GetUserData GroupingAndAggregatePricing GroupingAndAggregateRating (Available in API version 62.0 and later.) IncreaseUsageForCumulativePromotion IntegrationOrchestration InterNodeDataCopy IssueExtendedReward (Available in API version 64.0 and later.) IssueVoucher ListGroup ListGroupCalculation ListPrice ManualDiscount ManualRatingDiscount (Available in API version 62.0 and later.) MapProduct MinimumPrice (Available in API version 62.0 and later.) MultiRecipientProductQualification (Available in API version 64.0 and later.) NegotiatedBaseRate (Available in API version 64.0 and later.) NegotiatedRateCardEntryResolution (Available in API version 64.0 and later.) NegotiatedTierAdjustment (Available in API version 64.0 and later.) NegotiatedVolumeAdjustment (Available in API version 64.0 and later.) PredictiveAI PriceAdjustmentMatrix PriceGuidance (Available in API version 64.0 and later.) PriceRevision (Available in API version 65.0 and later.) PricingPropagation (Available in API version 65.0 and later.) PricingSettings PromotionExecution (Available in API version 65.0 and later.) PromotionsDiscount Proration RateAdjustmentByAttributeResolution (Available in API version 62.0 and later.) RateAdjustmentByTierResolution (Available in API version 62.0 and later.) RateAdjustmentMatrix (Available in API version 62.0 and later.) RateAssignment (Available in API version 62.0 and later.) RateCardEntryResolution (Available in API version 62.0 and later.) RateCardResolution (Available in API version 62.0 and later.) RatingAttributeDiscount RatingBreakdownLineMapping (Available in API version 65.0 and later.) RatingRoundingValues (Available in API version 62.0 and later.) RatingSetting RatingTierDiscount RatingVolumeDiscount RecordAction RecordAlert RedeemVoucher RoundingValues RuleFetch RunFlow RunProgramProcess SampleBusinessElementWithContext SampleCustomElementWithExpressionAndListFilter SampleDynamicCustomElement SampleJavaBasedTaxCalculatorCustomElement SampleTaxCalculatorCustomElement SendMail StopPricing StopRating (Available in API version 62.0 and later.) SubscriptionPricing TermGpaCalculation (Available in API version 64.0 and later.) TermGpaReporting (Available in API version 64.0 and later.) TestCustomElement UpdateCurrentValueForMemberAttribute UpdateCustomerPromotionAttrValue (Available in API version 64.0 and later.) UpdatePointBalance UpdateUsageForCumulativePromotion UpsertRecord (Available in API version 64.0 and later.) VolumeDiscount VolumeTierDiscount",
         "Field Name": "actionType",
         "Field Type": "BusinessKnowledgeModel (enumeration of type string)"
       },
@@ -20334,13 +20354,18 @@
       },
       {
         "Description": "The explainability message template that’s used when the result type of a condition step in an expression set is Failed.",
-        "Field Name": "failedExplainerTemplate",
+        "Field Name": "failed​ExplainerTemplate",
         "Field Type": "string"
       },
       {
         "Description": "List of the token resource mappings of the failed explainability message template. Valid values are: expressionSetMessageToken resourceReference Available in API version 59.0 and later.",
-        "Field Name": "failedMessageTokenMappings",
+        "Field Name": "failedMessage​TokenMappings",
         "Field Type": "ExplainabilityMessageTemplateTokenMapping (enumeration of type string)"
+      },
+      {
+        "Description": "Indicates whether the step has nested explainability ( ) or not ( ). Available in API version 67.0 and later.",
+        "Field Name": "hasNested​Explainability",
+        "Field Type": "boolean"
       },
       {
         "Description": "Required. The UI label of an expression set definition version step.",
@@ -20354,12 +20379,12 @@
       },
       {
         "Description": "The explainability message template that’s used when the result type of a condition step in an expression set is No Result. Available in API version 59.0 and later.",
-        "Field Name": "noResultExplainerTemplate",
+        "Field Name": "noResult​ExplainerTemplate",
         "Field Type": "string"
       },
       {
         "Description": "List of the token resource mappings of the no result explainability message template. Valid values are: expressionSetMessageToken resourceReference Available in API version 59.0 and later.",
-        "Field Name": "noResultMessageTokenMappings",
+        "Field Name": "noResultMessage​TokenMappings",
         "Field Type": "ExplainabilityMessageTemplateTokenMapping (enumeration of type string)"
       },
       {
@@ -20369,12 +20394,12 @@
       },
       {
         "Description": "The explainability message template that’s used when the result type of a condition step in an expression set is Passed.",
-        "Field Name": "passedExplainerTemplate",
+        "Field Name": "passedExplainer​Template",
         "Field Type": "string"
       },
       {
         "Description": "List of the token resource mappings of the passed explainability message template. Valid values are: expressionSetMessageToken resourceReference Available in API version 59.0 and later.",
-        "Field Name": "passedMessageTokenMappings",
+        "Field Name": "passedMessage​TokenMappings",
         "Field Type": "ExplainabilityMessageTemplateTokenMapping (enumeration of type string)"
       },
       {
@@ -20403,7 +20428,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Required. Specifies the type of step in an expression set definition version. Valid values are: AdvancedCondition Branch BusinessKnowledgeModel Condition DefaultPath SubExpression",
+        "Description": "Required. Specifies the type of step in an expression set definition version. Valid values are: AdvancedCondition AdvancedListFilter (Available in API version 67.0 and later). Branch BusinessKnowledgeModel Condition DefaultPath ListFilter (Available in API version 67.0 and later). ListGroup (Available in API version 67.0 and later). SubExpression",
         "Field Name": "stepType",
         "Field Type": "ExpsSetStepType (enumeration of type string)"
       },
@@ -20653,7 +20678,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Represents an array of fields in an object that is used as a variable in an expression set.",
+        "Description": "Represents an array of fields in an object that's used as a variable in an expression set.",
         "Field Name": "fields",
         "Field Type": "ExpressionSetVariableField []"
       },
@@ -20720,7 +20745,7 @@
         "Field Type": "int"
       },
       {
-        "Description": "Represents an array of fields in an object that is used as a variable in an expression set.",
+        "Description": "Represents an array of fields in an object that's used as a variable in an expression set.",
         "Field Name": "fields",
         "Field Type": "ExpressionSetVariableField []"
       },
@@ -20745,7 +20770,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents a definition of a field in an object that is used as a variable in an expression set.",
+    "short_description": "Represents a definition of a field in an object that's used as a variable in an expression set.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_expressionsetdefinition.htm",
     "parent": "Metadata"
   },
@@ -23033,7 +23058,7 @@
   "FlowActionCallOutputParameter": {
     "fields": [
       {
-        "Description": "Required. Specifies the variable to which you want to assign the output parameter value.",
+        "Description": "Required. Specifies the variable that you want to assign the target output value to.",
         "Field Name": "assignToReference",
         "Field Type": "string"
       },
@@ -23116,7 +23141,7 @@
   "FlowApexPluginCallOutputParameter": {
     "fields": [
       {
-        "Description": "Required. Specifies the variable to which you want to assign the output parameter value.",
+        "Description": "Required. Specifies the variable that you want to assign the target output value to.",
         "Field Name": "assignToReference",
         "Field Type": "string"
       },
@@ -23150,7 +23175,7 @@
   "FlowAssignmentItem": {
     "fields": [
       {
-        "Description": "Reference to the variable to which you want to apply the specified operator.",
+        "Description": "Specifies the variable that you want to assign the target output value to.",
         "Field Name": "assignToReference",
         "Field Type": "string"
       },
