@@ -1,21 +1,30 @@
-# 66.12.3 - May 22, 2026
+# 66.13.0 - May 27, 2026
 
 ## Added
 
-#### salesforcedx-vscode-metadata
+#### salesforcedx-vscode-apex-testing
 
-- You can now disable automatic source tracking conflict detection via the **Source Tracking: Disable Conflict Detection** setting for improved startup performance. ([PR #7323](https://github.com/forcedotcom/salesforcedx-vscode/pull/7323))
+- Incremental test tree update on deploy and restore previous results - W-22400699 ([PR #7300](https://github.com/forcedotcom/salesforcedx-vscode/pull/7300))
+
+#### salesforcedx-vscode-core
+
+- Add orgEdition to telemetry properties - W-22583951 ([PR #7343](https://github.com/forcedotcom/salesforcedx-vscode/pull/7343))
+
+#### salesforcedx-vscode-lwc
+
+- Incremental test tree update on deploy and restore previous results - W-22400699 ([PR #7300](https://github.com/forcedotcom/salesforcedx-vscode/pull/7300))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-vscode-apex-log
 
-- We fixed an unhandled "Channel has been closed" exception that could occur during Apex Language Server restart. ([PR #7314](https://github.com/forcedotcom/salesforcedx-vscode/pull/7314))
+- Allow user to select their trace flag debug level when creating instead of defaulting to ReplayDebuggerLevels - W-22364952 ([PR #7330](https://github.com/forcedotcom/salesforcedx-vscode/pull/7330))
 
-#### salesforcedx-vscode-org
+#### salesforcedx-vscode-apex-replay-debugger
 
-- We fixed an issue where the source tracking status bar didn't refresh after switching orgs via the org picker. ([PR #7328](https://github.com/forcedotcom/salesforcedx-vscode/pull/7328))
+- Allow user to select their trace flag debug level when creating instead of defaulting to ReplayDebuggerLevels - W-22364952 ([PR #7330](https://github.com/forcedotcom/salesforcedx-vscode/pull/7330))
 
-## Under the Hood
+#### salesforcedx-vscode-services
 
-- We made some under the hood changes. ([PR #7293](https://github.com/forcedotcom/salesforcedx-vscode/pull/7293), [PR #7299](https://github.com/forcedotcom/salesforcedx-vscode/pull/7299), [PR #7322](https://github.com/forcedotcom/salesforcedx-vscode/pull/7322), [PR #7325](https://github.com/forcedotcom/salesforcedx-vscode/pull/7325), [PR #7331](https://github.com/forcedotcom/salesforcedx-vscode/pull/7331), [PR #7336](https://github.com/forcedotcom/salesforcedx-vscode/pull/7336))
+- Allow user to select their trace flag debug level when creating instead of defaulting to ReplayDebuggerLevels - W-22364952 ([PR #7330](https://github.com/forcedotcom/salesforcedx-vscode/pull/7330))
+
