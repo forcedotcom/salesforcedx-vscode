@@ -8,6 +8,16 @@
       "type": "string"
     },
     "edition": {
+      "enum": [
+        "Developer",
+        "Enterprise",
+        "Group",
+        "Professional",
+        "Partner Developer",
+        "Partner Enterprise",
+        "Partner Group",
+        "Partner Professional"
+      ],
       "description": "The Salesforce edition of the scratch org.",
       "type": "string"
     },
@@ -988,6 +998,14 @@
         },
         "emailAdministrationSettings": {
           "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailadministrationsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "emailAuthorizationSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailauthorizationsettings.htm",
           "type": "object",
           "propertyNames": {
             "type": "string"

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  *  Copyright (c) 2020, salesforce.com, inc.
  *  All rights reserved.
@@ -8,108 +6,126 @@
  *
  */
 
+import { Effect, Layer, SubscriptionRef } from 'effect';
 import { ToolingSDK } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingSDK';
-import { VscodeMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/vscodeMessageService';
-import { IMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
-import { getWindow, getVscode } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
-import { MessageType } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
+import {
+  MessageService,
+  IMessageService
+} from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
+import {
+  MessageType,
+  SoqlEditorEvent
+} from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
+
+const makeTestMessageLayer = () => {
+  const listeners: Array<(e: SoqlEditorEvent) => void> = [];
+  const sendMessage = jest.fn();
+  const service: IMessageService = {
+    onMessage: cb => {
+      listeners.push(cb);
+    },
+    sendMessage,
+    setState: jest.fn(),
+    getState: jest.fn()
+  };
+  const emit = (event: SoqlEditorEvent) => listeners.forEach(l => l(event));
+  const layer = Layer.succeed(MessageService, service);
+  return { layer, emit, sendMessage };
+};
+
+const runWithSDK = <A>(layer: Layer.Layer<MessageService>, body: (sdk: ToolingSDK) => Effect.Effect<A>): Promise<A> =>
+  Effect.runPromise(
+    Effect.gen(function* () {
+      const sdk = yield* ToolingSDK;
+      return yield* body(sdk);
+    }).pipe(Effect.provide(Layer.provide(ToolingSDK.Default, layer)))
+  );
 
 describe('Tooling SDK Service', () => {
-  let toolingSDK: ToolingSDK;
-  let messageService: IMessageService;
-  const window = getWindow();
-  let vscode;
+  it('Retrieve SObjects', async () => {
+    const { layer, emit, sendMessage } = makeTestMessageLayer();
 
-  const postMessageFromVSCode = (message): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const messageEvent = new MessageEvent('message', { data: message });
-    window.dispatchEvent(messageEvent);
-  };
+    await runWithSDK(layer, sdk =>
+      Effect.gen(function* () {
+        const initial = yield* SubscriptionRef.get(sdk.sobjects);
+        expect(initial).toStrictEqual([]);
 
-  beforeEach(() => {
-    messageService = new VscodeMessageService();
-    toolingSDK = new ToolingSDK(messageService);
-    vscode = getVscode();
+        sdk.loadSObjectDefinitions();
+        const fakeSObjectNames = ['Hey', 'Jude'];
+        emit({ type: MessageType.SOBJECTS_RESPONSE, payload: fakeSObjectNames });
+
+        const updated = yield* SubscriptionRef.get(sdk.sobjects);
+        expect(updated).toStrictEqual(fakeSObjectNames);
+        expect(sendMessage).toHaveBeenCalledWith({ type: MessageType.SOBJECTS_REQUEST });
+      })
+    );
   });
 
-  it('Load SObject metadata on CONNECTION_CHANGED message', () => {
-    // establish loaded SObject
-    toolingSDK.loadSObjectMetatada('Help!');
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const loadDefsSpy = jest.spyOn(toolingSDK, 'loadSObjectDefinitions');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const loadObjSpy = jest.spyOn(toolingSDK, 'loadSObjectMetatada');
-
-    postMessageFromVSCode({ type: MessageType.CONNECTION_CHANGED });
-
-    expect(loadDefsSpy.mock.calls.length).toBe(1);
-    expect(loadObjSpy.mock.calls.length).toBe(1);
-    expect(loadObjSpy.mock.calls[0][0]).toBe('Help!');
-  });
-
-  it('Retrieve SObjects', () => {
-    jest.spyOn(vscode, 'postMessage');
-    const sObjectsObserver = jest.fn();
-    toolingSDK.sobjects.subscribe(sObjectsObserver);
-
-    toolingSDK.loadSObjectDefinitions();
-
-    expect(vscode.postMessage).toHaveBeenCalled();
-    expect(vscode.postMessage).toHaveBeenCalledWith({
-      type: MessageType.SOBJECTS_REQUEST
-    });
-
-    const fakeSObjectNames = ['Hey', 'Jude'];
-    postMessageFromVSCode({
-      type: MessageType.SOBJECTS_RESPONSE,
-      payload: fakeSObjectNames
-    });
-    expect(sObjectsObserver.mock.calls.length).toBe(2);
-    expect(sObjectsObserver.mock.calls[0][0]).toStrictEqual([]);
-    expect(sObjectsObserver.mock.calls[1][0]).toStrictEqual(fakeSObjectNames);
-  });
-
-  it('Retrieve SObject metadata', () => {
-    jest.spyOn(vscode, 'postMessage');
+  it('Retrieve SObject metadata', async () => {
+    const { layer, emit, sendMessage } = makeTestMessageLayer();
     const fakeSObjectName = 'MySObject';
-
-    const sObjectMetadataObserver = jest.fn();
-    toolingSDK.sobjectMetadata.subscribe(sObjectMetadataObserver);
-    toolingSDK.loadSObjectMetatada(fakeSObjectName);
-
-    expect(vscode.postMessage).toHaveBeenCalled();
-    expect(vscode.postMessage).toHaveBeenCalledWith({
-      type: MessageType.SOBJECT_METADATA_REQUEST,
-      payload: fakeSObjectName
-    });
-
     const fakeSObjectMetadata = {
-      foo: {},
-      bar: {},
       fields: [
         { name: 'field1', extraStuff: 'xyz' },
         { name: 'field2', extraStuff: 'zyx' }
       ]
     };
 
-    postMessageFromVSCode({
-      type: MessageType.SOBJECT_METADATA_RESPONSE,
-      payload: fakeSObjectMetadata
-    });
-    expect(sObjectMetadataObserver.mock.calls.length).toBe(2);
-    expect(sObjectMetadataObserver.mock.calls[0][0]).toStrictEqual({
-      fields: []
-    });
-    expect(sObjectMetadataObserver.mock.calls[1][0]).toStrictEqual(fakeSObjectMetadata);
+    await runWithSDK(layer, sdk =>
+      Effect.gen(function* () {
+        const initial = yield* SubscriptionRef.get(sdk.sobjectMetadata);
+        expect(initial).toStrictEqual({ fields: [] });
+
+        sdk.loadSObjectMetadata(fakeSObjectName);
+        expect(sendMessage).toHaveBeenCalledWith({
+          type: MessageType.SOBJECT_METADATA_REQUEST,
+          payload: fakeSObjectName
+        });
+
+        emit({ type: MessageType.SOBJECT_METADATA_RESPONSE, payload: fakeSObjectMetadata });
+        const updated = yield* SubscriptionRef.get(sdk.sobjectMetadata);
+        expect(updated).toStrictEqual(fakeSObjectMetadata);
+      })
+    );
   });
 
-  it('Receive run_query_done message', () => {
-    const runStateObserver = jest.fn();
-    toolingSDK.queryRunState.subscribe(runStateObserver);
-    postMessageFromVSCode({
-      type: MessageType.RUN_SOQL_QUERY_DONE
-    });
-    expect(runStateObserver.mock.calls.length).toBe(2);
+  it('queryRunState initial value is false', async () => {
+    const { layer } = makeTestMessageLayer();
+    await runWithSDK(layer, sdk =>
+      Effect.gen(function* () {
+        const val = yield* SubscriptionRef.get(sdk.queryRunState);
+        expect(val).toBe(false);
+      })
+    );
+  });
+
+  it('queryRunState set to false on RUN_SOQL_QUERY_DONE', async () => {
+    const { layer, emit } = makeTestMessageLayer();
+    await runWithSDK(layer, sdk =>
+      Effect.gen(function* () {
+        emit({ type: MessageType.RUN_SOQL_QUERY_DONE });
+        const val = yield* SubscriptionRef.get(sdk.queryRunState);
+        expect(val).toBe(false);
+      })
+    );
+  });
+
+  it('Load SObject metadata on CONNECTION_CHANGED message', async () => {
+    const { layer, emit, sendMessage } = makeTestMessageLayer();
+
+    await runWithSDK(layer, sdk =>
+      Effect.gen(function* () {
+        sdk.loadSObjectMetadata('Help!');
+        sendMessage.mockClear();
+
+        emit({ type: MessageType.CONNECTION_CHANGED });
+
+        expect(sendMessage).toHaveBeenCalledWith({ type: MessageType.SOBJECTS_REQUEST });
+        expect(sendMessage).toHaveBeenCalledWith({
+          type: MessageType.SOBJECT_METADATA_REQUEST,
+          payload: 'Help!'
+        });
+      })
+    );
   });
 });
